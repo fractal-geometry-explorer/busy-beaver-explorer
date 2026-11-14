@@ -186,15 +186,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 14 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows. A block of eight-cell words grows at the right end at every sweep; behind it a small region changes like a scrambled odometer. This page runs the real machine in your browser and explains the pieces.</p></div>
+  <div class="col"><p class="lede">Nobody knows. A block of repeated eight-cell words grows at every sweep; behind it a scrambled counter slowly eats a reservoir, and when the reservoir is gone the whole block becomes the next one. This page runs the real machine in your browser and explains the pieces.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>213 cells</b><span class="small">The region left of the block after the event at sweep 91.</span></div>
-    <div class="fact"><span class="ev c">Computed</span><b>8,000 sweeps</b><span class="small">The shortened machine agrees with the real one at every sweep.</span></div>
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>18,659 cells</b><span class="small">The region behind the block since the third event (sweep 9,305).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>3 events</b><span class="small">After sweeps 24, 91 and 9,305, all seen on the true run, none of them a halt.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>~2<sup>1100</sup> sweeps</b><span class="small">Estimated wait for the next event.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">A growing block, a busy counter, and a reservoir</a><a href="#counter">A counter that eats its reservoir, then refills it</a><a href="#halt">Halting needs the counter at the far end</a><a href="#evidence">What was checked, and how</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">A growing block, a busy counter, a reservoir</a><a href="#counter">A counter that eats its reservoir, then refills it</a><a href="#cryptid">A coin toss, repeated at ever longer intervals</a><a href="#evidence">What was checked, and how</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -288,35 +288,34 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 </section>
 <section id="shape">
   <span class="eyebrow">What the tape looks like</span>
-  <h2>A growing block, a busy counter, and a reservoir</h2>
-<p>Run the simulator for a while and look at the tape each time the head reaches the right end. It always has the same four parts: a long uniform block <code>(01011101)<sup>n</sup></code> that grows by a fixed amount every sweep; next to it a short stretch that changes from sweep to sweep and looks random; then a long, regular <em>reservoir</em>; and at the far end an old region that never changes.</p>
-<svg viewBox="0 0 580 70" role="img" aria-label="The tape: a growing uniform block, an active counter region, a reservoir it eats, and a frozen old region" style="width:100%;max-width:620px;height:auto"><g font-family="var(--body)" font-size="11" fill="var(--fg2)"><text x="470" y="14">grows a few cells a sweep &rarr;</text><text x="14" y="60">frozen</text><text x="104" y="60">reservoir</text><text x="314" y="60">active counter</text><text x="404" y="60">growing block</text></g><rect x="10" y="20" width="90" height="22" fill="var(--sunk)" stroke="var(--line-strong)"/><rect x="100" y="20" width="210" height="22" fill="var(--accent-soft)" stroke="var(--line-strong)"/><rect x="310" y="20" width="90" height="22" fill="var(--heur-bg)" stroke="var(--line-strong)"/><rect x="400" y="20" width="170" height="22" fill="var(--ink)" stroke="var(--line-strong)"/></svg>
-<p>The head sweeps across the whole tape every time, which is why the visited part grows like the square root of the step count. Crossing the uniform block does nothing but cost time: the tape the head brings back does not depend on how long the block is. So from sweep to sweep the machine applies one fixed map to the part of the tape after the block, whose length stays exactly the same for long stretches of time.</p>
-<p>Here everything is mirrored: the block <code>(01011101)<sup>n</sup></code> grows at the right end (state B on the blank cell right of it) and the old region is at the left end. After the event at sweep 91 the region left of the block is 213 cells long; over 8,000 sweeps a version that cuts the block to 10 words at every sweep sees exactly the same region as the real machine.</p>
+  <h2>A growing block, a busy counter, a reservoir</h2>
+<p>This machine grows to the right. Look at the tape each time the head reaches the right end and read it leftwards: first a block of copies of the word <code>10111010</code>, one more than last time; then a short busy stretch that changes from sweep to sweep; then a long regular <em>reservoir</em>; and a short old tail at the fixed end. (The picture shows the mirror image.)</p>
+<svg viewBox="0 0 580 70" role="img" aria-label="The tape: a growing uniform block, an active counter region, a reservoir it eats, and an old tail at the far end" style="width:100%;max-width:620px;height:auto"><g font-family="var(--body)" font-size="11" fill="var(--fg2)"><text x="10" y="14">&larr; grows one word a sweep</text><text x="14" y="60">growing block</text><text x="184" y="60">busy counter</text><text x="274" y="60">reservoir</text><text x="484" y="60">old tail</text></g><rect x="10" y="20" width="170" height="22" fill="var(--ink)" stroke="var(--line-strong)"/><rect x="180" y="20" width="90" height="22" fill="var(--heur-bg)" stroke="var(--line-strong)"/><rect x="270" y="20" width="210" height="22" fill="var(--accent-soft)" stroke="var(--line-strong)"/><rect x="480" y="20" width="90" height="22" fill="var(--sunk)" stroke="var(--line-strong)"/></svg>
+<p>Crossing the block changes nothing: the machine applies one fixed rule to the region behind the block, sweep after sweep. There is a rhythm of four sweeps: the head goes 7 cells into the region, then 1, then 7, and on the fourth sweep some varying distance.</p>
 </section>
 <section id="counter">
   <span class="eyebrow">Macro structure</span>
   <h2>A counter that eats its reservoir, then refills it</h2>
-<p>The busy stretch behaves like an odometer with irregular digits: the cells right next to the block change at almost every sweep, cells further in change more and more rarely, and the deepest cell that has ever changed moves into the reservoir at a roughly constant number of cells per <em>doubling</em> of the number of sweeps, so crossing a reservoir takes a number of sweeps exponential in its length.</p>
-<p>The busy part sits next to the block and changes at every sweep; deeper cells change rarely, as in the related machines.</p>
-<p>When the counter reaches the far end of the reservoir, something new happens (an <em>event</em>): the whole uniform block, by then very long, is turned into a fresh reservoir, and a new block starts growing from nothing. The next reservoir is as long as the block was, so the next event is exponentially further away than this one, and the one after that further still.</p>
-<p>One event so far, at sweep 91. In the shortened machine (block cut to 10 words) the region later starts absorbing block words, around sweep 9,300: that is the shortened block being eaten, so from there on the shortened machine no longer follows the real one, and the real machine has a much longer block to absorb.</p>
+<p>The busy stretch behaves like a scrambled odometer: cells next to the block change all the time, deeper ones more and more rarely, and the deepest cell ever touched advances about 17 cells each time the number of sweeps doubles.</p>
+<p>When it reaches the far end there is an <em>event</em>: the whole block is turned into a fresh reservoir and a new block starts. Events so far: after sweeps 24, 91 and 9,305. The third made the region 18,659 cells long, which should last about 2<sup>1100</sup> sweeps.</p>
 </section>
-<section id="halt">
-  <span class="eyebrow">Where it could stop</span>
-  <h2>Halting needs the counter at the far end</h2>
-<p>The machine stops only in state C reading a 0, reached only as <code>0 B&gt;0</code>: B writes a 1 and steps left onto a 0. The block <code>(01011101)<sup>n</sup></code> has no two adjacent 0s, so a halt has to come from the busy region or the far end.</p>
-<p>So a halt, if it ever comes, should come at an event, when the counter reaches the old region at the far end. Between events the machine just keeps sweeping (each event is exponentially further from the last), and at each event the outcome depends on the details of the old region, which look pseudo-random. A heuristic: if each event had a fixed chance of ending in a halt, the machine would halt with probability 1, but only after a tower of exponentials of steps; equally, a structural reason could make every event safe. Nothing here decides which.</p>
+<section id="cryptid">
+  <span class="eyebrow">Why it is hard</span>
+  <h2>A coin toss, repeated at ever longer intervals</h2>
+<p>Between two events nothing can go wrong: the machine sweeps, the block grows, the counter eats a little more reservoir. Everything is decided in the few sweeps in which the counter touches the far end of the tape. Each such contact either stops the machine or turns the block into the next reservoir, which is as long as the block had become, so the next contact is exponentially further away than the last one, and the one after that exponentially further again.</p>
+<svg viewBox="0 0 580 96" role="img" aria-label="Epochs: each reservoir is as long as the block was at the previous event, so each epoch is exponentially longer than the one before" style="width:100%;max-width:620px;height:auto"><g font-family="var(--body)" font-size="11" fill="var(--fg2)"><text x="10" y="14">epoch k: reservoir of L cells</text><text x="10" y="58">epoch k+1: reservoir of about 2^(L/c) cells</text><text x="300" y="36">eaten in about 2^(L/c) sweeps</text></g><rect x="10" y="20" width="60" height="18" fill="var(--accent-soft)" stroke="var(--line-strong)"/><rect x="70" y="20" width="14" height="18" fill="var(--sunk)" stroke="var(--line-strong)"/><rect x="10" y="64" width="520" height="18" fill="var(--accent-soft)" stroke="var(--line-strong)"/><rect x="530" y="64" width="14" height="18" fill="var(--sunk)" stroke="var(--line-strong)"/><circle cx="84" cy="29" r="4" fill="var(--head)"/><circle cx="544" cy="73" r="4" fill="var(--head)"/></svg>
+<p>Machines like this are called <em>cryptids</em> in the Busy Beaver community: their fate hangs on an unbounded sequence of yes/no questions about a pseudo-random process, and no known method answers all of them at once.</p>
+<p>The machine halts only if state B arrives on a 0 with another 0 just behind it. Unlike for its sister machines, no scaled-down version of this one was seen to halt, so it is not even clear which way to bet: it may be that the far end never offers the fatal pattern, but nobody has found the reason.</p>
 </section>
 <section id="evidence">
   <span class="eyebrow">Evidence</span>
   <h2>What was checked, and how</h2>
-<ul><li>The sweep map does not depend on the block length: <code>resetsim ... check</code> agrees with the real machine at every one of 8,000 sweeps (one event, at sweep 91).</li><li>Direct C simulation: no halt in 10<sup>9</sup> steps (triage), the region constant at 226 cells (as measured with the block's period) through 4&middot;10<sup>8</sup> steps; Lean: no halt in 10<sup>7</sup>.</li></ul>
+<ul><li>A version of the machine that cuts the block back to 10 words at every sweep sees exactly the same region as the real machine at each of the first 8,000 sweeps.</li><li>The real machine was run through the third event; from there the shortened version runs 4 million more sweeps without a halt.</li><li>Not known: the counter's rule, and any invariant of the far end.</li></ul>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 14 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -329,9 +328,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 48,970 cells have been visited and 29,203 of them hold a 1.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code></div></div><div><b>The sweep map ignores the block</b><p>At each visit of the right end in state B the tape, read leftwards, is <code>B&gt;0 (10111010)^n R</code>; with n cut to 10 at every visit, R agrees with the true run at all of the first 8,000 visits except the event at visit 91.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>c/rvis.c</code></div></div><div><b>The sweep map ignores the block; three events</b><p>At each visit of the right end in state B the tape, read leftwards, is <code>B&gt;0 (10111010)^n R</code>. With the block cut to 10 words at every visit, R agrees with the true run at all of the first 8,000 visits. On the true run R jumps after visits 24 (31 to 71 cells), 91 (77 to 213) and 9,305 (229 to 18,659), without a halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>rvis ... 10 4 9320 4000000 0</code></div></div><div><b>No halt in 4&middot;10<sup>6</sup> sweeps after the third event</b><p>From the true configuration at visit 9,320 the shortened run makes 4&middot;10<sup>6</sup> visits without a halt or an event.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>rvis</code> depth records</div></div><div><b>Next event about 2<sup>1100</sup> sweeps away</b><p>The counter's front advances about 16.6 cells per doubling of the number of sweeps; the reservoir has about 18,400 cells.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>rvis ... 2 4 1 5000000 0</code></div></div><div><b>No scaled-down version halts</b><p>With the block cut to 2, 3 or 5 words at every visit from the start, there is no halt in 5&middot;10<sup>6</sup> visits.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>The head sweeps across the whole tape and adds a word per sweep at the right end, so the tape grows like the square root of the step count.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The halting pattern <code>0 B&gt;0</code> has not been excluded at the far end, and no invariant of the tail left by an event is known.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -340,7 +342,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 holdouts/1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB/lean/check.sh
 gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
 ./resetsim 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB R B 10111010 10 1 8000 check
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB 1000000000</code></pre>
+gcc -O2 -o rvis holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/rvis.c
+./rvis 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB R B - 10111010 100000 1 1 9400 0 | awk &#x27;{d=$4-p; if(d&gt;20||d&lt;-20) print; p=$4}&#x27;   # events on the true run</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

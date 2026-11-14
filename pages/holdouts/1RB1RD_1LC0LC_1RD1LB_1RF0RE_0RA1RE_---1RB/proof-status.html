@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> A block of <code>110111</code> words grows at the left end; behind it a region of fixed length (16,724 cells since the event at sweep 8,347, step about 1.2&middot;10<sup>8</sup>) is transformed by a fixed map, checked against direct simulation over 9,000 sweeps. The region holds a reservoir of 2,758 words that a chaotic counter eats from the left. A shortened copy runs 4&middot;10<sup>6</sup> more sweeps (about 3&middot;10<sup>13</sup> steps) without a halt.</p>
+      <p><b>The question is open.</b> At each visit of the left end the tape is a block of <code>011111</code> words that grows, then a region transformed by a fixed map: a chaotic near zone, a reservoir of runs of five 1s, and a far zone that is reached by rare sweeps crossing the whole reservoir (16 times in 300,000 sweeps). Two events so far (after sweeps 33 and 8,347) each turned the block into a new reservoir; the present one, 16,600 cells, should last about 2<sup>2400</sup> sweeps. A halt needs two 0s in a row, which only the far end offers.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -138,14 +138,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
-        <h3>The sweep map ignores the block</h3>
-        <p>At each visit of the left end in state B the tape is <code>B&gt;0 111 (011111)^n R</code> (read rightwards); with n cut to 10 at every visit, R agrees with the true run at all of the first 9,000 visits except the event at visit 8,347.</p>
-        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>PREFIX=111</code>, <code>check</code></p>
+        <h3>The sweep map ignores the block; two events</h3>
+        <p>At each visit of the left end in state B the tape is <code>B&gt;0 111 (011111)^n R</code>. With the block cut to 10 words at every visit, R agrees with the true run at all of the first 9,000 visits. Events after visits 33 (R from 35 to 92 cells) and 8,347 (95 to 16,724 cells).</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code></p>
       </div>
       <div class="card">
-        <h3>No halt in 4&middot;10<sup>6</sup> more sweeps</h3>
-        <p>From visit 8,400 the shortened run makes 4&middot;10<sup>6</sup> sweeps (about 3&middot;10<sup>13</sup> steps of the true run) without a halt; no event changes R's length beyond the two-cell wobble of the block's phase.</p>
+        <h3>No halt in 4&middot;10<sup>6</sup> sweeps after the second event</h3>
+        <p>From visit 8,400 the shortened run makes 4&middot;10<sup>6</sup> visits (about 3&middot;10<sup>13</sup> steps of the true run) without a halt or an event.</p>
         <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Rare sweeps cross the whole reservoir</h3>
+        <p>In the 300,000 visits after 8,400, sixteen sweeps go through the reservoir to the far zone: at visits 8406, 8445, 8454, 8736, 9142, 9621, 10678, 10686, 10902, 16800, 27549, 57888, 158742, 170205, 268341 and 272566.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/rvis.c</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -156,16 +161,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>Next event about 2<sup>2400</sup> sweeps away</h3>
+        <p>The near zone eats about 7 cells of reservoir per doubling of the number of sweeps; the reservoir has about 16,600 cells.</p>
+        <p class="where"><code>rvis</code> depth records</p>
+      </div>
+      <div class="card">
+        <h3>A scaled-down version halts</h3>
+        <p>With the block cut to 2 words at every visit from the start, the run halts after 24,517 visits; with 3, 4 or 5 words there is no halt in 2&middot;10<sup>7</sup> visits.</p>
+        <p class="where"><code>rvis ... 2 3 1 20000000 0</code></p>
+      </div>
+      <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.605). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <p>The head sweeps across the whole tape and adds a word per sweep at the left end, so the tape grows like the square root of the step count.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
+        <p>Not known. The laws of the near and far zones are not known, and neither is what happens when they meet.</p>
       </div>
     </div>
   </section>
@@ -175,7 +190,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB/lean/check.sh
 gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
 PREFIX=111 ./resetsim 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB L B 011111 10 1 9000 check
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB 1000000000</code></pre>
+gcc -O2 -o rvis holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/rvis.c
+./rvis 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB L B 111 011111 10 3 8400 300000 60 | awk &#x27;$3 &gt; 10000&#x27;    # the crossings</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

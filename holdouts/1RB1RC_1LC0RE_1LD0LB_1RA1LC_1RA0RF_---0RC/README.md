@@ -13,47 +13,97 @@ bbchallenge id 181043. One of the six-state holdouts whose halting from blank ta
 
 ## What it does
 
-At each visit of the left end in state D the tape is `0^inf D>0 1^n R 0^inf`. Each sweep adds two 1s to the block
-`1^n` (the head crosses it, turning it into `(10)^(n/2)` and back), and the region `R` after it is transformed by a
-map that does not depend on `n`. `R` has exactly 303 cells from visit 138 on:
+A *visit* is a step at which the head extends the tape to the left in state D. The tape is then
 
-* the cells of `R` next to the block change at nearly every visit, deeper ones more and more rarely: a counter with
-  irregular digits. The deepest change advances about **18 cells per doubling** of the number of visits (202 cells
-  into `R` after 8,192 visits, 258 after 131,072);
-* the rest of `R` is a **reservoir** of `10` pairs, then an old region ending in `1 1` next to blank tape;
-* when the counter has used up the reservoir there is an **event**: the whole block is converted into a new reservoir
-  and a new block starts from 0. Events: visit 137 (`R` becomes 303 cells) and visit 167,887 (`R` becomes 335,809
-  cells, at step 8.44e10).
+    0^inf  D>0  1^n  R  0^inf
 
-The halting transition is F0, reached only as `B>1 1 0` (B1 -> 0RE, E1 -> 0RF): a halt needs B to arrive at the old
-region's `1 1` at the fixed end, i.e. the counter at the far end. At 18 cells per doubling the next event is about
-2^18,000 visits away.
+and one sweep later it is the same with `n + 2` and a new region `R`: D0 -> 1RA, the head crosses the block
+(`A> 11 -> 01 A>`, 4 steps a pair), works in `R`, and runs home over `1 (01)^(n/2)` in state D, turning it back into
+1s. What happens in `R` does not depend on `n` (checked against the direct run, below).
+
+It is easiest to read the tape in pairs aligned to the block: `a` = 01, `b` = 11, `c` = 10, `z` = 00
+(`py/pairs.py` prints what each state does to a pair). At a visit `R` is a string of `a` and `b` with a single 1 at
+the end. The pairs next to the block change at nearly every visit, deeper ones more and more rarely, like the digits
+of a counter; but no independent digits were found: the depth a sweep reaches has a smooth geometric distribution
+(each extra 17 cells or so halves the frequency), and the region behaves like a chaotic counter.
+
+Two things can interrupt this, and both need the head at the far end of `R`:
+
+* an **event**: the head comes home in state C instead of D. C turns the block `1 (01)^(n/2)` into `0 (10)^(n/2)`,
+  i.e. a fresh reservoir `a^(n/2 + 2)`, the old region becomes a short *tail* behind it, and the block restarts at 2;
+* a **halt**: F reads 0. In pairs: `B> b` leaves `z F>`, and `F>` halts on `a` or on a blank pair (it turns `b` into
+  `c` and comes back in state C, and `c` into `b`). In every run of the shortened models below, the halt is at
+  the blank far end.
+
+Events so far, after visits 5, 9, 29, 137 (`R` = 303 cells) and **167,887**:
+
+| | |
+|---|---|
+| visit before the event | 167,887, block `1^335,500` |
+| head leaves the region in state C | step 84,443,579,279 |
+| new region | `a^167,752` + a 305-cell tail = 335,809 cells |
+
+The counter now has to eat 335,504 cells of fresh reservoir at about 17 cells per doubling of the number of visits:
+the next event, the next point where a halt is possible, is of the order of **2^19,000 visits** away.
+
+### Why the counter was not decoded
+
+The brief for this pass was to decode the counter (digits, increment, overflow) so that the next event could be
+predicted. For the sibling 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD this works: its fresh reservoir is a chain of
+independent mod-4 counters, and its run was accelerated exactly through 2.8e36 visits. Here it does not: from a fresh
+reservoir (`c/fresh.c`) the search that finds the sibling's counters (a block of cells whose content, at the
+sweeps that reach it, is a function of its own previous content) finds nothing here, and the depth statistics are
+those of a random walk, not of an odometer.
 
 ## Status
 
-Open.
+Open (cryptid-like: a chaotic counter, and something like a coin toss at each of an unbounded sequence of ever
+rarer events).
 
 - **Kernel / native_decide:** `lean/Blank.lean` (halting configurations; 10^4 and 10^7 steps).
-- **Computed (trusted):** no halt in 1.1e11 steps (direct C run). `c/resetsim.c` cuts the block to 40 cells at every
-  visit; `check` mode compares with the true run: `R` agrees at all of the first 30,000 visits except at the event at
-  137. The shortened run predicts the event at visit 167,887; the direct run confirms it (`R` 305 -> 335,809 cells
-  between steps 8.44e10 and 8.45e10).
-- **Heuristic:** the front speed (18 cells per doubling) and the estimate of the next event.
-- **Open:** whether any event ends in a halt. Machines 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE and
-  1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD (same first four states) and 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB,
-  1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB behave the same way.
+- **Computed (trusted):** no halt in 1.1e11 steps (direct C run), which includes the event at visit 167,887.
+  `memosim` (in `holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/`) reproduces the direct run exactly at the
+  level of visits: block, `R` and step count agree at each of 20,000 visits after visit 200, and it finds the event
+  at visit 167,887 at the same step with and without its memo table. `c/resetsim.c` (earlier pass) cuts the block to
+  40 cells at every visit and agrees with the true `R` at the first 30,000 visits.
+- **Heuristic:** the front speed and the 2^19,000 estimate. The small-block model: `c/smallblock.c` runs the real
+  machine from a random region with the block cut back to 4 cells at every visit, so that events follow each other
+  quickly. All of 2,000 runs (regions of 8 pairs) halt within 8 events, all of 500 (16 pairs) within 13, each time
+  with nothing but blank tape right of the head; about a quarter of the far-end contacts halt. If the real events
+  behave like these, the machine halts almost surely, after a number of steps far beyond any simulation.
+- **Not proved:** that a halt can only happen at the far end. The parity-window closed language that proves this for
+  the `..._1RA1RF_---1RD` sibling (`py/fctl.py` there) allows halts in non-blank contexts for this machine with windows
+  up to 10 cells. Plain `bbtools.ctl` finds no closed language at all (the pair alignment inside the block is lost).
+- **Open:** whether some event halts.
 
 ```sh
+gcc -O2 -o memosim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/memosim.c
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC 200 20000 check       # against the direct run
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC 200 3000000000 40     # the event at visit 167,887
+gcc -O2 -o smallblock holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/smallblock.c
+./smallblock 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC 8 2000 1 1 40      # the small-block model
+python3 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/py/pairs.py 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC
 gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
 ./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC L D 1 40 2 30000 check
-T0=2000 STOPEV=1 ./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC L D 1 40 2 1000000000   # the event
-FRONT=1 T0=200 ./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC L D 1 40 2 165800        # the front
 ```
+
+## Shared tools (this folder)
+
+| file | what it does |
+|---|---|
+| `c/resetsim.c` | the run with the block cut to a fixed length at every visit (any machine of the group) |
+| `c/rvis.c` | the same with a record per visit: depth reached, length and first cells of `R` |
+| `c/fresh.c` | the family from a fresh reservoir: depth and cells per double visit |
+| `c/smallblock.c` | the small-block model from random regions: how many events before a halt, and where the halt is |
+| `py/pairs.py` | the pair macro table of a machine |
+| `../1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/memosim.c` | exact visit-level simulator with step counts |
+| `../1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/py/fctl.py` | closed tape languages with a parity feature, and their Lean certificates |
 
 ## Next steps
 
-Find the counter's rule (the digits are runs of odd length between single 0s): if it is a genuine counter, the
-event outcome could be computed from the old region, and the question reduced to the sequence of events.
+The next event is out of reach of simulation and the counter is not regular. What could still be done: a closed
+language richer than parity windows that proves "halts only at the far end" (as for the sibling), and a
+description of the tail left by an event precise enough to say which contacts halt.
 
 ## Pages
 
