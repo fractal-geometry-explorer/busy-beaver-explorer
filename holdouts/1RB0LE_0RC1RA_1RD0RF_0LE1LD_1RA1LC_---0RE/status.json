@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The head sweeps the whole tape. The left part is a long run of the period-3 word <code>100</code>, and the sweeps over it are proved shift rules. The right part is a row of blocks of 1s separated by <code>00</code>, whose lengths are 7, 13, 19, 25, ... (6k+1), sorted by level, with the number of blocks falling at each level: it looks like a counter, but its carry rule has not been found. Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>, and proves the shift rules of the sweeps (<code>lean/Rules.lean</code>); the C simulator finds no halt in the first 10<sup>9</sup> steps."
  ],
@@ -58,6 +58,12 @@
    "where": "<code>tools/c/tokrun.c</code>"
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 3.82&times;10<sup>14</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 3.82&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,761 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts on F0, reached as <code>C&gt;1 0</code> (C reads 1, moves right onto a 0). The sweeps over the left part never produce it; the blocks of the right part change level as the run goes on, and no rule for these changes is known, so neither halting nor nonhalting is in reach.",
@@ -98,6 +104,11 @@
     "level": "heuristic",
     "value": "8 levels",
     "text": "Blocks of 7, 13, ..., 49 ones at step 3.7&middot;10<sup>8</sup>."
+   },
+   {
+    "level": "heuristic",
+    "value": "3.82&times;10<sup>14</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

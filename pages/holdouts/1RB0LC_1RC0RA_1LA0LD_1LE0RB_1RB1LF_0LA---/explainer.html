@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -196,6 +196,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">without a halt (C simulator); the exact run-length simulator agrees with it at every left-end event of the first 3&middot;10<sup>8</sup>.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 71,228 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>6.03&times;10<sup>14</sup> steps</b><span class="small">No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.03&times;10<sup>10</sup> steps).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 3</b>. These are labels read off the run by others, not results.</div>
@@ -336,7 +337,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -356,6 +357,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/macro.py</code></div></div><div><b>The case split is complete</b><p>Running the machine from state A to the next visit of state A, branching on every unread cell, gives a finite tree: the ten rules and no other case; one halt.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/engine.py check 3e8</code>, <code>python3 py/engine.py run 2e10</code></div></div><div><b>An exact run-length simulator</b><p>Machine steps plus the two proved jumps over runs. Same step count at each of the 22,399 left-end events of the first 3&middot;10<sup>8</sup> steps of the C simulator, same tape at the 409 compared. No halt in 2&middot;10<sup>10</sup> steps (133,716 rounds); the C simulator: none in 10<sup>11</sup>.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/laws.py</code></div></div><div><b>A cursor triples the runs it crosses</b><p>A run of length b becomes 3b, 3b+4 or 3b+8 according to the parity of b and the mode in which the cursor entered (two modes); checked on 300 random run lists with the exact simulator.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></div></div><div><b>No halt in the first 6.03&times;10<sup>14</sup> steps of an accelerated run</b><p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 6.03&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.03&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 695 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README, &ldquo;Why it is open&rdquo;</div></div><div><b>Does it halt?</b><p>Unknown. A halt needs the pattern 1101 A&gt;1, which a single cursor among long runs never makes; it could only come from a collision of cursors with short runs, and which collisions happen depends on the exact run lengths and budgets.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RA1LF_0LC--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

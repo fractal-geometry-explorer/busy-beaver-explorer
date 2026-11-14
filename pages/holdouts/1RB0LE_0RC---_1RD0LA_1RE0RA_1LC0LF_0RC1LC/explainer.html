@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -195,6 +195,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>0011 &middot; 0001</b><span class="small">The background word and its defect, from step 396,000 on.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>1.77&times;10<sup>10</sup> steps</b><span class="small">No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>10</sup> steps).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Monotone list</b>. These are labels read off the run by others, not results.</div>
@@ -336,7 +337,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -351,6 +352,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 33,592 cells have been visited and 24,444 of them hold a 1.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/view.py</code></div></div><div><b>The shape of the tape</b><p><code>py/view.py</code> prints the tape each time the head, in state C, reads a 0 on the leftmost visited cell, cut into 4-cell words. After step 396,499 the cells right of the head read: a few cells, a run of <code>0110</code> and <code>0010</code> words (a counter whose pattern changes between visits), then <code>0011</code> words with isolated <code>0001</code> defects (<code>o</code>) and doubled ones (<code>oo</code>) at gaps that grow along the tape. Between such visits the head bounces between the right end, which moves right by a few cells each bounce, and turning points at the defects, which drift left. Before step 396,000 the tape is mostly 1s with scattered 0s, another regime.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></div></div><div><b>No halt in the first 1.77&times;10<sup>10</sup> steps of an accelerated run</b><p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.77&times;10<sup>10</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only on B reading 1, that is after A reads a 0 that has a 1 to its right (<code>A&gt;0 1</code>). The next step is to find exact rules for the head's bounce over the <code>0011</code> background and its defects, and for the counter.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

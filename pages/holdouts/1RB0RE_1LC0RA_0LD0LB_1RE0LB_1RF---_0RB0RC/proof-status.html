@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -159,6 +159,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A hierarchy of counters</h3>
         <p>The events between batches follow a cycle per segment. A segment <code>1^x (10)^9</code> ticks four times (4 ones fewer, 2 <code>10</code>s more each time) while its small companion goes through the shapes 0.4, 2.3, 2.4, 4.4, 0.6, 10.1 and 6.3. Then it freezes, and the new last segment, about three times as long, starts the same cycle. Later segments also show other companion shapes (2.5, 6.4), depending on residues. Read off the event log of the accelerated run; not proved.</p>
         <p class="where"><code>LOG=1 c/accel.c</code>, <code>README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 6.70&times;10<sup>523</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 6.70&times;10<sup>523</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.38&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 8,682 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

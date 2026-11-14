@@ -40,6 +40,14 @@ start, 62,179 right), 41,479 ones.
 - right, step 969,730,190: `0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 `
 - right, step 985,363,399: `0^2 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 `
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 2.66x10^23 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.31x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 7,201 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE/explainer.html`](../../pages/holdouts/1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE/explainer.html)

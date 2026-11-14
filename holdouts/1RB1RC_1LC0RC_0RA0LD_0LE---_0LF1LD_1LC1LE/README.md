@@ -89,6 +89,14 @@ allow halts next to rows of blocks of length 1.
   block lengths only as 1, 2, >= 3) and windows that see the left end may close; K = 8 letters needs a faster search
   than the Python one.
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 5.60x10^23 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.09x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 7,120 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE/explainer.html`](../../pages/holdouts/1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE/explainer.html)

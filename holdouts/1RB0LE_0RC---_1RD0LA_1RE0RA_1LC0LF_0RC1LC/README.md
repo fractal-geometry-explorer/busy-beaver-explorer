@@ -57,6 +57,14 @@ inside the words, so the crossing needs a hand-made rule over two or more words.
 python3 holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/py/view.py 1.5e8 2.3e7     # about a minute
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 1.77x10^10 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00x10^10 steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/explainer.html`](../../pages/holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC/explainer.html)

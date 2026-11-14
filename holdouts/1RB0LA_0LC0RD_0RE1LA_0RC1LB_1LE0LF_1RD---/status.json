@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> At the left end the tape is a list of blocks <code>(10)^x</code> separated by single 0s, alternating big and small; in long stretches every pair (x, y) becomes (x − δ, y + δ) with the same δ between two left visits. The collisions when a block runs out are not understood. Halting needs F on a 1, entered only from E on a 1: never one step away in the first 3·10<sup>6</sup> steps."
  ],
@@ -70,6 +70,12 @@
    "where": "direct simulation"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.60&times;10<sup>9</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 2.60&times;10<sup>9</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 1.00&times;10<sup>9</sup> steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The drift is measured, not proved, and the collisions (a small block reaching 0, a new pair at the left end) are not written as rules. This looks like a particle system whose collisions decide everything; it may be chaotic.",
@@ -100,6 +106,11 @@
     "level": "heuristic",
     "value": "power/sqrt",
     "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "trusted",
+    "value": "2.60&times;10<sup>9</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>9</sup> steps)."
    }
   ],
   "presets": [

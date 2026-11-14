@@ -66,6 +66,14 @@ SZ=268435456 ./m5fast 12 11   # checked against the plain machine to 10^11 steps
 ./m5fast 18                   # the long run
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 1.52x10^13 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 683 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB 400
+```
+
 ## Pages
 
 - [`explainer.html`](../../pages/holdouts/1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB/explainer.html)

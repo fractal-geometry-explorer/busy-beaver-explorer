@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. It behaves like a slow unary counter: the tape starts with a run of copies of <code>110</code>, and on every return to the left end that run is exactly one copy longer. Behind the run sits a second run of <code>110</code> and a short, disordered stretch at the right end, and that stretch is where the open question lives.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>How near it comes to halting</h3>
         <p>In the first 10<sup>9</sup> steps E reads a 1 123,762,963 times with exactly two 1s from the head (<code>E&gt;1 1 0</code>) and 429,985 times with four (<code>E&gt;1 1 1 1 0</code>); never with one, which is what a halt needs. So the disordered right end never puts E on a lone 1 either: E's runs of 1s are always of even length.</p>
         <p class="where"><code>py/ecensus.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.41&times;10<sup>9</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 2.41&times;10<sup>9</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 1.00&times;10<sup>9</sup> steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

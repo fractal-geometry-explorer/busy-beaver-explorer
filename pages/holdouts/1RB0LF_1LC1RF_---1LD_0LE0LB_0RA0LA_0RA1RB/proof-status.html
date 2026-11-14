@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1LC1RF_---1LD_0LE0LB_0RA0LA_0RA1RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -149,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A reset longer than 10<sup>10</sup> steps</h3>
         <p>The seventh reset starts from a 278-digit tape at step 9,477,912 and has not ended by step 10<sup>10</sup>; during it the tape is rewritten into other words (<code>0 1 0 1^4</code> repeated), an inner counter not yet described.</p>
         <p class="where"><code>README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.69&times;10<sup>15</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.69&times;10<sup>15</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.13&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 2,254 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

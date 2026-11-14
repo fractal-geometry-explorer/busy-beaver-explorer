@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -196,6 +196,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 37,620 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>1.40&times;10<sup>9</sup> steps</b><span class="small">No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>9</sup> steps).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Monotone list</b>. These are labels read off the run by others, not results.</div>
@@ -337,7 +338,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -353,6 +354,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.187). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.5).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code></div></div><div><b>Recoding sweeps</b><p><code>E&gt; (001)^n &rarr; (110)^n E&gt;</code>, <code>D&gt; (010)^n &rarr; (101)^n D&gt;</code>, <code>C&gt; (100)^n &rarr; (011)^n C&gt;</code>, <code>A&gt; (0001)^n &rarr; (1101)^n A&gt;</code>, <code>E&gt; (1000)^n &rarr; (1110)^n E&gt;</code> and leftward <code>(0111)^n C&gt; 0 &rarr; C&gt; 0 (0001)^n</code>, for every n.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tokrun M N a=001,b=0001 L</code></div></div><div><b>Every entry +2</b><p>Write the tape at B's visits to the left end as a list of the lengths of the <code>001</code> runs. Between steps 7,203,647 and 8,576,224 the list 8, 4 (7 times), 8, 6, 6, 6, 10, 8, 8, 8, 8, 6, 8, 10, 10, 8, 10, 8, 22, 12, ... becomes 4, 2, then 10, 6 (7 times), 10, 8, 8, 8, 12, 10, 10, 10, 10, 8, 10, 12, 12, 10, 12, 10, 24, 14, ...: every entry is up by exactly 2, and two new entries came in at the left.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></div></div><div><b>No halt in the first 1.40&times;10<sup>9</sup> steps of an accelerated run</b><p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.40&times;10<sup>9</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 1.00&times;10<sup>9</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 61 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when A reads a 1. A is entered from E on a 1 (writing 1, moving right), at a run boundary. The samples never show it, but the start and end of a cycle are not proved. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1LA0RD_1LB1LF_0LA0RE_1RD0RA_1LD--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

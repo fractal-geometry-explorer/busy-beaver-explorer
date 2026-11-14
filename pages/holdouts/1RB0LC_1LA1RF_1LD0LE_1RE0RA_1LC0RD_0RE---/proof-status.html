@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -159,6 +159,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Frozen levels and a steady drain</h3>
         <p>At the left-end records at steps 838,623,265, 911,286,865 and 987,150,465 the tape is <code>C&gt; (01)^4 (1010101)^r (01)^7</code>, then 9 segments <code>(10)^11 11 (01)^43</code>, then 6 segments <code>(10)^83 11 (01)^403</code>, then larger ones (<code>(10)^162 11 (01)^893</code>, <code>(10)^565 11 (01)^893</code> twice, <code>(10)^6 11 (01)^1162</code>), and a final run <code>(01)^m</code>. Only r and m change: r = 5,323, 5,723, 6,123 and m = 4,323, 3,923, 3,523.</p>
         <p class="where"><code>tmrun M 1000000000 records</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 7.30&times;10<sup>14</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 7.30&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.75&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,080 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

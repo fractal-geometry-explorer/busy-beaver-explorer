@@ -43,6 +43,14 @@ to read a 1. CTL (K = 2..5) and NGramCPS (widths 2-8, -H, -U) fail.
 . /etc/profile.d/lean.sh && holdouts/1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC/lean/check.sh
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 1.40x10^9 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 1.00x10^9 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 61 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC/explainer.html`](../../pages/holdouts/1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC/explainer.html)

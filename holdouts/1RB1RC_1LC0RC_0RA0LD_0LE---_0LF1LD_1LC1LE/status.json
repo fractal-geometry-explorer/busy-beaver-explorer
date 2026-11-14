@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The tape is a lattice of <code>10</code>s cut by separators; the head bounces between the left end and the first <em>wall</em> (two separators side by side). Lean proves whole bounces for every list of blocks; collisions between separators are described from simulation only, and nothing yet rules out the short-block pattern that halts."
  ],
@@ -82,6 +82,12 @@
    "where": "<code>py/random_tapes.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 5.60&times;10<sup>23</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 5.60&times;10<sup>23</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.09&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 7,120 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Closed tape languages",
    "text": "Windows of up to 10 cells do not close without halting (from 9 on, the right automaton takes every window). Windows of up to 6 <em>letters</em> (cells and runs of <code>10</code> of length 1, 2 or &ge; 3) close, but allow halts next to rows of blocks of length 1.",
@@ -124,6 +130,11 @@
     "level": "heuristic",
     "value": "short blocks",
     "text": "Halting needs a block of length 1 or 2 in the wrong place."
+   },
+   {
+    "level": "heuristic",
+    "value": "5.60&times;10<sup>23</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.09&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

@@ -60,6 +60,14 @@ Stopped at: the shape of the tape (above) only. Next steps:
 Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the
 kernel, in 10,000,000 by `native_decide`. C (`tools/c/tmrun.c`): no halt in 10^11 steps.
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 3.07x10^14 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.01x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,600 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA/explainer.html`](../../pages/holdouts/1RB1LD_1RC0LA_0RD1RB_1RE0RF_0LA1LE_---0RA/explainer.html)

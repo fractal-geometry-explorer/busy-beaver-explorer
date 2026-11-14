@@ -129,6 +129,14 @@ python3 long15.py 3e13 long15.log                               # hours
 - **A faster simulator.** Speeding the run up further needs level-2 acceleration: detect cycles in the run-length
   snapshots when the defect passes a run of equal blocks `4^k − 2`.
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 2.50x10^13 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.04x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 2,150 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE--- 400
+```
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

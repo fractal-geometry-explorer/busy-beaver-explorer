@@ -55,6 +55,14 @@ python3 holdouts/1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB/py/rules.py > holdout
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB/lean/check.sh
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 1.43x10^9 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 10^9 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 58 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB/explainer.html`](../../pages/holdouts/1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB/explainer.html)

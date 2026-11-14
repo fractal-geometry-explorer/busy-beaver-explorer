@@ -52,6 +52,14 @@ start, 3,474 right), 2,285 ones.
 
 
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 5.26x10^9 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 5 checkpoints, the last at 3.00x10^9 steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB--- 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/explainer.html`](../../pages/holdouts/1RB1RF_1RC0RA_1LD1RE_1LE0LE_0RA0LD_0RB---/explainer.html)
