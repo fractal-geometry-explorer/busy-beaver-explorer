@@ -66,7 +66,11 @@ def elsewhere(M, decision="open"):
                 "<code>Print Assumptions</code> reports no axioms; the build log is next to the files.")
         if c.get("note"):
             text += " " + c["note"]
-        if c.get("branch"):
+        if c.get("shorter"):
+            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq, "
+                     f"ready to be proposed upstream: "
+                     f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
+        elif c.get("branch"):
             text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         out.append({"kind": "proof", "title": "Also proved in Coq", "text": text})
