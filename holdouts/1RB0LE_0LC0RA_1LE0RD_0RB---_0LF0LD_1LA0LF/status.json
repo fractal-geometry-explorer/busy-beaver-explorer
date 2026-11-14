@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt."
+  "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt.",
+  "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question."
  ],
  "claims": [
   {
@@ -92,6 +93,30 @@
    "title": "The wrap of M and beyond",
    "text": "When M wraps, a slower counter right of M (4-cell words 0101/0100 and others) changes; how, and how the PREFIX is rebuilt, is not decoded. A halt (D reading 1) can only come in those steps, never inside a non-wrapping event.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The run as rounds of one function",
+   "text": "On the mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.",
+   "where": "<code>c/zvis.cpp</code>, <code>py/zeval.py</code>; README"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 100,000 rounds",
+   "text": "The visit engine, with visit counts kept as sums of powers of two, ran 100,000 rounds without a halt; the counts reach 187,512 bits. Only 7 window rules of A and E are ever used.",
+   "where": "<code>c/zvis.cpp</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A counter with doublers and one travelling defect",
+   "text": "In the words L = 1010, O = 000, I = 100 the function A is a binary counter (O, I the digits) in which every carry crossing an L becomes two. Each round adds one defect (a <code>10</code>, <code>1</code> or <code>0</code> that does not fit the words), which travels through the counter, rewrites it, and disappears where it turns <code>1 I O</code> into <code>O L</code>. Worked out by hand from the four functions: a tape with one defect cannot halt; a halt needs two defects side by side. The token rules reproduce the exact tape cell for cell (rounds 5 to 24), and in every round from 13 to 4,500 the defect disappeared about 40% of the way into the tape, long before the round ended.",
+   "where": "<code>py/tokz.py</code>; README"
+  },
+  {
+   "level": "open",
+   "title": "Does every defect disappear in time?",
+   "text": "If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.",
+   "where": ""
   }
  ],
  "check": [
@@ -128,6 +153,17 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "doublers",
+    "eyebrow": "Decoded, 14 November 2026",
+    "heading": "A counter with doublers and a travelling defect",
+    "html": [
+     "<p>Read the tape from right to left in the words <code>L = 1010</code>, <code>O = 000</code>, <code>I = 100</code>. A visit of state A to a tape of such words is a counter step:</p>",
+     "<p style=\"text-align:center\"><code>A(O W) = I W</code> &nbsp; <code>A(I W) = O A(W)</code> &nbsp; <code>A(L W) = L A(A(W))</code></p>",
+     "<p>O and I are binary digits, lowest first, and L is a <em>doubler</em>: a carry that crosses it becomes two carries. One round of the machine is <code>S' = 1 0 A(S)</code>. The <code>1 0</code> put in front does not fit the words; it is a <em>defect</em>. Pushed by the carries, the defect travels through the counter, rewrites the words it crosses, and disappears where it turns <code>1 I O</code> into <code>O L</code>, two digits into a doubler. Every round adds exactly four words.</p>",
+     "<p>A tape with one defect cannot halt (worked out by hand from the rules, not yet in Lean). A halt needs two defects side by side, so the machine runs forever if every defect disappears before the next round starts. In every round from 13 to 4,500 it did, about 40% of the way into the tape; the run of 100,000 rounds (visit counts up to 187,512 bits) has no halt. Where the defect disappears depends on the digits of the counter, which look irregular: that is what a proof would have to control.</p>"
+    ]
+   },
    {
     "id": "events",
     "eyebrow": "Decoded",
@@ -187,6 +223,6 @@
    }
   ]
  },
- "summary": "Gap counter: a binary counter on the left (3-cell digits 000/100) gains 1 per event while a 2-bit counter M far to the right gains 1; proved in Lean for every carry length with the engine words seen from step 78,415; what M's wrap does to the slow counter beyond is not decoded.",
+ "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; a tape with one defect cannot halt; no halt in 100,000 rounds; open: that every defect disappears before the next round.",
  "family": "gap counter"
 }

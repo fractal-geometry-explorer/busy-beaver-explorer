@@ -54,18 +54,89 @@ and now and then the PREFIX is rebuilt (the drops of the left-end count above). 
 those steps, never inside a non-wrapping event. Next steps: decode the word right of M and the wrap of M as a rule,
 then the rebuilding of PREFIX.
 
+## The whole run as one counter system (14 November 2026)
+
+This replaces the event picture above by rules that cover the whole run, and reduces the halting question to one
+statement about a travelling defect. Everything here is on the **mirrored** tape (read the machine's tape from right to
+left; the mirrored table is A: 1LB 0RE, B: 0RC 0LA, C: 1RE 0LD, D: 0LB ---, E: 0RF 0RD, F: 1RA 0RF).
+
+**Visits.** A *visit* of state X at cell q is the stretch of the run from the head arriving at q in state X until it
+first reaches q-1. A visit reads and rewrites only cells from q on, so it is a function on the half tape from q on. For
+this machine the visits of A and E always end in B, and four functions close up (S, T, U, V any half tape):
+
+    A(0 S)   = 1 S            A(1 S)   = P(1 E(S))
+    E(0 0 T) = 1 0 A(T)       E(1 0 T) = 1 0 E(T)       E(0 1 T) = P(0 F(1 T))      E(1 1 T): the machine halts
+    F(1 0 U) = 1 0 A(U)       F(1 1 U) = P(1 F(1 U))
+    P(c 0 V) = 1 0 E(V)       P(c 1 V) = 0 0 V
+
+**Rounds.** From the tape `0^inf [A] 0 0 S` the machine comes back to `0^inf [A] 0 0 S'` one cell further out, with
+`S' = 1 0 A(S)`; S_0 is blank. So the run is the sequence S_{k+1} = 1 0 A(S_k), and the machine halts if and only if
+some A(S_k) meets `E(1 1 ...)`. Found and checked against the machine by `c/zvis.cpp` (it derives the rules by local
+simulation and compares the tape with direct simulation); `py/zeval.py` evaluates the functions exactly.
+
+**Tokens.** Read S in the words `L = 1010`, `O = 000`, `I = 100`. On a tape made of these words A is a counter:
+
+    A(L W) = L A(A(W))        A(O W) = I W        A(I W) = O A(W)
+
+O and I are the binary digits 0 and 1 (lowest first), and L is a *doubler*: every carry that crosses it becomes two.
+On such a tape A never halts and never changes where the L's are.
+
+**The defect.** Each round puts `1 0` in front, which does not fit the words: `x = 10`, or a single `1` or `0` (`z`),
+is a *defect*. A defect travels away from the head, rewriting the words it crosses (Ê is E without the `1 0` it always
+writes first, E0 is E after a 0):
+
+    A(z W) = 1 W       A(x O W) = O x W      A(x I W) = L O Ê(W)      A(x L W) = L A(A(x W))      A(1 W) = O Ê(W)
+    Ê(L W) = L Ê(W)    Ê(O W) = 1 W          Ê(I W) = E0(W)
+    E0(O W) = L W      E0(L W) = O A(x W)    E0(I W) = O 1 W          x at the blank end = I,  1 at the blank end = I
+
+These rules follow from the four functions by hand. None of them is a halting case: **a tape with one defect cannot
+halt**, and stays a tape with at most one defect. The defect disappears at `1 I O -> O L` (two digits become a doubler)
+or when it reaches the blank end. A halt needs `E(1 1 ...)`, which takes two defects next to each other.
+
+**What the run does** (`py/tokz.py`, the token rules run exactly, equal cell for cell to `py/zeval.py` up to round 24):
+at the start of every round S is `L^m`, one defect, and then words only. During the round the defect runs through the
+tape and disappears at `1 I O -> O L` about 40% of the way into the part behind the two leading runs of L, far from the
+blank end; the next round starts with one defect again. The tape gains exactly 4 words per round. This
+held in every round from 13 to 4,500 (at round 4,500 the defect ends at word 9,725 of 17,983; the first twelve rounds
+are irregular). The part of the tape the defect leaves behind settles: about the first 40% of the tape behind the
+leading L's is the same in round k and round k+2.
+
+**Long run.** `c/zvis.cpp` (visit counts kept as sums of powers of two) ran 100,000 rounds without a halt; the visit
+counts reach 187,512 bits, and only 7 window rules of A and E are ever used (A: `0`, `100`, `110`, `1010`; E: `10`,
+`00`, `010`), never A on `111` or `1011` and never E on `11` or `011`.
+
+**Open.** The machine does not halt if in every round the defect disappears before the round ends. Where it disappears
+depends on the digits of the counter behind the settled part, which look irregular, so this is a statement about the
+digits of a doubling counter, not proved. If a defect survived a round the next one could catch up with it; only then
+is a halt possible.
+
+The twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- has the same words: at every second visit of its state E to a new
+leftmost cell its tape is `0 0 0 1 0 S_k` (`py/twinchk.py`, checked up to k = 18), so it halts or not together with
+this machine as far as the common rules go (the equivalence itself is observed, not proved).
+
+    g++ -O2 -o zvis c/zvis.cpp && ./zvis m:1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF A1B,E1B - run 20000 600
+    python3 py/zeval.py 24 > words.txt && python3 py/tokz.py 4500 words.txt && python3 py/twinchk.py 30000000 words.txt
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
 - Trusted: no halt in 1e9 steps (`tmrun`); CTL with K=6 closed (`bbtools.ctl`).
 - Lean (kernel): `Events.lean`, the non-wrapping events for every carry length.
 - Trusted: 110 consecutive events of that shape in the run (`py/track.py`).
-- Open: the wrap of M, the counter beyond it, the rebuilding of PREFIX; halting.
+- Trusted (14 November 2026): the visit functions and the round law S' = 1 0 A(S) (`c/zvis.cpp`, checked against direct
+  simulation); no halt in 100,000 rounds; the token rules agree with the exact evaluation and every round from 13 to
+  4,500 ends with a single defect (`py/tokz.py`).
+- By hand, not in Lean: the token rules, and that a tape with one defect cannot halt.
+- Open: that the defect of every round disappears before the round ends; halting.
 
 ## Scripts
 
 - `py/events.py NAMESPACE > lean/Events.lean`: the event rules.
 - `py/track.py STEPS`: follows the events of the run.
+- `c/zvis.cpp`: visit engine for machines with several visit forms (`zvis MACHINE auto NSTEPS run MAXTOP MAXSEC`
+  finds the forms itself; `m:` in front of the machine mirrors it); counts are sums of powers of two.
+- `py/zeval.py ROUNDS`: the round words S_k from the seven window rules. `py/tokz.py ROUNDS [FILE]`: the token rules.
+  `py/twinchk.py STEPS FILE`: the same words on the twin's tape.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 

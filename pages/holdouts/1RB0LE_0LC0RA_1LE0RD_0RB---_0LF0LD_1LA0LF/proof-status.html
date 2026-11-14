@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt.</p>
+      <p><b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -167,12 +168,27 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With this ENGINE and PREFIX, events run from step 78,415 (left counter 32, M = 1): 110 consecutive events add 1 to both counters (27 of them wraps of M), up to left counter 142; then the PREFIX is rebuilt (one of the drops of the left-end count noted above).</p>
         <p class="where"><code>python3 py/track.py 3000000</code></p>
       </div>
+      <div class="card">
+        <h3>The run as rounds of one function</h3>
+        <p>On the mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.</p>
+        <p class="where"><code>c/zvis.cpp</code>, <code>py/zeval.py</code>; README</p>
+      </div>
+      <div class="card">
+        <h3>No halt in 100,000 rounds</h3>
+        <p>The visit engine, with visit counts kept as sums of powers of two, ran 100,000 rounds without a halt; the counts reach 187,512 bits. Only 7 window rules of A and E are ever used.</p>
+        <p class="where"><code>c/zvis.cpp</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
         <h3>A counter</h3>
         <p>A word per visit and twice the time per word is the signature of a binary counter whose digits are the gaps; the drops of k are its carries reaching further into the tape.</p>
+      </div>
+      <div class="card">
+        <h3>A counter with doublers and one travelling defect</h3>
+        <p>In the words L = 1010, O = 000, I = 100 the function A is a binary counter (O, I the digits) in which every carry crossing an L becomes two. Each round adds one defect (a <code>10</code>, <code>1</code> or <code>0</code> that does not fit the words), which travels through the counter, rewrites it, and disappears where it turns <code>1 I O</code> into <code>O L</code>. Worked out by hand from the four functions: a tape with one defect cannot halt; a halt needs two defects side by side. The token rules reproduce the exact tape cell for cell (rounds 5 to 24), and in every round from 13 to 4,500 the defect disappeared about 40% of the way into the tape, long before the round ended.</p>
+        <p class="where"><code>py/tokz.py</code>; README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -184,6 +200,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="card open">
         <h3>The wrap of M and beyond</h3>
         <p>When M wraps, a slower counter right of M (4-cell words 0101/0100 and others) changes; how, and how the PREFIX is rebuilt, is not decoded. A halt (D reading 1) can only come in those steps, never inside a non-wrapping event.</p>
+      </div>
+      <div class="card open">
+        <h3>Does every defect disappear in time?</h3>
+        <p>If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.</p>
       </div>
     </div>
   </section>

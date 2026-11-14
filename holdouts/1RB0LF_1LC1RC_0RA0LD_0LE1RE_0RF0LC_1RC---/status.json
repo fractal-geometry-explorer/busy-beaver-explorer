@@ -11,9 +11,10 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "<p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href=\"../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html\">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p>"
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine can halt only from <code>1 C&gt; 1 1</code> (both directions proved in Lean); in 20,000,000,000 steps that never happens. In the first 10<sup>9</sup> steps C had <code>1 C&gt; 1 0</code> about 2.9·10<sup>7</sup> times and <code>0 C&gt; 1 1</code> about 8.8·10<sup>7</sup> times, but never <code>1 C&gt; 1 1</code>: two of the three cells match all the time, the third never."
+  "<b>The question is open.</b> The machine can halt only from <code>1 C&gt; 1 1</code> (both directions proved in Lean); in 20,000,000,000 steps that never happens. In the first 10<sup>9</sup> steps C had <code>1 C&gt; 1 0</code> about 2.9·10<sup>7</sup> times and <code>0 C&gt; 1 1</code> about 8.8·10<sup>7</sup> times, but never <code>1 C&gt; 1 1</code>: two of the three cells match all the time, the third never.",
+  "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question."
  ],
  "claims": [
   {
@@ -99,6 +100,30 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known. Halting needs C on a 1 with 1s on both sides, which the words of the tape have never offered; whether they never will depends on the counter in the middle, whose rule is not found.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The run as rounds of one function",
+   "text": "For the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF (whose round words S_k appear on this machine's tape as <code>0 0 0 1 0 S_k</code> at every second visit of E to a new leftmost cell, checked up to k = 18): on its mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.",
+   "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code>, <code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/zeval.py</code>; that machine's README"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 100,000 rounds",
+   "text": "The visit engine, with visit counts kept as sums of powers of two, ran 100,000 rounds of the twin without a halt; the counts reach 187,512 bits. Only 7 window rules of A and E are ever used.",
+   "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A counter with doublers and one travelling defect",
+   "text": "In the words L = 1010, O = 000, I = 100 the function A is a binary counter (O, I the digits) in which every carry crossing an L becomes two. Each round adds one defect (a <code>10</code>, <code>1</code> or <code>0</code> that does not fit the words), which travels through the counter, rewrites it, and disappears where it turns <code>1 I O</code> into <code>O L</code>. Worked out by hand from the four functions: a tape with one defect cannot halt; a halt needs two defects side by side. The token rules reproduce the exact tape cell for cell (rounds 5 to 24), and in every round from 13 to 4,500 the defect disappeared about 40% of the way into the tape, long before the round ended.",
+   "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/tokz.py</code>; that machine's README"
+  },
+  {
+   "level": "open",
+   "title": "Does every defect disappear in time?",
+   "text": "If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.",
+   "where": ""
   }
  ],
  "check": [
@@ -135,6 +160,17 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "doublers",
+    "eyebrow": "Decoded, 14 November 2026",
+    "heading": "A counter with doublers and a travelling defect",
+    "html": [
+     "<p>Read the twin's tape (which this machine carries as <code>0 0 0 1 0 S</code> at its left-end visits) in the words <code>L = 1010</code>, <code>O = 000</code>, <code>I = 100</code>. A visit of state A to a tape of such words is a counter step:</p>",
+     "<p style=\"text-align:center\"><code>A(O W) = I W</code> &nbsp; <code>A(I W) = O A(W)</code> &nbsp; <code>A(L W) = L A(A(W))</code></p>",
+     "<p>O and I are binary digits, lowest first, and L is a <em>doubler</em>: a carry that crosses it becomes two carries. One round of the machine is <code>S' = 1 0 A(S)</code>. The <code>1 0</code> put in front does not fit the words; it is a <em>defect</em>. Pushed by the carries, the defect travels through the counter, rewrites the words it crosses, and disappears where it turns <code>1 I O</code> into <code>O L</code>, two digits into a doubler. Every round adds exactly four words.</p>",
+     "<p>A tape with one defect cannot halt (worked out by hand from the rules, not yet in Lean). A halt needs two defects side by side, so the machine runs forever if every defect disappears before the next round starts. In every round from 13 to 4,500 it did, about 40% of the way into the tape; the run of 100,000 rounds (visit counts up to 187,512 bits) has no halt. Where the defect disappears depends on the digits of the counter, which look irregular: that is what a proof would have to control.</p>"
+    ]
+   },
    {
     "id": "shape",
     "eyebrow": "First look",
@@ -190,6 +226,6 @@
    }
   ]
  },
- "summary": "Two-ended counter: (10)^n on the left, runs of 110 on the right; halts only from 1 C> 11 (C on a 1 between two 1s), never seen in 2·10^10 steps.",
+ "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; a tape with one defect cannot halt; no halt in 100,000 rounds; open: that every defect disappears before the next round.",
  "family": "two-ended counter, (10)^n left / 110 digits right"
 }

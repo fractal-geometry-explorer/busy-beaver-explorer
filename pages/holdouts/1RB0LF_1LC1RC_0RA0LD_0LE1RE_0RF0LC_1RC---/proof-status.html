@@ -84,12 +84,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href="../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p></p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> The machine can halt only from <code>1 C&gt; 1 1</code> (both directions proved in Lean); in 20,000,000,000 steps that never happens. In the first 10<sup>9</sup> steps C had <code>1 C&gt; 1 0</code> about 2.9·10<sup>7</sup> times and <code>0 C&gt; 1 1</code> about 8.8·10<sup>7</sup> times, but never <code>1 C&gt; 1 1</code>: two of the three cells match all the time, the third never.</p>
+      <p><b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -173,6 +174,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A finite-automata-reduction search (a DFA of n states on one side of the head, the least co-closed NFA on (state × DFA state) + bottom for the other) finds no certificate with n &le; 7 (23,836,540 DFAs at n = 7), with the DFA on the left or on the right.</p>
         <p class="where"><code>../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c</code>: <code>./far M 7</code>, <code>./far M 7 m</code></p>
       </div>
+      <div class="card">
+        <h3>The run as rounds of one function</h3>
+        <p>For the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF (whose round words S_k appear on this machine's tape as <code>0 0 0 1 0 S_k</code> at every second visit of E to a new leftmost cell, checked up to k = 18): on its mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.</p>
+        <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code>, <code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/zeval.py</code>; that machine's README</p>
+      </div>
+      <div class="card">
+        <h3>No halt in 100,000 rounds</h3>
+        <p>The visit engine, with visit counts kept as sums of powers of two, ran 100,000 rounds of the twin without a halt; the counts reach 187,512 bits. Only 7 window rules of A and E are ever used.</p>
+        <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -186,12 +197,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Both ends grow logarithmically; the visits to the left end come at exponentially spaced times.</p>
         <p class="where">records of <code>tools/c/tmrun.c</code></p>
       </div>
+      <div class="card">
+        <h3>A counter with doublers and one travelling defect</h3>
+        <p>In the words L = 1010, O = 000, I = 100 the function A is a binary counter (O, I the digits) in which every carry crossing an L becomes two. Each round adds one defect (a <code>10</code>, <code>1</code> or <code>0</code> that does not fit the words), which travels through the counter, rewrites it, and disappears where it turns <code>1 I O</code> into <code>O L</code>. Worked out by hand from the four functions: a tape with one defect cannot halt; a halt needs two defects side by side. The token rules reproduce the exact tape cell for cell (rounds 5 to 24), and in every round from 13 to 4,500 the defect disappeared about 40% of the way into the tape, long before the round ended.</p>
+        <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/tokz.py</code>; that machine's README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
         <p>Not known. Halting needs C on a 1 with 1s on both sides, which the words of the tape have never offered; whether they never will depends on the counter in the middle, whose rule is not found.</p>
+      </div>
+      <div class="card open">
+        <h3>Does every defect disappear in time?</h3>
+        <p>If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.</p>
       </div>
     </div>
   </section>
