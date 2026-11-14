@@ -76,6 +76,28 @@ answer depends on which words the right-end events leave behind, and those look 
 Near-twin: [`1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA`](../1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/README.md): the same table with C, D, E wired differently. The recursion G, the four
 phases and their step counts are the same for both; the right-end events differ.
 
+## Later pass: 10^13 steps, the reset followed, an accelerator that stalls
+
+* **No halt in 10^13 steps** (trusted: `c/mrun.c` of
+  [`1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`](../1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/README.md), a direct
+  simulator on blocks of 16 cells with a full table, about 3·10^9 steps a second; it finds the same right-end events as the earlier runs). At step 10^13 the tape reaches 313,099 blocks (about 5.0 million cells) to the left.
+* **Right-end events**: after the two at steps 17,047,480,846 and 19,980,179,598 there is **none up to 10^13**
+  (an event: the head back at the right end after more than 10^5 steps away).
+* **After the reset** (step 19,980,179,598): the new counter eats the blank stretch (15,953 blank cells left at
+  step 2.05·10^10, 2,069 at 2.1·10^10), then turns the frozen first block into blanks from its right end and eats
+  those too (115,277 blank cells at 2.2·10^10, 20,945 left at 3·10^10). At 10^11 steps the tape is again a plain
+  counter with the wall at the left end.
+* **The carry as a call.** A level is `(1 0)^n` followed by one of four words of digits (`0000000`, `3 00000`,
+  `0000 3`, `3 00 3`); a hit moves it one position on, the second and the fourth add one to n, and the fourth
+  passes one hit to the rest R of the tape, which becomes G(X R). At the border of R the head crosses in the
+  states `>D <F >B <D >D <F` (in at D, out at F, in at B, out at D, in at D, out at F): the same list at all 733
+  hits of a first test, so a level does not need to know what R is.
+* **An accelerator on levels** (strip a level, count the hits it passes on, as for
+  `1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`, which was decided that way) agrees with the recursion G on 3,000
+  wall visits but then stalls: between two levels there are stretches of other digits, and some of them change
+  from hit to hit (inner counters with their own fronts, for example `4 0 3 0 0 0 ...`), so they are neither levels
+  nor constants. Their hits would have to be simulated one by one with the rest of the tape as a black box.
+
 ## Status
 
 * **Lean (kernel)**, `lean/Rules.lean` (written by `py/rules.py`), for every count and every surrounding tape:
@@ -83,8 +105,8 @@ phases and their step counts are the same for both; the right-end events differ.
   `cross`; the counter phases `phase1`, `phase2`, `phase4_in`, `phase4_out`; and `pure_tape_halts`.
 * **Lean**: `lean/Blank.lean`: the halting configurations; no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
 * **Trusted**: `py/gmodel.py`: V = G on random words and on the run from blank tape; `py/blocksim.py` /
-  `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation (`tools/c/tmrun.c`): no halt
-  in 2·10^10 steps.
+  `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation: no halt
+  in 10^13 steps (`c/mrun.c` of the neighbour folder, see above; `tools/c/tmrun.c` to 2·10^10).
 * **Trusted**: a closed tape language from windows of 6 cells confines the halt to a head with only 0s on its left
   (`python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6`).
 * **Open**: what the right-end events do in general, and so whether a halting word ever appears.
@@ -92,9 +114,11 @@ phases and their step counts are the same for both; the right-end events differ.
 ## Next steps
 
 * The carry is a visit of the rest (`R' = G(X R)`), so the whole run is the iteration of one map on words, and the
-  levels only set the clock. An accelerator that strips the regular levels (each proved rule of the form
-  "p visits turn P(n) T into P(n + c) T' with T' a visit of T") would reach the right-end events directly,
-  exponentially faster than any step-by-step run; the frozen stretches between levels need the same kind of rule.
+  levels only set the clock. An accelerator that strips the regular levels was tried (see "Later pass"): it works
+  until a stretch between two levels changes from hit to hit. What it needs next: treat such a stretch as a
+  small machine of its own, simulated hit by hit with the tape to its right as a black box that answers calls
+  (the crossing list `>D <F >B <D >D <F`), and with a table of the stretches seen so far to skip repeats. The
+  next right-end event lies beyond 10^13 steps; only such an accelerator will reach it.
 * Extend the recursion to the three ways a visit of the rest can come back (F, the regular one; A; D) and to tapes
   with `01` and blank pairs: that is the full macro machine, and the place to look for an invariant or for a halt.
 * A mirrored CTL certificate (left and right swapped) would make the confinement a Lean theorem.
