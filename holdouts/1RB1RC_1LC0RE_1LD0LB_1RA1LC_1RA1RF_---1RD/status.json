@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> A block of 1s grows by two each sweep; the 2,987-cell region behind it (from sweep 1482) is transformed by a fixed map, checked against direct simulation for 6,000 sweeps. The counter inside it advances very regularly, about 28 cells per doubling of the number of sweeps; after 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps) it is still 2,346 cells from the far end, where a halt (<code>B&gt;1 1 0</code>) could happen. At that speed the next event is about 2<sup>80</sup> sweeps away."
+  "<b>The question is open, but the machine is now well understood.</b> Behind a block of 1s that grows by two each sweep sits a chain of small counters that each count 0, 1, 2, 3, followed by a chaotic tail. The chain is exactly predictable, so the run was followed, with exact step counts, through 2.80&middot;10<sup>36</sup> sweeps (2.35&middot;10<sup>73</sup> steps): no halt, and the third <em>event</em> turned the block into a chain of 4.67&middot;10<sup>35</sup> counters. Lean proves that the machine can only halt on the blank tape beyond the far end, which the head will not see again for more than (4/3)<sup>4.67&middot;10^35</sup> sweeps. Whether that contact, or a later one, halts depends on the chaotic tail."
  ],
  "claims": [
   {
@@ -40,65 +40,79 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "trusted",
-   "title": "The sweep map ignores the block",
-   "text": "At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>; with the block cut to 40 or 41 cells at every visit, R agrees with the true run at all of the first 6,000 visits except the events at visits 97 and 1481.",
-   "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code>"
+   "level": "native",
+   "title": "A halt can only happen beyond the far end",
+   "text": "Every configuration of the run from blank tape lies in a closed tape language (windows of six cells on each side of the head plus the parity of the distance to the next 0; 5,545 abstract configurations). In it, the halting transition can only fire with blank tape from the head on. So the machine halts if and only if F steps onto the blank tape right of everything.",
+   "where": "<code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code> (certificate from <code>py/fctl.py</code>)"
   },
   {
    "level": "trusted",
-   "title": "No halt and no event in 3&middot;10<sup>7</sup> sweeps",
-   "text": "From visit 1490 the shortened run makes 3&middot;10<sup>7</sup> sweeps (about 1.7&middot;10<sup>15</sup> steps of the true run) with R constant (2,987 cells) and no halt.",
-   "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>"
+   "title": "The region is a chain of mod-4 counters and a tail",
+   "text": "At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>; in pairs a = 01, b = 11, R = <code>aaa S[s_0] ... S[s_m-1] junk</code> with S = [baabaa, abbabb, bbbbbb, aaaaaa]. A double visit adds 1 to s_0 and goes on to the next counter unless the counter was 0; the junk changes only at sweeps that pass the whole chain, by a map of its own (3,000 recorded passes replayed behind four different chains). The reference implementation agrees with the direct run at every visit up to 6,000 (step count, block, region), through two events.",
+   "where": "<code>py/chain.py</code>, <code>py/test_chain.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.35&middot;10<sup>73</sup> steps; the third event",
+   "text": "Events after visits 3, 13, 23, 97 and 1,481. The exact accelerated run (closed-form jumps over the sweeps that turn inside the chain, cell-by-cell passes; 128-bit visits, 256-bit steps) follows epoch 3 through 25,741,416 passes of its 230 counters. The next event is in the double visit after visit 2,802,669,362,130,569,848,949,782,677,328,552,882; the following visit, 2,802,669,472,598,490,952,316,788,103,359,480,650, has block 1<sup>2</sup>, comes at step 23,564,868,517,906,510,281,033,392,402,285,525,944,194,469,908,788,408,626,361,071,990,157,929,983, and its region is 2,802,669,472,598,490,952,316,788,103,359,479,170 pairs <code>01</code> followed by a 2,985-cell tail.",
+   "where": "<code>c/chainrun.c</code>, replay by <code>py/chain.py</code>"
   },
   {
    "level": "heuristic",
-   "title": "Next event about 2<sup>80</sup> sweeps away",
-   "text": "The front advances in steps of 12, 24, 36 cells per doubling (683 cells deep after 2<sup>24</sup> sweeps) with about 2,300 cells to go.",
-   "where": "FRONT=1 runs of resetsim"
+   "title": "The next contact: more than (4/3)<sup>4.67&middot;10^35</sup> sweeps away",
+   "text": "A sweep passes a chain of m counters once in about (4/3)<sup>m</sup> double visits (exact formula in <code>jump</code>); the new chain has 4.67&middot;10<sup>35</sup> counters, and the 221-cell junk of epoch 3 needed 2.6&middot;10<sup>7</sup> passes before the event.",
+   "where": "<code>py/chain.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "In short-block models every run halts, at the far end",
+   "text": "The real machine with the block cut back to 4 cells at every visit, from random regions of 8 pairs: all of 2,000 runs halt within 12 events, with blank tape right of the head. With the last 21 or 41 cells of the true tail of epoch 4 at the far end, none of 400 runs halts at the first contact.",
+   "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/smallblock.c</code>"
   },
   {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.428). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "text": "The head sweeps across the whole tape and adds two cells per sweep at the left end, so the tape grows like the square root of the step count.",
+   "where": "<code>holdouts/triage.json</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.",
+   "text": "Not known. It comes down to the junk: an autonomous map on a few thousand cells, applied once per pass of the chain, with no regular digits found (blocks of 18, 28, 28 cells with 55, 181, 292+ states, then no pattern). Which of its far-end contacts halt is the whole question.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/lean/check.sh",
-  "gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c",
-  "./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD L D 1 40 2 6000 check",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD 1000000000"
+  "holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/lean/check.sh                # Blank, EdgeCert, Edge (about a minute)",
+  "python3 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/py/test_chain.py 6000   # the chain rule against the direct run",
+  "gcc -O2 -o chainrun holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/c/chainrun.c",
+  "./chainrun -direct 1488 s1488.txt && ./chainrun s1488.txt 1000000000 s_end.txt   # to the third event (about 80 minutes)",
+  "python3 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/py/chain.py s_end.txt 1   # replay the event",
+  "python3 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD/py/fctl.py 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD 6       # the tape language"
  ],
  "explainer": {
-  "lede": "Nobody knows, but it will not stop soon. A block of ones grows at every sweep, and behind it an odometer slowly eats a reservoir about three thousand cells long. This page runs the real machine in your browser and explains the pieces.",
+  "lede": "Nobody knows, but this is the best understood machine of its family. A block of ones grows at every sweep; behind it sits a row of tiny counters, each counting 0, 1, 2, 3, and behind those a scrambled tail. The counters can be predicted exactly, which lets a computer follow the machine for 10<sup>73</sup> steps. The tail cannot. This page runs the real machine in your browser and explains the pieces.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "2,987 cells",
-    "text": "The region after the block, from sweep 1482 on."
+    "level": "native",
+    "value": "only at the far end",
+    "text": "Proved in Lean: the machine can halt only on blank tape beyond the far end of everything it has written."
    },
    {
     "level": "trusted",
-    "value": "~1.7&middot;10<sup>15</sup> steps",
-    "text": "3&middot;10<sup>7</sup> sweeps of the shortened machine: no halt, no event."
+    "value": "2.35&middot;10<sup>73</sup> steps",
+    "text": "No halt: exact accelerated run to the third event, at sweep 2.80&middot;10<sup>36</sup>."
+   },
+   {
+    "level": "trusted",
+    "value": "4.67&middot;10<sup>35</sup> counters",
+    "text": "The chain the machine has to get through before it touches the far end again."
    },
    {
     "level": "heuristic",
-    "value": "~28 cells per doubling",
-    "text": "A very regular counter front; the next event about 2<sup>80</sup> sweeps away."
-   },
-   {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "value": "(4/3)<sup>4.67&middot;10^35</sup>",
+    "text": "Sweeps before the next moment at which it could halt, at least."
    }
   ],
   "presets": [
@@ -113,32 +127,43 @@
    {
     "id": "shape",
     "eyebrow": "What the tape looks like",
-    "heading": "A growing block, a busy counter, and a reservoir",
+    "heading": "A growing block, a row of counters, a tail",
     "html": [
-     "<p>Run the simulator for a while and look at the tape each time the head reaches the left end. It always has the same four parts: a long uniform block <code>1<sup>n</sup></code> that grows by a fixed amount every sweep; next to it a short stretch that changes from sweep to sweep and looks random; then a long, regular <em>reservoir</em>; and at the far end an old region that never changes.</p>",
-     "<svg viewBox=\"0 0 580 70\" role=\"img\" aria-label=\"The tape: a growing uniform block, an active counter region, a reservoir it eats, and a frozen old region\" style=\"width:100%;max-width:620px;height:auto\"><g font-family=\"var(--body)\" font-size=\"11\" fill=\"var(--fg2)\"><text x=\"10\" y=\"14\">&larr; grows 2 cells a sweep</text><text x=\"14\" y=\"60\">growing block</text><text x=\"184\" y=\"60\">active counter</text><text x=\"274\" y=\"60\">reservoir</text><text x=\"484\" y=\"60\">frozen</text></g><rect x=\"10\" y=\"20\" width=\"170\" height=\"22\" fill=\"var(--ink)\" stroke=\"var(--line-strong)\"/><rect x=\"180\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><rect x=\"270\" y=\"20\" width=\"210\" height=\"22\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><rect x=\"480\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/></svg>",
-     "<p>The head sweeps across the whole tape every time, which is why the visited part grows like the square root of the step count. Crossing the uniform block does nothing but cost time: the tape the head brings back does not depend on how long the block is. So from sweep to sweep the machine applies one fixed map to the part of the tape after the block, whose length stays exactly the same for long stretches of time.</p>",
-     "<p>It shares its first four states with 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC. The block is <code>1<sup>n</sup></code> at the left end; two events happened early, at sweeps 97 (the region becomes 217 cells) and 1481 (2,987 cells). Over 6,000 sweeps a version that cuts the block to 40 cells at every sweep sees exactly the same region as the real machine.</p>"
+     "<p>Look at the tape each time the head reaches the left end. First a block of ones, two cells longer than last time. Behind it the cells come in pairs, <code>01</code> or <code>11</code>, and groups of six pairs form little counters with four states. Behind the counters is a tail of a few thousand cells with no visible order.</p>",
+     "<svg viewBox=\"0 0 580 70\" role=\"img\" aria-label=\"The tape: a growing uniform block, an active counter region, a more counters it eats, and an old tail at the far end\" style=\"width:100%;max-width:620px;height:auto\"><g font-family=\"var(--body)\" font-size=\"11\" fill=\"var(--fg2)\"><text x=\"10\" y=\"14\">&larr; grows 2 cells a sweep</text><text x=\"14\" y=\"60\">growing block</text><text x=\"184\" y=\"60\">counters</text><text x=\"274\" y=\"60\">more counters</text><text x=\"484\" y=\"60\">old tail</text></g><rect x=\"10\" y=\"20\" width=\"170\" height=\"22\" fill=\"var(--ink)\" stroke=\"var(--line-strong)\"/><rect x=\"180\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><rect x=\"270\" y=\"20\" width=\"210\" height=\"22\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><rect x=\"480\" y=\"20\" width=\"90\" height=\"22\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/></svg>",
+     "<p>Crossing the block costs time but changes nothing, so the machine applies one fixed rule, sweep after sweep, to the part behind the block.</p>"
     ]
    },
    {
     "id": "counter",
     "eyebrow": "Macro structure",
-    "heading": "A counter that eats its reservoir, then refills it",
+    "heading": "A chain of counters that count to four",
     "html": [
-     "<p>The busy stretch behaves like an odometer with irregular digits: the cells right next to the block change at almost every sweep, cells further in change more and more rarely, and the deepest cell that has ever changed moves into the reservoir at a roughly constant number of cells per <em>doubling</em> of the number of sweeps, so crossing a reservoir takes a number of sweeps exponential in its length.</p>",
-     "<p>Here the front is remarkably regular: the deepest change is 131 cells from the block after 16 sweeps, 251 after 512, 371 after 8,192, 491 after 131,072 and 683 after 16,777,216: steps of 12, 24 and 36 cells per doubling, about 28 on average.</p>",
-     "<p>When the counter reaches the far end of the reservoir, something new happens (an <em>event</em>): the whole uniform block, by then very long, is turned into a fresh reservoir, and a new block starts growing from nothing. The next reservoir is as long as the block was, so the next event is exponentially further away than this one, and the one after that further still.</p>",
-     "<p>Events so far: sweeps 97 and 1481. The front still has about 2,300 cells to go; at 28 cells per doubling that is about 80 more doublings, some 2<sup>80</sup> &asymp; 10<sup>24</sup> sweeps, or about 10<sup>48</sup> steps.</p>"
+     "<p>Every second sweep adds one to the first counter. If that counter was at 0, the sweep turns around there. Otherwise it goes on and adds one to the second counter, with the same rule, and so on down the row.</p>",
+     "<svg viewBox=\"0 0 580 120\" role=\"img\" aria-label=\"A chain of counters modulo 4: each sweep adds one to the first counter; it stops there if the counter was 0 and otherwise goes on to the next\" style=\"width:100%;max-width:620px;height:auto\"><g font-family=\"var(--mono)\" font-size=\"13\" text-anchor=\"middle\"><rect x=\"40\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"66\" y=\"50\" fill=\"var(--fg)\">2</text><rect x=\"100\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"126\" y=\"50\" fill=\"var(--fg)\">3</text><rect x=\"160\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"186\" y=\"50\" fill=\"var(--fg)\">1</text><rect x=\"220\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"246\" y=\"50\" fill=\"var(--fg)\">0</text><rect x=\"280\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"306\" y=\"50\" fill=\"var(--fg)\">3</text><rect x=\"340\" y=\"30\" width=\"52\" height=\"30\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"366\" y=\"50\" fill=\"var(--fg)\">2</text><rect x=\"400\" y=\"30\" width=\"150\" height=\"30\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"475\" y=\"50\" fill=\"var(--fg2)\">junk</text></g><g font-family=\"var(--body)\" font-size=\"11\" fill=\"var(--fg2)\"><text x=\"40\" y=\"20\">a sweep arrives from the block: +1, +1, +1, and it turns at the first counter that was 0</text><text x=\"40\" y=\"100\">after the sweep: 3 0 2 1 3 2 (the counters behind the turning point are untouched)</text></g><path d=\"M20 45 H36\" stroke=\"var(--head)\" stroke-width=\"2\"/><path d=\"M66 68 q30 14 60 0 q30 14 60 0 q30 14 60 0\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"1.5\"/><circle cx=\"246\" cy=\"68\" r=\"3.5\" fill=\"var(--head)\"/></svg>",
+     "<p>So three sweeps out of four get past the first counter, three out of four of those past the second, and so on: to get past a row of m counters takes about (4/3)<sup>m</sup> tries. This rule is simple enough to compute millions of sweeps in one go, with the exact number of steps: that is how the machine was followed far beyond anything a step-by-step simulation could do.</p>",
+     "<p>Only a sweep that gets past the whole row touches the tail, and each such <em>pass</em> changes the tail a little, by a rule of its own that looks chaotic. When a pass finally gets through the tail to the far end of the tape, an <em>event</em> happens: the whole block of ones turns into a fresh row of counters (all showing 3), the old row and tail become the new tail, and a new block starts from two cells.</p>",
+     "<p>Events so far: after sweeps 3, 13, 23, 97, 1,481, and then one at about sweep 2.80&middot;10<sup>36</sup>. Between the last two, the row had 230 counters and was passed 25,741,416 times. The row that the last event created has 4.67&middot;10<sup>35</sup> counters.</p>"
     ]
    },
    {
     "id": "halt",
     "eyebrow": "Where it could stop",
-    "heading": "Halting needs the counter at the far end",
+    "heading": "Proved: only at the far end",
     "html": [
-     "<p>The machine stops only in state F reading a 0, which it reaches only as <code>B&gt;1 1 0</code> (B erases a 1 moving right, E keeps one). That needs B to arrive at <code>1 1</code> followed by a 0, which only the old region at the far end offers.</p>",
-     "<p>So a halt, if it ever comes, should come at an event, when the counter reaches the old region at the far end. Between events the machine just keeps sweeping (each event is exponentially further from the last), and at each event the outcome depends on the details of the old region, which look pseudo-random. A heuristic: if each event had a fixed chance of ending in a halt, the machine would halt with probability 1, but only after a tower of exponentials of steps; equally, a structural reason could make every event safe. Nothing here decides which.</p>"
+     "<p>The machine stops only in state F on a 0. A Lean proof shows that, starting from a blank tape, this can only happen when F steps onto the untouched blank tape beyond the far end. The proof exhibits a set of tape shapes that contains the start, is closed under the machine's steps, and contains no other halting situation. The trick was to let the shapes remember whether the head is an odd or an even number of cells from the next 0, because the machine reads its tape in pairs.</p>",
+     "<p>So nothing can go wrong while the head is busy with the counters or the tail. The only dangerous moments are the events, when a sweep reaches the far end.</p>"
+    ]
+   },
+   {
+    "id": "cryptid",
+    "eyebrow": "Why it is hard",
+    "heading": "A coin toss, repeated at ever longer intervals",
+    "html": [
+     "<p>Between two events nothing can go wrong: the machine sweeps, the block grows, the counter eats a little more reservoir. Everything is decided in the few sweeps in which the counter touches the far end of the tape. Each such contact either stops the machine or turns the block into the next reservoir, which is as long as the block had become, so the next contact is exponentially further away than the last one, and the one after that exponentially further again.</p>",
+     "<svg viewBox=\"0 0 580 96\" role=\"img\" aria-label=\"Epochs: each reservoir is as long as the block was at the previous event, so each epoch is exponentially longer than the one before\" style=\"width:100%;max-width:620px;height:auto\"><g font-family=\"var(--body)\" font-size=\"11\" fill=\"var(--fg2)\"><text x=\"10\" y=\"14\">epoch k: reservoir of L cells</text><text x=\"10\" y=\"58\">epoch k+1: reservoir of about 2^(L/c) cells</text><text x=\"300\" y=\"36\">eaten in about 2^(L/c) sweeps</text></g><rect x=\"10\" y=\"20\" width=\"60\" height=\"18\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><rect x=\"70\" y=\"20\" width=\"14\" height=\"18\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><rect x=\"10\" y=\"64\" width=\"520\" height=\"18\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><rect x=\"530\" y=\"64\" width=\"14\" height=\"18\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><circle cx=\"84\" cy=\"29\" r=\"4\" fill=\"var(--head)\"/><circle cx=\"544\" cy=\"73\" r=\"4\" fill=\"var(--head)\"/></svg>",
+     "<p>Machines like this are called <em>cryptids</em> in the Busy Beaver community: their fate hangs on an unbounded sequence of yes/no questions about a pseudo-random process, and no known method answers all of them at once.</p>",
+     "<p>For this machine the waiting times are known rather precisely, because the counters are: the next contact needs a sweep to get past 4.67&middot;10<sup>35</sup> counters, about (4/3)<sup>4.67&middot;10^35</sup> tries, and then many such passes to work through the tail. What is not known is the one thing that matters: whether the tail, when it finally gives way, lets the machine halt. In scaled-down models (block kept at four cells) every run eventually halts.</p>"
     ]
    },
    {
@@ -146,12 +171,12 @@
     "eyebrow": "Evidence",
     "heading": "What was checked, and how",
     "html": [
-     "<ul><li>The sweep map does not depend on the block length: <code>resetsim ... check</code> agrees with the real machine at every one of 6,000 sweeps, apart from the two early events.</li><li>The shortened machine runs 3&middot;10<sup>7</sup> sweeps from sweep 1490 (about 1.7&middot;10<sup>15</sup> steps of the real machine) without a halt and without an event.</li><li>Direct C simulation: no halt in 10<sup>9</sup> steps (triage); Lean: no halt in 10<sup>7</sup>.</li></ul>"
+     "<ul><li>The counter rule, as a program, reproduces the real machine at every one of its first 6,000 sweeps: step count, block and region, through two events.</li><li>The fast C version agrees with that program after 300 passes (step 3.2&middot;10<sup>63</sup>), and its sweep numbers agree with an independent earlier program at every million passes.</li><li>The Lean files compile with no <code>sorry</code>; the large closure check uses <code>native_decide</code>.</li><li>Not known: the rule of the tail.</li></ul>"
     ]
    }
   ]
  },
- "family": "counter eating a reservoir (bounded chaotic region, sweep map independent of the block)",
- "summary": "Same mechanism as 1RB1RC_..._---0RC with a very regular counter (about 28 cells per doubling of sweeps); events at sweeps 97 and 1481 left a 2,987-cell region, and the next event is estimated about 2^80 sweeps away.",
+ "family": "chain of mod-4 counters in front of a chaotic tail (decoded reservoir counter; cryptid-like)",
+ "summary": "The reservoir is a chain of independent mod-4 counters (decoded, with an exact accelerator): the third far-end contact comes at visit 2.80e36 (step 2.35e73) and does not halt; Lean proves a halt can only happen on blank tape beyond the far end; the next contact needs more than (4/3)^(4.67e35) sweeps.",
  "decision": "open"
 }

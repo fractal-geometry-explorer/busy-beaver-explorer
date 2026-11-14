@@ -13,37 +13,74 @@ bbchallenge id 51709. One of the six-state holdouts whose halting from blank tap
 
 ## What it does
 
-Same first four states as 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC and the same behavior (see that README): at
-each visit of the left end in state D the tape is `0^inf D>0 1^n R 0^inf`, the block grows by two per sweep, and the
-region `R` (exactly **209 cells** from visit 92) is transformed by a map independent of `n`: a chaotic counter
-next to the block that eats into a reservoir, an old region at the far end. Events (the whole block becomes a new
-reservoir) so far: visit 91 only.
+Same first four states as 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC and the same mechanism (that README has the
+shared description and tools). A *visit* is a step at which the head extends the tape to the left in state D; the
+tape is then
 
-The counter's front advances about 11 cells per doubling of the number of visits: 211 of the 250 cells of the
-shortened configuration (block of 41 included) after 4.2e6 visits, nothing deeper by 3e7. A halt needs `B>1 1 0`,
-which only the far end offers.
+    0^inf  D>0  1^n  R  0^inf
+
+One sweep later it is the same with `n + 2` and a new region `R` that does not depend on `n`: the head crosses the
+block (`A> 11 -> 01 A>`), works in `R`, and comes home. Read in pairs aligned to the block (`a` = 01, `b` = 11), `R` is
+a string of `a` and `b` with a single 1 at the end; the cells next to the block change at nearly every visit, deeper
+ones more and more rarely (a chaotic counter: no independent digits were found, the depth reached by a sweep has a
+smooth geometric distribution).
+
+Two things can end this routine, and both need the head at the far end of `R`:
+
+* an **event**: the head comes home in state C instead of D. Then the whole block becomes a fresh reservoir: the new
+  region is `a^(n/2 + 2)` followed by a tail made from the old region (209 cells at the last event), and the block restarts at 2;
+* a **halt**: F reads 0. In pairs, `B> b` leaves `F>`, which runs right over `b`s and halts on the first `a` or blank
+  pair. Inside the tape this has never been seen; in every model run below the halt is at the blank far end.
+
+Events so far, after visits 3, 5, 7, 15, 91 (`R` = 209 cells) and **1,675,675,235**:
+
+| | |
+|---|---|
+| visit before the event | 1,675,675,235, block `1^3,351,350,288` |
+| head leaves the region in state C | step 8,423,661,719,239,282,477 |
+| next visit (block `1^2`) | step 8,423,661,722,590,632,760 |
+| new region | `a^1,675,675,146` + a 209-cell tail (ending `...bbbbba 1`) = 3,351,350,501 cells |
+
+So the machine does not halt in its first 8.4e18 steps, and the event that the earlier README called "the first point
+where it could halt" passed without a halt. The counter now has a reservoir of 3.35e9 cells to eat; at the measured
+rate (the deepest cell reached advances 6.5 to 11 cells each time the number of visits doubles) the next event is
+of the order of 2^(3e8) visits away. It cannot be simulated, and the counter is not regular enough to jump.
 
 ## Status
 
-Open.
+Open (cryptid-like: a chaotic counter, and a coin toss at each of an unbounded sequence of ever rarer events).
 
-- **Kernel / native_decide:** `lean/Blank.lean`.
-- **Computed (trusted):** `resetsim` (in `holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/`) with the block
-  cut to 40 cells agrees with the true run at all of the first 6,000 visits (one event, at 91); from visit 100 it runs
-  3e7 visits (about 2.6e15 steps of the true machine) with no halt and no event.
-- **Heuristic:** the front speed; the next event expected after 1e8-1e9 visits.
-- **Open:** whether an event ever halts.
+- **Kernel / native_decide:** `lean/Blank.lean` (halting configurations; no halt in 10^4 / 10^7 steps).
+- **Computed (trusted):** `c/memosim.c`, an exact visit-level simulator (a window of 8 block cells and `R`, the rest of
+  the block by formula, a memo table on the first P cells of `R`). Validation: `check` mode compares `n`, `R` and the
+  step count with the direct run at each of 20,000 visits (0 mismatches); the run is the same for every P (P = 0, 10,
+  20, 36, 52 agree at 3e6 visits, step 27,000,426,790,621; P = 30 and P = 52 give the same event visit, window and
+  step). An independent earlier program found the same event visit.
+- **Heuristic:** with the block kept at 4 cells and a random start (`smallblock`), events follow each other quickly:
+  all of 2,000 runs halt within 6 events (region of 8 pairs), all of 500 within 11 (16 pairs), each time with nothing
+  but blank tape right of the head. With the last 21 or 41 cells of the true tail (`c/tail_event6.txt`) at the far
+  end of a random region of 26 pairs, 123 and 132 of 400 runs halt at the first far-end contact (about a third). If the true events behave like these, the machine halts almost surely, but only
+  after a number of steps far beyond any simulation.
+- **Not proved:** that a halt can only happen at the far end. The parity-window closed tape language that proves this
+  for 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA1RF_---1RD (`py/fctl.py` there) allows halts in non-blank contexts for this
+  machine up to windows of 10 cells.
+- **Open:** whether some event halts.
 
 ```sh
-gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
-./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE L D 1 40 2 6000 check
-FRONT=1 T0=100 ./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE L D 1 40 2 30000000
+gcc -O2 -o memosim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/memosim.c
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 100 20000 check        # against the direct run
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 100 3000000000 30      # to the event (tens of minutes)
+gcc -O2 -o smallblock holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/smallblock.c
+./smallblock 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 8 2000 1 1 40
+T=$(cat holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/tail_event6.txt)
+TAIL=${T: -41} ./smallblock 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 26 400 5 1 1 4   # the true far end
 ```
 
 ## Next steps
 
-Run the shortened machine to the next event (1e8-1e9 visits, hours in C) and see what the event does; it is the
-first point where a halt is possible.
+A decision needs either the counter's law (to say which far-end contacts halt) or luck at an event; the next event
+is out of reach. A proof that halts happen only at the far end (a closed language with a richer feature than parity)
+would at least make the picture rigorous.
 
 ## Pages
 

@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> From sweep 92 on, the machine applies one fixed map to a 209-cell region next to a block of 1s that grows by two each sweep (checked against direct simulation for 6,000 sweeps). A shortened copy of the machine runs 3&middot;10<sup>7</sup> sweeps, about 2.6&middot;10<sup>15</sup> steps of the real one, without a halt and without an event; the counter inside the region has come within 40 cells of the far end, where a halt (<code>B&gt;1 1 0</code>) could happen.</p>
+      <p><b>The question is open, and looks out of reach.</b> A block of 1s grows by two each sweep; behind it a chaotic counter eats a reservoir. An exact accelerated simulation followed the machine to the moment the counter reached the far end, the first point since sweep 91 where it could halt: at step 8,423,661,719,239,282,477 the whole block (3,351,350,288 ones) became a new reservoir instead. The next such moment is of the order of 2<sup>300,000,000</sup> sweeps away. In scaled-down models about one contact in three ends in a halt, so the machine probably halts, but nobody can say when.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -139,33 +139,38 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The sweep map ignores the block</h3>
-        <p>At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>; with the block cut to 40 or 41 cells at every visit the region R agrees with the true run at all of the first 6,000 visits except the first event (visit 91).</p>
-        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code></p>
+        <p>At each visit of the left end in state D the tape is <code>D&gt;0 1^n R</code>. <code>memosim</code> keeps 8 block cells and R and counts the rest of the block by formula; in <code>check</code> mode its block, R and step count agree with the direct run at each of 20,000 visits (0 mismatches).</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/memosim.c</code></p>
       </div>
       <div class="card">
-        <h3>No halt and no event in 3&middot;10<sup>7</sup> sweeps</h3>
-        <p>The shortened run from visit 100 makes 3&middot;10<sup>7</sup> sweeps (about 2.6&middot;10<sup>15</sup> steps of the true run) with R constant and no halt; valid for the true run because no event happens.</p>
-        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code></p>
+        <h3>No halt in the first 8.42&middot;10<sup>18</sup> steps; the sixth event</h3>
+        <p>Events (the head comes home in state C and the block becomes a reservoir) happen after visits 3, 5, 7, 15, 91 and 1,675,675,235. At the last one the block is 1<sup>3,351,350,288</sup>, the head leaves the region at step 8,423,661,719,239,282,477, and the next visit (block of 2) is at step 8,423,661,722,590,632,760 with a region of 3,351,350,501 cells: 1,675,675,146 pairs <code>01</code> and a 209-cell tail. The run gives the same event with memo widths 30 and 52 (the table only skips work, entries come from the cell-by-cell run); widths 0 to 52 agree at 3&middot;10<sup>6</sup> visits.</p>
+        <p class="where"><code>memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 100 3000000000 30</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>A counter 40 cells from the far end</h3>
-        <p>The deepest change into R advances about 11 cells per doubling of sweeps; 211 of 250 cells (block of 41 included) after 4.2&middot;10<sup>6</sup> sweeps.</p>
-        <p class="where">FRONT=1 runs of resetsim</p>
+        <h3>Next event about 2<sup>3&middot;10^8</sup> sweeps away</h3>
+        <p>From a fresh reservoir the deepest cell reached advances 6.5 to 11 cells per doubling of the number of sweeps, and the new reservoir has 3.35&middot;10<sup>9</sup> cells.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/fresh.c</code></p>
+      </div>
+      <div class="card">
+        <h3>In short-block models, contacts halt about one time in three</h3>
+        <p>The real machine with the block cut back to 4 cells at every visit, from random regions: all of 2,000 runs (8 pairs) halt within 6 events and all of 500 (16 pairs) within 11, always with blank tape right of the head. With the last 41 cells of the true tail at the far end, 132 of 400 runs halt at the first contact.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/smallblock.c</code></p>
       </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.492). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <p>The head sweeps across the whole tape and adds two cells per sweep at the left end, so the tape grows like the square root of the step count.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
+        <p>Not known. Not proved either: that a halt can only happen at the far end (the parity-window tape language that proves it for the sibling <code>..._1RA1RF_---1RD</code> is not closed enough here: it allows halts inside the tape for windows up to 10 cells).</p>
       </div>
     </div>
   </section>
@@ -173,9 +178,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/lean/check.sh
-gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
-./resetsim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE L D 1 40 2 6000 check
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 1000000000</code></pre>
+gcc -O2 -o memosim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/c/memosim.c
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 100 20000 check          # against the direct run
+./memosim 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 100 3000000000 30        # to the event at visit 1,675,675,235
+gcc -O2 -o smallblock holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/smallblock.c &amp;&amp; ./smallblock 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE 8 2000 1 1 40</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---1RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

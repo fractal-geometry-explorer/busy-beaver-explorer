@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> A block of 8-cell words grows at the right end of the tape; the region between it and the left end (213 cells after the event at sweep 91) is transformed sweep after sweep by a map that does not depend on the block's length, checked against direct simulation over 8,000 sweeps (1.6&middot;10<sup>8</sup> steps). Its busy part behaves like the chaotic counters of 1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC.</p>
+      <p><b>The question is open.</b> At each visit of the right end the tape is a block of <code>10111010</code> words that grows, then a region transformed by a fixed map, with a chaotic counter next to the block eating a reservoir. Three events so far (after sweeps 24, 91 and 9,305) each turned the block into a new reservoir; the third, which earlier notes left unexplained, is confirmed on the true run. The present region has 18,659 cells and should last about 2<sup>1100</sup> sweeps. No scaled-down model of this machine was seen to halt.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -138,24 +138,39 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
-        <h3>The sweep map ignores the block</h3>
-        <p>At each visit of the right end in state B the tape, read leftwards, is <code>B&gt;0 (10111010)^n R</code>; with n cut to 10 at every visit, R agrees with the true run at all of the first 8,000 visits except the event at visit 91.</p>
-        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>check</code></p>
+        <h3>The sweep map ignores the block; three events</h3>
+        <p>At each visit of the right end in state B the tape, read leftwards, is <code>B&gt;0 (10111010)^n R</code>. With the block cut to 10 words at every visit, R agrees with the true run at all of the first 8,000 visits. On the true run R jumps after visits 24 (31 to 71 cells), 91 (77 to 213) and 9,305 (229 to 18,659), without a halt.</p>
+        <p class="where"><code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c</code>, <code>c/rvis.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4&middot;10<sup>6</sup> sweeps after the third event</h3>
+        <p>From the true configuration at visit 9,320 the shortened run makes 4&middot;10<sup>6</sup> visits without a halt or an event.</p>
+        <p class="where"><code>rvis ... 10 4 9320 4000000 0</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>Next event about 2<sup>1100</sup> sweeps away</h3>
+        <p>The counter's front advances about 16.6 cells per doubling of the number of sweeps; the reservoir has about 18,400 cells.</p>
+        <p class="where"><code>rvis</code> depth records</p>
+      </div>
+      <div class="card">
+        <h3>No scaled-down version halts</h3>
+        <p>With the block cut to 2, 3 or 5 words at every visit from the start, there is no halt in 5&middot;10<sup>6</sup> visits.</p>
+        <p class="where"><code>rvis ... 2 4 1 5000000 0</code></p>
+      </div>
+      <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <p>The head sweeps across the whole tape and adds a word per sweep at the right end, so the tape grows like the square root of the step count.</p>
+        <p class="where"><code>holdouts/triage.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The run is a fixed map applied to a region of fixed length, interrupted by rare events whose spacing grows exponentially; whether some event halts is not known.</p>
+        <p>Not known. The halting pattern <code>0 B&gt;0</code> has not been excluded at the far end, and no invariant of the tail left by an event is known.</p>
       </div>
     </div>
   </section>
@@ -165,7 +180,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB/lean/check.sh
 gcc -O2 -o resetsim holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/resetsim.c -I tools/c
 ./resetsim 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB R B 10111010 10 1 8000 check
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB 1000000000</code></pre>
+gcc -O2 -o rvis holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/rvis.c
+./rvis 1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB R B - 10111010 100000 1 1 9400 0 | awk &#x27;{d=$4-p; if(d&gt;20||d&lt;-20) print; p=$4}&#x27;   # events on the true run</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC1RA_---1LD_1LE0RA_1LF0LE_0RB0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
