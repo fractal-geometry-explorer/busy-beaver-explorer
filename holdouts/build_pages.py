@@ -59,11 +59,21 @@ def elsewhere(M, decision="open"):
     out = []
     c = ext["coq_here"].get(M)
     if c:
-        out.append({"kind": "proof", "title": "Also proved in Coq",
-                    "text": f"A second proof assistant checks the same result: <code>{c['theorem']} : ~ halts tm c0</code>, "
-                            f"stated on busycoq's own definitions of a Turing machine and of halting, in "
-                            f"<code>{html.escape(c['dir'])}</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> "
-                            "reports no axioms; the build log is next to the files."})
+        stmt = c.get("statement", "~ halts tm c0")
+        text = (f"A second proof assistant checks the same result: <code>{c['theorem']} : {html.escape(stmt)}</code>, "
+                f"stated on busycoq's own definitions of a Turing machine and of halting, in "
+                f"<code>{html.escape(c['dir'])}</code>. Coq {c.get('coq', '8.18')} compiles it and "
+                "<code>Print Assumptions</code> reports no axioms; the build log is next to the files.")
+        if c.get("note"):
+            text += " " + c["note"]
+        if c.get("shorter"):
+            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq, "
+                     f"ready to be proposed upstream: "
+                     f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
+        elif c.get("branch"):
+            text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
+                     f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
+        out.append({"kind": "proof", "title": "Also proved in Coq", "text": text})
     if e.get("merged"):
         g = e["merged"]
         out.append({"kind": "report", "title": f"Proved outside this repository: it {CLAIM[g['claim']]}",

@@ -81,7 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---</p>
     <h1>What is known about 1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---</h1>
     <p class="machine">1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---</p>
-    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Lean. The ledger below says what each part rests on.</span></p>
+    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Lean and by Coq. The ledger below says what each part rests on.</span></p>
     <p>This six-state machine is on the bbchallenge list of holdouts. This page lists what has been established about it, sorted by what each result rests on. The headline: it halts from blank tape, proved in Lean.</p>
     <p class="asof">Status as of 13 November 2026.</p>
   </header>
@@ -94,6 +94,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>Also proved in Coq</h3>
+        <p>A second proof assistant checks the same result: <code>M_1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1REHHH.halts : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>tools/coq/busycoq/VisitLaw2</code>. Coq 8.20.1 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. It runs the same visit law for 161,210 rounds with the checker of busycoq pull request 59, extended to two forms of visit; that run is one evaluation of about 15 minutes. The same files are on a branch of our fork of busycoq, ready to be proposed upstream: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/bb6-halt-1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1REHHH">bb6-halt-1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1REHHH</a>.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</p>
