@@ -1,6 +1,6 @@
 # 1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---
 
-bbchallenge id 60498. One of the six-state holdouts whose halting from blank tape is open (group G11).
+bbchallenge id 60498. A six-state bbchallenge holdout (group G11). **It halts from blank tape**: Lean theorem `halts_from_blank` (kernel, plus `native_decide` for the run of a verified checker), see "It halts" below.
 
 Family **G11-Y** (two counters ticking together, `1RB0LB_0RC0LD` and relatives): this machine is a relative in different clothes, the twin of 1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE--- (E1 = 1RB against 0RE): the same clockwork left side (3·2^k turns, each count twice, the second time 3 less) and the same tapes (at its left-end visit at step 12,788,128 its tape is exactly the twin's at step 14,008,454).
 
@@ -34,6 +34,69 @@ The family: `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` (reference), `1RB0LB_0RC
 steps of each other), `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---` and `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---` (same
 right part at the left-end visits, 3·2^k), and the mirror case `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`.
 
+<!-- F02-halt:begin -->
+## It halts: the visit law and a verified checker (F02, 13 November 2026)
+
+**Theorem `halts_from_blank` (`lean/Halt.lean`): the machine halts from blank tape.** Everything is checked by the
+Lean kernel except the evaluation of a checker that is itself proved correct; that evaluation is by `native_decide`
+(compiled code, so the theorem also depends on eleven `native_decide` axioms, one per evaluation). The number of steps is not computed;
+it is astronomically large (the halt is in round 161,211, and the number of visits in a round grows exponentially with the round).
+
+**The visit law (kernel), `lean/Visit.lean`.** A *visit*: the head stands on a 0 (the lead cell) with a 0 on its left
+and a stream `s` on its right, in state C (form `V`) or in state F (form `W`); it comes back in state A two cells
+further left, both 0s restored and `s` rewritten to `v(s)`. For every stream `s` and every tape to the left:
+
+| stream | after the visit | theorem (form V) |
+|---|---|---|
+| `0 s` | `1 s` | `V_0` |
+| `100 s` | `000 v(s)` | `V_100` |
+| `110 s` | `000 v(s)` | `V_110` |
+| `1010 s` | `1010 v(v(s))`, the first nested visit in form W | `V_1010` |
+| `1011 s` | the machine halts | `V_1011_halts` |
+
+In this machine both forms obey the same rules (`W_0`, `W_100`, `W_110`, `W_1010`, `W_1011_halts`), so the
+guard of the abstract law below is not needed here; it is there for the twin machine.
+If a nested visit halts, so does the visit around it (`V_100_halts_1`, `V_1010_halts_1`, `V_1010_halts_2`, ...).
+The run is a sequence of rounds (`start`, `round`, `round_halts`): after 6 steps the tape is `0^inf A> 1 0 0 S_1`
+with `S_1 = 1 0^inf`, and a round turns `0^inf A> 1 0 0 S` into `0^inf A> 1 0 0 S'` with `S' = v(1 0 S)` (a V visit).
+
+**The abstract system (kernel), `./VisitLaw.lean`.** The four rewriting rules and the halting pattern as
+inductive relations `AV`, `AH` on streams, with no machine in them; the `1010` rule carries the guard "the stream
+behind does not start with `11`". `Law` lists what a machine's `V` and `W` must satisfy; `Law.av`, `Law.ah` turn
+abstract visits into machine visits. Count laws: under n visits `000 r` and `100 r` are binary digits that pass
+every second visit on (`law_Z`, `law_H`, `law_G`), `1010 r` passes 2n visits on (`vs_L`), and the same for "one
+of the first n visits halts" (`hvs_Z`, `hvs_H`, `hvs_G`, `hvs_L`, `hvs_X`).
+
+**The checker (kernel), `./VisitCheck.lean`.** `scan` carries a count of visits through a finite word in one
+pass; the count is kept as a pair e, c that stands for 2^e - c, so astronomically many visits cost one step per cell.
+`scan_sound`, `hscan_sound`: what it returns is what the abstract system does. `check k w`: run k rounds from the
+word w, then find a halting visit in the next round. `lean/Law.lean`: this machine satisfies `Law`, and
+`halts_of_check_blank : check k [true] = true -> HaltsFromBlank` (axioms: the three standard ones).
+
+**The evaluation (native), `./VisitRun.lean`.** `check_run : check 161210 [true] = true`: rounds 1 to 161,210
+use the four rewriting rules only and round 161,211 meets `1011`. The run is cut into ten segments
+(`./VisitSeg1.lean` to `VisitSeg10.lean`), each "k rounds take the word after a rounds to the word after b
+rounds" by `native_decide`, chained by `iter_add` (`./VisitSeg.lean`, kernel); the words at the boundaries
+(up to a million cells) are written as numbers in `./VisitW*.lean`. The last word has 1,001,253 cells.
+`lean/check_halt.sh` compiles the checker to native code and checks everything; the segments took 10 to 30
+minutes each, about 3 hours of computing in all. Each segment was checked once (13 and 14 November 2026);
+the whole check was then run again from start to end on a fresh clone on 14 November 2026 (the commands of
+`check_halt.sh`, with the ten segments four at a time, about 40 minutes on four cores) and printed `HALT CHECKED`.
+The repository's automatic checks run `check.sh` (the kernel-only part) but not `check_halt.sh`.
+
+**The same law as the machines of busycoq PR59.** `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` and its two relatives obey
+this law with one form of visit (entered one cell further left), and PR59 proves in Rocq that they halt in round
+161,211. The Lean proof here does not use PR59; that both land on the same round is a cross-check (as is our C
+simulator `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/vis.c`, which halts in that round on the PR59 machine).
+The twin `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---` halts in the same round by the same checker run; that is a
+separate theorem about a different table, not a consequence of this one.
+
+Tools: `py/visit2.py MACHINE NAMESPACE OUT` writes `lean/Visit.lean` by symbolic execution of the table.
+`./VisitGen.lean` (run with the compiled checker) writes the word after k more rounds; `visit_chain.sh` and
+`visit_segments.py` next to `visit2.py` produced the boundary words and the segment files (they carry the paths of the
+machine they were run on).
+<!-- F02-halt:end -->
+
 ## Events, third round
 
 The twin of `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---` (E1 = 1RB instead of 0RE), with the same words. As in
@@ -43,13 +106,11 @@ of the first 10^8 steps.
 
 ## Status
 
-Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the left-and-right increments in one pass, 5 theorems (`lean/Events.lean`). `native_decide`: 10^7 steps. C: no halt in
-10^11 steps.
+**Halts** (Lean, level native): `halts_from_blank` in `lean/Halt.lean`, by the visit law and a verified checker (see "It halts" above). Kernel only: the visit law in two forms (`lean/Visit.lean`), the abstract system and the checker with its correctness proof, and `halts_of_check_blank` (`lean/Law.lean`). Older results, all kernel: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps (`lean/Rules.lean`), the left-and-right increments (`lean/Events.lean`). The sections below on counters and junk are the earlier description of the same run and are kept for the record.
 
 ## Next steps
 
-Decode what a carry writes when it reaches the end of the tape, so that the junk after each visit is a formula in the
-counters; then decide whether a carry can ever find a 1 where it has always found a 0.
+None needed for the halting question. Open ends: the number of steps to the halt (the checker does not count them), and a proof of the evaluation inside the kernel (it is about 10^11 list operations, too many for kernel reduction).
 
 ## Scripts
 
