@@ -117,6 +117,36 @@ this machine as far as the common rules go (the equivalence itself is observed, 
     g++ -O2 -o zvis c/zvis.cpp && ./zvis m:1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF A1B,E1B - run 20000 600
     python3 py/zeval.py 24 > words.txt && python3 py/tokz.py 4500 words.txt && python3 py/twinchk.py 30000000 words.txt
 
+## A conserved value, and what is left to prove (14 November 2026, second pass)
+
+**Value.** Give a tape of words the value v with `v(L W) = v(W)/2`, `v(O W) = 2 v(W)`, `v(I W) = 1 + 2 v(W)`, blank = 0
+(a digit counts 2^-b, b = the number of L's minus the number of digits before it: 2^b visits reach it for each
+visit at the front). With a defect: `v(x W) = F(W)`, `v(1 W) = G(W)`, `v(z W) = G(W) - 1`, where
+
+    F(O W) = 2 F(W) - 1     F(L W) = F(W)/2         F(I W) = (G(W) - 1)/2                       F(blank) = 1
+    G(O W) = 2 G(W) - 1     G(L W) = (G(W) - 1)/2   G(I O W) = v(W) - 1    G(I I W) = 4 G(W) - 1    G(I L W) = 4 F(W) + 3    G(blank) = 1
+
+**Every visit of A adds exactly 1 to v**, with or without a defect (each token rule above, by hand; `py/tokv.py` checks
+it with exact fractions on every round, no violation). At the start of round k the value is 1/15 up to about
+2^(-k/2) (0.0666666666666 at round 100): the far end of the tape is the binary expansion of 1/15, the word
+`I O O O` repeated k/8 times (measured), and each round appends one period.
+
+**Where the defect goes** (measured, rounds 100 to 1,500). At the start of a round the tape is `L^m`, the defect,
+`L^(m-1)`, a part rich in L's, and then digits only up to the end (about 1.8 k digits). The defect always disappears
+at the first `I O` of the digit part or a few tens of words around it. There a digit has b of about 0.45 times the
+length of the tape, so 2^b visits arrive: the defect is pushed one word further by every visit and cannot stay.
+
+**The argument, and its gap.** (1) If the defect were still there at the end of a round, with the rewritten words P
+behind it, conservation gives 1 = v(P) minus the constants of its steps, at most the sum of 2^-b over the digits it
+passed; so it would have to be among the last log2(length) words of the tape. (2) It cannot pass two periods
+`I O O O I O O O` alive (`1 I O` ends it; `x I O O O` becomes `L O 1 O O` and the next `I O` ends it). So a tail of
+a few more than log2(k)/4 periods, with every digit before the tail having b larger than the length of the tail, forces
+the defect to disappear in every round. (3) The tail of the next round is the old one plus the visits that reach
+it, and it stays periodic as long as the digits before it have large b. Not proved: **that every digit in the part
+rich in L's keeps b above a few times log2(k)**. Measured: b is at least 2m - 5 there (the minimum is 10 words in).
+Bookkeeping of the worst case only gives that b does not decrease over two rounds. That is the one missing lemma
+for a proof that this machine and its twin never halt; nothing of this second pass is in Lean.
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -127,7 +157,8 @@ this machine as far as the common rules go (the equivalence itself is observed, 
   simulation); no halt in 100,000 rounds; the token rules agree with the exact evaluation and every round from 13 to
   4,500 ends with a single defect (`py/tokz.py`).
 - By hand, not in Lean: the token rules, and that a tape with one defect cannot halt.
-- Open: that the defect of every round disappears before the round ends; halting.
+- By hand and checked numerically (`py/tokv.py`): the conserved value. Open: a lower bound on b in the part rich in
+  L's, which would give that every round's defect disappears; halting.
 
 ## Scripts
 
@@ -136,7 +167,7 @@ this machine as far as the common rules go (the equivalence itself is observed, 
 - `c/zvis.cpp`: visit engine for machines with several visit forms (`zvis MACHINE auto NSTEPS run MAXTOP MAXSEC`
   finds the forms itself; `m:` in front of the machine mirrors it); counts are sums of powers of two.
 - `py/zeval.py ROUNDS`: the round words S_k from the seven window rules. `py/tokz.py ROUNDS [FILE]`: the token rules.
-  `py/twinchk.py STEPS FILE`: the same words on the twin's tape.
+  `py/twinchk.py STEPS FILE`: the same words on the twin's tape. `py/tokv.py ROUNDS`: the conserved value.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 
