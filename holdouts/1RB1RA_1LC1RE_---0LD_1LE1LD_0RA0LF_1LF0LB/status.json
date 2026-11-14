@@ -1,8 +1,8 @@
 {
  "generated": false,
  "group": "G07",
- "family": "one growing block of 1s beside a slowly growing disordered region",
- "summary": "A block of 1s at the left end grows by about one cell per sweep (43,506 cells after 2·10^9 steps) while a disordered region of about 1,500 cells on its right, never repeating, does the work; open.",
+ "family": "unary visit counter fed to an irregular word",
+ "summary": "Mirror image of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD started in another state (tables: exact): the same irregular word W at every visit and a run of 1s one cell shorter; it halts iff W eats the whole run between two visits; no halt in 3·10^7 visits (8.6·10^14 steps), W eats at most 14 cells in a visit.",
  "decision": "open",
  "title": "What is known about 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB.",
@@ -13,9 +13,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Most of the tape is a single block of 1s that grows by about a cell per sweep; the behavior that matters happens in a slowly growing disordered region beside it, which is not understood."
+  "<b>The question is open.</b> This machine is the mirror image of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD with its states renamed, started in another state (an exact comparison of the two tables). The two runs stay in step: the same irregular word W next to a run of 1s that counts the visits, this machine's run one cell shorter.",
+  "It halts only if W eats the whole run between two visits. An exact simulation that keeps the run as a number followed it for 3&middot;10<sup>7</sup> visits (8.6&middot;10<sup>14</sup> steps): the run gains 0.96 cells a visit and W never eats more than 14 cells at once. A halt is extremely unlikely, but W's behaviour is not understood, so there is no proof."
  ],
  "claims": [
   {
@@ -37,18 +38,6 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
-   "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,607 cells have been visited and 31,699 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
-  },
-  {
-   "level": "heuristic",
-   "title": "Growth shape: fixed/sqrt",
-   "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
-  },
-  {
    "level": "kernel",
    "title": "Shift rules",
    "text": "For every length n of the run and any tape around it: <code>L A&gt; 1^n R</code> reaches <code>L 1^n A&gt; R</code>; <code>L 1^n D&gt; 1 R</code> reaches <code>L D&gt; 1 1^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.",
@@ -56,21 +45,39 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 2&middot;10<sup>9</sup> steps",
-   "text": "<code>tools/c/tmrun.c</code> runs 2&middot;10<sup>9</sup> steps without a halt; the left end is visited 45,734 times, with a different disordered region each time.",
-   "where": "<code>tools/c/tmrun.c</code>"
+   "title": "Mirror image of a sibling",
+   "text": "Swapping L and R and renaming the states A,B,C,D,E,F to C,D,E,A,B,F turns this table into the table of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD, entry by entry (an exact comparison by script). So this machine from blank tape is the mirror image of the sibling started in its state C.",
+   "where": "<code>py/sibling.py</code>"
   },
   {
    "level": "trusted",
-   "title": "Counter-like changes next to the block",
-   "text": "Over the 17,520 visits of the left end up to 3&middot;10<sup>8</sup> steps, comparing each region with the previous one from its far end: the changed part is next to the block, at least 20 cells long in 56% of the visits, 80 in 14%, 320 in 0.4%, 640 in 0.01%. The commonest changes are a few fixed rewrites of the cells next to the block (<code>0101010100</code> &rarr; <code>010101011</code> with N+2, 3,337 times).",
-   "where": "<code>tools/c/tmrun.c</code> (<code>at E L</code>), README"
+   "title": "The two runs stay in step",
+   "text": "At every visit of the far end the irregular word W is the same in both machines (mirrored) and this machine's run of 1s is one cell shorter: checked cell for cell at the first visits, and by W's length and the depth and eating statistics at 3&middot;10<sup>7</sup> visits.",
+   "where": "<code>py/sibling.py</code>, <code>c/runsim.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 3&middot;10<sup>7</sup> visits",
+   "text": "The simulator that keeps the run as a number (checked against its cell-by-cell mode) runs 30,000,000 visits = 864,573,434,721,961 steps without a halt; the run is then 28,822,305 cells and W 1,178,039.",
+   "where": "<code>c/runsim.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A halt needs blank tape left of the head",
+   "text": "The closed tape language from windows of 3 cells covers the run from blank tape and allows the halting transition C0 only with blank tape left of the head: the machine halts only if W eats the whole run. (Computed; for the sibling the mirrored statement is a Lean theorem.)",
+   "where": "<code>python3 -m bbtools.ctl 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 3</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "It almost certainly never halts",
+   "text": "W eats at most 14 cells of the run in one visit in 3&middot;10<sup>7</sup> visits, with a geometric tail, while the run gains 0.96 cells a visit: a halt at visit v needs about v cells eaten at once.",
+   "where": "README, the sibling's README"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly when state C reads a 0, which would have to happen in the disordered region.",
-   "where": ""
+   "text": "Not known. W's dynamics are irregular and not decoded; a proof needs a bound on what W can eat between two visits.",
+   "where": "README"
   },
   {
    "level": "trusted",
@@ -82,20 +89,21 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 1000000000"
+  "cd holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB && python3 py/sibling.py 600",
+  "gcc -O2 -o /tmp/runsim c/runsim.c && /tmp/runsim 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB D A 1000000 1"
  ],
  "explainer": {
-  "lede": "Nobody knows. Almost all of this machine's tape is one block of 1s, growing by about a cell each time the head sweeps across it; all the interesting work happens in a small, messy region next to it.",
+  "lede": "Nobody knows, but almost certainly not. This machine is the mirror image of another holdout, started in a different state; the two run in step for ever. An exact shortcut simulation followed it for 8.6&middot;10<sup>14</sup> steps without a halt.",
   "facts": [
    {
     "level": "trusted",
-    "value": "2&middot;10<sup>9</sup> steps",
-    "text": "No halt in the C simulator."
+    "value": "a mirror twin",
+    "text": "Same table as 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD, reflected and renamed."
    },
    {
     "level": "trusted",
-    "value": "43,506 ones",
-    "text": "Length of the big block at 2&middot;10<sup>9</sup> steps; the messy region is about 1,500 cells."
+    "value": "8.6&middot;10<sup>14</sup> steps",
+    "text": "No halt in 3&middot;10<sup>7</sup> visits (exact simulation, the run as a number)."
    },
    {
     "level": "kernel",
@@ -112,6 +120,16 @@
    "steps": 60000
   },
   "sections": [
+   {
+    "id": "twin",
+    "eyebrow": "The main fact",
+    "heading": "A machine and its mirror twin",
+    "html": [
+     "<p>Take this machine's table, swap <em>left</em> and <em>right</em> everywhere, and rename the states (A,B,C,D,E,F become C,D,E,A,B,F). You get exactly the table of another holdout, 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD. So the two are the same machine seen in a mirror, only started in different states.</p>",
+     "<p>Both keep a long run of 1s (a counter of the visits to the end of the tape) next to a small, messy word W where all the work happens. W cannot tell how long the run is: the head either crosses the whole run and adds a 1, or nibbles at its near end. Because of that the two machines stay in step: at every visit their words W are the same cell for cell, and this machine's run is exactly one cell shorter than its twin's.</p>",
+     "<p>The machine stops only if W eats the whole run between two visits. In thirty million visits W never ate more than 14 cells at once, while the run grew to 28.8 million cells. Larger bites get rarer very fast, so a halt is not expected; but W looks random, and nobody can prove it.</p>"
+    ]
+   },
    {
     "id": "block",
     "eyebrow": "Macro structure",
