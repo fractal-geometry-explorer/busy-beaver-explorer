@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 1 1 1</code> (B0 C1 E1 put F on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 7.9&times;10<sup>14</sup> steps. Its F-event differs from the one of the other three machines (it writes <code>1 1 1 1</code> and leaves B, they write <code>1 0 0 0</code> and leave A), so its tapes are not theirs, but the structure and the growth law are the same."
  ],
@@ -100,6 +100,12 @@
    "where": "direct C runs (not kept in the repository)"
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 1.28&times;10<sup>14</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.28&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 11,073 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts exactly if B ever reads <code>0 1 1 1</code>. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10<sup>15</sup> steps because those runs pile up at the right end.",
@@ -136,6 +142,11 @@
     "level": "heuristic",
     "value": "&times;5/4",
     "text": "Growth of the counter and of every group of runs over two epochs."
+   },
+   {
+    "level": "heuristic",
+    "value": "1.28&times;10<sup>14</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

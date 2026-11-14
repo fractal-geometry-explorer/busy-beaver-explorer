@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_0LC1RF_0LD1LD_1LE1LC_0RB0RA_---1RE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its tape is a list of blocks of 1s, and Lean now proves that the machine is exactly a simple rule on that list: a carry walks left through the blocks, turning each block of length v into one of length 4v + 3, paid for by the last block, which is refilled from the blocks before it. A halt needs a block of length one in a place the carry skips, and in 10<sup>4000</sup> steps that never happens.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -194,6 +194,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Why a halt looks unlikely</h3>
         <p>A halt needs an exact coincidence at a jump, such as x = z0/2 + 2 (remnant 1), between block lengths that come from different generations of the carry and show no arithmetic relation (no congruence forbids it, no inequality keeps the remnant large). The heuristic chance is about the sum of 1/F over the future jumps, and the fuel F grows roughly exponentially along the jumps (9 bits at the first, 3,315 bits at the 358th), so the expected number of halts is far below one: the machine very likely never halts.</p>
         <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.26&times;10<sup>13</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 2.26&times;10<sup>13</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.09&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,699 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

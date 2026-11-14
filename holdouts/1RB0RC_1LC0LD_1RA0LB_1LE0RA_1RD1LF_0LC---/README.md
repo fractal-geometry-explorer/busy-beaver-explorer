@@ -81,6 +81,14 @@ gcc -O2 -o snap holdouts/1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---/py/snap.c
 ./snap 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC--- 1000000000 L 40 > img.txt && python3 holdouts/1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---/py/particles_img.py img.txt particles.png -61000 1000 640
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 1.98x10^12 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 493 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC--- 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---/explainer.html`](../../pages/holdouts/1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---/explainer.html)

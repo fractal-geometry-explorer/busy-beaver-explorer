@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine works a stack of blocks at the right end of the tape; Lean proves its two working modes for all block lengths. Each pop makes the top about 2.5 times larger and moves the deeper blocks by a few cells, so what happens when a deep block empties is far beyond simulation.</p>
+      <p><b>The question is open.</b> The machine works a stack of blocks at the right end of the tape; Lean proves its two working modes for all block lengths. Each pop makes the top about 2.5 times larger and moves the deeper blocks by a few cells, so what happens when a deep block empties is far beyond simulation. Update of 13 November 2026 (observed, not proved): an accelerated run passed 10<sup>4119</sup> steps without a halt, well past the size estimated here for the level-two block to run out; its last blocks are about 10<sup>2059</sup> cells long. What the deep levels did on the way has not been analysed.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -164,6 +164,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A hierarchy of counters</h3>
         <p>Each pop multiplies the top by about 2.5, and the block two levels down changes by 4 cells every two pops; it needs about 240 more pops to run out, when the top would be about 2.5<sup>240</sup> cells long.</p>
         <p class="where">README, from <code>py/modes.py</code> and <code>c/blocks.c</code> runs</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>4119</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran more than 10<sup>4119</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.50&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 62,520 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>, <code>holdouts/1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA/data/rsim_longrun.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

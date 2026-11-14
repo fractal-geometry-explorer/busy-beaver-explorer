@@ -11,7 +11,7 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "It is one of a pair, <code>1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB---</code>, that differ only in E0 (here <code>1LD</code>, there <code>1LC</code>). The outer sweeps never read E0, so the two machines share them; the inner phases differ."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The outer sweeps are proved in Lean, but the inner phases, which decide how the blocks grow, are only observed; no invariant that would exclude a halt is known.",
   "<b>Where a halt would have to come from.</b> The machine halts only in F reading a 1. F is entered only from E reading a 1, and E only from D reading a 0; so a halt needs the head in D on <code>0 1 1</code>. F is entered constantly (in the regular sweeps), 137,952,841 times in 2·10<sup>10</sup> steps, and always reads a 0: the cell after <code>…0011</code> is always the start of <code>0101…</code>."
@@ -84,6 +84,12 @@
    "where": ""
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 3.69&times;10<sup>11</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 3.69&times;10<sup>11</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.06&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,211 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts only if the head is ever in D on <code>0 1 1</code>; it never was in 2·10<sup>10</sup> steps.",
@@ -119,6 +125,11 @@
     "level": "trusted",
     "value": "F on a 0",
     "text": "F is entered 137,952,841 times, always on a 0."
+   },
+   {
+    "level": "heuristic",
+    "value": "3.69&times;10<sup>11</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.06&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

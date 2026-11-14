@@ -56,6 +56,14 @@ python3 holdouts/1RB0LA_0LC0RD_0RE1LA_0RC1LB_1LE0LF_1RD---/py/rules.py          
 python3 holdouts/1RB0LA_0LC0RD_0RE1LA_0RC1LB_1LE0LF_1RD---/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
 ```
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 2.60x10^9 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 4 checkpoints, the last at 1.00x10^9 steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LA_0LC0RD_0RE1LA_0RC1LB_1LE0LF_1RD--- 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LA_0LC0RD_0RE1LA_0RC1LB_1LE0LF_1RD---/explainer.html`](../../pages/holdouts/1RB0LA_0LC0RD_0RE1LA_0RC1LB_1LE0LF_1RD---/explainer.html)

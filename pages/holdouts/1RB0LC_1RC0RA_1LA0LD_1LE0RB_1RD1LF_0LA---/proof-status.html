@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RD1LF_0LA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a list of counters written as runs of <code>01</code> or <code>10</code>. It has two regimes. Both are proved in Lean one round trip at a time for every size. What is not proved is how the run passes from one regime to the next. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -194,6 +194,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The regimes alternate</h3>
         <p>The right-end regime runs at steps 2,889&ndash;7,790 (a = 13), 35,911&ndash;263,899 (a = 108), 7,677,126&ndash;21,453,756 (a = 714), 36,507,005&ndash;48,506,720 (a = 295) and from 250,823,121 (a = 7299, still running at 3&middot;10<sup>8</sup>). In between, the head turns near the left end (the rewriting phase above). The tail survives these phases (m = 714, 717, 1012, 1015, &hellip;).</p>
         <p class="where"><code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 8.29&times;10<sup>10</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 8.29&times;10<sup>10</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.04&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 481 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

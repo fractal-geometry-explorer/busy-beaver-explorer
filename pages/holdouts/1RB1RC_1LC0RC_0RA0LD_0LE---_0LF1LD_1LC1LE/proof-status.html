@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -179,6 +179,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Halting needs short blocks</h3>
         <p>Random tapes of the run's shape halt within 10<sup>5</sup> steps in about 3% of cases when the blocks have length 1 or 2 (always by the head in A meeting two 1s side by side or a similar short pattern), never in 1,600 trials with all blocks &ge; 3. Changing one block of the real tape at step 10<sup>6</sup> by one <code>10</code> gave no halt in 2&middot;10<sup>7</sup> more steps in 40 trials.</p>
         <p class="where"><code>py/random_tapes.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 5.60&times;10<sup>23</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 5.60&times;10<sup>23</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.09&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 7,120 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

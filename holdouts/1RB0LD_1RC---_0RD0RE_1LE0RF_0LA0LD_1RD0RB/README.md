@@ -38,6 +38,14 @@ Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 step
 3. Express the run as a stack machine on records and look for its invariant.
 4. The whole-tape frame-map method (fit affine cases on a fixed set of frames, as for 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC) does not apply as it is: the number of records grows (50 `1001` record markers at 10^8 steps, 86 at 10^9). Frames would need a left context (a window of the top records) with records moving between window and context.
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 2.22x10^609 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 9,243 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB/explainer.html`](../../pages/holdouts/1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB/explainer.html)

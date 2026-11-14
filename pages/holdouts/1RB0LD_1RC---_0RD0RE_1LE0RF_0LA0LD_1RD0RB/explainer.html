@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -195,6 +195,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev h">Heuristic</span><b>t<sup>0.66</sup></b><span class="small">the tape grows to the right about like t^0.66</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 127,559 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>2.22&times;10<sup>609</sup> steps</b><span class="small">No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.02&times;10<sup>10</sup> steps).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 2</b>. These are labels read off the run by others, not results.</div>
@@ -339,7 +340,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -357,6 +358,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Stack of records</b><p>Left of the working part are records 1^s 0 (10)^k 1 0^2 left by earlier epochs, some of which are later rebuilt.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>cycA</code>, <code>cycB</code>, <code>lean/Rules.lean</code></div></div><div><b>The working-counter cycles, for every length</b><p><code>cycA</code>: <code>L (11)^(n+1) (01)^(p+1) D&gt; &rarr; L (11)^n (01)^(p+3) D&gt;</code>; <code>cycB</code>: <code>L (11)^(n+2) (01)^(p+1) 0010 (01)^(q+1) D&gt; &rarr; L (11)^n (01)^(p+3) 0010 (01)^(q+2) D&gt;</code>; for any tape L.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/coverage.py</code></div></div><div><b>Those cycles cover 99.55% of the run</b><p>With the cycle accelerator (block size 2), 0.9955 of the first 10<sup>9</sup> steps lie inside jumps of these two shapes (35 jumps over 24,712 cycles of the first shape, 72 over 38,028 of the second, the one with the marker).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></div></div><div><b>No halt in the first 2.22&times;10<sup>609</sup> steps of an accelerated run</b><p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 2.22&times;10<sup>609</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 9,243 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 13 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -169,6 +169,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Collisions and the growth in bursts</h3>
         <p>When Q reaches a stationary particle, the two exchange places or merge and a new reflector is sent on; when a Q reaches the wall the right end grows three cells per bounce for a while (bursts at steps 1,366, 96,934, 473,188, 1,276,984 and 1.2&times;10<sup>9</sup> in the first 3&times;10<sup>9</sup> steps, the right end at 14, 80, 262, 562, 922 and then growing again). The collision rules are observed in simulation, not proved, so the long-run order of events is open.</p>
         <p class="where"><code>py/snap.c</code>, <code>py/particles_img.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.98&times;10<sup>12</sup> steps of an accelerated run</h3>
+        <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.98&times;10<sup>12</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 493 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

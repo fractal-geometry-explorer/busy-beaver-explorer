@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open, and the machine is not yet analysed.</b> Lean proves no halt in the first 10<sup>7</sup> steps (native_decide); the C simulator finds none in 10<sup>9</sup>. From about step 396,000 the tape has a clear structure: a fixed left end, a counter of 4-cell digits <code>0110</code> / <code>0010</code> next to it, and to the right a background of <code>0011</code> words with sparse defects (<code>0001</code>, alone or doubled) whose spacing grows along the tape. The head returns to the left end only rarely (steps 396,499; 7,742,585; 22,969,011; 86,874,709 among them). Turning this into exact rules is still to do."
  ],
@@ -52,6 +52,12 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.77&times;10<sup>10</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.77&times;10<sup>10</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. No trip-level jump was used in this run, only the shift rules over repeated words (exact by induction, but the program is not verified).",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts only on B reading 1, that is after A reads a 0 that has a 1 to its right (<code>A&gt;0 1</code>). The next step is to find exact rules for the head's bounce over the <code>0011</code> background and its defects, and for the counter.",
@@ -88,6 +94,11 @@
     "level": "heuristic",
     "value": "0011 &middot; 0001",
     "text": "The background word and its defect, from step 396,000 on."
+   },
+   {
+    "level": "trusted",
+    "value": "1.77&times;10<sup>10</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.00&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

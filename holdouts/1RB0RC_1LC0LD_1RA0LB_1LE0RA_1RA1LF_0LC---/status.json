@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 13 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a particle system on a background of <code>10</code>s, with the same particles and the same bounce rules as its sister machine (which differs only in E0). Lean proves the motion of the reflector Q exactly and that the run from blank tape reaches that picture; the collisions are only observed. The C simulator finds no halt in 10<sup>10</sup> steps."
  ],
@@ -70,6 +70,12 @@
    "where": "<code>py/particles_img.py</code>"
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 1.21&times;10<sup>13</sup> steps of an accelerated run",
+   "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.21&times;10<sup>13</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.96&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 874 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof would need the collision rules of Q with P, with the wall and with the left end, and an invariant on the lattices they build; the only halting transition (F reading 1) cannot occur in the proved bounce rules, which use only states A to D.",
@@ -105,6 +111,11 @@
     "level": "heuristic",
     "value": "particles",
     "text": "Background <code>10</code>, reflector Q, stationary P, wall."
+   },
+   {
+    "level": "heuristic",
+    "value": "1.21&times;10<sup>13</sup> steps",
+    "text": "No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.96&times;10<sup>10</sup> steps)."
    }
   ],
   "presets": [

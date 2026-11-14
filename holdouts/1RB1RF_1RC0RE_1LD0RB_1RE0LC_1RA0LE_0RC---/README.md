@@ -58,6 +58,14 @@ queue structure. Not understood: the order in which blocks are fed (the global s
   sizes 4^j.
 - With the exact rule, a CTL certificate on the block language with cursors.
 
+## Accelerated run (13 November 2026)
+
+Observed, not proved: the accelerated simulator `rsim.py` ran 4.61x10^14 steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.06x10^10 steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 1,717 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC--- 400
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/explainer.html`](../../pages/holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/explainer.html)
