@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.02·10<sup>21</sup> steps (accelerated run)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 2,048,000,000 macro steps from blank tape without a halt. That is more than 3.02·10<sup>21</sup> machine steps; the tape then spans 88,969,302 cells.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 2048000000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/power",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.286). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.341).",
@@ -74,7 +80,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 1000000000",
-  "gcc -O2 -o mrun holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c/mrun.c && ./mrun 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 1000000000000000"
+  "gcc -O2 -o mrun holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c/mrun.c && ./mrun 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 1000000000000000",
+  "python3 tools/py/bbtools/rleaccel.py 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 2048000000    # about two hours"
  ],
  "explainer": {
   "lede": "Nobody knows. The tape is a chain of long solid blocks separated by single 0s, with an alternating tail; the last block is halved over and over, each half moving into the block before it, and the chain is rebuilt when it runs out.",

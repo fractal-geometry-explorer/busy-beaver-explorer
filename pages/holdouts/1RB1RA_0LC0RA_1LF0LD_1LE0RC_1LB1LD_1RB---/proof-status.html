@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</p>
     <h1>What is known about 1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</h1>
     <p class="machine">1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 13 November 2026.</p>
   </header>
@@ -185,6 +190,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No closed set found (four searches)</h3>
         <p>(1) The closed-set method of the sibling machines needs a tape <code>zone w^N T u^M tail</code> with a bounded zone; here the number of zones grows, so there is no finite list of nodes. (2) Finite-automata reduction with a DFA that tracks parity and the last k &le; 6 cells, on either side: the blank start is accepted as possibly halting. (3) A closed tape language whose states are windows of K runs (lengths exact up to a cap, then parity): K = 2, 3, 4 reach a halting abstract configuration, K = 5 exceeds 3&middot;10<sup>6</sup> abstract configurations. Reason in both: a window forgets what lies beyond it, and windows from the left end get glued to inner ones (the real run visits 4,821 abstract configurations where the closure has 406,469). (4) The same with the far end of the tape, the number of even blocks and a parity added to the state: small sizes reach a halting abstract configuration, larger ones exceed 3&middot;10<sup>6</sup> configurations; the abstraction cannot tell the long real tape from short block tapes, which do halt.</p>
         <p class="where"><code>py/far.py</code>, <code>py/rlectl.py</code>, <code>py/realabs.py</code>, <code>py/rlectl2.py</code>, <code>py/realabs2.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Regular-language deciders tried (F11)</h3>
+        <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 16, history 1 up to width 16, history 2 up to width 16, history 3 up to width 18, LRU history up to width 14 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 12, p = 6 up to width 12. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.</p>
+        <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

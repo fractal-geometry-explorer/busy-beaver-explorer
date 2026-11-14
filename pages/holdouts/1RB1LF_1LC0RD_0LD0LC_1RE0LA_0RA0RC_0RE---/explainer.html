@@ -44,7 +44,7 @@ h1{font-size:clamp(2rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
 h2{font-size:clamp(1.45rem,3vw,1.95rem);font-weight:700;margin-bottom:.6rem}
 h3{font-size:1.12rem;font-weight:700;margin:1.4rem 0 .4rem}
 p{margin:.65rem 0}
-a{color:var(--accent)}
+a{color:var(--accent);overflow-wrap:anywhere}
 code,.mono{font-family:var(--mono);font-size:.86em}
 code{background:var(--sunk);padding:.08em .32em;border-radius:4px;overflow-wrap:anywhere}
 section{padding-block:44px 8px;border-top:1px solid var(--line)}
@@ -64,6 +64,42 @@ header.hero{padding-block:48px 28px}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:26px}
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .fact b{font:700 1.4rem/1.15 var(--display)}
+.stand{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;margin:18px 0 0;padding:10px 14px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--muted);max-width:68ch}
+.stand b{font-family:var(--display);font-size:1.02rem;white-space:nowrap}
+.stand.here{border-left-color:var(--kernel)} .stand.here b{color:var(--kernel)}
+.stand.merged{border-left-color:var(--native)} .stand.pr{border-left-color:var(--computed)}
+.stand.cryptid{border-left-color:var(--heur)} .stand.open{border-left-color:var(--open)}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-top:10px;font-family:var(--mono);font-size:.78rem;max-height:9.5em;overflow:auto}
+.blocks .bk{border-radius:4px;padding:1px 5px;border:1px solid var(--line-strong);white-space:nowrap;background:var(--surface)}
+.blocks .bk sup{font-weight:700;font-size:.9em}
+.bk.b0{background:var(--kernel-bg);border-color:var(--kernel)} .bk.b1{background:var(--native-bg);border-color:var(--native)}
+.bk.b2{background:var(--computed-bg);border-color:var(--computed)} .bk.b3{background:var(--heur-bg);border-color:var(--heur)}
+.bk.b4{background:var(--open-bg);border-color:var(--open)} .bk.b5{background:var(--sunk);border-color:var(--fg2)}
+.blocks .lit{color:var(--fg2);overflow-wrap:anywhere}
+.blocks .hd{color:var(--surface);background:var(--head);border-radius:4px;padding:1px 5px;font-weight:700}
+#st{cursor:crosshair}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:12px}
+.cmp>div{min-width:0} .cmp .stwrap{max-height:520px;overflow:auto}
+.cmp h3{margin:0 0 .3rem;font:600 .78rem var(--mono);overflow-wrap:anywhere}
+.stp .tapeform{font-family:var(--mono);font-size:.92rem;background:var(--sunk);border-radius:8px;padding:12px;overflow-wrap:anywhere;margin:10px 0}
+.stp .tapeform b{color:var(--head)}
+.stp .vars{display:grid;gap:6px;margin:10px 0;font-size:.9rem}
+.stp .vars div{display:grid;grid-template-columns:minmax(6em,14em) minmax(0,1fr);gap:10px;align-items:center}
+.stp .vars i{display:block;height:10px;border-radius:3px;background:var(--accent);min-width:2px}
+.stp .vars span b{font-family:var(--mono);overflow-wrap:anywhere}
+.stp .rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.stp .rule .controls{justify-content:flex-end}
+.stp .rule p{margin:.2rem 0;font-size:.92rem}
+.stp button:disabled{opacity:.4;cursor:not-allowed}
+.stp .log div{grid-template-columns:3em minmax(0,1fr)}
+@media (max-width:560px){ .stp .rule{grid-template-columns:1fr} .stp .rule .controls{justify-content:flex-start} }
+.rw .stream{display:flex;flex-wrap:wrap;gap:2px;font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius:8px;padding:10px;max-height:11em;overflow:auto;margin:10px 0}
+.rw .stream span{padding:0 3px;border-radius:3px;border:1px solid var(--line-strong)}
+.rw .rules{width:100%;margin:8px 0} .rw .rules td,.rw .rules th{padding:.3rem .6rem;font-size:.86rem}
+.rw .rules td:nth-child(1),.rw .rules td:nth-child(2){font-family:var(--mono)}
+.rw .trace{font-family:var(--mono);font-size:.78rem;max-height:16em;overflow:auto;border-top:1px solid var(--line);margin-top:10px;padding-top:8px;white-space:pre}
+.rw .halted{color:var(--open);font-weight:700}
 .else{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:18px}
 .else>div{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--heur);border-radius:10px;padding:12px 16px;font-size:.93rem}
 .else>div.proof{border-left-color:var(--kernel)} .else>div.report{border-left-color:var(--native)}
@@ -153,6 +189,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---</p>
+  <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
   <div class="col"><p class="lede">Nobody knows. This machine is a counter in base 5: gadgets between blocks of 1000s are its digits, the head's passes are what it counts, and every tick is paid for by moving a 1000 from one block to the next. Lean proves the passes; what happens when a block runs out is the open part.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>9 counter rules</b><span class="small">Passes and carries of the base-5 counter, for all block lengths.</span></div>
@@ -169,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#f05">Next to the forty-machine core</a><a href="#tape">A counter in base 5</a><a href="#round">Radix-5 payments</a><a href="#halt">Where a halt could come from</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#f05">Next to the forty-machine core</a><a href="#tape">A counter in base 5</a><a href="#round">Radix-5 payments</a><a href="#halt">Where a halt could come from</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -219,12 +256,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="cellwrap"><div class="cells" id="cells" aria-label="Tape cells around the head"></div></div>
     <div class="cap">Cells around the head (dark = 1, dashed = never visited).</div>
     <div class="config" id="config" aria-live="polite"></div>
+    <div class="blocks" id="blocks" aria-label="The tape as repeated words"></div>
+    <div class="cap">The same tape, grouped into repeated words: <code>(10)</code><sup>7</sup> is the word <code>10</code> seven times in a row, and the orange tag is the head. The grouping is found afresh at every step by looking for the longest repeat of a word of up to 8 cells, so it shows the counts a machine keeps on its tape without anyone having to decode them first; it is a display, not a result.</div>
   </div>
 </section>
 <section id="glance">
   <span class="eyebrow">The run at a glance</span>
   <h2>Space-time diagram and records</h2>
-  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure.</p></div>
+  <div class="col"><p>The diagram stacks the tape at many moments. Sampling at each new cell shows the shape of the run as the visited region grows; sampling evenly in time shows where the head spends its time. The records list every step at which the head reaches a cell no earlier step reached, with the side, the width so far and the whole tape: the first place to look for a repeating macro structure. <b>Click a row of the diagram</b> to send the simulator above to that step.</p></div>
   <div class="panel">
     <div class="controls">
       <label class="small" for="stMode">Rows</label>
@@ -283,6 +322,26 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
 <p><b>Same table as the machines below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in any of the others, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---/explainer.html">1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---</a>: rename A→E, B→A, C→B, D→C, E→D, F→F and exchange left and right; it is this table started in state B, in a mirror</li><li><a href="../1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/explainer.html">1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---</a>: rename A→C, B→D, C→E, D→A, E→B, F→F; it is this table started in state D</li></ul>
 </section>
+<section id="compare">
+  <span class="eyebrow">Side by side</span>
+  <h2>This run next to a related machine</h2>
+  <div class="col"><p>The two machines run for the same number of steps and are drawn the same way, a row each time the head reaches a new cell. Where the relation involves a mirror image, the second diagram is flipped left to right so that the two can be compared directly. Look for where the pictures agree and where they part: the text under each relation in the section on related machines says which of it is proved and which is only observed.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <label class="small" for="cmpM">Compare with</label>
+      <select id="cmpM" style="max-width:100%"><option value="0">1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD--- (the same table, another start)</option><option value="1">1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB--- (the same table, another start)</option></select>
+      <label class="small" for="cmpSteps">up to step</label>
+      <select id="cmpSteps"><option value="200">200</option><option value="1000">1,000</option><option value="2000">2,000</option><option value="10000">10,000</option><option value="20000" selected>20,000</option><option value="100000">100,000</option><option value="1000000">1,000,000</option><option value="10000000">10,000,000</option></select>
+      <label class="small"><input type="checkbox" id="cmpMirror"> mirror the second</label>
+      <button id="cmpGo" class="primary" type="button">Draw</button>
+    </div>
+    <div class="cmp">
+      <div><h3>1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- (this machine)</h3><div class="stwrap"><canvas id="cmpA"></canvas></div><div class="cap" id="cmpCapA"></div></div>
+      <div><h3 id="cmpName"></h3><div class="stwrap"><canvas id="cmpB"></canvas></div><div class="cap" id="cmpCapB"></div></div>
+    </div>
+    <div class="cap" id="cmpCap"></div>
+  </div>
+</section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
@@ -323,7 +382,7 @@ python3 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/py/rounds.py 1e12 300
   <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
 </footer>
 </div>
-<script type="application/json" id="spec">{"machine": "1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---"}</script>
+<script type="application/json" id="spec">{"machine": "1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---", "compare": [{"machine": "1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---", "relation": "the same table, another start", "mirror": true}, {"machine": "1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---", "relation": "the same table, another start", "mirror": false}]}</script>
 <script id="engine">
 var BB = (function () {
   "use strict";
@@ -392,7 +451,32 @@ var BB = (function () {
     }
     return { records: out, run: r };
   }
-  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records };
+  // A visit by rewriting rules [{match, write, visits} | {match, halt}] to the stream `a` (array of 0/1, zeros
+  // beyond its end) from cell i.  Returns "ok", "halt", "stuck" (no rule matches) or "budget"; `log` receives
+  // [depth, position, rule index] for the first `log.max` rule applications, `st.n` counts them all and
+  // `st.uses[k]`, if given, those of rule k.
+  function visit(rules, a, i, st, log, depth) {
+    depth = depth || 0;
+    for (var k = 0; k < rules.length; k++) {
+      var m = rules[k].match, ok = true;
+      for (var j = 0; j < m.length; j++) if ((a[i + j] || 0) !== +m[j]) { ok = false; break; }
+      if (!ok) continue;
+      if (++st.n > st.max) return "budget";
+      if (st.uses) st.uses[k]++;
+      if (log && log.length < log.max) log.push([depth, i, k]);
+      if (rules[k].halt) return "halt";
+      var w = rules[k].write;
+      while (a.length < i + w.length) a.push(0);
+      for (j = 0; j < w.length; j++) a[i + j] = +w[j];
+      for (var v = 0; v < (rules[k].visits || 0); v++) {
+        var r = visit(rules, a, i + w.length, st, log, depth + 1);
+        if (r !== "ok") return r;
+      }
+      return "ok";
+    }
+    return "stuck";
+  }
+  return { STATES: STATES, parse: parse, Run: Run, rle: rle, formatConfig: formatConfig, records: records, visit: visit };
 })();
 if (typeof module !== "undefined") module.exports = BB;
 </script>
@@ -486,6 +570,35 @@ if (typeof module !== "undefined") module.exports = BB;
     box.innerHTML = html;
     var width = r.hi - r.lo + 1;
     $("config").textContent = width <= 4000 ? r.configStr() : "(" + fmt(width) + " cells: too wide to print here)";
+    $("blocks").innerHTML = width <= 60000 ? blocksHtml() : '<span class="lit">(' + fmt(width) + " cells: too wide to group here)</span>";
+  }
+  // the tape as repeated words: greedily, at each cell, the word of up to 8 cells whose repeats cover the most cells
+  function group(w) {
+    var out = [], i = 0, n = w.length, lit = "";
+    while (i < n) {
+      var bestP = 0, bestK = 0;
+      for (var p = 1; p <= 8 && i + 2 * p <= n; p++) {
+        var k = 1, j = i + p;
+        while (j + p <= n) { var ok = true; for (var t = 0; t < p; t++) if (w[j + t] !== w[i + t]) { ok = false; break; } if (!ok) break; k++; j += p; }
+        if (k >= (p === 1 ? 4 : 3) && k * p > bestK * bestP) { bestP = p; bestK = k; }
+      }
+      if (bestP) { if (lit) { out.push([lit, 0]); lit = ""; } out.push([w.slice(i, i + bestP).join(""), bestK]); i += bestP * bestK; }
+      else lit += w[i++];
+    }
+    if (lit) out.push([lit, 0]);
+    return out;
+  }
+  var blkColor = {}, blkN = 0;
+  function blocksHtml() {
+    var w = r.word(r.lo, r.hi), h = r.head - r.lo;
+    function side(cells) {
+      return group(cells).map(function (g) {
+        if (!g[1]) return '<span class="lit">' + g[0] + "</span>";
+        if (!(g[0] in blkColor)) blkColor[g[0]] = blkN++ % 6;
+        return '<span class="bk b' + blkColor[g[0]] + '">' + (g[0].length > 1 ? "(" + g[0] + ")" : g[0]) + "<sup>" + fmt(g[1]) + "</sup></span>";
+      }).join("");
+    }
+    return side(w.slice(0, h)) + '<span class="hd">' + (r.halted ? "halt" : BB.STATES[r.state]) + "&gt;" + w[h] + "</span>" + side(w.slice(h + 1));
   }
   function advance(n) {
     var target = r.steps + n;
@@ -516,9 +629,8 @@ if (typeof module !== "undefined") module.exports = BB;
   window.addEventListener("resize", draw);
   draw();
   // space-time diagram: one row per sample, the visited tape across
-  function spacetime() {
-    var mode = $("stMode").value, steps = Math.min(+$("stSteps").value, 1e9), rows = 600;
-    var q = new BB.Run(M), snaps = [];
+  function drawST(mach, mode, steps, cv, mirror) {
+    var rows = 600, q = new BB.Run(mach), snaps = [];
     function snap() { snaps.push([q.steps, q.lo, q.word(q.lo, q.hi), q.head, q.halted]); }
     snap();
     if (mode === "time") {
@@ -526,29 +638,45 @@ if (typeof module !== "undefined") module.exports = BB;
       while (q.steps < steps && !q.halted) { q.run(Math.min(steps, q.steps + every)); snap(); }
     } else {
       while (q.steps < steps && snaps.length < rows) {
-        var lo = q.lo, hi = q.hi;
+        var lo0 = q.lo, hi0 = q.hi;
         if (!q.step()) { snap(); break; }
-        if (q.lo < lo || q.hi > hi) snap();
+        if (q.lo < lo0 || q.hi > hi0) snap();
       }
     }
     var lo = Math.min.apply(null, snaps.map(function (s) { return s[1]; }));
     var hi = Math.max.apply(null, snaps.map(function (s) { return s[1] + s[2].length - 1; }));
     var W = hi - lo + 1, cw = Math.max(1, Math.min(12, Math.floor(1000 / W))), ch = Math.max(1, Math.min(8, Math.floor(600 / snaps.length)));
-    var cv = $("st"), dpr = window.devicePixelRatio || 1;
+    var dpr = window.devicePixelRatio || 1;
     cv.width = W * cw * dpr; cv.height = snaps.length * ch * dpr;
     cv.style.width = W * cw + "px"; cv.style.height = snaps.length * ch + "px";
     var g = cv.getContext("2d"); g.scale(dpr, dpr);
+    var X = mirror ? function (c) { return (hi - c) * cw; } : function (c) { return (c - lo) * cw; };
     g.fillStyle = css("--cell0"); g.fillRect(0, 0, W * cw, snaps.length * ch);
     g.fillStyle = css("--sunk");
-    snaps.forEach(function (s, i) { g.fillRect((s[1] - lo) * cw, i * ch, s[2].length * cw, ch); });
+    snaps.forEach(function (s, i) { g.fillRect(mirror ? X(s[1] + s[2].length - 1) : X(s[1]), i * ch, s[2].length * cw, ch); });
     g.fillStyle = css("--ink");
-    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect((s[1] - lo + j) * cw, i * ch, cw, ch); }); });
+    snaps.forEach(function (s, i) { s[2].forEach(function (c, j) { if (c) g.fillRect(X(s[1] + j), i * ch, cw, ch); }); });
     g.fillStyle = css("--head");
-    snaps.forEach(function (s, i) { g.fillRect((s[3] - lo) * cw, i * ch, cw, ch); });
+    snaps.forEach(function (s, i) { g.fillRect(X(s[3]), i * ch, cw, ch); });
     var last = snaps[snaps.length - 1];
-    $("stCap").textContent = snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" +
-      (last[4] ? "; the machine halted" : "") + ". Time runs down, the tape runs left to right; dark = 1, orange = the head.";
+    return { snaps: snaps, ch: ch, W: W, run: q, text: snaps.length + " rows, steps 0 to " + fmt(last[0]) + ", " + fmt(W) + " cells" + (last[4] ? "; the machine halted" : "") };
   }
+  var stInfo = null;
+  function spacetime() {
+    stInfo = drawST(M, $("stMode").value, Math.min(+$("stSteps").value, 1e9), $("st"), false);
+    $("stCap").textContent = stInfo.text + ". Time runs down, the tape runs left to right; dark = 1, orange = the head. Click a row to go to its step.";
+  }
+  function stRow(e) {
+    if (!stInfo) return null;
+    var b = $("st").getBoundingClientRect(), i = Math.floor((e.clientY - b.top) / stInfo.ch);
+    return stInfo.snaps[Math.max(0, Math.min(stInfo.snaps.length - 1, i))];
+  }
+  $("st").onmousemove = function (e) { var s = stRow(e); if (s) $("st").title = "step " + fmt(s[0]) + ": click to send the simulator there"; };
+  $("st").onclick = function (e) {
+    var s = stRow(e); if (!s) return;
+    stop(); $("jumpTo").value = s[0]; jump(s[0]);
+    document.getElementById("run").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   $("stGo").onclick = spacetime;
   spacetime();
   // records
@@ -564,6 +692,126 @@ if (typeof module !== "undefined") module.exports = BB;
   }
   $("recGo").onclick = showRecords;
   showRecords();
+  // steppers: the machine's macro rules applied to numbers (BigInt), one panel per section that has one
+  document.querySelectorAll("[data-stepper]").forEach(function (box) {
+    var S = spec.steppers[box.dataset.stepper], vals, hist, n;
+    var big = function (x) { return BigInt(x); };
+    var show = function (v) { return v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); };
+    function ev(form) { var t = big(form._ || 0); for (var k in form) if (k !== "_") t += big(form[k]) * vals[k]; return t; }
+    function ok(rule) { return (rule.guard || []).every(function (g) { return ev(g.form) >= 0n; }); }
+    function apply(rule) {
+      if (!ok(rule)) return false;
+      var nv = {}, k;
+      for (k in vals) nv[k] = vals[k];
+      for (k in rule.set || {}) nv[k] = ev(rule.set[k]);
+      for (k in rule.add || {}) nv[k] = vals[k] + ev(rule.add[k]);
+      vals = nv; n++; return true;
+    }
+    function reset() {
+      vals = {}; hist = []; n = 0;
+      S.vars.concat(S.counters || []).forEach(function (v) { vals[v.name] = big(v.start); });
+      render();
+    }
+    function line() { return S.vars.map(function (v) { return v.name + " = " + show(vals[v.name]); }).join(", "); }
+    function render() {
+      var h = '<div class="tapeform">' + S.tape.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\{(\w+)\}/g, function (_, k) { return "<b>" + show(vals[k]) + "</b>"; }) + "</div>";
+      var maxd = 1; S.vars.forEach(function (v) { maxd = Math.max(maxd, vals[v.name].toString().length); });
+      h += '<div class="vars">';
+      S.vars.forEach(function (v) {
+        var d = vals[v.name] > 0n ? vals[v.name].toString().length : 0;
+        h += "<div><span>" + v.label + " <b>" + show(vals[v.name]) + '</b></span><span><i style="width:' + (100 * d / maxd) + '%"></i></span></div>';
+      });
+      (S.counters || []).forEach(function (v) { h += "<div><span>" + v.label + "</span><span><b>" + show(vals[v.name]) + "</b></span></div>"; });
+      h += '</div><div class="cap">The bars show the number of digits of each count. Rules applied so far: ' + show(n) + ".</div>";
+      S.rules.forEach(function (r, i) {
+        var lv = spec.levels[r.level || "trusted"], can = ok(r);
+        h += '<div class="rule"><div><span class="ev ' + lv[0] + '">' + lv[1] + "</span> <b>" + r.name + "</b><p>" + r.text + "</p>" +
+          (can ? "" : '<p class="small">Does not apply now: needs ' + (r.guard || []).map(function (g) { return g.text; }).join(" and ") + ".</p>") + "</div>" +
+          '<div class="controls">' + [1, 10, 1000].map(function (k) { return '<button type="button" data-r="' + i + '" data-k="' + k + '"' + (can ? "" : " disabled") + ">" + (k === 1 ? "Apply" : "&times;" + show(k)) + "</button>"; }).join("") + "</div></div>";
+      });
+      h += '<div class="controls" style="margin-top:8px"><button type="button" data-reset="1">Start over</button></div>';
+      h += '<div class="log">' + (hist.length ? hist.slice(-8).map(function (x) { return '<div><span class="t">' + x[0] + "</span><span>" + x[1] + "</span></div>"; }).join("") : "") + "</div>";
+      if (S.note) h += '<div class="cap">' + S.note + "</div>";
+      box.innerHTML = h;
+      box.querySelectorAll("button[data-r]").forEach(function (b) {
+        b.onclick = function () {
+          var r = S.rules[+b.dataset.r], k = +b.dataset.k, done = 0;
+          while (done < k && apply(r)) done++;
+          if (done) hist.push([show(n), r.name + (done > 1 ? " &times;" + show(done) : "") + ": " + line()]);
+          render();
+        };
+      });
+      box.querySelector("[data-reset]").onclick = reset;
+    }
+    reset();
+  });
+  // rewriters: a visit law applied to a stream, round by round
+  document.querySelectorAll("[data-rewriter]").forEach(function (box) {
+    var S = spec.rewriters[box.dataset.rewriter], a, round, uses, status, last, lastN;
+    var lv = spec.levels[S.level || "trusted"], BUDGET = 3000000;
+    function reset() { a = S.start.split("").map(Number); round = 0; uses = S.rules.map(function () { return 0; }); status = "ok"; last = []; lastN = 0; render(); }
+    function oneRound() {
+      if (status !== "ok") return false;
+      var b = S.prefix.split("").map(Number).concat(a), st = { n: 0, max: BUDGET, uses: S.rules.map(function () { return 0; }) }, log = []; log.max = 400;
+      var res = BB.visit(S.rules, b, 0, st, log, 0);
+      if (res === "budget") { status = "budget"; return false; }
+      st.uses.forEach(function (x, i) { uses[i] += x; });
+      a = b; while (a.length && !a[a.length - 1]) a.pop();
+      round++; last = log; lastN = st.n; status = res; return res === "ok";
+    }
+    function tokens() {
+      var out = "", i = 0;
+      while (i < a.length) {
+        var k = -1;
+        for (var r = 0; r < S.rules.length && k < 0; r++) { var m = S.rules[r].match, ok = true; for (var j = 0; j < m.length; j++) if ((a[i + j] || 0) !== +m[j]) { ok = false; break; } if (ok) k = r; }
+        var len = k < 0 ? 1 : S.rules[k].match.length;
+        out += '<span class="bk b' + (k < 0 ? 5 : k % 6) + '">' + a.slice(i, i + len).concat([0, 0, 0, 0, 0, 0]).slice(0, len).join("") + "</span>";
+        i += len;
+      }
+      return out + "<span>0&infin;</span>";
+    }
+    function render() {
+      var h = '<div class="readout"><span>round <b>' + fmt(round) + "</b></span><span>stream length <b>" + fmt(a.length) + "</b></span><span>rule applications in the last round <b>" + fmt(lastN) + "</b></span></div>";
+      h += '<div class="controls"><button type="button" class="primary" data-n="1">One round</button><button type="button" data-n="5">5 rounds</button><button type="button" data-n="20">20 rounds</button><button type="button" data-n="0">Start over</button></div>';
+      if (status === "halt") h += '<p class="halted">A visit met a halting pattern in round ' + fmt(round) + ": the machine halts there.</p>";
+      if (status === "stuck") h += '<p class="halted">A visit met a stream that none of the rules listed here covers; the widget stops.</p>';
+      if (status === "budget") h += '<p class="small">The next round needs more than ' + fmt(BUDGET) + " rule applications, which is where this page stops. The number of visits doubles every two rounds.</p>";
+      h += '<div class="stream" aria-label="The stream">' + tokens() + "</div>";
+      h += '<div class="cap">The stream after the head\u2019s <code>' + S.prefix + "</code>, cut into the blocks a visit would read from the left (each colour is one rule); zeros follow for ever.</div>";
+      h += '<div class="tw"><table class="rules"><thead><tr><th>stream begins</th><th>becomes</th><th>then</th><th>rule</th><th>times used</th></tr></thead><tbody>';
+      S.rules.forEach(function (r, i) {
+        h += "<tr><td><span class=\"bk b" + (i % 6) + '" style="padding:0 3px;border-radius:3px;border:1px solid">' + r.match + "</span> s</td><td>" + (r.halt ? '<span class="halted">halt</span>' : r.write + " s") + "</td><td>" +
+          (r.halt ? "" : ["no visit to s", "one visit to s", "two visits to s"][r.visits || 0]) + "</td><td>" + (r.name ? "<code>" + r.name + "</code>" : "") + "</td><td>" + fmt(uses[i]) + "</td></tr>";
+      });
+      h += '</tbody></table></div><div class="cap"><span class="ev ' + lv[0] + '">' + lv[1] + "</span> The rules are the machine\u2019s, for every stream. This panel applies them; it does not run the machine.</div>";
+      if (last.length) {
+        h += '<div class="trace">' + last.map(function (x) { var r = S.rules[x[2]]; return new Array(Math.min(x[0], 40) + 1).join("\u00b7 ") + "cell " + x[1] + ": " + r.match + " s \u2192 " + (r.halt ? "halt" : r.write + (r.visits ? " + " + r.visits + (r.visits > 1 ? " visits" : " visit") : "")); }).join("\n") +
+          (lastN > last.length ? "\n\u2026 " + fmt(lastN - last.length) + " more" : "") + "</div>";
+        h += '<div class="cap">The last round, rule by rule; each dot is one level of nesting.</div>';
+      }
+      if (S.note) h += '<div class="cap">' + S.note + "</div>";
+      box.innerHTML = h;
+      box.querySelectorAll("button[data-n]").forEach(function (b) {
+        b.onclick = function () { var n = +b.dataset.n; if (!n) { reset(); return; } for (var i = 0; i < n; i++) if (!oneRound()) break; render(); };
+      });
+    }
+    reset();
+  });
+  // side by side with a related machine
+  if (spec.compare && $("cmpGo")) {
+    var cmpDraw = function () {
+      var c = spec.compare[+$("cmpM").value], steps = Math.min(+$("cmpSteps").value, 1e7), other = BB.parse(c.machine);
+      var a = drawST(M, "rec", steps, $("cmpA"), false), b = drawST(other, "rec", steps, $("cmpB"), $("cmpMirror").checked);
+      $("cmpName").innerHTML = '<a href="../' + c.machine + '/explainer.html">' + c.machine + "</a> (" + c.relation + ")";
+      $("cmpCapA").textContent = a.text + "; " + fmt(a.run.ones()) + " ones at the end.";
+      $("cmpCapB").textContent = b.text + "; " + fmt(b.run.ones()) + " ones at the end.";
+      $("cmpCap").textContent = "Rows are taken at each new cell, at most 600 of them, so the two diagrams may stop at different steps; the captions give the range each one covers.";
+    };
+    $("cmpM").onchange = function () { $("cmpMirror").checked = !!spec.compare[+$("cmpM").value].mirror; cmpDraw(); };
+    $("cmpGo").onclick = cmpDraw; $("cmpMirror").onchange = cmpDraw;
+    $("cmpMirror").checked = !!spec.compare[0].mirror;
+    cmpDraw();
+  }
   // ledger
   document.querySelectorAll(".lfilter button").forEach(function (b) {
     b.onclick = function () {

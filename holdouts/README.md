@@ -34,7 +34,9 @@ from the bbchallenge wiki.
    it with the generated one.
 2. Write what the machine does into `README.md` and `status.json` (`summary`: one sentence for the index page;
    `group`: the family it belongs to; `decision`: `open`, `halts` or `nonhalting` once it is proved; claims; and
-   `explainer.sections` for hand-written sections of the explainer).
+   `explainer.sections` for hand-written sections of the explainer). A section can carry a `stepper`: the macro
+   rules of the machine as linear forms, which the page turns into buttons that apply them to the counts (see the
+   top of `tools/pages/build_explainer.py`, and the folders of 32641, 65826 and 11019 for examples).
 3. Add Lean files next to `Blank.lean` and list them in `lean/check.sh`; machine-specific scripts go in `py/` or `c/`
    in the folder.
 4. `python3 holdouts/build_pages.py M` rebuilds that machine's pages and the index; `python3 holdouts/test_holdouts.py`

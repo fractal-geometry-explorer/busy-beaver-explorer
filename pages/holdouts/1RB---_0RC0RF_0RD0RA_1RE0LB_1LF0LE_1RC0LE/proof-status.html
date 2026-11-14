@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE</p>
     <h1>What is known about 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE</h1>
     <p class="machine">1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 8 November 2026.</p>
   </header>
@@ -141,6 +146,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A growing block and a slowly growing defect field</h3>
         <p>At the left-end visits in state F the first block of the 1010&hellip; background grows by one per sweep; the number of defects behind it is 16 at 10<sup>5</sup> steps, 21 at 10<sup>6</sup>, 26 at 10<sup>8</sup> and 28 at 10<sup>9</sup>.</p>
         <p class="where"><code>python3 py/view.py 1e9</code></p>
+      </div>
+      <div class="card">
+        <h3>Regular-language deciders tried (F11)</h3>
+        <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 24, history 1 up to width 20, history 2 up to width 20, history 3 up to width 20, LRU history up to width 10 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 16, p = 6 up to width 16. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.</p>
+        <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

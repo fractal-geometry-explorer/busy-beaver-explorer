@@ -225,6 +225,153 @@
     ]
    },
    {
+    "id": "try-cycles",
+    "eyebrow": "Try it",
+    "heading": "Drain the left block yourself",
+    "html": "<div class=\"col\"><p>Within a round the tail runs in one of four cycles, and each period of a cycle moves a fixed number of pairs out of the left block and a larger number into the big block. Pick a cycle and apply it until the left block is nearly empty: the big block ends up 2.06 to 2.2 times as long as the left block was, which is why each round is that much longer than the last. In the real run the tail decides which cycle applies; here you choose, to see the arithmetic.</p></div>",
+    "stepper": {
+     "tape": "010 (01)^{a} 000 (01)^{b} T",
+     "vars": [
+      {
+       "name": "a",
+       "label": "left block a",
+       "start": "28534"
+      },
+      {
+       "name": "b",
+       "label": "big block b",
+       "start": "0"
+      }
+     ],
+     "counters": [
+      {
+       "name": "v",
+       "label": "visits of the left end",
+       "start": "0"
+      }
+     ],
+     "rules": [
+      {
+       "name": "15-visit cycle",
+       "level": "trusted",
+       "text": "a &minus; 45, b + 99 (ratio 2.2).",
+       "guard": [
+        {
+         "form": {
+          "a": 1,
+          "_": -46
+         },
+         "text": "a &ge; 46"
+        }
+       ],
+       "set": {
+        "a": {
+         "a": 1,
+         "_": -45
+        },
+        "b": {
+         "b": 1,
+         "_": 99
+        }
+       },
+       "add": {
+        "v": {
+         "_": 15
+        }
+       }
+      },
+      {
+       "name": "16-visit cycle",
+       "level": "trusted",
+       "text": "a &minus; 48, b + 99 (ratio 2.06).",
+       "guard": [
+        {
+         "form": {
+          "a": 1,
+          "_": -49
+         },
+         "text": "a &ge; 49"
+        }
+       ],
+       "set": {
+        "a": {
+         "a": 1,
+         "_": -48
+        },
+        "b": {
+         "b": 1,
+         "_": 99
+        }
+       },
+       "add": {
+        "v": {
+         "_": 16
+        }
+       }
+      },
+      {
+       "name": "22-visit cycle",
+       "level": "trusted",
+       "text": "a &minus; 66, b + 141 (ratio 2.14).",
+       "guard": [
+        {
+         "form": {
+          "a": 1,
+          "_": -67
+         },
+         "text": "a &ge; 67"
+        }
+       ],
+       "set": {
+        "a": {
+         "a": 1,
+         "_": -66
+        },
+        "b": {
+         "b": 1,
+         "_": 141
+        }
+       },
+       "add": {
+        "v": {
+         "_": 22
+        }
+       }
+      },
+      {
+       "name": "9-visit cycle",
+       "level": "trusted",
+       "text": "a &minus; 27, b + 57 (ratio 2.11).",
+       "guard": [
+        {
+         "form": {
+          "a": 1,
+          "_": -28
+         },
+         "text": "a &ge; 28"
+        }
+       ],
+       "set": {
+        "a": {
+         "a": 1,
+         "_": -27
+        },
+        "b": {
+         "b": 1,
+         "_": 57
+        }
+       },
+       "add": {
+        "v": {
+         "_": 9
+        }
+       }
+      }
+     ],
+     "note": "An illustration of the four cycle amounts in the table above, which were found by symbolic runs (computed). It starts with a left block of 28,534 pairs, the size after the round end B = 28,531, and takes the big block as empty; the real big block starts small but not empty, and the tail's start-up and the end of a round are not modelled. The proof itself does not use this arithmetic: it checks 1,144 classes of round ends in Lean."
+    }
+   },
+   {
     "id": "rounds",
     "eyebrow": "From round to round",
     "heading": "When the left block is empty",

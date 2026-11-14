@@ -94,10 +94,70 @@ def elsewhere(M, decision="open"):
     return out
 
 
+STANDING = {
+    "open": ("Open", "Nobody has proved whether this machine halts. Everything below is what is known so far."),
+    "cryptid": ("Open: a cryptid", "Its halting is thought to come down to a Collatz-like question that no known "
+                "method decides (the community's label, not a result)."),
+}
+RELATION = {"run": "the same run from another table", "slow": "a slowed-down copy", "tapes": "the same tapes at another pace",
+            "table": "the same table, another start"}
+_RELATED = None
+
+
+def compare(M):
+    """The related machines of M for the side-by-side section: [{machine, relation, mirror}], at most 8."""
+    global _RELATED
+    if _RELATED is None:
+        import related
+        _RELATED = related.data()[1]
+    out, seen = [], set()
+    for kind, rec, i in _RELATED.get(M, []):
+        if kind == "table":
+            other = rec["to"] if i == 0 else rec["from"]
+        elif kind == "slow":
+            other = rec["fast"] if i == 0 else rec["slow"]
+        else:
+            other = rec["machines"][1 - i]
+        if other in seen or other == M:
+            continue
+        seen.add(other)
+        out.append({"machine": other, "relation": RELATION[kind], "mirror": bool(rec.get("mirror", False))})
+    return out[:8]
+
+
+def standing_line(M, decision):
+    """{kind, label, text}: the one line under a page's title."""
+    kind = standing(M, decision)
+    e = external()["machines"].get(M, {})
+    if kind == "here":
+        both = " and by Coq" if M in external()["coq_here"] else ""
+        return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
+                "text": f"Proved in this repository, checked by Lean{both}. The ledger below says what each part rests on."}
+    if kind == "merged":
+        return {"kind": kind, "label": f"Proved elsewhere: it {CLAIM[e['merged']['claim']]}",
+                "text": "A Rocq proof is merged in busycoq. It was not compiled here, so this page's own ledger still "
+                        "treats halting as open."}
+    if kind == "pr":
+        claims = sorted({CLAIM[p["claim"]] for p in e["prs"]})
+        return {"kind": kind, "label": "Open here; an outside proof awaits review",
+                "text": f"A Rocq proof that it {' / '.join(claims)} is in an open busycoq pull request, not merged "
+                        "and not compiled here. This page's own ledger treats halting as open."}
+    label, text = STANDING[kind]
+    return {"kind": kind, "label": label, "text": text}
+
+
 def page_spec(spec):
-    """The spec a machine's pages are built from: its status.json plus the "elsewhere" box."""
-    e = elsewhere(spec["machine"], spec.get("decision", "open"))
-    return dict(spec, elsewhere=e) if e else spec
+    """The spec a machine's pages are built from: its status.json plus the standing line, the "elsewhere" box and
+    the related machines to draw side by side."""
+    M, dec = spec["machine"], spec.get("decision", "open")
+    out = dict(spec, standing=standing_line(M, dec))
+    e = elsewhere(M, dec)
+    if e:
+        out["elsewhere"] = e
+    c = compare(M)
+    if c:
+        out["compare"] = c
+    return out
 
 
 def standing(M, decision):

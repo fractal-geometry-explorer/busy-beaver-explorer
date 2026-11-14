@@ -64,6 +64,12 @@
    "where": "<code>py/snapshots.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "Regular-language deciders tried (F11)",
+   "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 24, history 1 up to width 24, history 2 up to width 24, history 3 up to width 24, LRU history up to width 3 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 20, p = 3 up to width 20, p = 4 up to width 20, p = 6 up to width 20. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..10; n = 11 not finished in 150 s.",
+   "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The left part is regular, but the right end is an irregular region with no visible period: a proof needs a description of that region (perhaps as a finite set of words the head keeps rewriting, a closed-language argument), and the slow loss of the counter m suggests a long-term change of regime when m reaches 0, which has not been observed yet.",

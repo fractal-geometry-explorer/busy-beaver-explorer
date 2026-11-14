@@ -67,3 +67,10 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA/c
 
 - Find the exact halving rule (what happens to odd lengths, which block receives the ones) and the regrouping rule.
 - From that, a map on the list of block lengths; then whether a block of length 0 can occur (the E0 halt).
+
+## Accelerated run
+
+Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA 2 2048000000` runs 2,048,000,000 macro steps from blank tape without a halt, more than 3.02·10^21
+machine steps (tape: 88,969,302 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
+one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
+(`tools/tests/test_rleaccel.py`).

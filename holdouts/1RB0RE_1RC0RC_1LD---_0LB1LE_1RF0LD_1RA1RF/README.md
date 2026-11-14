@@ -41,6 +41,16 @@ Only C1 halts; C is entered only from B (moving right): halts iff `B> x 1`. CTL 
 
 - Prove the agreement with the twin as a simulation (a map from this machine's sweep configurations to the twin's).
 
+## Deciders tried (F11, 13 November 2026)
+
+None closes. Each reaches a halting configuration in its abstraction, which says nothing about halting.
+
+- n-gram CPS (`tools/c/ngramcps.c`), equal widths on both sides: a halting local configuration is reached with plain up to width 18, history 1 up to width 18, history 2 up to width 16, history 3 up to width 16, LRU history up to width 3 (larger widths ran out of the 150 s or 60 million configuration budget).
+- n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 16, p = 6 up to width 16.
+- n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets.
+- Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4).
+- Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..9; n = 10 not finished in 150 s.
+
 ## Where a halt can come from
 
 `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one

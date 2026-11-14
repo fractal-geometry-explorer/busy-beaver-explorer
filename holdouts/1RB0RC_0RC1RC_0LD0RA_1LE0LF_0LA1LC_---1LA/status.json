@@ -226,6 +226,57 @@
     ]
    },
    {
+    "id": "try-cycle",
+    "eyebrow": "Try it",
+    "heading": "Apply the growth cycle yourself",
+    "html": "<div class=\"col\"><p>Once the left part of the tape has reached its recurring state, the run is one rule repeated: the last block gains 321,042,928 words and everything left of it comes back exactly. Press the button to follow the orbit on the number r alone.</p></div>",
+    "stepper": {
+     "tape": "E> 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^{r}",
+     "vars": [
+      {
+       "name": "r",
+       "label": "last block r",
+       "start": "16797709"
+      }
+     ],
+     "counters": [
+      {
+       "name": "v",
+       "label": "visits of the left end since the first C(r)",
+       "start": "0"
+      }
+     ],
+     "rules": [
+      {
+       "name": "One growth cycle",
+       "level": "native",
+       "text": "C(65 + 2x) reaches C(65 + 2(x + 160,521,464)) for every x: r grows by 321,042,928 and stays odd (<code>grow_cyc</code>, <code>lean/Replay.lean</code>). The 116,320,154 visits per cycle are counted by the simulators (computed), not part of the Lean statement.",
+       "guard": [
+        {
+         "form": {
+          "r": 1,
+          "_": -65
+         },
+         "text": "r &ge; 65 (and odd)"
+        }
+       ],
+       "set": {
+        "r": {
+         "r": 1,
+         "_": 321042928
+        }
+       },
+       "add": {
+        "v": {
+         "_": 116320154
+        }
+       }
+      }
+     ],
+     "note": "Starts at r = 16,797,709, the first time the run from blank tape is in this state (step 1,818,198,163,340,705 by the simulators). The stepper does the arithmetic of the rule; it does not simulate the machine."
+    }
+   },
+   {
     "id": "near",
     "eyebrow": "A narrow escape",
     "heading": "Almost the same tape halts",

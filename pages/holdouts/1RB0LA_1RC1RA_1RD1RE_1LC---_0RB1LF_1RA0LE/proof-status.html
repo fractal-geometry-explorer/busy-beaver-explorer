@@ -69,6 +69,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .else .card { border-left: 4px solid var(--heur); }
 .else .card.proof { border-left-color: var(--kernel); }
 .else .card.report { border-left-color: var(--native); }
+.stand { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--muted); border-radius: var(--r); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.stand b { font-family: var(--font-display); font-size: 0.9rem; }
+.stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
+.stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
 </style>
 </head>
 <body>
@@ -77,6 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE</p>
     <h1>What is known about 1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE</h1>
     <p class="machine">1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE</p>
+    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Seen when the head reaches a new cell on the right, the tape is often a list of numbers m written as blocks <code>1^(4m+2) 0</code>: two more than a multiple of four ones, each followed by a single 0. In the run of 2·10<sup>10</sup> steps 57 of the 143 new right cells reached in state D have exactly this form. The numbers range from 0 to about 10 with no evident order, and the last block grows by one 1 at each new right cell (four new cells per visit, in states A, B, C, D). The left end is short and changes little.</p></p>
     <p><p>The head works in sweeps. Moving right in states A and B (or E, B, C) it turns the alternation <code>1 0 1 0 1</code> back into solid blocks; moving left in E and F it turns a solid block into an alternation <code>1 0 1 0 ...</code>, and A erases runs of 1s. Between sweeps the tape left of the head is a list of blocks <code>0 1^a</code> of even length (mostly 2 mod 4) and right of the head a list of alternations <code>1 (0 1)^k</code> separated by gaps <code>0^(4j+2)</code>, with a few irregular cells at the two ends. The halt needs a right-moving A or B to land at the start of a gap of the wrong length: a gap of length 3 in front of A, or 2 in front of B.</p></p>
