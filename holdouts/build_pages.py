@@ -135,14 +135,18 @@ def compare(M):
     return out[:8]
 
 
-def standing_line(M, decision):
+def standing_line(M, decision, level="lean"):
     """{kind, label, text}: the one line under a page's title."""
-    kind = standing(M, decision)
+    kind = standing(M, decision, level)
     e = external()["machines"].get(M, {})
     if kind == "here":
         both = " and by Coq" if M in external()["coq_here"] else ""
         return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
                 "text": f"Proved in this repository, checked by Lean{both}. The ledger below says what each part rests on."}
+    if kind == "computed":
+        return {"kind": kind, "label": f"Computed, not proved: it {CLAIM[decision]}",
+                "text": "An exact accelerated computation in this repository finds this. It is not a Lean proof of "
+                        "the whole run; the ledger below says what each part rests on."}
     if kind == "merged":
         return {"kind": kind, "label": f"Proved elsewhere: it {CLAIM[e['merged']['claim']]}",
                 "text": "A Rocq proof is merged in busycoq. It was not compiled here, so this page's own ledger still "
@@ -160,7 +164,7 @@ def page_spec(spec):
     """The spec a machine's pages are built from: its status.json plus the standing line, the "elsewhere" box and
     the related machines to draw side by side."""
     M, dec = spec["machine"], spec.get("decision", "open")
-    out = dict(spec, standing=standing_line(M, dec))
+    out = dict(spec, standing=standing_line(M, dec, spec.get("decision_level", "lean")))
     e = elsewhere(M, dec)
     if e:
         out["elsewhere"] = e
@@ -170,11 +174,12 @@ def page_spec(spec):
     return out
 
 
-def standing(M, decision):
-    """One word for the index: here (decided in this repository), merged, pr, cryptid or open."""
+def standing(M, decision, level="lean"):
+    """One word for the index: here (decided in this repository by a Lean proof), computed (a verdict from a trusted
+    computation, "decision_level": "trusted" in status.json, not a Lean proof), merged, pr, cryptid or open."""
     e = external()["machines"].get(M, {})
     if decision != "open":
-        return "here"
+        return "computed" if level == "trusted" else "here"
     if e.get("merged"):
         return "merged"
     if e.get("prs"):
@@ -233,7 +238,7 @@ def index_rows(triage, known, spec_by):
         })
         e = ext["machines"].get(M, {})
         rows[-1].update({
-            "st": standing(M, rows[-1]["dec"]), "tc": e.get("tracker", {}).get("class", ""),
+            "st": standing(M, rows[-1]["dec"], s.get("decision_level", "lean")), "tc": e.get("tracker", {}).get("class", ""),
             "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0,
             "pr": [[p["n"], p["claim"]] for p in e.get("prs", [])],
         })
@@ -253,14 +258,14 @@ INDEX = r"""<!doctype html>
 <style>
 :root{--paper:#EEF1F5;--surface:#FFFFFF;--sunk:#E3E8EF;--ink:#142033;--muted:#5A6679;--rule:#D0D8E2;--link:#2B59CF;
  --c-exp:#B3363A;--c-sqrt:#2350A8;--c-power:#7A4FB5;--c-linear:#1C7A4D;--c-fixed:#9A6400;--c-mixed:#5A6679;
- --s-here:#1C7A4D;--s-merged:#2350A8;--s-pr:#9A6400;--s-cryptid:#7A4FB5;--s-open:#8A93A3;
+ --s-here:#1C7A4D;--s-computed:#B4541A;--s-merged:#2350A8;--s-pr:#9A6400;--s-cryptid:#7A4FB5;--s-open:#8A93A3;
  --mono:"Martian Mono",ui-monospace,Menlo,Consolas,monospace;--body:"Atkinson Hyperlegible",system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#0E131A;--surface:#161E29;--sunk:#0B1016;--ink:#E5EBF3;--muted:#95A2B4;--rule:#2B3644;--link:#7C9DFF;
  --c-exp:#F08488;--c-sqrt:#8FB0F0;--c-power:#B99CF0;--c-linear:#5CC893;--c-fixed:#E7B453;--c-mixed:#95A2B4;
- --s-here:#5CC893;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}}
+ --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}}
 :root[data-theme="dark"]{--paper:#0E131A;--surface:#161E29;--sunk:#0B1016;--ink:#E5EBF3;--muted:#95A2B4;--rule:#2B3644;--link:#7C9DFF;
  --c-exp:#F08488;--c-sqrt:#8FB0F0;--c-power:#B99CF0;--c-linear:#5CC893;--c-fixed:#E7B453;--c-mixed:#95A2B4;
- --s-here:#5CC893;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}
+ --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
 .wrap{max-width:1100px;margin:0 auto;padding:32px 16px 64px;display:grid;gap:24px}
@@ -357,6 +362,7 @@ function color(c){ const parts = c.split("/"); const key = parts.includes("exp")
 const classes = [...new Set(rows.map(r => r.c))].sort((a,b) => rows.filter(r=>r.c===b).length - rows.filter(r=>r.c===a).length);
 const ST = [
   ["here", "Decided here", "a proof in this repository, checked by Lean (and for some by Coq as well)"],
+  ["computed", "Computed here, not proved", "a verdict from an exact accelerated computation in this repository; not a Lean proof of the whole run"],
   ["merged", "Proved elsewhere, merged", "a Rocq proof merged in busycoq; not compiled here"],
   ["pr", "Outside proof awaiting review", "a Rocq proof in an open busycoq pull request; not merged, not compiled here"],
   ["cryptid", "Cryptid", "the community tracker's label: halting comes down to a Collatz-like question"],
@@ -376,6 +382,7 @@ function visible(r){
 function standingText(r){
   const prs = r.pr.map(p => `PR ${p[0]}: ${WORD[p[1]]}`).join(", ");
   if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
+  if (r.st === "computed") return `<b>${WORD[r.dec]}</b>, computed here, not proved` + (prs ? `; also ${prs}` : "");
   if (r.st === "merged") return "open here; proved in busycoq (merged)";
   if (r.st === "pr") return `open here; outside proof awaiting review (${prs})`;
   if (r.st === "cryptid") return "open; cryptid";
