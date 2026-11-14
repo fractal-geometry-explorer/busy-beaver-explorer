@@ -202,6 +202,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>In the words L = 1010, O = 000, I = 100 the function A is a binary counter (O, I the digits) in which every carry crossing an L becomes two. Each round adds one defect (a <code>10</code>, <code>1</code> or <code>0</code> that does not fit the words), which travels through the counter, rewrites it, and disappears where it turns <code>1 I O</code> into <code>O L</code>. Worked out by hand from the four functions: a tape with one defect cannot halt; a halt needs two defects side by side. The token rules reproduce the exact tape cell for cell (rounds 5 to 24), and in every round from 13 to 4,500 the defect disappeared about 40% of the way into the tape, long before the round ended.</p>
         <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/tokz.py</code>; that machine's README</p>
       </div>
+      <div class="card">
+        <h3>A conserved value</h3>
+        <p>For the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF, whose round words this machine carries: a value of the tape (each digit 1 counts 2<sup>-b</sup>, b = doublers minus digits before it, with corrections for the defect) grows by exactly 1 with every visit of A, with or without a defect: worked out by hand, checked with exact fractions on every round. At the start of each round it is 1/15 up to about 2<sup>-k/2</sup>: the far end of the tape is the binary expansion of 1/15, <code>I O O O</code> repeated k/8 times.</p>
+        <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/tokv.py</code>; that machine's README</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
@@ -212,6 +217,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="card open">
         <h3>Does every defect disappear in time?</h3>
         <p>If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.</p>
+      </div>
+      <div class="card open">
+        <h3>The one missing lemma</h3>
+        <p>With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts.</p>
       </div>
     </div>
   </section>

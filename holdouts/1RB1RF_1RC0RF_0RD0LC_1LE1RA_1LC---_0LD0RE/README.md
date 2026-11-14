@@ -68,6 +68,12 @@ the end of the tape. `1100` is a *doubler* (a visit that crosses it becomes two)
 [1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md); the tape is runs of `1100` separated by `0110` and a few other words, with a prefix that
 settles and an irregular tail.
 
+**Words (second pass).** Cut into 4-cell words, the tape is almost only `1100`, `0110` and `0010` (at top visit 150 of 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE: 16,683, 12,379 and 4,303 of 33,394 words; about 30 words are others).
+On these the seven rules are the same counter as for [1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md): `V(0110 W) = 0010 W`,
+`V(0010 W) = 0110 V(W)`, `V(1100 W) = 1100 V(V(W))`: digits 0 and 1 and a doubler. The other rules are the
+misaligned cases, the defects of that machine. A run-compressed tape would not help the simulation: only a fifth of the
+cells are in runs of four or more equal words (the longest run is 15 words); the digits are irregular.
+
 Run: `zvis 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE B1C - run 0 1200` reaches top visit 201 in 20 minutes with no halt; the tape is then 1,590,358 cells
 long and the visit counts reach 77,778 bits. The tape grows by about 5% per top visit, so this engine cannot go much
 further; a tape kept as runs would be needed. Not decoded: the rule for one top visit, and which windows would halt.
