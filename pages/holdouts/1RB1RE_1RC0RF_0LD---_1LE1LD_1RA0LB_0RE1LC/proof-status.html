@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -174,6 +174,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Phases</h3>
         <p>The run alternates growth phases, in which the blocks (011)^n and (01)^m at the left end grow by eating a long run of ones three cells per double cycle, with an irregular stretch in which the head works through a list of short words; the runs of ones are made by earlier phases.</p>
         <p class="where"><code>README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Two pumps, in run lengths</h3>
+        <p>At the visits of the left end in state D the tape is <code>1 2^a FRONT ... X ...</code> (run lengths). Two regimes alternate: <code>3 2^2 1^k</code> at the front (two visits: a+1, k+3, X-3) and <code>(1 2)^j</code> at the front (one visit: a+2, j-1, X-3); in both a single long run X further right loses 3 cells. When X reaches 0 a stretch of the irregular list behind it is rewritten at once; those rewrites are not decoded.</p>
+        <p class="where"><code>c/dv.c</code>; README (fourth pass)</p>
+      </div>
+      <div class="card">
+        <h3>No acceleration found</h3>
+        <p>An exact macro simulator with blocks of 2, 3, 6 or 12 cells and linear cycle jumps agrees with the plain machine but does not get past plain speed: the tape mixes words of period 2, 3 and 5 cells and has tens of thousands of runs of blocks (24,000 at 5&middot;10<sup>10</sup> steps).</p>
+        <p class="where">README (fourth pass); <code>c/msim.c</code> of 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

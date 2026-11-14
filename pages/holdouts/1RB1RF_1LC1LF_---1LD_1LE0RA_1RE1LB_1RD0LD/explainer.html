@@ -186,15 +186,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 14 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
+  <div class="col"><p class="lede">Nobody knows, but probably not. Started on a blank tape, this machine has not stopped in 10<sup>300</sup> steps (an exact, accelerated simulation). It can stop only in a rare kind of event, and only if two large numbers fit each other exactly; the machine came within two of such a fit after 219,107 steps, and the numbers have been growing ever since.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 49,386 cells visited.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>fixed/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>300</sup> steps</b><span class="small">No halt in an exact accelerated simulation.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>marker rule</b><span class="small">A marker moves one digit right per two sweeps; the block behind it gains three: proved in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>173 halts, 171 resets</b><span class="small">The tape 2^173 1 2^42 1 halts; the machine itself passed 2^171 1 2^42 1.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>probably never</b><span class="small">A halt needs an exact fit between numbers that triple at every event.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Quadratic Mess</b>. These are labels read off the run by others, not results.</div>
@@ -206,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#digits">A list of digits, and markers crawling through it</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#digits">A list of digits, and markers crawling through it</a><a href="#signal">Signals rebuild the tape, and can stop the machine</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -296,6 +297,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Every so often a long block at the left end is rebuilt at once (an <em>epoch</em>); the block sizes at the epochs are 2, 8, 214, 1220, 2528, 7645. What decides them is not yet understood, so there is no map from one epoch to the next, and no estimate of whether the machine halts.</p>
 <h3>Where it could halt</h3><p>Only by arriving at the blank left end of the tape in state B. In the run the head always arrives there in state D, E or F.</p>
 </section>
+<section id="signal">
+  <span class="eyebrow">The rare events</span>
+  <h2>Signals rebuild the tape, and can stop the machine</h2>
+<p>Seen at the moments the head reaches a new leftmost cell, the tape is a long block of 2s, one moving marker, and a <em>tail</em> of further blocks and markers that stand still. The marker crawls right, the block behind it grows, and when the marker reaches the next one the two merge and decay into a single 1: a <em>signal</em>. Then the head stays away from the left end for a long time, and when it comes back the block has been cut into pieces:</p>
+<svg viewBox='0 0 600 120' role='img' aria-label='a signal event: block and tail before, rebuilt tape after' style='width:100%;max-width:600px;height:auto;font:12px var(--mono)'><text x='4' y='14' fill='var(--muted)'>before (step 17,074)</text><rect x='4' y='20' width='416' height='22' fill='var(--ink)'/><text x='212' y='35' text-anchor='middle' fill='var(--bg)'>2^52</text><rect x='420' y='20' width='14' height='22' fill='var(--head)'/><text x='427' y='56' text-anchor='middle' fill='var(--head)'>1</text><rect x='434' y='20' width='16' height='22' fill='var(--ink)'/><rect x='450' y='20' width='8' height='22' fill='var(--accent)'/><text x='4' y='78' fill='var(--muted)'>after (step 31,483)</text><rect x='4' y='84' width='32' height='22' fill='var(--ink)'/><rect x='36' y='84' width='8' height='22' fill='var(--accent)'/><rect x='44' y='84' width='224' height='22' fill='var(--ink)'/><text x='156' y='99' text-anchor='middle' fill='var(--bg)'>2^28</text><rect x='268' y='84' width='8' height='22' fill='var(--accent)'/><rect x='276' y='84' width='112' height='22' fill='var(--ink)'/><text x='332' y='99' text-anchor='middle' fill='var(--bg)'>2^14</text><rect x='388' y='84' width='8' height='22' fill='var(--accent)'/><rect x='396' y='84' width='64' height='22' fill='var(--ink)'/><text x='428' y='99' text-anchor='middle' fill='var(--bg)'>2^8</text><rect x='460' y='84' width='8' height='22' fill='var(--accent)'/><rect x='468' y='84' width='8' height='22' fill='var(--ink)'/><rect x='476' y='84' width='6' height='22' fill='var(--accent)'/></svg>
+<p>Eight such events happen in the first 4&middot;10<sup>10</sup> steps, each about three times larger than the one before. Most just rebuild the tape. But the event can also end in two other ways, when the block and the tail fit exactly:</p>
+<ul><li><b>Full reset:</b> a block of 4b+3 with a tail of one block of b becomes the tape <code>4 2^(5b+4)</code>, with nothing else on it. The machine did this once: <code>2^171 1 2^42 1</code> at step 219,107 (171 = 4&middot;42 + 3).</li><li><b>Halt:</b> <code>2^173 1 2^42 1</code>, two more 2s in the block, halts after 299,509 steps. So do a handful of other exact fits.</li></ul>
+<p>So the machine once came within two digits of halting. Since then the block has grown to astronomical sizes, and an exact accelerated simulation shows no halt in 10<sup>300</sup> steps. If the fits happen by chance, the chance per event shrinks like one over the size of the block, and the total chance that is left is tiny. Nobody has turned this into a proof.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -308,7 +318,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 14 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -326,7 +336,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code> (tape samples)</div></div><div><b>Tape structure</b><p>Read as runs of 1s separated by single 0s, the tape is a list of blocks of 2-runs (<code>(110)^n</code>) separated by marker runs: at 10<sup>9</sup> steps <code>1 2^10415 4 2^975 3 2^3848 6 6 2^653 3 2^244 3 2^30 6 2^116 3 2^18 6 2^66 3 2^34 6 2^42 1</code>. The right part from <code>2^30</code> on is identical at 10<sup>8</sup> steps; only the blocks near the growing left end change.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>marker</code> (<code>lean/Rules.lean</code>, generated by <code>py/rules.py</code>), <code>marker'</code>, <code>markers</code> (<code>lean/Phase.lean</code>)</div></div><div><b>The marker crawls through the 2s</b><p><code>Mk a b R = 0^inf D&gt; 0 0 (110)^a 1110 (110)^b R</code>: two sweeps take Mk a (b+1) R to Mk (a+3) b R in 24a+70 steps, for all a, b and every tape R; iterated, Mk a (b+j) R reaches Mk (a+3j) b R.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>The rewriting rules</b><p>Read as a list of digits (runs of 1s between single 0s), every change between consecutive visits of the left end in the first 3&middot;10<sup>8</sup> steps is one of a few local rules that keep the number of cells: 3 2 &rarr; 6 &rarr; 2 3 (the marker), 3 3 &rarr; 7 &rarr; 2 4 &rarr; 2 1 (merging and decay), 3 6 &rarr; 10 &rarr; 2 7, 3 1 &rarr; 5 &rarr; 2 2, plus fast signals (a 1 crossing a block of 2s in one sweep) and rare epochs where a long block at the left end is rebuilt (N = 2, 8, 214, 1220, 2528, 7645).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README.md</div></div><div><b>Does it halt from blank tape?</b><p>Not known. The rule that decides the epochs (block sizes 2, 8, 214, 1220, 2528, 7645) is the missing piece; see Next steps in the README.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/msim.py run</code>, <code>py/msim.py check</code>, <code>c/msim.c</code>, <code>c/chk.c</code></div></div><div><b>No halt in the first 10<sup>300</sup> steps</b><p>An exact macro simulation (blocks of 3 cells on a fixed grid, runs of equal blocks crossed at once, linear cycle jumps at the head's turning points under a stated condition that makes them exact) runs to 10<sup>300</sup> steps without a halt (<code>py/msim.py run 300</code>, 26 minutes). The C version agrees with the plain machine (state, head, tape hash) at four step counts up to 2&middot;10<sup>9</sup>, with and without jumps at 10<sup>13</sup> and 3&middot;10<sup>15</sup> steps, and with the Python version (unbounded integers) at 10<sup>18</sup> and 10<sup>36</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/dv.c</code>, <code>c/turns.c</code>; README (table)</div></div><div><b>Signal events</b><p>At the visits of the left end the tape is <code>2^n M TAIL</code> (run lengths) and only the first marker M moves. When it has merged with the next marker and decayed into a signal 1, one long excursion rebuilds the block and the left part of the tail: eight such events up to 4&middot;10<sup>10</sup> steps, e.g. <code>2^52 1 2 1</code> to <code>2^4 6 2^28 3 2^14 6 2^8 3 2 1</code> and <code>2^171 1 2^42 1</code> to the full reset <code>4 2^214</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/syn.c</code>; README (fourth pass)</div></div><div><b>A signal event can halt</b><p>The plain machine started from <code>2^173 1 2^42 1</code> halts after 299,509 steps; from <code>2^171 1 2^42 1</code>, the machine's own tape at step 219,107, it resets to <code>4 2^214</code>. Among the 500 tapes <code>2^n 1 2^b 1</code> with n = 40..59, b = 0..24, seven halt, n = 4b+3 resets to <code>4 2^(5b+4)</code> (also for 13 larger n), and the rest are rebuilt. The reset tapes <code>4 2^5</code> and <code>4 2^8</code> halt; <code>4 2^2</code> is the machine's tape at step 59.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README (fourth pass)</div></div><div><b>Halting needs an exact fit, less and less likely</b><p>A halt (like a full reset) needs an exact relation between the block length n and the first block b of the tail (near n = 4b; of 3,072 tapes with two-block tails 41 halt, almost all on such a line, whatever the second block is). n grows by a factor of about 3 per event, so if the fits behave like chance the probability of a halt per event falls like 1/n and the sum over all events converges: the machine probably never halts.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w">README.md (Next steps)</div></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof of non-halting needs the signal event as an exact map on (n, tail) and an invariant that keeps the run off the halting fits; no halt in 10<sup>300</sup> steps.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -334,7 +348,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 1000000000
-python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 6 169000000    # minutes</code></pre>
+python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 6 169000000    # minutes
+python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/msim.py check     # the accelerated simulator against the plain machine
+python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/msim.py run 100   # no halt in 10^100 steps</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

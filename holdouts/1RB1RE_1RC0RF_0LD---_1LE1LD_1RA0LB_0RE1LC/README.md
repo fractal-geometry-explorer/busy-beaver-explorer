@@ -33,6 +33,33 @@ irregular list of the words `011`, `01`, `10` and runs of 1s, and a new phase st
 of ones; the runs of ones that get eaten (1^606, 1^147, 1^125 in the first 10^7 steps) are made by earlier phases.
 At 10^9 steps the head is inside the tape, between `(100)^6706 1` and `(101)^468 ...` (see the samples below).
 
+## Fourth pass: the tape as run lengths, two pumps, and why it resists acceleration
+
+At each new leftmost cell reached in state D (`c/dv.c`) write the tape as the lengths of its runs of 1s, single 0s
+between runs (`2^a` = a runs of length 2, i.e. the block `(011)^a`; `1^k` = k runs of length 1, the block `(01)^k`):
+
+    1  2^a  FRONT  ...  X  ...
+
+Two regimes alternate; in both the left block gains runs of 2 and a single long run X further right loses 3 cells:
+
+    pump 1 (two visits):   1 2^a  3 2^2 1^k  ... X ...   ->   1 2^(a+2) 0 2^2 1^k ... X ...   ->   1 2^(a+1) 3 2^2 1^(k+3) ... X-3 ...
+    pump 2 (one visit):    2^a  (1 2)^j  ... X ...       ->   2^(a+2)  (1 2)^(j-1)  ... X-3 ...
+
+Pump 1 is the growth phase `eat` of `lean/Rules.lean` in run lengths (n -> n+1, m -> m+3, r -> r-3 over six visits of
+the left end in state B). Examples: visits at steps 115,587 to 124,455 (pump 1, X = 36 down to 0) and 230,038 to
+246,548 (pump 2, X = 81 down to 0). When X reaches 0 the head works through the list behind it and rewrites a
+stretch of it at once (for example 105,073 steps between the visits at 124,600 and 229,673); the list is long and
+irregular (4,041 runs at 2*10^8 steps; pieces `2 1`, `2^3 1^k`, `0 2^2 1^k`, `(1 2)^j` and isolated long runs), and
+these rewrites were not decoded.
+
+**No acceleration found.** The exact macro simulator written for 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD
+(`c/msim.c` there: blocks on a fixed grid, runs crossed at once, linear cycle jumps) agrees with the plain machine
+on this machine too (state, head and tape hash at 1,000,002 and 300,000,001 steps) but gains nothing for blocks of
+2, 3, 6 or 12 cells: the tape mixes words of period 2, 3 and 5 cells (`01`, `011`, `10110`) and has tens of
+thousands of runs of blocks (24,000 at 5*10^10 steps with blocks of 6). A simulator on run lists with learned
+rules (as for 1RB1RF_1LC1LB_1RD1LD_1RE0RA_---0LB_0LF0RC) would need rules that act on a window of the list, not on
+the whole tape.
+
 ## Where it could halt
 
 The machine halts only on C reading 1. The CTL search of `bbtools.ctl` (K = 6) allows it only with six 1s to the
@@ -54,6 +81,8 @@ between phases and how it makes the next run of ones, so there is no macro map y
 
 ### Next steps
 
+- Decode what happens when the pumped run X reaches 0, as rewriting rules on a window of the run list (the
+  list is too long and irregular for whole-tape shapes), then build a run-list simulator with local rules.
 - Restate `eat` in a normal form (`rep_rotate`) and iterate it, as for the other machines of this batch.
 - Study the irregular region between phases: record it at each phase start and look for a rewriting system (it
   resembles the digit lists of 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD).
@@ -82,6 +111,7 @@ of: A with 0 under the head, 0 right, 1 two right.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC/lean/check.sh
+gcc -O2 -o /tmp/dv holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC/c/dv.c && /tmp/dv 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC 3e5 D | cut -c1-150   # the visits of the left end as run lengths
 ```
 
 <!-- related machines: written by holdouts/related.py -->
