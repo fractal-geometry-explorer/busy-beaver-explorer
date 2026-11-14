@@ -95,6 +95,7 @@ Tools: `py/visit2.py MACHINE NAMESPACE OUT` writes `lean/Visit.lean` by symbolic
 `./VisitGen.lean` (run with the compiled checker) writes the word after k more rounds; `visit_chain.sh` and
 `visit_segments.py` next to `visit2.py` produced the boundary words and the segment files (they carry the paths of the
 machine they were run on).
+**Also in Coq (14 November 2026).** `tools/coq/busycoq/VisitLaw2/`: `halts : halts tm c0` on busycoq's definitions, Coq 8.20.1, no axioms. It uses the checker of busycoq PR59 extended to two forms of visit, with the whole run as one `vm_compute` of about 15 minutes; see the README there.
 <!-- F02-halt:end -->
 
 ## Events, third round
