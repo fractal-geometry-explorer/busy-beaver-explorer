@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
   "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean); between phases the head works through an irregular region that is not understood. A halt needs a 1 read in state C next to a long run of ones."
  ],
@@ -70,6 +70,20 @@
    "title": "Phases",
    "text": "The run alternates growth phases, in which the blocks (011)^n and (01)^m at the left end grow by eating a long run of ones three cells per double cycle, with an irregular stretch in which the head works through a list of short words; the runs of ones are made by earlier phases.",
    "where": "<code>README.md</code>",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Two pumps, in run lengths",
+   "text": "At the visits of the left end in state D the tape is <code>1 2^a FRONT ... X ...</code> (run lengths). Two regimes alternate: <code>3 2^2 1^k</code> at the front (two visits: a+1, k+3, X-3) and <code>(1 2)^j</code> at the front (one visit: a+2, j-1, X-3); in both a single long run X further right loses 3 cells. When X reaches 0 a stretch of the irregular list behind it is rewritten at once; those rewrites are not decoded.",
+   "where": "<code>c/dv.c</code>; README (fourth pass)",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "No acceleration found",
+   "text": "An exact macro simulator with blocks of 2, 3, 6 or 12 cells and linear cycle jumps agrees with the plain machine but does not get past plain speed: the tape mixes words of period 2, 3 and 5 cells and has tens of thousands of runs of blocks (24,000 at 5&middot;10<sup>10</sup> steps).",
+   "where": "README (fourth pass); <code>c/msim.c</code> of 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD",
    "added": true
   },
   {
@@ -141,6 +155,16 @@
     "added": true
    },
    {
+    "id": "pumps",
+    "eyebrow": "Run lengths",
+    "heading": "Two pumps that empty a long run three cells at a time",
+    "html": [
+     "<p>Write the tape as the lengths of its runs of 1s. At the visits of the left end it reads <code>1 2^a FRONT ... X ...</code>: a growing block of runs of 2, a short front, and somewhere further right a single long run X. Two regimes alternate:</p>",
+     "<pre>pump 1 (two visits):  1 2^a 3 2^2 1^k ... X ...  -&gt;  1 2^(a+1) 3 2^2 1^(k+3) ... X-3 ...\npump 2 (one visit):   2^a (1 2)^j ... X ...      -&gt;  2^(a+2) (1 2)^(j-1) ... X-3 ...</pre>",
+     "<p>In both, the head runs out to the long run, takes three cells from it and brings them back to the growing blocks. When the run is empty the head rewrites a stretch of the list behind it in one long excursion, and a new long run appears elsewhere. That list is long and irregular (about 4,000 runs after 2&middot;10<sup>8</sup> steps), and the rule of these rewrites has not been found; this is what keeps the machine open, and also what makes it slow to simulate: none of the accelerated simulators used for its neighbours gets past plain speed here.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -163,7 +187,7 @@
    }
   ]
  },
- "summary": "Phases in which two blocks (011)^n (01)^m at the left end grow by eating a long run of ones (proved in Lean), separated by work on an irregular list of short words that is not understood; open.",
- "family": "growing blocks eating runs of ones",
+ "summary": "Two blocks (011)^n (01)^m at the left end grow by pumping three cells at a time out of a long run of ones further right (proved in Lean); when the run is used up a long irregular list of short words is rewritten, and that part is not decoded; no macro simulator tried accelerates it; open.",
+ "family": "growing blocks pumping cells out of long runs, irregular list behind",
  "decision": "open"
 }
