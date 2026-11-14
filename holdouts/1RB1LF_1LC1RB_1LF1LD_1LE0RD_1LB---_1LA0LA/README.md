@@ -54,7 +54,7 @@ level k moves once every 4^(k-1) phases. Between two levels there may be a froze
 visits on unchanged.
 
 **Right-end events.** The recursion stops when the head reaches the blank right end in D (S ends in `X` or
-`X Y^k`): this happens when the last level overflows, at steps 1,937; 57,942; 61,755; 63,313; 83,647; 125,133; 48,737,226 in the first 2·10^10
+`X Y^k`): this happens when the last level overflows, at steps 1,937; 57,942; 61,755; 63,313; 83,647; 125,133; 48,737,226 in the first 10^13
 steps (`rightvis`-style count: the head back at the right end after more than 1,000 steps away). What happens
 then is not regular: the head comes back in A or D, pairs change parity (`01` pairs appear), blank stretches are
 left inside the tape.
@@ -72,6 +72,19 @@ answer depends on which words the right-end events leave behind, and those look 
 Near-twin: [`1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA`](../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/README.md): the same table with C, D, E wired differently. The recursion G, the four
 phases and their step counts are the same for both; the right-end events differ.
 
+## Later pass: 10^13 steps
+
+* **No halt in 10^13 steps** (trusted: `c/mrun.c` of
+  [`1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`](../1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/README.md), a direct
+  simulator on blocks of 16 cells with a full table). At step 10^13 the tape reaches 300,908 blocks (about 4.8 million
+  cells) to the left.
+* **Right-end events**: after the reset at step 48,737,224 there is **none up to 10^13** (an event: the head back
+  at the right end after more than 10^5 steps away).
+* At wall visits 500 to 3,000 the tape has the same front and level forms as the twin (`0 0 0` / `3`, then
+  `(1 0)^n` and one of four digit words); the head crosses the border of the front in the states `>D <F >B <F`.
+* The twin's notes on the carry as a call and on an accelerator that strips levels apply here too: see
+  [the twin's README](../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/README.md).
+
 ## Status
 
 * **Lean (kernel)**, `lean/Rules.lean` (written by `py/rules.py`), for every count and every surrounding tape:
@@ -79,8 +92,8 @@ phases and their step counts are the same for both; the right-end events differ.
   `cross`; the counter phases `phase1`, `phase2`, `phase4_in`, `phase4_out`; and `pure_tape_halts`.
 * **Lean**: `lean/Blank.lean`: the halting configurations; no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
 * **Trusted**: `py/gmodel.py`: V = G on random words and on the run from blank tape; `py/blocksim.py` /
-  `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation (`tools/c/tmrun.c`): no halt
-  in 2·10^10 steps.
+  `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation: no halt
+  in 10^13 steps (`c/mrun.c` of the 1RB1LE_0LC1RE folder; 2·10^10 with `tools/c/tmrun.c`).
 * **Trusted**: a closed tape language from windows of 6 cells confines the halt to a head with only 0s on its left
   (`python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6`).
 * **Open**: what the right-end events do in general, and so whether a halting word ever appears.

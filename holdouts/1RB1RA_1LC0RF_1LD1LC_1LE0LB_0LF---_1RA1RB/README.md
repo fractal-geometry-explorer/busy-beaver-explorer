@@ -1,6 +1,6 @@
 # 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB
 
-bbchallenge id 7085. One of the six-state holdouts whose halting from blank tape is open (group G07, family: **disordered list of odd blocks of 1s split by single 0s**).
+bbchallenge id 7085. One of the six-state holdouts whose halting from blank tape is open (group G07, family: **rows of blocks of 1s rewritten by two sweeps (parity and mod 4 structure, chaotic)**).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -21,10 +21,72 @@ the right end grows like the square root of the steps and the left end stopped e
 disordered (no long periodic stretch), and blocks of length 1 mod 4 are more common than 3 mod 4 (7,114 against
 4,571).
 
+## The two sweeps as rules on blocks
+
+Write the tape as a row of blocks of 1s split by single 0s. The head does two things: C sweeps left, A sweeps
+right. Four rules say all that happens away from the two ends (`lean/Blocks.lean`, kernel, for all sizes and any
+tape around them; `py/blocks.py check` tests them on the machine):
+
+    pass     x 1 0 1 0 1^c <C          ->  x <C 1 1 0 1^(c+2)          C passes a single 1
+    bounce   1 1 0 1^c <C              ->  0 1 1 A> 1^(c+1)            C meets a block of two or more
+    shred    A> 1^a 0 1^(2k+1) 0       ->  1^(a+1) 0 (1 0)^k 1 A>      A meets an odd block
+    turn     A> 1^a 0 1^(2k+2) 0       ->  1^(a+1) (0 1)^k 0 <C 1 1    A meets an even block
+
+In blocks: going left, C needs every *second* block to be a single 1. It deletes that single 1 and adds one cell
+to the block on each side of it, so a block between two single 1s grows by 2, and the row `X 1 Y 1 Z 1` becomes
+`X+2, Y+2, Z+2`. At the first block of two or more 1s in a "single" position, the block loses two cells and the head
+turns round (`bounce`). Going right, A treats the blocks in turn: one block is shredded (`2k+1` cells become k
+single 1s), the next is kept and grows by 2, and so on. A block of even length in the shredding position turns
+the head round. In 2·10^10 steps C read a 0 1,250,049,447 times and bounced 208,505 times.
+
+**The halt.** The machine halts when E reads a 1. E is entered only by C reading a 0 and then D reading a 0 on
+the cell to its left, so the machine halts exactly when **C, going left, reads a 0 and the two cells to its left
+are `1 0`** (`halt_pattern` in Lean). A double 0 with 1s on both sides appears in one way only: a bounce off a
+block of exactly two 1s that is not the leftmost block. In 2·10^10 steps this never happened: the smallest block
+bounced off (other than the leftmost) had 3 cells, and D read a 0 only 56 times, each time on the blank cell
+left of the whole tape (`c/echeck.c`), where the tape then grows by four cells.
+
+**What keeps it alive, in numbers.** `bounce` and the kept blocks keep the parity of a block; the ends of the
+tape do not. At the moments C reads a 0 in the first 4·10^6 steps (`py/ngrams.py`, `py/evens.py`, 50,072 sampled
+moments):
+
+* right of the head 5,365,538 of 5,366,200 blocks (not counting the first and the last) have length 3 mod 4;
+* left of the head the blocks at odd distance from the head (the "single" positions) are single 1s in 75% of
+  the cases, and the blocks at even distance are single 1s or have length 1 mod 4 in 90%;
+* an even block left of the head, other than the leftmost block (which is a 2), has length 0 mod 4 and is followed
+  on its right by an odd number of single 1s and then a block of length 1 mod 4 (5, 9, ...) in 54,250 of 55,259
+  sightings (in the others the head's own block comes next). In that place C passes it (it is in a "passing"
+  position) or bounces off the block before it.
+
+So the row carries a structure mod 4, not only mod 2: a block of length 3 mod 4 shreds into an odd number of
+single 1s, which keeps the next kept block in a passing position for the sweep back; lengths 1 mod 4 put it in a
+bouncing position.
+
+**Robustness** (`py/perturb.py`): take the tape at step 3·10^5 and change one block far from the head. Adding 2,
+4 or 8 cells to a block, adding one or two single 1s, or deleting a block, left or right of the head, never led to
+a halt in the next 6·10^5 steps (30 trials each). Adding 1 or 3 cells to a block right of the head: no halt.
+Adding 1 or 3 cells to a block **left** of the head: halt in 16 of 30 trials. Random rows of odd blocks with a
+random head state halt quickly in more than half of the trials. So the run from blank tape stays inside a small
+set of rows, and that set is not just "odd blocks".
+
+**Attempts at a proof.** A closed regular set of tapes without the halting pattern would prove that the machine
+runs forever. Two searches, both with automata that read a side of the tape from its far end and remember the last
+few runs by length class (exact up to a bound, then mod 2 or mod 4), runs of single 1s by the parity of their
+count, and flags for even blocks further out: (a) a closed position set on pairs of such automata
+(`py/rlctl.py`, `py/rlf.py`): no closed set (up to 6 runs: the set grows past 1.5·10^6 abstract configurations);
+(b) finite automata reduction with such an automaton on one side and the saturated automaton on the other
+(`py/far.py`, `py/sat.py`): no proof with 2 to 8 runs on the left or 2 to 6 runs on the right (up to 5,471
+states). The left automaton on 4 runs is complete (315 states, none new after 2·10^6 steps); the larger ones
+still meet new states after 10^7 steps, and a state that the run reaches but the automaton lacks defeats the
+method.
+
 ## Status
 
-Open. Lean: the halting configurations and 10^7 steps (`lean/Blank.lean`), and the crossings of a block of 1s in
-both directions for every length (`lean/Shifts.lean`, kernel). Simulation: no halt in 10^9 steps.
+Open. Lean (kernel): the halting configurations and 10^4 steps, 10^7 native (`lean/Blank.lean`); the crossings
+of a block of 1s (`lean/Shifts.lean`); the four block rules and the halting pattern (`lean/Blocks.lean`).
+Trusted: no halt in 2·10^10 steps (`c/echeck.c`, direct simulation), with the counts above.
+Trusted: no halt in 10^12 steps (`c/mrun.c` of the 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB folder, a direct
+simulator on blocks of 16 cells; the tape is then about 1.9 million cells long).
 
 ## Second look
 
@@ -37,10 +99,22 @@ The invariant "odd blocks, single 0s" still holds at every sampled moment except
 
 ## Next steps
 
-* Look for an arithmetic reading: the tape as a number in a mixed base (blocks `1^(2k+1)` as digits), and a sweep as
-  a multiplication or division with carries (the head direction gives the carry direction).
-* Prove the "odd blocks, single 0s" invariant with a CTL certificate (`bbtools.ctl`, K up to 6 with a coarser
-  alphabet) and see whether it confines the halt (E1 needs `0 1` with the head in state E).
+* Write the two sweeps as a machine on rows of blocks (the four rules plus the two ends: at the right end the head
+  turns in three ways, at the left end the tape grows by `1 1 0 1`), and look for the invariant there. The
+  numbers say: lengths mod 4, the alternation of "single" and "passing" positions, and a short list of defects
+  (the leftmost block 2, the last block, an even block of length 0 mod 4 followed by an odd number of single 1s).
+* Even blocks as defects. By the rules, `pass` (a block between two single 1s: +2), `bounce` (-2 for the block
+  bounced off; +2 for the block the head turns in, which also got +1 when C entered it and gets +1 when A leaves it) and a kept block of the
+  right sweep (+2) keep the parity of a block. Parity changes only at the two ends of the tape and at a `turn`:
+  the even block in the shredding position is shredded, and the blocks on both sides of it change parity. The halt
+  is the end of an even block that sits in a "single" position when C arrives: it is bounced off again and again
+  (C passes on only over a single 1), shrinks by 2 each time, and at 2 leaves a double 0. An odd block in that
+  place ends as a single 1 and is passed. So the invariant has to say: no even block, other than the leftmost, is
+  ever in a "single" position of a left sweep. Whether a block is in such a position depends on the parity of
+  the number of blocks between it and the place where the sweep started, and on the lengths mod 4 of the blocks
+  shredded on the way (an odd or even number of single 1s): counts over long stretches, which is why windows fail.
+  An automaton for a certificate must carry these parities.
+* With that invariant as an automaton, `py/far.py` (or `tools/lean/TM/CTL.lean` for a Lean proof) checks it.
 
 ## First look
 
@@ -75,6 +149,14 @@ of: C with 1 two left, 0 left, 0 under the head.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/lean/check.sh
+cd holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py
+python3 blocks.py check                      # the block rules against the machine
+python3 blocks.py > ../lean/Blocks.lean      # regenerate the Lean rules
+gcc -O2 -o /tmp/echeck ../c/echeck.c && /tmp/echeck 2e10     # bounces, D reading 0 (2 minutes)
+python3 ngrams.py 4e6 3 7 2 40               # pairs of neighbouring blocks at the moments C reads a 0
+python3 evens.py 3e6 1                       # where the even blocks are
+python3 perturb.py 1 3e5 Lb1 30 6e5          # change one block left of the head by one cell: 16 of 30 halt
+python3 sat.py 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB L 4 4 2 2 8e6 FUPZ 4 2    # one of the FAR attempts
 ```
 
 <!-- related machines: written by holdouts/related.py -->

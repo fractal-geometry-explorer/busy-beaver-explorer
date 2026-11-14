@@ -168,9 +168,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/gmodel.py</code></p>
       </div>
       <div class="card">
-        <h3>No halt in direct simulation</h3>
-        <p>The C simulator runs 2·10<sup>10</sup> steps from blank tape without a halt; the head reaches the right end of the tape at steps 1,937, 4,828, 24,290, 26,031, 17,047,480,846, 19,980,179,600.</p>
-        <p class="where"><code>tools/c/tmrun.c</code></p>
+        <h3>No halt in the first 10<sup>13</sup> steps</h3>
+        <p>A direct simulator on blocks of 16 cells with a full table (<code>c/mrun.c</code> in the folder of 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB) runs 10<sup>13</sup> steps without a halt; the tape then reaches 313,099 blocks, about 5.0 million cells, to the left. The head reaches the right end of the tape at steps 1,937, 4,828, 24,290, 26,031, 17,047,480,846, 19,980,179,600 (<code>tools/c/tmrun.c</code>, to 2·10<sup>10</sup>) and not again up to 10<sup>13</sup>.</p>
+        <p class="where">README, Later pass</p>
+      </div>
+      <div class="card">
+        <h3>After the reset, a plain counter again</h3>
+        <p>After the reset at step 19,980,179,598 the new counter eats the blank stretch and then the frozen first block (turned into blanks from its right end); at 10<sup>11</sup> steps the tape is again a counter with the wall at the left end. At the border of the rest of the tape the head of a carry crosses in the states D, F, B, D, D, F (in, out, in, out, in, out) at all 733 carries of a test, so a level does not depend on what lies to its right. An accelerator that strips levels stalls at stretches between levels that change from hit to hit.</p>
+        <p class="where">README, Later pass</p>
       </div>
       <div class="card">
         <h3>No halt in the first 6.60&times;10<sup>17</sup> steps (exact macro run)</h3>

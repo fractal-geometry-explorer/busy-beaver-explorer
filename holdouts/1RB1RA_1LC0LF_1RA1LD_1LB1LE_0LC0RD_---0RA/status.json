@@ -1,8 +1,8 @@
 {
  "generated": false,
  "group": "G07",
- "family": "periodic block at the growing end, eaten by a disordered middle",
- "summary": "A periodic block (1^5 0 1^2 0)^k grows at the left end by one copy every three visits while a disordered middle of 1-runs eats it, now and then swallowing it almost whole; no halt in 10^11 steps; open.",
+ "family": "recursion on words over two 3-cell tokens (nested counters, a = c b b blocks eaten from inside)",
+ "summary": "At every visit of the left end the tape is a word over the tokens 110 and 111, and a visit is a recursion on that word (three rules decoded, nested counters three times slower per level); it never halts if every such word leads to a word again, checked on 81,918 short words; open.",
  "decision": "open",
  "title": "What is known about 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA.",
@@ -15,7 +15,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The left end is a periodic block that grows steadily; the middle of the tape is disordered and now and then swallows the block. No rule for the middle is known."
+  "<b>The question is open.</b> At every visit of the left end the tape is a word over two tokens of three cells, <code>110</code> and <code>111</code>, and the visit rewrites the word by a recursion of which three rules are decoded. If every such word leads to such a word again, the machine never halts; that is checked for all short words and not proved."
  ],
  "claims": [
   {
@@ -23,12 +23,6 @@
    "title": "The halting configurations",
    "text": "The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.",
    "where": "<code>step_none_iff</code>, <code>lean/Blank.lean</code>"
-  },
-  {
-   "level": "kernel",
-   "title": "Where a halt can come from",
-   "text": "If the machine halts on its third step from a configuration, that configuration is one of: D with 0 two left, 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
-   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
   },
   {
    "level": "kernel",
@@ -67,18 +61,6 @@
    "where": "<code>tools/c/tmrun.c</code>"
   },
   {
-   "level": "kernel",
-   "title": "Shift rules",
-   "text": "For every length n of the run and any tape around it: <code>L (111110110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101101101)^n R</code>; <code>L (011011111)^n E&gt; 0 R</code> reaches <code>L E&gt; 0 (110110110)^n R</code>; <code>L (110)^n D&gt; 1 R</code> reaches <code>L D&gt; 1 (101)^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.",
-   "where": "<code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)"
-  },
-  {
-   "level": "trusted",
-   "title": "No halt in the first 10<sup>11</sup> steps",
-   "text": "<code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps from blank tape without a halt.",
-   "where": "<code>tools/c/tmrun.c</code>"
-  },
-  {
    "level": "trusted",
    "title": "The collapses of the block",
    "text": "Up to 10<sup>9</sup> steps the periodic block at the left end grows by one copy every three visits and is swallowed thirteen times, with 11, 9, 84, 36, 135, 100, 36, 324, 36, 36, 260, 999 and 36 copies just before; the value 36 recurs five times.",
@@ -86,15 +68,63 @@
   },
   {
    "level": "trusted",
-   "title": "Regular-language deciders tried (F11)",
-   "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 20, history 1 up to width 16, history 2 up to width 15, history 3 up to width 14, LRU history up to width 5 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 16, p = 6 up to width 16. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.",
-   "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
+   "title": "The tape is a word over two tokens",
+   "text": "With <code>b = 110</code> and <code>c = 111</code>: at each of the 74,198 moments in the first 2&middot;10<sup>10</sup> steps when the head stands in B on the blank cell left of the tape, the whole tape is a word over b and c (the longest has 83,005 tokens). The periodic block is <code>a = c b b</code>.",
+   "where": "<code>c/wcheck.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A visit is a recursion on the word",
+   "text": "The next word is <code>b V(X)</code> for <code>w = b X</code>, with <code>V(b X) = c c X</code>, <code>V(c c b c^n b Y) = c b c c b^n V(Y)</code>, <code>V(c b c^n b Y) = c b b b^n V(Y)</code>. These rules give the next word at 2,239 of 2,361 visits up to 3&middot;10<sup>7</sup> steps and never a wrong one; at the other 122 the rest starts with <code>c c c</code>, a case not decoded.",
+   "where": "<code>py/words.py run 3e7</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The halting pattern, and how close the run comes",
+   "text": "By the transition table the machine halts exactly when C reads a 1 and the three cells to its left are <code>0 1 0</code>. In 2&middot;10<sup>10</sup> steps the run was one cell from this 12,171 times (C reads 1, D reads 0, B reads 1), each time with a 1 in place of the first 0.",
+   "where": "<code>c/wcheck.c</code>, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "Conjecture: words lead to words",
+   "text": "For every word over b and c, the visit on it (blank tape on both sides) leads to a visit on a word over b and c. Checked by direct simulation for all 32,766 words of at most 14 tokens and all words starting with b up to 16 tokens: no halt and no other token. If it holds for all words, the machine never halts.",
+   "where": "<code>py/words.py all 16</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No proof by window automata",
+   "text": "Finite automata reduction with automata that remember the nearest 6 to 15 cells of one side, the token phase and that the rest is a word over b and c finds no certificate.",
+   "where": "<code>py/far.py</code>, <code>py/wfar2.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2&middot;10<sup>10</sup> steps (second program)",
+   "text": "An independent direct simulation, which also counts the visits.",
+   "where": "<code>c/wcheck.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>12</sup> steps",
+   "text": "A direct C simulator on blocks of 16 cells (a full table for every block, state and side of entry; checked against <code>tools/c/tmrun.c</code>: the same number of 1s on the tape after 3·10<sup>8</sup> steps) runs 10<sup>12</sup> steps from blank tape without a halt; the tape then spans about 1.6 million cells.",
+   "where": "<code>c/mrun.c</code> of 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly when state F reads a 0, which would have to happen inside the disordered middle.",
+   "text": "Not known. It halts exactly when C reads a 1 with <code>0 1 0</code> on its left. What is missing: the rule for visits on words starting with <code>c c c</code>, and a proof that every word over b, c leads to such a word again.",
    "where": ""
+  },
+  {
+   "level": "kernel",
+   "title": "Where a halt can come from",
+   "text": "If the machine halts on its third step from a configuration, that configuration is one of: D with 0 two left, 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.",
+   "where": "<code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Regular-language deciders tried (F11)",
+   "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 20, history 1 up to width 16, history 2 up to width 15, history 3 up to width 14, LRU history up to width 5 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 16, p = 6 up to width 16. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.",
+   "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
   },
   {
    "level": "trusted",
@@ -107,25 +137,27 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA 1000000000",
+  "gcc -O2 -o wcheck holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/c/wcheck.c && ./wcheck 2e10",
+  "python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/words.py run 3e7",
   "python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/route.py        # rewrites lean/Route.lean"
  ],
  "explainer": {
-  "lede": "Nobody knows. At its growing end this machine lays down a neat repeating pattern, three cells per visit; behind it, a disordered middle keeps changing and every so often swallows almost the whole pattern at once.",
+  "lede": "Nobody knows. But the tangle on this machine's tape has a simple alphabet: cut the tape into groups of three cells and only two groups ever appear, 110 and 111. Each visit of the head to the left end rewrites this word of two letters by a rule that calls itself on the rest of the word.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>11</sup> steps",
-    "text": "No halt in the C simulator."
+    "value": "74,198 visits",
+    "text": "In 2&middot;10<sup>10</sup> steps, every one showing a word over 110 and 111."
    },
    {
     "level": "trusted",
-    "value": "14 collapses",
-    "text": "Times the periodic block was swallowed in the first 10<sup>9</sup> steps."
+    "value": "3 rules",
+    "text": "Give the next word at 95% of the visits; the fourth case is not decoded."
    },
    {
-    "level": "kernel",
-    "value": "shift rules",
-    "text": "The head crossing the periodic block, proved for every length."
+    "level": "heuristic",
+    "value": "81,918 words",
+    "text": "All short words lead to a word again: no halt among them."
    }
   ],
   "presets": [
@@ -137,6 +169,21 @@
    "steps": 60000
   },
   "sections": [
+   {
+    "id": "words",
+    "eyebrow": "Third look",
+    "heading": "Two letters and a rule that calls itself",
+    "html": [
+     "<p>Write <b>b</b> for the three cells <code>110</code> and <b>c</b> for <code>111</code>. Stop the machine each time the head stands on the blank cell left of the tape (a <em>visit</em>). At every one of the 74,198 visits in the first 20 billion steps the tape is a word in the letters b and c, for example</p>",
+     "<p style=\"font-family:var(--mono);word-break:break-all\">b cbb cbb bbbbbb cc b c b cc bb c</p>",
+     "<p>The block <code>cbb</code> repeated at the left is the periodic block seen before. A visit turns the word into the next one. Take off the first b and call the rest X; the new word is b followed by V(X), where</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>the rest starts with</th><th>it becomes</th><th>and then</th></tr></thead><tbody><tr><td><code>b</code></td><td><code>c c</code></td><td>the visit is over</td></tr><tr><td><code>c c b c&hellip;c b</code></td><td><code>c b c c b&hellip;b</code></td><td>the same rule on what follows</td></tr><tr><td><code>c b c&hellip;c b</code></td><td><code>c b b b&hellip;b</code></td><td>the same rule on what follows</td></tr><tr><td><code>c c c</code></td><td colspan=\"2\">not decoded: the long visits</td></tr></tbody></table></div>",
+     "<p>The third line with no c's in the middle reads <code>c b b</code> &rarr; <code>c b b</code>: the periodic block lets every visit through unchanged. Behind it the word goes through a cycle of three visits,</p>",
+     "<p style=\"font-family:var(--mono)\">bbbbb Y &rarr; cc bbbb Y &rarr; cb cccc b Y &rarr; cbb bbbb V(Y)</p>",
+     "<p>which adds one copy of <code>cbb</code>, uses up one b, and gives the rest Y <em>one</em> visit. So the rest of the word is the same machine running three times slower, and inside it another one, nine times slower: counters nested in counters. When a level runs out of b's it meets <code>c c c</code>, and a long visit rewrites the word deep inside. Those are the moments when the periodic block is \"eaten\".</p>",
+     "<p><b>Why it might never halt.</b> The machine can only halt in the middle of a visit. Start it on <em>any</em> word in b and c, not just the ones from the real run: for all 81,918 short words that were tried it comes back with a word in b and c. If that is true for every word, the machine runs forever. A proof would go letter by letter through the rules above, and it needs the missing fourth rule.</p>"
+    ]
+   },
    {
     "id": "parts",
     "eyebrow": "Macro structure",

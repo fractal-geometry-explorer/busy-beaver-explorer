@@ -57,6 +57,19 @@ copies there) and turns the solid block back into `0 0 0 1 (10)^75`, the next co
 the part that is not decoded; it is where the "three times larger" comes from and where a halt would have to
 happen.
 
+**Copies.** Write `[j,a]` for a countdown unit `0 1^(2j) 0 0 1 1 0 (10)^a` (`py/units.py`). At the start of the
+epochs the tape reads, after a fixed head H of about 80 cells,
+
+    visit 260    H  M [4,6]  M [1,42]  0001 (10)^225 1
+    visit 713    H  M [4,6]  M [4,36]  m [4,2]  0001 (10)^5 [1,3] [8,8] 00 (10)^18 111001 (10)^140 00010001 (10)^677 1
+    visit 2070   H  M [4,6]  M [4,36]  m [4,2]  m [4,2]  M [4,14]  m [4,2]  0001 (10)^5 [1,3] [8,8] 00 (10)^18 1^155 001
+                    (10)^60 00 (10)^228 01 [1,337] [1,235] 0001 (10)^1783 1
+
+with `M = [2,0] 00011010 [1,7] [1,1] [1,8]` and `m = [2,0] 00011010 [1,7] [1,1]`. So the left part of the tape is
+a row of copies of one motif, each closed by a unit `[4,k]` with its own k (6, 36, 2, 2, 14, 2); at visit 260 the
+second copy's last unit is still `[1,42]`. This is the "recursive copy structure" of the community note. How a
+copy is made, and what sets k, is part of the undecoded filling of the gap.
+
 **Where it can halt.** Only F reading 0. F is entered only from D reading 1 (`0RF`), D only from C reading 0
 (`0RD`), C only from B: the machine halts exactly when **C reads a 0 and the two cells to its right are 1 0**
 (for example B stepping onto the 1 of `1 0 1 0`: in a `(10)` run the head must always arrive in the other phase).
@@ -72,9 +85,13 @@ edge); windows of 8 do not close in the search limit. So the halt is not confine
 * **Trusted**: `py/blocksim.py` (runs of `10` crossed by shift rules) agrees with the C simulator at every visit up
   to 3·10^7 steps (`py/bscheck.py`); the epoch table comes from it. No halt in 10^9 steps (direct C simulation).
 * **Open**: how the gap is filled, and so the map from one epoch to the next; whether `C> 0 1 0` is ever reached.
+* **Trusted**: no halt in 10^12 steps (`c/mrun.c` of the 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB folder, a direct
+  simulator on blocks of 16 cells; the tape then spans about 2.4 million cells).
 
 ## Next steps
 
+* The copies: explain how a copy of the motif `M` is made and what sets the k of its closing unit `[4,k]`
+  (6, 36, 2, 2, 14, 2 so far); `py/units.py` prints the tape in units at any visit.
 * The gap: follow the head from `... 1 1 1 0 D> 0^(2J) 1 1 0 0 1^(2B+1)` with J as a parameter. It is not one shift
   rule (the symbolic run stops at the gap), so look for the inner loop: the visits of the gap's right edge, as was
   done for the right end of the tape. If the filling is itself a countdown on the gap, the epochs are a recursion
@@ -94,6 +111,7 @@ edge); windows of 8 do not close in the search limit. So the halt is not confine
 cd holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py
 python3 rules.py > ../lean/Rules.lean                          # regenerate the Lean rules
 python3 rules.py show                                          # the rules as configurations
+python3 units.py 260 713 2070                                  # the tape at these visits in units [j,a]
 gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 10 E R 30000000
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6
 ```
