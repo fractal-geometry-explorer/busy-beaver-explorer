@@ -29,6 +29,18 @@ tapes) while 4, 5, 7, 8, 10, 11 are common, a hint of a residue mod 3 that a pro
 Automata tried: `../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c` (finite automata reduction) finds no
 certificate with a DFA of at most 7 states on either side.
 
+## The rule of the middle (14 November 2026)
+
+The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
+[its README](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#the-whole-run-as-one-counter-system-14-november-2026).
+At every second visit of E to a new leftmost cell this machine's tape is `0 0 0 1 0 S_k`, where S_k are the round words
+of that machine's mirrored tape, S_{k+1} = 1 0 A(S_k) (checked up to k = 18 with `py/twinchk.py` there; observed, not
+proved). In the words `L = 1010`, `O = 000`, `I = 100` the tape is a binary counter with doublers, and each round sends
+one defect through it. A tape with one defect cannot halt (by hand); the halting context `1 C> 1 1` needs two defects
+side by side, and in 4,500 rounds every defect disappeared long before the next one started. The residues mod 3 of the
+runs of 0s noted above are the 3-cell digits. No halt in 100,000 rounds of the twin. Open: that every round's defect
+disappears in time.
+
 ## Files
 
 - `lean/HaltPred.lean` (every configuration that halts after exactly k more steps, k = 1, 2, 3, both directions) is written by
@@ -41,7 +53,7 @@ certificate with a DFA of at most 7 states on either side.
 
 ## Next steps
 
-Find the rule of the middle counter and why `1 C> 1 1` never occurs although both of its halves are common; that pattern of near misses suggests a parity invariant.
+Prove that the defect of every round disappears before the round ends (see the section above), and prove the correspondence with the twin.
 
 ## Pages
 
