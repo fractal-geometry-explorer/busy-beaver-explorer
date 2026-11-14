@@ -16,7 +16,9 @@ bbchallenge id 15414. One of the six-state holdouts whose halting from blank tap
 Open, reduced to an exact question. Lean (`lean/Blocks.lean`, kernel only): the machine is the **block map** below
 (`next_sound`); it halts from blank tape iff the block map, from the frame `B [1] []`, reaches one of three critical
 frames (`halts_iff_critical`). By `native_decide` none of the first 10^8 frames is critical (`no_halt_frames`;
-300,362,311,724 machine steps by `py/blockmap.py run 100000000`). C: no halt in 10^9 steps.
+300,362,311,724 machine steps by `py/blockmap.py run 100000000`). C: no halt in 10^9 steps. `lean/Series.lean`:
+cutting a block of exactly 15 cells at the left end halts, of exactly 2 or 3 never halts; neither seen while the
+tape grew to 5.3·10^10 ones (`c/series.c`, trusted).
 
 ## The block map (Lean)
 
@@ -79,10 +81,32 @@ at 10^9).
 Scripts: `py/blockmap.py` (the block map: `check`, `run`, `show`), `py/blocks.py` (writes the two Lean files),
 `py/splits.py` (splitting-step statistics from a `tmrun ... at E L` log).
 
+## Series (whole zigzags)
+
+`lean/Series.lean` (kernel only):
+
+- `zig`: `E (i :: L) (m+2+3t :: 0 :: j :: R)` reaches `E (i+2t :: L) (m+2 :: 0 :: j+t :: R)` in 3t frames.
+- `halts_of_15`: if the run from blank tape reaches `E [] (15 :: 0 :: j :: R)`, the machine halts (critical frame 23
+  frames later). `critical_mid`: the same from `E (4 :: L) (9 :: …)`, `E (2 :: L) (12 :: …)`, `E (6 :: L) (6 :: …)`.
+- `never_halts_of_2`, `never_halts_of_3`: if the run reaches `E [] (2 :: 0 :: j :: R)` or `E [] (3 :: 0 :: j :: R)`,
+  the machine never halts (`E [] (2 :: 0 :: j :: R)` goes to `E [] (2 :: 0 :: j+1 :: R)` in two frames, forever).
+
+None of these frames has been seen. Trusted computation: `c/series.c` (the block map with each zigzag in one step,
+checked against `py/blockmap.py` at 4·10^7 frames) runs 249,644,974,080 of its steps from the first frame with no
+critical frame and no loop; the tape then holds 53,495,934,532 ones. That is of the order of 10^30 machine steps
+(estimate from width ~ t^(1/3); the program does not count machine steps).
+
+Observed, not proved. At the left end a block of m cells is cut to 2(m+1)/3 or 2m/3 until m ≡ 1 mod 3; after the
+first cut the values are even, so 15 can only be the first value of a descent. Descents reach blocks of at most 20
+cells about five times per doubling of the tape (`-DSTATS`, 6·10^10 steps: m = 4, 6, …, 20 cut 15 to 25 times each;
+7, 9 and 19 once each, early). `c/mc.c`: 2,000 restarts from the tape at 647,185 ones, every block of at least 100
+cells changed by a random 0..99, each run to four times the size: no critical frame, no loop. Random small tapes
+halt often, so the large tapes avoid the critical frames for a reason not yet found.
+
 ## Later
 
-1. Compose the rows into rules for a whole cut (induction on the trips: i += 2, m −= 3, j += 1) and a whole sweep
-   (induction on the list), to get a coarser map whose step is one cut or one sweep; `halts_iff` carries over.
+1. The whole cut is now a rule (`zig`, see "Series" below). Still to do: a whole sweep (induction on the list), to
+   get a coarser map whose step is one cut or one sweep.
 2. Look for an invariant of the block lists that excludes the three critical frames (in 10^8 frames: C after a
    block of two only with an empty block ahead; B after a block of one only on a block of one or two). The
    community tracker calls the machine a "lottery" (simulated there to 2.7·10^19 steps), so there may be none.
