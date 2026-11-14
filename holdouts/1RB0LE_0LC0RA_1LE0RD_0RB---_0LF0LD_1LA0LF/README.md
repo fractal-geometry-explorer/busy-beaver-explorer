@@ -147,6 +147,18 @@ rich in L's keeps b above a few times log2(k)**. Measured: b is at least 2m - 5 
 Bookkeeping of the worst case only gives that b does not decrease over two rounds. That is the one missing lemma
 for a proof that this machine and its twin never halt; nothing of this second pass is in Lean.
 
+**Third pass: where the lemma stops.** Two more facts hold by hand: a pass of the defect keeps the number of words of
+any stretch it crosses, and changes (digits minus L's) of the stretch by 0 or 2 either way. With them the lemma
+follows from one inequality: the digit-only end of the tape (Z, about 1.8 k digits) must keep more than half of all
+digits, |Z| >= k + 2 log2 k + 20 (the tape has 2k - 6 digits). Z gains 4 digits per round at its far end and loses
+the digits the defect crosses in Z before it disappears. Measured in rounds 40 to 4,000: none in 2,711 rounds,
+otherwise 2 to 39, on average 2.2 (largest: 39 in round 1,808). The defect crosses `O` and pairs `I I` and stops at
+the first other pattern, so the loss is decided by the low digits of Z, which are irregular; in the worst case it
+is not bounded, and on the regular `I O O O` pattern alone it is exactly 4 per round, equal to the gain. A proof
+therefore needs a statement about the average of irregular digits (2.2 against 4), which I do not know how to prove;
+the induction through the regular tail loses log2 k at every step. The halting question of this machine and its twin
+stays open, with this as the precise obstacle.
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
