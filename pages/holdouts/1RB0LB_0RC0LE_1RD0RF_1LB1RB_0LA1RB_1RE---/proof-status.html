@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>It halts</b>, proved in Lean (theorem <code>halts_from_blank</code>). The machine is a small rewriting system on the right half of its tape (the <em>visit law</em>, kernel-checked): blocks <code>000</code>/<code>100</code> are binary digits, blocks <code>1010</code> double the visits passing through, and a visit that meets <code>1011</code> halts. A checker for this system, proved correct in the kernel, finds that rounds 1 to 161,210 only rewrite and that round 161,211 meets <code>1011</code>; that evaluation is by <code>native_decide</code> (compiled code), in ten segments.</p>
+      <p><b>It halts</b>, proved in Lean (theorem <code>halts_from_blank</code>). The machine is a small rewriting system on the right half of its tape (the <em>visit law</em>, kernel-checked): blocks <code>000</code>/<code>100</code> are binary digits, blocks <code>1010</code> double the visits passing through, and a visit that meets <code>1011</code> halts. A checker for this system, proved correct in the kernel, finds that rounds 1 to 161,210 only rewrite and that round 161,211 meets <code>1011</code>; that evaluation is by <code>native_decide</code> (compiled code), in ten segments. It halts after between 5.9 &times; 10<sup>24,266</sup> and 9.2 &times; 10<sup>24,266</sup> steps (computed, not proved).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -165,7 +165,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The machine halts from blank tape</h3>
-        <p><code>check 161210 [true] = true</code>: rounds 1 to 161,210 use the four rewriting rules only, round 161,211 meets <code>1011</code>. Evaluated with the checker compiled to native code, in ten segments chained by a kernel-checked lemma (about 3 hours of computing in all; the word grows to 1,001,253 cells). With the claim above: the machine halts. Besides the three standard axioms the theorem depends on eleven <code>native_decide</code> axioms, one per evaluation (trust in the Lean compiler). The number of steps is not computed. Each segment was checked on 13 and 14 November 2026, and the whole check was run again from start to end on 14 November 2026 (<code>HALT CHECKED</code>). The repository's automatic checks cover the kernel-only part, not this evaluation.</p>
+        <p><code>check 161210 [true] = true</code>: rounds 1 to 161,210 use the four rewriting rules only, round 161,211 meets <code>1011</code>. Evaluated with the checker compiled to native code, in ten segments chained by a kernel-checked lemma (about 3 hours of computing in all; the word grows to 1,001,253 cells). With the claim above: the machine halts. Besides the three standard axioms the theorem depends on eleven <code>native_decide</code> axioms, one per evaluation (trust in the Lean compiler). The number of steps is bounded separately (computed). Each segment was checked on 13 and 14 November 2026, and the whole check was run again from start to end on 14 November 2026 (<code>HALT CHECKED</code>). The repository's automatic checks cover the kernel-only part, not this evaluation.</p>
         <p class="where"><code>halts_from_blank</code>, <code>lean/Halt.lean</code>; <code>check_run</code>, <code>VisitRun.lean</code>, <code>VisitSeg1.lean</code> to <code>VisitSeg10.lean</code>; run with <code>lean/check_halt.sh</code></p>
       </div>
     </div>
@@ -195,6 +195,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The same round as the PR59 machines</h3>
         <p>The three machines of busycoq PR59 (<code>1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---</code> and two relatives) obey the same law with one form of visit, and PR59 proves in Rocq that they halt in round 161,211. The proof here does not use PR59; our C simulator of the law (<code>vis.c</code>) also halts in that round on the PR59 machine. The twin <code>1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---</code> has its own theorem: machines with related tables are not claimed to halt together.</p>
         <p class="where">busycoq PR59; <code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/vis.c</code></p>
+      </div>
+      <div class="card">
+        <h3>Between 5.9 &times; 10<sup>24,266</sup> and 9.2 &times; 10<sup>24,266</sup> steps</h3>
+        <p>Computed, not proved: the machine halts after between 5.9 &times; 10<sup>24,266</sup> and 9.2 &times; 10<sup>24,266</sup> steps (178.4&middot;2<sup>80605</sup> to 274.6&middot;2<sup>80605</sup>). Every visit costs a fixed number of steps of its own: 4 or 8 steps for <code>0 &rarr; 1</code> (entered in C or F), 6 for <code>100</code>, 8 for <code>110</code>, 20 for <code>1010</code>. A C program repeats the checker's pass for all 161,210 rounds and adds up the visits per rule (5.9519&middot;2<sup>80605</sup> of each main kind in the completed rounds, at most 2.1164&middot;2<sup>80605</sup> more in the halting round). Its final word agrees cell for cell with the word the Lean segments check; the sums are in floating point, and the bounds are widened by 0.1% for that.</p>
+        <p class="where"><code>c/steps.c</code> in <code>holdouts/1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---/</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

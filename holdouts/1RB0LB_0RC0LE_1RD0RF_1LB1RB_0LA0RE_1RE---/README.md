@@ -39,8 +39,8 @@ right part at the left-end visits, 3·2^k), and the mirror case `1RB0LB_0RC0LD_1
 
 **Theorem `halts_from_blank` (`lean/Halt.lean`): the machine halts from blank tape.** Everything is checked by the
 Lean kernel except the evaluation of a checker that is itself proved correct; that evaluation is by `native_decide`
-(compiled code, so the theorem also depends on eleven `native_decide` axioms, one per evaluation). The number of steps is not computed;
-it is astronomically large (the halt is in round 161,211, and the number of visits in a round grows exponentially with the round).
+(compiled code, so the theorem also depends on eleven `native_decide` axioms, one per evaluation). The number of steps is between 6.3·10^24266 and 1.08·10^24267
+(computed, see "How many steps" below).
 
 **The visit law (kernel), `lean/Visit.lean`.** A *visit*: the head stands on a 0 (the lead cell) with a 0 on its left
 and a stream `s` on its right, in state C (form `V`) or in state F (form `W`); it comes back in state A two cells
@@ -102,6 +102,26 @@ machine they were run on).
 **Also in Coq (14 November 2026).** `tools/coq/busycoq/VisitLaw2/`: `halts : halts tm c0` on busycoq's definitions, Coq 8.20.1, no axioms. It uses the checker of busycoq PR59 extended to two forms of visit, with the whole run as one `vm_compute` of about 15 minutes; see the README there.
 <!-- F02-halt:end -->
 
+<!-- F02-steps:begin -->
+## How many steps (computed, not proved)
+
+Between **6.3·10^24266** and **1.08·10^24267** steps from blank tape to the halt, that is 190.3·2^80605 to 323.1·2^80605.
+A number with 24,267 digits (or 24,268); large, but an ordinary power, not a power tower.
+
+Why: every visit costs a fixed number of the machine's own steps, apart from its nested visits: 4 or 8 (`0 -> 1`), 6 or 8 (`100`), 10 (`110`), 22 or 24 (`1010`), entered in C or F
+(the step numbers in the proofs of `lean/Visit.lean`). So the step count is the number of visits of each kind
+times these costs. `../1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---/c/steps.c` repeats the checker's pass for all 161,210 rounds and adds up the counts per
+rule: in the completed rounds there are 5.9519·2^80605 visits each of the kinds `0 -> 1`, `100` and `1010` (the
+largest single count is 2^80605, in round 161,210: the count in round r peaks at 2^(r/2)), and at most
+2.1164·2^80605 more of each in the halting round, which stops part of the way through. The lower bound takes the
+completed rounds at the cheaper cost, the upper bound adds the whole halting round at the dearer cost.
+
+Status: computed. The program's word after 161,210 rounds agrees cell for cell with the word in
+`VisitW161210.lean`, which the Lean segments check; the sums are kept as a mantissa and an exponent in floating
+point (the bounds above are widened by 0.1% for that). The costs per rule are read from the symbolic execution;
+Lean's theorems say "after some number of steps" and do not state the numbers. Nothing here is a Lean theorem.
+<!-- F02-steps:end -->
+
 ## Events, third round
 
 The same two counters as the reference `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---`, in other words: left digits `0110` = 0, `0111` = 1
@@ -117,7 +137,7 @@ same counts as in the reference).
 
 ## Next steps
 
-None needed for the halting question. Open ends: the number of steps to the halt (the checker does not count them), and a proof of the evaluation inside the kernel (it is about 10^11 list operations, too many for kernel reduction).
+None needed for the halting question. Open ends: a Lean proof of the step bounds (they are computed), and a proof of the evaluation inside the kernel (it is about 10^11 list operations, too many for kernel reduction).
 
 ## Scripts
 
