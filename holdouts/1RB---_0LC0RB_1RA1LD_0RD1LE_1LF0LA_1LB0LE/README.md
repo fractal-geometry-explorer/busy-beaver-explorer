@@ -60,6 +60,26 @@ two more digit words of the left counter, `z` = `0000` and `v` = `0100`.
   with a one-digit piece in front (`b`/`c` `e g` …), counts up. So an epoch is a transfer in which the left counter
   is itself fed by a slower counter, one more level per epoch. These rules are not yet proved.
 
+## One visit function, shared by four machines (14 November 2026)
+
+A *visit* of F at cell q is the run from the head arriving at q in state F until it first reaches q-1. On
+the mirrored tape (read right to left) it is a function V of the half tape from q on, and in the run from blank tape it only ever uses seven window
+rules (found by `zvis`, which derives them by local simulation and checks the tape against direct simulation):
+
+    V(0 1 S)     = 0 0 S                  V(0 0 0 S)       = 0 1 1 S
+    V(0 0 1 0 S) = 0 1 1 0 V(S)           V(0 0 1 1 0 S)   = 0 1 1 0 0 V(S)       V(0 0 1 1 1 0 0 S) = 0 1 1 0 1 1 0 V(S)
+    V(1 1 0 0 S) = 1 1 0 0 V(V(S))        V(1 1 0 1 1 0 0 0 1 1 0 S) = 1 1 0 0 1 1 0 0 0 1 1 S
+
+The same seven rules, for the same windows, come out for 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE, 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_1RB0RE and 1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA
+(mirrored for the two machines starting `1RB---_0LC0RB`). The two pairs differ only in what happens between visits at
+the end of the tape. `1100` is a *doubler* (a visit that crosses it becomes two), as `1010` is for
+[1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md); the tape is runs of `1100` separated by `0110` and a few other words, with a prefix that
+settles and an irregular tail.
+
+Run: `zvis m:1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE F1B - run 0 1200` reaches top visit 208 in 20 minutes with no halt; the tape is then 1,453,185 cells
+long and the visit counts reach 70,542 bits. The tape grows by about 5% per top visit, so this engine cannot go much
+further; a tape kept as runs would be needed. Not decoded: the rule for one top visit, and which windows would halt.
+
 ## Status
 
 Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run

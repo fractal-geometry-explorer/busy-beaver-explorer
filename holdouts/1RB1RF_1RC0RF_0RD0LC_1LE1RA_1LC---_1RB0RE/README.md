@@ -52,6 +52,26 @@ The macro structure has not been found. The family's scripts are in `holdouts/1R
 
 - **Does it halt from blank tape?** Not known. No macro description of the run is known yet.
 
+## One visit function, shared by four machines (14 November 2026)
+
+A *visit* of B at cell q is the run from the head arriving at q in state B until it first reaches q-1. On
+the tape it is a function V of the half tape from q on, and in the run from blank tape it only ever uses seven window
+rules (found by `zvis`, which derives them by local simulation and checks the tape against direct simulation):
+
+    V(0 1 S)     = 0 0 S                  V(0 0 0 S)       = 0 1 1 S
+    V(0 0 1 0 S) = 0 1 1 0 V(S)           V(0 0 1 1 0 S)   = 0 1 1 0 0 V(S)       V(0 0 1 1 1 0 0 S) = 0 1 1 0 1 1 0 V(S)
+    V(1 1 0 0 S) = 1 1 0 0 V(V(S))        V(1 1 0 1 1 0 0 0 1 1 0 S) = 1 1 0 0 1 1 0 0 0 1 1 S
+
+The same seven rules, for the same windows, come out for 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_0LD0RE, 1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE and 1RB---_0LC0RB_1RA1LD_1LE1LF_1LB0LF_0RC0LA
+(mirrored for the two machines starting `1RB---_0LC0RB`). The two pairs differ only in what happens between visits at
+the end of the tape. `1100` is a *doubler* (a visit that crosses it becomes two), as `1010` is for
+[1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md); the tape is runs of `1100` separated by `0110` and a few other words, with a prefix that
+settles and an irregular tail.
+
+Run: `zvis 1RB1RF_1RC0RF_0RD0LC_1LE1RA_1LC---_1RB0RE B1C - run 0 1200` reaches top visit 201 in 20 minutes with no halt; the tape is then 1,590,358 cells
+long and the visit counts reach 77,778 bits. The tape grows by about 5% per top visit, so this engine cannot go much
+further; a tape kept as runs would be needed. Not decoded: the rule for one top visit, and which windows would halt.
+
 ## Reproduce
 
 From the repository root:
