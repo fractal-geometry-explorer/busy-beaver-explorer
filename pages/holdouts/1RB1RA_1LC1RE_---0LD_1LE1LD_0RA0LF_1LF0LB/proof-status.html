@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Most of the tape is a single block of 1s that grows by about a cell per sweep; the behavior that matters happens in a slowly growing disordered region beside it, which is not understood.</p>
+      <p><b>The question is open.</b> This machine is the mirror image of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD with its states renamed, started in another state (an exact comparison of the two tables). The two runs stay in step: the same irregular word W next to a run of 1s that counts the visits, this machine's run one cell shorter.</p>
+      <p>It halts only if W eats the whole run between two visits. An exact simulation that keeps the run as a number followed it for 3&middot;10<sup>7</sup> visits (8.6&middot;10<sup>14</sup> steps): the run gains 0.96 cells a visit and W never eats more than 14 cells at once. A halt is extremely unlikely, but W's behaviour is not understood, so there is no proof.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -138,19 +139,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 32,607 cells have been visited and 31,699 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>Mirror image of a sibling</h3>
+        <p>Swapping L and R and renaming the states A,B,C,D,E,F to C,D,E,A,B,F turns this table into the table of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD, entry by entry (an exact comparison by script). So this machine from blank tape is the mirror image of the sibling started in its state C.</p>
+        <p class="where"><code>py/sibling.py</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 2&middot;10<sup>9</sup> steps</h3>
-        <p><code>tools/c/tmrun.c</code> runs 2&middot;10<sup>9</sup> steps without a halt; the left end is visited 45,734 times, with a different disordered region each time.</p>
-        <p class="where"><code>tools/c/tmrun.c</code></p>
+        <h3>The two runs stay in step</h3>
+        <p>At every visit of the far end the irregular word W is the same in both machines (mirrored) and this machine's run of 1s is one cell shorter: checked cell for cell at the first visits, and by W's length and the depth and eating statistics at 3&middot;10<sup>7</sup> visits.</p>
+        <p class="where"><code>py/sibling.py</code>, <code>c/runsim.c</code></p>
       </div>
       <div class="card">
-        <h3>Counter-like changes next to the block</h3>
-        <p>Over the 17,520 visits of the left end up to 3&middot;10<sup>8</sup> steps, comparing each region with the previous one from its far end: the changed part is next to the block, at least 20 cells long in 56% of the visits, 80 in 14%, 320 in 0.4%, 640 in 0.01%. The commonest changes are a few fixed rewrites of the cells next to the block (<code>0101010100</code> &rarr; <code>010101011</code> with N+2, 3,337 times).</p>
-        <p class="where"><code>tools/c/tmrun.c</code> (<code>at E L</code>), README</p>
+        <h3>No halt in 3&middot;10<sup>7</sup> visits</h3>
+        <p>The simulator that keeps the run as a number (checked against its cell-by-cell mode) runs 30,000,000 visits = 864,573,434,721,961 steps without a halt; the run is then 28,822,305 cells and W 1,178,039.</p>
+        <p class="where"><code>c/runsim.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A halt needs blank tape left of the head</h3>
+        <p>The closed tape language from windows of 3 cells covers the run from blank tape and allows the halting transition C0 only with blank tape left of the head: the machine halts only if W eats the whole run. (Computed; for the sibling the mirrored statement is a Lean theorem.)</p>
+        <p class="where"><code>python3 -m bbtools.ctl 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 3</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -161,16 +167,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.512). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <h3>It almost certainly never halts</h3>
+        <p>W eats at most 14 cells of the run in one visit in 3&middot;10<sup>7</sup> visits, with a geometric tail, while the run gains 0.96 cells a visit: a halt at visit v needs about v cells eaten at once.</p>
+        <p class="where">README, the sibling's README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts exactly when state C reads a 0, which would have to happen in the disordered region.</p>
+        <p>Not known. W's dynamics are irregular and not decoded; a proof needs a bound on what W can eat between two visits.</p>
+        <p class="where">README</p>
       </div>
     </div>
   </section>
@@ -178,7 +185,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 1000000000</code></pre>
+cd holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB &amp;&amp; python3 py/sibling.py 600
+gcc -O2 -o /tmp/runsim c/runsim.c &amp;&amp; /tmp/runsim 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB D A 1000000 1</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

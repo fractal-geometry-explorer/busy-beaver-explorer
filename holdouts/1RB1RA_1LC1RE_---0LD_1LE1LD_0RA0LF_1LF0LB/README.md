@@ -1,6 +1,6 @@
 # 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB
 
-bbchallenge id 92364. One of the six-state holdouts whose halting from blank tape is open (group G07, family: **one growing block of 1s beside a slowly growing disordered region**).
+bbchallenge id 92364. One of the six-state holdouts whose halting from blank tape is open (group G07). Family: **unary visit counter fed to an irregular word** (mirror-image sibling of [`1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD`](../1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD/README.md)). Decision: **open**.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -13,20 +13,52 @@ bbchallenge id 92364. One of the six-state holdouts whose halting from blank tap
 
 ## What it does
 
-The tape is one huge block of 1s at the left (growing) end and a disordered region to its right. Each sweep the head
-leaves the disordered region, runs left through the block of 1s (Lean: `cross_ones_left`, any length), turns at the
-left end in state E (`E>0 1^N ...`) and runs back (`cross_ones_right`). The block gains about one cell per visit:
-N = 4,748 at step 2.6·10^7, 14,358 at 2.2·10^8, 28,334 at 8.7·10^8, 43,506 at 2·10^9, over 45,734 visits of the left
-end. The disordered region is where all the work happens; at 2·10^9 steps it is about 1,500 cells of short runs
-(`0 1 0 1 0 1 0 1 0^2 1^2 0 1^4 0 1 0 1 ...`) and it grows slowly. Its contents never repeat (45,734 distinct
-contents at the 45,734 visits), so it is not a finite-state controller in disguise.
+**It is the mirror image of `1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD`, started in another state.** Reflect this machine (swap L and R) and rename its
+states A, B, C, D, E, F to C, D, E, A, B, F: the result is the table of `1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD`, entry by entry (`py/sibling.py`,
+exact). So this machine from blank tape is the mirror image of `1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD` started on blank tape in *its* state C; and
+`1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD` from blank tape is, after three steps, in state C on a blank cell with a single 1 on its right:
+the same configuration with one 1 more. That 1 is the first cell of the run of 1s, the visit counter, and the irregular word W next to the run never sees how long the run is
+(see the sibling's README). So the two machines stay in step for ever, unless one of them halts:
+
+* at every visit of the far end the word W is the same, cell for cell (mirrored), and **this machine's run is one
+  cell shorter** (`py/sibling.py`: checked at each of the first visits; `c/runsim.c ... 1` on both machines: equal W
+  length, equal depth and eating statistics, run one shorter, at 3·10^7 visits);
+* this machine has made 2 steps fewer per visit: visit 30,000,000 is at step 864,573,434,721,961 here (run
+  28,822,305, W 1,178,039 cells) and at step 864,573,494,721,963 there.
+
+Everything in the sibling's README about W and the run holds here, mirrored: the tape is `1^N W` with the run on
+the left, D climbs the run (N steps, Lean `cross_ones_left`), adds a 1 at its end (D0 -> 1LE, E0 -> 0RA) and A
+comes back (`cross_ones_right`); W eats the run from its foot. The halting transition C0 is the sibling's E0; the
+closed tape language of windows of 3 cells (`python3 -m bbtools.ctl 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 3`) allows it only with blank tape left
+of the head: **it halts iff W eats the whole run between two visits.** In 3·10^7 visits (8.6·10^14 steps) W eats at
+most 14 cells in a visit (none in 68% of the visits, geometric tail), the run gains 0.961 cells a visit and the
+head never goes more than 1,202 cells into W: it almost certainly never halts, and a proof for one machine is a
+proof for the other except for the one cell of difference.
+
+The block of 1s: N = 4,748 at step 2.6·10^7, 14,358 at 2.2·10^8, 28,334 at 8.7·10^8, 43,506 at 2·10^9.
 
 ## Status
 
-Open. Lean: the halting configurations and 10^7 steps (`lean/Blank.lean`), and the two crossings of the block of
-1s for every length (`lean/Shifts.lean`, kernel). Simulation: no halt in 2·10^9 steps.
+Open.
 
-## Second look: a counter-like region next to the block
+* **Kernel**: the halting configurations and 10^4 steps (`lean/Blank.lean`; 10^7 by `native_decide`), the two
+  crossings of the block of 1s for every length (`lean/Shifts.lean`).
+* **Exact (script)**: the tables of the two machines are mirror images up to the renaming (`py/sibling.py`).
+* **Trusted**: the two runs stay in step (same W, run one shorter) at 3·10^7 visits; no halt in 3·10^7 visits =
+  864,573,434,721,961 steps (`c/runsim.c`, the run as a number, agrees with its cell-by-cell mode); the closed
+  tape language of 3-cell windows allows a halt only with blank tape left of the head (`bbtools.ctl`, not in Lean:
+  the shared library has the statement for the right edge only).
+* **Heuristic**: it never halts.
+* **Open**: W's dynamics, and so whether W ever eats the whole run.
+
+## Next steps
+
+* The same as for the sibling: a bound on what W can eat in one excursion (see its README).
+* In Lean: the mirror-and-rename conjugacy between the two machines is a finite check of the tables plus a
+  general lemma about reflected machines; the "one cell shorter" relation needs the statement that W's steps do not
+  depend on the length of the run.
+
+## Earlier look: the changes next to the block
 
 Diffing consecutive visits of the left end (state E, `E>0 1^N ...`) **from the right**: the region changes only in
 a prefix next to the block, and the far part stays fixed for long stretches, as the low digits of a counter whose
@@ -42,14 +74,6 @@ moves are a handful of fixed rewrites of the cells next to the block, each with 
 
 but unlike a counter the deep changes rewrite long stretches into contents that never recur, so the region is not
 a fixed-word counter; N drifts (it also loses cells, e.g. 927 -> 919 in one visit at step 1,321,637).
-
-## Next steps
-
-* Treat the region as a word and the block as a number: find the finite set of rewrites at depth up to ~20 (they
-  cover most visits) and the rule that decides which applies; the deep rewrites may then be compositions of a small
-  set of moves (a "carry" that passes through words rather than digits).
-* A simulator with N symbolic (the block is crossed by shift rules in both directions) would run the region alone,
-  much faster.
 
 ## First look
 
@@ -69,6 +93,9 @@ start, 343 right), 31,699 ones.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB/lean/check.sh
+cd holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB && python3 py/sibling.py 600                 # tables, and the two runs in step
+gcc -O2 -o /tmp/runsim c/runsim.c && /tmp/runsim 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB D A 1000000 1     # mirrored, D climbs, A returns: 10^6 visits
+/tmp/runsim 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD A C 1000000        # the sibling: same lines, run one longer
 ```
 
 <!-- related machines: written by holdouts/related.py -->

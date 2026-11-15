@@ -1,7 +1,8 @@
 # 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC
 
 bbchallenge id 151599. One of the six-state holdouts whose halting from blank tape is open. (group G07).
-Family: **zig-zag block converter feeding a growing irregular region**. Decision: **open**.
+Family: **two-symbol-pair rewriting system (three states D, E, B on bits) driven by a zig-zag over a block**.
+Decision: **open** (no halt in 3·10^7 rounds = 8.39·10^15 steps; the evidence points to an invariant, not found yet).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -14,45 +15,98 @@ Family: **zig-zag block converter feeding a growing irregular region**. Decision
 
 ## What it does
 
-The tape has three parts: a fixed left part (a few hundred cells written in the first 10^6 steps, unchanged since),
-an **irregular region** that grows to the right, and on the right a **block** of k copies of the 8-cell word
-`01011111`, ending in `110`. One round trip of the head:
+**Read the tape two cells at a time.** Write `0 = 01`, `1 = 11`, `a = 10`, `b = 00` (b is also the blank pair), and
+put the head either before a pair (`X>`: state X on its first cell) or after one (`<X`: state X on the second cell
+of the pair to its left). From either position the machine leaves the pair after at most 3 steps, so it is a machine
+on pairs (`py/pairs.py table`; every macro move is a Lean theorem for every tape, `lean/Pairs.lean`). After the
+start-up (the last other move is in round 387) only twelve of the 48 moves are ever used, and these are the whole
+machine from then on:
 
-1. at the right end in state B, the head walks left through the block converting every word, the boundary moving
-   about one word per 38 steps (**proved in Lean** for every k: `L (01011111)^(n+3) 1 1 B> 0  ->  L D> (11101000)^(n+3) 1101`
-   in 38n+118 steps, `lean/Rules.lean`);
-2. at the left end of the block it rewrites the last cells of the irregular region;
-3. it walks right converting the block back, and adds a little at the right end.
+    1 <D  ->  <D 1          0 <D  ->  1 E>
+    E> a  ->  0 E>          E> 0  ->  1 E>          E> 1  ->  <B a          E> b  ->  1 B>
+    1 <B  ->  <D a          0 <B  ->  1 B>
+    B> 1  ->  <D 0          B> a  ->  <D b          B> b  ->  <D 0          B> 0  ->  HALT
 
-Measured over the 10,115 visits of the right end in state B in the first 10^9 steps: each round trip changes the
-tape by 4 cells, as (block +1 word, region -4 cells), (block -1 word, region +12 cells) or (block unchanged, region +4).
-So the block and the region both grow linearly in the number of trips (k = 2,938 and region 17,196 cells at step
-9.8·10^8). The rewrite at step 2 usually touches only the last 8-40 cells of the region, but it can reach much deeper:
-its depth has a heavy tail (100 cells in about 3% of the trips, 1,000 in 0.3%, the deepest 3,160 cells). The
-region behaves like the memory of a counter or a stack machine that the zig-zag drives.
+Left of the head there are only bits (0, 1); the symbols a and b live only right of the head. Composing the B moves:
 
-Tape samples (periodic notation, `w^k` is the word w repeated k times; `X>b` is the head in state X on symbol b; a long middle is cut with `...`):
+    D moving left:   1 <D -> <D 1        0 <D -> 1 E>          (D looks for a 0, sets it, and E starts to the right)
+    E moving right:  E> a -> 0 E>        E> 0 -> 1 E>          (E raises every symbol by one: a -> 0 -> 1)
+                     1 E> 1 -> <D a a    0 E> 1 -> <D 1 b      (a 1 sends it back, and what it leaves depends on the bit behind)
+                     E> b 1 -> <D 1 0    E> b b -> <D 1 0      E> b a -> <D 1 b
+                     E> b 0 -> HALT
 
-- step 10,000,000: `1^6 01^2 1^6 0 1^3 01^2 1^4 01^4 11010111^3 1 10111110^2 10 1^7 0 1111101011^2 10^2 1^11 01^4 11111101^2 011101^3 1^4 010111^3 111101011111^2 010111^2 1^4 01^2 1111011111^2 1^4 01^2 1^4 0 1^3 01^4 1^4 010111^2 1^6 010111^4 1^8 0 1^5 01^2 110 1^9 0111^2 1^6 0 1^17 01^2 1101^2 0 1^13 010111^2 1^4 01^2 1^6 0 1^9 01^2 1 10^3 1^13 01 ... 01^2 1 10^3 1^5 0 1^3 01^4 1111010111^2 11111101^2 0 1^5 01^2 1^6 0 1^5 01^3 111101^2 011101^2 0 1^7 01^2 111101^2 01^3 1^8 01^2 1 10111110^2 10 1^7 0 1^5 010111^4 110 1^9 0 1^5 0 1^3 01^3 111101^2 011101^2 0 1^7 011111^3 1 10^2 1^9 010111^2 111101^2 1 10111110^2 10 1^3 01^2 1^4 0 F>0 10 1^7 01^3 0^3 1^5 01000111^251 01 0^3 1101`
-- step 100,000,000: `1^6 01^2 1^6 0 1^3 01^2 1^4 01^4 11010111^3 1 10111110^2 10 1^7 0 1111101011^2 10^2 1^11 01^4 11111101^2 011101^3 1^4 010111^3 111101011111^2 010111^2 1^4 01^2 1111011111^2 1^4 01^2 1^4 0 1^3 01^4 1^4 010111^2 1^6 010111^4 1^8 0 1^5 01^2 110 1^9 0111^2 1^6 0 1^17 01^2 1101^2 0 1^13 010111^2 1^4 01^2 1^6 0 1^9 01^2 1 10^3 1^13 01 ... 8 010111^2 111101^2 011101^3 1^6 01^2 11011111^2 011111^2 0 11101011^2 101011^4 1^5 010111^2 1^4 01^2 1^4 011101^2 1111111101^2 110 111110101111^2 101110^2 1^3 01^3 1^4 0 1^3 01^3 1^4 0 1^3 01^3 1^4 0 1^3 01^4 1^14 01^4 1^6 0 1^3 01^4 1101^2 1^8 01^6 1^12 01^2 1^6 01^2 1^4 0 11101011^2 11111010^889 1^4 A>1 10^2 0 11010001^35 101`
-- step 1,000,000,000: `1^6 01^2 1^6 0 1^3 01^2 1^4 01^4 11010111^3 1 10111110^2 10 1^7 0 1111101011^2 10^2 1^11 01^4 11111101^2 011101^3 1^4 010111^3 111101011111^2 010111^2 1^4 01^2 1111011111^2 1^4 01^2 1^4 0 1^3 01^4 1^4 010111^2 1^6 010111^4 1^8 0 1^5 01^2 110 1^9 0111^2 1^6 0 1^17 01^2 1101^2 0 1^13 010111^2 1^4 01^2 1^6 0 1^9 01^2 1 10^3 1^13 01 ... ^4 01^4 1^8 01^2 1^6 01^2 1^4 0 1^7 01^4 1^10 01^2 1^8 01^4 1^6 011101^4 0 1^7 0 1^3 01^4 1^12 0101111111^2 1^8 01^2 1101^2 0 1^7 0 1^5 01^2 1101^2 0 1^7 011101^4 1 10^2 1^11 0 1^5 01^2 1101^2 01111111^2 0 1^5 0 1^3 01^4 1^10 0 1^5 01^2 1^6 0 1^3 01^2 1^10 01^2 1^10 01^2 1^10 01011111^159 011 B>1 10 1^5 01000111^2805 01 0^3 1101`
+So **the machine halts iff E ever reads `b 0`**.
+
+**A round.** At the end of a round the tape is `R (0011)^k E>` with blank to the right: a word of bits R (the
+*region*) and the block, k copies of `0011` (the 8-cell word 01011111). Then
+
+    E> b b  ->  <D 1 0                                             (2 new pairs at the right end)
+    (0011)^k <D  ->  <D (1aab)^k              38 steps a word       (Lean: `sweep_left`)
+    ... the head works at the end of R, a real computation in the D/E system above ...
+    001 B> (1aab)^n  ->  (1001)^n 001 B>      26 steps a word       (Lean: `sweep_right`)
+
+and E reaches the blank again. Each round adds 4 cells: on average the block gains 0.291 words and R 0.835 pairs.
+R is not a counter with digits: it is the trace of the D/E system and looks random, but it is not arbitrary (in
+8·10^5 pairs of R after 10^6 rounds the words `100010` and `101010` never occur, nor `0000000`; only 118 of the
+128 words of 7 bits occur and 223 of the 256 of 8 bits).
+
+**The work in R is local.** `c/psim.c` runs the pair machine with the two block rules as jumps (exact; step counts
+equal to the plain pair machine, which equals the plain machine round by round, `py/pairs.py check`). In 3·10^7
+rounds (8,388,105,420,665,431 steps, k = 8,734,830, R = 25,061,030 pairs) there is no halt, and the number of pairs of
+R read in a round has a geometric tail:
+
+| pairs of R read in a round | < 8 | < 16 | < 32 | < 64 | < 128 | < 256 | < 512 | < 1024 | < 2048 | < 4096 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| rounds | 1,984,851 | 6,224,610 | 8,286,816 | 6,165,124 | 4,064,858 | 2,218,468 | 886,379 | 163,503 | 5,382 | 7 |
+
+The deepest round read 2,731 pairs, while R grows by 0.835 pairs a round: the left half of R is never read again
+(between rounds 8,388,608 and 16,777,216 the lowest pair read is number 6,998,950 of 14 million). The earlier
+estimate of a heavy tail (first pass, from cells that *differ* between visits) was wrong: the depth is about
+1,500 pair moves a round on average, independent of the round.
+
+**Evidence for an invariant.** A halt needs `b 0` right of the head. Following the moves back, the first step to it
+is E reading a 1 that is followed by `0` or `b` *with a 0 behind it* (`0 E> 1 0` gives `<D 1 b 0`, then `<D a a b 0`, and the next time E
+comes through `a a` it reads `b 0`). Counted over the 3·10^7 rounds:
+
+| E reads 1, next symbol is | 0 | 1 | a | b |
+|---|---|---|---|---|
+| bit behind E is 0 | **3** (rounds ≤ 7) | 680,762,334 | 558,856,010 | **0** |
+| bit behind E is 1 | 950,895,256 | 1,334,853,230 | 972,641,756 | 2,248,774,623 |
+
+and `E> b` was followed by `0` never, by `1` 627,111,079 times, by `a` 1,009,156,276 times and by `b` 353,784,173
+times. A dangerous situation that arose with a fixed probability would have been seen billions of times; it has
+not occurred once after round 7. So the configurations of the D/E system reached from blank tape satisfy a
+structural constraint that excludes the halt, and the machine very probably never halts; the constraint is not
+known. It is not a local one: n-gram closed position sets on the pair machine (windows of up to 9 pairs on each
+side, seeded with the steady-state words) and the direct finite-automaton closure with "last n pairs" automata
+(n ≤ 5) all let the halt in; so do n-gram closed sets over run-length coded tapes (windows of up to 7 maximal
+runs a side, counts capped at 2 to 12), which can express "any number of a's", from blank tape and from the tape of
+round 398. One reason is plain: every such closure also contains the configurations with the head deep in the old
+part of the region or at the left end of the tape, where the start-up left other words; that the head stays out of
+there is, so far, only a statistical fact.
 
 ## Status
 
 Open.
 
-- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `sweep_left` (`lean/Rules.lean`).
-  **native_decide:** `blank_runs_native` (10^7 steps).
-- **Trusted:** no halt in 10^9 steps (`tools/c/triage.c`); the statistics above from `tools/c`-based runs.
-- **Open:** the rule of the region rewrite (step 2) and the halting question. The halting transition is C1; C is entered
-  only as B0 -> 1RC or F1 -> 0LC, so a halt is B reading 0 before a 1, or F reading 1 after a 1. A closed tape
-  language search (`bbtools.ctl`, windows of 4 and 6) leaves such halts possible anywhere.
+- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `sweep_left`, `sweep_right`
+  (`lean/Rules.lean`, from `py/rules.py`); the 41 macro moves of the pair machine for every tape (`lean/Pairs.lean`,
+  from `py/pairs.py lean`). **native_decide:** `blank_runs_native` (10^7 steps).
+- **Trusted:** the pair machine equals the plain machine at every round, tapes and step counts (`py/pairs.py check`,
+  398 rounds, 3·10^6 steps); `c/psim.c` with and without the block jumps gives the same step counts; no halt in
+  3·10^7 rounds = 8,388,105,420,665,431 steps; the last macro move outside the twelve of the D/E/B system is in
+  round 387; the tables above.
+- **Heuristic:** it never halts (the precursor of the halt does not occur in 3.2·10^9 opportunities).
+- **Open:** the invariant of the D/E system that excludes `0 E> 1 {0, b}` (and so `E> b 0`), and with it the proof.
 
 ## Next steps
 
-Find the rewrite of the region as a function of its last few "digits" (the depth statistics suggest a counter or a
-stack whose items are short words), prove the rightward sweep with `bbtools.symtm` (it depends on the region's last
-cells), and decode the region.
+* Find the language of the words right of the head. They are built by only two processes: D moving left turns
+  `0 1^m` (m ≥ 1) into `a a 1^(m-1)`, and E's returns (`<D a a`, `<D 1 b`, `<D 1 0`). The halt needs
+  `0 1 1 <D` in front of `0` or `b` with no `b` to eat the two a's (`E> b a -> <D 1 b`), so the invariant has to say
+  when a `b` stands in front; a context-free or counting description may be needed (regular n-gram ones fail).
+* With the invariant: a closed-language proof on the pair machine (`lean/Pairs.lean` has the moves), started from the
+  configuration after round 387, which `native_decide` reaches from blank tape.
 
 ## Pages
 
@@ -63,4 +117,10 @@ cells), and decode the region.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/lean/check.sh
+cd holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC
+python3 py/pairs.py table && python3 py/pairs.py check                   # the pair machine, against the plain machine
+python3 py/pairs.py ctable | diff - c/tab.h && python3 py/pairs.py lean | diff - lean/Pairs.lean
+python3 py/rules.py | diff - lean/Rules.lean
+gcc -O2 -o /tmp/psim c/psim.c && /tmp/psim 1000000        # 10^6 rounds, 10^13 steps, about 12 s; 30000000: 10 minutes, 1 GB of address space
+/tmp/psim 20000 0 | grep ^end; /tmp/psim 20000 1 | grep ^end           # without and with the block jumps: same steps
 ```

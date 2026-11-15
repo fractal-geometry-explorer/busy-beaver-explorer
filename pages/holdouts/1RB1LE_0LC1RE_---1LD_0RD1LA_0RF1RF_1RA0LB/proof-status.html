@@ -81,14 +81,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</p>
     <h1>What is known about 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</h1>
     <p class="machine">1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</p>
-    <p class="stand computed"><b>Computed, not proved: it halts</b><span>An exact accelerated computation in this repository finds this. It is not a Lean proof of the whole run; the ledger below says what each part rests on.</span></p>
-    <p>This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape, after about 1.27·10<sup>758</sup> steps. The exact step is known. It comes from an accelerated simulation that is exact and was checked in several independent ways; its central rule is proved in Lean, the composition of the whole run into one Lean theorem is not done.</p>
+    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Lean. The ledger below says what each part rests on.</span></p>
+    <p>This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape, after about 1.27·10<sup>758</sup> steps. The exact step is known, and the halt is a Lean theorem: the rules of the machine's ladder of counters are proved for every size and every number of counters with Lean's kernel, and the long run itself is evaluated inside Lean by a function that is proved correct (compiled evaluation, <code>native_decide</code>).</p>
     <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The machine halts</b> (trusted computation). At the visits of the right end the tape is a short front, a ladder of <em>levels</em> (a rung of n blocks <code>0111111111</code> and one of eight separator words) and a tail at the left end. Every level is a digit with 16 positions: a hit from the right moves it to the next position, at ten positions the hit is absorbed, at six it is passed on to the left. What lies left of a level therefore lives exactly as it would right behind the front, only 8/3 times slower. After the reset of step 27,167,343, which turned the old ladder into fuel, the tail eats two fuel blocks and leaves three new levels in every 12 hits. With 887 levels the fuel is used up, the next hit runs into the blank left end, and state C reads a 0: the halt, at a step with 759 digits.</p>
+      <p><b>The machine halts</b> (Lean theorem <code>halts</code>; two steps of it by compiled evaluation). At the visits of the right end the tape is a short front, a ladder of <em>levels</em> (a rung of n blocks <code>0111111111</code> and one of eight separator words) and a tail at the left end. Every level is a digit with 16 positions: a hit from the right moves it to the next position, at ten positions the hit is absorbed, at six it is passed on to the left. What lies left of a level therefore lives exactly as it would right behind the front, only 8/3 times slower. After the reset of step 27,167,343, which turned the old ladder into fuel, the tail eats two fuel blocks and leaves three new levels in every 12 hits. With 887 levels the fuel is used up, the next hit runs into the blank left end, and state C reads a 0: the halt, at a step with 759 digits.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -111,6 +111,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
     <div class="cards">
+      <div class="card">
+        <h3>Levels are transparent: any list of levels, any number of hits</h3>
+        <p>A <em>call</em> on a tape T is a run that enters T in one state and leaves it in another, whatever lies to the right; a V-hit is one call, an H-hit five. <code>hit0</code> … <code>hit15</code> (from the stretch theorems): a hit on a level with j + 1 blocks at each of the 16 positions is such a hit, takes 112(j+1) + c or 56(j+1) + c steps inside the level, leaves the level at the next position, and at the six passing positions makes exactly one hit on the rest. <code>level_run</code>: y hits in a row on one level, with closed forms for position, block count, hits passed on and steps (16 hits are one turn: 4 blocks more, 6 hits passed on). <code>stack_run</code>: by induction on the list of levels, y hits on a whole ladder act level by level as the table says and pass the remaining hits to the tape below. <code>front_run</code>: the front and its two visits per hit. <code>haltUp_sound</code>, <code>frontHalt_sound</code>: a hit below the levels that halts (in its first call, or in the fourth call of an H-hit) is a halt of the machine, with the steps made in every level before it.</p>
+        <p class="where"><code>lean/Odo.lean</code>, <code>lean/Hits.lean</code> (from <code>py/hits_lean.py</code>), <code>lean/Ladder.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The accelerated run is sound</h3>
+        <p><code>crun_sound</code>, <code>hrun_sound</code>: a simulator for one call on a finite tape (blank beyond), correct for every tape to the right of the call. <code>opAdv_sound</code> (a jump of y hits of which none or one reaches the simulated cells), <code>opPeel_sound</code>, <code>opUnpeel_sound</code> (cells read as a level, and back), <code>opFinal_sound</code> (the hit that halts) and <code>loop_sound</code>: if the run is at the configuration of a state after its step count, and <code>loop</code> returns N from that state, then the machine reaches a halting configuration after exactly N steps from blank tape. Which levels to read and how far to jump is chosen by code that needs no proof: a wrong choice can only make <code>loop</code> fail.</p>
+        <p class="where"><code>lean/Ladder.lean</code></p>
+      </div>
       <div class="card">
         <h3>The level rules, for every block count</h3>
         <p>A level <code>4<sup>n</sup> s</code> is the cells <code>s (0111111111)<sup>n</sup></code>. For each of its 16 positions and each stretch of a hit between two crossings of the level's borders, the machine's run is proved for every n ≥ 1 and every tape left and right of the level (63 theorems). A 64th and 65th theorem, <code>last_visit_run</code> and <code>last_visit_halts</code>, run the last visit on the word with all 887 levels removed (<code>2 1 0 3 1 0 3 1 0 5</code>, blank to the left): it halts after 278 steps. The generator checks that the stretches chain as the table says: the states in which the head leaves and comes back, that an absorbing level never touches the tape to its left, and the level after the hit.</p>
@@ -140,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
       <div class="card">
+        <h3>The machine halts, at a step with 759 digits (Lean theorem)</h3>
+        <p>The accelerated run from blank tape ends in the halting transition C0, two cells left of the leftmost 1, at step <span style="word-break:break-all">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</span> (bbchallenge count). The last trip of the head to the left starts at right-end visit number <span style="word-break:break-all">6457109013376761952964397678097307615669340968993585759245814706743742046125940261247241066403890938492170138345021775414788657246855473619762555399924006808185668177937261822888303321241424388506815212830693515134376015491900870498530843289643797903974663993452480048769041949957161985409468353341199468784692405027220745645833011312600661412072060494393516371733163287212276888</span>; the tape then has 887 levels and is about 1.29·10<sup>379</sup> cells long. In Lean: <code>halts : HaltsFromBlank</code> and <code>halts_in : ∃ c, steps haltN init = some c ∧ step c = none</code>, where <code>haltN</code> + 1 is the step above (the bbchallenge count includes the halting transition). The proof has three parts. (1) <code>reach0</code>: 27,172,911 steps from blank tape lead to the tape of visit 3,040, after the last reset (<code>native_decide</code> on the library's list simulator). (2) <code>loop_sound</code> (kernel): a function <code>loop</code> that keeps the levels as pairs of numbers and simulates only the cells left of them returns, from a configuration of the run, the number of steps to a halting configuration. (3) <code>run0</code>: <code>loop</code> returns <code>haltN</code> from that tape (<code>native_decide</code>; 3,539 simulated hits, 587 times the deepest level is written out as cells again, exact arithmetic on numbers of up to 759 digits). The axioms of <code>halts</code> are Lean's three standard ones and the two <code>native_decide</code> evaluations.</p>
+        <p class="where"><code>lean/Halt.lean</code>, <code>lean/Ladder.lean</code>; <code>python3 py/accel.py</code>, <code>halt.txt</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
@@ -148,13 +163,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>The machine halts, at a step with 759 digits</h3>
-        <p>The accelerated run from blank tape ends in the halting transition C0, two cells left of the leftmost 1, at step <span style="word-break:break-all">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</span> (bbchallenge count). The last trip of the head to the left starts at right-end visit number <span style="word-break:break-all">6457109013376761952964397678097307615669340968993585759245814706743742046125940261247241066403890938492170138345021775414788657246855473619762555399924006808185668177937261822888303321241424388506815212830693515134376015491900870498530843289643797903974663993452480048769041949957161985409468353341199468784692405027220745645833011312600661412072060494393516371733163287212276888</span>; the tape then has 887 levels and is about 1.29·10<sup>379</sup> cells long.</p>
-        <p class="where"><code>python3 py/accel.py</code>, <code>halt.txt</code></p>
-      </div>
-      <div class="card">
         <h3>Independent re-computation of the halt</h3>
-        <p>A second implementation of the level odometer, written separately (its own cell simulator, its own measured step constants, the deepest level always simulated cell by cell), gives the same 887 levels, the same tail, the same last visit and the same 759-digit halting step. Direct simulation agrees with the accelerated run at 12,169 checkpoints in 440 windows spread over the whole run (visit number, step count and whole tape), and about 80 truncated endgames run directly to the halt stop at exactly the predicted step (the longest after 4,568,217,938,175 steps). Not observed directly: anything between step 1.2&times;10<sup>12</sup> and the halt with more than about 14 levels on the tape; the composition over the 887 levels is not a Lean theorem.</p>
+        <p>A second implementation of the level odometer, written separately (its own cell simulator, its own measured step constants, the deepest level always simulated cell by cell), gives the same 887 levels, the same tail, the same last visit and the same 759-digit halting step. Direct simulation agrees with the accelerated run at 12,169 checkpoints in 440 windows spread over the whole run (visit number, step count and whole tape), and about 80 truncated endgames run directly to the halt stop at exactly the predicted step (the longest after 4,568,217,938,175 steps). Not observed directly: anything between step 1.2&times;10<sup>12</sup> and the halt with more than about 14 levels on the tape; that part is covered by the Lean theorem above.</p>
         <p class="where"><code>verify/README.md</code> (<code>mymodel.py</code>, <code>myrun.py</code>, <code>final.py</code>, <code>sim2.c</code>)</p>
       </div>
       <div class="card">
@@ -201,25 +211,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
-    <div class="cards">
-      <div class="card open">
-        <h3>One Lean theorem for the halt</h3>
-        <p>Not done: the induction over the list of levels (from the level theorems) and the 3,539 simulated hits as a checked certificate would make the halt a Lean theorem.</p>
-        <p class="where">README, <em>How the halting step is found</em></p>
-      </div>
-    </div>
+    <p class="empty">Nothing yet.</p>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/lean/check.sh
+holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/lean/check.sh      # about 4 minutes; Halt.lean is the theorem
 cd holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/py
 python3 accel.py                    # the run to the halt (20 s); --defer 1, 2, 3: the same result
 python3 accel.py levels             # the level table and step constants against the machine
 python3 accel.py last               # the last visit on small tapes, direct run against formula
 gcc -O2 -o /tmp/visits ../c/visits.c &amp;&amp; /tmp/visits 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 1e10 A 2 100000000 2 &gt; /tmp/v.txt
 python3 accel.py check /tmp/v.txt   # visit numbers and step counts against the direct run
-python3 levels_lean.py &gt; ../lean/Levels.lean ; python3 rules.py &gt; ../lean/Rules.lean
+python3 levels_lean.py &gt; ../lean/Levels.lean ; python3 hits_lean.py &gt; ../lean/Hits.lean ; python3 halt_lean.py &gt; ../lean/Halt.lean ; python3 rules.py &gt; ../lean/Rules.lean
 python3 words.py ; python3 vmodel.py 3000000</code></pre>
   </section>
   <footer>

@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 14 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Each round trip of the head converts a block of 8-cell words at the right end (proved in Lean for every length) and rewrites the end of an irregular region to its left; both grow linearly with the trips. The rule of the rewrite, and so the halting question, is not understood.</p>
+      <p><b>The question is open.</b> Read two cells at a time (0 = 01, 1 = 11, a = 10, b = 00) the machine is, after its start-up, a rewriting system with twelve rules on bits: D walks left to the next 0 and sets it, E walks right raising every symbol (a &rarr; 0 &rarr; 1) until a 1 or a b sends it back. It halts exactly when E reads <code>b 0</code>. Every macro move and both sweeps through the block are Lean theorems.</p>
+      <p>An exact accelerated simulation (trusted) ran 3&middot;10<sup>7</sup> rounds, 8,388,105,420,665,431 steps, without a halt. The work in the irregular region is local (a round reads at most 2,731 pairs of it; the count has a geometric tail), and the step that must precede a halt has not occurred once in 3.2&middot;10<sup>9</sup> opportunities after round 7. That points to an invariant that excludes the halt; it is not a local (n-gram) one and has not been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -122,9 +123,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
-        <h3>The leftward sweep</h3>
-        <p>For every n and every tape L: L (01011111)<sup>n+3</sup> 1 1 B&gt; 0 reaches L D&gt; (11101000)<sup>n+3</sup> 1 1 0 1 in 38n+118 steps: the whole block is converted word by word.</p>
-        <p class="where"><code>sweep_left</code>, <code>lean/Rules.lean</code></p>
+        <h3>The two sweeps through the block</h3>
+        <p>For every n and every tape: L (01011111)<sup>n+3</sup> 1 1 B&gt; 0 reaches L D&gt; (11101000)<sup>n+3</sup> 1 1 0 1 in 38n+118 steps, and L 010111 B&gt; (11101000)<sup>n+1</sup> R reaches L (11010111)<sup>n+1</sup> 010111 B&gt; R, 26 steps a word.</p>
+        <p class="where"><code>sweep_left</code>, <code>sweep_right</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The pair machine</h3>
+        <p>With 0 = 01, 1 = 11, a = 10, b = 00: each of the 41 macro moves (a state entering a pair from the left or from the right, and how it leaves) holds for every tape around the pair.</p>
+        <p class="where"><code>lean/Pairs.lean</code> (from <code>py/pairs.py lean</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -138,34 +144,40 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
-        <h3>No halt in the first 10<sup>9</sup> steps</h3>
-        <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 41,156 cells have been visited and 25,720 of them hold a 1.</p>
-        <p class="where"><code>holdouts/triage.json</code></p>
+        <h3>The pair machine is the machine</h3>
+        <p>Run from the end of each round to the next, the pair machine gives the same tape and the same number of steps as the plain machine (398 rounds, 3&middot;10<sup>6</sup> steps).</p>
+        <p class="where"><code>py/pairs.py check</code></p>
       </div>
       <div class="card">
-        <h3>Round trips</h3>
-        <p>Over the 10,115 visits of the right end in state B in the first 10<sup>9</sup> steps, each trip changes the tape by 4 cells: (block +1 word, region &minus;4 cells), (block &minus;1, region +12) or (block unchanged, region +4). At step 9.8&middot;10<sup>8</sup>: block 2,938 words, region 17,196 cells.</p>
-        <p class="where"><code>tools/c</code> runs, README</p>
+        <h3>After round 387 only twelve moves</h3>
+        <p>In 3&middot;10<sup>7</sup> rounds the last macro move outside the D/E/B system (1&lt;D, 0&lt;D, E&gt; on 0, 1, a, b, 1&lt;B, 0&lt;B, B&gt; on 1, a, b) is in round 387. In that system the only halt is B&gt; 0, reached only by E reading <code>b 0</code>.</p>
+        <p class="where"><code>c/psim.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 3&middot;10<sup>7</sup> rounds</h3>
+        <p>The pair simulator with the two block rules as jumps (same step counts as without them) runs 30,000,000 rounds = 8,388,105,420,665,431 steps without a halt; the block then has 8,734,830 words and the region 25,061,030 pairs.</p>
+        <p class="where"><code>c/psim.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The work in the region is local</h3>
+        <p>The number of pairs of the region read in a round has a geometric tail (most rounds 8 to 64 pairs, 5,389 of 3&middot;10<sup>7</sup> rounds more than 1,024, the deepest 2,731), while the region grows by 0.835 pairs a round: its left half is never read again.</p>
+        <p class="where"><code>c/psim.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>Growth shape: fixed/sqrt</h3>
-        <p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.534).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
-      </div>
-      <div class="card">
-        <h3>A heavy-tailed rewrite</h3>
-        <p>The rewrite at the left end of the block usually touches the last 8&ndash;40 cells of the region, about 3% of the trips reach 100 cells back, 0.3% reach 1,000, the deepest 3,160: the region acts like the memory of a counter or a stack.</p>
-        <p class="where">README</p>
+        <h3>It very probably never halts</h3>
+        <p>A halt needs E to read a 1 followed by 0 or b with a 0 behind it. With a 1 behind it this happened 3.2&middot;10<sup>9</sup> times in 3&middot;10<sup>7</sup> rounds, with a 0 behind it never after round 7; and E&gt; b was followed by 1, a or b 2&middot;10<sup>9</sup> times and by 0 never.</p>
+        <p class="where"><code>c/psim.c</code>, README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The halting transition C1 needs B reading 0 before a 1 or F reading 1 after a 1; closed tape languages from windows of 4 and 6 cells do not confine it, and the rewrite rule is not known.</p>
+        <h3>The invariant</h3>
+        <p>The constraint on the words right of the head that excludes the halt is not known. N-gram closed sets on the pair machine (up to 9 pairs a side) and finite-automaton closures with last-n-pairs automata (n &le; 5) do not exclude it.</p>
+        <p class="where">README, Next steps</p>
       </div>
     </div>
   </section>
@@ -173,8 +185,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC 1000000000
-cd holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean</code></pre>
+cd holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC &amp;&amp; python3 py/pairs.py check
+gcc -O2 -o /tmp/psim c/psim.c &amp;&amp; /tmp/psim 1000000     # 10^6 rounds, 10^13 steps</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

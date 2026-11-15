@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its tape is an irregular word followed by a run of ones that counts the head's visits to the right end; it can only halt if the word eats the whole run."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 14 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves that a halt needs E at the right edge, and that each trip over the run of ones adds one to it; only A crosses the run to the right, so a halt needs the word W on its left to eat the whole run. In 2·10<sup>10</sup> steps the run has grown to 137,905 cells while W eats about one cell per fifteen visits; W's own dynamics are not decoded."
  ],
@@ -64,6 +64,30 @@
    "where": "<code>py/blocksim.py</code>, <code>py/runwatch.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in 3&middot;10<sup>7</sup> visits",
+   "text": "A simulator that keeps the run as a number (a climb is 2n+3 steps) and W cell by cell, checked against its own cell-by-cell mode, runs 30,000,000 visits = 864,573,494,721,963 steps without a halt; the run is then 28,822,306 cells and W 1,178,039.",
+   "where": "<code>c/runsim.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The work in W is local",
+   "text": "In 3&middot;10<sup>7</sup> visits the head never goes more than 1,202 cells below the foot of the run, W eats at most 14 cells of the run in one visit (none in 68% of the visits), and the left half of W is never read again.",
+   "where": "<code>c/runsim.c</code>, README"
+  },
+  {
+   "level": "trusted",
+   "title": "The mirror-image sibling",
+   "text": "1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB is this machine reflected, with states renamed, started in state C: at every visit it has the same W (mirrored) and a run one cell shorter (3&middot;10<sup>7</sup> visits).",
+   "where": "<code>py/sibling.py</code> in the sibling's folder"
+  },
+  {
+   "level": "heuristic",
+   "title": "It almost certainly never halts",
+   "text": "A halt at visit v needs about v cells eaten in one excursion; the number eaten in a visit has a geometric tail (roughly a factor 10 for every 2 more cells), so the chance is of the order 10<sup>&minus;v/2</sup>.",
+   "where": "README"
+  },
+  {
    "level": "heuristic",
    "title": "Only A crosses the run",
    "text": "A is the only state that moves right over a 1 and stays the same (B and F erase the 1 they step on and D turns back), so E can reach the right edge only once W has eaten the whole run. The run grows by one per visit and W eats about one cell in fifteen: the run outgrows W, as long as W's appetite stays bounded.",
@@ -103,8 +127,8 @@
    },
    {
     "level": "trusted",
-    "value": "2·10<sup>10</sup>",
-    "text": "Steps without a halt; the run is 137,905 cells long."
+    "value": "8.6&middot;10<sup>14</sup>",
+    "text": "Steps without a halt (3&middot;10<sup>7</sup> visits); the run is 28.8 million cells long."
    }
   ],
   "presets": [
@@ -146,6 +170,16 @@
     ]
    },
    {
+    "id": "number",
+    "eyebrow": "A closer look",
+    "heading": "The run is only a number",
+    "html": [
+     "<p>The irregular word W cannot tell how long the run of 1s is: the head either climbs the whole run (and adds a 1 at the top) or nibbles at its foot. So the machine is really W's own little world plus one number, the length of the run: plus one for every climb, minus one for every cell W eats. It stops only if that number runs out, which would need W to eat the whole run between two climbs.</p>",
+     "<p>A simulator that keeps the run as a number followed the machine for thirty million climbs (8.6&middot;10<sup>14</sup> steps). The run grew by 0.96 cells per climb. W ate nothing in two visits out of three, and never more than 14 cells at once; larger bites get rarer very fast (roughly ten times rarer for every two more cells). To stop now, W would have to eat almost 29 million cells in one go. That is why nobody expects a halt, although nobody can prove it: W's behaviour looks random.</p>",
+     "<p>This machine has a twin, 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB: the same machine seen in a mirror and started in another state. Its word W is the same at every visit and its run is exactly one cell shorter.</p>"
+    ]
+   },
+   {
     "id": "related-machines",
     "eyebrow": "Family",
     "heading": "Related machines",
@@ -159,5 +193,5 @@
  },
  "family": "unary visit counter fed to an irregular word",
  "decision": "open",
- "summary": "The tape is an irregular word W followed by a run of 1s that gains one cell per visit of the right end (descend/climb proved in Lean for every length); a halt needs E at the right edge (Lean), which needs W to eat the whole run first: W eats about one cell in fifteen, the run is 137,905 cells long at 2·10^10 steps."
+ "summary": "The tape is an irregular word W and a run of 1s that counts the visits (Lean); it halts iff W eats the whole run between two visits (Lean: halt only at the right edge). Exact simulation with the run as a number: no halt in 3·10^7 visits (8.6·10^14 steps), the run gains 0.96 a visit, W eats at most 14 cells in a visit with a geometric tail. Mirror-image sibling of 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB."
 }
