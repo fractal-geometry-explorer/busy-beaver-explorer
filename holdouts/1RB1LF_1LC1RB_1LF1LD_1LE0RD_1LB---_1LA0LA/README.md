@@ -1,7 +1,7 @@
 # 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA
 
 bbchallenge id 9123. A BB(6) holdout whose halting from blank tape is open (group G07).
-Family: **nested base-4 counter on pairs (a recursion on words)**. Decision: **open**.
+Family: **nested base-4 counter on pairs (a recursion on words) with fuel, an eater and right-end events**. Decision: **open**.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -114,6 +114,86 @@ No halt in the first 2.16x10^18 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 2,166,473,947,245,007,495. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,010,334 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Dedicated pass: an exact accelerator on digits, through the right-end events
+
+The code is shared by the twins and lives in [`1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py`](../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py): `geng.py` (the recursion on digit words with rules found by
+symbolic execution), `msim.py` (a cell-level macro simulator that hands wall visits to it), `accel_run.py`,
+`accel_check.py`, `calibrate.py`; `c/wv.c` prints the wall visits of a direct simulation.
+
+**The recursion on digits, with step counts.** Write a word as its digits (lengths of the runs of Y between
+X's; the last digit is the trailing run) and h(T) = G(0 T) (a *hit* of the tape T). Then
+
+    G(a T) = 0^a h(T)                    16 + 4a steps, plus those of the hit
+    h(0 T) = 3 + T                       (the first digit of T grows by 3; no further step)
+    h(k T) = 1 + G^k(2 + T)   (k >= 1)   2k steps, plus those of the k visits of the sub-tape 2 + T
+    h()    = 2                           the hit of the empty rest: -4 steps (G(a) = 0^a 2 costs 12 + 4a)
+    h(k)                                 a hit of the last digit: a right-end EVENT (not in the recursion)
+
+and h(1 0 T) = 1 0 h(T): a unit `1 0` (cells 111010) passes every hit on, at 26 steps a crossing. The step counts
+are exact: fitted, then checked on 3,995 random words for each twin (`calibrate.py`), and the accelerated run below
+reproduces the step number of every wall visit it was compared with.
+
+**What the tape is made of** (found by the engine, not put in by hand):
+
+* a *level* is `(1 0)^n` followed by a digit word that cycles `0^7 -> 3 0^5 -> (1 0) 0^4 3 -> (1 0) 3 0^2 3 ->
+  (1 0)^2 0^7`: four hits add two units and pass one hit on, so level i gets a 4^-i share of the hits;
+* *frozen* stretches between levels pass every hit on unchanged;
+* *fuel*: a run `(1 0 0)^m`. It is made when a frame `7 0 (1 0)^n ...` re-opens itself as its own last sub-visit
+  (each round eats 6 units of the level and leaves `1 0 0` four times), i.e. an old level is turned into fuel;
+* an *eater* at the bottom of the active ladder consumes 3 units of fuel every 11 hits and leaves fresh ladder
+  rungs behind (the 20-digit word `1 0 4 0 0 0 1 0 1 0 4 3 1 0 4 0 3 0 0 0`, a level with n = 1); the rungs then
+  grow as levels. This is the same economy as the fuel of the decided sibling
+  [`1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`](../1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/README.md), with one
+  difference that matters: here an event that is not a reset turns ladders back into fuel, so the fuel does not
+  simply run out;
+* an *event* is a hit that reaches the last digit. On cells the head then runs to the blank right end in D, the
+  sub-tape `2` at the end gets its visits, and on the way back every frame that was open is closed in a
+  different way than in the recursion (a level `(1 0)^n` crossed by the returning head becomes one digit of
+  about 3n: in the event after wall visit 186, `(1 0)^40` became the digit 126). The word at the next wall visit is
+  again a word of X and Y.
+
+**The accelerator.** `geng.py` keeps a word as tokens (a digit, `0^m`, `(1 0)^n`, `w^n` for a short word w)
+with big integers as counts, and evaluates G and h recursively. Three kinds of rules are found automatically by
+running the recursion on a prefix with symbolic counts and an opaque rest (every comparison made on the way is
+recorded as a linear condition, so a rule is applied exactly as long as its conditions hold): *cycle rules*
+(p hits change the counts of a prefix by fixed amounts and pass c hits to the rest; this finds the level cycle
+and the eater), *run rules* (h(k w^n T) = E^(n-1) h(k w T)) and *recursion rules* (h(pre[n] T) = F h(pre[n - c]
+T'), the frame that turns a level into fuel). `msim.py` simulates cells (blocks of 24, run-length coded, with the
+right part of the tape kept as tokens until the head needs it); when the head stands at a wall with blank pairs on
+its left and a pure X/Y word on its right it asks the engine for as many visits as there are blank pairs. So the
+events themselves are done on cells and nothing about them is assumed. During an event the chain of open frames
+found by the engine's failed attempt is reused as a list of facts (`plan`), which makes an event with ten thousand
+nested frames a matter of seconds.
+
+**Validation against direct simulation** (`accel_check.py` with the output of `c/wv.c`): the word right of the
+wall *and* the step number agree at every wall visit compared, visits 1 to 1,422 (3·10^6 steps) and visits 112,522 to 112,524 (step 20,000,957,941): 1,425 visits, through all six early events,
+with the outer wall advancing one visit at a time; and again, on the first 3·10^6 steps, with jumps of up to 7, 50
+and 1,000 visits. The
+recursion rules give the same word and the same step count as the plain recursion on a case that needs 2.3·10^7
+recursive calls without them. Not done: an independent re-implementation, and a comparison beyond 10^11 steps
+(out of reach of direct simulation), so the long run below is *exact by construction but only as trustworthy as
+this one program*.
+
+**The run from blank tape** (`python3 ../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 2 60 100 7`, 7 s; exact numbers in
+`../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run_2.txt`):
+
+* events follow the wall visits 3, 14, 23, 186, 189, 5,424 (steps 47; 768; 1,729; 56,552; 59,211; 48,700,374);
+* after the event of visit 5,424 a ladder grows on fuel as in the twin: 164 levels at wall visit 10^100, 243 at
+  the next event. **No event between visit 5,424 and visit 4.137·10^148** (step 2.967·10^297; 149 and 298 digits);
+* at that event the simulator takes the head to the right end and starts back, but then meets a fuel run
+  `(1 0 0)^1,778,879,143,158` under an eater: every 11 hits leave a 20-digit rung behind, and the engine has no
+  rule that emits such a word, so it would need 10^12 nested calls. The run stops there.
+
+So: **no halt up to wall visit 4.137·10^148, step about 2.967·10^297**, if the accelerator is right (the earlier exact macro run
+reached 2.16·10^18 steps). The halting question stays open, for the same reason as for the twin
+([`1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA`](../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/README.md), which was followed through one more event, to step 3.1·10^4475).
+
+**Next steps** (in this order): (1) cycle rules that emit an arbitrary frozen word, not only `1 0` units, with
+that word as a run token on the digit side and on the cell side (blocks whose period is not a divisor of 24);
+(2) the walk through a run of rungs during an event as a rule (now one nested frame per rung, on cells); (3) the
+event itself as a second recursion on digits: the return sweep is a transducer on the open frames, and with it
+the whole machine would be one map on digit words, the place to look for an invariant or for a halt.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
@@ -127,6 +207,8 @@ cd holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/py && python3 rules.py > .
 python3 gmodel.py 3000000                                      # the recursion against the machine
 gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 111010 F L 2000000
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6
+gcc -O2 -o wv ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/c/wv.c && ./wv 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 3e6 0 1 > ref.txt && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_check.py 2 ref.txt   # accelerator against direct simulation
+python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 2 && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 2 60 100 7                 # step constants; the accelerated run
 ```
 
 <!-- related machines: written by holdouts/related.py -->

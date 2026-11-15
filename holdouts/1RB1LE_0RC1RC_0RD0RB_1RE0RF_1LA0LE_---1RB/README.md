@@ -99,6 +99,21 @@ edge); windows of 8 do not close in the search limit. So the halt is not confine
 * With the epoch map, look for a CTL with more context (windows of 7-8 seeded with the rules) that excludes
   `C> 0 1 0`.
 
+## Deep exact run (dedicated pass)
+
+No halt in the first 1.09x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c`
+with blocks of 6 cells ran from blank tape to step 10,875,900,254,680,900,458 in 240 seconds (`python3 py/deep.py run 240`).
+It is exact, and at this block size it agrees with the direct simulator (state, head and whole tape) after
+2,000,009,605 steps (`python3 py/deep.py verify`). The earlier bound was 10^12.
+
+This pass was meant to carry over the level/accelerator method that decided
+[`1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`](../1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/README.md). It was spent
+on the twins [`1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA`](../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/README.md)
+instead, and nothing new was decoded here: the filling of the gap (see "Next steps") is still the missing piece.
+What carries over from the twins is the tooling: an engine that runs a recursion with symbolic counts and an
+opaque rest of the tape and reads rules off the run (`py/geng.py` there) would find the "inner loop" of the gap
+filling once the visits of the gap's right edge are written as a map on words.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/explainer.html`](../../pages/holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/explainer.html)
@@ -112,6 +127,7 @@ cd holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py
 python3 rules.py > ../lean/Rules.lean                          # regenerate the Lean rules
 python3 rules.py show                                          # the rules as configurations
 python3 units.py 260 713 2070                                  # the tape at these visits in units [j,a]
+python3 deep.py verify && python3 deep.py run 240              # exact macro run: check, then 240 seconds
 gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 10 E R 30000000
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6
 ```

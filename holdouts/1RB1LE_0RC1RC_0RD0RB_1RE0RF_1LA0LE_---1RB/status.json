@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Near the right end of the tape it runs a simple countdown that turns one block into another; each time the countdown ends, a long sweep sets up a new one about three times as long."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 15 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The visit-to-visit rule at the right end is proved in Lean for all counts (two theorems), and the epochs it builds are seen in an exact accelerated simulation, but what a long sweep at the end of an epoch does to the left part of the tape is not decoded, and the closed tape language of windows of 6 still allows 970 halting configurations, so the halt is not confined."
  ],
@@ -101,6 +101,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.09&times;10<sup>19</sup> steps (exact macro run)",
+   "text": "The shared macro simulator with blocks of 6 cells ran from blank tape to step 10,875,900,254,680,900,458 without a halt (240 seconds). It counts every machine step, and at this block size it agrees with the direct simulator (state, head, whole tape) after 2,000,009,605 steps.",
+   "where": "<code>py/deep.py</code>, <code>c/msim.c</code> of the folder 1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---"
+  },
+  {
+   "level": "trusted",
    "title": "Related holdouts",
    "text": "The same table as 1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
    "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
@@ -112,7 +118,8 @@
   "cd holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py && python3 rules.py > ../lean/Rules.lean",
   "gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 10 E R 30000000",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 1000000000",
-  "cd tools/py && python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6"
+  "cd tools/py && python3 -m bbtools.ctl 1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB 6",
+  "python3 holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py/deep.py verify && python3 holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB/py/deep.py run 240"
  ],
  "explainer": {
   "lede": "Nobody knows whether it halts. Near the right end of its tape it runs a countdown: every second visit one block of 1s and 0s shrinks by one copy while another grows by three. When the countdown runs out, a long sweep sets up a new one, about three times as long.",
@@ -193,5 +200,5 @@
  },
  "family": "nested countdowns with erase sweeps",
  "decision": "open",
- "summary": "A bouncer at the right end running a countdown (j+1, a-1, b+3 every two visits, in Lean); when a runs out an erase sweep (in Lean) wipes the run of 1s into a gap of 0s and the head refills the gap, starting a countdown about three times longer; the refilling is not decoded."
+ "summary": "A bouncer at the right end running a countdown (j+1, a-1, b+3 every two visits, in Lean); when a runs out an erase sweep (in Lean) wipes the run of 1s into a gap of 0s and the head refills the gap, starting a countdown about three times longer; the refilling is not decoded; no halt in 1.09·10^19 steps (exact macro run)."
 }
