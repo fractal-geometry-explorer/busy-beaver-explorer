@@ -53,9 +53,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 3.43·10<sup>11</sup> steps (accelerated run)",
-   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 196,400,000 macro steps from blank tape without a halt. That is more than 3.43·10<sup>11</sup> machine steps; the tape then spans 27,206 cells.",
-   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 2 196400000</code>"
+   "title": "No halt in the first 3.24·10<sup>14</sup> steps (accelerated run)",
+   "text": "<code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 2 cells, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 3.24·10<sup>14</sup> machine steps (exact count; tape spanning 266,164 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (18,685,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 2 1000000000000000 run.ck 300</code>"
   },
   {
    "level": "trusted",
@@ -120,7 +120,7 @@
   "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 1000000000 at E L 100000 > el.txt && python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/rounds.py el.txt",
   "python3 holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/classround.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 24",
   "gcc -O2 -o far holdouts/1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA/py/far.c && ./far 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 8",
-  "python3 tools/py/bbtools/rleaccel.py 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 2 196400000    # minutes"
+  "g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA 2 1000000000000000 run.ck 300    # 30 minutes"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine keeps a solid block of 1s with one or two holes in it, and spends each round moving a hole: the first block is turned into <code>0 1</code> pairs, and every two pairs come back as a glider that knocks the hole 3 cells left. Rounds cost about the square of the width and add a few cells, so the width grows like the cube root of the time.",

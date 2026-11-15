@@ -68,3 +68,10 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1RA_1LC0RC_---0LD_0LE0RF_1RE0RA_0LF1LB/c
 
 - Find the exact cutting rule (n -> (3n + c)/4 and its remainders) and the merging rule: a map on block lengths.
 - Then whether B can meet the C0 pattern.
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 2, runs from blank tape without a halt to 1.11·10^14 machine steps (exact; tape:
+115,934 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(15,045,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1RA_1LC0RC_---0LD_0LE0RF_1RE0RA_0LF1LB 2 1000000000000000 run.ck 300`.

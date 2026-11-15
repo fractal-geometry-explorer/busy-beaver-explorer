@@ -84,3 +84,10 @@ python3 py/rules.py > lean/Rules.lean && . /etc/profile.d/lean.sh && lean/check.
 
 - [`pages/holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/explainer.html`](../../pages/holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/explainer.html)
 - [`pages/holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/proof-status.html`](../../pages/holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---/proof-status.html)
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 1, runs from blank tape without a halt to 4.02·10^24 machine steps (exact; tape:
+1,098,318,864 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(16,065,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA--- 1 1000000000000000 run.ck 300`.

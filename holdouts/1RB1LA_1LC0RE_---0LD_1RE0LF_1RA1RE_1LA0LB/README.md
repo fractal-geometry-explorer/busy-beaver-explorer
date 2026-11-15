@@ -112,3 +112,10 @@ gcc -O2 -o vsa c/vsa.c && ./vsa 1e9 1   # 6 s; 1e12 takes about 100 minutes
 
 - [`pages/holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB/explainer.html`](../../pages/holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB/explainer.html)
 - [`pages/holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB/proof-status.html`](../../pages/holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB/proof-status.html)
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 1, runs from blank tape without a halt to 1.46·10^24 machine steps (exact; tape:
+979,702,785 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(16,590,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB 1 1000000000000000 run.ck 300`.

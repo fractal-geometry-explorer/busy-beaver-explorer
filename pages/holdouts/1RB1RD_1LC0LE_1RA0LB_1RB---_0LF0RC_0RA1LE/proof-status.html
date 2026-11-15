@@ -138,6 +138,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 6.13·10<sup>14</sup> steps (accelerated run)</h3>
+        <p><code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 2 cells, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 6.13·10<sup>14</sup> machine steps (exact count; tape spanning 302,520 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (18,425,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 2 1000000000000000 run.ck 300</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10<sup>12</sup> steps</h3>
         <p>An exact macro simulator (blocks of 16 cells) runs 10<sup>12</sup> steps without a halt. The macro simulator cuts the tape into blocks of K cells, run-length codes them, and crosses a whole run at once when the head leaves it on the far side in the state it entered with; it agrees with the plain simulator <code>tools/c/tmrun</code> cell for cell.</p>
         <p class="where"><code>holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/c/mrun.c</code></p>
@@ -174,7 +179,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 1000000000
-gcc -O2 -o mrun holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/c/mrun.c &amp;&amp; ./mrun 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 16 1000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/c/mrun.c &amp;&amp; ./mrun 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 16 1000000000000
+g++ -O2 -o rleaccel tools/c/rleaccel.cpp &amp;&amp; timeout 1800 ./rleaccel 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 2 1000000000000000 run.ck 300    # 30 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

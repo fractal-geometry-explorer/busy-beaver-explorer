@@ -67,3 +67,10 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC/c
 - Find the exact map on the list of block lengths (halving, rearranging, rebuilding).
 - Then whether two adjacent 0s can appear where C steps left (the F0 halt).
 - Compare with `1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA`, which also halves its last block.
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 6, runs from blank tape without a halt to 9.50·10^13 machine steps (exact; tape:
+210,510 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(12,450,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC 6 1000000000000000 run.ck 300`.

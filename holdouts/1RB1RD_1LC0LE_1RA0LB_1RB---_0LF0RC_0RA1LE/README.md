@@ -68,3 +68,10 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE/c
 
 - Find the exact split, halve and merge rules: a map on lists of block lengths.
 - Then whether A can meet `A>1 1`.
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 2, runs from blank tape without a halt to 6.13·10^14 machine steps (exact; tape:
+302,520 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(18,425,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE 2 1000000000000000 run.ck 300`.

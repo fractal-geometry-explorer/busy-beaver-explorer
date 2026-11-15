@@ -110,3 +110,10 @@ A proof of non-halting needs a reason why the value a sweep carries to the left 
 next step would be to study the sweeps that reach the left end as a map of their own: the blocks just after such a
 visit are `x, x+3, 2x+1, 4x+2, ...` (the halvings), and the next visit depends on how the parities of the large blocks
 evolve under repeated half-splits; a formula or a 2-adic invariant for that map would settle the machine.
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 6, runs from blank tape without a halt to 6.35·10^16 machine steps (exact; tape:
+376,537,662 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(6,275,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LD_1LC1RD_0LE1LA_0RB1RD_---0LF_1RA1LF 6 1000000000000000 run.ck 300`.

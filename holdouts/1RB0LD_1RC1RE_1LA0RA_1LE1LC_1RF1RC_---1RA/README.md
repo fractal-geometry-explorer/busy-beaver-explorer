@@ -89,7 +89,7 @@ gcc -O2 -o walker holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA/c/walker.c 
 
 ## Accelerated run
 
-Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 167200000` runs 167,200,000 macro steps from blank tape without a halt, more than 1.29·10^14
-machine steps (tape: 13,769,538 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
-one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
-(`tools/tests/test_rleaccel.py`).
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 6, runs from blank tape without a halt to 1.12·10^18 machine steps (exact; tape:
+1,383,458,352 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(16,200,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 1000000000000000 run.ck 300`.
