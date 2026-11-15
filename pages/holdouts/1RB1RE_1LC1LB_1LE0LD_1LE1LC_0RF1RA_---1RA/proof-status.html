@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 15 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a counter that grows by a factor 3/2 per epoch (two moves proved in Lean), whose parities drive a growing stack of slower counters. Lean also proves that a halt can only happen past the right end of the tape, which would need the whole stack to be used up; through 83 epochs (10<sup>30</sup> steps) the stack only grows and its bottom has frozen.</p>
+      <p><b>The question is open, and it is now an exact arithmetic question.</b> Read the tape as a list of runs of ones. Lean proves that from one visit of the left end to the next the list changes by an explicit map (<code>visit</code>), and that the machine halts from blank tape exactly when the orbit of the list <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> under this map reaches a list in which every run is even (<code>halts_iff</code>). The map is a counter growing by 3/2 per epoch whose parities drive a growing stack of slower counters; a halt needs the whole stack used up. An exact simulator ran 260,000 epochs (about 10<sup>91568</sup> steps) without a halt, and the depth the head reaches into the stack falls off geometrically, so a halt looks very unlikely; it is not excluded.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition F0 can only fire with blank tape from the head on, so the machine halts iff F steps onto the blank region right of the tape. The right end of the tape has not moved since step 1.8&middot;10<sup>5</sup>.</p>
         <p class="where"><code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The moves of one visit</h3>
+        <p>Eight shift rules, each for all values of its counts and all tapes around: the entry, E crossing even runs, E meeting an odd run (joined with the next one, or turned into units if it is the last), the halt when E meets two 0s, an even run crumbling into units, the run before it absorbing two of them, and the conversion at the left end.</p>
+        <p class="where"><code>lean/VisitRules.lean</code>, written by <code>py/visit_rules.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The visit map</h3>
+        <p>For every list l of the domain D (runs &ge; 1, none of length 2, first run even and &ge; 12 or the list starting 6, 4, 1, 1): from the visit with runs l the machine reaches the visit with runs <code>visit l</code>, which is again in D, or halts if <code>visit l = none</code>. And <code>visit l = none</code> exactly when all runs (the first after adding 2) are even.</p>
+        <p class="where"><code>visit_step</code>, <code>scan_none_iff</code>, <code>lean/Visit.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is a question about the visit map</h3>
+        <p>The run from blank tape is at the visit [12, 1<sup>9</sup>] after 423 steps, so the machine halts from blank tape if and only if the orbit of that list under <code>visit</code> reaches <code>none</code>. (Axioms: propext, Quot.sound, Classical.choice.)</p>
+        <p class="where"><code>blank_to_V</code>, <code>halts_iff</code>, <code>lean/Visit.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -158,6 +173,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/epochs.py</code></p>
       </div>
       <div class="card">
+        <h3>The visit map against the machine</h3>
+        <p>The Python form of the map (and a one-to-one mirror of the Lean definitions) predicts all 5,405 visits of the first 3&middot;10<sup>7</sup> steps; the run-list simulator it is compared with agrees with a cell-by-cell run at every visit of the first 3&middot;10<sup>6</sup> steps and with <code>py/epochs.py</code> at epoch 82.</p>
+        <p class="where"><code>python3 py/visit.py check 3e7</code>, <code>py/runstack.py</code></p>
+      </div>
+      <div class="card">
+        <h3>260,000 epochs, about 10<sup>91568</sup> steps, no halt</h3>
+        <p>The exact run-list simulator (every step of the machine, the proved sweep applied in bulk, big integers) runs 100,000 epochs in a minute: the step count then has 116,996 bits (about 10<sup>35219</sup>) and the stack 113,485 runs. A 15-minute run of the same program reached 260,000 epochs (304,184 bits). No halt.</p>
+        <p class="where"><code>python3 py/visit.py epochs 100000</code></p>
+      </div>
+      <div class="card">
         <h3>Rounds between end events, by remainder class</h3>
         <p>Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (59 events) the class map predicts the next event in all 25 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p>
         <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 3e9</code></p>
@@ -165,6 +190,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The stack is touched only near its top</h3>
+        <p>In 100,000 epochs the head passed 1 entry of the stack in 73% of the epochs, 2 in 22%, 3 in 4%, 4 in 0.27%, 5 in 0.04%, 6 twice, while the stack gains 0.28 entries per epoch; its size never came back more than 10 entries below an earlier value. If the parities keep behaving like coin flips, the chance that the stack is ever emptied is negligible.</p>
+        <p class="where"><code>python3 py/visit.py epochs 100000</code></p>
+      </div>
+      <div class="card">
+        <h3>No parity sequence found that halts</h3>
+        <p>For large m the next stack depends only on the stack and the parity of m. Following both parities from every stack, starting from the stack of step 181,417: 468,328 stacks to depth 19, 60,000 best-first expansions, and a sampled search to depth 40 (117,306 stacks, each ending with an odd run and holding at least 3 odd runs) meet no halt. The stack can be dug down to four runs, so this is evidence and not an invariant.</p>
+        <p class="where"><code>python3 py/adversary.py bfs 19</code>, <code>best 60000</code>, <code>sample 40 2000</code></p>
+      </div>
       <div class="card">
         <h3>Growth shape: fixed/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p>
@@ -190,7 +225,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. A halt needs the stack to be emptied; the parities of m that drive it look random. The epoch-end cases (parity of m and the first items of the list) are read off the run, not proved.</p>
+        <p>Not known. Exactly: does the orbit of [12, 1<sup>9</sup>] under the visit map ever reach a list whose runs are all even? That needs the whole stack to be used up. The number of even runs stays odd, which does not exclude it; no other invariant is known.</p>
+        <p class="where"><code>halts_iff</code>, <code>lean/Visit.lean</code></p>
       </div>
     </div>
   </section>
@@ -198,9 +234,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000
-cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean
+cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean &amp;&amp; python3 py/visit_rules.py | diff - lean/VisitRules.lean
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py check 3e7
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py epochs 100000
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py bfs 19
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py sample 40 2000
 python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L &quot;pre:2 4 1^&quot;
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 1e9
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 300</code></pre>
