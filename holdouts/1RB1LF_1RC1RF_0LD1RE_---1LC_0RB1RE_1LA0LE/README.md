@@ -1,6 +1,6 @@
 # 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE
 
-bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling bouncer with overflow (parity-protected)**. Decision: **open**.
+bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling map with a growing modulus (odd-pool events)**. Decision: **open** (no halt in 10^11 operations of the exact map, about 5·10^10 right-end visits; heuristically a later halt has probability of order 10^-11).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -13,33 +13,90 @@ bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Fam
 
 ## What it does
 
-At every right-end visit in state B the tape is
+At every visit of the right end in state B the tape is
 
-    T = 0^∞ [1^2 0 (10)^c] 1^a 0 (10)^b B>0 0^∞      (the bracket present or not)
+    T(c, a, b) = 0^∞ [1^2 0 (10)^c] 1^a 0 (10)^b B>0 0^∞      (the bracket [...] present or not)
 
-* **Doubling**: if a ≥ 2b + 3 the next visit has (a − 2b − 2, 2b + 2) (`py/model.py check`: grid and run).
-* **Overflow**: if a < 2b + 3 the pool runs out, the sweep rewrites the tape, and the bracket can appear, grow or
-  vanish; not yet written as a formula.
-* **Halting**: among these configurations only `0^∞ 1 0 (10)^b B>0` (no bracket, a = 1) halts.
+a *pool* of a 1s, a block of b pairs, and sometimes a *bracket* to the left. The run reaches T(none, 2, 0) at step 7.
+The map from one visit to the next is now complete (`py/model.py`, function `step`); it has three parts.
 
-Doubling keeps the parity of a; a halt needs an odd pool. In the first 10^9 steps: 1,453 visits, 48 with a odd, in 7
-phases starting at a = 5, 61, 165, 165, 989, 1,853, 189 (steps 28, 10,527, 212,888, 432,061, 43,052,524,
-260,493,638, 262,189,033); never a = 1. From (A, 0) doubling gives a = A − (2^(k+2) − 2k − 4) after k steps, so such
-a phase halts only for A = 3, 9, 23, 53, 115, 241, 495, 1005, …
+**1. An even pool: a doubling map.** The bracket is not touched. With u = b + 2 and m = a/2 + b + 3:
+
+    2u < m     next visit T(c, a − 2b − 2, 2b + 2):    u ← 2u,      m ← m + 1
+    2u > m     carry (no visit in between):            u ← 2u − m,  m stays     (as if at T(c, 2a + 2, b − a/2 − 1))
+    2u = m     next visit T(c, 2m − 3, 0): the pool becomes odd
+
+So u is doubled modulo m again and again, and the modulus m grows by one at every doubling that does not wrap.
+Nothing else happens until the doubling lands exactly on a multiple of m.
+
+**2. An odd pool.** From T(c, A, 0) the pair block doubles (b = 0, 2, 6, 14, …, the pool loses 2b + 2 each time)
+until the pool cannot pay. Then, without a bracket, what the sweep has built stays behind as a new bracket and the
+pool restarts as `1^2` (even); with a bracket, the bracket is unwound and merged into the pool (even, no bracket).
+
+**3. Halting.** The only halting visits are T(none, 1, b) (`halt_T1` in Lean, for every b). An odd pool without
+bracket always starts as T(none, A, 0), and it comes down to exactly 1 if and only if
+
+    A = 2^(k+2) − 2k − 3  for some k:   1, 3, 9, 23, 53, 115, 241, 495, 1005, 2027, …
+
+Since A = 2m − 3 at an event, **the machine halts iff, at a time with no bracket, the doubling map hits 2u = m with
+m = 2^(k+1) − k**. (Two rarer sources of an odd pool without bracket: a merge that ends exactly as the tail runs
+out gives T(none, 2c + p + 9, 0), which could also be a halting pool; an odd pool that overflows with a = 2b + 1 gives
+T(none, 2a + 5, 0) = T(none, 2^(K+3) − 1, 0), which never is.) Example: T(none, 12, 19) → T(none, 53, 0) →
+(51, 2) → (45, 6) → (31, 14) → (1, 30) → halt, so halting configurations of this form exist; the question is only
+whether the run from blank tape ever meets one.
+
+## Inside one step
+
+Between two visits the machine is in configurations `… 1^x 0 [A>1] 1^p tail`: pool 1^x, middle block 1^p, and a
+tail `0 (10)^z 1` worth w = z + 2 rounds. One round is (x, p, w) → (x − 2, p + 4, w − 1); when the tail is used up
+(w = 0) the middle block becomes the new pair block: T(x − 2, p/2 + 1). When the pool is down to `1^2` first, the
+middle block becomes the new pool, (2, p, w) → (p + 4, 2, w − 2): the carry. Pool and tail running out together
+(w = 0 at x = 2) gives T(p + 3, 0), an odd pool. Each of these moves is a Lean theorem (`lean/Rules.lean`).
+
+## The run
+
+`c/fast.c` is `step` in C. In 10^11 operations (doublings and carries; 50,000,005,600 visits; a/2 + b reaches
+5.0·10^10, which by steps ≈ (a/2 + b)^3/3 is of the order of 10^31 machine steps; the simulator does not count
+steps) there are 35 odd-pool events, 18 of them without bracket, and no halt. The 18 pools:
+
+    5, 13, 165, 989, 1853, 13309, 26333, 44669, 49909, 19855861, 169438117, 283866789, 1487681501, 1992437437,
+    3603147421, 10918121213, 46694013501, 51055443101
+
+All are ≡ 5 (mod 8) (an event after at least one carry has m ≡ 0 mod 4), which rules out the targets with
+k ≢ 0 (mod 4) for such events but not the others (53, 1005, 16357, …). The closest call was 989 against 1005
+(m = 496 against 504). Events with a bracket repeat earlier pools (165, 13309, 26333, … appear twice or three times):
+after a bracket forms, the right part restarts from a small seed (u = m − 2) and different seeds fall into the same
+orbit of the doubling map.
 
 ## Status
 
-* Trusted: the doubling rule and the halting cases (`py/model.py check`).
-* Trusted: the parity statistics above (`c/rec.c`: `gcc -O2 -o rec c/rec.c && ./rec MACHINE 1000000000 R B
-  10000000`, each line parsed with `py/model.py`'s pattern).
+* Lean, kernel (`lean/Rules.lean`, generated by `py/rules.py` with `bbtools.symtm`): the building blocks of the map
+  for all parameters: `start`, `round`, `round_last`, `round_w1`, `final`, `carry`, `event_odd`, `event_even`,
+  `bracket`, `merge`, `unwind`, and `halt_T1`: T(none, 1, n) halts for every n. They are not yet assembled into one
+  Lean statement of `step` (that needs inductions over the rounds).
+* Trusted: `step` against direct simulation on 13,728 configurations (c ∈ {none, 0, 1, 2, 3, 4, 7, 10}, a < 40,
+  b < 44), on every visit of the first 3·10^6 steps (`py/model.py check`) and on all 2,066 visits of the first
+  3·10^9 steps (`py/model.py checkrec`); the doubling-map form and the list of halting pools against `step`.
+* Trusted: `c/fast.c` prints the same first 20,000 visits as `py/model.py` (they include 13 odd events); 10^11
+  operations without a halt.
 * Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
-* Heuristic: odd phases are rare and their targets thin out; a halt is possible but not expected.
-* Open: the overflow rule, and so the full macro machine.
+* Heuristic: the map stays at a modulus m for about two operations, and each hits 2u = m with chance about 1/m, so
+  a halt at the target m = 2^(k+1) − k has chance about 2^-k; the targets not yet passed start at k = 36, which
+  gives about 10^-11 in total. The modulus is not monotone (a merge makes it jump, a new bracket restarts the right
+  part at a small one, but those phases have a bracket and cannot halt), so this is an estimate, not a bound.
+* Open: whether an event ever falls on a target. The doubling map with a moving modulus is chaotic; no invariant
+  that excludes the targets was found (mod 8 excludes three targets in four), and none is expected.
 
 ## Next steps
 
-Write the overflow as a formula (tabulate `sim` for a < 2b + 3, as for `1RB1RA_0LC0RE`'s odometer, which this
-resembles), then the parity of a at the start of each doubling phase becomes a question about that map.
+* Assemble the Lean rules into the map: `step` as a theorem (rounds by induction on w, the carry loop as the
+  doubling map), so that "halts iff the map reaches T(none, 1, b)" is a kernel statement.
+* A faster simulator: k doublings at once are one multiplication by 2^k and one division by m with a small
+  correction (the modulus moves by at most k), valid when the remainder is not near 0; this would give about 10^13
+  operations and, with exact step counts added, a halting step if one is ever found.
+* Describe the set of moduli m at which seeds u = m − 2 produce an event (4, 8, 12, 16, 32, 44, 48, 64, 84, 96,
+  104, 112, 128, 496, …; many seeds share one): if it could be shown to miss 2^(k+1) − k, the bracketed phases
+  would be understood, though not the phases after a merge.
 
 ## Pages
 
@@ -50,5 +107,11 @@ resembles), then the parity of a at the start of each doubling phase becomes a q
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/lean/check.sh
-python3 holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/py/model.py check
+cd holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE
+python3 py/rules.py                     # regenerates lean/Rules.lean
+python3 py/model.py check               # the map against direct simulation
+gcc -O2 -o /tmp/rec c/rec.c && /tmp/rec 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 3000000000 R B 10000000 | python3 py/model.py checkrec
+gcc -O2 -o /tmp/fast c/fast.c
+/tmp/fast 1000000000 dump 20000 | cmp - <(python3 py/model.py dump 20000)     # C against Python
+/tmp/fast 100000000000                  # 10^11 operations, about 12 minutes: the odd events, no halt
 ```

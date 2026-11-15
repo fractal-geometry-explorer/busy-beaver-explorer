@@ -1,21 +1,90 @@
-"""The doubling bouncer of 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE.
+"""The right-end map of 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE, as exact arithmetic.
 
-At every right-end visit in state B the tape is
+At every visit of the right end in state B the tape is
 
-    T(P, a, b) = 0^inf [1^2 0 (10)^c] 1^a 0 (10)^b B>0 0^inf      (P = the bracket, present or not)
+    T(c, a, b) = 0^inf [1^2 0 (10)^c] 1^a 0 (10)^b B> 0^inf        (c = None: no bracket)
 
-The main rule: if a >= 2b + 3, the next visit is T(P, a - 2b - 2, 2b + 2) (the (10) block doubles, plus 2, eating
-2b + 2 ones).  Otherwise the step is exceptional (the pool overflows; the tape is rewritten and the bracket can
-appear, grow or vanish).  The only halting configurations of this form: no bracket and a = 1.  Since the main rule
-keeps the parity of a, a halt needs a run of steps with a odd.
+`step(c, a, b)` is the next visit (or "halt").  Between two visits the machine goes through the inner configurations
+C(x, p, w): a pool 1^x, a middle block 1^p and a tail worth w rounds; `step` is that loop with its rounds jumped:
 
-    python3 py/model.py check       # main rule and halting cases against simulation (grid), and along the run
+    round      (x, p, w) -> (x - 2, p + 4, w - 1)
+    w = 0      visit T(x - 2, p/2 + 1)                               (pool not empty: the doubling step)
+    x = 2      carry: (p + 4, 2, w - 2); if w is 0 or 1 instead: visit T(p + 3, 0) (odd!) or T(p + 4, 0)
+    x = 3      an odd pool runs out: without a bracket the middle block stays behind as a bracket and the pool is 2;
+               with a bracket the bracket is added to the middle block and the bracket is gone
+
+For even a (the bracket is not touched), with u = b + 2 and m = a/2 + b + 3, this is a doubling map:
+
+    2u < m     T(a - 2b - 2, 2b + 2):   u <- 2u,      m <- m + 1      (a visit)
+    2u > m     carry, no visit:         u <- 2u - m,  m unchanged     (as if at T(2a + 2, b - a/2 - 1))
+    2u = m     T(c, 2m - 3, 0): an odd pool
+
+The only halting visits are T(None, 1, b).  An odd pool without bracket always starts as T(None, A, 0), and it
+reaches 1 exactly when A = 2^(k+2) - 2k - 3 for some k (`halting_pool`): 1, 3, 9, 23, 53, 115, 241, 495, 1005, ...
+
+    python3 py/model.py check          # step against direct simulation: a grid, the run from blank tape, the doubling map
+    python3 py/model.py events 1e6     # the odd pools of the first 10^6 operations of the run
+    ./rec MACHINE 3000000000 R B 10000000 | python3 py/model.py checkrec    # every visit of 3*10^9 steps (c/rec.c)
+    python3 py/model.py dump 5000      # the first visits "c a b" (c = -1: none), same output as `c/fast dump 5000`
 """
 import re
 import sys
 
 M = "1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE"
 PAT = re.compile(r"(?:(11)0((?:10)*))?(1*)0((?:10)*)")
+START = (None, 2, 0)        # reached at step 7 from blank tape
+
+
+def norm(c, a, b):
+    """T(c, 1, b) and T(None, 2, c + b + 1) are the same tape."""
+    return (None, 2, c + b + 1) if c is not None and a == 1 else (c, a, b)
+
+
+def step(c, a, b, count=None):
+    """The visit after T(c, a, b) (a >= 2, or a = 1 without bracket: halt).  `count`: a list whose first entry is
+    increased by the number of operations (passes of the loop)."""
+    if c is None and a == 1:
+        return "halt"
+    assert a >= 2
+    x, p, w = a, 2, b
+    while True:
+        if count:
+            count[0] += 1
+        if x % 2 == 0:
+            k = (x - 2) // 2                      # rounds until the pool is 1^2
+            if w <= k - 1:
+                return norm(c, x - 2 * w - 2, p // 2 + 2 * w + 1)
+            p += 4 * k; w -= k; x = 2
+            if w == 0:
+                return norm(c, p + 3, 0)          # odd pool
+            if w == 1:
+                return norm(c, p + 4, 0)
+            x = p + 4; p = 2; w -= 2              # carry
+        else:
+            k = (x - 3) // 2                      # rounds until the pool is 1^3
+            if w <= k:
+                return norm(c, x - 2 * w - 2, p // 2 + 2 * w + 1)
+            p += 4 * k; w -= k; x = 3
+            if c is None:
+                p += 4; w -= 1                    # one more round: the pool is 1
+                if w >= 3:
+                    c = p // 2 + 1; x = 2; p = 2; w -= 3      # the middle block becomes the bracket
+                elif w == 2:
+                    return norm(p // 2 + 1, 2, 0)
+                elif w == 1:
+                    x = 2; w = p // 2 + 1; p = 2              # as if at T(None, 2, p/2 + 1)
+                else:
+                    return norm(None, p + 5, 0)               # odd pool again
+            else:
+                p = 2 * c + p + 6; c = None; x = 2; w -= 1    # the bracket joins the middle block
+
+
+def halting_pool(A):
+    """Does T(None, A, 0) (A odd) lead to a halt?  The doubling steps give a = A - 2^(k+2) + 2k + 4, b = 2^(k+1) - 2."""
+    k = 0
+    while (1 << (k + 2)) - 2 * k - 3 < A:
+        k += 1
+    return (1 << (k + 2)) - 2 * k - 3 == A
 
 
 def table():
@@ -27,6 +96,10 @@ def table():
     return T
 
 
+def word(c, a, b):
+    return ("11" + "0" + "10" * c if c is not None else "") + "1" * a + "0" + "10" * b
+
+
 def parse_t(tape, lo, pos):
     a = lo
     while a < pos and tape.get(a, 0) == 0:
@@ -34,10 +107,11 @@ def parse_t(tape, lo, pos):
     m = PAT.fullmatch("".join(str(tape.get(x, 0)) for x in range(a, pos)))
     if not m:
         return None
-    return (len(m.group(2)) // 2 if m.group(1) else None, len(m.group(3)), len(m.group(4)) // 2)
+    return norm(len(m.group(2)) // 2 if m.group(1) else None, len(m.group(3)), len(m.group(4)) // 2)
 
 
-def sim(c, a, b, limit=10 ** 6):
+def sim(c, a, b, limit=10 ** 7):
+    """Direct simulation from T(c, a, b) to the next visit of the right end in state B."""
     T = table()
     w = word(c, a, b)
     tape = {i: int(ch) for i, ch in enumerate(w)}
@@ -57,46 +131,103 @@ def sim(c, a, b, limit=10 ** 6):
     return "?"
 
 
-def word(c, a, b):
-    return ("11" + "0" + "10" * c if c is not None else "") + "1" * a + "0" + "10" * b
-
-
-def same(r, c, a, b):
-    return isinstance(r, tuple) and word(*r) == word(c, a, b)
-
-
 def check():
     bad = n = 0
-    for c in (None, 0, 1, 2, 5, 9):
+    for c in (None, 0, 1, 2, 3, 4, 7, 10):
         for a in range(1, 40):
-            for b in range(0, 20):
-                r = sim(c, a, b); n += 1
-                if a >= 2 * b + 3 and not same(r, c, a - 2 * b - 2, 2 * b + 2):
-                    bad += 1; print("main rule fails", c, a, b, r)
-                if (r == "halt") != (c is None and a == 1):
-                    bad += 1; print("halting case differs", c, a, b, r)
+            for b in range(0, 44):
+                n += 1
+                if sim(c, a, b) != step(*norm(c, a, b)):
+                    bad += 1; print("grid: differs at", c, a, b)
     print(f"grid: {n} configurations, {bad} failures")
+    # the run from blank tape
     T = table()
-    tape, pos, st, lo, hi, prev = {}, 0, 0, 0, 0, None
-    main = 0
+    tape, pos, st, lo, hi, cur, visits = {}, 0, 0, 0, 0, None, 0
     for k in range(3 * 10 ** 6):
         t = T[(st, tape.get(pos, 0))]
         tape[pos] = t[0]; pos += t[1]; st = t[2]
         lo = min(lo, pos)
         if pos > hi:
             hi = pos
-            if st == 1:
+            if st == 1 and k + 1 >= 7:
                 r = parse_t(tape, lo, pos)
                 if r is None:
-                    continue
-                if prev and prev[1] >= 2 * prev[2] + 3:
-                    main += 1
-                    if not same(r, prev[0], prev[1] - 2 * prev[2] - 2, 2 * prev[2] + 2):
-                        bad += 1; print("run: main rule fails at", k + 1, prev, r)
-                prev = r
-    print(f"run: {main} main-rule steps in 3e6 steps, {bad} failures")
+                    bad += 1; print("run: not a T at step", k + 1); continue
+                cur = step(*cur) if cur else START
+                visits += 1
+                if cur != r:
+                    bad += 1; print("run: differs at step", k + 1, cur, r); cur = r
+    print(f"run: {visits} visits in 3e6 steps, {'ok' if not bad else 'FAILED'}")
+    # the doubling map on even pools
+    nd = 0
+    for a in range(2, 120, 2):
+        for b in range(0, 120):
+            u, m = b + 2, a // 2 + b + 3
+            r = step(None, a, b)
+            while 2 * u > m:
+                u = 2 * u - m
+            want = (None, 2 * m - 3, 0) if 2 * u == m else (None, 2 * (m + 1 - 3 - (2 * u - 2)), 2 * u - 2)
+            nd += 1
+            if r != want:
+                bad += 1; print("doubling map differs at", a, b, r, want)
+    print(f"doubling map: {nd} even configurations, {'ok' if not bad else 'FAILED'}")
+    # halting pools
+    for A in range(1, 400, 2):
+        s, h = (None, A, 0), False
+        while s != "halt" and s[0] is None and s[1] % 2 == 1:
+            s = step(*s)
+        if (s == "halt") != halting_pool(A):
+            bad += 1; print("halting pool differs at", A)
+    print("halting pools A < 400:", "ok" if not bad else "FAILED")
     return bad
 
 
+def checkrec():
+    """stdin: the output of c/rec.c (visits of the right end in state B, run-length coded)."""
+    cur, n, st = None, 0, 0
+    for line in sys.stdin:
+        if not line[0].isdigit() or int(line.split()[0]) < 7:
+            continue
+        cells = []
+        for t in line.split()[1:]:
+            if t.startswith("B>"):
+                break
+            cells.append(t[0] * int(t[2:]) if "^" in t else t)
+        m = PAT.fullmatch("".join(cells).lstrip("0"))
+        st = int(line.split()[0])
+        if not m:
+            print("not a T at step", st); return 1
+        r = norm(len(m.group(2)) // 2 if m.group(1) else None, len(m.group(3)), len(m.group(4)) // 2)
+        cur = step(*cur) if cur else START
+        if cur != r:
+            print("differs at step", st, cur, r); return 1
+        n += 1
+    print(f"{n} visits agree; the last at step {st}: {cur}")
+    return 0
+
+
+def events(maxops):
+    s, cnt, visits = START, [0], 0
+    while cnt[0] < maxops:
+        s = step(*s, count=cnt)
+        if s == "halt":
+            print("HALT at visit", visits); return
+        visits += 1
+        if s[1] % 2 == 1 and s[2] == 0:
+            print(f"visit {visits} ops {cnt[0]}: T({'none' if s[0] is None else s[0]}, {s[1]}, 0)"
+                  + ("   HALTING POOL" if s[0] is None and halting_pool(s[1]) else ""))
+    print(f"no halt in {visits} visits, {cnt[0]} operations; now {s}")
+
+
 if __name__ == "__main__":
-    sys.exit(check())
+    if sys.argv[1] == "check":
+        sys.exit(1 if check() else 0)
+    elif sys.argv[1] == "checkrec":
+        sys.exit(checkrec())
+    elif sys.argv[1] == "events":
+        events(int(float(sys.argv[2])))
+    elif sys.argv[1] == "dump":
+        s = START
+        for _ in range(int(sys.argv[2])):
+            print(-1 if s[0] is None else s[0], s[1], s[2])
+            s = step(*s)
