@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 15 November 2026.",
  "verdict": [
-  "<b>The question is open, but reduced to one lemma.</b> The machine is a binary counter that gains 39 or 42 every 8 sweeps. Lean proves that every sweep keeps the counter in its steady form except at a <em>B-overflow</em> (once every second doubling), so a halt would have to happen in a B-overflow transient; the run through the first one is evaluated too. Proving that every B-overflow transient ends well (its long exit sweep, about 140&middot;2<sup>w</sup> steps with two nested counters) would prove non-halting."
+  "<b>The question is open.</b> The machine is a binary counter that gains 39 or 42 every 8 sweeps. Lean proves that every sweep keeps the counter in its steady form except at a <em>B-overflow</em> (once every second doubling), so a halt would have to come out of a B-overflow transient; the run through the first one is evaluated too. A dedicated pass decoded the transient completely: for about 3&middot;2<sup>w</sup> bounces the binary counter runs against a base-3 counter written over the long block, and then a short clean-up loop has to bring the block back to zeros. The digits the transient leaves behind depend on the width in a number-theoretic way, the block is not safe under arbitrary orders of operations, and one digit pattern makes the clean-up long. So the missing lemma is not a routine induction. An exact accelerated simulation shows 16 transients (to 1.1&middot;10<sup>17</sup> steps) all recovering, with no halt."
  ],
  "claims": [
   {
@@ -115,18 +115,46 @@
    "added": true
   },
   {
-   "level": "heuristic",
-   "title": "The exit sweep",
-   "text": "In the four B-overflows of the run (w = 13 to 16) the exit sweep takes about 140.5&middot;2<sup>w</sup> extra steps. It is a loop of rounds of about 140 steps: each round adds 3 to a binary counter in the digit cells (at w = 13: from 14 to 2<sup>13</sup> in 2,726 rounds, then, one bit wider, from 0 to 2<sup>14</sup> &minus; 1 in 5,461 more), while a second counter (base-3 digits in M, continued on the first copies of the block) counts the rounds. After a final loop and a clean-up it ends at a steady phase-A visit with one more digit and V = 2<sup>w</sup> + 203, 323, 203, 242. The round counter, the final loop and the clean-up are decoded only roughly.",
-   "where": "README (The B-overflow transient)",
-   "added": true
+   "level": "trusted",
+   "title": "The transient decoded: the odometer",
+   "added": true,
+   "text": "Cut the tape at the first cell of M (the seam). Left of it is a binary counter L in 3-cell words that gains 1 at every bounce and has four phases; the head leaves it in state A (steady sweeps) or, between the overflows of phases B and B', in state E (the transient). The next 63 cells are a finite control with four base-3 digits; the block is a base-3 counter in 4-cell digits (<code>0110</code> = 0, <code>0010</code> = 1, <code>1110</code> = 2), and a visit is the operation &lsquo;E-send&rsquo; on an all-zero block. Checked by exact simulation: <code>c/odo.c</code> relies on this layout to skip the walks over zero digits, falls back to plain steps if it is ever violated, and reports 0 violations in 1.1&middot;10<sup>17</sup> steps.",
+   "where": "README (The odometer), <code>c/odo.c</code>, <code>py/block.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The left counter of the odometer",
+   "added": true,
+   "text": "For any row of 3-cell words and any tape to the right: entering in state B or D, the head turns the nearest word 0 behind j words 1 into a word 1, rewrites the j words as 1, 0, 1, 0, &hellip; and leaves in state A (j even) or E (j odd) after 6j + 5 steps; with no word 0 a new one is added on the blank tape. The four phase overflows (A &rarr; B &rarr; A' &rarr; B' &rarr; A with one more digit) follow for every width, with the state in which the head leaves: E exactly for B &rarr; A' and A' &rarr; B'.",
+   "where": "<code>inc_zero</code>, <code>inc_ones</code>, <code>ovf_A</code>, <code>ovf_B</code>, <code>ovf_A'</code>, <code>ovf_B'</code> (<code>lean/Dense.lean</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.1&middot;10<sup>17</sup> steps; 16 transients recover",
+   "added": true,
+   "text": "<code>c/odo.c</code> runs the machine from blank tape, skipping only the head's walk over the zero digits of the block (restored unchanged on the way back; otherwise it falls back to single steps). Its tape agrees with the plain simulation at 223 checkpoints up to 3&middot;10<sup>9</sup> steps. To 1.1&middot;10<sup>17</sup> steps (165,831,169 visits): no halt; 16 B-overflow transients (widths 13 to 28), each back at a steady visit after a clean-up of 123 to 366 bounces. The block digits left by the transients (<code>2122102</code>, <code>10220111</code>, <code>10221222</code>, &hellip;) show no pattern.",
+   "where": "README (table of transients), <code>c/odo.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Why no regular invariant works: the block is unsafe under free sends",
+   "added": true,
+   "text": "Taken alone, the block misbehaves under some orders of its two operations: from an all-zero block the sends A, E, A, A, A, E, A, A, E make the head come back in state C instead of B or D (direct simulation). The real run avoids such orders by the timing of the window's counters, so a proof has to carry the exact relation between window and block; closed regular tape languages (CTL, n-gram CPS) cannot.",
+   "where": "<code>py/block.py halt</code>"
   },
   {
    "level": "heuristic",
-   "title": "It never halts",
-   "text": "A halt can only happen in a B-overflow exit sweep. That sweep is a fixed program run on counters whose lengths grow with the width, the four seen behave alike, the symbolic runs reach it in all 81 cases, and 2&middot;10<sup>10</sup> steps follow the model with no exception, so a halt is very unlikely.",
-   "where": "README (Status)",
-   "added": true
+   "title": "A digit pattern that makes the clean-up long",
+   "added": true,
+   "text": "The clean-up divides the block's value by 3 at each send (plus 4 when the remainder is 2), and 5 = digits 2, 1 is a fixed point: started with <code>2 1</code> in the two lowest places, the pattern travels one word per send to the far end of the block, about 5 bounces per block word instead of a few hundred in total (492 bounces for a block of 93 words, 1,182 for 233, in synthetic starts at width 9, which still recovered). It did not occur in the 16 transients seen; what it does at real sizes, where the block length is of the order of the binary counter's remaining room, is not known.",
+   "where": "README (Why the remaining lemma is hard), <code>c/seam.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No verdict from heuristics",
+   "added": true,
+   "text": "Earlier versions of this page said the machine almost certainly never halts. That is withdrawn: 16 transients recover and no halt is in sight, but every transient leaves different base-3 digits on the block, a naive model gives the long-clean-up pattern a density of about 1/9, and nothing is known about what happens then at large widths.",
+   "where": "README (Status)"
   },
   {
    "level": "trusted",
@@ -137,9 +165,9 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not proved. Missing: the hypothesis of <code>nonhalting_of_transients</code>, that every B-overflow transient ends at a steady visit; the hard part is the exit sweep (an induction over the rounds of its inner loop, for 78 different start configurations). See Next steps in the README.",
-   "where": "README.md",
-   "added": true
+   "added": true,
+   "text": "Not proved. Missing: the hypothesis of <code>nonhalting_of_transients</code>, that every B-overflow transient ends at a steady visit. A proof needs the E-mode loop as an exact base-3 count over about 2<sup>w</sup> rounds for general w, the block language of the clean-up loop including the travelling pattern, and the arithmetic that the clean-up ends before the binary counter's next overflow; or else a width at which it fails. See Next steps in the README.",
+   "where": "README.md"
   },
   {
    "level": "trusted",
@@ -150,15 +178,18 @@
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/lean/check.sh      # about 11 minutes",
+  "holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/lean/check.sh      # about 12 minutes",
   "gcc -O2 -o visits holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/c/visits.c && ./visits 20000000000",
   "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/counter.py check",
   "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/glue.py check",
   "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/glue.py transients",
-  "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/route.py        # rewrites lean/Route.lean"
+  "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/route.py        # rewrites lean/Route.lean",
+  "gcc -O2 -o odo holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/c/odo.c && ./odo 110000000000000000      # exact accelerated run, 2 GB, about 12 minutes",
+  "python3 holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/py/block.py halt",
+  "gcc -O2 -o seam holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC/c/seam.c && ./seam 9 0 0 200 400000000 7 21 0000 0"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has been followed for 1.1&middot;10<sup>17</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
    {
     "level": "native",
@@ -167,8 +198,8 @@
    },
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 63,134 cells visited."
+    "value": "1.1&middot;10<sup>17</sup> steps",
+    "text": "No halt in an exact accelerated simulation; 16 transients, all recovered."
    },
    {
     "level": "native",
@@ -218,13 +249,15 @@
    {
     "id": "transient",
     "eyebrow": "The open part",
-    "heading": "The B-overflow: a sweep that takes millions of steps",
+    "heading": "The B-overflow: an odometer with two kinds of wheels",
     "added": true,
     "html": [
-     "<p>When V overflows in phase B, all its digits become 0. For the next 0 to 48 visits nothing special seems to happen, except that the adding visits now add to a small counter hidden inside M instead of V. When that counter fills up, comes the <em>exit sweep</em>: the head walks to V and does not come back for about 140&middot;2<sup>w</sup> steps (1.16 million when V has 13 digits, 9.2 million at 16).</p>",
-     "<svg viewBox='0 0 560 110' role='img' aria-label='the exit sweep: a binary counter in the digit cells and a second counter in M and on the block, both counting rounds' style='width:100%;max-width:560px;height:auto;font:12px var(--mono)'><rect x='10' y='24' width='170' height='26' fill='var(--head)'/><text x='95' y='41' text-anchor='middle' fill='var(--bg)'>digits: +1 per round</text><rect x='180' y='24' width='120' height='26' fill='var(--accent)'/><text x='240' y='41' text-anchor='middle' fill='var(--bg)'>base-3 digits in M</text><rect x='300' y='24' width='80' height='26' fill='var(--fg2)'/><text x='340' y='41' text-anchor='middle' fill='var(--bg)'>base-4</text><rect x='380' y='24' width='170' height='26' fill='var(--ink)'/><text x='465' y='41' text-anchor='middle' fill='var(--bg)'>rest of the block</text><path d='M95 60 C 95 95, 240 95, 240 60' fill='none' stroke='var(--fg2)'/><text x='170' y='104' text-anchor='middle' fill='var(--fg2)'>one round, about 140 steps</text><text x='340' y='16' text-anchor='middle' fill='var(--muted)'>written over block copies</text></svg>",
-     "<p>Inside this sweep the machine runs a little program of its own: every round of about 140 steps it adds <b>3</b> to a binary counter in the digit cells and 1 to a second counter to the right, written in base 3 in the cells of M and continued over the first copies of the long block. The digit counter runs up to its limit, gains one digit, runs up to the new limit (when V has 13 digits: 2,726 rounds and then 5,461 more), and then the tape is tidied up into the steady layout with V one digit wider.</p>",
-     "<p>A computer program that simulates the machine with letters for unknown lengths runs every one of the 81 possible B-overflows up to the exit sweep. What is missing is a proof that the exit sweep always ends well: an induction over the rounds of its inner loop, with two counters whose carries both have to be followed.</p>"
+     "<p>There is a second way to read the tape that also works during the overflow. Cut it at one fixed cell, the <em>seam</em>. Left of the seam is a binary counter that goes up by one every time the head bounces off it. Right of the seam, after 63 cells of machinery, the long block is a counter too, but in base 3: each group of four cells is one digit.</p>",
+     "<svg viewBox='0 0 560 120' role='img' aria-label='the tape cut at the seam: binary counter L, window of 63 cells, block of base-3 digits' style='width:100%;max-width:560px;height:auto;font:12px var(--mono)'><rect x='10' y='30' width='150' height='28' fill='var(--head)'/><text x='85' y='48' text-anchor='middle' fill='var(--bg)'>binary counter L</text><line x1='162' y1='20' x2='162' y2='68' stroke='var(--fg)' stroke-width='2'/><text x='162' y='14' text-anchor='middle' fill='var(--fg)'>seam</text><rect x='164' y='30' width='90' height='28' fill='none' stroke='var(--fg)'/><text x='209' y='48' text-anchor='middle' fill='var(--fg)'>window</text><rect x='256' y='30' width='290' height='28' fill='var(--muted)'/><text x='401' y='48' text-anchor='middle' fill='var(--bg)'>block: base-3 digits, mostly 0</text><text x='85' y='78' text-anchor='middle' fill='var(--fg)'>+1 per bounce</text><text x='209' y='78' text-anchor='middle' fill='var(--fg)'>81-step cycle</text><text x='401' y='78' text-anchor='middle' fill='var(--fg)'>+1 word per visit</text><text x='280' y='106' text-anchor='middle' fill='var(--fg)'>normal sweeps: the head leaves L in state A &middot; transient: in state E</text></svg>",
+     "<p>In normal times the block holds only zeros, and a sweep to the right end and back just appends one more zero: that is the simple rule above. The binary counter is written in a redundant way with four phases. During one stretch out of four (the B-overflow transient, about 3&middot;2<sup>w</sup> bounces when the counter has w digits) it sends the head back in a different state, and then the window stops making sweeps and instead counts in base 3, pushing its carries into the block. When the stretch ends, the low digits of the block hold a base-3 number that depends on 2<sup>w</sup>: <code>2122102</code> at w = 13, <code>10220111</code> at w = 14, <code>10221222</code> at w = 15, and so on, with no visible pattern.</p>",
+     "<p>Then a <em>clean-up loop</em> wipes these digits: each pass divides the number by 3, more or less. In the 16 transients followed so far (up to 1.1&middot;10<sup>17</sup> steps) it took between 123 and 366 bounces, and the machine was back to normal sweeps with a counter one digit longer.</p>",
+     "<p><b>Why this is not a proof.</b> Three things stand in the way. First, the block alone is fragile: fed its two operations in the wrong order (nine operations are enough) it sends the head back in a state the rest of the tape is not prepared for. The real machine never uses that order, but only because of how its counters are timed, so the proof must track the timing exactly. Second, the digits left on the block are a question about powers of 2 written in base 3, the kind of question (as in Collatz-like problems) for which no general method is known. Third, one particular pair of digits (a 2 followed by a 1 in the lowest places) is a fixed point of the clean-up: instead of vanishing it travels along the whole block, and the clean-up takes about five bounces per block word instead of a few hundred in all. That has not happened yet. If it happens at a large width, nobody knows whether the machine recovers.</p>",
+     "<p>So the honest summary is: the machine is fully understood as a mechanism, it has survived 16 of its dangerous moments, and whether it survives all of them is open.</p>"
     ]
    },
    {
@@ -250,7 +283,7 @@
    }
   ]
  },
- "summary": "A binary counter at the left end gaining 39 or 42 every 8 sweeps, next to a block that grows each sweep; proved in Lean that it can halt only inside a B-overflow transient (once per two doublings of the counter), and not in the first; that transient's long exit sweep is not proved; open, almost certainly non-halting.",
- "family": "binary counter (+39/+42 per 8 sweeps) with growing block",
+ "summary": "A binary counter at the left end (+39 or +42 every 8 sweeps) facing a base-3 counter written over the growing block; Lean proves a halt can only come in a B-overflow transient (not the first); the transient is now fully decoded and followed exactly to 1.1*10^17 steps (16 transients, no halt), but its end state depends number-theoretically on the width and the proof that it always recovers is missing: open.",
+ "family": "odometer: binary counter (+39/+42 per 8 sweeps) against a base-3 block counter",
  "decision": "open"
 }

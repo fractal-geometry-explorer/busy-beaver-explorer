@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 14 November 2026.</p>
+    <p class="asof">Status as of 15 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -162,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The plain machine started from <code>2^173 1 2^42 1</code> halts after 299,509 steps; from <code>2^171 1 2^42 1</code>, the machine's own tape at step 219,107, it resets to <code>4 2^214</code>. Among the 500 tapes <code>2^n 1 2^b 1</code> with n = 40..59, b = 0..24, seven halt, n = 4b+3 resets to <code>4 2^(5b+4)</code> (also for 13 larger n), and the rest are rebuilt. The reset tapes <code>4 2^5</code> and <code>4 2^8</code> halt; <code>4 2^2</code> is the machine's tape at step 59.</p>
         <p class="where"><code>c/syn.c</code>; README (fourth pass)</p>
       </div>
+      <div class="card">
+        <h3>The signal tapes of the accelerated run stay off the reset line</h3>
+        <p>In the exact accelerated run the tape has the form <code>2^n 1 2^b1 m &hellip;</code> at the left end 224 times in 10<sup>100</sup> steps. The ratio b1/n ranges from 0 to 8 (above 1/4 for 57 tapes, below for 167, so on both sides of the reset line n = 4 b1 + 3), and after the reset at step 219,107 the closest approach is |n &minus; (4 b1 + 3)| / n = 0.027 (near 10<sup>22</sup> steps). No inequality keeps the run off the line, and no invariant excluding an exact fit was found.</p>
+        <p class="where"><code>py/signals.py 100</code> (on <code>py/msim.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -202,7 +207,8 @@ holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 1000000000
 python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 6 169000000    # minutes
 python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/msim.py check     # the accelerated simulator against the plain machine
-python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/msim.py run 100   # no halt in 10^100 steps</code></pre>
+python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/msim.py run 100   # no halt in 10^100 steps
+python3 holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/py/signals.py 40      # signal tapes of the accelerated run: n against 4 b1 + 3</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

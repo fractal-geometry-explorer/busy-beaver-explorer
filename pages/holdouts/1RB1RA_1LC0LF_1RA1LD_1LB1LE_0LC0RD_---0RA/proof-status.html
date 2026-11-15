@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 15 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> At every visit of the left end the tape is a word over two tokens of three cells, <code>110</code> and <code>111</code>, and the visit rewrites the word by a recursion of which three rules are decoded. If every such word leads to such a word again, the machine never halts; that is checked for all short words and not proved.</p>
+      <p><b>The question is open.</b> The behaviour is decoded completely: during a visit of the left end the tape is a stack of frames (a block of 1s and a block of 0s each) and a word over the tokens <code>110</code> and <code>111</code>, and twelve transitions on these reproduce the run from blank tape step for step (that the machine follows them is proved in Lean). One of them is the halt. It can only happen in the cascade that follows a visit reaching the right end of the tape, and there it looks like a matter of chance: random words halt at a few in a thousand such visits, and the run has had 31 of them in its first 2,097,152 visits (1.3&middot;10<sup>13</sup> steps) without halting. The earlier conjecture that every word over the two tokens leads to such a word again is false: a word of 19 tokens halts (Lean).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -127,6 +127,31 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
       </div>
       <div class="card">
+        <h3>The machine follows the model</h3>
+        <p>The model is a Lean function <code>mstep</code> on states (a list of frames and RET, Z or CALL with a word), and <code>den</code> gives the tape a state stands for. <code>mstep_next</code>: when <code>mstep s</code> is a state s' with a step count k, the machine goes from the tape of s to the tape of s' in exactly k steps. <code>mstep_halt</code>: when <code>mstep s</code> is the halt, the machine halts. <code>mrun_sound</code>, <code>blank_runs_of_mrun</code>: a run of the model from RET(1, c) on the empty stack is a run of the machine from blank tape. Not proved: that the model is never stuck (it is not, in any computation), and that the C and Python programs are the same function as <code>mstep</code> (they count the same steps).</p>
+        <p class="where"><code>lean/Sim.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>130,661 steps from blank tape through the model</h3>
+        <p>20,000 transitions of the Lean model, run by the kernel, are 130,661 steps of the machine from blank tape without a halt: a check that the whole chain from the model to the machine closes.</p>
+        <p class="where"><code>blank_runs_model_kernel</code>, <code>lean/Sim.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Every line of the transition table is a theorem</h3>
+        <p>Frames and the two ways a word is written on the tape are defined in Lean, and each transition of the model is proved for the machine at any depth of the stack: the tape of the left-hand side reaches the tape of the right-hand side in the stated number of steps (<code>ret_stride</code>, <code>ret3</code>, <code>ret2</code>, <code>ret2_pop</code>, <code>ret1</code>, <code>ret1_pop</code>, <code>ret1_one</code>, <code>z_call</code>, <code>z_call_end</code>, <code>call_word</code>, <code>call_end</code>, and the versions at the bottom of the stack); <code>ret1_halt</code>: RET(1) on a frame of one 1 and one 0 above a 0 halts; <code>blank_to_model</code>: two steps from blank tape the machine is in RET(1, c) on the empty stack; <code>visit_of_ret1</code>: RET(1, v) on the empty stack is two steps before the head stands in B on a blank cell with blank tape on its left and v on its right.</p>
+        <p class="where"><code>lean/ModelWords.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The tape moves of the model</h3>
+        <p>Every transition of the model is one of these moves, each proved for every repeat count and any tape around it: the strides of the returning head (<code>stride</code>, <code>stride1</code>, <code>stride_q2</code>), the turns at a frame (<code>ret1_fill</code>, <code>ret1_split</code>), the turn on a zero and the run to the right (<code>z_turn</code>, <code>a_run</code>), the calls (<code>call_cb</code>, <code>call_c</code>; <code>b_eat</code>) and the halt: <code>L 0 1 0 C&gt;1 R</code> halts on its fourth step (<code>halt_pattern</code>). </p>
+        <p class="where"><code>lean/Model.lean</code> (written by <code>py/model_lean.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Words do not always lead to words: a word that halts</h3>
+        <p>Started on the visit of the 19-token word <code>b c c c b b b b c c b b b b b b c b c</code> (b = 110, c = 111; head in B on the blank cell left of it) the machine halts on its 6,323rd step, evaluated by Lean's kernel. This refutes the earlier conjecture that every word over b and c leads to such a word again (it had been checked on 81,918 words of at most 16 tokens). The configuration is not one of the run from blank tape.</p>
+        <p class="where"><code>haltingWord_halts</code>, <code>word_can_halt</code>, <code>lean/HaltingWord.lean</code></p>
+      </div>
+      <div class="card">
         <h3>Where a halt can come from</h3>
         <p>If the machine halts on its third step from a configuration, that configuration is one of: D with 0 two left, 1 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p>
         <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
@@ -138,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>33,257,365 steps from blank tape through the model</h3>
+        <p>5,000,000 transitions of the Lean model, evaluated by compiled code, are 33,257,365 steps without a halt; <code>py/model.py</code> counts the same number.</p>
+        <p class="where"><code>blank_runs_model_native</code>, <code>lean/Sim.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -164,8 +194,28 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>A visit is a recursion on the word</h3>
-        <p>The next word is <code>b V(X)</code> for <code>w = b X</code>, with <code>V(b X) = c c X</code>, <code>V(c c b c^n b Y) = c b c c b^n V(Y)</code>, <code>V(c b c^n b Y) = c b b b^n V(Y)</code>. These rules give the next word at 2,239 of 2,361 visits up to 3&middot;10<sup>7</sup> steps and never a wrong one; at the other 122 the rest starts with <code>c c c</code>, a case not decoded.</p>
+        <p>The next word is <code>b V(X)</code> for <code>w = b X</code>, with <code>V(b X) = c c X</code>, <code>V(c c b c^n b Y) = c b c c b^n V(Y)</code>, <code>V(c b c^n b Y) = c b b b^n V(Y)</code>. These rules give the next word at 2,239 of 2,361 visits up to 3&middot;10<sup>7</sup> steps and never a wrong one; at the other 122 the rest starts with <code>c c c</code>, a case not decoded. These are special cases of the stack model below.</p>
         <p class="where"><code>py/words.py run 3e7</code></p>
+      </div>
+      <div class="card">
+        <h3>The complete recursion: a stack model</h3>
+        <p>During a visit the tape is a stack of frames <code>1^n 0^z</code> followed by one of <code>RET(q, v)</code> (the head coming back, <code>1^(q-1) C&gt;1</code> and the word v), <code>Z(v)</code> (C on the last zero of the top frame) or <code>CALL(m, X)</code> (<code>1^m B&gt;</code> and the word X); twelve transitions with exact step counts (README, <code>py/model.py</code>). Each time the returning head finds three zeros in the top frame it runs a whole visit on the word to the right: visits inside visits. The model agrees with direct runs of the machine: the next word and the step count of the visit on each of the 131,070 words of at most 16 tokens, and the word and step number of each of the 74,198 visits of the first 2&middot;10<sup>10</sup> steps from blank tape (byte-identical output of <code>c/dvis.c</code> and <code>c/wrun.c dump</code>).</p>
+        <p class="where"><code>py/model.py all 17</code>, <code>c/wrun.c dump 74198</code> against <code>c/dvis.c 2e10</code></p>
+      </div>
+      <div class="card">
+        <h3>Where the halt sits in the model</h3>
+        <p>The machine halts exactly when the head returns in phase (<code>RET(1, v)</code>) to a top frame of one 1 and one 0 (tape <code>0 1 0 C&gt;1</code>). As long as no call runs off the right end of the word, every frame has a number of zeros that is 2 mod 3 and this cannot happen; the model is then a recursion on words alone, F(c^a b X) = b^(a+1) T(X) for the visit and T(c^j b Y) = c F^j(c Y) for the call (j visits inside the visit). Only a visit that reaches the right end brings frames out of phase.</p>
+        <p class="where">README (fourth look), <code>py/model.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Short words: the first halting ones have 19 tokens</h3>
+        <p>The first visit on every word of at most 18 tokens (524,286 words) ends with a word again. Two words of 19 tokens halt, one of 20, five of 21, eleven of 22. Of 20,000 random words of 1,000 tokens, each run for 300 visits, 35 halted, among 20,230 visits that reached the right end; of 3,000 random words of 10,000 tokens, 1,000 visits each, 5 halted, among 1,287.</p>
+        <p class="where"><code>c/wrun.c enum L</code>, <code>c/wrun.c mc 7 20000 1000 300</code>, <code>mc 11 3000 10000 1000</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2,097,152 visits (1.3&middot;10<sup>13</sup> steps)</h3>
+        <p>The model run exactly from blank tape, with words and frames run-length coded: visit 2,097,152 is at step 13,274,338,602,371. The right end was reached in 31 visits (the latest: 113,145, 118,809, 231,897, 232,177 and 1,095,353), each followed by a cascade of tens of thousands of out-of-phase transitions; the head came back twelve times to one of seven frames with a single 1, always with 2, 5 or 8 zeros (a halt needs 1).</p>
+        <p class="where"><code>c/wrun.c run</code></p>
       </div>
       <div class="card">
         <h3>The halting pattern, and how close the run comes</h3>
@@ -206,16 +256,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
       <div class="card">
-        <h3>Conjecture: words lead to words</h3>
-        <p>For every word over b and c, the visit on it (blank tape on both sides) leads to a visit on a word over b and c. Checked by direct simulation for all 32,766 words of at most 14 tokens and all words starting with b up to 16 tokens: no halt and no other token. If it holds for all words, the machine never halts.</p>
-        <p class="where"><code>py/words.py all 16</code></p>
+        <h3>It probably halts, far beyond any run</h3>
+        <p>Visits that reach the right end keep coming at about 1.5 per doubling of the number of visits. In the run the returning head met a frame with a single 1 in 4 of the 31 such visits (12 meetings); on random words of 10,000 tokens there are about as many such meetings per right-end visit (583 in 1,287) and one meeting in a hundred is a halt (5 of 583; for words of 1,000 tokens 35 of 2,959). The words of the run look random behind the periodic block (in one long visit the token statistics of 1.4&middot;10<sup>8</sup> calls matched fair coin flips to three digits; the visits inside a visit form a critical branching process). At these rates a right-end visit halts with probability about 0.4%, and a halt becomes likely only around visit 2<sup>150</sup> or later, when the tape would hold about 2<sup>150</sup> tokens. The events of one deterministic run are not independent trials, so this is an estimate only.</p>
+        <p class="where">README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts exactly when C reads a 1 with <code>0 1 0</code> on its left. What is missing: the rule for visits on words starting with <code>c c c</code>, and a proof that every word over b, c leads to such a word again.</p>
+        <p>Not known. In the stack model the halt is one explicit case, a returning head meeting a frame of one 1 and one 0, which can only arise in the cascade after a visit reaches the right end of the tape. No invariant excludes it (words over the two tokens can halt), and a run long enough to see it is out of reach if the estimate of about 2<sup>150</sup> visits is right.</p>
       </div>
     </div>
   </section>
@@ -225,8 +275,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA 1000000000
 gcc -O2 -o wcheck holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/c/wcheck.c &amp;&amp; ./wcheck 2e10
-python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/words.py run 3e7
-python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/route.py        # rewrites lean/Route.lean</code></pre>
+python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/route.py        # rewrites lean/Route.lean
+gcc -O2 -o wrun holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/c/wrun.c &amp;&amp; gcc -O2 -o dvis holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/c/dvis.c
+./wrun word bcccbbbbccbbbbbbcbc        # HALT at step 6323
+python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/model.py all 17        # model against the machine on all words up to 16 tokens
+./dvis 2e10 &gt; d.txt &amp;&amp; ./wrun dump 74198 | cmp - d.txt        # the model and a direct run agree at every visit
+./wrun enum 19 &amp;&amp; ./wrun mc 7 20000 1000 300
+./wrun run 1048576 131072        # the run from blank tape, 6 minutes
+python3 holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/py/model_lean.py | diff - holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/lean/Model.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

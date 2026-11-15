@@ -117,6 +117,16 @@ once, at n = 171, on its reset side. (The tail itself keeps growing: the smalles
 within each decade of steps is 3 or 4 up to 10^7 steps, 17 at 10^9, 33 at 10^15, about 100 at 10^36 and about 220
 at 10^90.)
 
+**Signal tapes of the accelerated run.** `py/signals.py` reads the tape each time the head is at the left end in
+the exact accelerated run and prints every tape of the form `2^n 1 2^b1 m ...` with n, b1 and the distance
+n - (4 b1 + 3) from the reset line: 224 signal tapes in 10^100 steps (about two per decade of steps; one excursion
+can make several). The first block of the tail is not small against n: b1/n ranges from 0 to 8 and lies above
+1/4 for 57 of the 224 tapes and below for 167, so no inequality keeps the run off the line; only the exact values do. After the
+reset at step 219,107 (read as n = 170, b1 = 42) the closest approaches were |n - (4 b1 + 3)| / n = 0.027 near
+10^22 steps (n = 51,939,665,580, b1 = 13,337,544,002) and 0.049 near 10^66 steps: no near fit, as chance would give
+for numbers of 10 to 50 digits. This is evidence for the heuristic above, not a proof; no invariant that excludes a
+fit was found.
+
 ## Where it could halt
 
 The machine halts only on C reading 0, and C is entered only from B reading 0 (B writes 1 and moves left). So a
@@ -167,6 +177,7 @@ the epoch events and the sizes N, so there is no macro map yet.
 cd holdouts/1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD
 python3 py/msim.py check                 # macro simulator against the plain machine, jumps against no jumps, C against Python (40 s)
 python3 py/msim.py run 100               # no halt in 10^100 steps (2 min); run 300 takes 26 min
+python3 py/signals.py 40                 # the signal tapes of that run to 10^40 steps, n against 4 b1 + 3 (5 s; 100 takes 1 min)
 gcc -O2 -o /tmp/dv c/dv.c && gcc -O2 -o /tmp/syn c/syn.c && gcc -O2 -o /tmp/turns c/turns.c
 /tmp/dv 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 1e9 D | grep -A1 ' 2^[0-9]* 1 '      # the signal events
 echo "0^2 2^173 1 2^42 1" | /tmp/syn 1RB1RF_1LC1LF_---1LD_1LE0RA_1RE1LB_1RD0LD 1e9 f D   # HALT 299509
