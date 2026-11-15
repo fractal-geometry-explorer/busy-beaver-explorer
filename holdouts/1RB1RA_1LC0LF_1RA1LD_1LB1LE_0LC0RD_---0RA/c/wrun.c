@@ -13,6 +13,9 @@
 //   wrun run MAXVISITS [EVERY]      the run from blank tape: a line at every power of two (and every EVERY) visits,
 //                                   at every visit that reached the right end, and at every near miss
 //   wrun dump MAXVISITS             "visit step hash tokens" for every visit, to compare with c/dvis.c
+//   wrun costs MAXVISITS MIN        the visits of the run that take at least MIN transitions of this model
+//   wrun wordat V                   the word of visit V of the run from blank tape, as runs "a3 b1 c2 ..." (a = cbb)
+//   wrun wordof WORD V              the word of visit V of the run from the visit on WORD, and how often the right end was reached
 //   wrun word WORD [MAXVISITS]      the run from the visit on WORD (letters b, c)
 //   wrun enum L                     the first visit on every word of L tokens: which ones halt
 //   wrun mc SEED TRIALS L VISITS    random words of L tokens, VISITS visits each: how many halt
@@ -26,7 +29,7 @@ typedef int64_t i64; typedef __int128 i128;
 static char *ws; static i64 *wc; static long wn; static i64 tot;      // the word: runs of a, b, c; the front is on top
 static i64 *sn, *sz, *sc; static long stn;                             // the frames: runs of equal (n, z)
 static i128 steps;
-static i64 g_vis, g_ends, g_endvis, g_near; static int quiet, dump; static i64 every;
+static i64 g_vis, g_ends, g_endvis, g_near; static int quiet, dump, wordat; static i64 every, costmin, c_ms, c_a, c_tot;
 static void die(const char*m){ fprintf(stderr,"%s\n",m); exit(1); }
 static inline void push_run(char s,i64 k){ if(wn&&ws[wn-1]==s) wc[wn-1]+=k; else { if(wn>=CAP) die("word cap"); ws[wn]=s; wc[wn]=k; wn++; } }
 static inline void unpack(void){                       // a front run a^k becomes c b b a^(k-1)
@@ -58,12 +61,17 @@ static int run(double maxvis){
       if(q==3){ pre_b(1); steps+=5; mode=1; continue; }
       if(q==2){ split_top(); pre_b(1); steps+=3; if(sz[stn-1]>=2){ sz[stn-1]--; mode=1; } else { q=sn[--stn]; } continue; }
       if(stn==1){ vis++;
+        if(costmin){ i64 ac=0; for(long r=wn-1;r>=0&&r>=wn-3;r--) if(ws[r]=='a'){ ac=wc[r]; break; }       // the block a^k behind the first b
+          if(ms-c_ms>=costmin) printf("visit %ld: %ld transitions, %ld -> %ld tokens, a-block %ld -> %ld%s\n",(long)vis-1,(long)(ms-c_ms),(long)c_tot,(long)tot,(long)c_a,(long)ac,lastend==vis-1&&vis>1?", reached the right end":"");
+          c_ms=ms; c_a=ac; c_tot=tot; }
         if(dump){ printf("%ld ",(long)vis); pr128(steps+2); printf(" %016lx %ld\n",(unsigned long)whash(),(long)tot); }
         else if(!quiet){
           if(lastend==vis-1&&vis>1) printf("  visit %ld reached the right end\n",(long)vis-1);
           if((vis&(vis-1))==0||vis>=maxvis||(every&&vis%every==0)){ printf("visit %ld at step ",(long)vis); pr128(steps+2);
             printf(": %ld tokens in %ld runs; model steps %ld; the right end reached in %ld visits; near misses %ld\n",(long)tot,wn,(long)ms,(long)g_endvis,(long)near); fflush(stdout); } }
-        if(vis>=maxvis){ g_vis=vis; g_ends=ends; return 0; } }
+        if(vis>=maxvis){ g_vis=vis; g_ends=ends;
+          if(wordat){ for(long r=wn-1;r>=0;r--) printf("%c%ld ",ws[r],(long)wc[r]); putchar('\n'); }
+          return 0; } }
       i64 n=sn[stn-1], z=sz[stn-1];
       if(n==1&&stn>1){ near++; g_near++; if(!quiet&&!dump) printf("  near miss in visit %ld: RET(1) on a frame with a single 1 and %ld zeros (a halt needs 1)\n",(long)vis,(long)z); }
       if(z==2){ i64 k=sc[stn-1];
@@ -102,6 +110,11 @@ int main(int argc,char**argv){
   const char*cmd=argv[1];
   if(!strcmp(cmd,"run")||!strcmp(cmd,"dump")){        // from blank tape: A>0, B>0 give RET(1, c) at step 2
     dump=!strcmp(cmd,"dump"); every=argc>3?atol(argv[3]):0; wn=0; tot=0; pre_c(1); steps=2; run(atof(argv[2])); return 0; }
+  if(!strcmp(cmd,"costs")){ if(argc<4) die("costs MAXVISITS MIN"); costmin=atol(argv[3]); quiet=1; wn=0; tot=0; pre_c(1); steps=2; run(atof(argv[2])); return 0; }
+  if(!strcmp(cmd,"wordat")){ wordat=quiet=1; wn=0; tot=0; pre_c(1); steps=2; run(atof(argv[2])); return 0; }
+  if(!strcmp(cmd,"wordof")){ if(argc<4) die("wordof WORD V"); wordat=quiet=1; const char*w=argv[2]; long L=strlen(w); wn=0; tot=0;
+    for(long i=L-1;i>=0;i--){ if(w[i]=='b') pre_b(1); else pre_c(1); }
+    steps=-2; if(run(atof(argv[3]))) puts("HALT"); else printf("right end reached in %ld visits\n",(long)g_endvis); return 0; }
   if(!strcmp(cmd,"word")){                            // RET(1, w) is two steps before the visit on w
     const char*w=argv[2]; long L=strlen(w); wn=0; tot=0; for(long i=L-1;i>=0;i--){ if(w[i]=='b') pre_b(1); else pre_c(1); }
     steps=-2; run(argc>3?atof(argv[3]):1e18); return 0; }
