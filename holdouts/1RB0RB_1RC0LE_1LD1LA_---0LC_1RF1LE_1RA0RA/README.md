@@ -97,7 +97,7 @@ start, 4,216 right), 5,226 ones.
 
 ## Accelerated run
 
-Trusted computation: `python3 tools/py/bbtools/rleaccel.py 1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA 6 145200000` runs 145,200,000 macro steps from blank tape without a halt, more than 1.56·10^11
-machine steps (tape: 30,564 cells). The simulator codes the tape in runs, crosses a run in one step and jumps cycles whose
-one-cycle rule it has first proved symbolically; it is tested cell for cell against direct runs
-(`tools/tests/test_rleaccel.py`).
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 6, runs from blank tape without a halt to 3.50·10^14 machine steps (exact; tape:
+424,284 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(23,065,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA 6 1000000000000000 run.ck 300`.

@@ -52,12 +52,6 @@
    "where": "<code>py/digits.py</code>"
   },
   {
-   "level": "trusted",
-   "title": "No halt in the first 3.40·10<sup>13</sup> steps (accelerated run)",
-   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths; tested cell for cell against direct runs) runs 152,800,000 macro steps from blank tape without a halt. That is more than 3.40·10<sup>13</sup> machine steps; the tape then spans 7,087,446 cells.",
-   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 152800000</code>"
-  },
-  {
    "level": "heuristic",
    "title": "Digits",
    "text": "Nearly every run of <code>1 0^5</code> has a length divisible by 3; runs of <code>1 0^2</code> are turned two for one into runs of <code>1 0^5</code> (same length) and runs of <code>1 0^5</code> are fed back as three units: a counter whose digits and carries are not yet described exactly.",
@@ -68,13 +62,19 @@
    "title": "Does it halt from blank tape?",
    "text": "Open. It halts exactly when A reads a 1 with a 0 on its left (<code>0 A&gt;1</code>, then F reads 0); whether the digit dynamics ever produce that is not known.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.35·10<sup>17</sup> steps (accelerated run)",
+   "text": "<code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 6 cells, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 2.35·10<sup>17</sup> machine steps (exact count; tape spanning 587,924,808 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (16,430,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 1000000000000000 run.ck 300</code>"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/lean/check.sh",
   "/home/user/w/tmrun 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 10000000000 at C L 1000000 | python3 holdouts/1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD/py/digits.py",
-  "python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 152800000    # minutes"
+  "g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD 6 1000000000000000 run.ck 300    # 30 minutes"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine writes a row of <em>digits</em> &mdash; runs of the word <code>1 0 0 0 0 0</code> &mdash; separated by two kinds of markers, and rewrites them with sweeps that bounce between a marker and the end of the tape. One of its phases is proved in Lean for every size; the full rule for the digits, the key to deciding it, is still to be found. It has run 10<sup>10</sup> steps without stopping.",

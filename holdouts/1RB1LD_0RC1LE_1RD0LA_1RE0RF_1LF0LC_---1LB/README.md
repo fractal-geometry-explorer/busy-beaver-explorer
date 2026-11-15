@@ -68,3 +68,10 @@ and the rules above (`lean/Rules.lean`, kernel). C (`tools/c/triage.c`): no halt
 PYTHONPATH=tools/py python3 holdouts/1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB/py/gen_rules.py
 gcc -O2 -o tok holdouts/1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB/c/tok.c && ./tok 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB 100000000 at A L b=1111110,c=111110 1000000
 ```
+
+## Accelerated run
+
+Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/rleaccel.py`, checked against it by
+`tools/tests/test_rleaccel_cpp.py`), blocks of 6, runs from blank tape without a halt to 1.32·10^11 machine steps (exact; tape:
+485,514 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
+(22,070,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1LD_0RC1LE_1RD0LA_1RE0RF_1LF0LC_---1LB 6 1000000000000000 run.ck 300`.
