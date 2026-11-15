@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 15 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, and the four phases of the counter are proved in Lean for every block length and every tape to the right. Direct simulation runs 2·10<sup>10</sup> steps without a halt. But there are words of pairs on which a visit halts (proved in Lean), so everything depends on the words the right-end events leave behind.</p>
+      <p><b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, with exact step counts, and the counter phases are proved in Lean. An accelerated simulator that finds its own rules, checked against direct simulation at every one of 1,425 wall visits (word and step number), runs to wall visit 4.137&middot;10<sup>148</sup> (step about 2.97&middot;10<sup>297</sup>) without a halt. It is exact by construction but has not been re-derived independently. The right-end events do not stop, each one can in principle leave a halting word (such words exist, proved in Lean), and no invariant is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -173,6 +173,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/mrun.c</code> of 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB; <code>tools/c/tmrun.c</code> to 2·10<sup>10</sup></p>
       </div>
       <div class="card">
+        <h3>The recursion with step counts, checked against the machine</h3>
+        <p>On digit words: G(a T) = 0^a h(T) in 16 + 4a steps, h(0 T) = 3 + T, h(k T) = 1 + G^k(2 + T) in 2k steps plus the sub-visits, a unit 1 0 passes a hit in 26 steps. Fitted and then checked on 3,995 random words; the accelerated simulator built on it agrees with direct simulation, word and step number, at 1,425 wall visits (visits 1 to 1,422 (3&middot;10<sup>6</sup> steps) and visits 112,522 to 112,524 (step 20,000,957,941)), with jumps of 1, 7, 50 and 1,000 visits.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py</code>, <code>accel_check.py</code>, <code>c/wv.c</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 2.16&times;10<sup>18</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 2,166,473,947,245,007,495 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,010,334 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
@@ -184,7 +189,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <p class="empty">Nothing yet.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Accelerated run: no halt up to wall visit 4.137&middot;10<sup>148</sup> (step about 2.97&middot;10<sup>297</sup>)</h3>
+        <p>The digit engine finds cycle, run and recursion rules by symbolic execution and the macro simulator does the right-end events on cells. The run passes the events after wall visits 3, 14, 23, 186, 189, 5,424 and stops at the event after 4.137&middot;10<sup>148</sup>, where a fuel run of more than 10<sup>12</sup> units would need a rule it does not have. Exact by construction, validated only on the range direct simulation can reach, not re-derived independently: read it as strong evidence, not as a proof.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py</code>, numbers in <code>accel_run_2.txt</code></p>
+      </div>
+    </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
@@ -194,7 +205,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card open">
         <h3>The right-end events</h3>
-        <p>When the last level of the counter overflows the head reaches the blank right end in D; what follows (parity changes, blank stretches inside the tape, resets of the counter) has no known rule, and it decides whether a halting word ever appears.</p>
+        <p>A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word.</p>
         <p class="where">README, Next steps</p>
       </div>
     </div>
@@ -206,7 +217,9 @@ holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/lean/check.sh
 cd holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/py &amp;&amp; python3 rules.py &gt; ../lean/Rules.lean
 python3 gmodel.py 3000000
 gcc -O2 -o tmrun ../../../tools/c/tmrun.c &amp;&amp; TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 111010 F L 2000000
-cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6</code></pre>
+cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6
+cd holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA &amp;&amp; gcc -O2 -o /tmp/wv c/wv.c &amp;&amp; /tmp/wv 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 3e6 0 1 &gt; /tmp/ref.txt &amp;&amp; python3 py/accel_check.py 2 /tmp/ref.txt
+python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 2 &amp;&amp; python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 2 60 100 7</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>
