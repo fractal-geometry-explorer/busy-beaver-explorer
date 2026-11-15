@@ -125,6 +125,36 @@ time). The outcome of an overflow behaves like a throw with three faces, one of 
 3 units per pair), so the next overflow comes after roughly 2^137,000 visits, about 10^(8*10^4) steps. Its outcome
 needs the exact prefix at that time; no shortcut is known.
 
+## The carry after a conversion: a front in a periodic background
+
+A dedicated pass looked for closed forms between overflows (an exact accelerator of the event system). There are
+none of the usual kind; this is what the system looks like instead (`py/front.py`, plain computation).
+
+- **Tokens.** Carry state b is "flip the digit, then go on as c", and c copies 0s up to the next 1. So one sweep
+  reads the digits from the units' side as tokens: `0 -> 1` (the sweep ends), `1 0 -> 0 1`, `1 1 0^j 1 -> 0^(j+2) 1`.
+- **Blocks of three.** Under carries in state a three digits are a wheel of 8 positions (000, 100, 011, 111, 001,
+  101, 010, 110) that lets 3 carries of 8 through, as a, b and c. Carries b and c move the wheel by -1 and by
+  "minus the position", each with a correction of 4 at positions 3 and 7, so the wheels do not add up to a number
+  system: no weights on digits and carry states are conserved except a parity.
+- **After the conversion.** The counter is 1^410,922 0 (60 marks) 1. The first sweep runs through all the ones
+  and turns them into (001)^136,974. From then on the carries touch only a prefix, and everything behind the furthest
+  carry is still 001 001 ...: a front that moves into a periodic background. After 2,000,000 sweeps it has reached
+  digit 70 (3.8 digits per doubling of the number of sweeps so far), which puts the next overflow at the order of
+  2^(1.1·10^5) sweeps.
+- **Why it is slow.** The carry runs through exactly Fibonacci(k+1)-many strings of k digits (through 89 of the
+  1,024 strings of 10 digits), a share 0.809^k, so a typical string of k digits waits 1.236^k = 2^(0.306 k) sweeps.
+- **Why nothing shortens it.** The sweep is a permutation of the strings of k digits (dropping a carry that
+  leaves). (1) Its cycles are short and many: the cycle of 1^k has 2^e strings with e about 0.4 k (2^81 at k = 200).
+  (2) In one cycle of 1^k the carries leaving the k digits form a word over a, b, c that the next digit maps to
+  the next word (once or twice round); its length shrinks by 0.809 per digit and doubles on about 0.4 of the digits,
+  so it grows like 2^(0.1 k): 16,093 letters at k = 140, 817,567 at k = 200. The first carry through 410,984 digits
+  is the image of such a word, and no periodicity in k was found in the words or in the times of the carries.
+  (3) The powers (sweep)^(2^j), kept as automata with shared states, about triple in size with every squaring
+  (233 states for j = 0, 140,903 for j = 10, on 60 digits).
+
+So the event system is exact and proved, but deciding it means following a pseudo-random orbit for about 2^110,000
+sweeps: no accelerator was built, and the verdict does not change.
+
 ## Where it stands
 
 **Open.** The next overflow needs a carry through 410,984 digits. On small counters the number of sweeps to the next
@@ -160,6 +190,7 @@ followed to their first halt or conversion, 170 end in a halt.
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/check.sh
 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/lean/check.sh                                   # Ends.lean, Twin132695.lean
 python3 holdouts/1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC/py/events.py twin
+python3 holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/py/front.py all      # tokens, blocks, cycles, the front after the conversion (seconds)
 (cd tools/py && python3 -m bbtools.ctl 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 4 lean H132695 Blank) | diff - holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/lean/EdgeCert.lean
 gcc -O2 -o tok holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC/c/tok.c
 ./tok 1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC 1e16 A R 100000      # the tape every 10^5 visits of the right end, ~3 min

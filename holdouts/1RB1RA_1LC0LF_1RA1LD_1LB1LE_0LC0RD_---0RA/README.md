@@ -1,6 +1,6 @@
 # 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA
 
-bbchallenge id 129887. One of the six-state holdouts whose halting from blank tape is open (group G07, family: **recursion on words over two 3-cell tokens (nested counters, a = c b b blocks eaten from inside)**).
+bbchallenge id 129887. One of the six-state holdouts whose halting from blank tape is open (group G07, family: **recursion on words over two 3-cell tokens (a stack of frames; a halt needs a rare coincidence when a visit reaches the right end)**).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -24,23 +24,164 @@ Snapshot at step 999,899,483 (`a = 111110110`, `b = 110`): `0 1 b a^2938 b^4 a b
 
 ## Status
 
-Open. Trusted: at every visit of the left end the tape is a word over `110` and `111` (2·10^10 steps), and the
-recursion below gives the next word at 95% of the visits. Lean: the halting configurations and 10^7 steps (`lean/Blank.lean`), and shift rules for the head crossing
-the periodic block (in state D, and in state E) and runs of `110`, for any length (`lean/Shifts.lean`, kernel). Simulation: no
-halt in 10^11 steps (`tmrun`, about 30 minutes).
-No halt in 10^12 steps (`c/mrun.c` of the 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB folder, a direct
-simulator on blocks of 16 cells; the tape then spans about 1.6 million cells).
+**Open, and now for a different reason.** The whole behaviour is decoded: an exact model on words (a stack of
+frames, `py/model.py`, twelve transitions) reproduces the run from blank tape step for step, and in that model the
+halt is one explicit case. The earlier hope, "every word over 110 and 111 leads to such a word again, so it never
+halts", is **false**: on the 19-token word `b c c c b b b b c c b b b b b b c b c` the machine halts on its 6,323rd
+step (Lean, kernel: `lean/HaltingWord.lean`). The run from blank tape has not halted in its first **2,097,152 visits =
+13,274,338,602,371 steps** (`c/wrun.c`, the model run exactly; identical to a direct run at all 74,198 visits of the first
+2·10^10 steps). Whether it ever halts depends on what happens at the rare visits that reach the right end of the
+tape (31 so far, the last one visit 1,095,353): each is a small chance of a halt (a few in a thousand, judging by
+random words), and they keep coming about once or twice each time the number of visits doubles. So the machine
+probably halts, but only after something like 2^150 visits or more, which no run will reach; and there is no
+invariant in sight that would prove the opposite.
 
-## Second look: when the block collapses
+* **Lean (kernel)**: `lean/HaltingWord.lean`: `haltingWord_halts`, `word_can_halt` (the conjecture is false).
+* **Lean (kernel)**: `lean/Sim.lean`: **the machine follows the model.** The model is a Lean function `mstep` on
+  states (a list of frames and RET, Z or CALL with a word), `den` gives the tape of a state, and `mstep_next`: when
+  `mstep s` is a state `s'` with a step count k, the machine goes from the tape of `s` to the tape of `s'` in k
+  steps; `mstep_halt`: when `mstep s` is the halt, the machine halts; `mrun_sound`, `blank_runs_of_mrun`: a run of
+  the model from `RET(1, c)` is a run of the machine from blank tape. As a check of the chain, 20,000 transitions
+  (130,661 steps) are run by the kernel and 5,000,000 (33,257,365 steps) by `native_decide`; `py/model.py` counts the
+  same steps.
+* **Lean (kernel)**: `lean/ModelWords.lean`: frames and words defined in Lean, and every line of the model's
+  transition table as a theorem about the machine, at any depth of the stack: `ret_stride`, `ret3`, `ret2`,
+  `ret2_pop`, `ret1`, `ret1_pop`, `ret1_one`, `ret1_halt`, `z_call`, `z_call_end`, `call_word`, `call_end` (with
+  `ret3_bottom`, `ret2_bottom`, `ret1_bottom` for the blank tape at the bottom of the stack), `blank_to_model` (two
+  steps from blank tape the machine is in `RET(1, c)`) and `visit_of_ret1`.
+* **Lean (kernel)**: `lean/Model.lean`: the tape moves behind them for every repeat count and any surrounding tape
+  (`stride`, `stride1`, `stride_q2`, `ret1_fill`, `ret1_split`, `z_turn`, `a_run`, `call_cb`, `call_c`, `b_eat`), one
+  for each transition, and `halt_pattern` (`L 0 1 0 C>1 R` halts on its fourth step).
+  `lean/Shifts.lean`, `lean/Route.lean`, `lean/Blank.lean` as before.
+* **Trusted**: `py/model.py`, `c/wrun.c`: the same model as programs (not extracted from Lean). Checked against direct runs: the next word and the exact step
+  count of the visit on every one of the 131,070 words of at most 16 tokens (`py/model.py all 17`), the halts of the
+  19-token words, and the run from blank tape: word (hash) and step number of each of the 74,198 visits of the first
+  2·10^10 steps (`c/dvis.c` against `c/wrun.c dump`, byte-identical output).
+* **Trusted**: no halt in the first 2,097,152 visits (13,274,338,602,371 steps), by `c/wrun.c run`. Earlier: 10^12 steps direct.
+* **Trusted**: no word of at most 18 tokens halts during its visit; two of 19 tokens do, one of 20, five of 21,
+  eleven of 22 (`c/wrun.c enum`).
+* **Heuristic**: the halting chance per visit that reaches the right end, and the rate of such visits (below).
+* **Open**: whether the run from blank tape halts.
 
-Following the copies of `1^5 0 1^2 0` at the left end at every visit of the left end in state D (up to 10^9 steps):
-the block grows by exactly one copy every three visits and then is swallowed at once. The block had, just before
-each collapse, 11, 9, 84, 36, 135, 100, 36, 324, 36, 36, 260, 999 and 36 copies (steps 29,371 to 419,367,273). The
-value **36 recurs five times**, so the collapses are not random: the middle region probably triggers a collapse when
-a carry inside it arrives, and the block size at that moment is set by the region's own clock. After a collapse the
-left end shows `(1^8 0)^k` for a while (another word of 9 cells) before `1^5 0 1^2 0` takes over again.
+## Fourth look: the complete recursion is a stack machine
+
+Tokens `b = 110`, `c = 111`. During a visit the tape is a **stack of frames** followed by an active part:
+
+    0^inf [1^n1 0^z1] [1^n2 0^z2] ... [1^nk 0^zk]   +   RET(q, v)  or  Z(v)  or  CALL(m, X)
+
+* `CALL(m, X)`: `1^m B> X`, the head goes right into the word X (written `1 1 x0, 1 1 x1, ...`, then blank);
+* `RET(q, v)`: `1^(q-1) C>1 :: v`, the head comes back, on the q-th cell right of the top frame; `:: v` is the word v
+  in the other phase: `v0, 1 1 v1, 1 1 v2, ...` (bit 0 for b, 1 for c);
+* `Z(v)`: `C>0 :: v`, the head on the last zero of the top frame.
+
+A frame is what a call left behind: n ones and z zeros. Each time the returning head finds three zeros there it
+fills them and **runs one whole visit on the word to its right**, as it does at the left end of the tape; this is
+how a visit calls visits inside visits. The transitions (machine steps in brackets):
+
+    RET(q, v), q >= 4      -> RET(q-3, b v)                                             [5]
+    RET(3, v)              -> Z(b v)                                                    [5]
+    RET(2, v)              -> Z(b v) with one zero less; or, z = 1: pop, RET(n, b v)    [3]
+    RET(1, v), z >= 3      -> Z(c v) with two zeros less                                [3]
+    RET(1, v), z = 2       -> pop the frame (n, 2): RET(n, c v)                         [3]
+    RET(1, v), z = 1       -> pop (n, 1); n >= 2: push (n-2, 1), CALL(1, v)             [5]
+                              n = 1: THE MACHINE HALTS (tape 0 1 0 C>1)                 [4]
+    Z(c^a b X)             -> one zero less, CALL(3a+2, X)                              [3a+2]
+    Z(c^a), a >= 1         -> one zero less, CALL(3a, empty)                            [3a]
+    CALL(m, c^j b Y)       -> push (m-1, 3j+2), RET(1, c Y)                             [9j+7]
+    CALL(m, c^j), j >= 1   -> push (m-1, 3j), RET(1, c)                                 [9j+1]
+    CALL(m, empty)         -> RET(m, c)                                                 [1]
+
+(A frame whose zeros run out gives its ones to the next CALL; a frame pushed with no ones, m = 1, adds its zeros to
+the frame below.) The blank tape on the left is the bottom frame with infinitely many zeros; a *visit* is `RET(1, v)`
+on the empty stack (the tape `0^inf C>1 :: v`), two steps before the head stands in B on a blank cell with blank
+tape on its left and the word v on its right. The run from blank tape is `RET(1, c)` at step 2. During a visit the
+left end of the tape can move to the right (a frame at the bottom is used up), so a visit is not always "a new
+cell on the left"; in the first 2·10^10 steps of the run it always is.
+
+In words: a call wipes out the block of c's it meets and the b behind it (3j + 2 zeros, a new frame) and turns
+back at once; back at the zeros it fills three of them and calls again, now on what follows the b
+(`CALL(m, c^j b c^i b Z)` leads to a frame with 3j − 1 zeros and `CALL(3i+8, Z)` in 9j + 3i + 18 steps), and
+`CALL(m, b R)` leads to `RET(m−1, c c R)` in 10 steps.
+
+**The clean case.** As long as no call reaches the right end of the word (the lines `Z(c^a)`, `CALL(m, c^j)` and
+`CALL(m, empty)`), every m is 2 mod 3 and every frame has n = 1 mod 3 and z = 2 mod 3: the head comes back to a frame
+(z − 2)/3 + 1 times, the last time to pop it, RET always comes back in phase (q = 1 after the strides), and the
+model is a recursion on words alone:
+
+    F(c^a b X)  = b^(a+1) T(X)          the visit on a word (RET(1), Z, CALL(3a+2, X))
+    T(c^j b Y)  = c F^j(c Y)            the call: j visits inside the visit; for j = 0, T(b Y) = c c Y
+
+(so `T(c^j b c^i b Z) = c F^(j-1)(b^(i+2) T(Z))`). The old rules (1) to (3) are the cases j = 0, 1, 2 with a = 0;
+the undecoded rule (4) was j ≥ 3 and the right end. `a = c b b` is j = 1, i = 0: `T(a Z) = a T(Z)`, the periodic
+block passes every visit on (`py/model.py rec 20000`: the recursion against the model on random words).
+In this case **no halt is possible** (it needs a frame with n = 1 and z = 1, and here n is 4 or more). The word
+behind the block looks random: in one long visit the pairs (j, i) of the 1.4·10^8 calls came with frequencies 2^−(j+i) to three digits, as for independent
+fair bits, so a call makes on average one visit (j, with probability 2^−(j+1)): a critical branching process, which is why a
+few visits are enormous (one of them, visit 318,209, took 1.2·10^9 model transitions) and why the collapses of the
+block look erratic.
+
+**The right end.** A call that runs off the word (`CALL(m, empty)`) comes back out of phase: m = 0 or 1 mod 3, RET
+ends with q = 2 or 3, zeros are eaten one or two at a time, frames with any n and z appear, and the cascade (tens
+of thousands of out-of-phase transitions inside one visit) goes on until every frame is used up. The halt is the
+case "RET(1) on a frame with one 1 and one zero". Frames with a single 1 are left by every `CALL(2, c^j b Y)`
+(3j + 2 zeros); for j = 0 the frame is popped at once, for j ≥ 1 the head comes back to it j more times, and a halt
+is such a frame whose zeros got out of phase. `c/wrun.c` reports these later returns as `near miss`: twelve in the
+first 2 million visits of the run (seven frames), always with 2, 5 or 8 zeros left, that is, in phase.
+
+## The conjecture "words lead to words" is false
+
+`c/wrun.c enum L` runs the first visit on every word of L tokens. None of the 524,286 words of at most 18 tokens
+halts (and each leads to a word again), but
+
+    b c c c b b b b c c b b b b b b c b c      halts on step 6,323
+    b c c c b b c b b c c b b b b b b b c      halts on step 7,941
+
+(19 tokens; both confirmed by direct simulation, the first also by Lean's kernel, `haltingWord_halts`). One word of
+20 tokens halts, 5 of 21, 11 of 22. Random words of 1,000 tokens run for 300 visits: 35 of 20,000 halt, among 20,230
+visits that reached the right end (`c/wrun.c mc 7 20000 1000 300`). So a proof for the run from blank tape cannot
+come from the alphabet of the tape; it would have to control the frames at the right-end events of this one run.
+
+## The run from blank tape
+
+`c/wrun.c run` is the model with words and frames run-length coded (a third letter `a = cbb`: a call on `a^k`
+and the return through its k frames are one transition each) and exact step counts.
+
+    visit      step                 tokens     visits that reached the right end so far
+    1,024      8,617,539            1,619      15
+    16,384     830,873,099          19,705     23
+    131,072    81,202,967,563       142,780    28
+    262,144    307,011,171,415      274,454    30
+    1,048,576  5,119,454,802,255    1,060,886  30
+    2,097,152  13,274,338,602,371   2,110,209  31
+
+The right end was reached in visits 1, 2, 5, 6, 42, 72, 88, 188, 296, 344, 456, 568, 640, 865, 953, 1169, 1281, 2257,
+2369, 2481, 3265, 8993, 9105, 32497, 32777, 50841, 113145, 118809, 231897, 232177 and 1095353. The cost of the model is
+dominated by the few enormous visits, about (visits)^2 transitions in all, so this run cannot be pushed much
+further; a direct run needs about (visits)^2.1 steps.
+
+## Why it probably halts, and why no run will show it (heuristic)
+
+* Visits that reach the right end keep coming, about 1.5 for each doubling of the number of visits since visit 1,000
+  (the list above).
+* A halt needs the returning head to meet a frame with a single 1 at a moment when that frame has one zero. In the
+  run it met such a frame 12 times (the near misses above, in 4 of the 31 right-end visits), each time with 2, 5 or 8
+  zeros.
+* Random words (`c/wrun.c mc`): of 3,000 words of 10,000 tokens, 1,000 visits each, 5 halted, with 1,287 right-end
+  visits and 583 such meetings (seed 11); of 20,000 words of 1,000 tokens, 300 visits each, 35 halted, with 20,230
+  right-end visits and 2,959 meetings (seed 7); for 100 tokens 20 halts, 68,251 right-end visits, 3,041 meetings.
+  For long words: about 0.4 meetings per right-end visit, as in the run, one meeting in a hundred halts, so a
+  right-end visit halts with probability about 0.4%.
+* Nothing found in the run from blank tape makes its words special: the token statistics behind the block are those
+  of fair coin flips. At the rates of random words a halt becomes likely after about 250 right-end visits, that is
+  around visit 2^150 or later. The model cannot skip visits (the cascades are chaotic), and the word grows by one
+  token a visit, so the tape itself would have about 2^150 tokens by then: this is out of reach.
+
+This is an estimate, not a result: the events of one deterministic run are not independent trials, and the rate of
+right-end visits is read off 31 events.
 
 ## Third look: the tape is a word over two tokens, a visit is a recursion on it
+
+*(Superseded by the fourth look: rule (4) is decoded there, and the conjecture at the end of this section is false.)*
 
 Cut the tape into tokens of three cells, `b = 110` and `c = 111`. Call a *visit* the moment the head stands in B on
 the blank cell left of the tape. **At every visit the whole tape is a word over b and c**: all 74,198 visits of the
@@ -72,10 +213,10 @@ written) or from D reading 0. So the machine halts exactly when **C reads a 1 an
 are `0 1 0`**. In 2·10^10 steps the machine was one cell from this 12,171 times (C reads 1, D reads 0, B reads 1),
 each time with a 1 in place of the first 0.
 
-**A conjecture that would decide it.** For every word w over b and c, the visit on w (blank tape on both sides) leads
+**A conjecture that would have decided it (false, see above).** For every word w over b and c, the visit on w (blank tape on both sides) leads
 to a visit on a word over b and c again. Checked for all 32,766 words of at most 14 tokens and for the words
 starting with b up to 16 tokens, 81,918 words in all (`py/words.py all 16`): never a halt, never another token. The word grows by up to
-164 tokens when the visit reaches the right end. If this holds for all words the machine never halts.
+164 tokens when the visit reaches the right end. It fails first at 19 tokens.
 
 **Attempts at a proof.** Finite automata reduction (`py/far.py`, `py/wfar2.py`) with, on the right side, an
 automaton that remembers the nearest 6 to 15 cells and that everything beyond is a word over b, c in a known
@@ -83,15 +224,25 @@ phase: no proof; the same with windows on the left (up to 12 cells and the dista
 windows. Reason, as far as understood: in the middle of a visit the part of the word behind the head has already
 been rewritten by the inner levels, and what the head does on its way back depends on that; a window does not see it.
 
+## Second look: when the block collapses
+
+Following the copies of `1^5 0 1^2 0` at the left end at every visit of the left end in state D (up to 10^9 steps):
+the block grows by exactly one copy every three visits and then is swallowed at once. The block had, just before
+each collapse, 11, 9, 84, 36, 135, 100, 36, 324, 36, 36, 260, 999 and 36 copies (steps 29,371 to 419,367,273). The
+value **36 recurs five times**, so the collapses are not random: the middle region probably triggers a collapse when
+a carry inside it arrives, and the block size at that moment is set by the region's own clock. After a collapse the
+left end shows `(1^8 0)^k` for a while (another word of 9 cells) before `1^5 0 1^2 0` takes over again.
+
 ## Next steps
 
-* Decode rule (4): the visits on `c c c ...`. With it F is a recursion on words, and an exact simulator on words
-  (cost per visit: the depth of the recursion, not the length of the tape) reaches far beyond 10^11 steps.
-* Prove the conjecture by induction on the word, with the rules as lemmas (each rule is a statement "if the visit
-  on Y gives V(Y), then the visit on `c b c^n b Y` gives ..."): the pieces between two crossings of the border of
-  Y are straight runs that `bbtools.symtm` can prove; the right end needs its own rules.
-* The automaton that a certificate needs has to know the level structure of the word (which `b^n` belongs to
-  which level), not a window.
+* In Lean the model is proved sound (`lean/Sim.lean`); not proved: that `mstep` is never stuck on the states of a
+  run (it never is in the computations), and that the fast program `c/wrun.c` is the same function.
+* A proof of non-halting would need an invariant of the frames at the right-end events of this run, and the data
+  give no hint of one; a proof of halting needs the run itself, about 2^150 visits by the estimate above. A faster
+  exact method would have to skip whole cascades, which behave like a critical branching process on pseudo-random
+  words; hashing repeated sub-words (as Hashlife does) is the only idea not tried.
+* The twin `1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC` (the same table started in another state, mirrored) should
+  fall under the same model with another first word.
 
 ## First look
 
@@ -127,9 +278,21 @@ of: D with 0 two left, 1 left, 0 under the head.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA/lean/check.sh
 cd holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA
+gcc -O2 -o /tmp/wrun c/wrun.c && gcc -O2 -o /tmp/dvis c/dvis.c
+/tmp/wrun word bcccbbbbccbbbbbbcbc                          # the model: HALT at step 6323
+python3 py/model.py word bcccbbbbccbbbbbbcbc                # the same, every transition printed
+python3 py/model.py all 17                                  # model against the machine, all words up to 16 tokens (10 s)
+python3 py/model.py rec 20000                               # the two-line recursion against the model
+/tmp/dvis 2e10 > /tmp/d.txt                                 # direct run, a line per visit (90 s)
+/tmp/wrun dump 74198 | cmp - /tmp/d.txt && echo identical   # the model gives the same words at the same steps
+/tmp/wrun enum 19                                           # the two halting words of 19 tokens (enum 1 .. 18: none)
+/tmp/wrun mc 7 20000 1000 300                               # random words: 35 of 20,000 halt
+/tmp/wrun mc 11 3000 10000 1000                             # longer random words: 5 of 3,000 halt (15 minutes)
+/tmp/wrun run 1048576 131072                                # the run from blank tape (5 minutes; 2097152: 16 minutes)
+python3 py/model_lean.py | diff - lean/Model.lean           # the generated Lean file is current
 gcc -O2 -o /tmp/wcheck c/wcheck.c && /tmp/wcheck 2e10     # every visit shows a word over 110, 111 (2 minutes)
 cd py && python3 words.py run 3e7                           # rules (1)-(3) against the run
-python3 words.py all 16                                     # the conjecture on all short words (10 minutes)
+python3 words.py all 16                                     # all short words lead to words (10 minutes)
 python3 wfar2.py 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA R 9 tokfar 4e6    # one of the FAR attempts
 ```
 
