@@ -1,0 +1,243 @@
+<style>
+:root{--h5c:#2a78d6;--h5a:#1baf7a;--h5b:#eda100;--h5c2:#cde2fb;--h5a2:#c9efe0;--h5b2:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--h5c:#3987e5;--h5a:#199e70;--h5b:#c98500;--h5c2:#1b3354;--h5a2:#123a2b;--h5b2:#3d2c08} }
+:root[data-theme="dark"]{--h5c:#3987e5;--h5a:#199e70;--h5b:#c98500;--h5c2:#1b3354;--h5a2:#123a2b;--h5b2:#3d2c08}
+.h5-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.h5-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative}
+.h5-lv:hover{border-color:var(--accent)}
+.h5-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.h5-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.h5-lv code{font-size:.8em}
+.h5-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.h5-lv .ev{margin-top:4px}
+.h5-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.h5-row:first-child{border-top:0}
+.h5-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.h5-row .mono{overflow-wrap:anywhere}
+@media (max-width:560px){.h5-row{grid-template-columns:minmax(0,1fr)}}
+.h5-tape{display:block;width:100%;height:64px;margin-top:6px}
+.h5-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.h5-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.h5-ok{color:var(--kernel);font-weight:600}
+.h5-bad{color:var(--open);font-weight:600}
+.h5-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.h5-num{width:7.5em}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level throws away detail
+the one above it keeps, and each step down is a theorem: the answer is the same at every level. The page walks down
+the ladder: the six-state machine on its tape, the tape at the moments it reaches new ground, the three numbers that
+describe those moments, and the long laps those numbers make. At the bottom the question fits in five lines of
+arithmetic (<a href="#definition">the definition</a>).</p>
+</div>
+<div class="h5-ladder">
+ <a class="h5-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">The run so far: far beyond 10<sup>30</sup> steps (an estimate).</div></a>
+ <a class="h5-lv" href="#visits"><span class="n">Level 2</span><b class="t">Visits <code>S(c, a, b)</code></b>
+  <div class="u">The tape each time the head reaches a new cell on the right in state B. One unit is one <b>visit</b>, about v<sup>2</sup> steps.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>halts_iff</code></span></a>
+ <a class="h5-lv" href="#doublingmap"><span class="n">Level 3</span><b class="t">The doubling map <code>(c, u, v)</code></b>
+  <div class="u">u is doubled modulo v and v grows by one. One unit is one <b>operation</b>: a visit or a carry.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 2: <code>halts_iff_op</code></span></a>
+ <a class="h5-lv" href="#laps"><span class="n">Level 4</span><b class="t">Laps</b>
+  <div class="u">The same operations cut at the resets. Every lap starts at u = v − 3. One unit is one <b>lap</b>.</div>
+  <span class="small">54 laps in 10<sup>11</sup> operations, none ending in a halt.</span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick a visit. The browser runs the real machine from blank tape up to that moment and reads its tape; it also runs
+the doubling map up to the same moment. The rows show the same instant at each level, and the check marks say that
+the two computations agree.</p>
+</div>
+<div class="panel" id="h5-moment">
+ <div class="controls">
+  <button type="button" id="h5m-prev" aria-label="Previous visit">&#9664;</button>
+  <input type="range" class="h5-slider" id="h5m-n" min="0" max="400" value="30" aria-label="Visit number">
+  <button type="button" id="h5m-next" aria-label="Next visit">&#9654;</button>
+  <span class="small">visit <b id="h5m-lab">30</b> of the run</span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="h5-row"><span>1 · Machine</span><div><span id="h5m-step"></span>
+   <canvas class="h5-tape" id="h5m-tape" aria-label="The tape at this visit, coloured by block"></canvas>
+   <div class="h5-key"><span><i style="background:var(--h5c)"></i>left block (10)<sup>c</sup></span><span><i style="background:var(--h5a)"></i>pool 1<sup>a</sup></span><span><i style="background:var(--h5b)"></i>right block (10)<sup>b</sup></span><span><i style="background:var(--head)"></i>head, state B</span><span>dark cell = 1, pale cell = 0</span></div></div></div>
+  <div class="h5-row"><span>2 · Visit</span><div id="h5m-s"></div></div>
+  <div class="h5-row"><span>3 · Doubling map</span><div id="h5m-d"></div></div>
+  <div class="h5-row"><span>4 · Lap</span><div id="h5m-l"></div></div>
+ </div>
+ <div class="cap">Visit 0 is S(0, 4, 1), reached at step 43; earlier visits are not of this form. The machine's steps are counted exactly; visit 400 is about ten million steps in, and takes the browser a fraction of a second.</div>
+</div>
+<script>
+window.H5 = (function () {
+  "use strict";
+  var TM = "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC";
+  var W = [], MV = [], ST = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var s = 0; s < 2; s++) {
+      var t = g.substr(3 * s, 3);
+      var k = 2 * i + s;
+      if (t[0] === "-") { W[k] = -1; MV[k] = 0; ST[k] = -1; }
+      else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; ST[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  var PAT = /^((?:10)*)(1*)0((?:10)*)1$/;
+  function word(c, a, b) { return "10".repeat(c) + "1".repeat(a) + "0" + "10".repeat(b) + "1"; }
+  function parse(str) {
+    var i = str.indexOf("1");
+    var m = PAT.exec(i < 0 ? "" : str.slice(i));
+    return m ? [m[1].length / 2, m[2].length, m[3].length / 2] : null;
+  }
+  // A machine: tape in a growable byte array.
+  function Machine() { this.n = 1 << 12; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0; this.k = 0; this.lo = 0; this.hi = 0; this.halted = false; }
+  Machine.prototype.grow = function () {
+    var n = this.n * 2, t = new Uint8Array(n), o = this.o + (this.n >> 1);
+    t.set(this.t, this.n >> 1); this.t = t; this.o = o; this.n = n;
+  };
+  Machine.prototype.load = function (str, state) {   // str written from cell 0, head just right of it
+    for (var i = 0; i < str.length; i++) this.set(i, +str[i]);
+    this.p = str.length; this.s = state; this.lo = 0; this.hi = str.length;
+  };
+  Machine.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  Machine.prototype.set = function (x, v) { while (x + this.o < 2 || x + this.o >= this.n - 2) this.grow(); this.t[x + this.o] = v; };
+  Machine.prototype.step = function () {
+    var k = 2 * this.s + this.get(this.p);
+    if (ST[k] < 0) { this.halted = true; return false; }
+    this.set(this.p, W[k]); this.p += MV[k]; this.s = ST[k]; this.k++;
+    if (this.p < this.lo) this.lo = this.p;
+    return true;
+  };
+  Machine.prototype.str = function (a, b) { var r = ""; for (var x = a; x < b; x++) r += this.get(x); return r; };
+  // Runs until the next right-end visit in state B that has the form S; returns [c, a, b], "halt" or null.
+  Machine.prototype.nextVisit = function (limit) {
+    var end = this.k + limit;
+    while (this.k < end) {
+      if (!this.step()) return "halt";
+      if (this.p > this.hi) {
+        this.hi = this.p;
+        if (this.s === 1) { var r = parse(this.str(this.lo, this.p)); if (r) return r; }
+      }
+    }
+    return null;
+  };
+  // The run from blank tape, visit by visit: [{k, s}] with k the step and s the parsed S(c, a, b).
+  var run = [], rm = null;
+  function visits(n) {
+    if (!rm) {
+      rm = new Machine();
+      for (var i = 0; i < 43; i++) { rm.step(); if (rm.p > rm.hi) rm.hi = rm.p; }
+      run.push({ k: rm.k, s: parse(rm.str(rm.lo, rm.p)) });
+    }
+    while (run.length <= n) {
+      var r = rm.nextVisit(1e8);
+      if (!Array.isArray(r)) break;
+      run.push({ k: rm.k, s: r });
+    }
+    return run;
+  }
+  // Level 2: the odometer rule. Returns {s: next visit or null for halt, sub: the moves}.
+  function odo(c, a, b) {
+    var sub = [];
+    for (;;) {
+      if (2 * b < a) { sub.push(["fast", c, a, b]); return { s: [c, a - 2 * b, 2 * b + 1], sub: sub }; }
+      if (c >= 1) { sub.push(["carry", c, a, b]); var nb = b - a / 2 - 1; c = c - 1; b = nb > 0 ? nb : 0; a = 2 * a + 4; continue; }
+      if (b === a / 2) { sub.push(["halt", c, a, b]); return { s: null, sub: sub }; }
+      sub.push(["reset", c, a, b]); var b2 = b - a / 2 - 1; c = a; a = 4; b = b2;
+    }
+  }
+  // Level 3: one operation of the doubling map. Returns [c, u, v, kind] or null (halt).
+  function op(c, u, v) {
+    var t = 2 * u;
+    if (t < v) return [c, t, v + 1, "visit"];
+    if (c > 0) return t > v ? [c - 1, t - v, v + 1, "carry"] : [c - 1, 1, v + 2, "empty"];
+    if (t > v) return [2 * (v - u - 1), t - v, t - v + 3, "reset"];
+    return null;
+  }
+  function toUV(s) { return [s[0], s[2] + 1, s[1] / 2 + s[2] + 2]; }
+  function fromUV(d) { return [d[0], 2 * (d[2] - d[1] - 1), d[1] - 1]; }
+  // The map's own run, visit by visit: [{d, ops, resets, empties}].
+  var mrun = [{ d: [0, 2, 5], ops: 0, resets: 0, empties: 0 }];
+  function mapVisits(n) {
+    var L = mrun[mrun.length - 1], d = L.d, ops = L.ops, rs = L.resets, em = L.empties;
+    while (mrun.length <= n) {
+      var r = op(d[0], d[1], d[2]); ops++;
+      if (!r) break;
+      d = [r[0], r[1], r[2]];
+      if (r[3] === "reset") rs++;
+      if (r[3] === "empty") em++;
+      if (r[3] === "visit") mrun.push({ d: d, ops: ops, resets: rs, empties: em });
+    }
+    return mrun;
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  // Draws the word of S(c, a, b) (or any 0/1 string with region marks) on a canvas.
+  function drawTape(cv, c, a, b, opt) {
+    opt = opt || {};
+    var str = word(c, a, b), n = str.length + 2;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 64, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var cw = Math.min(14, w / n), gap = cw >= 6 ? 1 : 0, y0 = 22, ch = Math.min(26, h - 30);
+    var regions = [[0, 2 * c, "--h5c", "(10)^" + c], [2 * c, 2 * c + a, "--h5a", "1^" + a], [2 * c + a, 2 * c + a + 1, "--muted", ""],
+                   [2 * c + a + 1, 2 * c + a + 1 + 2 * b, "--h5b", "(10)^" + b], [2 * c + a + 1 + 2 * b, str.length, "--fg2", ""]];
+    var col = {}, pale = { "--h5c": "--h5c2", "--h5a": "--h5a2", "--h5b": "--h5b2" };
+    regions.forEach(function (R) {
+      var full = css(R[2]), light = pale[R[2]] ? css(pale[R[2]]) : css("--sunk");
+      for (var i = R[0]; i < R[1]; i++) {
+        g.fillStyle = str[i] === "1" ? full : light;
+        g.fillRect(i * cw, y0, Math.max(cw - gap, 0.6), ch);
+      }
+      if (R[3] && R[1] > R[0]) {
+        g.fillStyle = css("--fg2"); g.font = "11px " + css("--mono").split(",")[0];
+        var mid = (R[0] + R[1]) / 2 * cw, tw = g.measureText(R[3]).width;
+        var x = Math.max(0, Math.min(w - tw, mid - tw / 2));
+        g.fillText(R[3], x, 14);
+        g.strokeStyle = css("--line-strong"); g.lineWidth = 1;
+        g.beginPath(); g.moveTo(R[0] * cw + 1, 18); g.lineTo(R[1] * cw - 1, 18); g.stroke();
+      }
+    });
+    // head
+    var hx = str.length * cw;
+    g.fillStyle = css("--head");
+    g.fillRect(hx, y0, Math.max(cw - gap, 2), ch);
+    g.beginPath(); g.moveTo(hx + cw / 2, y0 + ch + 3); g.lineTo(hx + cw / 2 - 4, y0 + ch + 9); g.lineTo(hx + cw / 2 + 4, y0 + ch + 9); g.fill();
+  }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    window.addEventListener("resize", f);
+  }
+  return { Machine: Machine, word: word, parse: parse, visits: visits, odo: odo, op: op, toUV: toUV, fromUV: fromUV,
+           mapVisits: mapVisits, drawTape: drawTape, css: css, fmt: fmt, onTheme: onTheme };
+})();
+
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var sl = $("h5m-n"), cv = $("h5m-tape");
+  function same(x, y) { return x && y && x[0] === y[0] && x[1] === y[1] && x[2] === y[2]; }
+  function show() {
+    var n = +sl.value;
+    $("h5m-lab").textContent = n;
+    var run = H.visits(n), mv = H.mapVisits(n);
+    var V = run[n], M = mv[n], s = V.s, d = M.d, fs = H.fromUV(d);
+    $("h5m-step").innerHTML = "step " + H.fmt(V.k) + " of the run from blank tape, " + H.word(s[0], s[1], s[2]).length + " cells from the leftmost 1 to the head";
+    H.drawTape(cv, s[0], s[1], s[2]);
+    var pred = n > 0 ? H.odo.apply(null, run[n - 1].s) : null;
+    var ok = n === 0 ? "" : same(pred.s, s) ? ' <span class="h5-ok">✓ the rule applied to visit ' + (n - 1) + " gives this</span>"
+                                           : ' <span class="h5-bad">✗ differs from the rule</span>';
+    $("h5m-s").innerHTML = "S(" + s.join(", ") + "): c = " + s[0] + " pairs left, a = " + s[1] + " ones in the pool, b = " + s[2] + " pairs right" + ok;
+    var agree = same(fs, s) ? ' <span class="h5-ok">✓ the map gives the same visit</span>' : ' <span class="h5-bad">✗ the map disagrees</span>';
+    $("h5m-d").innerHTML = "(c, u, v) = (" + d.join(", ") + "), with u = b + 1 and v = a/2 + b + 2, after " + H.fmt(M.ops) + " operations" + agree +
+      "<br>c + v = " + (d[0] + d[2]) + " = 5 + " + n + " visits + " + M.resets + (M.resets === 1 ? " reset + " : " resets + ") + M.empties + (M.empties === 1 ? " emptying carry" : " emptying carries");
+    var x = d[1] / d[2];
+    $("h5m-l").innerHTML = "lap " + (M.resets + 1) + " (" + M.resets + (M.resets === 1 ? " reset" : " resets") + " so far); " + d[0] + " wrap-arounds left before the next reset; u/v = " + x.toFixed(4) +
+      (2 * d[1] < d[2] ? " &lt; 1/2, so the next operation doubles u" : 2 * d[1] > d[2] ? " &gt; 1/2, so the next operation wraps around" : " = 1/2 exactly");
+  }
+  sl.addEventListener("input", show);
+  $("h5m-prev").addEventListener("click", function () { sl.value = Math.max(0, +sl.value - 1); show(); });
+  $("h5m-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  H.onTheme(show);
+  show();
+})();
+</script>

@@ -1,0 +1,153 @@
+<div class="col">
+<p>Change variables: put <b>u = b + 1</b> and <b>v = a/2 + b + 2</b> (so a = 2(v − u − 1) and b = u − 1). The
+odometer's condition 2b &lt; a becomes 2u &lt; v, and its three wheels become one operation on (c, u, v)
+(<code>op</code> in <code>lean/Doubling.lean</code>):</p>
+<pre>2u &lt; v          u ← 2u,  v ← v + 1                          a visit
+2u &gt; v, c ≥ 1   u ← 2u − v,  v ← v + 1,  c ← c − 1          a carry
+2u = v, c ≥ 1   u ← 1,  v ← v + 2,  c ← c − 1               an emptying carry
+2u &gt; v, c = 0   c ← 2(v − u − 1),  u ← 2u − v,  v ← u + 3   a reset
+2u = v, c = 0   halt</pre>
+<p>In words: <b>double u; if that reaches v, subtract v and use up one unit of c; add one to v.</b> So u is doubled
+modulo v, and the modulus creeps up by one at every operation. The left block c only counts the wrap-arounds: c of
+them are allowed, and the next one is a reset, which refills c with 2(v − u − 1) and drops the modulus to
+(2u − v) + 3. <b>The machine halts exactly when a reset finds 2u = v</b>, that is when u sits exactly at the middle
+of [0, v] at the moment the left block is empty.</p>
+<p>The quantity that matters is the fraction x = u/v. Doubling sends x to about 2x when x &lt; 1/2 and to about
+2x − 1 when x &gt; 1/2: the binary shift, the textbook example of chaos. The small corrections from v growing are
+what keep it exactly computable and unpredictable at once. One thing is conserved: c + v = 5 + visits + resets +
+emptying carries, so the modulus is essentially a clock that counts visits.</p>
+<p>The strip shows where u sits in [0, v], with the middle marked; the trail is the last few positions. Step through
+operations and watch u jump around, wrap past the middle, and use up the left block.</p>
+</div>
+<div class="panel" id="h5-dm">
+ <div class="controls">
+  <button type="button" class="primary" id="h5d-one">1 operation</button>
+  <button type="button" id="h5d-ten">10</button>
+  <button type="button" id="h5d-res">To the next reset</button>
+  <button type="button" id="h5d-back" aria-label="Back one operation">Back</button>
+  <button type="button" id="h5d-zero">Start over</button>
+  <span class="small" id="h5d-info"></span>
+ </div>
+ <svg id="h5d-svg" viewBox="0 0 700 120" style="width:100%;height:auto;display:block;margin-top:12px" role="img" aria-label="u on the interval from 0 to v"></svg>
+ <div class="mono small" id="h5d-state" style="margin-top:4px"></div>
+ <div class="log" id="h5d-log" style="max-height:180px"></div>
+</div>
+<div class="col"><h3>The fraction u/v over many operations</h3>
+<p>One dot per operation, at height u/v before it. Dots above the middle line are wrap-arounds; the rings are the
+resets, where the left block was empty. A halt would be a ring exactly on the middle line. Hover a dot for its
+numbers.</p></div>
+<div class="panel" id="h5-dmplot">
+ <div class="controls">
+  <label class="small" for="h5p-n">Operations</label>
+  <select id="h5p-n"><option value="300">300</option><option value="3000" selected>3,000</option><option value="30000">30,000</option></select>
+ </div>
+ <div style="position:relative;margin-top:10px">
+  <canvas id="h5p-cv" style="display:block;width:100%;height:260px" aria-label="u/v at each operation"></canvas>
+  <div id="h5p-tip" class="mono small" style="position:absolute;pointer-events:none;display:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:4px 8px;white-space:nowrap"></div>
+ </div>
+ <div class="cap" id="h5p-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var hist, log;
+  function reset0() { hist = [[0, 2, 5, "start"]]; log = []; show(); }
+  function one() {
+    var d = hist[hist.length - 1], r = H.op(d[0], d[1], d[2]);
+    if (!r) { log.push("halt: a reset with 2u = v"); return false; }
+    hist.push(r);
+    var what = r[3] === "visit" ? "2u = " + 2 * d[1] + " < v = " + d[2] + ": double, a visit"
+      : r[3] === "carry" ? "2u = " + 2 * d[1] + " > v = " + d[2] + ": wrap to " + r[1] + ", c drops to " + r[0]
+      : r[3] === "empty" ? "2u = v = " + d[2] + ": the fast wheel empties, u = 1"
+      : "2u = " + 2 * d[1] + " > v = " + d[2] + " with c = 0: RESET, new c = " + r[0] + ", u = " + r[1] + ", v = " + r[2];
+    log.push((hist.length - 1) + ": " + what);
+    if (hist.length > 5000) hist.splice(1, hist.length - 5000);
+    return r[3] !== "reset";
+  }
+  function show() {
+    var d = hist[hist.length - 1], u = d[1], v = d[2], X0 = 30, X1 = 670, Y = 62;
+    var sx = function (t) { return X0 + (X1 - X0) * t; };
+    var ink = "var(--fg)", mut = "var(--muted)";
+    var s = '<line x1="' + X0 + '" y1="' + Y + '" x2="' + X1 + '" y2="' + Y + '" stroke="var(--line-strong)" stroke-width="6" stroke-linecap="round"/>';
+    s += '<line x1="' + sx(0.5) + '" y1="' + (Y - 24) + '" x2="' + sx(0.5) + '" y2="' + (Y + 24) + '" stroke="var(--open)" stroke-width="1.5" stroke-dasharray="4 3"/>';
+    s += '<text x="' + sx(0.5) + '" y="' + (Y - 30) + '" text-anchor="middle" font-size="12" fill="var(--open)">v/2: an exact hit</text>';
+    s += '<text x="' + X0 + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">0</text>';
+    s += '<text x="' + X1 + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">v = ' + H.fmt(v) + '</text>';
+    s += '<text x="' + sx(0.25) + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">double: a visit</text>';
+    s += '<text x="' + sx(0.75) + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">wrap: a carry or a reset</text>';
+    var tr = hist.slice(-8, -1);
+    tr.forEach(function (h, i) {
+      s += '<circle cx="' + sx(h[1] / h[2]).toFixed(1) + '" cy="' + Y + '" r="5" fill="var(--accent)" opacity="' + (0.12 + 0.1 * i).toFixed(2) + '"/>';
+    });
+    s += '<circle cx="' + sx(u / v).toFixed(1) + '" cy="' + Y + '" r="8" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>';
+    s += '<text x="' + sx(u / v).toFixed(1) + '" y="' + (Y - 14) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' + ink + '">u</text>';
+    $("h5d-svg").innerHTML = s;
+    var c = d[0], pips = c <= 40 ? " " + "●".repeat(c) : "";
+    $("h5d-state").innerHTML = "(c, u, v) = (" + c + ", " + H.fmt(u) + ", " + H.fmt(v) + ")   u/v = " + (u / v).toFixed(4) +
+      '   wrap-arounds left: <span style="color:var(--h5c)">' + c + pips + "</span>";
+    var ops = 0; for (var i = 0; i < log.length; i++) if (log[i][0] !== "h") ops++;
+    $("h5d-info").textContent = "operation " + (hist.length - 1);
+    $("h5d-log").innerHTML = log.slice(-60).map(function (l) { return "<div style=\"display:block\">" + l + "</div>"; }).join("");
+    var el = $("h5d-log"); el.scrollTop = el.scrollHeight;
+  }
+  $("h5d-one").addEventListener("click", function () { one(); show(); });
+  $("h5d-ten").addEventListener("click", function () { for (var i = 0; i < 10; i++) one(); show(); });
+  $("h5d-res").addEventListener("click", function () { for (var i = 0; i < 200000 && one(); i++); show(); });
+  $("h5d-back").addEventListener("click", function () { if (hist.length > 1) { hist.pop(); log.pop(); } show(); });
+  $("h5d-zero").addEventListener("click", reset0);
+  reset0();
+
+  // the scatter of u/v
+  var cv = $("h5p-cv"), tip = $("h5p-tip"), sel = $("h5p-n"), pts = [], geo = null;
+  function compute(N) {
+    pts = []; var d = [0, 2, 5];
+    for (var k = 0; k < N; k++) {
+      var r = H.op(d[0], d[1], d[2]);
+      pts.push([d[0], d[1], d[2], r ? r[3] : "halt"]);
+      if (!r) break;
+      d = r;
+    }
+  }
+  function plot() {
+    var N = +sel.value; if (pts.length !== N) compute(N);
+    var w = cv.clientWidth || 700, h = cv.clientHeight || 260, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 40, R = w - 10, T = 10, B = h - 26;
+    geo = { L: L, R: R, T: T, B: B, N: pts.length };
+    var X = function (k) { return L + (R - L) * (k + 0.5) / pts.length; }, Y = function (t) { return B - (B - T) * t; };
+    g.font = "11px " + H.css("--mono").split(",")[0]; g.fillStyle = H.css("--muted");
+    g.strokeStyle = H.css("--line"); g.lineWidth = 1;
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
+      g.beginPath(); g.moveTo(L, Y(t)); g.lineTo(R, Y(t)); g.stroke();
+      g.fillText(t === 0.5 ? "1/2" : String(t), 4, Y(t) + 4);
+    });
+    g.fillText("operation " + H.fmt(pts.length), R - 110, h - 6); g.fillText("0", L, h - 6);
+    g.strokeStyle = H.css("--open"); g.setLineDash([4, 3]); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(L, Y(0.5)); g.lineTo(R, Y(0.5)); g.stroke(); g.setLineDash([]);
+    var rad = pts.length <= 300 ? 3 : pts.length <= 3000 ? 1.6 : 1;
+    g.fillStyle = H.css("--accent"); g.globalAlpha = pts.length > 3000 ? 0.5 : 0.85;
+    pts.forEach(function (p, k) { g.beginPath(); g.arc(X(k), Y(p[1] / p[2]), rad, 0, 7); g.fill(); });
+    g.globalAlpha = 1; g.strokeStyle = H.css("--fg"); g.lineWidth = 1.5;
+    var nr = 0;
+    pts.forEach(function (p, k) { if (p[3] === "reset" || p[3] === "halt") { nr++; g.beginPath(); g.arc(X(k), Y(p[1] / p[2]), 6, 0, 7); g.stroke(); } });
+    $("h5p-cap").textContent = H.fmt(pts.length) + " operations from (0, 2, 5): " + nr + " resets (rings). The modulus has grown to v = " + H.fmt(pts[pts.length - 1][2]) + ".";
+  }
+  cv.addEventListener("mousemove", function (e) {
+    if (!geo) return;
+    var rc = cv.getBoundingClientRect(), x = e.clientX - rc.left;
+    var k = Math.round((x - geo.L) / (geo.R - geo.L) * geo.N - 0.5);
+    if (k < 0 || k >= pts.length) { tip.style.display = "none"; return; }
+    var p = pts[k];
+    tip.innerHTML = "operation " + k + ": (c, u, v) = (" + p[0] + ", " + p[1] + ", " + p[2] + "), u/v = " + (p[1] / p[2]).toFixed(3) + ", then " + (p[3] === "empty" ? "an emptying carry" : "a " + p[3]);
+    tip.style.display = "block";
+    var left = Math.min(Math.max(0, x + 12), rc.width - tip.offsetWidth);
+    tip.style.left = left + "px"; tip.style.top = "4px";
+  });
+  cv.addEventListener("mouseleave", function () { tip.style.display = "none"; });
+  sel.addEventListener("change", plot);
+  H.onTheme(plot);
+  plot();
+})();
+</script>

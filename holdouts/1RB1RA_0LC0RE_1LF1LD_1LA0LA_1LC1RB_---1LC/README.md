@@ -27,21 +27,21 @@ The run reaches S(0, 4, 1) at step 43.
 
 ## The same thing as a doubling map
 
-Put u = b + 1 and m = a/2 + b + 2. Then one operation (a doubling step or a carry) is (`py/model.py`, `op`):
+Put u = b + 1 and v = a/2 + b + 2. Then one operation (a doubling step or a carry) is (`py/model.py`, `op`):
 
-    2u < m           u ← 2u,      m ← m + 1                        a visit
-    2u > m, c ≥ 1    u ← 2u − m,  m ← m + 1,  c ← c − 1            carry
-    2u = m, c ≥ 1    u ← 1,       m ← m + 2,  c ← c − 1            carry that empties the fast wheel
-    2u > m, c = 0    c ← 2(m − u − 1),  u ← 2u − m,  m ← u + 3     reset
-    2u = m, c = 0    halt
+    2u < v           u ← 2u,      v ← v + 1                        a visit
+    2u > v, c ≥ 1    u ← 2u − v,  v ← v + 1,  c ← c − 1            carry
+    2u = v, c ≥ 1    u ← 1,       v ← v + 2,  c ← c − 1            carry that empties the fast wheel
+    2u > v, c = 0    c ← 2(v − u − 1),  u ← 2u − v,  v ← u + 3     reset
+    2u = v, c = 0    halt
 
-So the machine doubles u modulo m, the modulus grows by one at every operation, and the left block c only counts the
-wrap-arounds: c of them are allowed, and the next one is a reset. **It halts iff a reset happens with 2u = m
-exactly.** One conserved quantity: m + c = 5 + visits + resets + emptying carries, so m at a reset is the number of
+So the machine doubles u modulo v, the modulus grows by one at every operation, and the left block c only counts the
+wrap-arounds: c of them are allowed, and the next one is a reset. **It halts iff a reset happens with 2u = v
+exactly.** One conserved quantity: v + c = 5 + visits + resets + emptying carries, so v at a reset is the number of
 visits so far plus a small number (90 at reset 51).
 
-A reset finds 2u − m anywhere between 0 and m; the new left block is c = m − (2u − m) − 2, the new modulus 2u − m + 3,
-and the next reset comes about 2c operations later, at a modulus near m(3 − 2x), x = u/m ∈ [1/2, 1). The moduli at
+A reset finds 2u − v anywhere between 0 and v; the new left block is c = v − (2u − v) − 2, the new modulus 2u − v + 3,
+and the next reset comes about 2c operations later, at a modulus near v(3 − 2x), x = u/v ∈ [1/2, 1). The moduli at
 resets therefore grow by a factor between 1 and 2 (on average e^0.386 ≈ 1.47): reset k needs about 1.47^k
 operations, and this is why the reset count grows only logarithmically with the work (54 resets in 10^11 operations;
 thousands of resets are out of reach of any step-by-step method, and the doubling map with a moving modulus has no
@@ -52,14 +52,14 @@ known shortcut).
 `c/odo.c` is `op` in C. In 10^11 operations (50,000,165,924 visits) there are 54 resets and 42 emptying carries, and no
 halt; the last resets:
 
-    reset 50: m = 7,978,846,065    2u − m = 4,575,522,867     new left block 3,403,323,196
-    reset 51: m = 11,382,190,134   2u − m = 763,144,354       new left block 10,619,045,778
-    reset 52: m = 22,001,393,633   2u − m = 20,665,750,627    new left block 1,335,643,004
-    reset 53: m = 23,337,087,556   2u − m = 11,530,783,676    new left block 11,806,303,878
-    reset 54: m = 35,143,437,691   2u − m = 1,095,845,857     new left block 34,047,591,832
+    reset 50: v = 7,978,846,065    2u − v = 4,575,522,867     new left block 3,403,323,196
+    reset 51: v = 11,382,190,134   2u − v = 763,144,354       new left block 10,619,045,778
+    reset 52: v = 22,001,393,633   2u − v = 20,665,750,627    new left block 1,335,643,004
+    reset 53: v = 23,337,087,556   2u − v = 11,530,783,676    new left block 11,806,303,878
+    reset 54: v = 35,143,437,691   2u − v = 1,095,845,857     new left block 34,047,591,832
 
-The smallest (2u − m)/m at a reset so far is 0.028 (reset 11: m = 677, 2u − m = 19); a halt needs 0. The tape is then
-about 6·10^10 cells long; a visit costs of the order of m² machine steps, so the run is far beyond 10^30 steps
+The smallest (2u − v)/v at a reset so far is 0.028 (reset 11: v = 677, 2u − v = 19); a halt needs 0. The tape is then
+about 6·10^10 cells long; a visit costs of the order of v² machine steps, so the run is far beyond 10^30 steps
 (an estimate; the simulator does not count steps).
 
 ## Status
@@ -69,7 +69,7 @@ about 6·10^10 cells long; a visit costs of the order of m² machine steps, so t
 
       HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none
 
-  where `op` is exactly the five-line map above on (c, u, m). Nothing about the run is assumed; the axioms are
+  where `op` is exactly the five-line map above on (c, u, v). Nothing about the run is assumed; the axioms are
   `propext`, `Classical.choice`, `Quot.sound`. The proof has two layers:
   * `lean/Map.lean`, `halts_iff`: the machine halts iff the orbit of the visit S(0, 4, 1) (step 43) under the visit
     map `F` reaches `none`. `F` is the sweep of the odometer with its rounds, carries and resets, as a structural
@@ -88,47 +88,51 @@ about 6·10^10 cells long; a visit costs of the order of m² machine steps, so t
 * Trusted: `c/odo.c` prints the same first 50,000 visits as `py/model.py`, and the same resets as
   `py/model.py resets` (reset 38: left block 44,140,926); 10^11 operations, 54 resets, no halt.
 * Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
-* Heuristic: at a reset 2u − m is one of about m/2 values and one of them halts; the moduli at resets grow
-  geometrically, so the chance of a halt after reset 54 is about 6/m ≈ 10^-10.
-* Open: whether a reset ever hits 2u = m (that is b = a/2). There is no congruence obstruction: the halting state
-  (u, m) = (m/2, m) has predecessors under the map for every even m, and the state after a reset is not constrained
-  beyond m = u + 3.
+* Heuristic: at a reset 2u − v is one of about v/2 values and one of them halts; the moduli at resets grow
+  geometrically, so the chance of a halt after reset 54 is about 6/v ≈ 10^-10.
+* Open: whether a reset ever hits 2u = v (that is b = a/2). There is no congruence obstruction: the halting state
+  (u, v) = (v/2, v) has predecessors under the map for every even v, and the state after a reset is not constrained
+  beyond v = u + 3.
 
 ## Structure of the map (round 11)
 
 What the map does not allow one to say, and why. None of this is a proof of non-halting.
 
-* **Every lap starts at the same place.** A reset sets m = (2u − m) + 3 and u = 2u − m, so every lap begins at
-  u = m − 3, and its left block c and modulus m satisfy c + m = M + 1, where M is the modulus at the reset. A lap is a
-  function of its starting modulus alone: the orbit of (m − 3, m) under the doubling map. The halting question is a
-  question about a two-dimensional map (m, c) ↦ (m', c') on laps: the lap halts iff the (c + 1)-th wrap-around of the
-  orbit of (m − 3, m) is exact (2u = m).
+* **Every lap starts at the same place.** A reset sets v = (2u − v) + 3 and u = 2u − v, so every lap begins at
+  u = v − 3, and its left block c and modulus v satisfy c + v = V + 1, where V is the modulus at the reset. A lap is a
+  function of its starting modulus alone: the orbit of (v − 3, v) under the doubling map. The halting question is a
+  question about a two-dimensional map (v, c) ↦ (v', c') on laps: the lap halts iff the (c + 1)-th wrap-around of the
+  orbit of (v − 3, v) is exact (2u = v).
 * **The wrap-arounds are binary digits.** Between two exact hits, u_s / 2^s − u_(s+1) / 2^(s+1) = ε_s m_s / 2^(s+1)
   with ε_s = 1 at a wrap-around and m_s = m_0 + s, so u_0 = Σ ε_s (m_0 + s) / 2^(s+1). Writing x = 0.ε_0 ε_1 ε_2 … in
   binary, u_0 = m_0 x + Σ_j ε_j j / 2^(j+1), so |m_0 x − u_0| ≤ 1: the pattern of carries is the binary expansion of
   a real number within 1/m_0 of u_0 / m_0, and an exact hit at operation n means that the expansion from position n
-  starts with a 1 followed by about log₂ m zeros, to the exact integer. Deciding the machine is deciding where an
+  starts with a 1 followed by about log₂ v zeros, to the exact integer. Deciding the machine is deciding where an
   explicit, implicitly defined binary expansion has such patterns: a normality-type question with no known method.
-* **No congruence can exclude the halt.** Going backward one operation from (u, m): if m is even there is exactly
-  one predecessor (u/2 if u is even, (u + m − 1)/2 if u is odd); if m is odd there are two when u is even and none
+* **No congruence can exclude the halt.** Going backward one operation from (u, v): if v is even there is exactly
+  one predecessor (u/2 if u is even, (u + v − 1)/2 if u is odd); if v is odd there are two when u is even and none
   when u is odd. So the backward tree of the halting states is a critical branching process (one predecessor on
-  average), and the set of states that halt within a lap has density of order 1/m. This is the heuristic of the next
-  bullet, now with a reason. It also leaves no room for an invariant modulo a power of 2: every class of (u, m, c)
-  modulo 4 (64 classes) contains a halting state with m ≤ 16, and every class modulo 8 (512) one with m ≤ 85
+  average), and the set of states that halt within a lap has density of order 1/v. This is the heuristic of the next
+  bullet, now with a reason. It also leaves no room for an invariant modulo a power of 2: every class of (u, v, c)
+  modulo 4 (64 classes) contains a halting state with v ≤ 16, and every class modulo 8 (512) one with v ≤ 85
   (search with unlimited credit, halting meaning an exact hit at the (c + 1)-th wrap-around).
-* **The chance of a halt.** At a reset the modulus is M and 2u − M is spread over about M/2 values, one of which halts;
-  M grows by about 1.47 per lap, so the remaining chance after lap 54 is about 2/(M (1 − 1/1.47)) ≈ 6/M ≈ 2·10^-10.
+* **The chance of a halt.** At a reset the modulus is V and 2u − V is spread over about V/2 values, one of which halts;
+  V grows by about 1.47 per lap, so the remaining chance after lap 54 is about 2/(V (1 − 1/1.47)) ≈ 6/V ≈ 2·10^-10.
 
 ## Next steps
 
-* A faster map: k operations at once are u ← 2^k u − Q m − R with Q = ⌊2^k u / m⌋ and R a table lookup in the bits of
-  Q, valid when 2^k u mod m ≥ k·2^k (no intermediate value near 0) and at least popcount(Q) carries are left; with
+* A faster map: k operations at once are u ← 2^k u − Q v − R with Q = ⌊2^k u / v⌋ and R a table lookup in the bits of
+  Q, valid when 2^k u mod v ≥ k·2^k (no intermediate value near 0) and at least popcount(Q) carries are left; with
   k ≈ 24 this is about ten times faster, worth about six more resets. It does not change the picture.
 
 ## Pages
 
 - [`pages/holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/explainer.html`](../../pages/holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/explainer.html)
 - [`pages/holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/proof-status.html`](../../pages/holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/proof-status.html)
+
+The explainer's hand-written sections are `page/*.html`: one interactive picture per level of description (the tape
+at its visits, the odometer, the doubling map, the laps) and the final definition. `python3 py/page.py` copies them
+into `status.json`; `python3 holdouts/build_pages.py` then rebuilds the pages.
 
 ## Check
 
