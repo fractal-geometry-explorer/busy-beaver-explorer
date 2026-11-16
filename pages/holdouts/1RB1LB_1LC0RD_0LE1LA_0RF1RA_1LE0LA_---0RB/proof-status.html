@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The left side is a string of the words 110 and 111 (runs of 1s of length 2 mod 3 separated by single 0s), completely rewritten by each sweep and one or two cells longer after it. Lean proves the ten shift rules over 3-cell words that the sweeps use; the rewriting rule as a whole is not decoded.</p>
+      <p><b>The question is open.</b> The sweep rule is now decoded: writing x = 111 and y = 110, one right sweep and one left sweep over a clean word string replace each word by the XOR of it and its right neighbour (x = 0, y = 1), the linear cellular automaton known as rule 102, checked exhaustively for every string up to 16 words. Every word string is therefore possible in the bulk, and halting depends only on the defects (alignment walls) that the small structure at the right end emits. No closed tape language has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -152,6 +152,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 15, history 1 up to width 20, history 2 up to width 20, history 3 up to width 20, LRU history up to width 6 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 16, p = 3 up to width 16, p = 4 up to width 16, p = 6 up to width 16. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.</p>
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
       </div>
+      <div class="card">
+        <h3>One sweep pair is the XOR rule</h3>
+        <p>Write x = 111 and y = 110. For every word string w over {x, y} ending in y, up to 16 words (65,535 strings): started in B on its first cell the machine sweeps right without turning, rewriting each run 1<sup>m</sup>0 as 0<sup>m−1</sup>11; started in C at the end of that it sweeps left without turning; the result is the word string v with v<sub>i</sub> = w<sub>i</sub> xor w<sub>i+1</sub> (x = 0, y = 1), last word x. This is the linear rule 102 cellular automaton, so every word string can occur and the left string looks random.</p>
+        <p class="where"><code>py/xor_epoch.py</code>, exhaustive per length, run with the machine's own table</p>
+      </div>
+      <div class="card">
+        <h3>Closed tape language searches (16 November 2026)</h3>
+        <p>None closes; each reaches a halting configuration in its abstraction or runs out of budget. Abstract regular model checking over whole-tape automata, merging states by k-step Moore equivalence (forward, reversed, both), k = 1..6, forward from blank and backward from F reading 0. Run-length windows with lengths mod 3 (the F11 sweep tried M = 1, 2, 4 only): K = 2..16 nearest runs with exact lengths below 3 halt; exact lengths up to 4..8, or runs near the blank ends kept exact, exceed 5 to 30 million abstract configurations. The reason found: the bulk is a full shift (any word string), so windows of K runs grow like 2<sup>K</sup>, while the right end needs exact lengths.</p>
+        <p class="where"><code>c/rlwin.cpp</code> (run-length windows); the model-checking scripts are in the project folder <code>ctl-696/tools</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -164,6 +174,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The string is rewritten every sweep</h3>
         <p>At successive visits of the head to the left end (steps 2,918,884 … 2,994,219) the left string is different each time, not shifted copies of one another, and the visited width grows by one or two cells per visit (2,366 → 2,395 in 29 visits). Read as words of 3 cells it is a string over 110 and 111.</p>
         <p class="where"><code>/home/user/w/bin/ev M 3e6 A L a=110</code></p>
+      </div>
+      <div class="card">
+        <h3>Defects are walls emitted at the right end</h3>
+        <p>Where the word alignment shifts (a run of 1s of length 0 or 1 mod 3, or a double 0) there is a wall between two XOR domains. A single wall survives each epoch and cycles z2 → 1<sup>3k</sup> → 1<sup>3k−3</sup> → … → 1<sup>3</sup> → z2, drifting left. A right sweep stops at the first double-0 wall (B reads 0), so walls act like digits of a counter. Walls are created by a 5-phase cycle at the right end, which grows by 2 cells per cycle. A halt needs the token parser (state B) at <code>1 0 0</code>: a single 1 (seen only within about 30 runs of the right end) followed by 110 words and then a double 0; it was not seen in 3·10<sup>8</sup> steps.</p>
+        <p class="where">simulation, 16 November 2026 (project folder <code>ctl-696/NOTES.md</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
