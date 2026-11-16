@@ -53,6 +53,18 @@ RULES = [
      'Pool and left block empty: the middle block becomes the left block `(10)^(2n+2)`, the pool is `1^2`.'),
     ('halt_run', '0^inf A> 1 0 1 (1111)^n 0 1 1 1 1 0^inf', '0^inf F> 0 1 1 1 1 1 1 1 (1111)^n 1 1 1 1 1 0^inf',
      'Pool, left block and right block empty: the run reaches F on a 0, the tape all 1s.'),
+    ('start_g', 'L 1 1 0 (10)^n 1 0 1 B> 0^inf', 'L A> 1 0 1 0 1 (01)^n 1 1 1 0^inf',
+     '`S(c, a, n+1)` to `R(a-2, 1, n)` for every pool `a >= 2` (the pool\'s last two 1s are used up).'),
+    ('final_g', 'L 1 1 A> 1 0 1 (1111)^n 0 1 1 1 1 0^inf', 'L 1 1 (0101)^n 0 1 0 1 0 1 0 1 B> 0^inf',
+     '`R(x, 4n+1, 0)` to the visit `S(c, x, 2n+3)` for every pool `x >= 2`.'),
+    ('carry_z2', 'L 1 0 A> 1 0 1 (1111)^n 0 1 0 1 0 1 1 1 1 0^inf', 'L (1111)^n 1 1 1 1 1 1 0 1 0 1 0 1 0 1 B> 0^inf',
+     'Pool empty, two pairs of the right block left: a carry and then the visit `S(c-1, 4n+6, 3)`.'),
+    ('carry_z1', 'L 1 0 A> 1 0 1 (1111)^n 0 1 0 1 1 1 1 0^inf', 'L (1111)^n 1 1 1 1 1 1 1 1 0 1 0 1 B> 0^inf',
+     'Pool empty, one pair of the right block left: a carry and then the visit `S(c-1, 4n+8, 1)`.'),
+    ('carry_z0', 'L 1 0 A> 1 0 1 (1111)^n 0 1 1 1 1 0^inf', 'L (1111)^n 1 1 1 1 1 1 1 1 0 1 0 1 B> 0^inf',
+     'Pool and right block empty together (the emptying carry): the visit `S(c-1, 4n+8, 1)`.'),
+    ('reset_z1', '0^inf A> 1 0 1 (1111)^n 0 1 0 1 1 1 1 0^inf', '0^inf (1010)^n 1 0 1 0 1 1 1 1 0 1 0 1 B> 0^inf',
+     'Pool and left block empty, one pair of the right block left: a reset and then the visit `S(2n+2, 4, 1)`.'),
 ]
 
 EXTRA = """/-- `R(0, 4n+1, 0)` on blank tape halts, for every n: the reset that finds the right block used up exactly. -/

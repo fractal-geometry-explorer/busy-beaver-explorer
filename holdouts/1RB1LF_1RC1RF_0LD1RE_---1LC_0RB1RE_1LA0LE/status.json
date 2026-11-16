@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its right end is a pool of 1s that pays for a doubling block of pairs. The complete map from one right-end visit to the next is now known: for an even pool it is a doubling map, u ↦ 2u modulo m, whose modulus m grows by one at every doubling that does not wrap. The machine can halt only when a doubling lands exactly on m at one of the special moduli 2<sup>k+1</sup> − k."
  ],
- "asof": "Status as of 15 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At every right-end visit in state B the tape is <code>T(c, a, b) = [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. With an even pool a, and u = b + 2, m = a/2 + b + 3, the next visit is T(c, a − 2b − 2, 2b + 2) when 2u &lt; m (u doubles, m grows by one); when 2u &gt; m a carry replaces u by 2u − m; when 2u = m the pool becomes odd: T(c, 2m − 3, 0). An odd pool is doubled down until it cannot pay, then leaves a bracket behind or swallows the one that is there. The only halting visits are T(none, 1, b), reached exactly from odd pools A = 2<sup>k+2</sup> − 2k − 3 without a bracket.",
+  "<b>The question is open.</b> At every right-end visit in state B the tape is <code>T(c, a, b) = [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. With an even pool a, and u = b + 2, m = a/2 + b + 3, the next visit is T(c, a − 2b − 2, 2b + 2) when 2u &lt; m (u doubles, m grows by one); when 2u &gt; m a carry replaces u by 2u − m; when 2u = m the pool becomes odd: T(c, 2m − 3, 0). An odd pool is doubled down until it cannot pay, then leaves a bracket behind or swallows the one that is there. The only halting visits are T(none, 1, b), reached exactly from odd pools A = 2<sup>k+2</sup> − 2k − 3 without a bracket. The machine halts iff this right-end map reaches T(none, 1, b): a theorem checked by Lean's kernel.",
   "<b>How far it has been followed.</b> The exact map (<code>c/fast.c</code>) was run for 10<sup>11</sup> operations: 50,000,005,600 right-end visits, of the order of 10<sup>31</sup> machine steps, 35 odd pools, 18 of them without a bracket, none of them a halting one (the closest: 989 against 1005). A later halt needs an exact hit at a modulus beyond 2<sup>37</sup>; heuristically that has probability about 10<sup>−11</sup>. Halting configurations of the same form exist (T(none, 12, 19) halts after five visits), so there is no parity or congruence argument; the map is a chaotic doubling map and no proof is in sight."
  ],
  "claims": [
@@ -42,8 +42,14 @@
   },
   {
    "level": "kernel",
+   "title": "It halts iff the right-end map reaches T(none, 1, b)",
+   "text": "The map <code>F</code> on nodes (the visits T(c, a, b), and the fresh sweep that a pool of one starts at w = 1) is proved move by move on the tape: rounds, the end of a sweep, carries, the even and odd events, the bracket an odd pool leaves behind, the merge of a pool of three into the bracket, each with its short cases. Then: the machine halts from blank tape iff the orbit of T(none, 2, 0) (step 7) under <code>F</code> reaches a visit T(none, 1, b). Evaluated: the first 100 nodes (kernel) and 10<sup>4</sup> (<code>native_decide</code>) do not halt.",
+   "where": "<code>halts_iff</code>, <code>halts_iff_T1</code>, <code>F_sem</code>, <code>orbit_kernel</code>, <code>orbit_native</code>, <code>lean/Map.lean</code>"
+  },
+  {
+   "level": "kernel",
    "title": "The building blocks of the map, for all parameters",
-   "text": "Each move of the map between two visits is a Lean theorem about every value of its counts and every tape in its context: the start of a sweep, a round (two 1s of the pool and one pair of the tail become four 1s of the middle block), the end of a sweep (the middle block becomes the doubled pair block), the carry (the middle block becomes the pool), the two events where pool and tail run out together (one makes the pool odd), the birth of a bracket and its merge. They are not yet assembled into one statement of the whole map.",
+   "text": "Each move of the map between two visits is a Lean theorem about every value of its counts and every tape in its context: the start of a sweep, a round (two 1s of the pool and one pair of the tail become four 1s of the middle block), the end of a sweep (the middle block becomes the doubled pair block), the carry (the middle block becomes the pool), the two events where pool and tail run out together (one makes the pool odd), the birth of a bracket and its merge. They are not yet assembled into one statement of the whole map. Fifteen more rules in the forms the assembly uses (pools of one, two and three, the short tails, the bracket and merge cases) are generated the same way.",
    "where": "<code>start</code>, <code>round</code>, <code>round_last</code>, <code>round_w1</code>, <code>final</code>, <code>carry</code>, <code>event_odd</code>, <code>event_even</code>, <code>bracket</code>, <code>merge</code>, <code>unwind</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)"
   },
   {
@@ -81,6 +87,12 @@
    "title": "A later halt is very unlikely",
    "text": "The map spends about two operations at each modulus m and each hits 2u = m with chance about 1/m, so the target m = 2<sup>k+1</sup> − k is hit with chance about 2<sup>−k</sup>; the targets still ahead start at k = 36, about 10<sup>−11</sup> in total. The modulus is not monotone (merges and new brackets move it), so this is an estimate.",
    "where": ""
+  },
+  {
+   "level": "heuristic",
+   "title": "Why no congruence helps",
+   "text": "With D = m − u, an event at modulus m needs D = m/2<sup>i</sup> on arrival with 2<sup>i</sup> dividing m, so every event after the first has 4 | m, and a target m = 2<sup>k+1</sup> − k needs i ≤ v<sub>2</sub>(k). Backwards a state (D, m) has two predecessors, one or none according to the parities of D and m, one on average: a critical branching process, so the states that reach a target thin out like 1/m without any residue class being excluded.",
+   "where": "README, Status"
   },
   {
    "level": "open",
@@ -151,5 +163,5 @@
  },
  "family": "doubling map with a growing modulus (odd-pool events)",
  "decision": "open",
- "summary": "Its right-end map is now exact: a pool/pair-block pair that doubles u modulo a slowly growing m; when 2u = m the pool turns odd, and it halts iff that happens without a bracket at m = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open."
+ "summary": "Its right-end map is proved in Lean (kernel: halts iff the map reaches T(none, 1, b)): a pool/pair-block pair that doubles u modulo a slowly growing m; when 2u = m the pool turns odd, and it halts iff that happens without a bracket at m = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open."
 }
