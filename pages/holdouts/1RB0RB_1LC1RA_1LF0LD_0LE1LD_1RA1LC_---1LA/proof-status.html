@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). The last pass to reach the left end did so at step 143,858,957 and did not halt; none has come within 65 cells of it since, in a reduced system followed to trigger 1,073,741,824.</p>
+      <p><b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). The last pass to reach the left end did so at step 143,858,957 and did not halt; none has come within 65 cells of it since, in a reduced system followed to trigger 1,073,741,824. Separately, Lean reduces the question exactly: an exact pass-by-pass macro machine on the tape read in pairs (<code>11</code>/<code>01</code>) is proved sound for all words, and the machine halts from blank tape <i>iff</i> this macro orbit halts (<code>halts_iff</code>, <code>lean/Reduce.lean</code>); running the orbit with <code>native_decide</code> gives no halt in the first 4&middot;10<sup>8</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The pass crosses n words <code>111110</code> in 6n steps, in the same state, turning each into <code>1110 10</code>; the sweep back turns them into <code>111110</code> again. For every n and every surrounding tape.</p>
         <p class="where"><code>cross_left</code>, <code>cross_right</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The pass machine</h3>
+        <p>A turn configuration <code>RT out rest</code> (C on a pair <code>11</code>, the pairs <code>out</code> to its left, the cells <code>rest</code> to its right). One macro step <code>mstep</code>: a left pass over the pairs (<code>scanF</code>: skip <code>11</code>; after a <code>01</code>, a <code>11</code> becomes <code>01</code> and the pass goes on, a <code>01</code> becomes <code>11</code> and the head turns), the three ways of running off the left end (E0 = <code>1RA</code> adds a pair <code>01</code> with a blank first cell), and a right pass over the cells (<code>apass</code>: <code>a1 &rarr; (&not;a)1</code>, <code>10</code> bounces, <code>00</code> ends). <code>mstep_sound</code>: for all lists, the machine goes from <code>RT out rest</code> to the configuration <code>mstep</code> names in exactly the steps it names, or halts there.</p>
+        <p class="where"><code>scanF_sound</code>, <code>apass_sound</code>, <code>mstep_sound</code>, <code>lean/Sweep.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting is exactly a question about the orbit</h3>
+        <p><code>orbT k</code>: the k-th turn configuration from blank tape with its step count (<code>orbT_sound</code>). <code>halts_iff</code>: the machine halts from blank tape if and only if some macro step of the orbit halts.</p>
+        <p class="where"><code>orbT_sound</code>, <code>halts_iff</code>, <code>lean/Reduce.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -143,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 4&middot;10<sup>8</sup> steps</h3>
+        <p>The first 20,000 macro steps of the orbit, evaluated by compiled code: no halt, more than 4&middot;10<sup>8</sup> machine steps (through the first six resets of the left end).</p>
+        <p class="where"><code>orbit_runs</code>, <code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
