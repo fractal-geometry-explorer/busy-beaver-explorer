@@ -16,6 +16,9 @@ bbchallenge id 172044, one of the six-state holdouts (group G07).
 **It halts.** Proved in Lean: `halts : HaltsFromBlank` in `lean/Halt.lean`. The proof is a run-length simulator
 with closed-form jumps, proved correct for every configuration (kernel), and one evaluation of it from blank tape
 to the halting transition by `native_decide` (so the theorem trusts Lean's compiler besides the kernel).
+Also proved in Coq on busycoq's definitions: `halts_172044 : halts tm c0` in `coq/`, the same method with two more
+block rules, and its evaluation done by Coq's kernel virtual machine (`vm_compute`) in under 3 minutes, so that
+proof does not rest on a compiler.
 
 The number of steps is
 
@@ -90,6 +93,23 @@ and how many visits it jumps) are not trusted: whatever it does is covered by `m
 transitions, 13.4 million runs crossed, 6.7 million copies unpacked, 86,734 jumps) and about 6 minutes of CPU.
 `py/leansim.py` is the same algorithm in Python with step counts.
 
+## The Coq proof
+
+`coq/M_1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_HHH1LE.v` proves `halts_172044 : halts tm c0` on the definitions of
+busycoq's BB6 branch (`TM.v`, `BB62.v`, `Individual62.v`), with no axioms (`Print Assumptions`: closed under the
+global context). It is a port of the Lean proof (the visit rule, the closed-form jump, a run-length simulator
+proved sound, one evaluation from blank tape), with one speed-up: two **block rules** that take a whole counter
+level in one round. In the overflow visits, which are 99% of the Lean simulator's rounds, the head walks left in
+state D across `1 0 (011)^k 1` and comes back in state C across `(100)^m 1 0 1 1 0`; the rules
+
+    D leftwards:  1 0 (011)^k 1 Y   ->  1 Y, with (100)^(k-1) 1 0 1 1 0 behind     (5 + 3(k-1) steps)
+    C rightwards: (100)^m 1 0 1 1 0 ->  1 1 (011)^(m+1) behind                       (5 + 3m steps)
+
+are proved for every k, m and tape, and bring the run from 88.9 to 19.0 million rounds. The evaluation is
+`vm_compute`, checked by Coq's kernel, about 160 seconds (Lean's compiled run takes about 6 minutes).
+`py/coqsim.py` is the same algorithm in Python with step counts; it ends at the same step count. See
+`coq/README.md`.
+
 ## How the step count was obtained and checked
 
 `py/accel.py` alternates jumps (the closed form above, only when every count stays above a margin and the bits do not
@@ -113,6 +133,7 @@ the same step count.
 
 ## Status
 
+- **Coq, kernel (`vm_compute`):** the machine halts from blank tape (`halts_172044`, `coq/`).
 - **Lean, `native_decide`:** the machine halts from blank tape (`halts`, `lean/Halt.lean`).
 - **Lean, kernel:** the visit rule for every zone (`visit`), V visits at once (`jump`), the soundness of the
   simulator (`mstep_sound`, `run_sound`); `lean/Blank.lean` (the halting configurations; no halt in 10^4 steps).
@@ -124,6 +145,8 @@ the same step count.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/lean/check.sh    # 10 minutes; prints the axioms
+sh holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/coq/build.sh /path/to/busycoq   # Coq 8.18, busycoq's BB6 branch; 3 min
+python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/coqsim.py        # the Coq simulator's twin, 1 min
 python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/accel.py         # the run to the halt with step count, 2.5 min
 python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/leansim.py       # the Lean simulator's twin, 3 min
 python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/check.py quick   # checks 1-4, 15 s

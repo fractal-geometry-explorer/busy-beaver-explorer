@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/status.json",
  "intro": [
-  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. It halts: Lean proves it, with a simulator that is proved correct and then evaluated from blank tape to the halting transition. This page lists what has been established, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. It halts: Lean and Coq each prove it, with a simulator that is proved correct and then evaluated from blank tape to the halting transition. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 14 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>It halts.</b> Proved in Lean (<code>halts</code>, <code>lean/Halt.lean</code>): a run-length simulator with closed-form jumps is proved to follow the machine (kernel), and its run from blank tape reaches the halting transition (<code>native_decide</code>, which trusts Lean's compiler). The number of steps, <code style=\"word-break:break-all\">853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589683</code> (about 8.53&middot;10<sup>131</sup>), is a computed result on which three separately written simulators agree. The tape is a binary odometer whose digits are counters of the word 011; each counter is a fuel tank that loses a unit every 2<sup>j</sup> visits of the right end. After 9.6&middot;10<sup>65</sup> visits the odometer is the whole tape, 2.9&middot;10<sup>66</sup> cells, every bit is 1, and the carry falls off the left end."
+  "<b>It halts.</b> Proved in Lean (<code>halts</code>, <code>lean/Halt.lean</code>): a run-length simulator with closed-form jumps is proved to follow the machine (kernel), and its run from blank tape reaches the halting transition (<code>native_decide</code>, which trusts Lean's compiler). It is also proved in Coq on busycoq's definitions (<code>halts_172044</code>, <code>coq/</code>), where the evaluation is done by the kernel's virtual machine, so that proof does not trust a compiler. The number of steps, <code style=\"word-break:break-all\">853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589683</code> (about 8.53&middot;10<sup>131</sup>), is a computed result on which three separately written simulators agree. The tape is a binary odometer whose digits are counters of the word 011; each counter is a fuel tank that loses a unit every 2<sup>j</sup> visits of the right end. After 9.6&middot;10<sup>65</sup> visits the odometer is the whole tape, 2.9&middot;10<sup>66</sup> cells, every bit is 1, and the carry falls off the left end."
  ],
  "claims": [
   {
@@ -32,6 +32,12 @@
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The machine halts: a second proof, in Coq (busycoq)",
+   "text": "<code>halts_172044 : halts tm c0</code> on the definitions of busycoq's BB6 branch, with no axioms. The same method as the Lean proof (the visit rule and the closed-form jump, proved for every zone; a run-length simulator proved to follow the machine) plus two block rules that cross a whole counter level in one round (D leftwards over <code>1 0 (011)<sup>k</sup> 1</code>, C rightwards over <code>(100)<sup>m</sup> 1 0 1 1 0</code>, proved for every k, m). They bring the run from 88.9 to 19.0 million rounds. The run from blank tape to F0 is evaluated by <code>vm_compute</code>, which the kernel checks: about 160 seconds.",
+   "where": "<code>halts_172044</code>, <code>run_halts</code>, <code>coq/M_1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_HHH1LE.v</code>"
   },
   {
    "level": "native",
@@ -91,18 +97,20 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/lean/check.sh          # about 10 minutes; prints the axioms of visit, jump, run_sound, halts",
+  "sh holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/coq/build.sh /path/to/busycoq     # Coq 8.18, busycoq's BB6 branch; about 3 minutes; prints the axioms",
   "python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/accel.py          # the run to the halt with its step count, about 2.5 minutes",
+  "python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/coqsim.py        # the Coq simulator's algorithm in Python, about 1 minute",
   "python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/leansim.py        # the Lean simulator's algorithm in Python, about 3 minutes",
   "python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/check.py quick    # the checks of the Python simulators, 15 s (full: 5 min)"
  ],
  "explainer": {
   "title": "This machine halts, after 8.5&middot;10<sup>131</sup> steps",
-  "lede": "Lean proves that it halts: a simulator that is proved to follow the machine runs it from blank tape to its halting transition. The machine keeps a binary odometer on its tape whose digits are fuel tanks; the tanks drain exponentially slowly, the odometer grows to 215 digits, and one day the carry runs off the left end of the tape. The simulator below runs the real machine, but it would need far longer than the age of the universe to get there.",
+  "lede": "Lean and Coq both prove that it halts: a simulator that is proved to follow the machine runs it from blank tape to its halting transition. The machine keeps a binary odometer on its tape whose digits are fuel tanks; the tanks drain exponentially slowly, the odometer grows to 215 digits, and one day the carry runs off the left end of the tape. The simulator below runs the real machine, but it would need far longer than the age of the universe to get there.",
   "facts": [
    {
-    "level": "native",
+    "level": "kernel",
     "value": "It halts",
-    "text": "Proved in Lean; one evaluation trusts the compiler."
+    "text": "Proved in Coq, checked by the kernel; also in Lean."
    },
    {
     "level": "trusted",
@@ -173,9 +181,10 @@
    {
     "id": "trust",
     "eyebrow": "How sure is this",
-    "heading": "Proved in Lean, with a computed step count",
+    "heading": "Proved in Coq and in Lean, with a computed step count",
     "html": [
      "<p>The halt is a theorem checked by Lean. The proof has two parts. First, a small simulator written inside Lean is proved to follow the machine, whatever the tape: it keeps the tape compressed (a run of a million copies of <code>011</code> is one item), crosses a whole run when one copy is crossed in the same state, and at each visit may apply the odometer rule for many visits at once. That rule, and its formula for V visits, are proved for every odometer size. Second, Lean runs this simulator from blank tape: after about 89 million rounds it meets the halting transition. This last step is a compiled evaluation (<code>native_decide</code>), so it trusts Lean's compiler; everything else is checked by the kernel.</p>",
+     "<p>The same proof is also written in Coq, on the definitions of busycoq, the library in which the bbchallenge results are proved. There the run is evaluated by Coq's kernel virtual machine (<code>vm_compute</code>), so the Coq theorem does not trust a compiler. It is also faster, thanks to two more rules. When the odometer overflows, the head walks across every counter and back, and that walk is almost all of the work: 99% of the Lean simulator's rounds. A counter level looks like <code>1 0 (011)<sup>k</sup> 1</code> on the way left and <code>(100)<sup>m</sup> 1 0 1 1 0</code> on the way back; the two rules cross such a level in one round, whatever k and m are, and are proved for every k and m. With them the run is 19 million rounds instead of 89 million, and takes under 3 minutes.</p>",
      "<p>The proof shows that the machine halts, not after how many steps. The step count comes from Python programs in the repository: three simulators written separately, tested against a plain cell-by-cell simulator, give the same 132-digit number.</p>"
     ]
    },
@@ -191,7 +200,7 @@
   ]
  },
  "family": "binary odometer of fuel tanks with an irregular left end",
- "summary": "Halts (Lean proof: a verified run-length simulator with closed-form jumps, evaluated by native_decide) after about 8.53·10^131 steps (exact count by trusted computation): a binary odometer whose digits are counters (011)^n that run down, until the carry falls off the left end of a tape of 2.9·10^66 cells.",
+ "summary": "Halts (Coq proof on busycoq's definitions, evaluated by vm_compute, and a Lean proof evaluated by native_decide: a verified run-length simulator with closed-form jumps) after about 8.53·10^131 steps (exact count by trusted computation): a binary odometer whose digits are counters (011)^n that run down, until the carry falls off the left end of a tape of 2.9·10^66 cells.",
  "decision": "halts",
- "decision_level": "native"
+ "decision_level": "kernel"
 }
