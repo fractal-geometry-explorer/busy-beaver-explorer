@@ -1,0 +1,457 @@
+<style>
+:root{--q7b:#2a78d6;--q7x:#1baf7a;--q7w:#eda100;--q7b2:#cde2fb;--q7x2:#c9efe0;--q7w2:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--q7b:#3987e5;--q7x:#199e70;--q7w:#c98500;--q7b2:#1b3354;--q7x2:#123a2b;--q7w2:#3d2c08} }
+:root[data-theme="dark"]{--q7b:#3987e5;--q7x:#199e70;--q7w:#c98500;--q7b2:#1b3354;--q7x2:#123a2b;--q7w2:#3d2c08}
+.q7-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:22px 0}
+.q7-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.q7-lv:hover{border-color:var(--accent)}
+.q7-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.q7-lv .t{display:block;font:700 1.08rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.q7-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.q7-lv .small{display:block;margin:3px 0 6px}
+.q7-lv .ev{margin-top:4px}
+.q7-lv.side{border-style:dashed}
+.q7-row{display:grid;grid-template-columns:9em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.q7-row:first-child{border-top:0}
+.q7-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.q7-row>div{min-width:0;overflow-wrap:anywhere}
+@media (max-width:560px){.q7-row{grid-template-columns:minmax(0,1fr)}}
+.q7-map{display:block;width:100%;height:46px;margin-top:6px}
+.q7-strip{display:block;width:100%;height:58px;margin-top:4px}
+.q7-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.q7-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.q7-ok{color:var(--kernel);font-weight:600}
+.q7-bad{color:var(--open);font-weight:600}
+.q7-slider{flex:1 1 200px;min-width:140px;accent-color:var(--accent)}
+.q7-num{font:500 .9rem var(--mono);color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:.4em .6em;width:6.5em}
+.q7-busy{color:var(--muted);font-style:italic}
+.q7-mono{font-family:var(--mono);font-size:.84rem;overflow-wrap:anywhere}
+.q7-tw{overflow-x:auto}
+@media (max-width:420px){#q7e-cells .cell{width:17px;flex:0 0 17px;height:26px}}
+</style>
+<div class="col">
+<p>"Does this machine halt?" can be asked at five levels of description. Each level keeps less detail than the one
+above it and counts time in bigger units, and each step down the ladder is a theorem in Lean saying that the answer
+does not change. The machine itself is level 1. Level 2 cuts the tape into blocks of 16 cells and moves a block at a
+time; that is how Lean checks the first 16,730,681,219 steps. From there on the tape has a fixed form, <code>C k</code>,
+and three more levels describe it: the five pieces of a period, the period itself, and finally just the number k,
+which goes up by one every period, for ever.</p>
+</div>
+<div class="q7-ladder">
+ <a class="q7-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <span class="u">Six states, a tape of 0s and 1s. One unit of time is one <b>step</b>. It can only stop on F reading 1.</span>
+  <span class="ev k">Kernel</span><span class="small">where it halts: <code>step_none_iff</code></span></a>
+ <a class="q7-lv" href="#blocks"><span class="n">Level 2</span><b class="t">Blocks of 16 cells</b>
+  <span class="u">The tape as a row of 16-bit numbers. One unit is one <b>block crossing</b>, a table lookup; 16 steps on average.</span>
+  <span class="ev k">Kernel</span><span class="small">same run as level 1: <code>chkF_ok</code></span>
+  <span class="ev n">native_decide</span><span class="small">the table: <code>tblOk</code>; the 8 chunks to C 7</span></a>
+ <a class="q7-lv" href="#pieces"><span class="n">Level 3</span><b class="t">Five pieces</b>
+  <span class="u">From <code>C k</code> on: a pass over all the blocks, or an excursion through the fixed stretch X. One unit is one <b>piece</b>.</span>
+  <span class="ev k">Kernel</span><span class="small">passes, for every k: <code>pass1</code>&ndash;<code>pass3</code></span>
+  <span class="ev n">native_decide</span><span class="small">excursions: <code>w1_ok</code>, <code>w2_ok</code></span></a>
+ <a class="q7-lv" href="#window"><span class="n">Level 4</span><b class="t">Periods <code>C k</code></b>
+  <span class="u">The tape at the start of a period. One unit is one <b>period</b>, two sweeps, 184k + 3,029,040 steps.</span>
+  <span class="ev n">native_decide</span><span class="small">five pieces make one period: <code>period</code> (with <code>close</code>)</span></a>
+ <a class="q7-lv" href="#count"><span class="n">Level 5</span><b class="t">The number k</b>
+  <span class="u">k becomes k + 1. The run from blank tape arrives at k = 7, and nothing can stop k from growing.</span>
+  <span class="ev n">native_decide</span><span class="small"><code>reach_C7</code>, <code>nonhalt_of_reach</code>, so <code>nonhalting</code></span></a>
+ <a class="q7-lv side" href="#history"><span class="n">Aside</span><b class="t">Five epochs</b>
+  <span class="u">How the run builds X before step 16,730,681,219. Not used by the proof: Lean checks those steps at level 2.</span>
+  <span class="ev h">Heuristic</span><span class="small">turning points logged by <code>py/lturn.c</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, every level</h3>
+<p>Pick a moment of the bouncer phase. The browser builds the tape C 7 from the 222,182 cells of X in
+<code>lean/Data.lean</code>, the configuration the run from blank tape reaches at step 16,730,681,219, and runs two
+simulators from there to the chosen moment: the real machine, one step at a time, and the block simulator of level 2.
+Each row describes the same instant at one level; the check marks say that the computations agree.</p>
+</div>
+<div class="panel" id="q7m">
+ <div class="controls">
+  <label class="small" for="q7m-j">period</label>
+  <select id="q7m-j"><option value="0">C 7 to C 8</option><option value="1">C 8 to C 9</option><option value="2">C 9 to C 10</option><option value="3">C 10 to C 11</option></select>
+  <label class="small" for="q7m-p">piece</label>
+  <select id="q7m-p"><option value="0">pass 1</option><option value="1">excursion 1</option><option value="2" selected>pass 2</option><option value="3">excursion 2</option><option value="4">pass 3</option></select>
+ </div>
+ <div class="controls" style="margin-top:8px">
+  <button type="button" id="q7m-prev" aria-label="One step back">&#9664;</button>
+  <input type="range" class="q7-slider" id="q7m-f" min="0" max="1000" value="400" aria-label="Moment within the piece">
+  <button type="button" id="q7m-next" aria-label="One step on">&#9654;</button>
+  <span class="small">step <b id="q7m-off">0</b> of the piece</span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="q7-row"><span>1 &middot; Machine</span><div><span id="q7m-1"></span>
+   <canvas class="q7-map" id="q7m-map" aria-label="The whole tape, with the head"></canvas>
+   <canvas class="q7-strip" id="q7m-strip" aria-label="The cells around the head"></canvas>
+   <div class="q7-key"><span><i style="background:var(--q7b)"></i>blocks, left of X</span><span><i style="background:var(--q7x)"></i>X</span><span><i style="background:var(--head)"></i>head</span><span>dark = 1, pale = 0</span></div></div></div>
+  <div class="q7-row"><span>2 &middot; Blocks</span><div id="q7m-2"></div></div>
+  <div class="q7-row"><span>3 &middot; Piece</span><div id="q7m-3"></div></div>
+  <div class="q7-row"><span>4 &middot; Period</span><div id="q7m-4"></div></div>
+  <div class="q7-row"><span>5 &middot; The number k</span><div id="q7m-5"></div></div>
+ </div>
+ <div class="cap" id="q7m-cap">Cell numbers are those of the run from blank tape, where the head of C 7 stands on cell &minus;311. The four periods are about 12 million steps; the browser runs them once and then each moment from the start of its piece.</div>
+</div>
+<script>
+window.Q7 = (function () {
+  "use strict";
+  var TM = "1RB0RC_1LA0LD_1RB0RD_1LE0RF_0LB0RB_1RC---", SN = "ABCDEF";
+  // W[k], MV[k], NS[k] for k = 2 * state + symbol; NS = -1 is the halt (F reading 1)
+  var W = new Int8Array(12), MV = new Int8Array(12), NS = new Int8Array(12);
+  TM.split("_").forEach(function (g, i) {
+    for (var y = 0; y < 2; y++) {
+      var t = g.substr(3 * y, 3), k = 2 * i + y;
+      if (t[2] === "-") NS[k] = -1; else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; NS[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  var ACCB = "1010001000100", BLK1 = "0101010010001", BLK3 = "1000100010010";
+  var T7 = 16730681219, XLEN = 222182, HEAD7 = -311;
+  var CHUNKS = [2091335152, 2091335152, 2091335153, 2091335152, 2091335152, 2091335153, 2091335152, 2091335153];
+  // X, from the hex string of lean/Data.lean (four cells a digit, most significant bit first), copied in by py/page.py
+  var XHEX = "@XHEX@", X = null;
+  function getX() {
+    if (X) return X;
+    var x = new Uint8Array(XLEN);
+    for (var i = 0; i < XLEN; i++) { var v = parseInt(XHEX[i >> 2], 16); x[i] = (v >> (3 - (i & 3))) & 1; }
+    return (X = x);
+  }
+  // ---- level 1: the machine on a growable byte tape; p, lo, hi are cell numbers, t counts steps ----
+  function Tape() { this.n = 1 << 16; this.c = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.q = 0; this.t = 0; this.lo = 0; this.hi = 0; this.halted = false; }
+  Tape.prototype.room = function (a, b) {
+    while (a + this.o < 1 || b + this.o >= this.n - 1) {
+      var n = this.n * 2, c = new Uint8Array(n), d = this.n >> 1;
+      c.set(this.c, d); this.c = c; this.o += d; this.n = n;
+    }
+  };
+  Tape.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.c[i] : 0; };
+  Tape.prototype.word = function (a, b) { var s = ""; for (var x = a; x < b; x++) s += this.get(x); return s; };
+  Tape.prototype.clone = function () { var r = new Tape(); r.n = this.n; r.c = this.c.slice(); r.o = this.o; r.p = this.p; r.q = this.q; r.t = this.t; r.lo = this.lo; r.hi = this.hi; r.halted = this.halted; return r; };
+  // n steps, or fewer if it halts (then false); lo and hi follow the head
+  Tape.prototype.run = function (n) {
+    var c = this.c, o = this.o, i = this.p + o, q = this.q, lo = this.lo + o, hi = this.hi + o, done = 0;
+    while (done < n) {
+      if (i < 1 || i >= this.n - 1) {
+        this.p = i - o; this.lo = lo - o; this.hi = hi - o; this.room(this.p - 1, this.p + 1);
+        c = this.c; o = this.o; i = this.p + o; lo = this.lo + o; hi = this.hi + o;
+      }
+      var k = 2 * q + c[i], s = NS[k];
+      if (s < 0) { this.halted = true; break; }
+      c[i] = W[k]; i += MV[k]; q = s; done++;
+      if (i < lo) lo = i; else if (i > hi) hi = i;
+    }
+    this.p = i - o; this.q = q; this.lo = lo - o; this.hi = hi - o; this.t += done;
+    return !this.halted;
+  };
+  // n steps; returns the least cell the head visits in them
+  Tape.prototype.runMin = function (n) {
+    var lo = this.lo; this.lo = this.p; this.run(n); var m = this.lo; this.lo = Math.min(lo, m); return m;
+  };
+  // C k = 0^inf A> 0 (1010001000100)^k X 0^inf with the head on cell `at`
+  function C(k, at) {
+    at = at || 0;
+    var x = getX(), r = new Tape(), len = 1 + 13 * k + XLEN;
+    r.room(at - 2, at + len + 2);
+    var base = r.o + at;
+    for (var j = 0; j < k; j++) for (var i = 0; i < 13; i++) r.c[base + 1 + 13 * j + i] = +ACCB[i];
+    r.c.set(x, base + 1 + 13 * k);
+    r.p = at; r.q = 0; r.lo = at; r.hi = at + len - 1;
+    return r;
+  }
+  // Is the tape exactly C k, with the head on its left end in state A?
+  function isC(r, k) {
+    if (r.q !== 0) return false;
+    var a = r.p, x = getX(), i, y;
+    if (r.get(a) !== 0) return false;
+    for (var j = 0; j < k; j++) for (i = 0; i < 13; i++) if (r.get(a + 1 + 13 * j + i) !== +ACCB[i]) return false;
+    var x0 = a + 1 + 13 * k;
+    for (i = 0; i < XLEN; i++) if (r.get(x0 + i) !== x[i]) return false;
+    for (y = r.lo; y < a; y++) if (r.get(y)) return false;
+    for (y = x0 + XLEN; y <= r.hi; y++) if (r.get(y)) return false;
+    return true;
+  }
+  // ---- levels 4 and 5: C k is reached at step TC(k); one period takes 184 k + 3,029,040 steps ----
+  function TC(k) { k = BigInt(k); return 16730681219n + 3029040n * (k - 7n) + 92n * (k * (k - 1n) - 42n); }
+  function period(k) { return 184 * k + 3029040; }
+  // ---- level 3: the five pieces of the period from C (n+1), as lean/Pass.lean and lean/Period.lean state them ----
+  var PIECE = ["pass 1", "excursion 1", "pass 2", "excursion 2", "pass 3"];
+  function pieces(n) { return [37 * n + 38, 1517479, 92 * n + 99, 1511551, 55 * n + 57]; }
+  var FORM = [
+    ["A&gt; 0 (1010001000100)^(n+1) X", "(0101010010001)^(n+1) 1 B&gt; X", "pass1"],
+    ["1 B&gt; X", "E&gt; 0 r1", "w1_ok"],
+    ["(0101010010001)^(n+1) E&gt; 0 r1", "(0101010010001)^(n+1) 0 1 1 B&gt; r1", "pass2"],
+    ["0 1 1 B&gt; r1", "E&gt; 0 r2", "w2_ok"],
+    ["(0101010010001)^(n+1) E&gt; 0 r2", "A&gt; 0 1 0 (1000100010010)^(n+1) r2", "pass3"]];
+  // The tape after piece i of the period from C (n+1), whose head was on cell a: what the theorem says it is.
+  // m is the machine after that piece, mn the least cell the head visited during it.
+  function pieceEnd(i, m, a, n, mn) {
+    var x0 = a + 1 + 13 * (n + 1), B1 = BLK1.repeat(n + 1);
+    switch (i) {
+      case 0: return m.p === x0 && m.q === 1 && m.word(a, x0) === B1 + "1" && blankLeft(m, a);
+      case 1: return m.p === x0 - 1 && m.q === 4 && m.get(m.p) === 0 && m.word(a, x0 - 1) === B1 && mn === x0 - 1 && blankLeft(m, a);
+      case 2: return m.p === x0 && m.q === 1 && m.word(a - 2, x0) === B1 + "011" && blankLeft(m, a - 2);
+      case 3: return m.p === x0 - 3 && m.q === 4 && m.get(m.p) === 0 && m.word(a - 2, x0 - 3) === B1 && mn === x0 - 3 && blankLeft(m, a - 2);
+      default: return m.p === a - 4 && m.q === 0 && m.word(a - 4, x0 - 2) === "010" + BLK3.repeat(n + 1) && isC(m, n + 2);
+    }
+  }
+  function blankLeft(m, a) { for (var y = m.lo; y < a; y++) if (m.get(y)) return false; return true; }
+  // ---- the window simulator of lean/Window.lean ----
+  // l: the cells left of the head, nearest first; r: the head on r[0], blank beyond its end. Fails (fail: step) if
+  // the head would leave the window on the left or the machine halts; else {l, r, st, min}, with the list r as
+  // Lean keeps it (up to the last cell ever written or given).
+  // With `every`, path[j] is the head's cell (counted from r[0]) after j * every steps.
+  function wsteps(n, l, r, st, every) {
+    var L = l.length, len = L + r.length, c = new Uint8Array(len + n + 2), path = every ? [0] : null;
+    for (var i = 0; i < L; i++) c[L - 1 - i] = l[i] ? 1 : 0;
+    c.set(r, L);
+    var p = L, q = st, end = len, m = p;
+    for (var t = 0; t < n; t++) {
+      var k = 2 * q + c[p], s = NS[k];
+      if (s < 0) return { fail: t, why: "halt" };
+      if (MV[k] < 0 && p === 0) return { fail: t, why: "left" };
+      c[p] = W[k]; if (p + 1 > end) end = p + 1; p += MV[k]; q = s; if (p < m) m = p;
+      if (path && (t + 1) % every === 0) path.push(p - L);
+    }
+    var outl = []; for (i = p - 1; i >= 0; i--) outl.push(c[i]);
+    return { l: outl, r: c.slice(p, Math.max(end, p)), st: q, min: m - L, path: path };
+  }
+  // ---- level 2: the block simulator of lean/Block.lean; blocks of 16 cells, bit i = cell i of the block ----
+  var K = 16, NE = 6 * 65536 * 2;
+  var eB = new Int32Array(NE), eS = new Int8Array(NE), eD = new Int8Array(NE), eN = new Int32Array(NE), eDone = new Uint8Array(NE), nDone = 0;
+  function idx(q, b, side) { return (q * 65536 + b) * 2 + (side ? 1 : 0); }
+  // brun: run inside one block from its first cell (side 1) or its last (side 0) until the head leaves it.
+  // {b, q, dir (1 = right), n}, or {none: "halt" | "stuck", n} (stuck: still inside after 4000 steps, the FUEL of Block.lean)
+  function brun(q, b, side, trace) {
+    var pos = side ? 0 : K - 1, n = 0;
+    while (n < 4000) {
+      var y = (b >> pos) & 1, k = 2 * q + y, s = NS[k];
+      if (trace) trace.push([pos, q, b]);
+      if (s < 0) return { none: "halt", n: n };
+      b = W[k] ? (b | (1 << pos)) : (b & ~(1 << pos)); pos += MV[k]; q = s; n++;
+      if (pos < 0) return { b: b, q: q, dir: 0, n: n };
+      if (pos >= K) return { b: b, q: q, dir: 1, n: n };
+    }
+    return { none: "stuck", n: n };
+  }
+  function entry(q, b, side) {
+    var i = idx(q, b, side);
+    if (!eDone[i]) { var e = brun(q, b, side); eDone[i] = e.none ? 2 : 1; nDone++; if (!e.none) { eB[i] = e.b; eS[i] = e.q; eD[i] = e.dir; eN[i] = e.n; } }
+    return eDone[i] === 1 ? { b: eB[i], q: eS[i], dir: eD[i], n: eN[i] } : null;
+  }
+  // A tape of blocks: h is the block the head is in, pos the cell in it (0..15).
+  function Blocks(nb) { this.n = nb || 4096; this.b = new Uint16Array(this.n); this.h = this.n >> 1; this.org = this.h; this.pos = 0; this.q = 0; this.t = 0; this.cross = 0; this.single = 0; this.lo = this.h; this.hi = this.h; this.halted = false; }
+  Blocks.prototype.grow = function () {
+    var n = this.n * 2, b = new Uint16Array(n), d = this.n >> 1;
+    b.set(this.b, d); this.b = b; this.h += d; this.lo += d; this.hi += d; this.org += d; this.n = n;
+  };
+  Blocks.prototype.clone = function () {
+    var r = new Blocks(this.n); r.b = this.b.slice();
+    ["h", "org", "pos", "q", "t", "cross", "single", "lo", "hi", "halted"].forEach(function (f) { r[f] = this[f]; }, this);
+    return r;
+  };
+  // one plain step on the block tape
+  Blocks.prototype.one = function () {
+    if (this.h < 1 || this.h >= this.n - 1) this.grow();
+    var b = this.b, h = this.h, pos = this.pos, y = (b[h] >> pos) & 1, k = 2 * this.q + y, s = NS[k];
+    if (s < 0) { this.halted = true; return false; }
+    b[h] = W[k] ? (b[h] | (1 << pos)) : (b[h] & ~(1 << pos)); pos += MV[k]; this.q = s; this.t++; this.single++;
+    if (pos < 0) { this.h--; pos = K - 1; } else if (pos >= K) { this.h++; pos = 0; }
+    this.pos = pos;
+    if (this.h < this.lo) this.lo = this.h; if (this.h > this.hi) this.hi = this.h;
+    return true;
+  };
+  // Exactly n steps, as chkF does: macro steps (one table entry per block crossing) while the next one fits in what
+  // is left (msim), then single steps (fsteps). A head inside a block is first stepped to its edge.
+  Blocks.prototype.run = function (n) {
+    var rem = n;
+    while (rem > 0 && this.pos !== 0 && this.pos !== K - 1) { if (!this.one()) return rem; rem--; }
+    if (rem === 0) return 0;
+    var b = this.b, h = this.h, side = this.pos === 0 ? 1 : 0, q = this.q, cr = 0, t0 = rem;
+    for (;;) {
+      if (h < 1 || h >= this.n - 1) { this.h = h; this.grow(); b = this.b; h = this.h; }
+      var i = ((q * 65536 + b[h]) << 1) | side;
+      if (!eDone[i]) entry(q, b[h], side);
+      if (eDone[i] !== 1) break;
+      var m = eN[i]; if (m > rem) break;
+      rem -= m; cr++; b[h] = eB[i]; q = eS[i];
+      if (eD[i]) { h++; side = 1; } else { h--; side = 0; }
+      if (h < this.lo) this.lo = h; else if (h > this.hi) this.hi = h;
+    }
+    this.h = h; this.q = q; this.pos = side ? 0 : K - 1; this.cross += cr; this.t += t0 - rem;
+    while (rem > 0) { if (!this.one()) break; rem--; }
+    return rem;
+  };
+  Blocks.prototype.headCell = function () { return (this.h - this.org) * K + this.pos; };
+  Blocks.prototype.cell = function (x) { var j = this.org + Math.floor(x / K), i = x - Math.floor(x / K) * K; return j >= 0 && j < this.n ? (this.b[j] >> i) & 1 : 0; };
+  Blocks.prototype.block = function (j) { j += this.org; return j >= 0 && j < this.n ? this.b[j] : 0; };
+  // Cut a plain tape into blocks; block 0 holds cells 0..15, as in the run from blank tape.
+  function blocksOf(r) {
+    var s = Math.floor(r.lo / K), e = Math.floor(r.hi / K), B = new Blocks(1 << Math.ceil(Math.log2(2 * (Math.max(-s, e) + 64))));
+    for (var j = s; j <= e; j++) { var v = 0; for (var i = 0; i < K; i++) if (r.get(j * K + i)) v |= 1 << i; B.b[B.org + j] = v; }
+    var hj = Math.floor(r.p / K);
+    B.h = B.org + hj; B.pos = r.p - hj * K; B.q = r.q; B.lo = B.org + s; B.hi = B.org + e; B.t = r.t;
+    return B;
+  }
+  // The plain tape a block tape stands for.
+  function tapeOf(B) {
+    var r = new Tape(), a = (B.lo - B.org) * K, z = (B.hi - B.org) * K + K - 1;
+    r.room(a - 2, z + 2);
+    for (var x = a; x <= z; x++) r.c[x + r.o] = B.cell(x);
+    r.p = B.headCell(); r.q = B.q; r.t = B.t; r.lo = a; r.hi = z;
+    while (r.lo < r.p && !r.get(r.lo)) r.lo++;
+    while (r.hi > r.p && !r.get(r.hi)) r.hi--;
+    return r;
+  }
+  // Same tape, state and head? (the block tape against the plain one, on every cell either has visited)
+  function same(B, m) {
+    if (B.q !== m.q || B.headCell() !== m.p) return false;
+    var a = Math.min(m.lo, (B.lo - B.org) * K), z = Math.max(m.hi, (B.hi - B.org) * K + K - 1);
+    for (var x = a; x <= z; x++) if (B.cell(x) !== m.get(x)) return false;
+    return true;
+  }
+  // ---- the run from blank tape to C 7 with the block simulator, in slices so that the page stays live ----
+  var reached = null, listeners = [];
+  function reach(progress) {
+    if (reached || reach.busy) return;
+    reach.busy = true;
+    var B = new Blocks(1 << 15), ci = 0, left = CHUNKS[0], t0 = Date.now(), log = [];
+    function slice() {
+      var until = Date.now() + 40;
+      while (Date.now() < until && ci < CHUNKS.length) {
+        var s = Math.min(left, 30000000);
+        B.run(s); left -= s;
+        if (left === 0) { log.push([ci + 1, B.t, B.cross]); ci++; left = CHUNKS[ci] || 0; }
+      }
+      if (progress) progress(B, log, ci);
+      if (ci < CHUNKS.length) { setTimeout(slice, 0); return; }
+      var r = tapeOf(B);
+      reached = { B: B, tape: r, ok: B.t === T7 && r.p === HEAD7 && isC(r, 7), ms: Date.now() - t0, log: log };
+      reach.busy = false;
+      listeners.forEach(function (f) { f(reached); });
+    }
+    setTimeout(slice, 0);
+  }
+  // The tape C 7 the moment panels start from: built from X, or, once it has been run, the run from blank tape.
+  function c7() { return reached && reached.ok ? reached.tape.clone() : C(7, HEAD7); }
+  // ---- the bouncer, piece by piece, from C 7: snapshots of both simulators at the start of every piece ----
+  var bc = null;
+  function bouncer() {
+    if (bc && bc.from === (reached && reached.ok)) return bc;
+    var m = c7(), B = blocksOf(m), out = { from: reached && reached.ok, starts: [] };
+    m.t = 0; B.t = 0;
+    for (var j = 0; j < 4; j++) {
+      var k = 7 + j, n = k - 1, a = m.p, P = pieces(n), row = { k: k, a: a, x0: a + 1 + 13 * k, t: m.t, isC: isC(m, k), pieces: [] };
+      for (var i = 0; i < 5; i++) {
+        var snap = { m: m.clone(), B: B.clone(), t: m.t, len: P[i] };
+        var mn = m.runMin(P[i]); B.run(P[i]);
+        snap.ok = pieceEnd(i, m, a, n, mn); snap.min = mn; snap.agree = same(B, m);
+        row.pieces.push(snap);
+      }
+      out.starts.push(row);
+    }
+    out.end = { m: m, isC: isC(m, 11), t: m.t };
+    return (bc = out);
+  }
+  function fmt(x) { return (typeof x === "bigint" ? x : Number(x)).toLocaleString("en-US"); }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    var rt = 0; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(f, 80); });
+  }
+  function mark(ok, yes, no) { return ok ? ' <span class="q7-ok">&#10003; ' + yes + "</span>" : ' <span class="q7-bad">&#10007; ' + no + "</span>"; }
+  // Draws cells [a, b) of a cell function on a canvas, coloured by region (cells below x0 are blocks, the rest X).
+  function strip(cv, get, a, b, head, x0, label) {
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 58, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var n = b - a, cw = w / n, gap = cw >= 6 ? 1 : 0, y0 = 16, ch = h - 30;
+    var cb = css("--q7b"), cb2 = css("--q7b2"), cx = css("--q7x"), cx2 = css("--q7x2");
+    for (var x = a; x < b; x++) {
+      var v = get(x), inX = x >= x0;
+      g.fillStyle = v ? (inX ? cx : cb) : (inX ? cx2 : cb2);
+      g.fillRect((x - a) * cw, y0, Math.max(cw - gap, 0.7), ch);
+    }
+    if (head >= a && head < b) {
+      var hx = (head - a) * cw;
+      g.strokeStyle = css("--head"); g.lineWidth = 2; g.strokeRect(hx - 1, y0 - 2, cw + 1, ch + 4);
+      g.fillStyle = css("--head"); g.beginPath(); g.moveTo(hx + cw / 2, y0 + ch + 4); g.lineTo(hx + cw / 2 - 5, y0 + ch + 11); g.lineTo(hx + cw / 2 + 5, y0 + ch + 11); g.fill();
+    }
+    g.fillStyle = css("--fg2"); g.font = "11px " + (css("--mono").split(",")[0] || "monospace");
+    g.fillText("cell " + fmt(a), 0, 11);
+    var tx = "cell " + fmt(b - 1), tw = g.measureText(tx).width; g.fillText(tx, w - tw, 11);
+    if (label) { tw = g.measureText(label).width; var lw = g.measureText("cell " + fmt(a)).width + 12; if (tw < w - 2 * lw - 2 * g.measureText(tx).width / 2) g.fillText(label, (w - tw) / 2, 11); }
+  }
+  // The whole tape [lo, hi] as a bar: blocks region, X, and the head.
+  function map(cv, lo, hi, x0, head) {
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var sx = function (x) { return (x - lo) / (hi - lo + 1) * w; };
+    g.fillStyle = css("--q7b"); g.fillRect(0, 16, Math.max(sx(x0), 3), 14);
+    g.fillStyle = css("--q7x2"); g.fillRect(sx(x0), 16, w - sx(x0), 14);
+    var hx = sx(head);
+    g.fillStyle = css("--head"); g.fillRect(hx - 1.5, 10, 3, 26);
+    g.fillStyle = css("--fg2"); g.font = "11px " + (css("--mono").split(",")[0] || "monospace");
+    var tx = "head on cell " + fmt(head), tw = g.measureText(tx).width;
+    g.fillText(tx, Math.max(0, Math.min(w - tw, hx - tw / 2)), 9);
+    g.fillText(fmt(lo), 0, h - 2); tw = g.measureText(fmt(hi)).width; g.fillText(fmt(hi), w - tw, h - 2);
+  }
+  return { TM: TM, SN: SN, W: W, MV: MV, NS: NS, ACCB: ACCB, BLK1: BLK1, BLK3: BLK3, T7: T7, XLEN: XLEN, HEAD7: HEAD7, CHUNKS: CHUNKS,
+           getX: getX, Tape: Tape, C: C, isC: isC, TC: TC, period: period, PIECE: PIECE, FORM: FORM, pieces: pieces, pieceEnd: pieceEnd,
+           wsteps: wsteps, K: K, idx: idx, brun: brun, entry: entry, entries: function () { return nDone; }, Blocks: Blocks, blocksOf: blocksOf, tapeOf: tapeOf, same: same,
+           reach: reach, reached: function () { return reached; }, onReach: function (f) { listeners.push(f); }, c7: c7, bouncer: bouncer,
+           fmt: fmt, css: css, onTheme: onTheme, mark: mark, strip: strip, map: map };
+})();
+
+(function () {
+  "use strict";
+  var Q = window.Q7, $ = function (id) { return document.getElementById(id); };
+  if (!$("q7m")) return;
+  var sj = $("q7m-j"), sp = $("q7m-p"), sf = $("q7m-f"), off = 0;
+  function show() {
+    var bc = Q.bouncer(), j = +sj.value, i = +sp.value, row = bc.starts[j], snap = row.pieces[i], k = row.k, n = k - 1;
+    off = Math.max(0, Math.min(snap.len, off));
+    sf.value = Math.round(off / snap.len * 1000);
+    $("q7m-off").textContent = Q.fmt(off) + " / " + Q.fmt(snap.len);
+    var m = snap.m.clone(), B = snap.B.clone(), lo0 = m.lo, mn = m.runMin(off); B.run(off);
+    var t = snap.t + off, T = BigInt(Q.T7) + BigInt(t);
+    // 1 machine
+    $("q7m-1").innerHTML = "step <b>" + Q.fmt(T) + "</b> = 16,730,681,219 + " + Q.fmt(t) + ", state <span class=\"statechip\">" + Q.SN[m.q] +
+      "</span> on cell " + Q.fmt(m.p) + " reading " + m.get(m.p) + "; the tape spans cells " + Q.fmt(Math.min(lo0, m.lo)) + " to " + Q.fmt(m.hi) +
+      (bc.from ? ' <span class="q7-ok">(C 7 computed from blank tape in this page)</span>' : "");
+    Q.map($("q7m-map"), Math.min(lo0, m.lo), m.hi, row.x0, m.p);
+    var a = Math.max(m.p - 30, Math.min(lo0, m.lo) - 2), b = a + 61;
+    Q.strip($("q7m-strip"), function (x) { return m.get(x); }, a, b, m.p, row.x0, "");
+    // 2 blocks
+    var hb = Math.floor(m.p / 16), bl = B.block(hb).toString(16).padStart(4, "0");
+    $("q7m-2").innerHTML = "the head is in block " + Q.fmt(hb) + " (cells " + Q.fmt(16 * hb) + " to " + Q.fmt(16 * hb + 15) + "), on its cell " + B.pos +
+      ", which holds <code>" + bl + "</code> in hex. From C 7 the block simulator made " + Q.fmt(B.cross) + " block crossings and " + Q.fmt(B.single) +
+      " single steps to get here." + Q.mark(Q.same(B, m), "same tape, head and state as the machine", "the block simulator disagrees");
+    // 3 piece
+    var F = Q.FORM[i];
+    $("q7m-3").innerHTML = "<b>" + Q.PIECE[i] + "</b> of the period from C " + k + " (n = " + n + "), step " + Q.fmt(off) + " of " + Q.fmt(snap.len) +
+      ". It takes <code>" + F[0] + "</code> to <code>" + F[1] + "</code> (<code>" + F[2] + "</code>)." +
+      (i === 1 || i === 3 ? " So far the head has stayed on cells &ge; " + Q.fmt(mn) + "; the window starts at cell " + Q.fmt(row.x0 - (i === 1 ? 1 : 3)) + "." : "") +
+      Q.mark(snap.ok, "the machine ends this piece exactly as the theorem says", "the machine ends this piece differently");
+    // 4 period
+    var into = t - row.t;
+    $("q7m-4").innerHTML = "C " + k + " to C " + (k + 1) + ": step " + Q.fmt(into) + " of 184 &middot; " + k + " + 3,029,040 = " + Q.fmt(Q.period(k)) +
+      Q.mark(row.isC, "the tape at the start of this period is C " + k, "the tape at the start of this period is not C " + k) +
+      Q.mark((j < 3 ? bc.starts[j + 1].isC : bc.end.isC) && (j < 3 ? bc.starts[j + 1].t : bc.end.t) - row.t === Q.period(k),
+             "and after " + Q.fmt(Q.period(k)) + " steps it is C " + (k + 1), "and the period does not end at C " + (k + 1));
+    // 5 count
+    var tc = Q.TC(k);
+    $("q7m-5").innerHTML = "k = " + k + ". The formula puts C " + k + " at step 16,730,681,219 + &sum; (184 j + 3,029,040) for j = 7 to " + (k - 1) + " = <b>" + Q.fmt(tc) + "</b>" +
+      Q.mark(tc === BigInt(Q.T7) + BigInt(row.t), "the machine was at C " + k + " at that step", "the machine was not at C " + k + " then") +
+      "; the next value of k is " + (k + 1) + ", at step " + Q.fmt(Q.TC(k + 1)) + ".";
+  }
+  function fromSlider() { var bc = Q.bouncer(), s = bc.starts[+sj.value].pieces[+sp.value]; off = Math.round(+sf.value / 1000 * s.len); show(); }
+  sf.addEventListener("input", fromSlider);
+  sj.addEventListener("change", fromSlider);
+  sp.addEventListener("change", fromSlider);
+  $("q7m-prev").addEventListener("click", function () { off--; show(); });
+  $("q7m-next").addEventListener("click", function () { off++; show(); });
+  Q.onTheme(show);
+  Q.onReach(function () { show(); });
+  fromSlider();
+})();
+</script>

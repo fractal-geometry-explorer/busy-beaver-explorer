@@ -1,0 +1,79 @@
+<style>
+.pw-flow{width:100%;height:auto;max-width:980px;display:block;margin:10px 0}
+.pw-flow text{font-family:var(--body);fill:var(--fg)}
+.pw-flow .t-s{font-size:12px;fill:var(--fg2)}
+.pw-flow .t-b{font-size:14px;font-weight:600}
+.pw-box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.2}
+.pw-k{fill:var(--kernel-bg);stroke:var(--kernel)}
+.pw-arrow{stroke:var(--fg2);stroke-width:1.5;fill:none}
+.pw-final{font-size:1.15rem;margin:0 0 .4rem}
+</style>
+<div class="panel">
+<p class="pw-final"><b>The machine 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB, started on a blank tape, never halts.</b></p>
+<p style="margin-bottom:0"><span class="ev k">Kernel</span> Lean theorem <code>nonhalting : ¬ HaltsFromBlank</code>
+in <code>lean/Closed.lean</code>. It rests on Lean's kernel alone: <code>#print axioms</code> for it lists only
+<code>propext</code>, <code>Classical.choice</code> and <code>Quot.sound</code>, the three standard axioms of Lean's
+logic. There is no <code>native_decide</code> and no compiled code anywhere in the proof.</p>
+</div>
+<div class="col">
+<p>The argument, in three sentences. From the blank tape the machine reaches a tape that is <b>good</b>: one of ten
+forms, with numbers that satisfy that form's inequalities (<code>table_from_blank</code>, <code>good_last</code>).
+From any good tape it makes at least one step, without halting, and reaches a good tape again
+(<code>good_step</code>). Repeating the second sentence gives runs of every length, and a machine that halts has
+runs only up to some fixed length.</p>
+</div>
+<svg class="pw-flow" viewBox="0 0 980 300" role="img" aria-label="Diagram of the proof: blank tape reaches O 14 37 11, then 196 proved moves reach a good tape; good tapes lead to good tapes; so the run never ends.">
+<defs><marker id="pwar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg2)"/></marker></defs>
+<rect class="pw-box" x="10" y="110" width="130" height="70" rx="10"/><text class="t-b" x="75" y="140" text-anchor="middle">Blank tape</text><text class="t-s" x="75" y="160" text-anchor="middle">state A, all 0s</text>
+<rect class="pw-box pw-k" x="180" y="105" width="170" height="80" rx="10"/><text class="t-b" x="265" y="133" text-anchor="middle">29,301 steps</text><text class="t-s" x="265" y="152" text-anchor="middle">to the form O 14 37 11</text><text class="t-s" x="265" y="169" text-anchor="middle"><tspan font-family="var(--mono)">blank_O</tspan></text>
+<path class="pw-arrow" d="M140,145 L177,145" marker-end="url(#pwar2)"/>
+<rect class="pw-box pw-k" x="390" y="105" width="190" height="80" rx="10"/><text class="t-b" x="485" y="133" text-anchor="middle">196 proved moves</text><text class="t-s" x="485" y="152" text-anchor="middle">to T2 at step 5.7·10²⁹</text><text class="t-s" x="485" y="169" text-anchor="middle"><tspan font-family="var(--mono)">table_run</tspan></text>
+<path class="pw-arrow" d="M350,145 L387,145" marker-end="url(#pwar2)"/>
+<rect class="pw-box" x="625" y="95" width="170" height="100" rx="12" style="stroke-width:2"/><text class="t-b" x="710" y="128" text-anchor="middle">Good tape</text><text class="t-s" x="710" y="148" text-anchor="middle">one of 10 forms, with</text><text class="t-s" x="710" y="165" text-anchor="middle">its inequalities true</text>
+<path class="pw-arrow" d="M580,145 L622,145" marker-end="url(#pwar2)"/><text class="t-s" x="601" y="135" text-anchor="middle"><tspan font-family="var(--mono)">good_last</tspan></text>
+<rect class="pw-box pw-k" x="625" y="10" width="170" height="58" rx="10"/><text class="t-b" x="710" y="35" text-anchor="middle">One move</text><text class="t-s" x="710" y="54" text-anchor="middle">20 cases, <tspan font-family="var(--mono)">good_step</tspan></text>
+<path class="pw-arrow" d="M795,40 C860,40 860,120 798,125" marker-end="url(#pwar2)"/><path class="pw-arrow" d="M625,120 C565,110 575,40 622,40" marker-end="url(#pwar2)"/>
+<rect class="pw-box" x="625" y="225" width="170" height="64" rx="10"/><text class="t-b" x="710" y="252" text-anchor="middle">Never halts</text><text class="t-s" x="710" y="272" text-anchor="middle"><tspan font-family="var(--mono)">nonhalting</tspan></text>
+<path class="pw-arrow" d="M710,195 L710,222" marker-end="url(#pwar2)"/>
+<rect class="pw-box pw-k" x="830" y="200" width="140" height="90" rx="10"/><text class="t-b" x="900" y="226" text-anchor="middle">27 rules</text><text class="t-s" x="900" y="245" text-anchor="middle">proved for all</text><text class="t-s" x="900" y="261" text-anchor="middle">sizes, used by</text><text class="t-s" x="900" y="277" text-anchor="middle">both of the above</text>
+</svg>
+<div class="key"><div><span class="ev k">Kernel</span> green boxes: every box is checked by Lean's kernel</div></div>
+<div class="col">
+<h3>What every piece rests on</h3>
+<p>A wrong number anywhere, in the replay or the inequalities, cannot make the proof pass. It would only make one of
+the checks fail.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>Piece</th><th>What it says</th><th>Checked by</th></tr></thead>
+<tbody>
+<tr><td><code>Machine.lean</code></td><td>the machine's table and what a step is (generated from the machine's name)</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>Rules.lean</code></td><td>the five passes, for any n; the two halting patterns</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>Cycle.lean</code>, <code>Phase.lean</code>, <code>Branch.lean</code>, <code>Ends.lean</code></td><td>the 27 rules and the cycles' k-fold repeats, for all sizes (level 2)</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>blank_O</code></td><td>blank tape reaches <code>O 14 37 11</code> in 29,301 steps</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>table_run</code></td><td>196 moves from <code>O 14 37 11</code> to the last state</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>mv_*</code></td><td>the 20 cases of the map on ten forms (level 3)</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>Good</code>, <code>good_step</code></td><td>the invariant; good leads to good (level 4)</td><td><span class="ev k">Kernel</span> (<code>omega</code>)</td></tr>
+<tr><td><code>good_last</code></td><td>the last state is good</td><td><span class="ev k">Kernel</span> (<code>decide</code>)</td></tr>
+<tr><td><code>nonhalting</code></td><td>glues the pieces together (the induction of the picture above)</td><td><span class="ev k">Kernel</span></td></tr>
+</tbody></table></div>
+<div class="pw-note k">
+<p>The file <code>lean/Blank.lean</code> does contain one <code>native_decide</code> (a check that the first
+10<sup>7</sup> steps do not halt), but <code>nonhalting</code> does not use it. It is a side fact, shown in the
+ledger below.</p>
+</div>
+<div class="col"><p>Other checks, separate from Lean <span class="ev c">Computed</span>: the first 49 states of the replay
+match the plain run up to 3·10<sup>10</sup> steps (<code>c/checkpoints.c</code>), and your browser repeats the first
+ones in the level 3 section and every rule turn up to 10<sup>8</sup> steps in the first panel. The replay itself
+goes on without a gap to 10<sup>300</sup> steps (2,281 states). What the proof does not do is explain the growth
+rate; the replay suggests that each pair of phases multiplies the counts by a factor that depends on the residues
+taken.</p></div>
+<details class="col"><summary><b>The last lines of the proof, in words</b></summary>
+<p>The end of <code>lean/Closed.lean</code>, theorem by theorem:</p>
+<dl class="pw-dl">
+<dt>Good t</dt><dd>t is one of the ten forms, with numbers that satisfy that form's inequalities (<code>gOp</code>, <code>gO0</code>, <code>gS1</code>, <code>gRF</code>, <code>gEF</code>, <code>gT3</code>, <code>gT2</code>, <code>gU3</code>, <code>gRG</code>, <code>gRG3</code>).</dd>
+<dt>good_step</dt><dd>from a good t, at least one step leads to a good t′. One case per form (<code>step_Op</code> … <code>step_RG3</code>), each split by remainder or parity into the 20 cases.</dd>
+<dt>table_from_blank</dt><dd>some run from the blank tape ends at the last state of the replay (<code>blank_O</code> then <code>table_run</code>).</dd>
+<dt>good_last</dt><dd>that last state is good.</dd>
+<dt>nonhalting</dt><dd><code>¬ HaltsFromBlank</code>. By induction on N: for every N there is a run from blank of length at least N ending at a good tape. So runs of every length exist, and the machine does not halt.</dd>
+</dl>
+</details>

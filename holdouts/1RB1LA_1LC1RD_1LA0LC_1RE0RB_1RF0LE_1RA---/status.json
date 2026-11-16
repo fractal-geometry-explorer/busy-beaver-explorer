@@ -10,10 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. It belongs to a family of four holdouts that share their first four states, and works as two binary counters, one counting down in the blocks left of the head and one counting up in the gaps right of it. This page lists what is established, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean now proves the counter itself: read the tape as two binary numbers, E in the odd blocks left of the head and N in the gaps right of it, and every countdown of E, for every size of E and N, runs as the counter says (<code>run3</code>, <code>run5</code>). Lean also proves that the blank-tape run enters this counter after 256 steps and runs its first countdown. The pass rules (including the halting one) are proved too.",
-  "What is not proved is what happens between countdowns. When E runs out the tape is reorganised; the reorganisation leaves <em>defects</em> on the right (gaps of an irregular size, blocks of two 1s), and the machine halts only if such defects meet in one particular way. No invariant excluding this is known. An accelerated simulation reaches 9.70&middot;10<sup>171</sup> steps with no halt."
+  "What is not proved is what happens between countdowns. When E runs out the tape is reorganised; the reorganisation leaves <em>defects</em> on the right (gaps of an irregular size, blocks of two 1s), and the machine halts only if such defects meet in one particular way. No invariant excluding this is known. The round-2 accelerated simulation reaches 7.28&middot;10<sup>4298</sup> steps with no halt and never more than one defect at a time."
  ],
  "claims": [
   {
@@ -71,10 +71,16 @@
    "where": "<code>tools/py/bbtools/triage.py</code>"
   },
   {
-   "level": "heuristic",
-   "title": "No halt before 9.70&middot;10<sup>171</sup> steps",
-   "text": "The family's accelerated simulator <code>py/accel.py</code> (with <code>c/acc.c</code>, in the folder of 1a) runs the machine directly until a shape repeats 12 times with E &rarr; E &minus; 1 (or E &minus; 2<sup>k</sup>) and F &rarr; F + 1, fits the step formula a + b&middot;&nu;(E) + g&middot;&nu;(F+1) exactly, checks the first min(N, 2<sup>15</sup>) cycles of the jump against direct simulation token for token, and then jumps N cycles. It made 73 jumps (E up to 571 bits) with no failed check and no halt. That the formula holds for the whole jump is a pattern, not a proof.",
-   "where": "<code>GB=4 GP=5 XEFF=0 python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/accel.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA--- 300</code>"
+   "level": "trusted",
+   "title": "No halt before 7.28&middot;10<sup>4298</sup> steps",
+   "text": "The round-2 accelerator <code>py/jump2.py</code> (with <code>c/ps.c</code>, in the folder of 1a), run with the gap encoding of this machine (<code>GB=4 GP=5</code>) and the step constants <code>K3=26,4,10 K5=56,4,10</code>, simulates directly from pass start to pass start until the tape is a counter configuration of <code>lean/Counter.lean</code>, then jumps a whole countdown at once. Each jump is an instance of <code>run3</code>/<code>run5</code>, so its end tape is proved; only the Python reading of the tape, the step count of a jump (the fitted formula) and the direct simulation between jumps are unproved. Every jump of at most 10<sup>8</sup> steps was re-run by direct simulation and matched token for token. In 28 minutes on one core it made 1,664 jumps and reached step 7.28&middot;10<sup>4298</sup> (E up to 14,274 bits) with no halt.",
+   "where": "<code>GB=4 GP=5 K5=56,4,10 K3=26,4,10 MON=1 VAL=100000000 python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/jump2.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA--- 100000 12 log.txt</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Defects stay single",
+   "text": "In the 28.5 million passes that this run simulated directly (all the transition cascades between its jumps), the right part never held more than one gap of irregular size at a time, never more than 1 block of two or more 1s, and the left part never more than two even blocks.",
+   "where": "<code>MON=1</code> in <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps.c</code>"
   },
   {
    "level": "heuristic",
@@ -85,7 +91,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. By <code>pass_odd_halt</code> the machine halts exactly when an odd pass, after the gaps of the smallest size, meets a gap of length one followed by a block of two or more 1s. In the counter language this needs two defects to meet: an irregular gap cut down to length one directly in front of a <code>1^2</code> block left by another defect. During a countdown there are no defects (proved: the countdown is <code>run3</code>/<code>run5</code>), so it can only happen inside a transition cascade. In the runs above there was never more than one defect at a time; no invariant proving that is known, and the transitions have not been reduced to a number-theoretic map.",
+   "text": "Not known. By <code>pass_odd_halt</code> the machine halts exactly when an odd pass, after the gaps of the smallest size, meets a gap of length two. In the counter language this needs a transition to leave a gap of length two right after the gaps of the smallest size. During a countdown there are no defects (proved: the countdown is <code>run3</code>/<code>run5</code>), so it can only happen inside a transition cascade. In the runs above there was never more than one defect at a time and that gap never appeared there; no invariant proving that is known, and the transitions have not been reduced to a number-theoretic map.",
    "where": ""
   }
  ],
@@ -114,9 +120,9 @@
     "text": "No halt in direct simulation."
    },
    {
-    "level": "heuristic",
-    "value": "9.70&middot;10<sup>171</sup> steps",
-    "text": "No halt in a validated accelerated run (73 jumps)."
+    "level": "trusted",
+    "value": "7.28&middot;10<sup>4298</sup> steps",
+    "text": "No halt in a validated accelerated run (1,664 jumps)."
    }
   ],
   "presets": [
@@ -175,7 +181,7 @@
     "html": [
      "<p>When E reaches 0 the floor <code>1^(2s)</code> is popped into the top block; the next pass pushes s single 1s, which is E &asymp; 2<sup>s</sup> &minus; 1, all ones, and the mode switches between 3 and 5. N is left on the right, but the pass that cut it leaves a gap of the wrong size, a <em>defect</em>, in front of it.</p>",
      "<p>Defects are worked off in a cascade of short sub-phases: a gap one cell too long collapses into a block <code>1^2</code>; a block <code>1^2</code> followed by a gap makes the next gap one too short; a gap one too short followed by a single 1 is cut and hands its defect to the next gap. Sometimes N is swallowed into the left part entirely and restarts at 0. Then a clean countdown runs again. Since the floor gains 2 cells each time E passes a power of two, the floor is about twice the bit length of the largest E so far, and phases grow fast.</p>",
-     "<p>The accelerator <code>py/jump2.py</code> simulates the cascades directly and jumps over every clean countdown with the Lean-proved rule. It was not run on this machine in round 2; the first-round accelerator <code>py/accel.py</code> reached 9.70&middot;10<sup>171</sup> steps (see the heuristic claim).</p>"
+     "<p>The accelerator <code>py/jump2.py</code> simulates the cascades directly and jumps over every clean countdown with the Lean-proved rule. On this machine it made 1,664 jumps and reached 7.28&middot;10<sup>4298</sup> steps without a halt (the first-round accelerator had reached 9.70&middot;10<sup>171</sup> steps).</p>"
     ]
    },
    {
@@ -183,8 +189,8 @@
     "eyebrow": "Halting",
     "heading": "How it could stop",
     "html": [
-     "<p>The machine halts only when F reads a 1. From a pass start that happens exactly when an odd pass, after the gaps of the smallest size, meets a gap of length one followed by a block of two or more 1s (<code>pass_odd_halt</code>, proved). In the language above that needs <em>two</em> defects at once: a gap cut down to length one, directly in front of the <code>1^2</code> left by another defect. In every transition seen so far a single defect was worked off without harm.</p>",
-     "<p>During a countdown there are no defects at all, so a halt can only come inside a transition cascade. The defect monitor of <code>c/ps.c</code> was not run on this machine in round 2 (it was run on 1a and 1b, where there was never more than one defect at a time).</p>"
+     "<p>The machine halts only when F reads a 1. From a pass start that happens exactly when an odd pass, after the gaps of the smallest size (<code>0^4 1</code>), meets a gap of length two (<code>pass_odd_halt</code>, proved): the D-run stops on it and F reads the 1 behind it. Regular gaps are 4 or 5 cells long (bits 1 and 0 of N), so only a transition can leave such a short gap in that place. (In 1a and 1b the analogous fatal gap has length one and must be followed by a block of two 1s; here any 1 after the gap of two is enough.)</p>",
+     "<p>During a countdown there are no defects at all, so a halt can only come inside a transition cascade. In the 28.5 million passes of the cascades of the accelerated run there was never more than one irregular gap at a time, and the fatal gap never appeared in front of an odd pass (the run would have stopped).</p>"
     ]
    },
    {
@@ -211,5 +217,5 @@
   ]
  },
  "family": "Two binary counters (1RB1LA_1LC1RD_1LA0LC_1RE0RB_ family)",
- "summary": "Family 1c: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 9.70·10^171 steps (accelerated run). Open."
+ "summary": "Family 1c: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 7.28·10^4298 steps (accelerated run, never more than one defect). Open."
 }

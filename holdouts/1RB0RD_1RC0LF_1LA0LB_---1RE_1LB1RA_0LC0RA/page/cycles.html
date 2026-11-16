@@ -1,0 +1,89 @@
+<div class="col">
+<p>The tail does not grow. After a start-up of some dozens of visits it repeats with a fixed period, and in one
+period fixed amounts leave the left block and enter the big block. Four such cycles occur:</p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>visits in a period</th><th>events</th><th>left block</th><th>big block</th><th>ratio</th><th>Lean</th></tr></thead><tbody>
+<tr><td>15 (three variants)</td><td>30</td><td>&minus;45 pairs</td><td>+99 pairs</td><td>2.2</td><td><code>rule1_ok</code>, <code>rule3_ok</code>, <code>rule5_ok</code></td></tr>
+<tr><td>16</td><td>32</td><td>&minus;48</td><td>+99</td><td>2.06</td><td><code>rule0_ok</code></td></tr>
+<tr><td>22</td><td>44</td><td>&minus;66</td><td>+141</td><td>2.14</td><td><code>rule2_ok</code></td></tr>
+<tr><td>9</td><td>18</td><td>&minus;27</td><td>+57</td><td>2.11</td><td><code>rule4_ok</code></td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Each line is a <em>cycle rule</em> in <code>lean/ExecData.lean</code>: a template of the whole tape,
+<code>A&gt; 110 (01)^a 000 (01)^b T</code> with a = a<sub>0</sub> + 3x and b = b<sub>0</sub> + 3y, that comes back with
+a smaller and b larger by the amounts in the table, for all x and y. Each is proved by one run of the executor
+itself, without cycle rules, from the template before to the template after, 9,143 to 25,749 moves, evaluated by
+<code>native_decide</code> (<code>ruleOK_of_run</code> is the kernel theorem that turns such a run into the rule).
+Inside a round the executor applies a rule N times in one move, where N may itself be <code>N0 + q x</code>: the
+left block is <code>r0 + m x</code> and each period eats d = 27, 45, 48 or 66 pairs of it, so N = N0 + (m / d) x.
+The N-fold rule is proved by induction (<code>rule_instN</code>, kernel), and the subtraction is checked coefficient
+by coefficient (<code>appTok</code>, <code>app_inst</code>).</p>
+</div>
+<div class="panel" id="rd-rules">
+ <div class="controls">
+  <label class="small" for="rdr-r">Rule</label>
+  <select id="rdr-r" style="max-width:100%"></select>
+  <label class="small" for="rdr-x">x</label>
+  <input type="text" class="rd-num" id="rdr-x" value="2" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rdr-go">Run the machine</button>
+  <button type="button" id="rdr-all">Check all 6, x = 0 to 3</button>
+ </div>
+ <div class="rd-out" id="rdr-out"></div>
+ <div class="cap">Both blocks get the same x here. The browser writes the template on a blank tape, puts the head on its first cell in state A, runs the real machine until state A has reached the left end the rule's number of times, and compares the tape with the template after.</div>
+</div>
+<div class="col"><p>The same rules can be looked for in the run itself. The scan below runs the machine from blank tape through
+its first 3,600 events, tests every event against the six templates, and wherever one fits checks the rule's
+prediction against the event that many events later.</p></div>
+<div class="panel" id="rd-scan">
+ <div class="controls"><button type="button" class="primary" id="rdq-go">Scan the first 3,600 events</button></div>
+ <div class="rd-out" id="rdq-out"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sel = $("rdr-r"), RS = X.D.rules;
+  RS.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    var v = r.t.filter(function (x) { return x[0] === "v"; });
+    o.textContent = "rule " + r.n + ": " + r.ev + " events, a " + (v[0][3] - v[0][2]) + ", b +" + (v[1][3] - v[1][2]);
+    sel.appendChild(o);
+  });
+  function xsOf(r, x) { var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x); return xs; }
+  function one() {
+    var r = RS[+sel.value], x = Math.max(0, Math.min(40, parseInt($("rdr-x").value, 10) || 0));
+    $("rdr-x").value = x;
+    var xs = xsOf(r, x), c = X.checkRule(r, xs);
+    $("rdr-out").innerHTML = '<p><span class="ev n">native_decide</span> <code>rule' + r.n + "_ok</code>, " + X.fmt(r.moves) + " executor moves in Lean</p>" +
+      '<div class="small">before (x = ' + x + "):</div><div class=\"rd-words\">A&gt; " + X.text(r, X.counts(r, xs, false)) + "</div>" +
+      '<div class="small" style="margin-top:6px">after, as the rule says:</div><div class="rd-words">A&gt; ' + X.text(r, X.counts(r, xs, true)) + "</div>" +
+      "<p>" + (c.ok ? '<span class="rd-ok">✓ the machine arrives there: ' + c.events + " events, " + X.fmt(c.steps) + " steps</span>" : '<span class="rd-bad">✗ the machine ends elsewhere</span>') + "</p>";
+  }
+  $("rdr-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rdr-all").addEventListener("click", function () {
+    var out = $("rdr-out"); out.textContent = "running…";
+    setTimeout(function () {
+      var ok = 0, all = 0, bad = [];
+      RS.forEach(function (r) { for (var x = 0; x <= 3; x++) { all++; if (X.checkRule(r, xsOf(r, x)).ok) ok++; else bad.push("rule " + r.n + " x=" + x); } });
+      out.innerHTML = ok === all ? '<span class="rd-ok">✓ all ' + all + " checks passed: 6 rules, x = 0 to 3</span>" : '<span class="rd-bad">✗ ' + bad.join(", ") + "</span>";
+    }, 20);
+  });
+  $("rdq-go").addEventListener("click", function () {
+    var out = $("rdq-out"); out.textContent = "running the machine…";
+    setTimeout(function () {
+      var R = X.events(3644), N = Math.min(3600, R.t.length - 45), hit = {}, good = {}, first = {}, fit = 0;
+      for (var n = 1; n <= N; n++) {
+        RS.forEach(function (r) {
+          var xs = X.match(r, R.t[n]); if (!xs) return;
+          fit++; hit[r.n] = (hit[r.n] || 0) + 1; if (!first[r.n]) first[r.n] = n;
+          if (X.trim(R.t[n + r.ev]) === X.trim(X.inst(r, X.counts(r, xs, true)))) good[r.n] = (good[r.n] || 0) + 1;
+        });
+      }
+      var rows = RS.map(function (r) { return hit[r.n] ? "<tr><td>rule " + r.n + "</td><td>" + X.fmt(hit[r.n]) + "</td><td>" + X.fmt(first[r.n]) + "</td><td>" + (good[r.n] === hit[r.n] ? '<span class="rd-ok">✓ ' + X.fmt(good[r.n]) + "</span>" : '<span class="rd-bad">✗ ' + X.fmt(good[r.n] || 0) + "</span>") + "</td></tr>" : "<tr><td>rule " + r.n + "</td><td>0</td><td></td><td></td></tr>"; }).join("");
+      out.innerHTML = "<p>" + X.fmt(N) + " events, " + X.fmt(R.k[N]) + " steps; " + X.fmt(fit) + " of them fit a template.</p>" +
+        '<div style="overflow-x:auto"><table class="rd-tt"><thead><tr><th>rule</th><th>events where it fits</th><th>first at event</th><th>predictions confirmed by the machine</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    }, 20);
+  });
+  one();
+})();
+</script>

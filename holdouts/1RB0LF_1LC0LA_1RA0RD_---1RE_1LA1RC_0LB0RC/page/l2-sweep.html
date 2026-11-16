@@ -1,0 +1,132 @@
+<div class="grid2"><div class="col">
+<p>Between left-end moments the head sweeps across the long stretches. A stretch of a million cells would take a
+million steps to simulate, but what happens to it is simple, and Lean proves it once for every length:</p>
+<ul>
+<li><b>Going right</b> (<code>sweep_right</code>): B, with a 1 just behind it, turns each block <code>010101</code>
+into <code>011001</code> and comes out the other side, again in state B, after exactly 14 steps per block.</li>
+<li><b>Going left</b> (<code>sweep_left</code>): C, with <code>110</code> ahead of it, turns each <code>011001</code>
+back into <code>010101</code>, 22 steps per block.</li>
+</ul>
+<p>Each is proved by running one block for real (<code>rfl</code>, so Lean's kernel computes the 14 or 22 steps) and
+then a general lemma, <code>cross_r</code> or <code>cross_l</code>, that says: if one copy takes the head through in
+the same state, n copies do too, in n times the steps. <span class="ev k">Kernel</span></p>
+</div>
+<div class="panel" style="margin:0">
+<div class="controls"><label class="small" for="pw-swdir">Sweep</label><select id="pw-swdir"><option value="r">right over 2 blocks</option><option value="l">left over 2 blocks</option></select><button type="button" id="pw-swstep">Step</button><button type="button" id="pw-swplay" class="primary">Play</button><button type="button" id="pw-swreset">Reset</button></div>
+<div class="pw-mini" id="pw-swmini"></div>
+<div class="small" id="pw-swcap"></div>
+</div></div>
+<div class="col"><p><b>Any number of blocks.</b> Type a number of blocks n. The browser runs the plain machine on the
+rule's starting tape until the head comes out the far side in the starting state, and compares the step count and
+the tape with what the theorem says.</p></div>
+<div class="panel">
+<div class="controls"><label class="small" for="z6s-n">n</label><input type="text" id="z6s-n" value="1000" inputmode="numeric" style="width:7em" spellcheck="false" autocomplete="off">
+<button type="button" class="primary" id="z6s-go">Run both sweeps</button></div>
+<div class="small" id="z6s-out" style="margin-top:8px"></div>
+</div>
+<div class="col">
+<h3>Level 2: the tape as a list, moved by moves</h3>
+<p>A round trip from a template is a claim about infinitely many tapes, one for each size. Lean cannot simulate them
+one by one. Instead it runs the machine <b>symbolically</b>: the tape is a list of tokens, single cells and
+stretches <code>(01)<sup>n</sup></code> whose count n is a formula such as <code>3k + 7</code>. The checker steps
+the machine on cells it can see. When the head meets a stretch, it tries one copy on its own (as in the panel
+above) and, if the head comes out the far side in the same state, crosses the whole stretch in one move. If it
+would need to know whether a count is 0 or not, it gives up and the check fails.</p>
+<p>The checker is a program, <code>auto</code> in <code>lean/SymCheck.lean</code>, and it comes with a theorem,
+<code>auto_reach</code>, proved once by the kernel: <em>if <code>auto</code> answers true for a start and a target,
+then for every value of the variables the real machine goes from the start to the target in at least one step.</em>
+<span class="ev k">Kernel</span> That is the step from level 1 to level 2: every move at level 2 is a run of the
+machine.</p>
+<p>This page has its own small version of the same idea, the <b>shift-rule simulator</b>: the tape is a list of
+tokens with ordinary numbers as counts, a whole stretch is crossed in one move whenever one copy tried on its own
+takes the head through in the same state, and at each left-end moment the list is written in normal form again. It
+is not the Lean program, and it works with numbers rather than formulas, but it makes about as many moves (for
+example 140,054 from blank tape to step 1,277,431, where Lean's checker makes about 148,000). The
+<a href="#levels">one-moment panel</a> checks it against the plain machine at every moment; the next sections use
+it to run round trips and epoch ends of any size.</p>
+</div>
+<div class="panel">
+<div class="controls"><label class="small" for="z6f-T">Run from blank tape to step</label>
+<select id="z6f-T"><option value="1277431" selected>1,277,431</option><option value="4054968">4,054,968</option><option value="34335506">34,335,506</option></select>
+<button type="button" class="primary" id="z6f-go">Run both</button></div>
+<div class="small" id="z6f-out" style="margin-top:8px"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, TR = Z.TR, SN = Z.SN, $ = function (i) { return document.getElementById(i); };
+  // two blocks, step by step
+  var el = $("pw-swmini"), c, timer = null, cap;
+  function draw() {
+    el.textContent = "";
+    c.t.forEach(function (v, i) { var d = document.createElement("div"); d.className = "c" + (v ? " one" : "") + (i === c.h ? " h" : ""); d.textContent = v; if (i === c.h) d.dataset.s = SN[c.s]; el.appendChild(d); });
+    $("pw-swcap").textContent = "step " + c.n + ". " + cap;
+  }
+  function stop() { if (timer) { clearInterval(timer); timer = null; $("pw-swplay").textContent = "Play"; } }
+  function reset() {
+    stop();
+    var r = $("pw-swdir").value === "r";
+    if (r) c = { t: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0], h: 2, s: 1, n: 0 };
+    else c = { t: [0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0], h: 13, s: 2, n: 0 };
+    cap = r ? "B with a 1 behind it, before two blocks 010101. Each block takes 14 steps." : "C with 110 ahead (to its right), after two blocks 011001 (to its left). Each block takes 22 steps.";
+    draw();
+  }
+  function one() {
+    var r = $("pw-swdir").value === "r", lim = r ? 28 : 44;
+    if (c.n >= lim) { stop(); cap = r ? "After 28 steps: both blocks are now 011001, and B is past them, in state B again." : "After 44 steps: both blocks are 010101 again, and C is back in state C."; draw(); return false; }
+    var a = TR[c.s][c.t[c.h]]; c.t[c.h] = a.w; c.h += a.m; c.s = a.s; c.n++; draw(); return true;
+  }
+  $("pw-swstep").onclick = function () { stop(); one(); };
+  $("pw-swreset").onclick = reset; $("pw-swdir").onchange = reset;
+  $("pw-swplay").onclick = function () { if (timer) { stop(); return; } $("pw-swplay").textContent = "Pause"; timer = setInterval(function () { if (!one()) stop(); }, 120); };
+  reset();
+  // n blocks on the plain machine
+  function sweep(n, right) {
+    // right: tape 1 B>(010101)^n; left: (011001)^n C>110
+    var str = right ? "1" + "010101".repeat(n) + "0" : "011001".repeat(n) + "110";
+    var m = new Z.Machine(str, right ? 1 : 2), st = m.s, k = 0;
+    m.h = m.o + (right ? 1 : 6 * n);
+    var lo = m.o, hi = m.o + str.length;
+    for (;;) {
+      var a = TR[m.s][m.t[m.h]]; if (!a) return null;
+      m.t[m.h] = a.w; m.h += a.m; m.s = a.s; k++;
+      if (m.h < lo - 1 || m.h > hi) return null;
+      if (right && m.h === m.o + 1 + 6 * n && m.s === st) break;
+      if (!right && m.h === m.o && m.s === st) break;
+      if (k > 30 * n + 100) return null;
+    }
+    var got = ""; for (var x = lo; x < hi - (right ? 1 : 0); x++) got += m.t[x];
+    var want = right ? "011001".repeat(n) + "1" : "110" + "010101".repeat(n);
+    return [k, got === want];
+  }
+  $("z6s-go").onclick = function () {
+    var n = parseInt($("z6s-n").value, 10); if (!(n >= 1)) n = 1; n = Math.min(n, 200000); $("z6s-n").value = n;
+    var r = sweep(n, true), l = sweep(n, false);
+    function line(res, nm, per, from, to) {
+      if (!res) return '<span class="pw-bad">' + nm + ": the head did not come out as predicted.</span>";
+      var ok = res[0] === per * n && res[1];
+      return (ok ? '<span class="pw-ok">&#10003;</span> ' : '<span class="pw-bad">&#10007;</span> ') + "<code>" + nm + "</code>: the plain machine took " + Z.fmt(res[0]) +
+        " steps (the theorem says " + per + " · " + Z.fmt(n) + " = " + Z.fmt(per * n) + ") and left " + Z.fmt(n) + " copies of <code>" + to + "</code> where there were copies of <code>" + from + "</code>" + (res[1] ? ", as predicted." : ", but the tape differs.");
+    }
+    $("z6s-out").innerHTML = line(r, "sweep_right", 14, "010101", "011001") + "<br>" + line(l, "sweep_left", 22, "011001", "010101");
+  };
+  $("z6s-go").onclick();
+  // shift-rule simulator against the plain machine
+  $("z6f-go").onclick = function () {
+    var T = +$("z6f-T").value, btn = this; btn.disabled = true; $("z6f-out").textContent = "running…";
+    setTimeout(function () {
+      var t0 = performance.now(), m = new Z.Machine("", 0), pl = [];
+      m.run(T, function (c) { pl.push(c.n); });
+      var ms = performance.now() - t0, endL = Z.parse(m.fromHead());
+      t0 = performance.now();
+      var f = new Z.Fast([], 0), fl = [];
+      while (f.steps < T) { if (f.toLeftEnd(1e7) !== "left") break; fl.push(f.steps); }
+      var fms = performance.now() - t0, same = pl.length === fl.length && pl.every(function (x, i) { return x === fl[i]; }) && Z.listEq(f.list(), endL);
+      $("z6f-out").innerHTML = "Plain machine: " + Z.fmt(T) + " steps, " + Z.fmt(pl.length) + " left-end moments, " + Math.round(ms) + " ms. " +
+        "Shift-rule simulator: " + Z.fmt(f.moves) + " moves, of which " + Z.fmt(f.cross) + " cross a whole stretch; " + Math.round(fms) + " ms. " +
+        (same ? '<span class="pw-ok">&#10003; Both see the left-end moments at the same steps, and the same tape at the end.</span>' : '<span class="pw-bad">They disagree.</span>');
+      btn.disabled = false;
+    }, 30);
+  };
+})();
+</script>

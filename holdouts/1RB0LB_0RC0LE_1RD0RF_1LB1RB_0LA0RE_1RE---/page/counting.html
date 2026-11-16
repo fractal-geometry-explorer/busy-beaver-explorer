@@ -1,0 +1,105 @@
+<div class="col">
+<p>After k rounds the word begins with about k/2 doublers, so about 2<sup>k/2</sup> visits reach the blocks behind
+them, and round 161,211 could never be replayed visit by visit. But all the visits that reach one block are
+alike, so it is enough to know <em>how many</em> there are. <code>VisitLaw.lean</code> proves what n visits in a row
+do (<code>VS n s s'</code>, for every n):</p>
+<ul>
+<li><code>000 r</code> under n visits ends as the digit n mod 2, and &lfloor;n/2&rfloor; visits reach r (<code>law_Z</code>);</li>
+<li><code>100 r</code> ends as the digit (n + 1) mod 2, and &lceil;n/2&rceil; visits reach r (<code>law_H</code>); the same for
+<code>110 r</code> when n &ge; 1 (<code>law_G</code>);</li>
+<li><code>1010 r</code> stays <code>1010</code>, and 2n visits reach r (<code>vs_L</code>, with the guard on r);</li>
+<li>a <code>0</code> where a block should start takes the first visit to become a <code>1</code> (<code>law_0</code>);</li>
+<li>and the same laws for "one of the first n visits halts" (<code>hvs_Z</code>, <code>hvs_H</code>, <code>hvs_G</code>,
+<code>hvs_L</code>, <code>hvs_X</code>).</li>
+</ul>
+<p>Try a law: the browser makes n visits one by one with the rewriting rules and counts how many of them reach the
+stream r behind the block (here r starts as blank tape).</p>
+</div>
+<div class="panel" id="yv-law">
+ <div class="controls">
+  <label class="small" for="yvl-b">block</label>
+  <select id="yvl-b"><option value="000">000 r</option><option value="100">100 r</option><option value="110">110 r</option><option value="1010" selected>1010 r</option></select>
+  <label class="small" for="yvl-n">visits n</label>
+  <input type="range" class="yv-slider" id="yvl-n" min="1" max="200" value="13" aria-label="Number of visits">
+  <span class="small">n = <b id="yvl-lab">13</b></span>
+ </div>
+ <div id="yvl-out" class="small" style="margin-top:10px"></div>
+</div>
+<div class="col">
+<p><b>The pass.</b> The checker (<code>scan</code> in <code>VisitCheck.lean</code>) carries the number of visits through
+the word block by block, in one pass, using these laws: through a doubler n visits become 2n; through a digit n
+becomes n/2, rounded down or up depending on the digit, and the digit is set to the parity of n; when the count
+reaches 0 the rest of the word is copied unchanged. The counts are huge but simple: each is a power of two minus a
+small number, so the checker keeps a count as a pair e, c standing for 2<sup>e</sup> &minus; c, and doubling is
+e + 1, halving is e &minus; 1. <code>scan_sound</code> proves that what the pass returns is what 2<sup>e</sup> &minus; c
+visits of the rewriting system make; <code>hscan_sound</code> proves the same for its search for a halting visit
+(sound, not complete: when it is unsure it answers no).</p>
+<p>Pick a round and look at the counts. Up to round 40 the browser also makes the round's visits one by one, with
+the rewriting rules, and compares the number of visits that reach each block with the count the pass carries
+there.</p>
+</div>
+<div class="panel" id="yv-count">
+ <div class="controls">
+  <button type="button" id="yvc-minus" aria-label="Previous round">&#9664;</button>
+  <input type="range" class="yv-slider" id="yvc-k" min="1" max="3000" value="40" aria-label="Round">
+  <button type="button" id="yvc-plus" aria-label="Next round">&#9654;</button>
+  <span class="small">round <b id="yvc-lab">40</b></span>
+ </div>
+ <div class="small" id="yvc-info" style="margin-top:8px"></div>
+ <div id="yvc-row" style="display:flex;flex-wrap:wrap;gap:4px 3px;align-items:flex-end;max-height:19em;overflow:auto;margin-top:8px"></div>
+ <div class="cap" id="yvc-chk"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Y = window.YV, $ = function (id) { return document.getElementById(id); };
+  function lawShow() {
+    var blk = $("yvl-b").value, n = +$("yvl-n").value, L = blk.length;
+    $("yvl-lab").textContent = n;
+    var T = blk.split("").map(Number), cnt = [], info = { visits: 0, guards: 0 }, ok = true;
+    for (var i = 0; i < n && ok; i++) ok = Y.avisit(T, 0, cnt, info);
+    if (info.stuck) { $("yvl-out").innerHTML = '<span class="yv-bad">✗ ' + info.stuck + "</span>"; return; }
+    var reach = cnt[L] || 0, after = T.slice(0, L).join("");
+    var want, wantB, name;
+    if (blk === "000") { want = Math.floor(n / 2); wantB = n % 2 ? "100" : "000"; name = "law_Z"; }
+    else if (blk === "1010") { want = 2 * n; wantB = "1010"; name = "vs_L"; }
+    else { want = Math.ceil(n / 2); wantB = n % 2 ? "000" : "100"; name = blk === "100" ? "law_H" : "law_G"; }
+    var good = ok && reach === want && after === wantB;
+    $("yvl-out").innerHTML = n + " visits to <code>" + blk + " r</code>, made one by one: " + reach + " of the nested visits reach r, and the block is now <code>" + after + "</code>. " +
+      "<code>" + name + "</code> says " + want + " and <code>" + wantB + "</code>. " +
+      (good ? '<span class="yv-ok">✓ agrees</span>' : '<span class="yv-bad">✗ disagrees</span>') +
+      ' <span style="color:var(--muted)">(' + info.visits + " visits in all, inside r included)</span>";
+  }
+  $("yvl-b").addEventListener("change", lawShow);
+  $("yvl-n").addEventListener("input", lawShow);
+  lawShow();
+  var sl = $("yvc-k");
+  function show() {
+    var k = +sl.value, tr = [], w = Y.word(k - 1), nw = Y.round(w, tr), h = "", j, t, col, big = [0, 0];
+    $("yvc-lab").textContent = k;
+    for (j = 0; j < tr.length; j++) {
+      t = tr[j];
+      if (t[1] === "0") continue;
+      col = t[1] === "1010" ? "var(--yvl)" : (t[1] === "1011" || t[1] === "guard" || t[1] === "111" ? "var(--open)" : "var(--yvz)");
+      if (t[2] > big[0]) big = [t[2], t[3]];
+      h += '<span style="display:inline-block;text-align:center"><span style="display:block;font:10px var(--mono);color:var(--fg2)">' + Y.val(t[2], t[3]) +
+           '</span><span style="display:inline-block;padding:1px 4px;border-radius:4px;color:#fff;background:' + col + ';font:12px var(--mono)">' + t[1] + "</span></span>";
+    }
+    $("yvc-row").innerHTML = h;
+    $("yvc-info").innerHTML = "Round " + k + ": the word <code>1 0 S</code> has " + (w.length + 2) + " cells; the pass reads " + tr.length + " blocks, one step each. Largest count: " + Y.val(big[0], big[1]) + (big[0] >= 30 ? " (about 10<sup>" + Math.floor(big[0] * Math.log10(2)) + "</sup>)" : "") + ".";
+    var chk;
+    if (k <= 40) {
+      var cnt = [], a = Y.around(w, cnt), seen = {}, okc = true, nb = 0;
+      tr.forEach(function (t) { if (t[0] in seen) return; seen[t[0]] = 1; nb++; if ((cnt[t[0]] || 0) !== Math.pow(2, t[2]) - t[3]) okc = false; });
+      for (j = 0; j < cnt.length; j++) if (cnt[j] && !(j in seen)) okc = false;
+      chk = (okc ? '<span class="yv-ok">✓ at each of the ' + nb + " places the pass carries a count, the " + Y.fmt(a.visits) + " visits made one by one bring exactly that many</span>"
+                 : '<span class="yv-bad">✗ the counts differ from the visits</span>') + (Y.same(a.S, nw) ? '; <span class="yv-ok">✓ and the same word</span>' : '; <span class="yv-bad">✗ another word</span>');
+    } else chk = "Beyond round 40 the visits are too many to make one by one; only the pass is run.";
+    $("yvc-chk").innerHTML = "Above each block: how many visits reach it in this round. Blue: a doubler; green: a digit. " + chk;
+  }
+  sl.addEventListener("input", show);
+  $("yvc-plus").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  $("yvc-minus").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  show();
+})();
+</script>

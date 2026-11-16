@@ -1,13 +1,14 @@
-"""Write the step-by-step proof walkthrough into status.json (explainer.sections), from proof_page.html.
+"""Put the hand-written explainer sections (page/*.html) into status.json; then run holdouts/build_pages.py.
 
-The walkthrough is hand-written HTML with one script; this file only splits it into sections at the
-`<!--SECTION id | eyebrow | heading-->` markers and puts the proof's data into it as JSON: the phase forms
-(py/ends.py FORMS, the same strings the Lean files are generated from), the rules with their step counts
+    python3 holdouts/1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB/py/page.py
+    python3 holdouts/build_pages.py 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB
+
+The sections are hand-written HTML (each with its own inline script; page/levels.html defines the shared library
+`window.PW`). This file only puts the proof's data into page/levels.html in place of `__DATA__`: the phase forms
+(py/ends.py FORMS, the same strings the Lean files are generated from), the 27 rules with their step counts
 (py/macro.py RULES), the replay of the branch table (py/macro.py, the 196 moves that lean/Table.lean checks) and
 the invariant's inequalities (parsed from lean/Closed.lean), so the page shows exactly what Lean checks.
-
-usage: python3 holdouts/1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB/py/proof_page.py
-       then python3 holdouts/build_pages.py 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB
+The section "shape" (written by holdouts/gen.py) is kept after the hand-written ones.
 """
 import json
 import os
@@ -20,9 +21,23 @@ sys.path.insert(0, HERE)
 import ends   # noqa: E402
 import macro  # noqa: E402
 
-KEEP = ["shape"]          # generated sections kept after the walkthrough
+SECTIONS = [
+    ("levels", "Four levels", "From six states to a list of inequalities"),
+    ("p-halt", "Level 1", "The machine, and the only way it can halt"),
+    ("p-forms", "Level 1 to level 2", "The tape is a list of numbers"),
+    ("p-passes", "Level 2", "Crossing a run in one move"),
+    ("p-rules", "Level 2", "One rule, for any size"),
+    ("p-branch", "Level 2 to level 3", "Ten forms and twenty cases"),
+    ("p-replay", "Level 3", "Following the map from the blank tape"),
+    ("p-invariant", "Level 4", "Why the moves never run out"),
+    ("bottom", "The bottom line", "It never halts"),
+]
+KEEP = ["shape"]          # generated sections kept after the hand-written ones
 GOOD = {"O": "gOp", "O0": "gO0", "S1": "gS1", "RF": "gRF", "EF": "gEF", "T3": "gT3", "T2": "gT2", "U3": "gU3",
         "RG": "gRG", "RG3": "gRG3"}
+SHAPE_OLD = "the macro structure behind them is the next thing to find.</p>"
+SHAPE_NEW = ("the macro structure behind them is the subject of the levels above, and the Lean proof settles "
+             "the question.</p>")
 
 
 def form(f):
@@ -120,23 +135,29 @@ def data():
 
 
 def main():
-    src = open(os.path.join(HERE, "proof_page.html")).read()
-    src = src.replace("__DATA__", json.dumps(data(), separators=(",", ":"), ensure_ascii=False))
-    parts = re.split(r"<!--SECTION (.*?)-->\n", src)
+    blob = json.dumps(data(), separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/")
     secs = []
-    for head, body in zip(parts[1::2], parts[2::2]):
-        sid, eyebrow, heading = [x.strip() for x in head.split("|")]
-        secs.append({"id": sid, "eyebrow": eyebrow, "heading": heading, "html": body.rstrip("\n").split("\n")})
+    for sid, eyebrow, heading in SECTIONS:
+        body = open(os.path.join(DIR, "page", sid + ".html")).read().rstrip("\n")
+        if "__DATA__" in body:
+            body = body.replace("__DATA__", blob)
+        secs.append({"id": sid, "eyebrow": eyebrow, "heading": heading, "html": body.split("\n")})
     p = os.path.join(DIR, "status.json")
     spec = json.load(open(p))
     old = {s["id"]: s for s in spec["explainer"].get("sections", [])}
-    spec["explainer"]["sections"] = secs + [old[k] for k in KEEP if k in old]
+    kept = []
+    for k in KEEP:
+        if k in old:
+            s = json.loads(json.dumps(old[k]))
+            s["html"] = [line.replace(SHAPE_OLD, SHAPE_NEW) for line in s["html"]]
+            kept.append(s)
+    spec["explainer"]["sections"] = secs + kept
     nl = open(p).read().endswith("\n")
     with open(p, "w") as f:
         json.dump(spec, f, indent=1, ensure_ascii=False)
         if nl:
             f.write("\n")
-    print("wrote %d sections" % len(secs))
+    print("wrote %d sections" % len(secs + kept))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,107 @@
+<div class="col">
+<p>The first step down replaces the tape by a <em>compressed tape</em>: two stacks of items, one on each side of the
+head, where an item is a single cell or a word repeated n times, for any n. A <em>round</em> of the program
+(<code>mstep</code> in <code>lean/Sim.lean</code>) is one of four things:</p>
+<ul>
+<li><b>a transition</b>: the head reads the cell in front of it and the machine makes one step;</li>
+<li><b>a run crossed</b>: in front of the head lies a run of copies of a word, and one copy, entered in some state,
+is left on the far side in the same state. Then every copy is crossed in the same way, so the whole run is crossed
+at once and the steps are multiplied out;</li>
+<li><b>two copies crossed</b>: the same with two copies of the word taken together;</li>
+<li><b>a copy unpacked</b>: otherwise one copy is taken off the run and written out as cells.</li>
+</ul>
+<p>Leftward moves are handled by mirroring the table, so one rule covers both directions (<code>steps_mir</code>).
+<span class="ev k">Kernel</span> <code>mstep_sound</code>: every round leads from the configuration the stacks stand
+for to the next one by real steps of the machine, whatever is on the stacks. How the program folds cells into runs
+only affects its speed, never its correctness.</p>
+<p>The stepper runs the program and the plain machine side by side. After every round the machine is moved on by the
+number of steps the round claims, and the two tapes are compared cell by cell.</p>
+</div>
+<div class="panel" id="od-rounds">
+ <div class="controls">
+  <label class="small" for="odr-v">start at visit</label>
+  <input type="text" id="odr-v" inputmode="numeric" value="59" spellcheck="false" autocomplete="off" style="width:6em">
+  <button type="button" id="odr-go">Go</button>
+  <button type="button" class="primary" id="odr-1">One round</button>
+  <button type="button" id="odr-10">10 rounds</button>
+  <button type="button" id="odr-v1">To the next visit</button>
+ </div>
+ <div class="readout"><span>round <b id="odr-r">0</b></span><span>step <b id="odr-k">0</b></span><span>items <b id="odr-n">0</b></span><span id="odr-chk"></span></div>
+ <div class="od-chips" id="odr-tape" aria-label="The compressed tape in tape order" style="max-height:12em"></div>
+ <div class="log" id="odr-log" aria-live="polite"></div>
+ <div class="cap">Runs are shown in tape order, <code>(011)<sup>8</sup></code> for eight copies of 011; the orange tag is the head and the side it faces. The log lists the last rounds, newest first.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var O = window.OD, $ = function (id) { return document.getElementById(id); };
+  var sim, cm, log, r0;
+  function rev(s) { return s.split("").reverse().join(""); }
+  function chip(it, flip) { return O.isRun(it) ? '<span class="r">(' + (flip ? rev(it.w) : it.w) + ")<sup>" + it.n + "</sup></span>" : "<span>" + it + "</span>"; }
+  function render() {
+    var f = sim.front, b = sim.back, out = [], i, st = O.SN[sim.st];
+    if (sim.dirR) {
+      for (i = 0; i < b.length; i++) out.push(chip(b[i], true));
+      out.push('<span class="h">' + st + "&gt;</span>");
+      for (i = f.length - 1; i >= 0; i--) out.push(chip(f[i], false));
+      if (!f.length) out.push("<span>0</span>");
+    } else {
+      for (i = 0; i < f.length; i++) out.push(chip(f[i], true));
+      if (!f.length) out.push("<span>0</span>");
+      out.push('<span class="h">&lt;' + st + "</span>");
+      for (i = b.length - 1; i >= 0; i--) out.push(chip(b[i], false));
+    }
+    $("odr-tape").innerHTML = out.join("");
+    $("odr-r").textContent = O.fmt(sim.rounds - r0);
+    $("odr-k").textContent = O.fmt(Number(sim.steps));
+    $("odr-n").textContent = b.length + f.length;
+    $("odr-log").innerHTML = log.slice(-60).reverse().map(function (l) { return "<div><span class=\"t\">" + l[0] + "</span><span></span><span>" + l[1] + "</span><span>" + l[2] + "</span></div>"; }).join("");
+  }
+  function cellsOf() {   // the machine's tape around its head, as (left, right) strings, trimmed
+    var a = cm.lo, z = cm.hi + 1, l = "", r = "";
+    for (var x = a; x < cm.p; x++) l += cm.get(x);
+    for (x = cm.p; x <= z; x++) r += cm.get(x);
+    return [l.replace(/^0+/, ""), r.replace(/0+$/, "")];
+  }
+  function check() {
+    var c = sim.cells(1e6), m = cellsOf();
+    var ok = c && c.left.replace(/^0+/, "") === m[0] && c.right.replace(/0+$/, "") === m[1] && sim.st === cm.s && sim.steps === BigInt(cm.k);
+    $("odr-chk").innerHTML = ok ? '<span class="od-ok">&#10003; the machine, after the same ' + O.fmt(cm.k) + " steps, has the same tape, head and state</span>"
+                                : '<span class="od-bad">&#10007; the machine differs</span>';
+    return ok;
+  }
+  function describe(before, kind, ds) {
+    var st = O.SN[before.st];
+    if (kind === "bit") return "transition in " + st + " (1 step)";
+    if (kind === "cross") return "run (" + (before.dirR ? before.w : rev(before.w)) + ")<sup>" + before.n + "</sup> crossed in " + st + " (" + O.fmt(ds) + " steps)";
+    if (kind === "double") return "run (" + (before.dirR ? before.w : rev(before.w)) + ")<sup>" + before.n + "</sup> crossed two copies at a time in " + st + " (" + O.fmt(ds) + " steps)";
+    if (kind === "unpack") return "one copy of (" + (before.dirR ? before.w : rev(before.w)) + ")<sup>" + before.n + "</sup> unpacked (0 steps)";
+    return kind;
+  }
+  function one() {
+    if (sim.halted) return;
+    var top = sim.front[sim.front.length - 1], before = { st: sim.st, dirR: sim.dirR, w: top && O.isRun(top) ? top.w : "", n: top && O.isRun(top) ? top.n : 0 };
+    var k0 = sim.steps, kind = sim.round();
+    if (kind === "x" || kind === "visit") kind = sim.last;
+    var ds = Number(sim.steps - k0);
+    for (var i = 0; i < ds; i++) cm.step();
+    log.push([O.fmt(sim.rounds - r0), kind === "bit" ? "T" : kind === "unpack" ? "U" : "R", describe(before, kind, ds)]);
+    if (sim.atVisit()) log.push(["", "", "<b>a visit</b> (step " + O.fmt(cm.k) + ")"]);
+  }
+  function start() {
+    var v = Math.max(1, Math.min(3000, parseInt($("odr-v").value.replace(/[^0-9]/g, ""), 10) || 1));
+    $("odr-v").value = v;
+    sim = new O.Sim({ jumps: false }); cm = new O.Cells(); log = [];
+    for (var j = 0; j < v; j++) { cm.nextVisit(); do { sim.round(); } while (!(sim.atVisit() && sim.last !== "visit")); sim.last = "x"; }
+    sim.last = "";  r0 = sim.rounds;
+    log.push(["", "", "visit " + v + " of the run from blank tape"]);
+    render(); check();
+  }
+  function many(n) { for (var i = 0; i < n; i++) one(); render(); check(); }
+  $("odr-go").addEventListener("click", start);
+  $("odr-1").addEventListener("click", function () { many(1); });
+  $("odr-10").addEventListener("click", function () { many(10); });
+  $("odr-v1").addEventListener("click", function () { var g = 0; do { one(); g++; } while (!sim.atVisit() && g < 1e6); render(); check(); });
+  start();
+})();
+</script>

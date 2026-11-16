@@ -1,0 +1,411 @@
+<style>
+:root{--yvl:#2a78d6;--yvz:#1baf7a;--yvw:#c98500;--yvl2:#cde2fb;--yvz2:#c9efe0}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--yvl:#5b9be8;--yvz:#2cc08a;--yvw:#e0a530;--yvl2:#1b3354;--yvz2:#123a2b} }
+:root[data-theme="dark"]{--yvl:#5b9be8;--yvz:#2cc08a;--yvw:#e0a530;--yvl2:#1b3354;--yvz2:#123a2b}
+.yv-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:22px 0}
+.yv-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.yv-lv:hover{border-color:var(--accent)}
+.yv-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.yv-lv .t{display:block;font:700 1.08rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.yv-lv code{font-size:.8em}
+.yv-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.yv-row{display:grid;grid-template-columns:10.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.yv-row:first-child{border-top:0}
+.yv-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:560px){.yv-row{grid-template-columns:minmax(0,1fr)}}
+.yv-word{font:.82rem/1.7 var(--mono);overflow-wrap:anywhere;word-break:break-all}
+.yv-word i{font-style:normal;border-radius:3px;padding:0 1px;margin-right:2px}
+.yv-word i.l{background:var(--yvl2);color:var(--fg)} .yv-word i.z{background:var(--yvz2);color:var(--fg)}
+.yv-word i.x{background:var(--open-bg);color:var(--open);font-weight:700} .yv-word i.f{color:var(--muted)}
+.yv-tape{display:block;width:100%;height:46px;margin-top:6px}
+.yv-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.yv-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.yv-ok{color:var(--kernel);font-weight:600}
+.yv-bad{color:var(--open);font-weight:600}
+.yv-slider{flex:1 1 200px;min-width:140px;accent-color:var(--accent)}
+:is(#levels,#visits,#rewriting,#counting,#checker,#bottomline,#counters) :is(p,li,td){overflow-wrap:anywhere}
+.yv-tbl{overflow-x:auto} .yv-tbl table{border-collapse:collapse;font-size:.9rem} .yv-tbl td code{white-space:nowrap}
+</style>
+<div class="col">
+<p>"Does this machine halt?" is answered here by walking down five levels of description. Each level forgets
+detail the one above it keeps, and each step down is a Lean theorem that carries the answer back up: a halt found
+at a lower level is a halt of the level above. At the bottom there is no machine left, only one computation, and
+running that computation is the last link of the proof (<a href="#bottomline">the bottom line</a>).</p>
+</div>
+<div class="yv-ladder">
+ <a class="yv-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">From blank tape to the halt: between 5.9&middot;10<sup>24,266</sup> and 9.2&middot;10<sup>24,266</sup> steps (computed, not proved).</div></a>
+ <a class="yv-lv" href="#visits"><span class="n">Level 2</span><b class="t">Rounds and visits</b>
+  <div class="u">At the start of every round the tape is <code>0<sup>&infin;</sup> A&gt; 1 0 0 S</code>; a round is one
+  <b>visit</b> to the word <code>1 0 S</code>, which makes visits of its own, entered in state C or F. One unit is one <b>round</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">a halting round is a halt of the machine: <code>start</code>, <code>round</code>, <code>round_halts</code>, <code>V_*</code>, <code>W_*</code></span></a>
+ <a class="yv-lv" href="#rewriting"><span class="n">Level 3</span><b class="t">Four rules on words</b>
+  <div class="u">The visit as a rewriting system on words of 0s and 1s, with a trap <code>1011</code>, and no machine in it.
+  One unit is one <b>visit</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">every abstract visit is a visit of the machine: <code>law</code>, <code>Law.av</code>, <code>Law.ah</code></span></a>
+ <a class="yv-lv" href="#counting"><span class="n">Level 4</span><b class="t">Counting visits</b>
+  <div class="u">One pass per round carries the <em>number</em> of visits, written 2<sup>e</sup> &minus; c, through the word.
+  One unit is one <b>block</b> of the word.</div>
+  <span class="ev k">Kernel</span> <span class="small">the pass gives what the visits give: <code>scan_sound</code>, <code>hscan_sound</code>, <code>halts_of_check</code></span></a>
+ <a class="yv-lv" href="#checker"><span class="n">Level 5</span><b class="t">One evaluation</b>
+  <div class="u"><code>check 161210 [true] = true</code>: 161,210 rounds of the pass, then a round that meets the trap.
+  One unit is the <b>whole run</b>, cut into ten segments.</div>
+  <span class="ev n">native_decide</span> <span class="small">the value of the computation: <code>check_run</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, five descriptions</h3>
+<p>Pick a round. The browser runs the real machine from blank tape until that round starts, finding the moment
+on the machine itself (the head two cells further left than at the last round, in state A, on the tape
+<code>0<sup>&infin;</sup> 1 0 0 S</code>), and reads the word S off its tape. Separately it runs the visit rules with
+their step counts, the rewriting system, and the checker's counting pass, each from its own start. The rows show
+the same moment at every level; the check marks say that the computations agree.</p>
+</div>
+<div class="panel" id="yv-moment">
+ <div class="controls">
+  <button type="button" id="yvm-prev" aria-label="Previous round">&#9664;</button>
+  <input type="range" class="yv-slider" id="yvm-r" min="1" max="36" value="12" aria-label="Round">
+  <button type="button" id="yvm-next" aria-label="Next round">&#9654;</button>
+  <span class="small">start of round <b id="yvm-lab">12</b></span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="yv-row"><span>1 · Machine</span><div><span id="yvm-step"></span>
+   <canvas class="yv-tape" id="yvm-tape" aria-label="The visited tape at the start of this round"></canvas>
+   <div class="yv-key"><span><i style="background:var(--ink)"></i>1</span><span><i style="background:var(--cell0);border:1px solid var(--line)"></i>0</span><span><i style="background:var(--head)"></i>head, state A</span><span><i style="background:var(--yvl)"></i>under a doubler <code>1010</code></span><span><i style="background:var(--yvz)"></i>under a digit</span></div></div></div>
+  <div class="yv-row"><span>2 · Round</span><div id="yvm-v"></div></div>
+  <div class="yv-row"><span>3 · Rewriting</span><div id="yvm-a"></div></div>
+  <div class="yv-row"><span>4 · Counting pass</span><div id="yvm-c"></div></div>
+  <div class="yv-row"><span>5 · Checker</span><div id="yvm-k"></div></div>
+ </div>
+ <div class="cap">The word S is drawn in blocks as the next round's pass reads it: blue blocks <code>1010</code> double the
+ visits that pass through them, green blocks are binary digits, grey cells are not reached in that round. Round 36
+ starts after more than 3&middot;10<sup>7</sup> steps; the browser runs them in well under a second.</div>
+</div>
+<script>
+window.YVCFG = {
+  machine: "1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---",
+  rules: {
+    V: [{ p: "0", out: "1", seq: [4], th: "V_0" }, { p: "100", out: "000", seq: [3, "V", 3], th: "V_100" },
+        { p: "110", out: "000", seq: [5, "V", 3], th: "V_110" }, { p: "1010", out: "1010", seq: [4, "W", 2, "V", 14], th: "V_1010" },
+        { p: "1110", out: "1010", seq: [6, "W", 2, "V", 14], th: "V_1110", law: false }],
+    W: [{ p: "0", out: "1", seq: [8], th: "W_0" }, { p: "100", out: "000", seq: [3, "V", 3], th: "W_100" },
+        { p: "110", out: "000", seq: [5, "V", 3], th: "W_110" }, { p: "1010", out: "1010", seq: [4, "W", 2, "V", 14], th: "W_1010" },
+        { p: "1110", out: "1010", seq: [6, "W", 2, "V", 14], th: "W_1110", law: false }]
+  },
+  halt: { V: [["1011", 4, "V_1011_halts"], ["1111", 6, "V_1111_halts"]], W: [["1011", 4, "W_1011_halts"], ["1111", 6, "W_1111_halts"]] }
+};
+window.YV = (function () {
+  "use strict";
+  var CFG = window.YVCFG;
+  // ---- Level 1: the machine itself -------------------------------------------------------------------------
+  var TM = CFG.machine, W = [], MV = [], ST = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var s = 0; s < 2; s++) {
+      var t = g.substr(3 * s, 3), k = 2 * i + s;
+      if (t[0] === "-") { W[k] = -1; MV[k] = 0; ST[k] = -1; }
+      else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; ST[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  function Machine() { this.n = 1 << 12; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0; this.k = 0; this.lo = 0; this.hi = 0; this.halted = false; }
+  Machine.prototype.grow = function () {
+    var n = this.n * 2, t = new Uint8Array(n);
+    t.set(this.t, this.n >> 1); this.o += this.n >> 1; this.t = t; this.n = n;
+  };
+  Machine.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  Machine.prototype.step = function () {
+    var i = this.p + this.o;
+    if (i < 2 || i >= this.n - 2) { this.grow(); i = this.p + this.o; }
+    var k = 2 * this.s + this.t[i];
+    if (ST[k] < 0) { this.halted = true; return false; }
+    this.t[i] = W[k]; this.p += MV[k]; this.s = ST[k]; this.k++;
+    if (this.p < this.lo) this.lo = this.p;
+    if (this.p > this.hi) this.hi = this.p;
+    return true;
+  };
+  Machine.prototype.run = function (n) { while (n-- > 0) if (!this.step()) return false; return true; };
+  Machine.prototype.clone = function () {
+    var m = new Machine(); m.n = this.n; m.t = this.t.slice(); m.o = this.o; m.p = this.p; m.s = this.s; m.k = this.k;
+    m.lo = this.lo; m.hi = this.hi; m.halted = this.halted; return m;
+  };
+  // The round tape 0^inf A> 1 0 0 S: is the machine in it now?  Returns S (trailing 0s cut) or null.
+  Machine.prototype.roundWord = function () {
+    if (this.s !== 0 || this.get(this.p) !== 1 || this.get(this.p + 1) !== 0 || this.get(this.p + 2) !== 0) return null;
+    for (var x = this.lo; x < this.p; x++) if (this.get(x)) return null;
+    var hi = this.hi; while (hi > this.p + 2 && !this.get(hi)) hi--;
+    var w = []; for (x = this.p + 3; x <= hi; x++) w.push(this.get(x));
+    return w;
+  };
+  // The run from blank tape, round by round: rounds[r] = {k: step, p: head cell, S: word} at the start of round r.
+  // Found on the machine itself, not taken from the rules: round r + 1 starts at the first step after the start of
+  // round r at which the head is two cells further left in state A and the tape has the round form.
+  var rounds = [], rm = null;
+  function machineRounds(r, budget) {
+    if (!rm) { rm = new Machine(); rm.run(6); rounds[1] = { k: rm.k, p: rm.p, S: rm.roundWord(), lo: rm.lo, hi: rm.hi }; }
+    var end = rm.k + (budget || 4e8);
+    while (rounds.length <= r && rm.k < end && !rm.halted) {
+      var target = rounds[rounds.length - 1].p - 2, w = null;
+      while (rm.k < end) {
+        if (!rm.step()) break;
+        if (rm.p === target && rm.s === 0 && (w = rm.roundWord())) break;
+      }
+      if (!w) break;
+      rounds.push({ k: rm.k, p: rm.p, S: w, lo: rm.lo, hi: rm.hi });
+    }
+    return rounds;
+  }
+  // ---- Level 2: the machine's visits (Visit.lean), with the step counts of their proofs ------------------------
+  // A rule: [pattern, a0, nested form, a1, nested form, a2]; costs are the steps between the nested visits.
+  var RULES = CFG.rules, HALT = CFG.halt;
+  function match(T, j, pat) { for (var q = 0; q < pat.length; q++) if ((T[j + q] || 0) !== +pat[q]) return false; return true; }
+  function grow(T, n) { while (T.length < n) T.push(0); }
+  // One visit in form F ("V" or "W") to the stream starting at T[j]; its lead cell is T[j-1]. log(form, j, step)
+  // is called at its start. Returns the step at its end, or {halt: step, j} if it halts, or {stuck: rule text}.
+  function mvisit(form, T, j, step, log, depth) {
+    grow(T, j + 6);
+    if (log) log(form, j, step, depth);
+    var rs = RULES[form], q, t;
+    for (q = 0; q < HALT[form].length; q++) if (match(T, j, HALT[form][q][0])) return { halt: step + HALT[form][q][1], j: j, rule: HALT[form][q] };
+    for (q = 0; q < rs.length; q++) {
+      var R = rs[q];
+      if (!match(T, j, R.p)) continue;
+      if (R.law === false) mstats.outside++;
+      var L = R.p.length, y = step + R.seq[0];
+      for (t = 1; t < R.seq.length; t += 2) {
+        y = mvisit(R.seq[t], T, j + L, y, log, depth + 1);
+        if (typeof y !== "number") return y;
+        y += R.seq[t + 1];
+      }
+      for (t = 0; t < L; t++) T[j + t] = +R.out[t];
+      return y;
+    }
+    return { stuck: form + " on " + T.slice(j, j + 4).join("") };
+  }
+  var mstats = { outside: 0 };
+  // One round on the word S (the visit to 1 0 S, 8 steps after the round starts). Returns {S, steps} or a halt.
+  function mround(S, step, log) {
+    var T = [1, 0].concat(S), y = mvisit("V", T, 0, step + 8, log, 0);
+    if (typeof y !== "number") return y;
+    return { S: trim(T), k: y };
+  }
+  function trim(w) { var n = w.length; while (n > 0 && !w[n - 1]) n--; return w.slice(0, n); }
+  // ---- Level 3: the abstract system AV / AH of VisitLaw.lean, no machine and no forms ------------------------
+  // Returns true after a visit, false if it halts; throws if no rule applies. cnt[j] counts visits to position j.
+  function guard(T, j) { return !((T[j] || 0) === 1 && (T[j + 1] || 0) === 1); }
+  function avisit(T, j, cnt, info) {
+    grow(T, j + 6);
+    if (cnt) cnt[j] = (cnt[j] || 0) + 1;
+    info.visits++;
+    var a = T[j], b = T[j + 1], d = T[j + 2], e = T[j + 3];
+    if (a === 0) { T[j] = 1; return true; }                                     // z: 0 s -> 1 s
+    if (b === 0 && d === 0) { if (!avisit(T, j + 3, cnt, info)) return false; T[j] = 0; return true; }  // h: 100 r
+    if (b === 1 && d === 0) { if (!avisit(T, j + 3, cnt, info)) return false; T[j] = 0; T[j + 1] = 0; return true; } // g: 110 r
+    if (b === 0 && d === 1 && e === 0) {                                          // l: 1010 r, guarded
+      if (!guard(T, j + 4)) { info.stuck = "the guard fails at cell " + j; return false; }
+      info.guards++;
+      if (!avisit(T, j + 4, cnt, info)) return false;
+      return avisit(T, j + 4, cnt, info);
+    }
+    if (b === 0 && d === 1 && e === 1) { info.haltAt = j; return false; }          // x: 1011 r halts
+    info.stuck = "no rule applies at cell " + j; return false;
+  }
+  function around(S, cnt) {
+    var T = [1, 0].concat(S), info = { visits: 0, guards: 0 };
+    var ok = avisit(T, 0, cnt, info);
+    return { S: ok ? trim(T) : null, visits: info.visits, guards: info.guards, halted: !ok && !info.stuck, stuck: info.stuck, haltAt: info.haltAt };
+  }
+  // ---- Level 4: the checker of VisitCheck.lean, line by line --------------------------------------------------
+  var P30 = Math.pow(2, 30);
+  function sign(e, c) { return e < 30 ? (Math.pow(2, e) <= c ? 0 : 1) : (c < P30 ? 1 : 2); }
+  function oddc(e, c) { return e === 0 ? 1 : c % 2; }
+  function val(e, c) { return e < 30 ? (Math.pow(2, e) - c).toLocaleString("en-US") : "2^" + e + (c ? " − " + c : ""); }
+  // scan e c s: returns the rewritten word or null; trace gets [position, block, e, c] at every block.
+  function scan(e, c, s, trace) {
+    s = s.slice(); var i = 0, acc = [], fuel = 1e8;
+    while (fuel-- > 0) {
+      var sg = sign(e, c);
+      if (sg === 0) return acc.concat(s.slice(i));
+      if (sg !== 1) return null;
+      if (s.length - i < 3) { s.push(0, 0, 0, 0); continue; }
+      var a = s[i], b = s[i + 1], d = s[i + 2];
+      if (a === 1 && d === 0) {                       // 100 or 110: a digit, ceil(n/2) pass on
+        if (trace) trace.push([i, "1" + b + "0", e, c]);
+        acc.push(1 - oddc(e, c), 0, 0); c = e === 0 ? c : Math.floor(c / 2); e = Math.max(e - 1, 0); i += 3;
+      } else if (a === 0 && b === 0 && d === 0) {     // 000: a digit, floor(n/2) pass on
+        if (trace) trace.push([i, "000", e, c]);
+        acc.push(oddc(e, c), 0, 0); c = e === 0 ? 1 : Math.floor((c + 1) / 2); e = Math.max(e - 1, 0); i += 3;
+      } else if (a === 1 && b === 0 && d === 1) {
+        if (s.length - i < 4) { s.push(0, 0, 0, 0); continue; }
+        if (s[i + 3] === 1) { if (trace) trace.push([i, "1011", e, c]); return null; }
+        if (!(s[i + 4] === 1 && s[i + 5] === 1)) {
+          if (trace) trace.push([i, "1010", e, c]);
+          acc.push(1, 0, 1, 0); e += 1; c *= 2; i += 4;
+        } else { if (trace) trace.push([i, "guard", e, c]); return null; }
+      } else if (a === 1) { if (trace) trace.push([i, "111", e, c]); return null; }
+      else { if (trace) trace.push([i, "0", e, c]); s[i] = 1; c += 1; }   // 0 b d, not 000: the first visit writes the 1
+      if (c > 9e15) return null;
+    }
+    return null;
+  }
+  // hscan e c s: does one of the 2^e - c visits to s halt? (sound, not complete; as in VisitCheck.lean)
+  function hscan(e, c, s) {
+    s = s.slice(); var i = 0, fuel = 1e8;
+    while (fuel-- > 0) {
+      if (sign(e, c) !== 1) return false;
+      var n = s.length - i;
+      if (n >= 4 && s[i] === 1 && s[i + 1] === 0 && s[i + 2] === 1 && s[i + 3] === 1) return true;
+      if (n >= 4 && s[i] === 1 && s[i + 1] === 0 && s[i + 2] === 1 && s[i + 3] === 0) {
+        if (n >= 6 && s[i + 4] === 1 && s[i + 5] === 1) return false;
+        e += 1; c *= 2; i += 4; continue;
+      }
+      if (n >= 3 && s[i] === 1 && s[i + 2] === 0) { c = e === 0 ? c : Math.floor(c / 2); e = Math.max(e - 1, 0); i += 3; continue; }
+      if (n >= 3 && s[i] === 0 && s[i + 1] === 0 && s[i + 2] === 0) { c = e === 0 ? 1 : Math.floor((c + 1) / 2); e = Math.max(e - 1, 0); i += 3; continue; }
+      if (n >= 4 && s[i] === 0) { s[i] = 1; c += 1; continue; }
+      if (n < 4) { s.push(0, 0, 0, 0); continue; }
+      return false;
+    }
+    return false;
+  }
+  function round(S, trace) { return scan(0, 0, [1, 0].concat(S), trace); }
+  // word(k) = the checker's word after k rounds from the word 1 (trailing 0s cut); every 50th word is kept
+  var keep = { 0: [1] }, KEEP = 50;
+  function word(k) {
+    var b = k - k % KEEP; while (!keep[b]) b -= KEEP;
+    var w = keep[b];
+    for (var i = b + 1; i <= k; i++) { w = round(w, null); if (!w) return null; w = trim(w); if (i % KEEP === 0) keep[i] = w; }
+    return w;
+  }
+  // The same pass on byte arrays, for long runs: one round on the word s[0..n), returns the new word (trailing 0s cut).
+  // It follows scan case by case; the page compares the two.
+  function roundFast(s, n) {
+    var cap = n + 256, inp = new Uint8Array(cap), out = new Uint8Array(cap), i = 0, o = 0, e = 0, c = 0, len = n + 2, sg, a, b, d;
+    inp[0] = 1; inp[1] = 0; inp.set(s.subarray(0, n), 2);
+    function more() { var c2 = 2 * cap, a2 = new Uint8Array(c2), o2 = new Uint8Array(c2); a2.set(inp); o2.set(out); inp = a2; out = o2; cap = c2; }
+    for (;;) {
+      sg = e < 30 ? (Math.pow(2, e) <= c ? 0 : 1) : (c < P30 ? 1 : 2);
+      if (sg === 0) { while (i < len) out[o++] = inp[i++]; break; }
+      if (sg !== 1) return null;
+      if (len - i < 3) {
+        if (len + 4 > cap) more();
+        len += 4; continue;                      // the pad: four 0s (inp is 0 beyond len)
+      }
+      a = inp[i]; b = inp[i + 1]; d = inp[i + 2];
+      if (a === 1 && d === 0) { out[o++] = e === 0 ? 0 : 1 - (c % 2); out[o++] = 0; out[o++] = 0; c = e === 0 ? c : Math.floor(c / 2); if (e > 0) e--; i += 3; }
+      else if (a === 0 && b === 0 && d === 0) { out[o++] = e === 0 ? 1 : c % 2; out[o++] = 0; out[o++] = 0; c = e === 0 ? 1 : Math.floor((c + 1) / 2); if (e > 0) e--; i += 3; }
+      else if (a === 1 && b === 0 && d === 1) {
+        if (len - i < 4) { if (len + 4 > cap) more(); len += 4; continue; }
+        if (inp[i + 3] === 1) return null;
+        if (len - i >= 6 && inp[i + 4] === 1 && inp[i + 5] === 1) return null;
+        out[o++] = 1; out[o++] = 0; out[o++] = 1; out[o++] = 0; e++; c *= 2; i += 4;
+      } else if (a === 1) return null;
+      else { inp[i] = 1; c++; }
+    }
+    while (o > 0 && !out[o - 1]) o--;
+    return out.subarray(0, o);
+  }
+  // ---- small helpers for the panels ------------------------------------------------------------------------
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  function same(x, y) { x = trim(x); y = trim(y); if (x.length !== y.length) return false; for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false; return true; }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    var w = window.innerWidth; window.addEventListener("resize", function () { if (window.innerWidth !== w) { w = window.innerWidth; f(); } });
+  }
+  return { CFG: CFG, mstats: mstats, roundFast: roundFast, Machine: Machine, machineRounds: machineRounds, mvisit: mvisit, mround: mround, avisit: avisit,
+           around: around, scan: scan, hscan: hscan, round: round, word: word, val: val, trim: trim, same: same,
+           css: css, fmt: fmt, onTheme: onTheme };
+})();
+(function () {
+  "use strict";
+  var Y = window.YV, $ = function (id) { return document.getElementById(id); };
+  var sl = $("yvm-r"), cv = $("yvm-tape");
+  // Level 2, run on its own: the rounds by the visit rules with their step counts (from step 6, word 1).
+  var model = [null, { S: [1], k: 6 }];
+  function modelRound(r) {
+    while (model.length <= r) {
+      var L = model[model.length - 1], cnt = { V: 0, W: 0 };
+      var m = Y.mround(L.S, L.k, function (f) { cnt[f]++; });
+      L.visits = cnt; model.push({ S: m.S, k: m.k });
+    }
+    return model[r];
+  }
+  // Level 3, run on its own: the rewriting system from the word 1.
+  var abs = [null, { S: [1] }];
+  function absRound(r) {
+    while (abs.length <= r) { var L = abs[abs.length - 1], a = Y.around(L.S, null); L.n = a.visits; abs.push({ S: a.S }); }
+    return abs[r];
+  }
+  function ok(b, yes, no) { return b ? ' <span class="yv-ok">✓ ' + yes + "</span>" : ' <span class="yv-bad">✗ ' + no + "</span>"; }
+  // The blocks of S as the next round's pass reads them: [start in S, length, kind]
+  function blocks(S) {
+    var tr = [], out = []; Y.round(S, tr);
+    tr.forEach(function (t) {
+      if (t[1] === "0") return;
+      var L = t[1] === "1010" || t[1] === "1011" ? 4 : 3, j = t[0] - 2;
+      out.push([j, L, t[1] === "1010" ? "l" : t[1] === "1011" ? "x" : "z"]);
+    });
+    return out;
+  }
+  function kindsOf(S, bl) { var k = new Array(S.length).fill("f"); bl.forEach(function (b) { for (var q = 0; q < b[1]; q++) if (b[0] + q >= 0 && b[0] + q < S.length) k[b[0] + q] = b[2]; }); return k; }
+  function wordHtml(S, bl) {
+    var h = "", i = 0;
+    bl.forEach(function (b) {
+      var a = Math.max(b[0], 0), e = Math.min(b[0] + b[1], S.length);
+      if (e <= a) return;
+      if (a > i) h += '<i class="f">' + S.slice(i, a).join("") + "</i>";
+      h += '<i class="' + b[2] + '">' + S.slice(a, e).join("") + "</i>"; i = e;
+    });
+    if (i < S.length) h += '<i class="f">' + S.slice(i).join("") + "</i>";
+    return h;
+  }
+  function draw(mr, kd) {
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var lo = mr.lo, hi = mr.hi, n = hi - lo + 1, cw = Math.min(12, w / n), gap = cw >= 5 ? 1 : 0, y0 = 4, ch = 22;
+    var cells = [1, 0, 0].concat(mr.S);
+    for (var x = lo; x <= hi; x++) {
+      var px = (x - lo) * cw, j = x - mr.p, v = j >= 0 && j < cells.length ? cells[j] : 0;
+      g.fillStyle = v ? Y.css("--ink") : Y.css("--sunk");
+      g.fillRect(px, y0, Math.max(cw - gap, 0.6), ch);
+      j -= 3;
+      if (j >= 0 && j < kd.length && kd[j] !== "f") { g.fillStyle = Y.css(kd[j] === "l" ? "--yvl" : kd[j] === "x" ? "--open" : "--yvz"); g.fillRect(px, y0 + ch + 3, Math.max(cw - gap, 0.6), 5); }
+    }
+    var hx = (mr.p - lo) * cw;
+    g.strokeStyle = Y.css("--head"); g.lineWidth = 2; g.strokeRect(hx - 1, y0 - 1, Math.max(cw - gap, 2) + 2, ch + 2);
+    g.fillStyle = Y.css("--head"); g.beginPath(); g.moveTo(hx + cw / 2, y0 + ch + 9); g.lineTo(hx + cw / 2 - 4, y0 + ch + 15); g.lineTo(hx + cw / 2 + 4, y0 + ch + 15); g.fill();
+  }
+  function show() {
+    var r = +sl.value;
+    $("yvm-lab").textContent = r;
+    var R = Y.machineRounds(r), mr = R[r];
+    if (!mr) { $("yvm-step").textContent = "not reached"; return; }
+    var S = mr.S, bl = blocks(S);
+    $("yvm-step").innerHTML = "step <b>" + Y.fmt(mr.k) + "</b> from blank tape; the head is in state A on cell " + mr.p +
+      " (cell 0 is where it started), the visited tape is " + (mr.hi - mr.lo + 1) + " cells, and the word S has " + S.length + " cells:" +
+      '<div class="yv-word" style="margin-top:4px">0<sup>&infin;</sup> A&gt; 1 0 0 ' + wordHtml(S, bl) + " 0<sup>&infin;</sup></div>";
+    draw(mr, kindsOf(S, bl));
+    var md = modelRound(r); modelRound(r + 1);
+    $("yvm-v").innerHTML = "The visit rules, applied round after round from the start (6 steps, S = 1), with the step count of each rule's proof: round " + r +
+      " starts at step " + Y.fmt(md.k) + ok(md.k === mr.k && Y.same(md.S, S), "the same step and the same word as the machine", "differs from the machine") +
+      "<br>This round is one visit to <code>1 0 S</code> that makes " + Y.fmt(md.visits.V + md.visits.W) + " visits in all (" + Y.fmt(md.visits.V) + " entered in state C, " + Y.fmt(md.visits.W) + " in state F) and lasts " + Y.fmt(model[r + 1].k - md.k) + " steps.";
+    var ab = absRound(r); absRound(r + 1);
+    $("yvm-a").innerHTML = "The four rewriting rules alone, from the word 1, give the same word after " + (r - 1) + (r === 2 ? " round" : " rounds") + ok(Y.same(ab.S, S), "same word", "different word") +
+      "<br>Round " + r + " makes " + Y.fmt(ab.n) + " visits" + ok(ab.n === md.visits.V + md.visits.W, "as many as at level 2", "not as many as at level 2");
+    var w = Y.word(r - 1), trc = [], seen = {}, sum = 0, big = [0, 0];
+    Y.round(w, trc);
+    trc.forEach(function (t) { if (!(t[0] in seen)) { seen[t[0]] = 1; sum += Math.pow(2, t[2]) - t[3]; } if (t[2] > big[0]) big = [t[2], t[3]]; });
+    $("yvm-c").innerHTML = "The checker's pass, from the word 1, gives the same word after " + (r - 1) + (r === 2 ? " round" : " rounds") + ok(Y.same(w, S), "same word", "different word") +
+      "<br>In round " + r + " the pass reads " + trc.length + " blocks, one step each; the largest count it carries is " + Y.val(big[0], big[1]) +
+      ", and the counts add up to " + Y.fmt(sum) + " visits" + ok(sum === ab.n, "as many as the rules make one by one", "differs");
+    var hs = Y.hscan(0, 0, [1, 0].concat(w));
+    $("yvm-k").innerHTML = (hs ? "<code>hscan</code> finds a halting visit in round " + r : "<code>hscan</code> finds no halting visit in round " + r + ", so the checker goes on") +
+      ". The checker's own run goes on to round 161,210 and finds the trap <code>1011</code> in round 161,211.";
+  }
+  sl.addEventListener("input", show);
+  $("yvm-prev").addEventListener("click", function () { sl.value = Math.max(+sl.min, +sl.value - 1); show(); });
+  $("yvm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  Y.onTheme(show);
+  show();
+})();
+</script>

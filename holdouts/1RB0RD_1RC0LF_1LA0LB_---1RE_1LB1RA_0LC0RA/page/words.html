@@ -1,0 +1,69 @@
+<div class="col">
+<p>Seen at the moments when the head, in state A, arrives at the left end (an <em>event</em>), the tape is, for most
+of the run,</p>
+<p style="text-align:center"><code>010 (01)^a 000 (01)^b T</code></p>
+<p>Here <code>(01)^a</code> means the pair 01 written a times. The <em>left block</em> has a pairs, the <em>big
+block</em> has b pairs, and T, the <em>tail</em>, is a short word made of a few small blocks of pairs separated by
+<code>000</code> or <code>111</code>. Example, step 9,932,715,748: a = 2,110, b = 56,419, and the tail has blocks of 4,
+13, 16 and 20 pairs.</p>
+<p>One visit of the left end: the head crosses the whole tape to the right and back, twice. On the way it takes
+exactly <b>3 pairs</b> from the left block, and the tail changes a little: its small blocks shrink by 3 pairs each, a
+block that is used up merges into its neighbour, and from time to time a block is absorbed into the big block. In the
+long stretches the events come in pairs six steps apart, first <code>110 &hellip;</code> and then
+<code>010 &hellip;</code>, so one visit is two events. The five crossings of the long blocks in a visit are proved in
+Lean for blocks of any length, three pairs at a time, by the kernel alone (<code>c_right6</code>,
+<code>a_left6</code>, <code>b_right6</code>, <code>b_left6</code>, <code>f_left6</code> in
+<code>lean/Rules.lean</code>).</p>
+<p>The Lean proof works at this level with a <em>symbolic executor</em> (adapted from the one of
+1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA): a program whose tape is a list of cells and blocks <code>(w)^n</code>,
+where n may be <code>c + a x</code> with x unknown. One move either crosses a whole block with a <em>shift rule</em>
+(in state q, with the word u just behind the head, k copies of w are crossed and the word v is left behind, in s
+steps), or makes one ordinary step. Each of the 15 shift rules is a statement about the machine for every tape around
+those cells, checked by the kernel (<code>shRTbl_ok</code>, <code>shLTbl_ok</code> in
+<code>lean/ExecData.lean</code>), and the soundness theorem <code>run_sound</code> (<code>lean/Exec.lean</code>,
+kernel) says that whatever the executor does, the machine does, for every value of the unknown. That is the theorem
+that makes level 2 answer the same as level 1.</p>
+</div>
+<div class="panel" id="rd-shift">
+ <div class="controls">
+  <label class="small" for="rds-r">Shift rule</label>
+  <select id="rds-r" style="max-width:100%"></select>
+  <label class="small" for="rds-n">crossings n</label>
+  <input type="text" class="rd-num" id="rds-n" value="5" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rds-go">Run the machine</button>
+  <button type="button" id="rds-all">Check all 15, n = 1 to 12</button>
+ </div>
+ <div class="rd-out" id="rds-out"></div>
+ <div class="cap">The browser writes u, then n crossings' worth of copies of w, between twelve random cells on each side, puts the head in state q where the rule says, and runs the real machine for n&middot;s steps. The rule holds if the head never reads a random cell, ends in state q at the far side, and the cells read u v<sup>n</sup> as the rule says. Words are written nearest cell first, as in the Lean file, so on the left of the head they appear reversed.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sel = $("rds-r"), seed = 1;
+  X.D.shift.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = "sh" + r.d + r.i + ": " + r.q + (r.d === "R" ? " going right" : " going left") + ", carrying " + (r.u || "nothing") + ", " + (r.k > 1 ? r.k + " copies of " : "") + r.w + " at a time, " + r.s + " steps";
+    sel.appendChild(o);
+  });
+  function one() {
+    var r = X.D.shift[+sel.value], n = Math.max(1, Math.min(200, parseInt($("rds-n").value, 10) || 1));
+    $("rds-n").value = n;
+    var c = X.checkShift(r, n, X.rng(seed++));
+    var hd = function (s, p) { return s.slice(0, p) + '<span style="background:var(--head);color:var(--surface);border-radius:2px">' + s[p] + "</span>" + s.slice(p + 1); };
+    $("rds-out").innerHTML =
+      '<div class="small">before, head in state ' + r.q + ':</div><div class="rd-words">' + hd(c.tape, c.start) + "</div>" +
+      '<div class="small" style="margin-top:6px">after ' + X.fmt(c.steps) + " steps, head in state " + r.q + ":</div><div class=\"rd-words\">" + hd(c.got, Math.min(c.end, c.got.length - 1)) + "</div>" +
+      '<p>' + (c.ok ? '<span class="rd-ok">✓ the machine did what sh' + r.d + r.i + " says: " + n + " crossing" + (n > 1 ? "s" : "") + " in " + n + " &times; " + r.s + " = " + X.fmt(c.steps) + " steps, the twelve random cells on each side untouched and unread</span>"
+        : '<span class="rd-bad">✗ the machine did not do what the rule says</span>') + "</p>";
+  }
+  $("rds-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rds-all").addEventListener("click", function () {
+    var ok = 0, all = 0, bad = [];
+    X.D.shift.forEach(function (r) { for (var n = 1; n <= 12; n++) { all++; if (X.checkShift(r, n, X.rng(seed++)).ok) ok++; else bad.push("sh" + r.d + r.i); } });
+    $("rds-out").innerHTML = ok === all ? '<span class="rd-ok">✓ all ' + all + " checks passed: 15 rules, n = 1 to 12 crossings, fresh random surroundings each time</span>"
+      : '<span class="rd-bad">✗ ' + (all - ok) + " of " + all + " checks failed: " + bad.join(", ") + "</span>";
+  });
+  one();
+})();
+</script>
