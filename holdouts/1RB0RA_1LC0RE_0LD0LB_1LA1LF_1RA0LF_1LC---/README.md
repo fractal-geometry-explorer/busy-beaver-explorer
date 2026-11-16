@@ -405,7 +405,7 @@ first run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (of 1RB0RA_1LC0RE_0LD0LB_
 theorem) never gets shorter than 4 cells.
 
 **Checked, not proved.** The condition holds in the first 10^11 steps on a plain cell simulator (`c/good.c`) and in
-the first 10^14 steps on the run-length simulator (`py/goodrun.py`), for both runs. Both runs are 23,850,930 and 23,850,932 cells wide after 10^14 steps (start D, start A). Proving it needs the
+the first 10^14 steps on the run-length simulator (`py/goodrun.py`), for both runs. Both runs are 23,850,930 and 23,850,932 cells wide after 10^14 steps (start D, start A). Along the accelerated run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (`bb6-1RB1RF_1LC0LB/py/accel.py`) it holds for the first 1.0·10^30 steps (3.8·10^14 trips; `bb6-1RB1RF_1LC0LB/py/good.py`, 54 minutes): every macro step at the right end of a concrete trip is replayed cell by cell, no cycle jump moves a count near the right end, and the counter trips done in closed form leave the right end as the checked trips do (the argument is in the script). Proving it needs the
 same theory of the transfers as the halting question itself: in the run, the first run loses a cell at a bounce and is
 always swept (and lengthened) before the next one, except at the end of a transfer that moves the second run, and
 nothing local rules out a tail that sends the head back sooner (a game against an arbitrary tail drains it).

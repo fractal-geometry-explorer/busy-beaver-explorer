@@ -203,7 +203,7 @@ first run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (of 1RB0RA_1LC0RE_0LD0LB_
 theorem) never gets shorter than 4 cells.
 
 **Checked, not proved.** The condition holds in the first 10^11 steps on a plain cell simulator (`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/good.c`) and in
-the first 10^14 steps on the run-length simulator (`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/goodrun.py`), for both runs. Both runs are 23,850,930 and 23,850,932 cells wide after 10^14 steps (start D, start A). Proving it needs the
+the first 10^14 steps on the run-length simulator (`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/goodrun.py`), for both runs. Both runs are 23,850,930 and 23,850,932 cells wide after 10^14 steps (start D, start A). Along the accelerated run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (`py/accel.py`) it holds for the first 1.0·10^30 steps (3.8·10^14 trips; `py/good.py`, 54 minutes): every macro step at the right end of a concrete trip is replayed cell by cell, no cycle jump moves a count near the right end, and the counter trips done in closed form leave the right end as the checked trips do (the argument is in the script). Proving it needs the
 same theory of the transfers as the halting question itself: in the run, the first run loses a cell at a bounce and is
 always swept (and lengthened) before the next one, except at the end of a transfer that moves the second run, and
 nothing local rules out a tail that sends the head back sooner (a game against an arbitrary tail drains it).
@@ -232,6 +232,7 @@ nothing local rules out a tail that sends the head back sooner (a game against a
 | `py/rework.py` | the rounds of a wall trip as a function on lists of blocks: finds the cases, checks them on the plain simulator, predicts a wall trip |
 | `py/wall.py` | the copy loop for the symbolic runs: finds the round form and jumps over the whole loop |
 | `py/accel.py` | the run with counter trips applied in closed form (no halt through 10³³ steps) |
+| `py/good.py` | the condition Good40600 of the lockstep theorem along the accelerated run (holds through 10³⁰ steps) |
 | `py/replay.py` | finds the walls and how far the left end replays the blank run |
 | `c/growth.c` | width, ones and left-end extensions at 1-2-5 steps, fast |
 | `runs/` | outputs of the long runs |
