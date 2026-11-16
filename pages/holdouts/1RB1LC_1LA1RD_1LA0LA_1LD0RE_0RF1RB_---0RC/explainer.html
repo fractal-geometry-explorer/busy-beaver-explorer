@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A counter that grows by the golden ratio</a><a href="#restructure">Restructures</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A counter that grows by the golden ratio</a><a href="#slots">What one overflow adds</a><a href="#restructure">Restructures</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -290,6 +290,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>A counter that grows by the golden ratio</h2>
 <p>Stop the simulator whenever the head, in state C, is at the left end of the tape reading a 0 followed by <code>1 0</code>. The tape then reads, from the head on, <code>C&gt;0 (1 0)^z W</code>: z pairs <code>1 0</code>, then a word W of odd blocks of 1s separated by single 0s. Read in pairs of cells, the whole tape is a string of binary digits (the second cell of each pair), and the <code>(1 0)^z</code> prefix is a run of z zero digits.</p><table><tr><th>step</th><th>z</th><th>digits</th><th>ratio to the previous step count</th></tr><tr><td>4,966,446,282</td><td>37</td><td>169</td><td>1.534</td></tr><tr><td>12,286,012,150</td><td>39</td><td>171</td><td>1.583</td></tr><tr><td>31,448,884,462</td><td>41</td><td>174</td><td>1.604</td></tr><tr><td>50,611,756,288</td><td>42</td><td>175</td><td>1.609</td></tr></table><p>Each such moment z is one larger than at the one before, and the step counts grow by a factor that tends to 1.618&hellip;, the golden ratio. That is the signature of a <b>Fibonacci counter</b>: a counter in which the number of states with z digits grows like the Fibonacci numbers, as in the Zeckendorf representation (no two adjacent 1s). Each overflow of the counter adds a digit to the zero run and changes W only near the counter.</p>
 </section>
+<section id="slots">
+  <span class="eyebrow">The mechanism</span>
+  <h2>What one overflow adds</h2>
+<p>Take one overflow moment, change nothing but the length z of the zero prefix, and run to the next one. The word W changes in a handful of digits whose places depend only on z, and move right as z grows; the time it takes grows by the golden ratio:</p><pre>event at step 2,554,963, W in digits:
+    110000001101101101111101111111111101101100011111011011000111&hellip;
+ z=5  .........................0..0..0..1..........................   1,760 steps
+ z=8  ...................0..1........0..1..........................   7,384 steps
+ z=11 ............................0..0..1..1.......................  31,300 steps
+ z=14 ...................0..1........0.....1..........1............ 132,654 steps
+ z=17 .........................0.....0..1.............1.....1......  562,042 steps</pre><p>That is the picture of a sibling machine, 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB, where the same experiment shows a clean binary carry: a counter of z digits on the left and a number held in fixed slots of W are advanced by the same ticks, so when the left counter overflows, W has gained everything it counted. Here the left counter counts the Fibonacci way, the amount added is Fibonacci-sized, and normalising it flips several digits at once. The exact numeration of the slots is the next thing to find.</p>
+</section>
 <section id="restructure">
   <span class="eyebrow">Why it is open</span>
   <h2>Restructures</h2>
@@ -307,7 +318,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -323,6 +334,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 423 cells visited, 339 ones at the end.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun ... records</code>, read in pairs of cells</div></div><div><b>The overflow configurations of the run</b><p>Every time C is at the left end on <code>0 1 0</code>, the tape from the head on is <code>(1 0)^z</code> followed by odd blocks of 1s separated by single 0s (a string of binary digits read in pairs). In the first 10<sup>11</sup> steps z rises by one from each such moment to the next, except at 11 restructures where it falls back to 1 (the first such moment is at step 40): steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the records of the 10<sup>11</sup>-step run</div></div><div><b>A Fibonacci counter</b><p>Within an epoch the ratio of successive overflow times tends to 1.618 (1.534, 1.583, 1.604, 1.609 at z = 37, 39, 41, 42): the counter has Fibonacci-many states per digit count.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/overflows.py slots</code>, <code>py/overflows.py check</code></div></div><div><b>The change of one overflow depends only on z, at fixed places</b><p>Re-running the event at step 2,554,963 with z = 0..21 in place of its z = 16, the next event has W changed in a few digits at places fixed by z and moving right as z grows (positions 2, 19, 22, 25, &hellip;), after 1,760, 2,648, 4,374, 7,384, &hellip;, 2,381,024, 3,852,470 steps for z = 5..21 (ratio 1.6180 at the end). In the run to 3&middot;10<sup>9</sup> steps, 26 of the 132 regular pairs of events are a single binary carry and 106 other local rewrites.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">comparison with the sibling's slot experiment</div></div><div><b>Two counters on one clock, Fibonacci style</b><p>The same mechanism as the binary sibling 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB: a counter of z digits on the left and a number in slots of W advanced together, an overflow adding a Fibonacci-sized amount to W; the numeration of the slots is not pinned down.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The restructures, and the question itself</b><p>Not known: the rule from one epoch to the next, whether a restructure can produce the halting configuration, and whether the machine halts.</p></div></div>
 </section>
 <section id="check">

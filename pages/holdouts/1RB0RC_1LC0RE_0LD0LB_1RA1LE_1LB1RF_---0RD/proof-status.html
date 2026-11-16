@@ -83,15 +83,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p>It is a binary counter in disguise. The cells just left of the head hold digits written as pairs <code>00</code> and <code>11</code>, and the head's excursions follow the ruler sequence of a counter. Each overflow adds two cells to a solid block at the left end, so the time between overflows doubles, and moves a small marker one step to the right. When the marker reaches the end of its track, the counter is rebuilt and a new, longer epoch starts.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p>It is a binary counter in disguise. At the times the head is in state D on a pair <code>00</code>, the tape reads as two words of pairs of cells: left of the head a binary number (<code>11</code> = 1, <code>00</code> = 0, plus a mark <code>0101</code>), right of the head a word of <code>11</code> and <code>10</code>. Eight rewriting rules on these words, proved in Lean for words of every length, describe the run between two resets: they count, and each overflow takes twice as long as the last. A marker walks along a run of 0s in the right word; when it reaches the end, the word is used up, the machine sweeps the whole tape once (a reset, not yet proved) and a new, much longer epoch starts.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 2&middot;10<sup>10</sup> steps.</p>
-      <p><b>Where a halt would come from.</b> The machine halts only in state F reading 0, and F is entered only from E reading 1 and moving right. In 10<sup>8</sup> steps F is entered 9.5 million times and always reads a 1.</p>
-      <p><b>Why it has not halted, and what a proof needs.</b> The run is very regular: a counter whose overflows come exactly twice as far apart each time. A proof would describe one counter cycle and one epoch change symbolically (shift rules for the counter, an induction over the digits) and show that every epoch hands the next one a tape of the same shape. That has not been done; the epoch change is not yet understood in full.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 2&middot;10<sup>9</sup> steps (<code>native_decide</code> on a checked accelerated simulator), and the reduction <code>halts_iff</code>: the machine halts iff that simulator gets stuck. The token model in C runs 4.8&middot;10<sup>11</sup> steps without a halt.</p>
+      <p><b>Where a halt would come from.</b> The machine halts only in state F reading 0, and F is entered only from E reading 1 and moving right. Inside the token rules this is impossible (they are proved); a halt could only come from a reset, the sweep that starts each epoch.</p>
+      <p><b>What a proof needs.</b> The reset for every left word that occurs, and the overflow law (gap recurrence and marker walk) as theorems; together they give an exact epoch-to-epoch map. Extrapolating that map from short simulations predicts the next reset at step 3.2&middot;10<sup>12</sup> (and, from a weaker fit on three short tracks only, the end of the third epoch at step 6.17&middot;10<sup>13</sup>); that is evidence, not proof.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -125,6 +125,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>The token model: eight rules, proved for all words</h3>
+        <p>At the times the head is in state D on a pair <code>00</code>, read the tape as words of pairs (left <code>11</code>=1, <code>00</code>=0, <code>0101</code>=X; right <code>11</code>=1, <code>10</code>=0). Eight rules (carries <code>L 0 1^k | 0 r -&gt; L | 1^(k+2) r</code> and through marks, moves of a block of the right word into the left word) are proved for all values of their parameters and all tapes along symbolic runs; the map <code>next</code> built from them is sound for frames of every length (<code>next_sound</code>), with the exact step count of each application.</p>
+        <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>), <code>next</code>, <code>next_sound</code>, <code>lean/Tokens.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A checked accelerated simulator and halts_iff</h3>
+        <p><code>stepH</code> applies a token rule where one applies and a single machine step elsewhere (the resets). It is sound (<code>stepH_sound</code>), undefined only where the machine halts (<code>stepH_none</code>), and the machine halts from blank tape iff some iterate of <code>stepH</code> from blank tape is undefined (<code>halts_iff</code>).</p>
+        <p class="where"><code>lean/Sim.lean</code></p>
+      </div>
+      <div class="card">
         <h3>A run-length frame map, every case proved</h3>
         <p>At every head turn write the tape as two lists of runs (blocks of equal cells), left and right of the head: a frame with list parameters. A table of 69 cases, each a pattern on the first few runs of both sides (lengths exact or at least 4, the rest of each side any list), sends each frame to the frame of the next head turn; every case is proved for all values of its parameters and all lists by one symbolic run (<code>RLCase.sound</code>), so the frame map <code>next = rlNext cases</code> is sound (<code>rlNext_sound</code>). Between two head turns this machine crosses only a few run boundaries, which is why a finite table covers a tape whose number of runs grows without bound.</p>
         <p class="where"><code>cases</code>, <code>lean/Cases.lean</code>; the runs in <code>lean/Pieces.lean</code>; generated by <code>py/frames.py lean</code> with <code>tools/py/bbtools/listframe.py</code>; library <code>tools/lean/TM/ListFrame.lean</code></p>
@@ -138,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2&middot;10<sup>9</sup> steps</h3>
+        <p>10<sup>8</sup> steps of the checked simulator, evaluated by compiled code, count more than 2&middot;10<sup>9</sup> machine steps.</p>
+        <p class="where"><code>no_halt_2e9</code>, <code>lean/Run.lean</code></p>
+      </div>
+      <div class="card">
         <h3>The frame map from blank tape</h3>
         <p>The run from blank tape reaches the first frame (<code>init_f0</code>, kernel), and the frame map is defined for its first 1,000,000 frames (<code>native_decide</code>). If it is defined forever along this orbit, the machine never halts (<code>no_halt_of_total</code>).</p>
         <p class="where"><code>init_f0</code>, <code>frames_1000000</code>, <code>no_halt_of_total</code>, <code>lean/Frames.lean</code></p>
@@ -149,6 +164,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 183 cells have been visited and 108 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 4.8&middot;10<sup>11</sup> steps of the token model</h3>
+        <p>The same rules in C, with their proved step counts, and the resets run cell by cell: no halt up to step 482,996,936,294 (overflow n = 27 of the epoch from step 81,579,964). The C program agrees frame for frame with the Python model checked against the machine (<code>py/tokens.py check</code>).</p>
+        <p class="where"><code>c/toksim.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflow law</h3>
+        <p>An overflow is a frame <code>e | 1^n w</code> (left word empty). Within an epoch n goes up by one per overflow and the gaps follow exactly D(n+1) = 2D(n) + 34 for n odd and 2D(n) &minus; 14 for n even: on every overflow of the epoch from 81,579,964 up to n = 27, and of the epoch from 22,706,655 from n = 5 on.</p>
+        <p class="where"><code>c/toksim.c ... ov</code></p>
+      </div>
+      <div class="card">
+        <h3>The twin, frame by frame</h3>
+        <p>From step 22.7&middot;10<sup>6</sup> on, every token frame of <code>1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA</code> is this machine's frame with the last two tokens <code>1 0</code> of the right word replaced by <code>0</code>, and reaches it 67, then 77, then 87 steps earlier (its resets are 10 steps shorter). Checked for 3&middot;10<sup>6</sup> frames across the reset at 81.58&middot;10<sup>6</sup>, and at every epoch start of the extrapolation.</p>
+        <p class="where"><code>py/twin.py</code>, <code>py/epochs.py run N twin</code></p>
       </div>
       <div class="card">
         <h3>Overflows double</h3>
@@ -184,6 +214,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
+        <h3>Epoch extrapolation</h3>
+        <p>Shortening the marker's track by 3 removes 2 overflows from an epoch and changes the next epoch's start regularly (run lengths affine, steps A&middot;4<sup>i</sup> + B&middot;i + C). Fitting these laws on short simulated tracks reproduces the epoch from 22,706,655 exactly and predicts the end of the epoch from 81,579,964 at step 3,219,517,448,197 (27 overflows), with the next epoch starting from <code>e | 0 1 0 1^26 0 0 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0^15 1 0^39 1 0 0 0 1 0</code>. (and, from a weaker fit on three short tracks only, the end of the third epoch at step 6.17&middot;10<sup>13</sup>)</p>
+        <p class="where"><code>py/epochs.py</code></p>
+      </div>
+      <div class="card">
         <h3>A binary counter</h3>
         <p>Between overflows, the cells left of the head read as pairs <code>00</code> and <code>11</code>, and the leftward excursions of the head have the lengths of a ruler sequence (2, 4, 2, 6, 2, 4, 2, 8, &hellip; in steps of 2 cells), the pattern of carries in a binary counter.</p>
         <p class="where">head reversals after step 1.2&middot;10<sup>8</sup></p>
@@ -203,7 +238,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The run looks like a counter that never stops, but the step from one epoch to the next has not been described exactly, let alone proved.</p>
+        <p>Not known. What is missing: the reset (the sweep at the end of an epoch) for every left word that occurs, and the overflow law as theorems; with them the run is an explicit epoch-to-epoch map.</p>
       </div>
     </div>
   </section>
