@@ -171,9 +171,7 @@ def closure(X, Y, mirror=False, W=4, K=40, budget=200000, start=(0, 0), cset=Non
 
 
 
-# ---- SAT-found invariants (needs python-sat)
-
-import satctl  # noqa: E402
+# ---- SAT-found invariants (needs python-sat, imported only when used)
 
 
 class OutAuto:
@@ -196,6 +194,7 @@ class OutAuto:
 
 def closure_set(m, DL, DR):
     """Least closed set from the start; halting transitions allowed (skipped)."""
+    import satctl
     T = satctl.parse(m)
     nL, nR = len(DL), len(DR)
     predR = {(r, b): [rp for rp in range(nR) if r in DR[rp][b]] for r in range(nR) for b in (0, 1)}
@@ -219,19 +218,25 @@ def closure_set(m, DL, DR):
     return sorted(seen)
 
 
-_SRC = open(os.path.join(HERE, "satctl.py")).read()
-_a = _SRC.index("def build(")
-_b = _SRC.index("def solve(")
-_body = _SRC[_a:_b].replace("def build(", "def _sat_build(")
-_old = """        if tr is None:
+_SAT = {}
+
+
+def _sat_build(m, nL, nR, nfa):
+    """satctl.build with its no-halt clauses taken out (its source, edited once and cached)."""
+    if "f" not in _SAT:
+        import satctl
+        src = open(os.path.join(HERE, "satctl.py")).read()
+        body = src[src.index("def build("):src.index("def solve(")].replace("def build(", "def _sat_build(")
+        old = """        if tr is None:
             for l in range(nL):
                 for rp in range(nR): cl.append([-P(l,rp)])
             continue"""
-assert _old in _body
-_body = _body.replace(_old, "        if tr is None:\n            continue")
-_ns = dict(satctl.__dict__)
-exec(_body, _ns)
-_sat_build = _ns["_sat_build"]
+        assert old in body
+        body = body.replace(old, "        if tr is None:\n            continue")
+        ns = dict(satctl.__dict__)
+        exec(body, ns)
+        _SAT["f"] = ns["_sat_build"]
+    return _SAT["f"](m, nL, nR, nfa)
 
 
 def sat_build(m, nL, nR, forbid, nfa="dd"):
