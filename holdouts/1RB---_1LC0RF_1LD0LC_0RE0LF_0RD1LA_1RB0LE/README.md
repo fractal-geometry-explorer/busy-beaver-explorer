@@ -13,7 +13,7 @@ bbchallenge id 30773.
 
 ## Status
 
-**Open.** A bouncer between a growing block and a wall of exactly 1,573 cells that changes every sweep like a counter (changes start at cell 44, carries reach 25 cells further about every three times as many sweeps); what happens when the carries reach the end of the wall is unknown. It shares its halting question with 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC, given one condition proved only by simulation (section "One halting question for two machines").
+**Open.** A bouncer between a growing block and a wall of exactly 1,573 cells that changes every sweep like a counter (changes start at cell 44, carries reach 25 cells further about every three times as many sweeps); what happens when the carries reach the end of the wall is unknown. It shares its halting question with 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC, proved in Lean (section "One halting question for two machines").
 
 ## What it does
 
@@ -37,7 +37,7 @@ question. Decoding the digits would turn this into an exact statement.
 
 - `py/view.py` (with `c/blocks.c`, `c/gaps.c`) prints the views of the run quoted above; `python3 py/view.py 2e10 3000` is the block view at the left end; `python3 py/wall.py 2e10` (with `c/walldump.c`) compares consecutive walls.
 - Lean (`lean/Blank.lean`): no halt in 10^7 steps; C (`tools/c/triage.c`): none in 10^9.
-- Lean (`lean/Lockstep.lean`): the run of 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is this run with one word more at the right end, given one condition (below).
+- Lean (`lean/Lockstep.lean`, `lean/RightEnd.lean`): the run of 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is this run with one word more at the right end, and the two machines halt together or not at all (below).
 - No macro rule of the counter is proved yet. Next step: decode the wall as digits, prove the increment with symtm, and work out what the carry does at the end of the wall.
 
 ## First look
@@ -75,7 +75,7 @@ The counter has overflowed before. At the left-end record at step 1,428,412 the 
 
 Next step: Decode the five cells of a digit into a carry rule (a transducer on digits), prove it with `symtm`, and work out the rebuild; then the question is whether the rebuild can go wrong for some length of the block.
 
-## One halting question for two machines, given one condition (F09, 16 November 2026)
+## One halting question for two machines (F09, 16 November 2026)
 
 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a
 mirror with the states renamed, started in state C. The two runs are one run, shifted. After 2 and 49 steps both are
@@ -98,12 +98,20 @@ and the mirror are proved too (`halts_114265`). So:
   so far (`Good30773`). Then 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if
   1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does.
 
-**Checked, not proved.** The condition holds in the first 10^11 steps (`c/good.c`). The head moves right from q
-only 100 times, all of them before step 4.5·10^6, while the counter in the wall was being rebuilt after its first
-overflows. The rest of the time the right end of the tape does not move. So the condition is about the rebuilds:
-it says that a rebuild only ever lengthens the right end in this one way. The next rebuild is far beyond
-simulation, so proving the condition needs the theory of the counter and its rebuild, just as the halting question
-itself does.
+**Proved (16 November 2026): the condition holds.** `lean/RightEnd.lean` (kernel only: `propext` and
+`Quot.sound`) proves `Good30773` for every number of steps (`good30773`). It looked like a statement about the
+rebuilds of the counter, but it is a local fact about the last four cells of the tape, q-3 to q. Keep only those four
+cells and the state and forget everything left of them: with the head inside the window, the state, the cells left
+of the head inside the window and the cells from the head to q; with the head further left, the four cells only, and
+let the head come back in any state that a move right can produce (B, D, E or F). From step 2 on this
+over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the
+head is left of the window, the last three cells read `101`). None of the 32 moves right from q except in state B on
+a 1, and the set is closed under a step (`closed`, by `decide`). `py/rightend.py` computes the 32. So:
+
+* **`two_machines'`**: 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does. No condition.
+
+Before the proof, the condition was checked in the first 10^11 steps (`c/good.c`): the head moves right from q only
+100 times, all before step 4.5·10^6, during the first rebuilds of the counter.
 
 The note `F09-same-table-pairs.md` called this pair "not a shift". Its tapes differ in about 1,330 cells at the
 counter end only when the two runs are compared at the same step. Compared at matching visits, they differ by one
@@ -113,6 +121,7 @@ Reproduce (from the folder of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE):
 
     . /etc/profile.d/lean.sh && lean/check.sh
     python3 py/farend.py check                     # far_B by simulation for k = 0..4
+    python3 py/rightend.py check                   # the 32 abstract configurations of RightEnd.lean
     gcc -O2 -o good c/good.c && ./good 1e11        # the condition (about 8 minutes)
     gcc -O2 -o lockstep c/lockstep.c && ./lockstep 1e11   # the two runs at every left-end visit (about 17 minutes)
 
@@ -126,6 +135,7 @@ Reproduce (from the folder of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE):
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/check.sh
 python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/farend.py check                    # far_B by simulation, k = 0..4
+python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/rightend.py check                  # the 32 configurations of RightEnd.lean
 python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/farend.py > /tmp/FarEnd.lean       # regenerates lean/FarEnd.lean
 gcc -O2 -o good holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c && ./good 1e11            # the condition of Lockstep.lean, about 8 minutes
 gcc -O2 -o lockstep holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/lockstep.c && ./lockstep 1e11   # the two runs at every left-end visit, about 17 minutes
