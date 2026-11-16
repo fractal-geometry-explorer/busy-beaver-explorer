@@ -92,6 +92,16 @@ start, 23 right), 1,548 ones.
 - left, step 968,537,509: `B>0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 `
 - left, step 985,241,447: `B>0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 `
 
+## Mirror partner
+
+Mirrored, with D and E swapped, the table of `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` differs from this one only in the direction of A0. The two
+pass maps agree while the pool is even and part only at odd events, the only places where either machine can halt.
+After a parting, the runs become the same run again, a few passes apart. But the two lists of odd events are not the
+same, and Lean (`together_forces_halts` in
+`holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/lean/Partner.lean`) finds two pairs of mirror-image tapes where
+one machine halts and the other rejoins its own run from blank tape. So whether the two halt together depends on their
+runs from blank tape, not on their tables. Details are in `holdouts/EQUIVALENCES.md`.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/explainer.html`](../../pages/holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/explainer.html)

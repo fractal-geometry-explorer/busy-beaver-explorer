@@ -152,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Iterating <code>next</code> from <code>PS 0 2</code>, the first 10<sup>8</sup> phases (20,000,581 pass starts) contain no <code>PS a c</code> with c &le; 1, by compiled evaluation. So a halt, if any, comes after more than 2&middot;10<sup>7</sup> passes, far beyond the 3,100 passes direct simulation reaches in 10<sup>10</sup> steps.</p>
         <p class="where"><code>no_halt_phases</code>, <code>okFor_sound</code>, <code>lean/Phases.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Its mirror partner: halting together is not decided by the tables</h3>
+        <p>Mirrored, the table of <code>1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE</code> differs from this one only in the direction of A0. From <code>PS 0 39</code> this machine rejoins its own run from blank tape while the partner halts from the mirror image, and from <code>PS 22 3</code> this machine halts while the partner rejoins its own blank-tape run. So halting together on these two pairs of tapes would force both machines to halt from blank tape: an equivalence of the two holdouts cannot follow from their tables alone. The partner's long run is evaluated by compiled code.</p>
+        <p class="where"><code>together_forces_halts</code>, <code>ps_0_39_iff</code>, <code>ps_22_3_halts</code>, <code>partner_halts_39</code>, <code>partner_iff_22_3</code>, <code>lean/Partner.lean</code>; the runs compared pass by pass in <code>py/partner.py</code> and <code>holdouts/EQUIVALENCES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
