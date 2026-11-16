@@ -74,6 +74,18 @@ start, 1,704 right), 2,423 ones.
 
 
 
+## Long orbit run (16 November 2026)
+
+`tools/c/doubling_phases.c` (machine 4) is `next` of `lean/Phases.lean` transcribed case by case into C with 64-bit
+counts (with the step count of each case from `py/phasemap.py`, for reporting only); its states and step counts agree
+with `py/phasemap.py` on the first 300,000 phases. From the blank tape (R(0, 2)) it iterated **10^11 phases**
+(1,000 times the `native_decide` bound) in about 12 minutes: no phase `e x 0` or `e x 1`, so by `halts_iff` no halt
+in about 4.1·10^30 steps. Phase 10^11 is `q 1402247635 1 63862171458`. All-ones tapes: 18 in all, 8 of them after the
+Lean bound (step 4.1·10^21): n = 318,998,212, 337,906,217, 1,413,976,026, 2,077,292,474, 5,672,145,394, 15,228,547,335, 47,592,371,372, 58,442,346,273 (the last at step 2.8·10^30); none is
+fatal.
+
+    gcc -O2 -o doubling_phases tools/c/doubling_phases.c && ./doubling_phases 4 100000000000 1000000000 ph.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE/explainer.html`](../../pages/holdouts/1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE/explainer.html)

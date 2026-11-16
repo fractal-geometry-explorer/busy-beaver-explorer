@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and is now a question about a simple map.</b> Lean proves (kernel only) that the machine halts from blank tape if and only if the orbit of (3, 1, R1) under the round map <code>next</code> reaches a pair with <i>i</i> = <i>j</i> or <i>i</i> + 1 = <i>j</i>. The map has been iterated for 10<sup>6</sup> rounds without that happening; heuristically the chance that it ever happens is negligible (a probviously non-halting cryptid)."
  ],
@@ -74,6 +74,12 @@
    "title": "Probviously non-halting",
    "text": "Along the orbit i - j looks like a random number of the size of i and j, so a round with n-bit numbers hits the two halting values with chance about 2<sup>-n</sup>; the expected number of future hits is negligible. No invariant is known that excludes them (congruences cannot: i = j is excluded only by size).",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 2&middot;10<sup>7</sup> rounds",
+   "text": "<code>next</code> of <code>lean/Round.lean</code> from (3, 1, false), iterated with GMP integers (<code>tools/c/redmaps.c rb</code>, equal to <code>py/orbit.py</code> on the first 30,000 rounds) for 2&middot;10<sup>7</sup> rounds: the orbit never reaches i = j or i + 1 = j; the numbers then have about 6.1&middot;10<sup>6</sup> bits, and after round 1,000 i − j had at most 26 bits fewer than i and j (16 November 2026).",
+   "where": "<code>tools/c/redmaps.c</code>"
   },
   {
    "level": "open",

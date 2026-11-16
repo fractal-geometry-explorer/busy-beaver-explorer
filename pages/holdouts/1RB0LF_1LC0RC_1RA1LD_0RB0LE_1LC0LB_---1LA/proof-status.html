@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>110</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length), the two kinds of merger, the walk of T after an overflow and steps of the top's cycle; an exact digit simulator, checked against the direct run to 2&middot;10<sup>9</sup> steps, ran to 8.6&middot;10<sup>15</sup> steps without a halt or an unknown event. A closed set of digit configurations is not yet assembled.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>110</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length), the two kinds of merger, the walk of T after an overflow and steps of the top's cycle; an exact digit simulator, checked against the direct run to 2&middot;10<sup>9</sup> steps, ran to 8.6&middot;10<sup>15</sup> steps without a halt or an unknown event; accelerated by symbolic macros (16 November), to 3.55&middot;10<sup>38</sup> steps. A closed set of digit configurations is not yet assembled.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -176,6 +176,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 4.48&times;10<sup>19</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 44,851,509,440,286,316,893 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,027,050 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 3.55&times;10<sup>38</sup> steps (accelerated digit model, 16 November)</h3>
+        <p>The digit model run many sweeps at a time. A macro Inc(k) repeats sweeps until a digit at height k or above changes. It is derived once, symbolically, for each window shape, with long runs as variables, and counts only when every comparison is decided over the whole range. Repeating macros with a constant drift are applied K at once. The macros were checked against plain sweeps, states and step counts at every landing point: 3&middot;10<sup>7</sup> sweeps from 3&middot;10<sup>7</sup> steps and 10<sup>6</sup> sweeps from 5&middot;10<sup>19</sup> steps, with 0 mismatches. From the sample at 3&middot;10<sup>7</sup> steps the model ran 2.0&middot;10<sup>19</sup> sweeps, to step 355,306,997,422,069,216,532,069,485,630,435,691,812: no halt, and no window it could not read back. This is a bounded run.</p>
+        <p class="where"><code>py/macro4.py</code> (on top of <code>py/digits.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

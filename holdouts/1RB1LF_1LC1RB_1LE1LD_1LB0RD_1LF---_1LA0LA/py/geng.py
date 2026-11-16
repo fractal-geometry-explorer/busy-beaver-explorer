@@ -272,10 +272,16 @@ def h(T):
         if k == 'R':
             C[0] = C[0] + t[1] * CST['cR']
             return rcons(t[1], h(tail))
-        if k == 'O':
-            return (('O', t[1] + 1), tail)
+        if k == 'O' or k == 'QY':
+            return ((k, t[1] + 1), tail)
         if k == 'E':
             leaf('wrap')           # known: the next hit of this rest is an event
+        if k == 'P' and tail is not None and FZ[0]:
+            cf = frozen_cost(t[2])
+            if cf is not None:
+                # h(w^n X) = w^n h(X) for a frozen word w (checked symbolically, any nonempty X)
+                C[0] = C[0] + t[1] * cf
+                return pcons(t[1], t[2], h(tail))
         if k == 'Z':
             m = t[1]
             rest = tail if m == 1 else (('Z', m - 1), tail)
@@ -348,6 +354,120 @@ def G(W):
 
 RUNRULES = {}
 RUN = [None]
+
+# ------------------------------------------------------------------ frozen words
+# A word w of digits is frozen when h(w X) = w h(X) for every nonempty X, at a fixed cost: found by running h on
+# w followed by an opaque rest (any look into the rest aborts), so the law holds for every X.  Frozen words are
+# stripped from the front of a run of hits (like the units 1 0), and a cycle rule may emit one per cycle.
+FZ = [__import__('os').environ.get('NOFROZEN') is None]
+FROZEN = {}
+FPC = {}
+FMAX = 400           # longest frozen word tried (digits)
+FEMIT = 40           # most tokens of an emitted frozen word
+
+
+def frozen_cost(w):
+    """steps of one hit crossing the frozen word w (a tuple of digits), or None if w is not frozen"""
+    r = FROZEN.get(w, 0)
+    if r != 0:
+        return r
+    FROZEN[w] = None
+    if not w or len(w) > FMAX:
+        return None
+    T = build(to_tokens(from_digits(list(w))), (('O', 0), None))
+    saved = Rec.cons, Rec.work, Rec.limit, C[0]
+    Rec.cons = []
+    Rec.work = 0
+    Rec.limit = 4000
+    C[0] = 0
+    res = None
+    try:
+        out = to_tokens(h(T))
+        if out and out[-1] == ('O', 1) and not isinstance(C[0], Lin):
+            if tok_digits(out[:-1], len(w) + 2) == tuple(w):
+                res = C[0]
+    except (Opaque, Budget, Event):
+        res = None
+    finally:
+        Rec.cons, Rec.work, Rec.limit, C[0] = saved
+    FROZEN[w] = res
+    STATS["frozen"] = STATS.get("frozen", 0) + (res is not None)
+    return res
+
+
+def tok_digits(toks, limit=FMAX):
+    """the digits of a list of concrete tokens, or None (symbolic, opaque or too long)"""
+    out = []
+    for t in toks:
+        if isinstance(t, Lin):
+            return None
+        if type(t) is tuple:
+            if t[0] not in ('Z', 'R', 'P') or isinstance(t[1], Lin):
+                return None
+            n = t[1]
+            w = (0,) if t[0] == 'Z' else (1, 0) if t[0] == 'R' else t[2]
+            if n * len(w) > limit:
+                return None
+            out.extend(w * n)
+        else:
+            out.append(t)
+        if len(out) > limit:
+            return None
+    return tuple(out)
+
+
+def frozen_emit(F):
+    """(digits, crossing cost) if the concrete token list F is a frozen word, else None"""
+    d = tok_digits(F)
+    if not d:
+        return None
+    cf = frozen_cost(d)
+    if cf is None:
+        return None
+    return (d, cf)
+
+
+def frozen_prefix(T):
+    """(number of tokens, cost of a hit crossing them) for the longest frozen prefix of T (at most 10 whole
+    tokens, the rest nonempty), or None"""
+    t0 = T[0]
+    if type(t0) is tuple:
+        if t0[0] == 'P':
+            cf = frozen_cost(t0[2])
+            if cf is not None:
+                return 1, t0[1] * cf
+        if t0[0] not in ('Z',):
+            return None
+    toks = []
+    node = T
+    while node is not None and node[1] is not None and len(toks) < 10:
+        t = node[0]
+        if type(t) is tuple and (t[0] not in ('Z', 'R', 'P') or t[1] > 64):
+            break
+        toks.append(t)
+        node = node[1]
+    full = tuple(toks)
+    r = FPF.get(full, 0)
+    if r != 0:
+        return r
+    best = None
+    for i in range(len(toks), 0, -1):
+        key = tuple(toks[:i])
+        r = FPC.get(key, 0)
+        if r == 0:
+            d = tok_digits(toks[:i])
+            r = frozen_cost(d) if d else None
+            FPC[key] = r
+        if r is not None:
+            best = (i, r)
+            break
+    if len(FPF) > 200000:
+        FPF.clear()
+    FPF[full] = best          # deterministic in the tokens (frozen_cost is cached), so the answer can be cached
+    return best
+
+
+FPF = {}
 
 # ------------------------------------------------------------------ recursion rules
 # h(pre[n] X) = F h(pre[n + deltas] h^c(X)): a frame whose last sub-visit opens the same frame again (this is how a
@@ -454,13 +574,22 @@ def rdiscover(toks):
 
 def try_rrule(T):
     toks, rest = flat(T, RLEN)
+    # shapes, counts and capped counts of all prefixes at once (the same values as shape_of / params of each
+    # prefix, computed once instead of once per prefix length)
+    psa = params(toks)
+    sha = shape_of(toks)
+    capa = tuple(p if p is None or p < 64 else 64 for p in psa)
     for i in range(2, len(toks) + 1):
         if i == len(toks) and rest is None:
             break
-        pre = toks[:i]
-        ps = params(pre)
-        key = shape_of(pre)
+        key = sha[:i]
         rules = RRULES.get(key)
+        if not rules:
+            nk = (key, capa[:i])
+            if nk in RNEG:
+                continue
+        pre = toks[:i]
+        ps = psa[:i]
         if rules is None:
             rules = RRULES[key] = []
         found = None
@@ -469,7 +598,7 @@ def try_rrule(T):
             if mc is not None and mc >= 1:
                 found = (rule, mc); break
         if found is None and len(rules) < 4:
-            nk = (key, tuple(p if p is None or p < 64 else 64 for p in ps))
+            nk = (key, capa[:i])
             if nk in RNEG:
                 continue
             rule = rdiscover(pre)
@@ -537,8 +666,11 @@ def run_discover(k, w):
 
 
 # ------------------------------------------------------------------ powers, with cycle rules
-THRESH = 24          # use rules when at least this many applications remain
+THRESH = int(__import__('os').environ.get('THRESH', '24'))   # use rules when at least this many applications remain
 LMAX = 14            # longest prefix (tokens) tried for a rule
+DMAX = [int(__import__('os').environ.get('DMAX', '14'))]  # longest prefix for which a new rule is looked for
+DLIMIT = [int(__import__('os').environ.get('DLIMIT', '600'))]   # work budget of one cycle-rule discovery (was 1500)
+DREM = [int(__import__('os').environ.get('DREM', '4096'))]  # prefixes longer than 6 tokens: only when this many applications remain
 PMAX = 40            # longest cycle
 BIGDIGIT = 12        # digits from here on are symbolic in a rule
 RULES = {}           # (op name, shape) -> list of rules
@@ -592,37 +724,83 @@ def shape_of(toks):
 
 def power(op, name, q, T):
     q = conc(q)
-    fr = [name, q, 0, T]
+    if NEST[0] and T is not None:
+        if Rec.cons is not None:
+            if HYP[0] is not None:
+                r = hyp_match(name, q, T)
+                if r is not None:
+                    return r, True
+        elif ACCEL[0] and len(STACK) > NDEPTH[0] and nsample():
+            r = try_nest(op, name, q, T)
+            if r is not None:
+                return r
+    fr = [name, q, 0, T, T]
     STACK.append(fr)
+    T = None             # the frame (fr[3], fr[4]) and power_ hold the input; see DROP below
+    # cost scoping: the frame counts its own steps from 0 and adds them to the caller's count when it ends (also on
+    # an exception), so the snapshots taken inside it (c0, c_before) are of its own, small count and not of the
+    # huge running total.  Exact: integer addition is associative.  SCOPE=0 restores the old global count.
+    if SCOPE[0]:
+        save = C[0]
+        C[0] = 0
+        try:
+            return power_(op, name, q, fr[3], fr)
+        finally:
+            C[0] = save + C[0]
+            STACK.pop()
     try:
-        return power_(op, name, q, T, fr)
+        return power_(op, name, q, fr[3], fr)
     finally:
         STACK.pop()
 
 
 STACK = []
+DROP = [__import__('os').environ.get('NODROP') is None]
+NDROP = [int(__import__('os').environ.get('NDROP', '1500'))]   # drop inputs of levels deeper than this
+
+
+class Replay(Exception):
+    """a carry that dropped its inputs (DROP) stopped early: redo the whole call without dropping"""
+
+
+DROPPED = ('DROPPED',)
+SCOPE = [__import__('os').environ.get('NOSCOPE') is None]
 
 
 def power_(op, name, q, T, fr):
     done = 0
     in_disc = Rec.cons is not None
-    lead = 0
     leads = []
+    stripped = []
     nojump = 0
     backoff = 64
     strip = name == 'h' and not in_disc
     while done < q:
         if strip:
-            while T is not None and type(T[0]) is tuple and T[0][0] == 'R' and T[1] is not None:
-                # the hits still to come cross these units: charged when the count of hits is known
-                leads.append((T[0][1], done))
-                lead += T[0][1]
-                T = T[1]
+            while T is not None and T[1] is not None:
+                t0 = T[0]
+                if type(t0) is tuple and t0[0] == 'R':
+                    # the hits still to come cross these units: charged when the count of hits is known
+                    leads.append((t0[1] * CST['cR'], done))
+                    stripped.append(t0)
+                    T = T[1]
+                    continue
+                if not FZ[0]:
+                    break
+                fp = frozen_prefix(T)
+                if fp is None:
+                    break
+                ntok, cf = fp
+                for _ in range(ntok):
+                    stripped.append(T[0]); T = T[1]
+                leads.append((cf, done))
         rem = q - done
         fr[2] = done; fr[3] = T
         if rem >= THRESH and not in_disc and not nojump and ACCEL[0] and T is not None:
             EVF[0] = False
-            r = try_jump(op, name, rem, T)
+            T = None
+            r = try_jump(op, name, rem, fr)
+            T = fr[3]
             if EVF[0]:
                 nojump = backoff
                 backoff *= 2
@@ -643,15 +821,15 @@ def power_(op, name, q, T, fr):
         except Event:
             C[0] = c0
             for n, d0 in leads:
-                C[0] = C[0] + n * (done - d0) * CST['cR']
-            return (rcons(lead, T) if lead else T), done
+                C[0] = C[0] + n * (done - d0)
+            return (build(stripped, T) if stripped else T), done
         done += 1
         if nojump:
             nojump -= 1
         STATS["explicit"] += 1
     for n, d0 in leads:
-        C[0] = C[0] + n * (done - d0) * CST['cR']
-    return (rcons(lead, T) if lead else T), True
+        C[0] = C[0] + n * (done - d0)
+    return (build(stripped, T) if stripped else T), True
 
 
 def params(toks):
@@ -708,13 +886,13 @@ def discover(op, name, toks, has_rest):
     T = build_raw(T0, (('O', 0), None) if has_rest else None)
     Rec.cons = []
     Rec.work = 0
-    Rec.limit = 1500
+    Rec.limit = DLIMIT[0]
     csave = C[0]
     C[0] = 0
     try:
         for p in range(1, PMAX + 1):
             T = op(T)
-            out, rest = flat(T, len(toks) + 2)
+            out, rest = flat(T, len(toks) + (2 + FEMIT if FZ[0] and name == 'h' else 2))
             # locate Omega
             c = None
             body = None
@@ -732,6 +910,11 @@ def discover(op, name, toks, has_rest):
             if len(body) == len(toks) + 1 and name == 'h' and type(body[0]) is tuple and body[0][0] == 'R' \
                     and not isinstance(body[0][1], Lin):
                 e = body[0][1]; body = body[1:]
+            if len(body) > len(toks) and name == 'h' and not e and FZ[0]:
+                F = body[:len(body) - len(toks)]
+                fe = frozen_emit(F)
+                if fe is not None:
+                    e = fe; body = body[len(F):]
             if len(body) != len(toks):
                 continue
             ok = True
@@ -817,9 +1000,11 @@ SOFT = [False]
 EVF = [False]
 
 
-def try_jump(op, name, rem, T):
-    toks, rest = flat(T, LMAX)
+def try_jump(op, name, rem, fr):
+    toks, rest = flat(fr[3], LMAX)
     hr = rest is not None
+    box = [rest]
+    rest = None
     fkey = (name, shape_of(toks), hr)
     f = FULL.get(fkey)
     if f is None:
@@ -830,7 +1015,7 @@ def try_jump(op, name, rem, T):
         cands = []
         res = None
         for i in range(1, len(toks) + 1):
-            r = try_at(op, name, rem, toks, rest, i)
+            r = try_at(op, name, rem, toks, box, i)
             if RULES.get((name, shape_of(toks[:i]), (i < len(toks)) or hr)):
                 cands.append(i)
             if r is not None:
@@ -846,13 +1031,14 @@ def try_jump(op, name, rem, T):
         f[1] = sorted(set((f[1] or []) + cands))
         return res
     for i in f[1]:
-        r = try_at(op, name, rem, toks, rest, i)
+        r = try_at(op, name, rem, toks, box, i)
         if r is not None or EVF[0]:
             return r
     return None
 
 
-def try_at(op, name, rem, toks, rest, i):
+def try_at(op, name, rem, toks, box, i):
+    rest = box[0]
     has_rest = (i < len(toks)) or (rest is not None)
     pre = toks[:i]
     key = (name, shape_of(pre), has_rest)
@@ -865,7 +1051,7 @@ def try_at(op, name, rem, toks, rest, i):
         mc = max_cycles(rule, ps)
         if mc is None or mc >= 1:
             found = (rule, mc); break
-    if found is None and len(rules) < 6:
+    if found is None and len(rules) < 6 and i <= DMAX[0] and (i <= 6 or rem >= DREM[0]):
         nk = (key, tuple(p if p is None or p < 64 else 64 for p in ps))
         if nk in NEG:
             return None
@@ -895,7 +1081,23 @@ def try_at(op, name, rem, toks, rest, i):
         if tail is None:
             return None
         c0 = C[0]
-        R2, d2 = hpow(c * j, tail)
+        if DROP[0] and Rec.cons is None and len(STACK) > NDROP[0]:
+            # deep in a carry through the levels: let go of this level's input while the hits are passed on, so
+            # that each open level does not keep its own old copy of the whole rest (memory ~ depth^2).  The
+            # input is needed again only if the carry stops early (an event); then the hook is redone without
+            # dropping (Replay, caught in msim.try_hook).
+            fr = STACK[-1]
+            fr[3] = fr[4] = DROPPED
+            box[0] = DROPPED
+            rest = None
+            tb = [tail]
+            tail = None
+            R2, d2 = power(h, 'h', c * j, tb.pop())
+            if d2 is not True:
+                STATS["replays"] = STATS.get("replays", 0) + 1
+                raise Replay()
+        else:
+            R2, d2 = hpow(c * j, tail)
         if d2 is not True:
             EVF[0] = True
             j = d2 // c
@@ -923,6 +1125,13 @@ def try_at(op, name, rem, toks, rest, i):
         f0 += a * ps[iv]
         slope += a * deltas[iv]
     C[0] = C[0] + j * f0 + slope * (j * (j - 1) // 2)
+    if e and type(e) is tuple:
+        # a frozen word F emitted once per cycle (in front of the prefix): cycle t's p hits cross the t copies
+        # emitted before it, at cf steps a copy
+        Fd, cf = e
+        C[0] = C[0] + p * cf * (j * (j - 1) // 2)
+        T2 = econs(j, Fd, T2)
+        e = 0
     if e:
         # the emitted units are crossed by the later hits of the jump: cycle t emits e units at its end
         # (the cost of a cycle counts crossings of what it emitted itself); units emitted by earlier cycles
@@ -931,6 +1140,252 @@ def try_at(op, name, rem, toks, rest, i):
         T2 = rcons(e * j, T2)
     STATS["jumps"] += 1
     return T2, p * j
+
+
+# ------------------------------------------------------------------ nested frames
+# A power op^q(A[n] X) whose computation opens the same power op^q(A[n + d] X) (same q, same prefix shape A, the
+# same rest X untouched) as an inner frame, and then goes on working on the inner result: a recursion of depth
+# ~n.  The law is found by running the outer frame with symbolic counts and an opaque rest, the inner frame
+# answering with a word U ++ Y (U concrete, Y opaque): if the outer frame then ends with U ++ V ++ h^c(Y) (V
+# concrete; frozen if c > 0), then by induction from a base level whose result starts with U,
+#     op^q(A[n] X) = U ++ V^j ++ h^(c j)(Z),    where op^q(A[n + j d] X) = U ++ Z   (computed directly)
+# for the j levels on which the recorded conditions hold.
+NEST = [__import__('os').environ.get('NONEST') is None]
+NDEPTH = [int(__import__('os').environ.get('NDEPTH', '200'))]
+HYP = [None]
+NCNT = [12345]
+NRULES = {}
+
+
+def nsample():
+    # a deterministic pseudo-random sample of 1/16 of the deep power calls (a fixed period could alias with the
+    # period of a nested recursion)
+    x = (NCNT[0] * 1103515245 + 12345) & 0x7fffffff
+    NCNT[0] = x
+    return (x >> 16) & 15 == 0
+NNEG = {}
+
+
+def hyp_match(name, q, T):
+    hyp = HYP[0]
+    if name != hyp['name'] or q != hyp['q']:
+        return None
+    node = T
+    for i, t0 in enumerate(hyp['toks']):
+        if node is None:
+            return None
+        t = node[0]
+        want = hyp['inner'][i]
+        if want is None:
+            if isinstance(t, Lin) or t != t0:
+                return None
+        else:
+            if type(t0) is tuple:
+                if not (type(t) is tuple and t[0] == t0[0] and t[2:] == t0[2:]):
+                    return None
+                val = t[1]
+            else:
+                if type(t) is tuple:
+                    return None
+                val = t
+            if not (isinstance(val, Lin) and val.c == want.c and val.k == want.k):
+                return None
+        node = node[1]
+    if node is None or node[0] != ('O', 0) or node[1] is not None:
+        return None
+    hyp['hits'] += 1
+    if hyp['hits'] > 1:
+        raise Opaque()
+    return build(hyp['U'], (('QY', 0), None))
+
+
+def nest_detect(name, q, T):
+    """(prefix tokens of T, inner-outer deltas) if a frame of the stack is the same power on the same rest"""
+    for k in range(len(STACK) - 1, max(-1, len(STACK) - 40), -1):
+        fr = STACK[k]
+        if fr[0] != name or fr[1] != q:
+            continue
+        A, B = fr[4], T
+        if A is DROPPED:
+            continue
+        ta, tb = [], []
+        while A is not None and B is not None and A is not B and len(ta) <= LMAX:
+            ta.append(A[0]); tb.append(B[0])
+            A, B = A[1], B[1]
+        if A is not B or not ta or len(ta) > LMAX:
+            continue
+        if shape_of(ta) != shape_of(tb):
+            continue
+        pa, pb = params(ta), params(tb)
+        ok = True
+        for x, y, u, v in zip(pa, pb, ta, tb):
+            if x is None and u != v:
+                ok = False
+            if type(u) is tuple and u[2:] != v[2:]:
+                ok = False
+        if not ok or pa == pb:
+            continue
+        return tb, [None if x is None else y - x for x, y in zip(pa, pb)]
+    return None
+
+
+def try_nest(op, name, q, T):
+    toks, rest = flat(T, LMAX)
+    rules = NRULES.get((name, q))
+    if rules:
+        for rule in rules:
+            n = rule['len']
+            if n > len(toks) or shape_of(toks[:n]) != rule['shape']:
+                continue
+            if any(type(t) is tuple and t[2:] != u[2:] for t, u in zip(toks[:n], rule['toks'])):
+                continue
+            r = apply_nest(op, name, q, rule, toks[:n], build_raw(toks[n:], rest))
+            if r is not None:
+                return r
+    d = nest_detect(name, q, T)
+    if d is None:
+        return None
+    A, deltas = d
+    key = (name, q, shape_of(A), tuple(deltas), tuple(t[2:] if type(t) is tuple else () for t in A))
+    if key in NNEG:
+        return None
+    STATS["ndisc"] = STATS.get("ndisc", 0) + 1
+    tail = build_raw(toks[len(A):], rest)
+    rule = nest_discover(op, name, q, A, deltas, tail)
+    if rule is None:
+        NNEG[key] = 1
+        return None
+    STATS["ndisc_ok"] = STATS.get("ndisc_ok", 0) + 1
+    NRULES.setdefault((name, q), []).append(rule)
+    return apply_nest(op, name, q, rule, A, tail)
+
+
+def nest_levels(rule, ps):
+    return max_cycles((1, 0, 0, rule['deltas'], rule['cons'], None), ps)
+
+
+def base_params(ps, deltas, j):
+    return [None if a is None else a + j * d for a, d in zip(ps, deltas)]
+
+
+def nest_discover(op, name, q, A, deltas, tail):
+    ps = params(A)
+    # a probe base: as many levels as keep every count >= 1
+    j = None
+    for a, d in zip(ps, deltas):
+        if a is not None and d < 0:
+            b = (a - 1) // (-d)
+            j = b if j is None else min(j, b)
+    if not j:
+        return None
+    c0 = C[0]
+    Rb, done = power(op, name, q, build(with_params(A, base_params(ps, deltas, j)), tail))
+    C[0] = c0
+    if done is not True:
+        return None
+    btoks = flat(Rb, 40)[0]
+    for L in (2, 4, 8, 12, 16, 24, 32, 48):
+        Ud = []
+        for t in btoks:
+            dd = tok_digits([t], 64)
+            if dd is None:
+                break
+            Ud.extend(dd)
+            if len(Ud) >= L:
+                break
+        if len(Ud) < L:
+            break
+        Ud = Ud[:L]
+        rule = nest_symbolic(op, name, q, A, ps, deltas, Ud)
+        if rule is not None:
+            return rule
+    return None
+
+
+def nest_symbolic(op, name, q, A, ps, deltas, Ud):
+    sym = [None if p is None else Lin.var(i, p) for i, p in enumerate(ps)]
+    T = build_raw(with_params(A, sym), (('O', 0), None))
+    inner = [None if p is None else p + d for p, d in zip(sym, deltas)]
+    saved = Rec.cons, Rec.work, Rec.limit, C[0], HYP[0]
+    Rec.cons = []
+    Rec.work = 0
+    Rec.limit = 20000
+    C[0] = 0
+    U = to_tokens(from_digits(list(Ud))) if Ud else []
+    HYP[0] = {'name': name, 'q': q, 'toks': A, 'inner': inner, 'U': U, 'hits': 0}
+    try:
+        R, done = power_(op, name, q, T, [name, q, 0, T, T])
+        if done is not True or HYP[0]['hits'] != 1:
+            return None
+        out = to_tokens(R)
+        if not out or type(out[-1]) is not tuple or out[-1][0] != 'QY':
+            return None
+        c = out[-1][1]
+        dg = tok_digits(out[:-1], 100000)
+        if dg is None or tuple(dg[:len(Ud)]) != tuple(Ud):
+            return None
+        V = tuple(dg[len(Ud):])
+        cf = 0
+        if c > 0 and V:
+            cf = frozen_cost(V)
+            if cf is None:
+                return None
+        cost = C[0]
+        cost = (dict(cost.c), cost.k) if isinstance(cost, Lin) else ({}, cost)
+        cons = [(dict(cf_), k, s_, thr) for cf_, k, s_, thr in Rec.cons]
+        return {'len': len(A), 'shape': shape_of(A), 'toks': list(A), 'deltas': deltas, 'U': tuple(Ud), 'V': V,
+                'c': c, 'cf': cf, 'cons': cons, 'cost': cost}
+    except (Opaque, Budget, Event):
+        return None
+    finally:
+        Rec.cons, Rec.work, Rec.limit, C[0], HYP[0] = saved
+
+
+def apply_nest(op, name, q, rule, A, tail):
+    ps = params(A)
+    deltas = rule['deltas']
+    j = nest_levels(rule, ps)
+    if j is None or j < 1:
+        return None
+    c0 = C[0]
+    Rb, done = power(op, name, q, build(with_params(A, base_params(ps, deltas, j)), tail))
+    if done is not True:
+        C[0] = c0
+        return None
+    # split the base result into U ++ Z
+    Ud = rule['U']
+    Z = Rb
+    got = []
+    while len(got) < len(Ud):
+        if Z is None:
+            C[0] = c0
+            return None
+        d, Z = untok(Z)
+        got.append(d)
+    if tuple(got) != Ud:
+        C[0] = c0
+        return None
+    c = rule['c']
+    if c:
+        if Z is None:
+            C[0] = c0
+            return None
+        Z, d2 = hpow(c * j, Z)
+        if d2 is not True:
+            C[0] = c0
+            return None
+        C[0] = C[0] + c * rule['cf'] * (j * (j - 1) // 2)
+    cf, ck = rule['cost']
+    f0 = ck
+    slope = 0
+    for iv, a in cf.items():
+        f0 += a * ps[iv]
+        slope += a * deltas[iv]
+    # levels i = 0 .. j-1 (outermost first) have counts ps + i deltas
+    C[0] = C[0] + j * f0 + slope * (j * (j - 1) // 2)
+    STATS["njumps"] = STATS.get("njumps", 0) + 1
+    R = econs(j, rule['V'], Z) if rule['V'] else Z
+    return build(to_tokens(from_digits(list(Ud))), R), True
 
 
 # ------------------------------------------------------------------ conversions

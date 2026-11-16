@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced exactly to a three-counter map.</b> Every time the head turns left into D the tape is <code>X(a,b,c) = 1^a 0 (10)^b 1 D&gt; 0 1^c</code>, the same with <code>00</code> (Y), or <code>Z(a,c) = 1^a 0 D&gt; 0 1^c</code>. Lean proves the 20 rules that take each shape to the next, for all values, and (kernel only, <code>halts_iff</code> in <code>lean/Model.lean</code>) that the machine halts from blank tape exactly when the orbit of X(2,0,3) reaches some Z(a,2). That needs a run of the Y rule whose middle block empties exactly when the right block holds 3 ones: impossible by parity in the doubling stage of a round, a chance of about 1/N elsewhere. 2,000 rounds of the map (N about 10<sup>756</sup>, about 10<sup>1511</sup> steps) show no halt."
  ],
@@ -80,6 +80,12 @@
    "title": "Almost surely nonhalting",
    "text": "Halting needs c &minus; b = 3 exactly at the start of a Y run. In the doubling stage b and c are both even, so it cannot happen there; in the rest of a round, if c &minus; b behaves like a random number of size N, the chance is about 1/N per run, and the sum over all later rounds is negligible. The closest approach after round 3 was |c&minus;b&minus;3| &asymp; 10<sup>&minus;5.5</sup> N, over 2.5 million Y runs.",
    "where": "README"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 9,500 rounds",
+   "text": "The register map, iterated from X(2,0,3) with GMP integers (<code>c/xyz.c</code>, equal to <code>py/orbit.py</code> on the first 600 rounds), for 9,500 rounds (2.8&middot;10<sup>8</sup> bulk steps): no Z(a, 2); N then has 11,902 bits, about 10<sup>7,170</sup> machine steps (16 November 2026).",
+   "where": "<code>c/xyz.c</code>"
   },
   {
    "level": "open",

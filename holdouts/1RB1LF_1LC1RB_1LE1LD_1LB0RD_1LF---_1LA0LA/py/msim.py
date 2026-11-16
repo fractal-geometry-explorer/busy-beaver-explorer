@@ -394,7 +394,18 @@ class Macro:
         else:
             geng.C[0] = 0
             self.last_call = (M, toks)
-            T2, done = gpow(M, toks)
+            try:
+                T2, done = gpow(M, toks)
+            except geng.Replay:
+                # a deep carry that let go of its inputs stopped early (an event): redo the call keeping them
+                geng.C[0] = 0
+                del geng.EVTRACE[:]
+                dsave = geng.DROP[0]
+                geng.DROP[0] = False
+                try:
+                    T2, done = gpow(M, toks)
+                finally:
+                    geng.DROP[0] = dsave
             m = M if done is True else done
             cost = geng.C[0]
             if done is not True:

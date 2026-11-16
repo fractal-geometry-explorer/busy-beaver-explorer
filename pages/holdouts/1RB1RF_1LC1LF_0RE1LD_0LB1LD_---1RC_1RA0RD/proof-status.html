@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p>Its tape is two counters side by side: at the start of every pass it reads <code>0 0 (10)^a 1^b 10</code>. A pass doubles a, paid for out of b; when b runs short the head bounces off the right end and continues, like a ball folding a strip. The pass-to-pass map on (a, b) is a Collatz-like piecewise linear map with slope 2. Lean proves the whole map, rebounds included, and proves that the machine halts if and only if the map reaches a pass start with at most one 1 in the right block.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -174,6 +174,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>10<sup>8</sup> passes of the map, no halt</h3>
         <p>Iterated from the first pass start, the map runs 10<sup>8</sup> passes (tape width 2&middot;10<sup>8</sup>) without reaching c &le; 1. Only 166 passes end with b even; b &le; 5 happened 35 times, b = 2 once. With <code>halts_iff</code> this is a statement about the machine, resting on the Python code (exact integer arithmetic) instead of Lean.</p>
         <p class="where"><code>py/passmap.py iterate</code>, <code>py/passmap.py lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 10<sup>11</sup> phases</h3>
+        <p>The phase map <code>next</code> of <code>lean/Phases.lean</code>, transcribed into C (<code>c/psq.c</code>, equal to <code>py/passmap.py</code> on the first 300,000 phases), iterated 10<sup>11</sup> phases (2&middot;10<sup>10</sup> pass starts) from <code>PS 0 2</code>: no <code>PS a 0</code> or <code>PS a 1</code>; after phase 1,000 the smallest c at a pass start is 2, once (16 November 2026).</p>
+        <p class="where"><code>c/psq.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

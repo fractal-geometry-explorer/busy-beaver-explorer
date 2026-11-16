@@ -213,6 +213,56 @@ that word as a run token on the digit side and on the cell side (blocks whose pe
 event itself as a second recursion on digits: the return sweep is a transducer on the open frames, and with it
 the whole machine would be one map on digit words, the place to look for an invariant or for a halt.
 
+## Long accelerated run (16 November 2026)
+
+**No halt up to wall visit 4.233·10^2237 (step about 3.105·10^4475). The run is now well inside the return sweep of
+the eighth right-end event, past the point where it used to stall.**
+
+*The old stall and the new rules.* During the return of the event, an eater emits the 20-digit rung
+`1 0 4 0 0 0 1 0 1 0 4 3 1 0 4 0 3 0 0 0` every 11 hits on `(1 0 0)^331,196,833,750,789`. That would have been
+10^14 nested frames. The twin's section describes the fix: frozen words emitted by cycle rules, and nested-frame
+rules. `py/geng.py` was changed, and `py/validate_new.py` is new.
+
+*Validation.*
+
+* All 1,399 compared wall visits agree with direct simulation, words and step numbers.
+* The eight events of the old run are reproduced digit for digit (visits and steps).
+* 400 random cases plus eater and nested cases give the same words and step counts with the new rules as with the
+  plain recursion.
+
+*The runs* (`STACKMB=128 python3 py/accel_run.py 1 9000 100`, under `ulimit -v 3000000`):
+
+* The run reaches the eighth event in 38 s.
+* In the event's return sweep it gets past the old stall: 42,750 hooks against 23,831 before.
+* It then goes on through the return sweep. The second run (2 h 35 min) took the cell runs left of the head from
+  18,141 to 14,635, at 43,378 hooks. The first run (1 h) had reached 16,404.
+* No halt, no new event and no unknown structure was met on the way.
+
+*Why it is slow.* A sampling profile of the return (`SAMPLE=1`) shows that rule discovery is not the bottleneck:
+`discover` and `rdiscover` are not among the top 40 functions. The time goes into visits:
+
+* Each hook hands M = 1 to 9 visits of the 54,000-token word to the engine.
+* One such call costs about 200,000 explicit operations and 30,000 rule jumps (about 3 s). Few hits reach each
+  level, so few counts are large enough for a rule to pay off.
+* The rate fell from about 180 to about 20 runs a minute.
+
+Two overheads were cut: `try_rrule` now computes the shapes and counts of all prefixes once, and `frozen_prefix`
+caches its answers. Both changes were validated: 1,399 and 1,422 wall visits agree with direct simulation, the
+eight events are identical, and 400 random cases agree with the plain recursion. They gave little speedup.
+A lower rule threshold (`THRESH=4`) was slower.
+
+Next steps:
+
+* Defer the visits of consecutive hooks, if the cells between two hooks do not read into the word (not checked
+  yet). They could then be applied as one `gpow`, with a snapshot of the left part to roll back to if the batch
+  hits an event.
+* Or the event return as a transducer on the open frames.
+
+Either would let the run finish this event and look for a halt in the word it leaves.
+
+Trust: computations, exact by construction, validated only as far as direct simulation reaches (about 10^11 steps).
+They were not re-derived independently.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html)

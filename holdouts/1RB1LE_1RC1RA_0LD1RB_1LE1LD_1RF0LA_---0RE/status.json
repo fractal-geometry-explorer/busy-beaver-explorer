@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, back and forth. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; an exact macro simulator finds no halt in the first 10<sup>15</sup> steps. Lean proves the left phase rule (below) for all sizes.",
   "<b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, R(x, y) = <code>(10)^x 1^y C&gt;0</code> and the bounce frame Q(m, k, t) = <code>(10)^m 1 A&gt;0 0 (10)^k 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from R(0, 2), which the blank tape reaches in 2 steps,, reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 0, 6 or 32&middot;2<sup>k</sup> &minus; 2k &minus; 12 (20, 50, 112, 238, &hellip;). What is not proved: that this list holds for every n, and that the run never lands on it.",
@@ -119,6 +119,12 @@
    "title": "All-ones moments in the first 10<sup>8</sup> phases",
    "text": "Iterating the map with the pieces' step counts (<code>py/phasemap.py run 100000000</code>): after n = 405563 (step 9.26&middot;10<sup>14</sup>) the tape is all ones at n = 454194, 469239, 2163591, 10123515, 10839355, 10989362, 14932875, 15458727, 20193339 and 23796235 (the last near step 1.87&middot;10<sup>20</sup>). None is fatal.",
    "where": "<code>py/phasemap.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>11</sup> phases",
+   "text": "The phase map <code>next</code> of <code>lean/Phases.lean</code>, transcribed into C (<code>tools/c/doubling_phases.c</code>, checked against <code>py/phasemap.py</code> on the first 300,000 phases), iterated 10<sup>11</sup> phases from blank tape: no phase <code>e x 0</code> or <code>e x 1</code>, about 4.1&middot;10<sup>30</sup> machine steps; 4 further all-ones tapes after the Lean bound, none fatal (16 November 2026).",
+   "where": "<code>tools/c/doubling_phases.c</code>"
   },
   {
    "level": "open",

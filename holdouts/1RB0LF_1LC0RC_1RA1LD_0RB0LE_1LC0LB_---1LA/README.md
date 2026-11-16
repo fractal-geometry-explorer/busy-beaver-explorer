@@ -126,6 +126,38 @@ No halt in the first 4.48x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 44,851,509,440,286,316,893. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,027,050 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Long accelerated run (16 November 2026)
+
+**Trusted, bounded: no halt in the first 3.55·10^38 steps.** `py/macro4.py` runs the digit model of `py/digits.py`
+many sweeps at a time. It does not change the model: every macro is a symbolic run of `digits.py` sweeps.
+
+- **Macros.** `Inc(0)` is one sweep. `Inc(k)` repeats `Inc(k-1)` until the highest changed digit, counted from the
+  bottom, is at least k. A macro is derived symbolically once per *window key*. The key holds the walls of the k+1
+  lowest digits, and each run in it is either its exact value or "big" (≥ B(k, i) = 8 + 4^(k-i+1) below the top
+  digit, ≥ 16 at the top and beyond it). The macro's effect is affine in the big runs, and a run is counted as big
+  only when every comparison the sweeps make is decided over the whole region. A key whose sweeps meet a case that
+  cannot be decided falls back to `Inc(k-1)`, and at level 0 to a plain sweep. KMAX = 64.
+- **Cycles.** When the same macro key repeats with a constant drift D in the runs, K rounds are applied at once. K
+  is the largest number for which every run that moves stays above its threshold. The state at round K is checked
+  to give the same key again.
+- **Tests** (states and step counts at every landing point, against plain `digits.py` sweeps):
+  - from 3·10^7 steps, 3.0·10^7 sweeps (2,855 landing points);
+  - from the state at 5·10^19 steps, 10^6 sweeps (257 landing points, 42 cycle skips);
+  - on the twin (below);
+  - 0 mismatches in all of them.
+- **Run.** It starts at the sample 3.0·10^7 steps. 1.6·10^11 sweeps took it to 3.81·10^22 steps, then 2.0·10^19
+  sweeps more to **355,306,997,422,069,216,532,069,485,630,435,691,812 ≈ 3.55·10^38 steps**. There was no halt,
+  and no window that could not be read back as digits. 20,981 macros were derived and applied 13.3 million times.
+  The run passed the previous bounds (8.6·10^15 for the digit model, 4.48·10^19 for msim). At the end the tape is
+  `[0]W0 [0]T [11336]W2 [3662]W3 [178638]W1 ...` with 34 runs, the largest about 5.2·10^18.
+- The same code covers the twin 1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC--- (`twin` argument). See that machine's
+  README.
+
+```sh
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py test 3e7 30000000        # macros vs plain sweeps
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py run 3e7 3600 main.pkl     # resumable checkpoint
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html`](../../pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html)

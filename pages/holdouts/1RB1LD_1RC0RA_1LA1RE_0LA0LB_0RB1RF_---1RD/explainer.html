@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD</p>
   <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
@@ -326,7 +326,7 @@ Z(a,4)       &rarr; X(a+2,0,3)        Z(a,5) &rarr; X(a+2,0,5)          Z(a,2): 
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -346,6 +346,7 @@ Z(a,4)       &rarr; X(a+2,0,3)        Z(a,5) &rarr; X(a+2,0,5)          Z(a,2): 
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/canon.c</code> piped into <code>py/orbit.py validate</code></div></div><div><b>The map is the direct run up to 1.1&middot;10<sup>10</sup> steps</b><p>A C simulation reads the tape at every left turn into D; every one of the 224,522 transitions up to 1.1&middot;10<sup>10</sup> steps is the map's, with the map's step count.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py run 2000</code></div></div><div><b>2,000 rounds of the map</b><p>Iterating the map with whole bulk runs at once (Python big integers): no halt in 2,000 rounds, about 10<sup>1511</sup> machine steps; N (the length of the all-ones tape at a round start) is about 10<sup>756</sup>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Almost surely nonhalting</b><p>Halting needs c &minus; b = 3 exactly at the start of a Y run. In the doubling stage b and c are both even, so it cannot happen there; in the rest of a round, if c &minus; b behaves like a random number of size N, the chance is about 1/N per run, and the sum over all later rounds is negligible. The closest approach after round 3 was |c&minus;b&minus;3| &asymp; 10<sup>&minus;5.5</sup> N, over 2.5 million Y runs.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/xyz.c</code></div></div><div><b>No halt in 9,500 rounds</b><p>The register map, iterated from X(2,0,3) with GMP integers (<code>c/xyz.c</code>, equal to <code>py/orbit.py</code> on the first 600 rounds), for 9,500 rounds (2.8&middot;10<sup>8</sup> bulk steps): no Z(a, 2); N then has 11,902 bits, about 10<sup>7,170</sup> machine steps (16 November 2026).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does the orbit ever reach Z(a,2)?</b><p>The endgame of a round (after the doubling stage) has no closed form yet; without one there is no handle on the coincidence.</p></div></div>
 </section>
 <section id="check">

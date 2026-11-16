@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.</p>
     <p>The tape is a few long blocks of 1s separated by single 0s. The head keeps returning to the right end in state B with a single block on the tape, <code>Y(n) = 0^&infin; 1^n 0 B&gt;0 0^&infin;</code>. From one such visit to the next, n follows a Collatz-like map: odd n go to 3n &minus; 7, even n go through a nested computation on two blocks whose outcome is piecewise linear on residue classes modulo powers of 2, and which halts for a sparse set of even n.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -168,6 +168,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Where a halt can be</h3>
         <p>A closed tape language of windows of 4 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked) allows a halt only with <code>0^&infin; 1 1 0 D&gt;0</code>: the halting block of one 1 must be the leftmost block, next to a block of one 1.</p>
         <p class="where"><code>python3 -m bbtools.ctl 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD 4</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 1.7&middot;10<sup>20</sup> steps</h3>
+        <p>The exact run-length simulator (<code>c/yorbit.c</code>: <code>c/orbit.c</code> with 128-bit step counts) runs 3&middot;10<sup>11</sup> moves from blank tape, to step 1.748&middot;10<sup>20</sup>, without a halt; the visits after Y(1,397,089,014) are Y(2,619,541,899) at step 3.51&middot;10<sup>18</sup> and Y(7,858,625,690) at step 1.72&middot;10<sup>19</sup> (16 November 2026).</p>
+        <p class="where"><code>c/yorbit.c</code>, <code>c/rle.h</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

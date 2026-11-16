@@ -92,6 +92,16 @@ some modulus combined with the order of the counts closes; (3) otherwise this is
 
 Open (cryptid). See above; the claims with what each rests on are in `status.json` and the proof-status page.
 
+## Long orbit run (16 November 2026)
+
+`tools/c/redmaps.c rc` iterates `next` of `lean/Macro.lean` from (p, 3, 0) with GMP integers, case by case as in the
+Lean definition (its first 30,000 iterates equal those of `py/orbit.py`). **2·10^7 rounds** (the earlier run had 3·10^6),
+about 25 minutes on one core: the orbit never reaches u = v or u = v + 1. After 2·10^7 rounds the two numbers of
+(u, v) have 6,128,458 and 6,128,452 bits; over rounds 1,000 to 2·10^7 the halting difference u − v never came closer than
+21 bits below the size of the numbers (round 1,937,790). Computed (trusted), not in Lean.
+
+    gcc -O2 -o redmaps tools/c/redmaps.c -l:libgmp.so.10 && ./redmaps rc 20000000 1000000 rc.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/explainer.html`](../../pages/holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/explainer.html)

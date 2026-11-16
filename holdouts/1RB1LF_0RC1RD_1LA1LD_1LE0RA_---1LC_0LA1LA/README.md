@@ -108,6 +108,16 @@ python3 holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/py/rules.py > .../lea
   non-halting.  Residues modulo small numbers do not: for every modulus `N = 2^k 3^j` up to 1458 tried, the
   residues of `(a, c)` reachable from `(10, 6)` when either branch of each case may be taken include halting ones.
 
+## Long orbit run (16 November 2026)
+
+`tools/c/redmaps.c mapc` iterates `mapc` of `lean/Map.lean` from (74, 30) with GMP integers, case by case as in the
+Lean definition (its first 30,000 iterates equal those of `py/orbit.py`). **2·10^7 rounds** (20 times the earlier run),
+about 25 minutes on one core: the orbit never reaches `.halt` or `.small`. After 2·10^7 rounds the two numbers of
+(a, c) have 6,128,355 and 6,128,360 bits; over rounds 1,000 to 2·10^7 the halting difference c − a never came closer than
+26 bits below the size of the numbers (round 405,638). Computed (trusted), not in Lean.
+
+    gcc -O2 -o redmaps tools/c/redmaps.c -l:libgmp.so.10 && ./redmaps mapc 20000000 1000000 mapc.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/explainer.html`](../../pages/holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/explainer.html)

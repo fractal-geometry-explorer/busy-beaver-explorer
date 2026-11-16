@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to a map on one number.</b> Lean proves (kernel, no <code>native_decide</code>) that the machine halts from blank tape if and only if the orbit of 1 under the map <code>next</code> reaches <code>none</code>. In closed form the map is n → 3n − 2c<sub>i</sub> + i + 3 for c<sub>i</sub> &lt; n &lt; c<sub>i+1</sub>, with c<sub>i</sub> = 10·2<sup>i</sup> − i − 7, and it halts exactly when n = c<sub>i+1</sub>. Iterated 1,250,000 times, the orbit never lands on a threshold; n then has about 833,000 binary digits. A probability argument says a hit is ever less likely (about 1/2<sup>i</sup> per step), so the machine is expected never to halt, but no proof is known."
  ],
@@ -86,6 +86,12 @@
    "title": "Why a halt looks unlikely",
    "text": "Write n = c<sub>i</sub> + d; the offset d, between 0 and 10·2<sup>i</sup>, becomes 3d + i + 3, wrapping into the next level or the one after. A halt needs the offset to land exactly on the end of its level; treating d as random the chance is about 1/(10·2<sup>i</sup>) per step, and i grows by about 0.67 per step, so the expected number of future hits is far below 2<sup>-100000</sup>. A halt at the next step needs 3n = 4c<sub>i</sub> + 3, possible only for i ≡ 0, 1 (mod 6); the closest approach seen was |3n − 4c<sub>i</sub> − 3|/c<sub>i</sub> ≈ 5.9·10<sup>-6</sup>.",
    "where": "<code>py/orbit.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 8&middot;10<sup>6</sup> map steps",
+   "text": "The closed form of <code>next</code> (equal to Lean&rsquo;s <code>ph (n &minus; 1) 0 0</code> for every n, by the level-by-level computation in the README), iterated from 1 with GMP integers (<code>tools/c/redmaps.c re1</code>, equal to <code>py/orbit.py</code> on the first 30,000 steps) for 8&middot;10<sup>6</sup> steps: it never lands on a threshold; n then has 5,332,435 bits (16 November 2026).",
+   "where": "<code>tools/c/redmaps.c</code>"
   },
   {
    "level": "open",

@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE</p>
   <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
@@ -351,7 +351,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -372,6 +372,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/samples.c</code> | <code>py/orbit.py check</code></div></div><div><b>The map matches the machine</b><p>The 19 samples S n of the first 10<sup>9</sup> machine steps are exactly the first 19 points of the orbit of 1: 1, 7, 18, 34, 45, 78, 100, 166, ...</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py</code></div></div><div><b>No halt in 1,250,000 map steps</b><p>Iterating the closed form with Python big integers, the orbit of 1 never lands on a threshold in 1,250,000 steps; n then has about 833,000 bits, so the machine has run far more than 2<sup>800000</sup> steps.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/orbit.py</code></div></div><div><b>Why a halt looks unlikely</b><p>Write n = c<sub>i</sub> + d; the offset d, between 0 and 10·2<sup>i</sup>, becomes 3d + i + 3, wrapping into the next level or the one after. A halt needs the offset to land exactly on the end of its level; treating d as random the chance is about 1/(10·2<sup>i</sup>) per step, and i grows by about 0.67 per step, so the expected number of future hits is far below 2<sup>-100000</sup>. A halt at the next step needs 3n = 4c<sub>i</sub> + 3, possible only for i ≡ 0, 1 (mod 6); the closest approach seen was |3n − 4c<sub>i</sub> − 3|/c<sub>i</sub> ≈ 5.9·10<sup>-6</sup>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/redmaps.c</code></div></div><div><b>No halt in 8&middot;10<sup>6</sup> map steps</b><p>The closed form of <code>next</code> (equal to Lean&rsquo;s <code>ph (n &minus; 1) 0 0</code> for every n, by the level-by-level computation in the README), iterated from 1 with GMP integers (<code>tools/c/redmaps.c re1</code>, equal to <code>py/orbit.py</code> on the first 30,000 steps) for 8&middot;10<sup>6</sup> steps: it never lands on a threshold; n then has 5,332,435 bits (16 November 2026).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It is equivalent (in Lean) to whether the orbit of 1 under the map ever lands exactly on a threshold c<sub>i</sub>; that is a Collatz-like question with no known method of attack.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

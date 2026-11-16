@@ -123,6 +123,16 @@ C (`tools/c/triage.c`): no halt in 1,000,000,000 steps. Python: no halt in 10^30
 left-end map (`py/orbit.py`, more than 10^3,100 steps; the map is the one proved in `lean/Map.lean`, the
 iteration itself is Python).
 
+## Long orbit run (16 November 2026)
+
+`c/emap.c` iterates `emap` of `lean/Map.lean` from D(3, 0) with GMP integers, case by case, with a run of drain
+steps done at once as in `py/emap.py` `jump` (its first 1,500 epoch values equal those of `py/orbit.py`). **40,000
+epochs** (the earlier run had 8,598), 1.95·10^9 jump steps, about 25 minutes on one core: the orbit never meets the
+halting row (n odd, k = 1). The 40,000th epoch value N has 47,748 bits, so the machine has run more than 10^14,000
+steps (about N^2, i.e. 10^28,700). Computed (trusted), not in Lean.
+
+    gcc -O2 -o emap c/emap.c -l:libgmp.so.10 && ./emap 40000 500 emap.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/explainer.html`](../../pages/holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/explainer.html)

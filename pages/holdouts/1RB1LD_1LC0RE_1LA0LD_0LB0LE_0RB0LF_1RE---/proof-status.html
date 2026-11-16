@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and the run is now an explicit map.</b> The run is a base-3 countdown on blocks of <code>1000</code>, read from the head outwards. Separators pass borrows along like digits. The growing block at the right end becomes the new timer at each overflow, and walls of irregular separators hold borrows back. Thirteen tick, borrow and overflow rules are proved in Lean. The map reproduces every tick boundary of the first 10<sup>11</sup> steps exactly, and runs on to 1.6&middot;10<sup>18</sup> steps without a halting event.</p>
+      <p><b>The question is open, and the run is now an explicit map.</b> The run is a base-3 countdown on blocks of <code>1000</code>, read from the head outwards. Separators pass borrows along like digits. The growing block at the right end becomes the new timer at each overflow, and walls of irregular separators hold borrows back. Thirteen tick, borrow and overflow rules are proved in Lean. The map reproduces every tick boundary of the first 10<sup>11</sup> steps exactly, and runs on to 1.6&middot;10<sup>18</sup> steps without a halting event; accelerated (16 November), to 3.7&middot;10<sup>216</sup> steps, still without one.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The map runs on to 1.6&middot;10<sup>18</sup> steps</h3>
         <p>From the first tick boundary, the map runs 340,407,518 ticks to step 1,620,290,316,736,857,825 with 442 events. Both cuts agree at every event, and no cut copy halts. At the end the list (timer first) is 41,152,831, 513,803,810, 148,399,482, 164,597,001, 57,486,640, 28,532,194, 22,038,808, 1,066,527, 760,322, 342,766, 332,654, 80,670, 13,737, 4,158, 1.</p>
         <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/longrun.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The map runs on to 3.7&times;10<sup>216</sup> steps (accelerated, 16 November)</h3>
+        <p>The same map, with the ticks between events done many at once (a base-3 counter below the first wall, the walls cycling, the step counts summed in closed form; checked tick by tick against the plain map on every skip of the first 2.5&middot;10<sup>7</sup> ticks and on samples at 1.4&middot;10<sup>19</sup>, 1.6&middot;10<sup>60</sup> and 3.7&middot;10<sup>216</sup> steps) and the event oracle in C (checked call by call against the Python oracle). From the first tick it reaches step 3.74&middot;10<sup>216</sup> with 9,870 events, both cuts agreeing at every event, and no cut copy halts. On the way several last blocks of the far end wore away (4,158 at 1.6&middot;10<sup>18</sup>, 464 at 4.2&middot;10<sup>169</sup>) and the far end rearranged itself without a halt; at the end the list has 223 blocks and ends in 40,962, 503. A bounded run.</p>
+        <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/accel.py</code>, <code>c/oracle.c</code></p>
       </div>
       <div class="card">
         <h3>The overflow formulas</h3>

@@ -194,6 +194,75 @@ that word as a run token on the digit side and on the cell side (blocks whose pe
 event itself as a second recursion on digits: the return sweep is a transducer on the open frames, and with it
 the whole machine would be one map on digit words, the place to look for an invariant or for a halt.
 
+## Long accelerated run (16 November 2026)
+
+**No halt up to wall visit about 10^25600 (step about 1.733·10^51200)**, and no right-end event after the seventh
+one. The old run stopped at the seventh event, after wall visit 4.137·10^148, at step 2.967·10^297.
+
+*Why the old run stopped, and the new rules* (all in the shared `geng.py`, all found by symbolic execution with an
+opaque rest, like the old ones):
+
+1. *Frozen words.* During the seventh event's return, an eater sat on a fuel run `(1 0 0)^1,778,879,143,158`. Every
+   11 hits it emits the 20-digit rung `1 0 4 0 0 0 1 0 1 0 4 3 1 0 4 0 3 0 0 0`. In that context the rung is frozen:
+   h(w X) = w h(X) for every nonempty X, at a fixed crossing cost. The engine now proves such words by running h
+   symbolically on `w ++ opaque`. Cycle rules may emit a frozen word once per cycle, and the crossings of the later
+   hits are summed in closed form. Frozen prefixes are stripped from runs of hits, as the `1 0` units already were.
+   Before this change, each rung was a new nested frame, about 10^12 of them.
+2. *Nested frames.* Next, G^12(2 (1 0 0 3 0)^n X) opens G^12(2 (1 0 0 3 0)^(n-1) X) at its 7th visit and then
+   works on the inner result. This is a recursion that is not a tail call, and it was 5.7·10^20 deep. A
+   nested-frame rule op^q(A[n] X) = U V^j h^(cj)(Z) is now derived from a symbolic run of one level, in which the
+   inner frame answers as a hypothesis `U ++ Y`. The rule is checked by computing the base case directly and is then
+   applied by induction.
+
+*Validation.* `accel_check.py` was run against direct simulation (`c/wv2.c`): all 1,422 compared wall visits agree,
+words and step numbers. In `py/validate_new.py`, 400 random cases plus eater and nested cases give the same words
+and step counts with the new rules as with the plain recursion (rules off) and as with `Gref`. With the new rules
+the twin's first eight events are reproduced digit for digit (visits and steps).
+
+*The run, first pass* (`STACKMB=128 python3 accel_run.py 2 3000 100`, under `ulimit -v 3000000`, 14 minutes):
+
+* The run passes the seventh event (460 s) and its return sweep.
+* After that, the outer wall doubles its jumps through visit 10^200, 10^400, ..., 10^6400 and 10^12800. No
+  event and no halt occur. At visit 10^12800 the tape has 456,166 tokens and 36,647 levels `(1 0)^n` with n > 50.
+* Then the run ran out of memory. The next jump is a carry that descends through the levels, one engine frame
+  (`h^q`) per level, more than 31,000 deep. Memory grew with the square of the depth: 0.3 GB at depth 8,000,
+  1.2 GB at 16,600, 2.3 GB at 22,800. That came from live cons cells, not from big integers (the frames' own
+  integers were about 230 MB at depth 17,800, and `gc.collect` freed nothing).
+
+*Why the memory was quadratic, and the fix.* A word is a linked list. When a level passes hits on to the rest, the
+rest is rebuilt down to the deepest place that changed. Each open level kept a reference to its own input, the old
+version of the whole rest below it, so the levels held about depth²/2 cells between them. That input is needed
+again only if the carry stops early, at an event. Two changes, both in `geng.py`:
+
+* *Dropped inputs.* Below depth `NDROP` (1,500), a level that hands a carry to the rest now lets go of its input
+  first (`DROP`). If the carry then stops early, the engine raises `Replay`, and `msim.try_hook` redoes the
+  whole call with dropping off. So results are unchanged, and only events deep in a carry pay the old memory.
+* *Cost scoping.* Each power frame counts its own steps from 0 and adds them to its caller's count when it ends,
+  instead of taking snapshots of the huge running total. This is exact, because integer addition is
+  associative.
+
+The changes were validated as follows:
+
+* `accel_check.py` agrees with direct simulation at all 1,399 and 1,422 compared wall visits (words and step
+  numbers). This holds with `NDROP=3` and `NDROP=30`, which force dropping and replays on the early events.
+* The twin's eight events are identical, visits and steps, with and without dropping (`NDROP=3`, 3 replays).
+* `validate_new.py` gives ALL EQUAL on 400 random cases with `NDROP=3`.
+
+*The run, second pass* (`MEMLOG=1 STACKMB=256 python3 accel_run.py 2 5300 100 1000 400000`):
+
+* The run is faster than before: it reaches 10^6400 at 324 s, against 468 s.
+* At depth 20,000 it uses 0.39 GB, against 1.8 GB before, and memory now grows linearly.
+* It passes 10^12800 (441 s), and then visit 10^25600 at 1,008 s. There the word has 739,128 tokens and 57,907
+  levels, and the descent went 41,800 deep in 1.08 GB.
+* There was no event and no halt.
+
+*Why it stops now.* I stopped the run there, to give the core to the twin. The next jump would go about
+115,000 levels deep. The integers in each frame also double in size, so it would need about 4 GB. Going further
+needs the frame integers shared or dropped too, or the carry through the levels as one rule.
+
+Trust: computations, exact by construction, validated only as far as direct simulation reaches (about 10^11 steps).
+They were not re-derived independently.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)

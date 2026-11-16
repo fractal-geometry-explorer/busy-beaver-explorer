@@ -92,6 +92,16 @@ multiplier 3 on one coordinate), or a proof that a halting pair has no predecess
 Backward search from the halting pairs (the map is injective on each piece, so preimages are easy to list) is the
 natural next experiment.
 
+## Long orbit run (16 November 2026)
+
+`tools/c/redmaps.c rb` iterates `next` of `lean/Round.lean` from (3, 1, false) with GMP integers, case by case as in the
+Lean definition (its first 30,000 iterates equal those of `py/orbit.py`). **2·10^7 rounds** (20 times the earlier run),
+about 25 minutes on one core: the orbit never reaches i = j or i + 1 = j. After 2·10^7 rounds the two numbers of
+(i, j) have 6,127,225 and 6,127,223 bits; over rounds 1,000 to 2·10^7 the halting difference i − j never came closer than
+26 bits below the size of the numbers (round 1,000,578). Computed (trusted), not in Lean.
+
+    gcc -O2 -o redmaps tools/c/redmaps.c -l:libgmp.so.10 && ./redmaps rb 20000000 1000000 rb.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/explainer.html`](../../pages/holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/explainer.html)

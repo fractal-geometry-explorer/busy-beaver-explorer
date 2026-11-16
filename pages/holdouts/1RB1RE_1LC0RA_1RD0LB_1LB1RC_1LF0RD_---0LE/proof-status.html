@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in 1,250,000 map steps</h3>
         <p>Iterating the closed form with Python big integers, the orbit of 1 never lands on a threshold in 1,250,000 steps; n then has about 833,000 bits, so the machine has run far more than 2<sup>800000</sup> steps.</p>
         <p class="where"><code>py/orbit.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 8&middot;10<sup>6</sup> map steps</h3>
+        <p>The closed form of <code>next</code> (equal to Lean&rsquo;s <code>ph (n &minus; 1) 0 0</code> for every n, by the level-by-level computation in the README), iterated from 1 with GMP integers (<code>tools/c/redmaps.c re1</code>, equal to <code>py/orbit.py</code> on the first 30,000 steps) for 8&middot;10<sup>6</sup> steps: it never lands on a threshold; n then has 5,332,435 bits (16 November 2026).</p>
+        <p class="where"><code>tools/c/redmaps.c</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

@@ -108,6 +108,20 @@ Open, reduced to the map. Lean (kernel): the halting configurations, no halt in 
 `native_decide`), every rule of a round, and `halts_iff_orbit`. Trusted: the closed form of the map, its match
 with 10^9 simulated steps, and 1,250,000 map steps without a halt. Heuristic: a halt is not expected.
 
+## Long orbit run (16 November 2026)
+
+`tools/c/redmaps.c re1` iterates the closed form n -> 3n - 2c_i + i + 3 (c_i < n <= c_{i+1}, halt at n = c_{i+1})
+with GMP integers. It is the same function as Lean's `next n = ph (n - 1) 0 0` for every n >= 1: from (K, 0, 0) with
+K = n - 1 the recursion runs through levels j with K_j = n + 5 + j - 10·2^j and m_j = 10·2^j - 5; at level j it stops
+with 3K_j + m_j + 7 = 3n - 20·2^j + 3j + 17 when K_j < m_j (that is c_j + 2 <= n < c_{j+1} - 2), and otherwise
+K_j - m_j = n - c_{j+1} + 2 decides: 0, 1, 3 give 4m_j + 7, 4m_j + 10, 2m_j + 9 (the closed form at n = c_{j+1} - 2,
+c_{j+1} - 1, c_{j+1} + 1), 2 is the halt n = c_{j+1}, and >= 4 goes on to level j + 1; n <= 4 are the four cases
+K <= 3. The first 30,000 iterates equal those of `py/orbit.py`. **8·10^6 map steps** (the earlier run had
+1.25·10^6), 25 minutes on one core: the orbit never lands on a threshold; n then has 5,332,435 bits, and after step
+1,000 the distance c_{i+1} - n never had fewer than (bits of n) - 24 bits. Computed (trusted), not in Lean.
+
+    gcc -O2 -o redmaps tools/c/redmaps.c -l:libgmp.so.10 && ./redmaps re1 8000000 1000000 re1.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/explainer.html`](../../pages/holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/explainer.html)
