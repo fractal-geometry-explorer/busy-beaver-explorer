@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 15 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is a queue of blocks (01)^k of sizes 4<sup>j</sup> &minus; 2 with single-cell cursors travelling through it; all local rules are proved in Lean. The form of the tape does not exclude a halt: a tape of that form that halts is proved in Lean, and in the first 10<sup>18</sup> steps the run from blank tape showed the dangerous shape (three cursor cells 1 side by side) at exactly one visit of the right end, where it would have had to coincide with the birth of a cursor. No closed invariant is known."
+  "<b>The question is open; heuristically the machine does not halt.</b> The tape is a queue of blocks (01)^k of sizes 4<sup>j</sup> &minus; 2 with single-cell cursors travelling through it; all local rules are proved in Lean. The form of the tape does not exclude a halt: a tape of that form that halts is proved in Lean. An exact accelerated simulator (its jumps validated, not proved) runs 10<sup>5000</sup> steps without a halt. In that run the dangerous shape (three cursor cells 1 side by side) appeared nine times, and each time the birth of a cursor that would have left it standing was still at least M/2 visits away, M of the order of the square root of the step count (7,038 visits the first time, more than 10<sup>196</sup> afterwards). No closed invariant is known."
  ],
  "claims": [
   {
@@ -74,6 +74,13 @@
    "added": true
   },
   {
+   "level": "heuristic",
+   "title": "No halt in the first 10<sup>5000</sup> steps of an accelerated run",
+   "text": "<code>go/fsim.go</code> is the same exact rope engine in Go with big integers, plus exact bulk feeding (all visits of one feeding run at once, with their step count) and periodic jumps over whole visits, each validated by the period after it. Checked: the plain engine against a cell-by-cell simulator of the table at each of the 38,111 visits of the first 10<sup>9</sup> steps; bulk feeding against the plain engine at 11,838 visits up to 1.1&times;10<sup>12</sup> steps; jumps against bulk feeding alone up to 1.1&times;10<sup>16</sup> steps; runs with other settings give the same tape at every common visit between 10<sup>300</sup> and 10<sup>400</sup> steps. It reaches 10<sup>5000</sup> steps without a halt in 29 minutes (43,426,874 visits stopped at, 12,064 jumps, no rollback). The jumps are validated, not proved.",
+   "where": "<code>go/fsim.go</code>: <code>fsim 5000 quiet</code>; <code>check0</code>, <code>check1</code>, <code>check2</code>, <code>dump=</code>",
+   "added": true
+  },
+  {
    "level": "kernel",
    "title": "A tape of the block form that halts",
    "text": "The tape <code>1 a b a 0 a 1 1 1 0 a^22 0 B&gt;</code> (blocks, one separator, cursor cells) halts after 213 steps: three cursor cells 1 side by side, with the next cursor arriving as a 0 directly right of them, is the halting shape. So &ldquo;blocks, separators and cursors&rdquo; is not an invariant that excludes halting. This is not a statement about the run from blank tape.",
@@ -83,14 +90,21 @@
   {
    "level": "heuristic",
    "title": "How close the run from blank tape came",
-   "text": "The halting shape needs (1) a birth while a cursor is half way across a separator (<code>0 a 1 1 a b</code>), (2) a later cursor reaching that place, which gives <code>1 1 1</code> for one visit, and (3) a birth at exactly that visit. In the first 10<sup>18</sup> steps there are 124 births; (1) happened once (birth 22, step 7.08&times;10<sup>8</sup>), (2) followed at step 1.057&times;10<sup>11</sup>, the only visit among 3,304,842 simulated one by one with three cursor cells 1 side by side; (3) did not happen: the end block held 14,076 copies, not 0. With of the order 10<sup>9</sup> visits and 124 births in 10<sup>18</sup> steps, a random visit is a birth with chance about 10<sup>&minus;7</sup>; the real schedule is determined, not random, and not understood.",
-   "where": "<code>py/births.py</code> (on the accelerated simulator)",
+   "text": "The halting shape needs (1) a birth while a cursor is half way across a separator (<code>0 a 1 1 a b</code>), (2) a later cursor reaching that place, which gives <code>1 1 1</code> for one visit, and (3) a birth at exactly that visit. In the first 10<sup>18</sup> steps there are 124 births; (1) happened once (birth 22, step 7.08&times;10<sup>8</sup>), (2) followed at step 1.057&times;10<sup>11</sup>, the only visit among 3,304,842 simulated one by one with three cursor cells 1 side by side; (3) did not happen: the end block held 14,076 copies, not 0. With of the order 10<sup>9</sup> visits and 124 births in 10<sup>18</sup> steps, a random visit is a birth with chance about 10<sup>&minus;7</sup>; the real schedule is determined, not random, and not understood. To 10<sup>5000</sup> steps (<code>go/fsim.go</code>): 51,981 births seen, 74 of them half way across a separator, and nine visits with <code>1 1 1</code>. At each of the nine the end block <code>b a^M 0</code> was far from empty, so the next birth was at least M/2 visits away: 7,038 visits at the first, then numbers of 197, 867, 1359, 1636, 1766, 1784, 1860 and 2496 digits (steps about 10<sup>394</sup> to 10<sup>4994</sup>); M mod 8 takes the values 0, 2, 4 and 6.",
+   "where": "<code>py/births.py</code> (on the accelerated simulator); <code>go/fsim.go</code> (MARGIN lines)",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "A probabilistic estimate: it does not halt",
+   "text": "A triple ends in a halt only if a birth falls on its visit, that is if the active cursor's end block, which holds M copies (M of the order of the square root of the step count), runs out exactly there. If that moment fell at random within the cursor's life the chance would be about 2/M: about 1/7000 for the first triple, below 10<sup>-196</sup> for each later one. Triples come about once in 550 decades of the step count (nine in 5000), so the chance that any later one ends in a halt is below 10<sup>-2490</sup>. The schedule is deterministic, so this is an estimate, not a proof; a halt by a structured coincidence that the random model does not see is not excluded.",
+   "where": "<code>README.md</code>",
    "added": true
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. A proof of non-halting has to show that a birth never falls on the visit at which three cursor cells 1 stand together (or that the next cursor then arrives as a 1); a proof of halting has to find when it does. Both need the global schedule of the cursors: the counter of equal blocks as an exact recurrence. The sibling 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- has an outside proof in review that it halts.",
+   "text": "Not known. A proof of non-halting has to show that a birth never falls on the visit at which three cursor cells 1 stand together (or that the next cursor then arrives as a 1); a proof of halting has to find when it does. Both need the global schedule of the cursors: the counter of equal blocks as an exact recurrence. The sibling 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- has an outside proof in review that it halts; that proof is not in this repository, so its mechanism could not be compared.",
    "where": "README.md",
    "added": true
   },
@@ -109,10 +123,13 @@
   "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/qsim_check.py jumps 3e8     # jumps on against jumps off",
   "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/qsim.py 1e18                # no halt in 10^18 steps (3 minutes)",
   "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/births.py 1e18              # births and the one visit with three 1s (4 minutes)",
-  "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/escape.py                   # the tape of the block form that halts"
+  "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/escape.py                   # the tape of the block form that halts",
+  "(cd holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/go && go build -o /tmp/fsim .)",
+  "/tmp/fsim 9 check0; /tmp/fsim 12 check1; /tmp/fsim 16 check2   # validations",
+  "/tmp/fsim 5000 quiet     # 10^5000 steps, no halt, nine near misses (about 30 minutes)"
  ],
  "explainer": {
-  "lede": "Nobody knows. The tape is a queue of blocks <code>0101&hellip;</code> separated by a five-cell marker, and single odd cells (cursors) travel through it, making every block four times longer. The machine can only stop if three such cursors pile up at exactly the moment a new one is born. In 10<sup>18</sup> steps that pile-up was one visit away from happening, once.",
+  "lede": "Nobody knows, but probably not. The tape is a queue of blocks <code>0101&hellip;</code> separated by a five-cell marker, and single odd cells (cursors) travel through it, making every block four times longer. The machine can only stop if three such cursors pile up at exactly the moment a new one is born. In 10<sup>5000</sup> steps the pile-up happened nine times, never at that moment.",
   "facts": [
    {
     "level": "kernel",
@@ -128,14 +145,14 @@
    },
    {
     "level": "heuristic",
-    "value": "10<sup>18</sup> steps",
-    "text": "No halt in the accelerated simulator (validated against plain simulation up to 3&times;10<sup>10</sup> steps; jumps not proved).",
+    "value": "10<sup>5000</sup> steps",
+    "text": "No halt in an exact accelerated simulator (validated against plain simulation; jumps not proved).",
     "added": true
    },
    {
     "level": "heuristic",
-    "value": "1 of 3,304,842",
-    "text": "Visits of the right end at which three cursor cells 1 stood side by side; it was not a birth visit.",
+    "value": "9 near misses",
+    "text": "Visits with three cursor cells 1 side by side in 10<sup>5000</sup> steps; at each, the next birth was at least 7,038 visits (later more than 10<sup>196</sup>) away.",
     "added": true
    },
    {
@@ -174,7 +191,8 @@
      "<pre>1 a b a 0 a 1 1 1 0 a^22 0 B&gt;</pre>",
      "<p>How could the run get there? Three things must line up:</p>",
      "<ol><li>a birth happens while a cursor is half way across a separator, leaving <code>0 a 1 1 a b</code> behind;</li><li>a later cursor reaches that place: for exactly one visit the tape reads <code>1 1 1</code> there, and one visit later <code>0 a 1 a^14</code>, harmless;</li><li>a birth happens at exactly that one visit, so the three 1s are left standing for the next cursor.</li></ol>",
-     "<p>In the first 10<sup>18</sup> steps (124 births) step 1 happened once, at step 7.08&times;10<sup>8</sup>, and step 2 followed at step 1.057&times;10<sup>11</sup>. Step 3 did not: the end block still held 14,076 copies. A visit is a birth visit about once in ten million, and ever more rarely as the tape grows, so by a rough count a halt looks unlikely; but the schedule is not random, and the machine's sibling (same kind of queue, sizes 4<sup>j</sup>) has an outside proof, in review, that it does halt. The question stays open until someone works out the exact timetable of the cursors.</p>"
+     "<p>In the first 10<sup>18</sup> steps step 1 happened once, at step 7.08&times;10<sup>8</sup>, and step 2 followed at step 1.057&times;10<sup>11</sup>. Step 3 did not: the end block, which pays 2 copies at every visit and whose emptying is what triggers a birth, still held 14,076 copies, so the next birth was 7,038 visits away.</p>",
+     "<p>A faster simulator, written for this machine, follows the run to 10<sup>5000</sup> steps, a number with five thousand digits. It does not simulate every step: it recognizes stretches where the same thing happens over and over (a cursor walking through a long block) and does them in one arithmetic move, and every shortcut it takes is checked against the step-by-step machine. Three 1s in a row turned up nine times. Each time, the next birth was far away:</p><table><thead><tr><th>near miss</th><th>around step</th><th>visits to the next birth</th></tr></thead><tbody><tr><td>1</td><td>10<sup>11</sup></td><td>7,038</td></tr><tr><td>2</td><td>10<sup>394</sup></td><td>a 197-digit number</td></tr><tr><td>3</td><td>10<sup>1735</sup></td><td>866 digits</td></tr><tr><td>4&ndash;8</td><td>10<sup>2720</sup> to 10<sup>3723</sup></td><td>1358 to 1860 digits</td></tr><tr><td>9</td><td>10<sup>4994</sup></td><td>2496 digits</td></tr></tbody></table><p>The miss is always about as large as the tape is long, which is about the square root of the step count. If the moment of birth were a roll of the dice, the first near miss had a 1 in 7,000 chance of ending the run and every later one less than 1 in 10<sup>196</sup>: by that count the machine runs forever. But the schedule is not dice; the machine's sibling (same kind of queue, sizes 4<sup>j</sup>) has an outside proof, in review, that it does halt. The question stays open until someone works out the exact timetable of the cursors.</p>"
     ]
    },
    {
@@ -188,7 +206,7 @@
    }
   ]
  },
- "summary": "Block queue with cursors (block sizes 4^j - 2): all local rules proved in Lean; a tape of the same form that halts is proved in Lean, and the run from blank tape came within one coincidence of it once in 10^18 steps (no halt so far); open, no closed invariant.",
+ "summary": "Block queue with cursors (block sizes 4^j - 2): all local rules proved in Lean; a tape of the same form that halts is proved in Lean; an exact accelerated simulator runs 10^5000 steps without a halt, the halting coincidence was missed nine times by margins near the square root of the step count; open, heuristically non-halting.",
  "family": "block queue with cursors (counter-like), sizes 4^j - 2",
  "decision": "open"
 }

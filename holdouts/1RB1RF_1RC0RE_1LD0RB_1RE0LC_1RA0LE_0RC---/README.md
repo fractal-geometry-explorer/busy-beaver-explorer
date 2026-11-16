@@ -4,8 +4,10 @@ bbchallenge id 75404. One of the six-state holdouts whose halting from blank tap
 growth), family **block queue with cursors (counter-like), block sizes 4^j - 2**. Like
 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- (a different machine with the same kind of run), its tape is a queue of
 blocks (01)^k that cursors travel through. The local rules are proved in Lean; the form of the tape that the run
-keeps does **not** by itself exclude a halt (a tape of that form that halts is proved in Lean), and the run from
-blank tape came within one coincidence of it once. Halting is open.
+keeps does **not** by itself exclude a halt (a tape of that form that halts is proved in Lean). An exact accelerated
+simulator (`go/fsim.go`) runs it to 10^5000 steps without a halt; in that run the halting shape came within one
+coincidence nine times, each time missed by a margin of about the square root of the step count. Halting is open;
+heuristically it does not halt.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -24,9 +26,12 @@ established:
 
 * the local rules of the queue for all parameters (Lean, kernel): feeding, crossing a separator, birth of a cursor;
 * a tape of the block form that halts (Lean, kernel): the invariant "blocks, separators and cursors" is not enough;
-* no halt in the first 10^18 steps (accelerated simulator, validated against plain simulation, jumps not proved);
-* in those steps the dangerous shape (three cursor cells 1 side by side) stood on the tape at exactly one visit of
-  the right end (step 1.057x10^11); it would have had to coincide with a birth to be left standing.
+* no halt in the first 10^18 steps (`py/qsim.py`) and in the first **10^5000** steps (`go/fsim.go`, 29 minutes);
+  both are exact simulators of the table with accelerations that are validated against plain simulation, the
+  periodic jumps are not proved;
+* in those steps the dangerous shape (three cursor cells 1 side by side) stood on the tape at nine of the visits of
+  the right end that the simulator stopped at (the first at step 1.057x10^11); each time it would have had to coincide with a birth to be left
+  standing, and each time the end block still held about 10^(d/2) copies, d the number of digits of the step count.
 
 ## What it does
 
@@ -97,14 +102,37 @@ next; (3) a birth at exactly that one visit, so that `1 1 1` is left standing, a
 * step (3) did not happen: the end block held 14076 copies at that visit, not 0, and one visit later the place read
   `0 a 1 a^14`.
 
-Heuristically the coincidence (3) gets less likely as the run goes on: there are a hundred-odd births in 10^18
-steps, while the number of visits grows like the square root of the step count (of the order 10^9 visits in the
-first 10^18 steps), and a place like (1) arose at one birth in 124. If the visit of (2) fell at random among the
-visits, the chance that it is one of the visits with a birth would be about 10^-7 for each place like (1), and
-smaller later. This is an estimate, not a proof: the end block's size at the visit of (2) is determined, not
-random, and an exact statement needs the global
-schedule of the cursors, which is not understood. The sibling 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- has an
-outside proof in review that it halts, so a halt after a very long time cannot be ruled out here by analogy either.
+**To 10^5000 steps** (`go/fsim.go 5000 quiet`, 29 minutes, 43,426,874 visits stopped at, of them 37,720,920 simulated
+one by one, 12,527,123 bulk feedings, 12,064 periodic jumps, no rollback): no halt. 51,981 births were seen at the
+visits simulated one by one, 74 of them with a cursor left half way across a separator (step (1)), and step (2)
+happened nine times. At each of the nine visits the active cursor was the third 1 of the triple and the end block
+`b a^M 0` was far from empty; a birth at that visit needs the end block to be used up there, so the next birth was at
+least M/2 visits away:
+
+| triple | step count | digits of M | M mod 8 | visits to the next birth, at least |
+|---|---|---|---|---|
+| 1 | 1.057x10^11 | 5 | 4 | 7,038 |
+| 2 | ~10^394 | 197 | 2 | 2.28x10^196 |
+| 3 | ~10^1735 | 867 | 0 | 5.67x10^865 |
+| 4 | ~10^2720 | 1359 | 2 | 1.08x10^1358 |
+| 5 | ~10^3274 | 1636 | 4 | 4.23x10^1635 |
+| 6 | ~10^3533 | 1766 | 0 | 1.43x10^1765 |
+| 7 | ~10^3570 | 1784 | 0 | 2.37x10^1783 |
+| 8 | ~10^3723 | 1860 | 6 | 4.50x10^1859 |
+| 9 | ~10^4994 | 2496 | 0 | 1.23x10^2495 |
+
+(M mod 8 takes several values, so no simple congruence keeps the end block from running out at such a visit.)
+
+**Heuristic.** Count the chances: a triple needs a birth exactly at its visit, while the active cursor's end block
+holds M copies, M of the order of the square root of the step count (the length of the tape). If the visit at which
+the end block runs out fell at random within the cursor's life, a triple would end in a halt with probability about
+2/M: about 1/7000 for the first one, below 10^-196 for every later one. Triples come about once in 550 decades of
+the step count (9 in 5000), so the chance that any later triple ends in a halt is below 10^-2490. On this model the
+machine does not halt. This is an estimate, not a proof: the end block's size at a triple is determined, not random,
+and an exact statement needs the global schedule of the cursors, which is not understood. The sibling
+1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- has an outside proof in review that it halts; its folder here does not
+contain that proof, so its mechanism could not be compared; a halt by a structured coincidence that the random model
+misses cannot be ruled out.
 
 Closed-tape-language searches do not close: `tools/c/ngramcps.c` up to width 16 (and 20 to 36 with 4 or 6 bits of
 history) ends UNKNOWN or at its limit, and a run-length version of the same idea reaches a halt as soon as block
@@ -124,10 +152,24 @@ sizes are forgotten, as it must, given `lean/Escape.lean`.
   every visit it stops at up to 3x10^10 steps (`py/qsim_check.py jumps 3e10`: 0 mismatches, 5 rollbacks).
   `python3 py/qsim.py 1e18`: **no halt in 10^18 steps** (3,304,842 visits simulated one by one, 127,033 jumps,
   160 s). The jumps are not proved, so this is an observation.
+* `go/fsim.go` (trusted program, jumps heuristic): the same rope engine and macro rules, in Go with big integers,
+  plus exact bulk feeding (the visits of one feeding run, until the block or the end block is used up, applied at
+  once with their step count) and the periodic jumps over whole visits (validated by the period after each jump,
+  rolled back and halved otherwise). Checks: `fsim 9 check0`, the plain engine against a cell-by-cell simulator of
+  the table, tape and state at each of the 38,111 visits of the first 10^9 steps; `fsim 12 check1`, bulk feeding
+  against the plain engine at each of 11,838 visits to 1.1x10^12 steps; `fsim 16 check2`, jumps against bulk feeding
+  alone at 1,531 visits to 1.1x10^16 steps (20 jumps); and runs with other settings (`norun`, `nopack`, `four`)
+  give the same tape (hash of the whole tape) at every visit they have in common between 10^300 and 10^400 steps
+  (112,487, 112,310 and 112,524 visits; `fsim 400 quiet norun dump=F,300,400` and so on). `fsim 5000 quiet`: no halt
+  in 10^5000 steps. The jumps keep every decreasing count above the threshold at which the shape would change, but
+  the bulk feedings inside a period compare large counts with each other, which the shape does not record; that is
+  why the jumps are checked afterwards and are not proofs.
 * `py/births.py`, `py/escape.py`: the counts and the escaping tape above.
 
 ## What is open, and next steps
 
+* A decision by computation alone looks out of reach: if the random model is right the machine never halts, and a
+  halt, if there is one, comes far beyond 10^5000 steps.
 * The global schedule: which cursor is where when a birth happens. A proof of non-halting needs to show that a
   birth never falls on the visit at which three 1s stand together (or that the next cursor then arrives as a 1); a
   proof of halting needs to find the time when it does. Either way the counter of equal blocks
@@ -150,6 +192,9 @@ python3 $M/py/qsim_check.py jumps 3e8               # jumps on against jumps off
 python3 $M/py/qsim.py 1e18                          # 10^18 steps, no halt (about 3 minutes)
 python3 $M/py/births.py 1e18                        # births, and the one visit with three 1s (about 4 minutes)
 python3 $M/py/escape.py                             # the tape of the block form that halts
+(cd $M/go && go build -o /tmp/fsim .)               # Go 1.21 or later
+/tmp/fsim 9 check0; /tmp/fsim 12 check1; /tmp/fsim 16 check2   # validations (seconds)
+/tmp/fsim 5000 quiet                                # 10^5000 steps, no halt, the nine triples (about 30 minutes)
 ```
 
 <!-- related machines: written by holdouts/related.py -->
