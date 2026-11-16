@@ -105,6 +105,38 @@ A is visited 108 times, the closest to its line being |Q − 3P + 16| = 749 (P m
 residue mod 8). B is visited 1,236 times, always with P ≡ 7 mod 8 and Q even, so Q − 3P + 24 is odd and the B line
 is never hit in this sample (not proved: the class set allows B with Q odd), the closest being 2,999 away.
 
+## Lean replay of the class search (16 November 2026)
+
+`halts_iff_lines` (`lean/Lines.lean`), proved in Lean with `native_decide`:
+
+    HaltsFromBlank ↔ ∃ P, P % 2 = 1 ∧ 21 ≤ P ∧ (Reach init (A P (3P − 16)) ∨ Reach init (B P (3P − 24)))
+
+with A and B the two shapes above, as explicit configurations. So "halts if and only if the orbit hits one of the two
+lines" is now a Lean theorem, not only a result of the programs.
+
+How it is checked. `py/replay/explore.py` redoes the class search with the replay engine (`py/replay/engine.py`, the
+Python model of the Lean executor) and writes a certificate (`py/replay/cert.json.gz`): 185 classes (text and
+parity of every count, all counts ≥ 20), 6,294 leaves, 45 cycle rules, and the arrival (7,227 executor moves from
+blank tape end at `F> 00001 (1000)^35 1010000100001`). Each class has a tree of primitive splits of its free
+variables (a residue, the first few values, or a comparison of two variables) whose leaves each run, with the
+variables still free, to a node of a listed class or to a halt. `py/replay/gen.py` re-checks all of it in Python
+(about 4 minutes) and writes the Lean data.
+
+In Lean: `lean/Exec.lean` is the symbolic executor with several variables (copied from the replay of
+1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA, with the event and the rule strategy changed) and its soundness
+theorems; `lean/Pieces.lean` has the split trees (`chk_sound`: the leaves cover every value), the classes, and the
+generic theorem `halts_iff_of_checks`: if every class passes `clsOK`, every entry of `pre` passes `preOK` and the
+arrival passes, then the machine halts if and only if its run reaches an entry of `pre` (a start that runs into a
+halting class). The certificate is stored as strings of numbers (`lean/Data.lean`) and read back by `lean/Decode.lean`;
+the reader is not trusted, the theorems are about the lists it returns. `lean/Check0.lean` … `Check7.lean` evaluate
+`clsOK` on all classes, `lean/Arrive.lean` the arrival and `pre`, `lean/Replay.lean` assembles `halts_iff_pre`, and
+`lean/Lines.lean` writes the 14 entries of `pre` out as the two lines.
+
+What it rests on: the soundness theorems are checked by the kernel; the evaluations of the checks (the 8 class
+chunks, the arrival, `pre`) are `native_decide`, so they also trust Lean's compiler. `#print axioms halts_iff_lines`
+lists only `propext`, `Classical.choice`, `Quot.sound` and the `native_decide` axioms of those checks. The whole
+check takes about 7 minutes with 4 parallel jobs.
+
 ## Open, and next steps
 
 - The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question
@@ -113,13 +145,16 @@ is never hit in this sample (not proved: the class set allows B with Q odd), the
 - Prove that B is only visited with Q even (an invariant finer than the class set: it would remove the B line).
 - Write the node map as an explicit map on (shape, P, Q) from the certificate and iterate it with big integers; the
   certificate has every piece as affine forms, so this is mechanical.
-- A Lean replay of the certificate (as for 1RB0RC_0RC1RC…) would make "halts iff a line is hit" a kernel result; it
-  needs an executor with two variables.
+- Done: the Lean replay of the certificate (above), with `native_decide`. A kernel-only check would need a faster
+  executor or much more time.
 
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh
+. /etc/profile.d/lean.sh && holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh    # about 7 minutes, 4 jobs
+R=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/replay
+python3 $R/explore.py /tmp/cert.json                    # the replay certificate, about 25 minutes
+python3 $R/gen.py --check                               # re-checks py/replay/cert.json.gz in Python, writes nothing
 python3 holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/phases.py 4e7
 D=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure
 python3 $D/pclosure.py bfs /tmp/classes.json 5          # the search, about 5 minutes (BBMOD=8: residues mod 8); it prints
