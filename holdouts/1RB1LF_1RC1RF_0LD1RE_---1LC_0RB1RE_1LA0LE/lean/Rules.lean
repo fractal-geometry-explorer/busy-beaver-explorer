@@ -173,6 +173,189 @@ theorem halt_run (n : Nat) :
   have h2 : steps 4 ⟨cons false (cons true (blank)), cons true (rep (n) [false, true] (cons false (blank))), .D⟩ = some ⟨blank, cons false (cons false (cons true (cons false (cons true (rep (n) [false, true] (cons false (blank))))))), .D⟩ := rfl
   exact steps_congr trans (a := 2 + ((n) * 2 + (4))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
 
+/-- `T(a, 1)` to the round state with w = 1. -/
+theorem c_start1 (L : Tape) :
+    steps (12) ⟨cons false (cons true (cons false (cons true (cons true (L))))), blank, .B⟩ = some ⟨cons false (cons true (cons true (L))), cons true (cons true (cons true (cons false (blank)))), .A⟩ := by
+  have h0 : steps 12 ⟨cons false (cons true (cons false (cons true (cons true (L))))), blank, .B⟩ = some ⟨cons false (cons true (cons true (L))), cons true (cons true (cons true (cons false (blank)))), .A⟩ := rfl
+  exact steps_congr trans (a := 12) (by omega) (h0)
+
+/-- `T(a, 0)` to the round state with w = 0. -/
+theorem c_start0 (L : Tape) :
+    steps (10) ⟨cons false (cons true (cons true (L))), blank, .B⟩ = some ⟨cons false (cons true (cons true (L))), cons true (cons true (blank)), .A⟩ := by
+  have h0 : steps 10 ⟨cons false (cons true (cons true (L))), blank, .B⟩ = some ⟨cons false (cons true (cons true (L))), cons true (cons true (blank)), .A⟩ := rfl
+  exact steps_congr trans (a := 10) (by omega) (h0)
+
+/-- The round from w = 2 to w = 1. -/
+theorem c_round_last (n : Nat) (L : Tape) :
+    steps (6 * n + 14) ⟨cons false (cons true (cons true (cons true (L)))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank)))))), .A⟩ := by
+  have h0 : steps 11 ⟨cons false (cons true (cons true (cons true (L)))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons true (cons false (cons true (cons false (cons true (L))))), rep (n) [true, true] (cons false (cons true (blank))), .F⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [true] L, app [true, true] R, .F⟩ = some ⟨app [true] (app [false, true] L), R, .F⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons true (cons false (cons true (cons false (cons true (L))))), rep (n) [true, true] (cons false (cons true (blank))), .F⟩ = some ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (L)))))), cons false (cons true (blank)), .F⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (L))))) (cons false (cons true (blank)))
+  have h2 : steps 1 ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (L)))))), cons false (cons true (blank)), .F⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (L))))), cons true (cons true (cons true (blank))), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (L))))), cons true (cons true (cons true (blank))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (cons true (blank)))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (L))))) (cons true (cons true (blank)))
+  have h4 : steps 2 ⟨cons false (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (cons true (blank)))), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank)))))), .A⟩ := rfl
+  exact steps_congr trans (a := 11 + ((n) * 4 + (1 + ((n) * 2 + (2))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- The round from w = 1 to w = 0. -/
+theorem c_round_w1 (n : Nat) (L : Tape) :
+    steps (6 * n + 14) ⟨cons false (cons true (cons true (cons true (L)))), cons true (rep (n) [true, true] (blank)), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (cons true (rep (n) [true, true] (cons true (blank))))), .A⟩ := by
+  have h0 : steps 11 ⟨cons false (cons true (cons true (cons true (L)))), cons true (rep (n) [true, true] (blank)), .A⟩ = some ⟨cons true (cons false (cons true (cons false (cons true (L))))), rep (n) [true, true] (blank), .F⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [true] L, app [true, true] R, .F⟩ = some ⟨app [true] (app [false, true] L), R, .F⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons true (cons false (cons true (cons false (cons true (L))))), rep (n) [true, true] (blank), .F⟩ = some ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (L)))))), blank, .F⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (L))))) (blank)
+  have h2 : steps 1 ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (L)))))), blank, .F⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (L))))), cons true (cons true (blank)), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (L))))), cons true (cons true (blank)), .A⟩ = some ⟨cons false (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (L))))) (cons true (blank))
+  have h4 : steps 2 ⟨cons false (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ = some ⟨cons false (cons true (L)), cons true (cons true (cons true (rep (n) [true, true] (cons true (blank))))), .A⟩ := rfl
+  exact steps_congr trans (a := 11 + ((n) * 4 + (1 + ((n) * 2 + (2))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- A carry at w = 3. -/
+theorem c_carry_w3 (n : Nat) (L : Tape) :
+    steps (2 * n + 12) ⟨cons false (cons true (cons true (cons false (L)))), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (blank)))))), .A⟩ = some ⟨cons false (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L))))))), cons true (cons true (cons true (blank))), .A⟩ := by
+  have h0 : steps 9 ⟨cons false (cons true (cons true (cons false (L)))), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (blank)))))), .A⟩ = some ⟨cons true (cons true (cons true (cons true (cons false (L))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (blank))))), .E⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, true] R, .E⟩ = some ⟨app [] (app [true, true] L), R, .E⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 2) ⟨cons true (cons true (cons true (cons true (cons false (L))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (blank))))), .E⟩ = some ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L)))))), cons false (cons true (cons false (cons true (blank)))), .E⟩ :=
+    cross_r trans c1 (n) (cons true (cons true (cons true (cons true (cons false (L)))))) (cons false (cons true (cons false (cons true (blank)))))
+  have h2 : steps 3 ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L)))))), cons false (cons true (cons false (cons true (blank)))), .E⟩ = some ⟨cons false (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L))))))), cons true (cons true (cons true (blank))), .A⟩ := rfl
+  exact steps_congr trans (a := 9 + ((n) * 2 + (3))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- A carry at w = 2. -/
+theorem c_carry_w2 (n : Nat) (L : Tape) :
+    steps (2 * n + 12) ⟨cons false (cons true (cons true (cons false (L)))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons false (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L))))))), cons true (cons true (blank)), .A⟩ := by
+  have h0 : steps 9 ⟨cons false (cons true (cons true (cons false (L)))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons true (cons true (cons true (cons true (cons false (L))))), rep (n) [true, true] (cons false (cons true (blank))), .E⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, true] R, .E⟩ = some ⟨app [] (app [true, true] L), R, .E⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 2) ⟨cons true (cons true (cons true (cons true (cons false (L))))), rep (n) [true, true] (cons false (cons true (blank))), .E⟩ = some ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L)))))), cons false (cons true (blank)), .E⟩ :=
+    cross_r trans c1 (n) (cons true (cons true (cons true (cons true (cons false (L)))))) (cons false (cons true (blank)))
+  have h2 : steps 3 ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L)))))), cons false (cons true (blank)), .E⟩ = some ⟨cons false (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons false (L))))))), cons true (cons true (blank)), .A⟩ := rfl
+  exact steps_congr trans (a := 9 + ((n) * 2 + (3))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- A pool of 1 without bracket, w >= 5: the middle block becomes the bracket. -/
+theorem c_bracket (n z : Nat) :
+    steps (4 * n + 18) ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))))), .A⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .A⟩ := by
+  have h0 : steps 13 ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank)))))))))), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank)))))))))), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))), .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))))
+  have h2 : steps 5 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))), .B⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .A⟩ := rfl
+  exact steps_congr trans (a := 13 + ((n) * 4 + (5))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- The same at w = 4. -/
+theorem c_bracket_w4 (n : Nat) :
+    steps (4 * n + 18) ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank)))))))), .A⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (blank))), .A⟩ := by
+  have h0 : steps 13 ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank)))))))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (cons false (cons true (blank)))))), .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons false (cons true (cons false (cons true (cons false (cons true (blank)))))))
+  have h2 : steps 5 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (cons false (cons true (blank)))))), .B⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (blank))), .A⟩ := rfl
+  exact steps_congr trans (a := 13 + ((n) * 4 + (5))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- The same at w = 3. -/
+theorem c_bracket_w3 (n : Nat) :
+    steps (4 * n + 18) ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (blank)))))), .A⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (blank)), .A⟩ := by
+  have h0 : steps 13 ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (cons false (cons true (blank)))))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (blank))))), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (cons false (cons true (blank))))), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (blank)))), .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons false (cons true (cons false (cons true (blank)))))
+  have h2 : steps 5 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (cons false (cons true (blank)))), .B⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), cons true (cons true (blank)), .A⟩ := rfl
+  exact steps_congr trans (a := 13 + ((n) * 4 + (5))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- The same at w = 2: the visit `T(n+1, 2, 0)`. -/
+theorem c_bracket_w2 (n : Nat) :
+    steps (4 * n + 16) ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), blank, .B⟩ := by
+  have h0 : steps 13 ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (blank))), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons false (cons true (blank))), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (blank)), .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons false (cons true (blank)))
+  have h2 : steps 3 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons false (cons true (blank)), .B⟩ = some ⟨cons false (cons true (cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank))))))))), blank, .B⟩ := rfl
+  exact steps_congr trans (a := 13 + ((n) * 4 + (3))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- A pool of 1 without bracket at w = 1: a fresh sweep with pool 2 and w = n + 2. -/
+theorem c_restart (n : Nat) :
+    steps (6 * n + 31) ⟨cons false (cons true (blank)), cons true (cons true (cons true (rep (n) [true, true] (blank)))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (cons true (cons true (cons false (cons true (rep (n) [false, true] (cons false (blank))))))), .A⟩ := by
+  have h0 : steps 17 ⟨cons false (cons true (blank)), cons true (cons true (cons true (rep (n) [true, true] (blank)))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank))))))), rep (n) [true, true] (blank), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank))))))), rep (n) [true, true] (blank), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))), blank, .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))) (blank)
+  have h2 : steps 2 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))), blank, .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))), cons true (cons false (blank)), .D⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .D⟩ = some ⟨L, app [true] (app [false, true] R), .D⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))), cons true (cons false (blank)), .D⟩ = some ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank))))))), cons true (rep (n) [false, true] (cons false (blank))), .D⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank)))))))) (cons false (blank))
+  have h4 : steps 12 ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (blank))))))), cons true (rep (n) [false, true] (cons false (blank))), .D⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (cons true (cons true (cons false (cons true (rep (n) [false, true] (cons false (blank))))))), .A⟩ := rfl
+  exact steps_congr trans (a := 17 + ((n) * 4 + (2 + ((n) * 2 + (12))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- A pool of 1 without bracket at w = 0: the odd pool `T(none, 2n+7, 0)`. -/
+theorem c_odd_w0 (n : Nat) :
+    steps (8 * n + 30) ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ = some ⟨cons false (cons true (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank)))))))))), blank, .B⟩ := by
+  have h0 : steps 13 ⟨cons false (cons true (blank)), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons true (blank)), .B⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, true] R, .B⟩ = some ⟨app [] (app [false, true] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons false (cons true (cons false (cons true (cons true (blank))))), rep (n) [true, true] (cons true (blank)), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons true (blank), .B⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons true (blank))
+  have h2 : steps 2 ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons true (blank), .B⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons true (cons true (blank)), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (cons true (blank)))))), cons true (cons true (blank)), .A⟩ = some ⟨cons false (cons true (cons false (cons true (cons true (blank))))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (cons true (blank)))))) (cons true (blank))
+  have h4 : steps 13 ⟨cons false (cons true (cons false (cons true (cons true (blank))))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ = some ⟨cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank))))))), rep (n) [true, true] (cons true (blank)), .E⟩ := rfl
+  have c5 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, true] R, .E⟩ = some ⟨app [] (app [true, true] L), R, .E⟩ := fun _ _ => rfl
+  have h5 : steps ((n) * 2) ⟨cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank))))))), rep (n) [true, true] (cons true (blank)), .E⟩ = some ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank)))))))), cons true (blank), .E⟩ :=
+    cross_r trans c5 (n) (cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank)))))))) (cons true (blank))
+  have h6 : steps 2 ⟨rep (n) [true, true] (cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank)))))))), cons true (blank), .E⟩ = some ⟨cons false (cons true (rep (n) [true, true] (cons true (cons true (cons true (cons true (cons true (cons true (cons false (blank)))))))))), blank, .B⟩ := rfl
+  exact steps_congr trans (a := 13 + ((n) * 4 + (2 + ((n) * 2 + (13 + ((n) * 2 + (2))))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 (steps_seq trans h5 (h6)))))))
+
+/-- A pool of 3 next to the bracket, w >= 3: the bracket joins the middle block. -/
+theorem c_merge (c n z : Nat) :
+    steps (2 * c + 6 * n + 16) ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))))))))), .A⟩ := by
+  have h0 : steps 11 ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))), .A⟩ = some ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .F⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [true] L, app [true, true] R, .F⟩ = some ⟨app [true] (app [false, true] L), R, .F⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .F⟩ = some ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))), .F⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))))
+  have h2 : steps 1 ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), cons false (cons true (cons false (rep (z) [true, false] (cons true (blank))))), .F⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank))))))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank))))))
+  have h4 : steps 4 ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank))))))), .A⟩ = some ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))))), .A⟩ := rfl
+  have c5 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h5 : steps ((c) * 2) ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank))))))))))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))))))))), .A⟩ :=
+    cross_l trans c5 (c) (cons false (cons true (cons true (blank)))) (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (cons false (rep (z) [true, false] (cons true (blank)))))))))))
+  exact steps_congr trans (a := 11 + ((n) * 4 + (1 + ((n) * 2 + (4 + ((c) * 2)))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 (h5))))))
+
+/-- The same at w = 2. -/
+theorem c_merge_w2 (c n : Nat) :
+    steps (2 * c + 6 * n + 16) ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank))))))))), .A⟩ := by
+  have h0 : steps 11 ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons false (cons true (blank)))), .A⟩ = some ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (cons false (cons true (blank))), .F⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [true] L, app [true, true] R, .F⟩ = some ⟨app [true] (app [false, true] L), R, .F⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (cons false (cons true (blank))), .F⟩ = some ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), cons false (cons true (blank)), .F⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (cons false (cons true (blank)))
+  have h2 : steps 1 ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), cons false (cons true (blank)), .F⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (blank))), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (cons true (blank))), .A⟩ = some ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (cons true (blank)))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (cons true (cons true (blank)))
+  have h4 : steps 4 ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (cons true (blank)))), .A⟩ = some ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank)))))))), .A⟩ := rfl
+  have c5 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h5 : steps ((c) * 2) ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank)))))))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank))))))))), .A⟩ :=
+    cross_l trans c5 (c) (cons false (cons true (cons true (blank)))) (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (cons true (blank))))))))
+  exact steps_congr trans (a := 11 + ((n) * 4 + (1 + ((n) * 2 + (4 + ((c) * 2)))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 (h5))))))
+
+/-- The same at w = 1. -/
+theorem c_merge_w1 (c n : Nat) :
+    steps (2 * c + 6 * n + 16) ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (blank)), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (blank)))))))), .A⟩ := by
+  have h0 : steps 11 ⟨cons false (cons true (cons true (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (blank)), .A⟩ = some ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (blank), .F⟩ := rfl
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [true] L, app [true, true] R, .F⟩ = some ⟨app [true] (app [false, true] L), R, .F⟩ := fun _ _ => rfl
+  have h1 : steps ((n) * 4) ⟨cons true (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), rep (n) [true, true] (blank), .F⟩ = some ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), blank, .F⟩ :=
+    cross_r trans c1 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (blank)
+  have h2 : steps 1 ⟨cons true (rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))))), blank, .F⟩ = some ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (blank)), .A⟩ := rfl
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((n) * 2) ⟨rep (n) [false, true] (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))), cons true (cons true (blank)), .A⟩ = some ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ :=
+    cross_l trans c3 (n) (cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank))))))))) (cons true (blank))
+  have h4 : steps 4 ⟨cons false (cons true (cons false (cons true (rep (c) [false, true] (cons false (cons true (cons true (blank)))))))), cons true (rep (n) [true, true] (cons true (blank))), .A⟩ = some ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (blank))))))), .A⟩ := rfl
+  have c5 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, true] R), .A⟩ := fun _ _ => rfl
+  have h5 : steps ((c) * 2) ⟨rep (c) [false, true] (cons false (cons true (cons true (blank)))), cons true (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (blank))))))), .A⟩ = some ⟨cons false (cons true (cons true (blank))), cons true (rep (c) [true, true] (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (blank)))))))), .A⟩ :=
+    cross_l trans c5 (c) (cons false (cons true (cons true (blank)))) (cons true (cons true (cons true (cons true (rep (n) [true, true] (cons true (blank)))))))
+  exact steps_congr trans (a := 11 + ((n) * 4 + (1 + ((n) * 2 + (4 + ((c) * 2)))))) (by omega) (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 (h5))))))
+
 /-- `T(none, 1, n) = 0^inf 1 0 (10)^n B> 0^inf` halts, for every n: the only halting visits of the right end. -/
 theorem halt_T1 (n : Nat) :
     TM.Halts trans ⟨rep (n) [false, true] (cons false (cons true (blank))), blank, .B⟩ :=
