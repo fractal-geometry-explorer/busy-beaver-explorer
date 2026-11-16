@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). After step 5,043 the next pass to reach the left end did so near step 3.3·10<sup>11</sup>, as a reduced system had predicted, and did not halt. It left 134,619 pairs <code>10 1110</code> between the old zone and a new one; passes cannot cross them, so nothing reaches the left end again until they are used up."
+  "<b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). After step 5,043 the next pass to reach the left end did so near step 3.3·10<sup>11</sup>, as a reduced system had predicted, and did not halt. It left 134,619 pairs <code>10 1110</code> between the old zone and a new one; passes cannot cross them, so nothing reaches the left end again until they are used up. Separately, Lean reduces the question exactly: an exact pass-by-pass macro machine on the tape read in pairs (<code>11</code>/<code>01</code>) is proved sound for all words, and the machine halts from blank tape <i>iff</i> this macro orbit halts (<code>halts_iff</code>, <code>lean/Reduce.lean</code>); running the orbit with <code>native_decide</code> gives no halt in the first 4&middot;10<sup>8</sup> steps."
  ],
  "claims": [
   {
@@ -50,6 +50,24 @@
    "title": "Crossing the block of words does not depend on its length",
    "text": "The pass crosses n words <code>111110</code> in 6n steps, in the same state, turning each into <code>1110 10</code>; the sweep back turns them into <code>111110</code> again. For every n and every surrounding tape.",
    "where": "<code>cross_left</code>, <code>cross_right</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The macro machine",
+   "text": "A turn configuration <code>RT out</code> (D on the second cell of a pair <code>11</code> at the right end, the pairs <code>out</code> to its left). One macro step <code>mstep</code>: a left pass over the pairs (<code>scan</code>: skip <code>11</code>; after a <code>01</code>, a <code>11</code> becomes <code>01</code> and the pass goes on, a <code>01</code> becomes <code>11</code> and the head turns; at the first pair F halts), a right pass flipping every pair (<code>apass</code>), and at the left end either a pass in step (<code>edgeD</code>) or, out of step, the configuration on lists run cell by cell (<code>rawRun</code>) until it is a turn configuration again (<code>asRT</code>). <code>mstep_sound</code>: for all states, the machine goes where <code>mstep</code> says in exactly the steps it says, or halts there.",
+   "where": "<code>scan_sound</code>, <code>apass_sound</code>, <code>rawRun_sound</code>, <code>mstep_sound</code>, <code>lean/Sweep.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting is exactly a question about the orbit",
+   "text": "<code>orbT k</code>: the k-th state of the macro machine from blank tape with its step count (<code>orbT_sound</code>). <code>halts_iff</code>: the machine halts from blank tape if and only if some macro step of the orbit halts.",
+   "where": "<code>orbT_sound</code>, <code>halts_iff</code>, <code>lean/Reduce.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 4&middot;10<sup>8</sup> steps",
+   "text": "The first 15,000 macro steps of the orbit, evaluated by compiled code: no halt, more than 4&middot;10<sup>8</sup> machine steps (through the six resets of the left end).",
+   "where": "<code>orbit_runs</code>, <code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code>"
   },
   {
    "level": "trusted",
@@ -138,6 +156,12 @@
      "<p>Passes reached the left end at triggers 1, 2, 3, 6, 27 and 51 (a trigger is a new cell on the right in state C), then not again until trigger 403,962, near step 3.3·10<sup>11</sup>. That arrival was predicted by two shortened runs before the real machine got there. It did not halt: the 134,619 words of the block stayed behind, and a new zone and a new block started at the right end.</p>",
      "<p>Cutting the growing block short should not change the rest of the tape, because Lean proves that crossing it does not depend on its length. That reduction is checked on 20,000 triggers and at this arrival, but not proved. The stranded words are left as pairs <code>10 1110</code>; a block of length 1 stops a pass, so the new zone cannot send a pass across them. It can only use them up from the right, and until all 134,619 pairs are gone nothing reaches the left end.</p>"
     ]
+   },
+   {
+    "id": "exact-reduction",
+    "eyebrow": "Proved",
+    "heading": "An exact reduction in Lean",
+    "html": "<p>The reduced system above is a model. A second, independent analysis reads the tape two cells at a time: the pair <code>11</code> is a letter 1 and the pair <code>01</code> a letter 0, so the tape is a binary word. Lean defines one <i>macro step</i> of the machine on such words (one sweep to the right end and back, including the rare resets at the left end) and proves, for every word, that the machine really does what the macro step says (<code>mstep_sound</code>, <code>lean/Sweep.lean</code>).</p><p>From this, <code>halts_iff</code> in <code>lean/Reduce.lean</code> states: <b>the machine halts from blank tape if and only if some macro step of the orbit from the blank tape halts.</b> So the question is now purely about this word map, with no tape left in it. Lean's compiled check (<code>native_decide</code>) runs the macro orbit far enough to cover the first 4&middot;10<sup>8</sup> machine steps without a halt (<code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code>). Whether the orbit ever halts is still open.</p>"
    }
   ]
  },

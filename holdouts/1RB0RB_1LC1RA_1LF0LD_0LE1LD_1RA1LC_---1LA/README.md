@@ -137,6 +137,16 @@ leftmost block from being a lone 1 when a pass arrives, and nothing that forces 
 | the reduced system: no halt and no arrival at the left end from trigger 20,000 to 1,073,741,824 | observed (rests on the unproved reduction) | `c/reduced.c` |
 | the leftmost zone alone: reproduces the real arrivals; continued by itself it halts in tick 4,581,101 | a model, checked at the real arrivals | `c/zone.c` |
 
+### Exact reduction (Lean)
+
+Reading the tape in pairs (`11` = 1, `01` = 0), `lean/Sweep.lean` defines a macro step `mstep` on binary words and proves it sound for every word; `lean/Reduce.lean` proves `halts_iff : HaltsFromBlank ↔ ∃ k, HaltsAt k`, i.e. the machine halts from blank tape iff the macro orbit halts. Unlike the reduced system above, this reduction is proved. `py/passmachine.py` is a Python transcription of `mstep` checked against direct simulation.
+
+| result | level | where |
+|---|---|---|
+| The pass machine | kernel | `scanF_sound`, `apass_sound`, `mstep_sound`, `lean/Sweep.lean` |
+| Halting is exactly a question about the orbit | kernel | `orbT_sound`, `halts_iff`, `lean/Reduce.lean` |
+| No halt in the first 4·10^8 steps | native | `orbit_runs`, `blank_runs_orbit`, `lean/OrbitRun.lean` |
+
 ## For later
 
 * Prove the reduction: that every entry of the head into the block of words between two triggers is one of the two
