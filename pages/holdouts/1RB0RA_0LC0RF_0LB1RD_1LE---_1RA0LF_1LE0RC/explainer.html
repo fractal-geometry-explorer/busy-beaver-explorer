@@ -190,8 +190,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows yet. This machine keeps a counter near the left of its tape and a long, growing block of <code>11010</code> words to its right. Each visit to the counter ticks it and adds one word to the block. It has run 10<sup>11</sup> steps without stopping.</p></div>
+  <div class="col"><p class="lede">Nobody knows yet. This machine keeps a counter near the left of its tape and a long, growing block of <code>11010</code> words to its right. Each visit to the counter ticks it and adds one word to the block. It has run 10<sup>11</sup> steps without stopping. It is proved to halt exactly when <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> does: the two runs are one run, seen in a mirror.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>halts &hArr; halts</b><span class="small">It halts from blank tape if and only if <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> does: proved in Lean and in Coq (<a href="#pair-tables">below</a>).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>17 + 27</b><span class="small">Steps per word of the two passes, proved for all lengths.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>+1 word</b><span class="small">Growth of the block per excursion.</span></div>
@@ -206,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#pair-tables">Two tables that are one machine</a><a href="#pair-lockstep">One run, watched in a mirror</a><a href="#pair-farend">Crossing the far end: 5 steps against 49</a><a href="#pair-window">Four cells that settle it</a><a href="#pair-proof">Checked in Coq, step by step</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -325,6 +326,622 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>leftmost cell</th><th>1299</th><th>1274–82</th><th>1249–57</th><th>1224–32</th><th>1199–1207</th><th>1174–82</th><th>1149–57</th><th>1124–32</th><th>≤ 1107</th></tr></thead><tbody><tr><td>returns</td><td>352</td><td>2,680</td><td>1,568</td><td>648</td><td>249</td><td>91</td><td>35</td><td>13</td><td>9</td></tr></tbody></table></div>
 <p>Each class is about 2.6 times rarer than the one before: a counter whose digits are about 25 cells long, with a carry reaching digit j about once every 2.6<sup>j</sup> excursions. Each digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>, five bits a to e; 28 of the 32 patterns occur. What one visit does to the bits, and so the exact growth factor, is not decoded yet.</p>
 </section>
+<section id="pair-tables">
+  <span class="eyebrow">One question, two machines</span>
+  <h2>Two tables that are one machine</h2>
+<style>
+.tq-ok{color:var(--kernel);font-weight:600}
+.yv-bad{color:var(--open);font-weight:600}
+.tq-tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.tq-tt{min-width:0}
+.tq-ttname{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.tq-ttname code{font-size:.74rem;overflow-wrap:anywhere}
+.tq-tt table{width:100%}
+.tq-tt td{cursor:pointer;transition:background .15s}
+.tq-tt td.tq-hl{background:var(--accent-soft);color:var(--accent);font-weight:700;box-shadow:inset 0 0 0 2px var(--accent)}
+.tq-back td{color:var(--kernel)}
+.tq-say{font-size:.92rem;color:var(--fg2);min-height:3.2em;margin-top:12px}
+.tq-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:12px}
+.tq-two>div{min-width:0}
+.tq-two canvas{width:100%;height:auto;image-rendering:pixelated;border:1px solid var(--line);border-radius:6px;background:var(--cell0)}
+.tq-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:8px}
+.tq-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.tq-lane{margin-top:14px}
+.tq-lane .cells{justify-content:flex-start;overflow-x:auto;padding:24px 4px 4px}
+.tq-lane .cell{width:16px;flex-basis:16px;height:24px}
+.cell.tq-x{background:var(--accent-soft);border-color:var(--accent)}
+.cell.tq-x.one{background:var(--accent);border-color:var(--accent)}
+.cell.tq-q{box-shadow:0 0 0 2px var(--kernel)}
+input.tq-range{flex:1 1 200px;min-width:140px;accent-color:var(--accent)}
+.tq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:14px}
+.tq-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 6px 8px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.tq-card.tq-cross{border-color:var(--kernel)}
+.tq-card.tq-sel{border-color:var(--head);box-shadow:0 0 0 2px var(--head)}
+.tq-card.tq-next{background:var(--accent-soft);border-color:var(--accent)}
+.tq-win{display:flex;gap:2px;align-items:center}
+.tq-c{display:inline-block;width:16px;height:22px;border:1px solid var(--line-strong);border-radius:3px;background:var(--cell0);position:relative}
+.tq-c.one{background:var(--ink);border-color:var(--ink)}
+.tq-c.hd{outline:2px solid var(--head);outline-offset:1px}
+.tq-c.hd::after{content:attr(data-s);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font:700 .75rem var(--mono);color:var(--head);font-style:normal}
+.tq-left{font:700 .9rem var(--mono);color:var(--head);font-style:normal;margin-right:4px}
+.tq-lab{font:600 .72rem/1.25 var(--body);color:var(--muted);text-align:center}
+.tq-ladder{counter-reset:tq;display:grid;gap:10px;margin:18px 0;padding:0;list-style:none}
+.tq-ladder li{display:grid;grid-template-columns:2.2em minmax(0,1fr);gap:4px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.tq-ladder li::before{counter-increment:tq;content:counter(tq);font:700 1.1rem/1.6 var(--display);color:var(--accent);grid-row:span 2}
+.tq-ladder li b{font-family:var(--display)}
+.tq-ladder li .small code{font-size:.8em}
+.tq-checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.tq-checks div{background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:.88rem}
+.tq-checks b{display:block;font-family:var(--display);font-size:1.05rem}
+:is(#pair-tables,#pair-lockstep,#pair-farend,#pair-window,#pair-proof) :is(p,li,td){overflow-wrap:anywhere}
+</style>
+<div class="col">
+<p>Two of the 608 holdouts are one halting question. Call <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> (<a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">its page</a>) the <b>first machine</b> and <code>1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</code> (this page) the
+<b>second machine</b>. It is proved, in Lean and again in Coq, that the first halts from blank tape if and only if the
+second does. That does not say whether either one halts: it says that the list of open machines is one shorter
+than it looks. The next five sections show why, and let you check each piece in the browser.</p>
+<p>It starts with the tables. Point at (or tap) any cell of one table and the matching cell of the other lights up:
+the same symbol is written, the direction is reversed, and the states are renamed A&rarr;D, B&rarr;E, C&rarr;A,
+D&rarr;B, E&rarr;C, F&rarr;F. So the second machine is the first one watched in a mirror, with different names on
+the states. The one real difference is where it starts: the second machine's A is the first machine's C.</p>
+</div>
+<div class="panel">
+  <div class="tq-tables" id="tqTables"></div>
+  <div class="tq-say" id="tqTableSay" aria-live="polite"></div>
+  <div class="controls"><button id="tqBack">Translate the second table back</button></div>
+  <p class="small" id="tqBackSay" hidden>Renaming the second table's states back and exchanging left and right gives
+  the first table exactly, the halting cell included (the green table). The machines differ only in the state they
+  start in: C instead of A.</p>
+</div>
+<div class="col">
+<p>A different start state usually means a different run, and the related-machines screen found no common
+configuration in the first 10<sup>7</sup> steps. But it compared the runs <em>step for step</em>. The next section
+compares them <em>event for event</em>.</p>
+</div>
+</section>
+<section id="pair-lockstep">
+  <span class="eyebrow">The two runs</span>
+  <h2>One run, watched in a mirror</h2>
+<div class="col">
+<p>Run both machines from blank tape. After 2 steps of the first and 49 of the second, the two tapes are the same
+when the second is read in a mirror, except that the second has one more word, <code>10001101</code>, at the far right
+end. From then on each step of one is a step of the other, with one exception. When the head moves right from
+<b>q</b>, the rightmost cell visited so far, it crosses the end of the tape. The first machine does that in 5
+steps; the second has to cross the extra word too and takes 49. Call one step of both, or one crossing, a
+<b>model step</b>. Below, the two runs are drawn on the model-step clock, the second one mirrored. The pictures are
+the same except for the extra word on the right (blue band), and the head (orange) is always in the same place.</p>
+</div>
+<div class="panel">
+  <div class="controls">
+    <label class="small" for="tqLockM">model steps</label>
+    <select id="tqLockM"><option value="2000">2,000</option><option value="20000" selected>20,000</option><option value="200000">200,000</option><option value="1000000">1,000,000</option></select>
+    <button class="primary" id="tqLockGo">Draw</button>
+  </div>
+  <div class="tq-two">
+    <div><div class="small">first machine, <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code></div><canvas id="tqLock1" aria-label="space-time diagram of the first machine"></canvas></div>
+    <div><div class="small">second machine in a mirror, <code>1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</code></div><canvas id="tqLock2" aria-label="space-time diagram of the second machine, mirrored"></canvas></div>
+  </div>
+  <div class="tq-key"><span><i style="background:var(--ink)"></i>1</span><span><i style="background:var(--head)"></i>head</span><span><i style="background:var(--accent)"></i>the extra word <code>10001101</code></span><span>time runs down; one row per model step (sampled)</span></div>
+  <p class="tq-say" id="tqLockSay" aria-live="polite"></p>
+  <div class="controls">
+    <button id="tqLockCheck">Check the runs in lockstep</button>
+    <label class="small" for="tqLockN">up to</label>
+    <select id="tqLockN"><option value="10000000" selected>10,000,000 steps</option><option value="100000000">100,000,000 steps</option></select>
+  </div>
+  <p class="small" id="tqLockCheckSay" aria-live="polite">Runs both machines in your browser and compares the whole tapes at every crossing.</p>
+</div>
+<div class="col">
+<p>This is <span class="ev c">Computed</span> evidence for a few million steps; the C program <code>c/lockstep.c</code>
+checked 10<sup>11</sup> steps (270,284 visits to the left end). The proof that it lasts for ever has two parts: the
+crossing itself (next section) and the fact that the head never leaves q in any other way (the section after).</p>
+</div>
+</section>
+<section id="pair-farend">
+  <span class="eyebrow">Where they part</span>
+  <h2>Crossing the far end: 5 steps against 49</h2>
+<div class="col">
+<p>Here is the one place where the two runs come apart for a moment, drawn in the first machine's frame (the
+second machine's run is this, mirrored). Both lanes start from the same configuration of the real run, just before its
+third crossing: state B on the 1 at q (green outline). The lower lane has k extra words after q (blue). The slider
+moves both lanes together; the upper one takes 5 steps, the lower one 44k + 5.</p>
+</div>
+<div class="panel">
+  <div class="controls">
+    <button class="primary" id="tqFarPlay">Play</button><button id="tqFarStep">Step</button>
+    <input type="range" class="tq-range" id="tqFarT" min="0" max="49" value="0" aria-label="time through the crossing">
+    <label class="small" for="tqFarK">extra words k = <b id="tqFarKv">1</b></label>
+    <input type="range" id="tqFarK" min="0" max="4" value="1" style="width:110px;accent-color:var(--accent)">
+  </div>
+  <div class="tq-lane"><div class="small" id="tqFarAs"></div><div class="cells" id="tqFarA"></div></div>
+  <div class="tq-lane"><div class="small" id="tqFarBs"></div><div class="cells" id="tqFarB"></div></div>
+  <p class="tq-say" id="tqFarSay" aria-live="polite"></p>
+</div>
+<div class="col">
+<p>Whatever k is, the head walks right through the words, turns at the blank end and walks back, and both lanes end in
+state D one cell left of q with <code>1 0 1</code> written from q on: q has moved two cells right and the extra words
+moved with it. Lean proves this for every k (<code>far_B</code>, 44k + 5 steps, in <code>lean/FarEnd.lean</code>);
+Coq needs only k = 0 and k = 1 (<code>far0</code>, <code>far1</code>, each checked by running the machine).</p>
+</div>
+</section>
+<section id="pair-window">
+  <span class="eyebrow">The invariant</span>
+  <h2>Four cells that settle it</h2>
+<div class="col">
+<p>Could the head ever leave q in some other state, or on a 0? Then the first machine would step onto a blank cell
+while the second steps onto the extra word, and the runs would part. The proof rules this out by looking only at the
+last four cells of the tape, q&minus;3 to q, the <b>window</b>, and forgetting everything to their left. A card below
+is one <b>abstract configuration</b>: the four cells, and the state and head position when the head is in the window.
+When the head is further left (card <i>out</i>) even the state is forgotten, and the head may come back in any state
+that a move to the right can produce: B, D, E or F.</p>
+<p>From the start there are exactly <b id="tqWinCount">28</b> of them, and none moves right from q except in state B on
+a 1 (green cards: the crossing). Click a card to see where one step can lead (blue): always to another card. That
+closure is the whole invariant; Coq checks it with one <code>vm_compute</code> (<code>check_S0</code>).</p>
+</div>
+<div class="panel">
+  <div class="controls"><button class="primary" id="tqWinRun">Follow the real run</button>
+    <label class="small" for="tqWinMut">or break the table:</label>
+    <select id="tqWinMut" style="max-width:100%"><option value="">flip one direction&hellip;</option></select></div>
+  <p class="small" id="tqWinRunSay" aria-live="polite"></p>
+  <p class="small" id="tqWinMutSay" aria-live="polite"></p>
+  <div class="tq-grid" id="tqWin"></div>
+  <p class="tq-say" id="tqWinSay" aria-live="polite"></p>
+</div>
+<div class="col">
+<p>The window works because the left end of the tape cannot reach it unseen. When the head leaves the window to the
+left, the window's last three cells always read <code>1 0 1</code> (the two <i>out</i> cards), and whatever the
+counter does far to the left, the head can only come back through the window's first cell. The window is a
+deliberately coarse picture, an over-approximation: it allows more than the machine does, so if even the coarse
+picture never leaves q the wrong way, the real run cannot. The Lean proof uses a slightly finer window with 32
+configurations (<code>lean/RightEnd.lean</code>, <code>closed</code> by <code>decide</code>); the Coq proof was written
+on its own and lands on 28.</p>
+</div>
+</section>
+<section id="pair-proof">
+  <span class="eyebrow">The proof</span>
+  <h2>Checked in Coq, step by step</h2>
+<div class="col">
+<p>The Coq proof is one file of 371 lines, <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v"><code>coq/Eqv_TailWord.v</code></a>,
+built on the definitions of <a href="https://github.com/ccz181078/busycoq">busycoq</a>, the Coq library in which the
+bbchallenge results are checked. It is meant for busycoq itself, in the style of its <code>Eqv_WordPairs.v</code>. Its
+steps, from the machines to the theorem:</p>
+</div>
+<ol class="tq-ladder">
+ <li><b>The mirror</b><span class="small">Every transition of the second table is the first's with the direction
+ reversed and the states renamed by <code>g</code>. <code>tm'_some</code>, <code>tm'_none</code>; 12 cases.</span></li>
+ <li><b>One model for both runs</b><span class="small">A configuration <code>Cfg</code> keeps the window apart from the
+ rest of the tape. <code>to_config false</code> reads it as a configuration of the first machine;
+ <code>to_config true</code> as the mirrored configuration of the second, with <code>W8 = 10001101</code> after q.</span></li>
+ <li><b>The model step</b><span class="small"><code>f</code> is one step of both machines, or the crossing at the far
+ end. <code>far0</code> (5 steps) and <code>far1</code> (49 steps) are run by busycoq's <code>execute</code>.
+ <code>f_spec</code>: each model step is at least one step of whichever machine you read it as, and a model halt is a
+ halt of both.</span></li>
+ <li><b>The invariant</b><span class="small"><code>P c</code>: the window of c is one of the 28 cards of
+ <code>S0</code>. <code>check_S0</code> (one <code>vm_compute</code>) shows the list is closed under the abstract step
+ and that no card leaves q except B on a 1; <code>anext_spec</code> shows the abstract step covers the real one.</span></li>
+ <li><b>The start</b><span class="small"><code>init0</code>, <code>init1</code>: from blank tape the first machine
+ reaches the model's start in 2 steps, the second in 49.</span></li>
+ <li><b>The theorem</b><span class="small">busycoq's <code>halts_iff</code> turns the model into
+ <code>halts (machine b) c0 &lt;-&gt; iter_halts f cfg0</code> for both b, so
+ <code>TailWord.eqv : halts tm c0 &lt;-&gt; halts tm' c0</code>.</span></li>
+</ol>
+<div class="tq-checks">
+ <div><b>Coq 8.20.1</b>busycoq's own version. The core up to <code>Individual62.v</code>, then the file: 2.4 s, no
+ warnings of its own. Also checked on Coq 8.18.0.</div>
+ <div><b>No axioms</b><code>Print Assumptions TailWord.eqv</code>: <i>Closed under the global context</i>.</div>
+ <div><b>It can fail</b>Changing the word W8, one transition of the second machine, or removing one card from
+ <code>S0</code> each makes the file fail to compile.</div>
+ <div><b>Two proofs</b>The Lean proof (<code>two_machines'</code> in <code>lean/Lockstep.lean</code> with
+ <code>good30773</code> in <code>lean/RightEnd.lean</code>) came first; the Coq file is an independent second proof,
+ with its own invariant.</div>
+</div>
+<div class="col">
+<p><span class="ev k">Kernel</span> The two machines halt together. <span class="ev o">Open</span> Whether they halt.
+The Coq file is on a branch of a fork of busycoq (<a href="https://github.com/fractal-geometry-explorer/busycoq/blob/claude/project-thread-tinjly/verify/Eqv_TailWord.v">Eqv_TailWord.v</a>), ready to be proposed
+upstream; it has not been submitted or reviewed there yet. If it is merged, bbchallenge can count these two holdouts
+as one.</p>
+<p>Build it yourself: <code>sh holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq</code> with a checkout of busycoq's
+<code>BB6</code> branch and Coq 8.20.1 (or 8.18).</p>
+</div>
+<script>
+// The interactive parts of the "one halting question for two machines" sections, shared by the explainers of
+// 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE and 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC.
+// Embedded in both pages by py/pair_page.py; the engine part (everything above "UI") is tested in Node by
+// py/pair/test_pair.js against the Coq file's numbers (2 and 49 steps, 5 and 44k+5, 28 abstract configurations).
+(function () {
+"use strict";
+const TM = "1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE";
+const TP = "1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC";
+const SN = "ABCDEF";
+const G = [3, 4, 0, 1, 2, 5];                 // g: A->D, B->E, C->A, D->B, E->C, F->F (Coq's g)
+const W8 = [1, 0, 0, 0, 1, 1, 0, 1];          // the extra word, as the first machine reads it, left to right
+const B = 1, D = 3;
+
+function parse(s) {
+  const T = [];
+  s.split("_").forEach((p, i) => {
+    for (let r = 0; r < 2; r++) {
+      const t = p.substr(3 * r, 3);
+      T[2 * i + r] = t[2] === "-" ? null : { w: +t[0], d: t[1] === "R" ? 1 : -1, q: SN.indexOf(t[2]) };
+    }
+  });
+  return T;
+}
+function unparse(T) {
+  let o = [];
+  for (let i = 0; i < 6; i++) {
+    let p = "";
+    for (let r = 0; r < 2; r++) { const t = T[2 * i + r]; p += t ? t.w + (t.d > 0 ? "R" : "L") + SN[t.q] : "---"; }
+    o.push(p);
+  }
+  return o.join("_");
+}
+
+// A plain simulator on a growable tape.
+class Sim {
+  constructor(T) { this.T = T; this.N = 1 << 12; this.o = this.N >> 1; this.t = new Uint8Array(this.N);
+    this.h = 0; this.q = 0; this.n = 0; this.lo = 0; this.hi = 0; this.halted = false; }
+  get(p) { const i = p + this.o; return i >= 0 && i < this.N ? this.t[i] : 0; }
+  set(p, v) {
+    let i = p + this.o;
+    if (i < 1 || i >= this.N - 1) {
+      const N2 = this.N * 2, o2 = this.o + (this.N >> 1), t2 = new Uint8Array(N2);
+      t2.set(this.t, this.N >> 1); this.t = t2; this.N = N2; this.o = o2; i = p + this.o;
+    }
+    this.t[i] = v;
+  }
+  step() {
+    const r = this.T[2 * this.q + this.get(this.h)];
+    if (!r) { this.halted = true; return false; }
+    this.set(this.h, r.w); this.h += r.d; this.q = r.q; this.n++;
+    if (this.h < this.lo) this.lo = this.h; if (this.h > this.hi) this.hi = this.h;
+    return true;
+  }
+  clone() { const s = new Sim(this.T); Object.assign(s, this, { t: this.t.slice() }); return s; }
+}
+
+// The two real runs in lockstep, one model step at a time (Coq's f): one step of each machine, or the far-end
+// crossing (5 steps of the first, 49 of the second) when the first is in B on a 1 at its rightmost cell q.
+class Pair {
+  constructor() {
+    this.a = new Sim(parse(TM)); this.b = new Sim(parse(TP));
+    for (let i = 0; i < 2; i++) this.a.step();
+    for (let i = 0; i < 49; i++) this.b.step();
+    this.m = 0; this.cross = 0; this.bad = null;
+  }
+  // position of the second machine's cell that mirrors cell p of the first
+  mir(p) { return this.a.h + this.b.h - p; }
+  crossingNow() { const a = this.a; return a.h === a.hi && a.q === B && a.get(a.h) === 1; }
+  step() {
+    const a = this.a, b = this.b;
+    if (this.crossingNow()) {
+      for (let i = 0; i < 5; i++) a.step();
+      for (let i = 0; i < 49; i++) b.step();
+      this.cross++; this.m++; return "cross";
+    }
+    const r = a.T[2 * a.q + a.get(a.h)];
+    if (!r) return "halt";
+    if (a.h === a.hi && r.d > 0) { this.bad = "the head leaves q in state " + SN[a.q]; return "bad"; }
+    a.step(); b.step(); this.m++; return "step";
+  }
+  // Coq's to_config relation: same state up to g, same cells up to q, then W8, then blank
+  agree() {
+    const a = this.a, b = this.b, q = a.hi;
+    if (b.q !== G[a.q]) return "state";
+    const lo = Math.min(a.lo, this.mir(b.hi)) - 1;
+    for (let p = lo; p <= q; p++) if (a.get(p) !== b.get(this.mir(p))) return "cell " + p;
+    for (let i = 0; i < 8; i++) if (b.get(this.mir(q + 1 + i)) !== W8[i]) return "word";
+    if (this.mir(b.lo) > q + 8) for (let p = q + 9; p <= this.mir(b.lo); p++) if (b.get(this.mir(p))) return "tail";
+    return null;
+  }
+}
+
+// ---- the abstraction of the Coq proof: the window of the last four cells q-3..q --------------------------------
+// inn: {k:"inn", q, wl (left of head, nearest first), a, u (head+1..q)}; out: {k:"out", w (the four cells)}
+const key = s => s.k === "inn" ? SN[s.q] + "|" + s.wl.join("") + "|" + s.a + "|" + s.u.join("") : "out|" + s.w.join("");
+const RT = [1, 3, 4, 5];                       // the states a move right can produce: B, D, E, F
+function anext(T, s) {
+  if (s.k === "out") {
+    const o = [s];
+    if (s.w.length) for (const q of RT) o.push({ k: "inn", q, wl: [], a: s.w[0], u: s.w.slice(1) });
+    return o;
+  }
+  const r = T[2 * s.q + s.a];
+  if (!r) return [];
+  if (r.d < 0) return s.wl.length ? [{ k: "inn", q: r.q, wl: s.wl.slice(1), a: s.wl[0], u: [r.w].concat(s.u) }]
+                                   : [{ k: "out", w: [r.w].concat(s.u) }];
+  if (s.u.length) return [{ k: "inn", q: r.q, wl: [r.w].concat(s.wl), a: s.u[0], u: s.u.slice(1) }];
+  return s.wl.length ? [{ k: "inn", q: D, wl: [], a: s.wl[0], u: [1, 0, 1] }]
+                     : [0, 1].map(a => ({ k: "inn", q: D, wl: [], a, u: [1, 0, 1] }));
+}
+function okb(T, s) {
+  if (s.k === "out") return s.w.length > 0;
+  if (s.u.length) return true;
+  if (s.q === B && s.a === 1) return true;
+  const r = T[2 * s.q + s.a];
+  return !(r && r.d > 0);
+}
+const START = { k: "inn", q: 2, wl: [0, 0], a: 1, u: [1] };   // Coq's cfg0: C, window 0 0 [1] 1
+// breadth-first closure; stops at the first configuration that fails okb
+function closure(T) {
+  const seen = new Map([[key(START), { s: START, from: null, i: 0 }]]), order = [START];
+  for (let i = 0; i < order.length; i++) {
+    const s = order[i];
+    if (!okb(T, s)) return { order, seen, bad: s };
+    for (const t of anext(T, s)) if (!seen.has(key(t))) { seen.set(key(t), { s: t, from: s, i: order.length }); order.push(t); }
+    if (order.length > 400) return { order, seen, bad: null, big: true };
+  }
+  return { order, seen, bad: null };
+}
+// the abstraction of a real configuration of the first machine (after its first 2 steps)
+function absOf(a) {
+  const q = a.hi;
+  if (a.h >= q - 3) {
+    const wl = [], u = [];
+    for (let p = a.h - 1; p >= q - 3; p--) wl.push(a.get(p));
+    for (let p = a.h + 1; p <= q; p++) u.push(a.get(p));
+    return { k: "inn", q: a.q, wl, a: a.get(a.h), u };
+  }
+  return { k: "out", w: [a.get(q - 3), a.get(q - 2), a.get(q - 1), a.get(q)] };
+}
+
+const ENGINE = { TM, TP, G, W8, SN, parse, unparse, Sim, Pair, anext, okb, closure, absOf, key, START };
+if (typeof module !== "undefined" && module.exports) { module.exports = ENGINE; return; }
+
+// ---- UI ----------------------------------------------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || "#888";
+const fmt = n => n.toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const T1 = parse(TM), T2 = parse(TP);
+
+// 1. The two tables -------------------------------------------------------------------------------------------
+function tables() {
+  const box = $("tqTables"); if (!box) return;
+  const cellTxt = t => t ? t.w + (t.d > 0 ? "R" : "L") + SN[t.q] : "---";
+  const tbl = (T, id, name, start, extra = "") => {
+    let h = `<div class="tq-tt${extra}"><div class="tq-ttname"><code>${name}</code><span class="small">${start}</span></div>` +
+      `<table class="tt"><thead><tr><th></th><th>read 0</th><th>read 1</th></tr></thead><tbody>`;
+    for (let i = 0; i < 6; i++) {
+      h += `<tr><th>${SN[i]}</th>`;
+      for (let r = 0; r < 2; r++) h += `<td tabindex="0" data-t="${id}" data-k="${2 * i + r}" class="${T[2 * i + r] ? "" : "halt"}">${cellTxt(T[2 * i + r])}</td>`;
+      h += "</tr>";
+    }
+    return h + "</tbody></table></div>";
+  };
+  // the second table translated back: state g(s) of tm' becomes s, L and R exchanged
+  const back = [];
+  for (let s = 0; s < 6; s++) for (let r = 0; r < 2; r++) {
+    const t = T2[2 * G[s] + r];
+    back[2 * s + r] = t ? { w: t.w, d: -t.d, q: G.indexOf(t.q) } : null;
+  }
+  box.innerHTML = tbl(T1, 1, TM, "starts in A") + tbl(T2, 2, TP, "starts in A") +
+    tbl(back, 3, "the second table, translated back", "starts in C", " tq-back\" hidden data-x=\"");
+  const say = $("tqTableSay");
+  const show = (t, k) => {
+    box.querySelectorAll("td.tq-hl").forEach(e => e.classList.remove("tq-hl"));
+    const s = k >> 1, r = k & 1;
+    const s1 = t === 2 ? G.indexOf(s) : s, k1 = 2 * s1 + r, k2 = 2 * G[s1] + r;
+    box.querySelectorAll(`td[data-t="1"][data-k="${k1}"],td[data-t="3"][data-k="${k1}"],td[data-t="2"][data-k="${k2}"]`)
+      .forEach(e => e.classList.add("tq-hl"));
+    const a = T1[k1], b = T2[k2];
+    const dir = d => d > 0 ? "right" : "left";
+    say.innerHTML = a
+      ? `First machine, state <b>${SN[s1]}</b> reading ${r}: write ${a.w}, move <b>${dir(a.d)}</b>, go to <b>${SN[a.q]}</b>. ` +
+        `Second machine, state <b>${SN[G[s1]]}</b> reading ${r}: write ${b.w}, move <b>${dir(b.d)}</b>, go to <b>${SN[b.q]}</b>. ` +
+        `Same symbol, opposite direction, and ${SN[a.q]} renamed ${SN[b.q]}.`
+      : `The halting transitions match too: the first machine halts in <b>${SN[s1]}</b> on a 1, the second in <b>${SN[G[s1]]}</b> on a 1.`;
+  };
+  box.addEventListener("mouseover", e => { const td = e.target.closest("td[data-k]"); if (td) show(+td.dataset.t, +td.dataset.k); });
+  box.addEventListener("focusin", e => { const td = e.target.closest("td[data-k]"); if (td) show(+td.dataset.t, +td.dataset.k); });
+  box.addEventListener("click", e => { const td = e.target.closest("td[data-k]"); if (td) show(+td.dataset.t, +td.dataset.k); });
+  $("tqBack").addEventListener("click", () => {
+    const el = box.querySelector(".tq-back"); el.hidden = !el.hidden;
+    $("tqBack").textContent = el.hidden ? "Translate the second table back" : "Hide the translation";
+    $("tqBackSay").hidden = el.hidden;
+  });
+  show(1, 3);
+}
+
+// 2. Lockstep: two space-time diagrams on one clock ------------------------------------------------------------
+function lockstep() {
+  const c1 = $("tqLock1"), c2 = $("tqLock2"); if (!c1) return;
+  let P = null, rows = [];
+  function run(M) {
+    P = new Pair(); rows = [];
+    const H = 300, every = Math.max(1, Math.floor(M / H));
+    const snap = () => {
+      const a = P.a, b = P.b, q = a.hi;
+      rows.push({ q, h: a.h, lo: a.lo, r1: a.t.slice(a.lo + a.o, q + a.o + 1), o1: a.lo,
+        r2: Array.from({ length: q + 9 - a.lo }, (_, i) => b.get(P.mir(a.lo + i))) });
+    };
+    snap();
+    for (let i = 1; i <= M; i++) { const r = P.step(); if (r !== "step" && r !== "cross") break; if (i % every === 0) snap(); }
+    draw();
+  }
+  function draw() {
+    const lo = Math.min(...rows.map(r => r.lo)), hi = Math.max(...rows.map(r => r.q)) + 8;
+    const W = hi - lo + 1, cs = Math.max(1, Math.min(4, Math.floor(560 / W)));
+    const ink = css("--ink"), acc = css("--accent"), head = css("--head"), bg = css("--cell0");
+    [c1, c2].forEach((c, j) => {
+      c.width = W * cs; c.height = rows.length * 2;
+      const x = c.getContext("2d"); x.fillStyle = bg; x.fillRect(0, 0, c.width, c.height);
+      rows.forEach((r, y) => {
+        const src = j ? r.r2 : r.r1, n = j ? src.length : src.length;
+        for (let i = 0; i < n; i++) {
+          const p = r.lo + i;
+          if (!src[i]) continue;
+          x.fillStyle = j && p > r.q ? acc : ink;
+          x.fillRect((p - lo) * cs, y * 2, cs, 2);
+        }
+        if (j && rows[y]) { x.fillStyle = acc; x.globalAlpha = .18; x.fillRect((r.q + 1 - lo) * cs, y * 2, 8 * cs, 2); x.globalAlpha = 1; }
+        x.fillStyle = head; x.fillRect((r.h - lo) * cs, y * 2, cs, 2);
+      });
+    });
+    const e = P.agree();
+    $("tqLockSay").innerHTML = `${fmt(P.m)} model steps: the first machine has made <b>${fmt(P.a.n)}</b> steps, the second ` +
+      `<b>${fmt(P.b.n)}</b>; <b>${fmt(P.cross)}</b> far-end crossings. ` +
+      (e ? `<span class="yv-bad">They differ (${esc(e)}).</span>` : `<span class="tq-ok">The tapes agree</span>: the second is the first in a mirror, with <code>10001101</code> after q.`);
+  }
+  $("tqLockGo").addEventListener("click", () => run(+$("tqLockM").value));
+  run(+$("tqLockM").value);
+  // the long check, in slices so the page stays responsive
+  let stop = true;
+  $("tqLockCheck").addEventListener("click", () => {
+    if (!stop) { stop = true; return; }
+    stop = false; $("tqLockCheck").textContent = "Stop";
+    const Q = new Pair(), goal = +$("tqLockN").value, out = $("tqLockCheckSay"); let t0 = performance.now();
+    let checks = 0;
+    const slice = () => {
+      const end = performance.now() + 40;
+      while (performance.now() < end && Q.a.n < goal && !stop) {
+        for (let i = 0; i < 2000; i++) { const r = Q.step(); if (r !== "step" && r !== "cross") { stop = true; break; } }
+        if (Q.cross > checks || (Q.m & 0x3fff) < 2000) { const e = Q.agree(); checks = Q.cross; if (e) { Q.bad = e; stop = true; } }
+      }
+      const e = Q.bad || (Q.a.n >= goal ? Q.agree() : null);
+      out.innerHTML = `First machine: <b>${fmt(Q.a.n)}</b> steps; second: <b>${fmt(Q.b.n)}</b>; ${fmt(Q.cross)} far-end crossings. ` +
+        (e ? `<span class="yv-bad">Mismatch: ${esc(e)}</span>` :
+        Q.a.n >= goal ? `<span class="tq-ok">Agree at every crossing and at the end.</span>` : "checking ...");
+      if (Q.a.n < goal && !stop) requestAnimationFrame(slice);
+      else { stop = true; $("tqLockCheck").textContent = "Check the runs in lockstep"; }
+    };
+    slice();
+  });
+}
+
+// 3. The far end: the same crossing with k extra words -------------------------------------------------------
+function farEnd() {
+  if (!$("tqFarA")) return;
+  // the configuration before the third crossing of the real run, in the first machine's frame
+  const P = new Pair(); while (P.cross < 2 || !P.crossingNow()) P.step();
+  const base = P.a, q0 = base.hi;
+  let k = 1, t = 0, timer = null, runs = null;
+  function make() {
+    const lanes = [];
+    for (const kk of [0, k]) {
+      const s = base.clone();
+      for (let j = 0; j < kk; j++) W8.forEach((v, i) => s.set(q0 + 1 + 8 * j + i, v));
+      const hist = [{ h: s.h, q: s.q, cells: snapshot(s) }];
+      let n = 0;
+      // run until the head is back left of q in state D with q+2 written: the crossing ends there
+      do { s.step(); n++; hist.push({ h: s.h, q: s.q, cells: snapshot(s) }); } while (!(s.q === D && s.h === q0 - 1) && n < 1000);
+      lanes.push({ kk, hist, n });
+    }
+    return lanes;
+  }
+  const L0 = q0 - 10;
+  function snapshot(s) { const o = []; for (let p = L0; p <= q0 + 8 * k + 4; p++) o.push(s.get(p)); return o; }
+  function strip(lane, j) {
+    const st = lane.hist[j], n = st.cells.length, sh = j === lane.n ? 2 : 0;   // the words move 2 cells right
+    let h = "";
+    for (let i = 0; i < n; i++) {
+      const p = L0 + i, extra = p > q0 + sh && p <= q0 + sh + 8 * lane.kk;
+      const cls = ["cell", st.cells[i] ? "one" : "", extra ? "tq-x" : "", p === q0 ? "tq-q" : "", p === st.h ? "hd" : ""].join(" ");
+      h += `<div class="${cls}"${p === st.h ? ` data-s="${SN[st.q]}"` : ""}></div>`;
+    }
+    return h;
+  }
+  function show() {
+    const [a, b] = runs, tot = b.n, ja = Math.min(a.n, Math.round(t * a.n / tot));
+    $("tqFarA").innerHTML = strip(a, ja); $("tqFarB").innerHTML = strip(b, t);
+    $("tqFarAs").innerHTML = `without the word: step <b>${ja}</b> of ${a.n}, state <b>${SN[a.hist[ja].q]}</b>`;
+    $("tqFarBs").innerHTML = `with ${k} word${k === 1 ? "" : "s"}: step <b>${t}</b> of ${b.n} (= 44&middot;${k} + 5), state <b>${SN[b.hist[t].q]}</b>`;
+    $("tqFarT").max = tot; $("tqFarT").value = t;
+    const done = t === tot;
+    $("tqFarSay").innerHTML = done
+      ? `<span class="tq-ok">Both are back</span> in state D, one cell left of q, with <code>1 0 1</code> written from q on. ` +
+        `Every cell up to the new q (two cells further right) is the same in both, and the extra words have moved two cells right with it.`
+      : t === 0 ? "Both start in state B on the 1 at q (outlined), the rightmost cell visited so far." : "";
+  }
+  function reset() { runs = make(); t = 0; show(); }
+  $("tqFarK").addEventListener("input", e => { k = +e.target.value; $("tqFarKv").textContent = k; stopPlay(); reset(); });
+  $("tqFarT").addEventListener("input", e => { stopPlay(); t = +e.target.value; show(); });
+  const stopPlay = () => { if (timer) clearInterval(timer); timer = null; $("tqFarPlay").textContent = "Play"; };
+  $("tqFarPlay").addEventListener("click", () => {
+    if (timer) return stopPlay();
+    if (t >= runs[1].n) t = 0;
+    $("tqFarPlay").textContent = "Pause";
+    timer = setInterval(() => { t++; show(); if (t >= runs[1].n) stopPlay(); }, Math.max(20, 1600 / runs[1].n));
+  });
+  $("tqFarStep").addEventListener("click", () => { stopPlay(); if (t < runs[1].n) t++; show(); });
+  reset();
+}
+
+// 4. The window of four cells: the 28 abstract configurations --------------------------------------------------
+function windowCheck() {
+  const box = $("tqWin"); if (!box) return;
+  const C = closure(T1), S = C.order;
+  const idx = new Map(S.map((s, i) => [key(s), i]));
+  const cellsOf = s => s.k === "inn" ? s.wl.slice().reverse().concat([s.a], s.u) : s.w;
+  const label = s => s.k === "inn" ? `${SN[s.q]}, head on cell ${4 - s.u.length}` : "head left of the window";
+  const card = (s, i, T) => {
+    const cs = cellsOf(s), hp = s.k === "inn" ? s.wl.length : -1;
+    const cross = s.k === "inn" && !s.u.length && s.q === B && s.a === 1;
+    let h = `<button class="tq-card${cross ? " tq-cross" : ""}" data-i="${i}" aria-label="${label(s)}"><span class="tq-win">`;
+    if (s.k === "out") h += `<i class="tq-left" data-s="?">&larr;</i>`;
+    cs.forEach((v, j) => { h += `<i class="tq-c${v ? " one" : ""}${j === hp ? " hd" : ""}"${j === hp ? ` data-s="${SN[s.q]}"` : ""}></i>`; });
+    h += `</span><span class="tq-lab">${s.k === "inn" ? SN[s.q] : "out &middot; back in B, D, E or F"}${cross ? " &middot; crosses" : ""}</span></button>`;
+    return h;
+  };
+  box.innerHTML = S.map((s, i) => card(s, i)).join("");
+  $("tqWinCount").textContent = S.length;
+  const say = $("tqWinSay");
+  function pick(i) {
+    box.querySelectorAll(".tq-card").forEach(e => e.classList.remove("tq-sel", "tq-next"));
+    const s = S[i]; box.querySelector(`[data-i="${i}"]`).classList.add("tq-sel");
+    const nx = anext(T1, s).map(t => idx.get(key(t)));
+    nx.forEach(j => box.querySelector(`[data-i="${j}"]`).classList.add("tq-next"));
+    const r = s.k === "inn" ? T1[2 * s.q + s.a] : null;
+    let why;
+    if (s.k === "out") why = "The head is somewhere left of the window; the window keeps its four cells. The head may stay out, or come back onto the first window cell in any state that a move right can produce (B, D, E or F).";
+    else if (!s.u.length && s.q === B && s.a === 1) why = "State B on a 1 at q: the far-end crossing. Both machines cross the end (5 and 49 steps) and come back in D; the window moves two cells right and reads <code>x 1 0 1</code>.";
+    else if (!s.u.length) why = `At q, state ${SN[s.q]} reading ${s.a}: the move is to the <b>${r.d > 0 ? "right (would break the lockstep)" : "left"}</b>, so the runs stay together.`;
+    else why = `State ${SN[s.q]} reading ${s.a}: write ${r.w}, move ${r.d > 0 ? "right" : "left"}, go to ${SN[r.q]}.`;
+    say.innerHTML = `<b>${label(s)}.</b> ${why} Next: ${nx.length} configuration${nx.length === 1 ? "" : "s"}, highlighted, all in the list.`;
+  }
+  box.addEventListener("click", e => { const b = e.target.closest(".tq-card"); if (b) pick(+b.dataset.i); });
+  pick(0);
+  // follow the real run
+  let R = null, timer = null;
+  $("tqWinRun").addEventListener("click", () => {
+    if (timer) { clearInterval(timer); timer = null; $("tqWinRun").textContent = "Follow the real run"; return; }
+    if (!R) { R = new Pair(); }
+    $("tqWinRun").textContent = "Pause";
+    const seen = new Set();
+    timer = setInterval(() => {
+      for (let i = 0; i < 37; i++) { R.step(); seen.add(key(absOf(R.a))); }
+      const s = absOf(R.a), i = idx.get(key(s));
+      if (i === undefined) { $("tqWinRunSay").innerHTML = `<span class="yv-bad">outside the list</span>`; clearInterval(timer); return; }
+      pick(i);
+      $("tqWinRunSay").innerHTML = `Real run of the first machine, step <b>${fmt(R.a.n)}</b>: its window is the highlighted card. ` +
+        `${seen.size} of the ${S.length} cards visited so far, none outside the list.`;
+    }, 120);
+  });
+  // break it: flip the direction of one transition and redo the closure
+  const sel = $("tqWinMut");
+  for (let k = 0; k < 12; k++) if (T1[k]) {
+    const t = T1[k], f = t.w + (t.d > 0 ? "L" : "R") + SN[t.q];
+    sel.insertAdjacentHTML("beforeend", `<option value="${k}">${SN[k >> 1]}${k & 1}: ${t.w}${t.d > 0 ? "R" : "L"}${SN[t.q]} &rarr; ${f}</option>`);
+  }
+  sel.addEventListener("change", () => {
+    const out = $("tqWinMutSay");
+    if (sel.value === "") { out.innerHTML = ""; return; }
+    const k = +sel.value, T = T1.map(x => x && Object.assign({}, x));
+    T[k].d = -T[k].d;
+    const R2 = closure(T);
+    if (!R2.bad) { out.innerHTML = `With <code>${unparse(T)}</code> the closure ${R2.big ? "grows past 400 configurations, and the check gives up." : `still closes, with ${R2.order.length} configurations: ` +
+      "the window check passes; whether the start and the far-end lemmas still hold for that table is a separate question."}`; return; }
+    const path = []; let s = R2.bad; while (s) { path.unshift(s); s = R2.seen.get(key(s)).from; }
+    out.innerHTML = `With <code>${unparse(T)}</code> the check <span class="yv-bad">fails</span> after ${R2.order.length} configurations: ` +
+      `${label(R2.bad)} reading ${R2.bad.a ?? ""} moves right from q in a state other than B on a 1. Path from the start: ` +
+      path.map(p => `<code>${esc(cellsOf(p).join(""))}${p.k === "inn" ? "/" + SN[p.q] + "@" + p.wl.length : "/out"}</code>`).join(" &rarr; ");
+  });
+}
+
+function init() { tables(); lockstep(); farEnd(); windowCheck(); }
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+</section>
 <section id="halt">
   <span class="eyebrow">The question</span>
   <h2>Where it could halt</h2>
@@ -333,13 +950,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="proved">
   <span class="eyebrow">Status</span>
   <h2>What is proved</h2>
-<ul><li><b>Kernel</b>: <code>pass_left</code> and <code>pass_right</code> for all block lengths (<code>lean/Rules.lean</code>); no halt in 10,000 steps.</li><li><b>native_decide</b>: no halt in 10<sup>7</sup> steps.</li><li><b>Trusted computation</b>: no halt in 10<sup>11</sup> steps.</li><li><b>Open</b>: whether it ever halts.</li></ul>
+<ul><li><b>Kernel</b>: <code>pass_left</code> and <code>pass_right</code> for all block lengths (<code>lean/Rules.lean</code>); no halt in 10,000 steps.</li><li><b>native_decide</b>: no halt in 10<sup>7</sup> steps.</li><li><b>Trusted computation</b>: no halt in 10<sup>11</sup> steps.</li><li><b>Kernel</b>, in Lean and again in Coq: it halts if and only if <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> halts (<a href="#pair-tables">the sections above</a>).</li><li><b>Open</b>: whether it ever halts.</li></ul>
 </section>
 <section id="related-machines">
   <span class="eyebrow">Family</span>
   <h2>Related machines</h2>
 <p>Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10<sup>7</sup> steps of each machine and is an observation, not a proof (<code>holdouts/related.py</code>, <code>holdouts/related.json</code>).</p>
-<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.</p><ul><li><a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</a>: rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
+<p><b>Same table as the machine below, started in another state.</b> Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. In the first 10<sup>7</sup> steps of each, no configuration of this machine's run occurs in the other's at the same step, even up to a shift of the tape. Compared at matching visits instead, they are one run seen in a mirror, the second with one more word at the far end, and it is proved that the two halt together or not at all (Lean: <code>two_machines&#x27;</code>, Coq: <code>TailWord.eqv</code>; see the section "One halting question for two machines"). So these two are one halting question.</p><ul><li><a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</a>: rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror</li></ul>
 </section>
 <section id="compare">
   <span class="eyebrow">Side by side</span>
@@ -383,6 +1000,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the README, section &ldquo;Family screen&rdquo;</div></div><div><b>Proposed family: F06, block-list counters</b><p>This machine has the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a mirror with the states renamed (<code>related.json</code>), started in another state. On the screen the two runs have the same numbers within a few cells at every record (for example 137,409 and 137,401 visited cells at 1.6&middot;10<sup>10</sup> steps, a block of 27,165 five-cell words in both and 32 copies of a 25-cell word in both). That is an observation at the sampled records, not a proof that the two runs correspond. The description does not grow during the present epoch: 117 to 147 level-2 tokens at the four right-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 306 to 314 runs in the macro simulator (blocks of 5 cells) at 80 sampled right-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^k</code> grows. The counter in the wall, with its five free cells per 25-cell digit, is described above; the sister's page has the periods 8, 64 and 512 of its first digits and the one overflow seen so far (between steps 1.4&middot;10<sup>6</sup> and 4.5&middot;10<sup>6</sup> in the sister's run). A counter that is rebuilt when it overflows belongs with the counter families (F06), not with the bounded engines (F01).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/Lockstep.lean</code>, generated part <code>lean/FarEnd.lean</code> (<code>py/farend.py</code>)</div></div><div><b>One halting question for two machines (the shifted runs)</b><p>1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE mirrored, with the states renamed, started in state C. After 2 and 49 steps the two runs are at the same configuration, except that the second has the word <code>10001101</code> once more at the right end. Two tapes that differ only by k such words just right of a cell q, with blank tape beyond q in the first, make the same moves until the head moves right from q. In state B on a 1 the head crosses the k words and comes back with the same cells, for every k (<code>far_B</code>); q then moves two cells to the right. With the renaming and the mirror proved as well: <b>if</b> in the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost cell visited so far only in state B on a 1 (from step 2 on), then it halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does (<code>two_machines</code>). The condition is proved (next claim).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/RightEnd.lean</code> (kernel only: <code>propext</code>, <code>Quot.sound</code>); the 32 configurations from <code>py/rightend.py</code></div></div><div><b>The condition is proved: the right end grows only through <code>far_B</code></b><p><code>Good30773</code> is a fact about the last four cells of the tape, q&minus;3 to q, and not about the rebuilds of the counter. Keep only those four cells and the state, and forget everything left of them: with the head inside the window, the state, the cells left of the head in the window and the cells from the head to q; with the head further left, the four cells only, and let the head come back in any state that a move right can produce (B, D, E or F). Starting from step 2 this over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the head is left of the window the last three cells read <code>101</code>). None of them moves right from q except in state B on a 1, and the set is closed under a step (<code>closed</code>, by <code>decide</code>). So the condition holds for every number of steps (<code>good30773</code>), and <b>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does</b> (<code>two_machines'</code>), with no condition.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v</code>; build: <code>sh holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq</code> (BB6 branch)</div></div><div><b>One halting question for two machines: a second proof, in Coq (busycoq)</b><p>The same equivalence, proved independently on top of busycoq's definitions: <code>TailWord.eqv : halts tm c0 &lt;-&gt; halts tm' c0</code> with 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE on the other side. A model configuration is read as a configuration of either machine (the second with the word <code>10001101</code> after the rightmost visited cell); its invariant is a window of the last four cells with 28 abstract configurations, closed under the abstract step (<code>check_S0</code>, one <code>vm_compute</code>). <code>Print Assumptions TailWord.eqv</code>: closed under the global context. Compiles in about 2.4 s with Coq 8.20.1 (busycoq's version) and with 8.18.0; changing the extra word, one transition, or one entry of the invariant makes it fail.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code></div></div><div><b>The condition holds in the first 10<sup>11</sup> steps (now proved for all steps)</b><p>In the first 10<sup>11</sup> steps of the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost visited cell 100 times, always in state B on a 1, and all before step 4.5&middot;10<sup>6</sup>, while the counter in the wall was rebuilt after its first overflows; afterwards the right end of the tape does not move. At 270,284 visits of the head to the left end in state C, the tape of the run from C is the tape of the run from A followed by <code>10001101</code>. Proving the condition needs the theory of the counter's rebuild.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when C reads a 1 with a 1 on its right. The passes never do this; the counter work between them is not a closed rule yet.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
@@ -392,7 +1010,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/lean/check.sh
-python3 holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/py/gen_rules.py</code></pre>
+python3 holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/py/gen_rules.py
+node holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/test_pair.js   # the page&#x27;s engine against the Coq and Lean numbers
+sh holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq   # the Coq proof, Coq 8.20.1, busycoq&#x27;s BB6 branch</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
