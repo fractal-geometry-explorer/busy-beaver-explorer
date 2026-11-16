@@ -113,13 +113,69 @@ new zone lets one through: in the reduced run the 1st, 2nd, 4th, 8th, 16th and 3
 stranded block shrinks (3,144 words just after the arrival, 3,127 at 10^11 steps), and what happens when the two zones
 meet is outside the model. What the model does show is that an arrival can leave a lone 1 at the left end.
 
+## The XOR sweep and the zone orbit (Lean, every length)
+
+Read in pairs (`11` = 1, `01` = 0), the tape at a turn at the right end is a binary word whose last letter is the
+pair under the head. `lean/Bits.lean` proves that one round trip of the head is exactly one **XOR sweep** of that word
+(`mstep_ok`, for every word with a `00`; `4d + 12` steps, `d` the distance of the `00` from the head):
+
+* find the rightmost `00`;
+* flip the letter just left of it;
+* replace every letter right of it by the XOR of itself and its right neighbour;
+* append `11` at the right end.
+
+A `00` only at the very left end of the word halts the machine (`mstep_halt`), and a word without `00` is a *reset*,
+the pass running off the left end, which the pass machine of `lean/Sweep.lean` handles. So **a halt needs a pass that
+reaches the left end of the tape**, now proved. The machine-independent facts are in `lean/Xor.lean`, the same file in
+the folders of the four machines with this block:
+
+| lemma | what it says |
+|---|---|
+| `zone_step` | **the leftmost-zone reduction.** The block of `111110` words is the word `110110…` at the head end of the reversed word (`blk`). For every length of the block, the sweep does to the rest of the word what the sweep of `pat n :: Z` does: the length enters only mod 3, through one letter. This is the model of `c/zone.c`, proved |
+| `swr_append_ok` | a sweep that finds its `00` before a stretch of the word leaves that stretch untouched: a zone further left is **frozen** |
+| `swr_halt_snoc` | a `00` at the very end of a prefix flips only the next letter |
+| `swr_split` | a sweep through a stretch without `00` turns it into its XOR differences; what it does beyond depends only on the stretch's last letter (**pass-through**) |
+| `xd_append` | the light cone: the XOR differences over a suffix depend only on that suffix |
+
+`lean/Zone.lean` turns this into the **zone orbit**: a state `(n, Z, rest)` keeps only the count `n` of the block and
+the rest of the word `Z`. `halts_iff_zone`: **the machine halts from blank tape iff the zone orbit halts.** Unlike the
+reduced system of `c/reduced.c`, which cut the block to ten words, this one drops the block completely and is proved.
+A sweep now costs the depth of its pass, not the length of the tape, so `lean/ZoneRun.lean` (compiled evaluation) runs
+3·10^7 steps of the orbit: **no halt in the first 1.7·10^15 steps** (`blank_runs_zone`).
+
+### Two zones
+
+At zone step 3·10^7 (`lean/DumpState.lean` writes the state) the reversed word is: the block (n = 29,990,528),
+a new zone of about 79 letters, the stranded block of 9,357 letters of period 3, and the old zone, the
+last 50 letters (the leftmost cells of the tape).
+
+The stranded block has no `00`, so by `swr_append_ok` a sweep that stops in the new zone leaves the block and the old
+zone alone, and by `swr_split` a sweep that gets through the new zone (a *pass*) acts on the old zone through the
+block's last letter only. Positions counted from the left end of the tape do not move under a sweep, and a letter can
+change only through itself and its right neighbour (`xd_append`) or by the flip next to a `00`. So the cells that can
+differ from a run of the block and the old zone *by themselves* spread from the new zone by at most one cell per sweep
+that reaches the block, and **for as long as the block lasts the old zone sees exactly what it would see alone, one
+tick per pass** (hand argument from the Lean lemmas; checked: after each of the 23 passes of the run below, the
+leftmost 60 cells equal those of the run alone).
+
+| run (trusted, `c/xs.c`, `c/z1.c` in this folder, from the Lean state) | result |
+|---|---|
+| the zone orbit for 3·10^10 more sweeps | no halt, no reset; 23 passes into the old zone, at block counts spread evenly over the decades (about 7 per factor of 10) |
+| the old zone alone (`z1`), one tick per pass, while the block lasts | the old zone has no reset and no halt in the 9,357 ticks; the block is then used up |
+
+The new zone is the same in `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA`, `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA` and `1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB`: the depths of their sweeps over 10^9 steps have the same
+histogram, and their passes come at the same block counts. Only the old zones and the stranded blocks differ.
+
+So nothing can happen at the left end before the new zone has let through 9,357 passes. It lets one through about 7 times per factor of 10 in sweeps; at that rate the block lasts for about 10^1300 sweeps. That rate is an extrapolation, not a proof, and what happens when the two zones meet is open.
+
 ## Status
 
 Open. Proved in Lean (kernel): the halting pattern, the pass over a block and its stop, the two crossings of the
-block of words. Observed, not proved: that 0s inside the tape are single (so that a halt needs the left end), that
-the reduced system follows the real machine, and everything in the tables and snapshots above. Nothing is known that
-keeps the
-leftmost block from being a lone 1 when a pass arrives, and nothing that forces it.
+block of words; one round trip of the head is one XOR sweep of the word read in pairs, and a halt needs a pass that
+reaches the left end (`mstep_ok`, `mstep_halt`); the length of the block of words does not matter beyond mod 3
+(`zone_step`); the machine halts iff the zone orbit halts (`halts_iff_zone`). Compiled evaluation: no halt in the
+first 1.7·10^15 steps. Trusted runs from the Lean state: nothing can happen at the left end before the new zone has let 9,357 sweeps through. Nothing is known that keeps the leftmost block from
+being a lone 1 when a pass arrives, and nothing that forces it.
 
 ## What is proved
 
@@ -131,8 +187,13 @@ leftmost block from being a lone 1 when a pass arrives, and nothing that forces 
 | the pass over a block and its stop, all lengths, any context | kernel | `pass_split`, `pass_stop`; generated by `py/gen_rules.py` |
 | the crossings of `(111110)^n`, all n, any context | kernel | `cross_left`, `cross_right` |
 | no halt in 10^11 steps; the arrivals at the left end and the stranded block | trusted | `c/snap.c`, `c/reduced.c` |
-| the reduced system: no halt and no arrival at the left end from trigger 20,000 to 1,073,741,824 | observed (rests on the unproved reduction) | `c/reduced.c` |
+| the reduced system: no halt and no arrival at the left end from trigger 20,000 to 1,073,741,824 | trusted (cutting whole words keeps the block length mod 3, so between arrivals the cut is exact by `zone_step`) | `c/reduced.c` |
 | the leftmost zone alone: reproduces the real arrivals; continued by itself it halts in tick 38,816 | a model, checked at the real arrivals | `c/zone.c` |
+| one round trip at the right end is one XOR sweep of the word (rightmost `00`, flip, XOR differences, `11`); a halt needs a `00` only at the left end | kernel | `mstep_ok`, `mstep_halt`, `lean/Bits.lean` |
+| the zone reduction: the block of words enters only through its length mod 3; frozen zones; pass-through | kernel | `zone_step`, `swr_append_ok`, `swr_split`, `xd_append`, `lean/Xor.lean` |
+| the machine halts iff the zone orbit halts | kernel | `halts_iff_zone`, `lean/Zone.lean` |
+| no halt in the first 1.7·10^15 steps (3·10^7 steps of the zone orbit) | native | `zone_runs`, `blank_runs_zone`, `lean/ZoneRun.lean` |
+| two zones: the old zone alone, exact while the stranded block lasts: no reset and no halt in its next 9,357 ticks (one per pass through the new zone); 3·10^10 more sweeps of the orbit, 23 passes, no halt | trusted | `c/xs.c`, `c/z1.c` in the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA`, from `lean/DumpState.lean` |
 
 ### Exact reduction (Lean)
 
@@ -146,10 +207,10 @@ Reading the tape in pairs (`11` = 1, `01` = 0), `lean/Sweep.lean` defines a macr
 
 ## For later
 
-* Prove the reduction: that every entry of the head into the block of words between two triggers is one of the two
-  proved crossings. With that, a halt of the reduced system would be a halt of the machine, and a cycle of the
-  reduced system a proof that it never halts.
-* Prove that the 0s inside the tape stay single.
+* A law for how often the new zone lets a sweep through (about 7 per factor of 10 in the runs), and what happens
+  when the new zone reaches the old one.
+* Formalize the two-zone argument (the old zone moves as if alone while the stranded block lasts) as a theorem about
+  the zone orbit; today it is a hand argument from `swr_append_ok`, `swr_split` and `xd_append`.
 * The zone as a counter: a law for the depth of the passes and for what an arrival at the left end does to the
   leftmost blocks.
 
@@ -162,6 +223,9 @@ gcc -O2 -o reduced holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/reduced.
 ./reduced 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA B 1111 10 12000 1e18        # the real machine: arrivals at the left end
 ./reduced 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA B 1111 10 1e8 20000    # the reduced system
 gcc -O2 -o zone holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/zone.c && ./zone 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA D B 1111 200 1e5 quiet    # the zone alone
+(cd holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/lean && LEAN_PATH=$LEANLIB:../../../tools/lean/out:out lean DumpState.lean > /tmp/state.txt)    # after check.sh
+gcc -O2 -o xs holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/xs.c && ./xs /tmp/state.txt 3e10 1000    # the zone orbit, 3·10^10 more sweeps
+gcc -O2 -o z1 holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/z1.c && ./z1 /tmp/state.txt    # the old zone alone while the stranded block lasts
 ```
 
 ## Pages
