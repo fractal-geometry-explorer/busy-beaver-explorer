@@ -162,6 +162,9 @@ check takes about 7 minutes with 4 parallel jobs.
   certificate has every piece as affine forms, so this is mechanical.
 - Done: the Lean replay of the certificate (above), with `native_decide`. A kernel-only check would need a faster
   executor or much more time.
+- The class search engine of `py/closure/` now has a variant with cycle rules inside a round (`paccel_inner.py`,
+  `pclosure_inner.py`, checked against a plain simulator by `vinner.py`), written for the other F01 machines; it
+  closes none of them (`py/closure/INNER.md`).
 
 ## Check
 
