@@ -16,6 +16,7 @@ as they are and keeps only what is about its own machine.
 | `py/bbtools/explore.py` | records, end-of-tape events and block lists of a run, for finding macro structure | new |
 | `py/bbtools/invariants.py` | exhaustive search for conserved a·ones + b·pos + W[state] (mod m) | the holdout's mod-3 invariant, found by hand there |
 | `py/bbtools/ctl.py` | finds the closed tape language from windows of K cells (`search`), runs the same closure test as Lean (`check`), lists the halts it allows, and writes it as a Lean file (`lean_file`) | new |
+| `py/satctl.py`, `py/satctl_lean.py` | searches by SAT (python-sat) for a closed tape language given by two automata of n states (DFA or NFA on each side) that excludes every halt, checks a solution independently, and writes it as a Lean proof of non-halting (`TM.CTL.not_halts`); results on the open holdouts in `holdouts/satctl.json` | new |
 | `c/tm.h`, `c/tmrun.c` | fast direct simulator (records, events, snapshots) | `bb6-holdout/stepper`, `blankrun` |
 | `py/bbtools/explore.py` `tokens`, `turns` | the tape read as words (`a=10,b=110`, longest first, run-length coded) at the moments the head extends the tape, and the head's turns | new (for `bb6-1RB1RF_1LC0LB`) |
 | `c/tokrun.c` | the same word view in C, for billions of steps | new |
@@ -58,6 +59,8 @@ cd tools/py
 python3 -m bbtools.leangen MACHINE Namespace > Machine.lean
 python3 -m bbtools.invariants MACHINE
 python3 -m bbtools.ctl MACHINE 3                              # where can it halt?  then: ... 3 lean Namespace > F.lean
+python3 tools/py/satctl.py MACHINE 8 8 dd > out; tail -1 out > c.json   # SAT search (pip install python-sat)
+python3 tools/py/satctl_lean.py MACHINE Namespace c.json > SatCTL.lean  # if SAT: the Lean proof
 python3 -m bbtools.explore records MACHINE 100000
 python3 -m bbtools.explore tokens MACHINE 3000000 a=10,b=110 L 40     # the tape as words at the left end
 python3 -m bbtools.explore turns MACHINE 1681 2200                    # every turn of the head

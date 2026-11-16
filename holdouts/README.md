@@ -76,3 +76,32 @@ python3 holdouts/gen.py && python3 holdouts/build_pages.py
 
 CI (`.github/workflows/holdouts.yml`) checks the pages on every pull request and the Lean of the folders it
 touches; the full Lean check runs by hand in four shards.
+## Regular invariants by SAT (16 November 2026)
+
+`tools/py/satctl.py` looks for a closed tape language given by two finite automata, one per side of the head, that
+contains the run from blank tape and excludes every halt; a solution becomes a Lean proof through `TM.CTL.not_halts`
+(`tools/py/satctl_lean.py`, tested end to end on a toy machine). It was run on all 558 open holdouts:
+
+- **No machine has such an invariant within the sizes searched.** With deterministic automata the solver proved
+  that none exists with up to 11 states per side for 513 machines (up to 16 for three of them); with
+  nondeterministic automata on both sides, none with up to 6 states for 441 machines and up to 4 for the rest.
+  The remaining sizes timed out. Per machine: `holdouts/satctl.json`.
+- This is a negative result about one method, not about the machines: a binary counter's tapes are regular, but
+  in these holdouts halting depends on arithmetic of the counters (when a walk reaches the top digit, when a word
+  runs out), which a small automaton cannot track.
+
+## Why the upstream counter proofs do not carry over (busycoq PRs 48, 57, 58, 59)
+
+- **PR48** (`1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0RE---`, a round invariant over a DFA-guided transducer): it
+  needs the word's head to become fixed. The eight open clock-and-word machines dissolve their block and restart
+  in phases, and in `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` the call counts include a factor 3/2 (see its
+  README). The invariant would have to be found again per machine, around a phase-to-phase map that is not known.
+- **PR57 / PR58** (wall invariant for up/down counters): it applies when every rebuild reads the whole counter.
+  In the three open siblings `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB`, `1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---`
+  and `1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE` a halt needs exactly the rare rebuild that does, and the walk
+  lengths have a power-law tail.
+- **PR59** (halting by an accelerated visit law): already used for our proofs that
+  `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---` and `1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---` halt. The three
+  open machines with the same first four rules rewrite `1011` differently and run past round 200,000.
+- Every open machine that shares a table with an upstream-proved machine (another start or a mirror) is itself
+  already in an upstream pull request.
