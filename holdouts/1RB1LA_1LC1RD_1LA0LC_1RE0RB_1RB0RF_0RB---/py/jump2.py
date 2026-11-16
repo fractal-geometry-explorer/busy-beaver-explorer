@@ -7,6 +7,8 @@ Mode 3: one pass pair (P3 + Peven) maps (E, N) -> (E - 1, N + 1); steps 22 + 4 n
 Mode 5: two pass pairs map (E, N) -> (E - 1, N + 2); steps 48 + 4 nu2(E) + 6 nu2(N + 1) + 6 nu2(N + 2).
 The floor block grows by 2 each time E passes a power of two.  No carry into Rrest beyond its spare room."""
 import subprocess, sys, re, os
+if hasattr(sys, 'set_int_max_str_digits'):
+    sys.set_int_max_str_digits(0)   # step counts pass 4300 decimal digits
 HERE = os.path.dirname(os.path.abspath(__file__))
 PS = os.path.join(HERE, '..', 'c', 'ps')
 GB = int(os.environ.get('GB', '2')); GP = int(os.environ.get('GP', '3'))
