@@ -10,7 +10,7 @@
  "intro": [
   "This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape, after about 1.27·10<sup>758</sup> steps. The exact step is known, and the halt is a Lean theorem: the rules of the machine's ladder of counters are proved for every size and every number of counters with Lean's kernel, and the long run itself is evaluated inside Lean by a function that is proved correct (compiled evaluation, <code>native_decide</code>)."
  ],
- "asof": "Status as of 14 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The machine halts</b> (Lean theorem <code>halts</code>; two steps of it by compiled evaluation). At the visits of the right end the tape is a short front, a ladder of <em>levels</em> (a rung of n blocks <code>0111111111</code> and one of eight separator words) and a tail at the left end. Every level is a digit with 16 positions: a hit from the right moves it to the next position, at ten positions the hit is absorbed, at six it is passed on to the left. What lies left of a level therefore lives exactly as it would right behind the front, only 8/3 times slower. After the reset of step 27,167,343, which turned the old ladder into fuel, the tail eats two fuel blocks and leaves three new levels in every 12 hits. With 887 levels the fuel is used up, the next hit runs into the blank left end, and state C reads a 0: the halt, at a step with 759 digits."
  ],
@@ -20,6 +20,12 @@
    "title": "The machine halts, at a step with 759 digits (Lean theorem)",
    "text": "The accelerated run from blank tape ends in the halting transition C0, two cells left of the leftmost 1, at step <span style=\"word-break:break-all\">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</span> (bbchallenge count). The last trip of the head to the left starts at right-end visit number <span style=\"word-break:break-all\">6457109013376761952964397678097307615669340968993585759245814706743742046125940261247241066403890938492170138345021775414788657246855473619762555399924006808185668177937261822888303321241424388506815212830693515134376015491900870498530843289643797903974663993452480048769041949957161985409468353341199468784692405027220745645833011312600661412072060494393516371733163287212276888</span>; the tape then has 887 levels and is about 1.29·10<sup>379</sup> cells long. In Lean: <code>halts : HaltsFromBlank</code> and <code>halts_in : ∃ c, steps haltN init = some c ∧ step c = none</code>, where <code>haltN</code> + 1 is the step above (the bbchallenge count includes the halting transition). The proof has three parts. (1) <code>reach0</code>: 27,172,911 steps from blank tape lead to the tape of visit 3,040, after the last reset (<code>native_decide</code> on the library's list simulator). (2) <code>loop_sound</code> (kernel): a function <code>loop</code> that keeps the levels as pairs of numbers and simulates only the cells left of them returns, from a configuration of the run, the number of steps to a halting configuration. (3) <code>run0</code>: <code>loop</code> returns <code>haltN</code> from that tape (<code>native_decide</code>; 3,539 simulated hits, 587 times the deepest level is written out as cells again, exact arithmetic on numbers of up to 759 digits). The axioms of <code>halts</code> are Lean's three standard ones and the two <code>native_decide</code> evaluations.",
    "where": "<code>lean/Halt.lean</code>, <code>lean/Ladder.lean</code>; <code>python3 py/accel.py</code>, <code>halt.txt</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The machine halts (Coq, on busycoq's definitions)",
+   "text": "<code>halt : halts tm c0</code>, with busycoq's <code>TM</code>, <code>halts</code> and <code>c0</code>. The 16 level hits, the 9 halting hits and the two fronts are proved for every block count by busycoq's symbolic execution; <code>stack_run</code> (any number of hits on any ladder) and <code>loop_ok</code> (a shortcut run that keeps the levels as numbers and simulates only the tail cells, sound by construction) are ordinary proofs. The run from the blank tape, <code>loop 10000 true s0 = true</code>, is one evaluation checked by Coq's kernel (about 30 seconds; it makes no plain run of 27 million steps first and batches up to 64 tail hits per pass over the levels). <code>Print Assumptions halt</code>: closed under the global context. Coq 8.18.0, about 2 minutes for the file; too little fuel makes the check fail.",
+   "where": "<code>coq/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code>, <code>coq/build.sh</code>, <code>coq/build.log</code>"
   },
   {
    "level": "kernel",
@@ -134,7 +140,8 @@
   "gcc -O2 -o /tmp/visits ../c/visits.c && /tmp/visits 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 1e10 A 2 100000000 2 > /tmp/v.txt",
   "python3 accel.py check /tmp/v.txt   # visit numbers and step counts against the direct run",
   "python3 levels_lean.py > ../lean/Levels.lean ; python3 hits_lean.py > ../lean/Hits.lean ; python3 halt_lean.py > ../lean/Halt.lean ; python3 rules.py > ../lean/Rules.lean",
-  "python3 words.py ; python3 vmodel.py 3000000"
+  "python3 words.py ; python3 vmodel.py 3000000",
+  "sh holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/coq/build.sh /path/to/busycoq      # Coq proof; a checkout of the BB6 branch of ccz181078/busycoq; about 2 minutes"
  ],
  "explainer": {
   "lede": "It halts, after about 1.27·10<sup>758</sup> steps. The machine keeps a ladder of counters at the right end of its tape. Each counter is invisible to everything left of it, so the far left of the tape runs the same program in extreme slow motion. There the ladder's tail eats the remains of an earlier ladder; when they are used up, the head steps off the left end of the tape and the machine stops.",
@@ -142,7 +149,7 @@
    {
     "level": "native",
     "value": "halts",
-    "text": "At a step with 759 digits, about 1.27·10<sup>758</sup>: a Lean theorem, with the long run evaluated by a verified function."
+    "text": "At a step with 759 digits, about 1.27·10<sup>758</sup>: a Lean theorem with the long run evaluated by a verified function, and a Coq theorem checked entirely by its kernel."
    },
    {
     "level": "kernel",
@@ -224,7 +231,8 @@
      "<p>The machine can only halt in state C on a 0, and C is only entered when B reads a 0 and steps left. Inside the tape every 0 stands alone, so this needs B at the blank left end.</p>",
      "<p>When the fuel is gone, the tail is <code>0 3 1 0 3 1 0 5</code> with blank tape behind it, and an H-hit is due. Its first three calls come back as usual. In the fourth the head runs through the tail in state C, turns the last pairs over, and B arrives on the blank cell left of the tape: one step left, C reads a 0, and the machine halts. The halting step (bbchallenge count) is</p>",
      "<p style=\"word-break:break-all;font-family:var(--mono);font-size:12px\">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</p>",
-     "<p>The earlier arrivals at the left end (visits 3, 11, 25, 3,006) came in other states and only reset the ladder.</p>"
+     "<p>The earlier arrivals at the left end (visits 3, 11, 25, 3,006) came in other states and only reset the ladder.</p>",
+     "<p><b>How many steps.</b> The halting step is known exactly (above): about 1.2736·10<sup>758</sup>, so between 10<sup>758</sup> and 2·10<sup>758</sup>. The Lean proof states it (<code>halt_step</code>), and two independent programs give the same number. A rough estimate explains its size: the halt comes at visit 6.46·10<sup>378</sup>, which is about 9.3·(8/3)<sup>887</sup> because each of the 887 levels gets 3/8 of the hits of the one above it. The tape grows by about two cells per visit, and each visit runs over the whole tape, so the step is about 3·(visits)<sup>2</sup>. The Coq proof shows that the machine halts but does not count steps.</p>"
     ]
    },
    {
@@ -233,6 +241,7 @@
     "heading": "What the result rests on",
     "html": [
      "<p>The halt is a theorem checked by the proof assistant Lean (<code>halts</code> in <code>lean/Halt.lean</code>). It has three parts:</p><ul><li><b>The rules, for every size</b> (checked by Lean's kernel). A hit on one level is proved for every rung length; from that, by induction, any number of hits on a ladder with any number of levels does what the table says and hands the right number of hits to the tape left of it. The step counts are part of the statements.</li><li><b>A program that is proved correct</b> (kernel). The shortcut simulator of the section above is written again as a function inside Lean, and Lean proves: whatever number this function returns is the number of steps after which the machine really halts. The function may choose badly which levels to treat as numbers; then it fails, but it cannot return a wrong answer.</li><li><b>Running it</b> (compiled evaluation). Lean runs the plain machine for the first 27,172,911 steps, to just after the last reset, and then runs the function: 3,539 simulated hits later it returns the 759-digit number. These two evaluations are done by Lean's compiled code, not by its small kernel; this is the usual, slightly weaker, level of trust for long computations (<code>native_decide</code>).</li></ul>",
+     "<p><b>A second proof, in Coq, without compiled evaluation.</b> The same argument is also written in Coq on busycoq's own definitions (<code>halt : halts tm c0</code> in <code>coq/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code>). The hit on each level is proved by busycoq's symbolic execution for every rung length; the ladder lemma and a checked shortcut simulator are proved as in Lean, without step counts; and the one long evaluation is checked by Coq's kernel. Three changes make it fast: the shortcut run starts on the blank tape, so the 27-million-step plain run is not needed (the resets go through the same code); turns of 16 hits use bit shifts; and up to 64 hits that reach the tail are made in one pass over the 887 levels. The run then takes about 30 seconds, and the whole file compiles in about 2 minutes.</p>",
      "<p>Before the theorem there was the same result from two independent programs (<code>py/accel.py</code> and the re-computation in <code>verify/</code>), compared with plain simulation at more than 12,000 checkpoints; they give the same step.</p>"
     ]
    }
@@ -242,5 +251,5 @@
  "family": "ladder of self-similar 16-state levels eating a fuel of old blocks",
  "decision": "halts",
  "decision_level": "native",
- "summary": "Halts after about 1.27·10^758 steps (exact step known), proved in Lean: the tape is an odometer of levels with 16 positions each, transparent to the part left of them (kernel-checked for any list of levels); the run after the reset of step 27,167,343, in which the tail eats the old blocks, grows 887 levels and then runs into the blank left end, is evaluated by a verified function (native_decide)."
+ "summary": "Halts after about 1.27·10^758 steps (exact step known), proved in Lean: the tape is an odometer of levels with 16 positions each, transparent to the part left of them (kernel-checked for any list of levels); the run after the reset of step 27,167,343, in which the tail eats the old blocks, grows 887 levels and then runs into the blank left end, is evaluated by a verified function (native_decide). Also proved in Coq on busycoq's definitions, with the long run checked by Coq's kernel (no native evaluation), in about 2 minutes."
 }
