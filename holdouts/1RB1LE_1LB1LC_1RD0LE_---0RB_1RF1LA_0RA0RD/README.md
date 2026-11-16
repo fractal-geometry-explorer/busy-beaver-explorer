@@ -74,6 +74,20 @@ gcc -O2 -o /tmp/orbit c/orbit.c && /tmp/orbit 30000000000
 gcc -O2 -o /tmp/ymap c/ymap.c && /tmp/ymap 2 2000 2
 ```
 
+## Long orbit run (16 November 2026)
+
+`c/yorbit.c` is `c/orbit.c` with 128-bit step counts (`STEPS_T` in `c/rle.h`, default unchanged), progress lines and
+checkpoints of the run-length tape; on its first 2·10^7 moves it prints the same visits as `c/orbit.c` (Y(67275) at
+step 4,875,439,011). 3·10^11 moves of the exact RLE simulator from blank tape, 40 minutes on one core: **no halt in
+1.748·10^20 steps**, and two more visits after Y(1,397,089,014):
+
+    Y(2,619,541,899) at step 3,508,912,257,392,726,874
+    Y(7,858,625,690) at step 17,232,911,815,299,365,781    (= 3·2,619,541,899 − 7, the odd rule)
+
+The current even visit has not ended by step 1.748·10^20. Computed (trusted).
+
+    gcc -O2 -o yorbit c/yorbit.c && ./yorbit 300000000000 10000000000 y.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/explainer.html`](../../pages/holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/explainer.html)

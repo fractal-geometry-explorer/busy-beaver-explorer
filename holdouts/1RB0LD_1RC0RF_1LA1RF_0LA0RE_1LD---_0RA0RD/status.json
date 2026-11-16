@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> At each new cell on the growing (right) end the tape is <code>6 3^x1 9 3^x2 9 &hellip; 9 3^xm TAIL</code> read from the far end: segments of 111-blocks cut by markers <code>1^9</code>. Per cycle the segment j places from the growing end loses about 2&middot;3<sup>j</sup> blocks, and new segments are made at the far end. When a segment runs out the end segments merge (a collapse) and the drain starts over. An accelerated simulator runs past several collapses to 10<sup>19</sup> steps without a halt. The collapses are not understood, so halting is undecided."
  ],
@@ -68,6 +68,12 @@
    "title": "The next collapse",
    "text": "At 10<sup>19</sup> steps the three segments next to the growing end hold 22,849, 4,261 and 3,351 blocks; the 4,261 runs out first, after about 240 more cycles; cycles have been getting longer by a factor of about 2 on average, so that is far beyond reach.",
    "where": "<code>holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c2_msim.txt</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Right-end events to 10<sup>13</sup> steps (16 November 2026)",
+   "text": "The record-printing macro simulator lists the right-end D events of this machine to 10<sup>13</sup> steps without a halt; no new law was derived, and the bound stays at 10<sup>19</sup> steps.",
+   "where": "<code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c</code>"
   },
   {
    "level": "open",

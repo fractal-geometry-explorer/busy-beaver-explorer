@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE</p>
   <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
@@ -314,7 +314,7 @@ R2(i, j) = &hellip;0 1<sup>2i</sup> 0 1<sup>2j</sup> 0 11 0 11 B&gt; 0&hellip;</
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -333,6 +333,7 @@ R2(i, j) = &hellip;0 1<sup>2i</sup> 0 1<sup>2j</sup> 0 11 0 11 B&gt; 0&hellip;</
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py</code></div></div><div><b>The map matches the machine</b><p>The round starts of the real machine, read off a C run of 3&middot;10<sup>10</sup> steps (46 rounds), are exactly the orbit of the map.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/orbit.py iterate</code></div></div><div><b>No halting pair in 10<sup>6</sup> rounds</b><p>Iterating the map with exact integers for 10<sup>6</sup> rounds never gives i = j or i + 1 = j; the numbers grow by about 0.31 bits per round. Closest approach: at round 547,658 the difference i &minus; j still has 167,823 bits, against 167,848 bits for i and j.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Probviously non-halting</b><p>Along the orbit i - j looks like a random number of the size of i and j, so a round with n-bit numbers hits the two halting values with chance about 2<sup>-n</sup>; the expected number of future hits is negligible. No invariant is known that excludes them (congruences cannot: i = j is excluded only by size).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/redmaps.c</code></div></div><div><b>No halt in 2&middot;10<sup>7</sup> rounds</b><p><code>next</code> of <code>lean/Round.lean</code> from (3, 1, false), iterated with GMP integers (<code>tools/c/redmaps.c rb</code>, equal to <code>py/orbit.py</code> on the first 30,000 rounds) for 2&middot;10<sup>7</sup> rounds: the orbit never reaches i = j or i + 1 = j; the numbers then have about 6.1&middot;10<sup>6</sup> bits, and after round 1,000 i − j had at most 26 bits fewer than i and j (16 November 2026).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does the orbit ever reach i = j or i + 1 = j?</b><p>Not known: a Collatz-type question about a piecewise affine map mixing subtraction and multiplication by 3.</p></div></div>
 </section>
 <section id="check">

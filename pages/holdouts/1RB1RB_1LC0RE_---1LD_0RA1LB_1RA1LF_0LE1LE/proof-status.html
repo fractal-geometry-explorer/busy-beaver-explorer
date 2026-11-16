@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halting pair in 10<sup>6</sup> rounds</h3>
         <p>Iterating the map with exact integers for 10<sup>6</sup> rounds never gives i = j or i + 1 = j; the numbers grow by about 0.31 bits per round. Closest approach: at round 547,658 the difference i &minus; j still has 167,823 bits, against 167,848 bits for i and j.</p>
         <p class="where"><code>py/orbit.py iterate</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 2&middot;10<sup>7</sup> rounds</h3>
+        <p><code>next</code> of <code>lean/Round.lean</code> from (3, 1, false), iterated with GMP integers (<code>tools/c/redmaps.c rb</code>, equal to <code>py/orbit.py</code> on the first 30,000 rounds) for 2&middot;10<sup>7</sup> rounds: the orbit never reaches i = j or i + 1 = j; the numbers then have about 6.1&middot;10<sup>6</sup> bits, and after round 1,000 i − j had at most 26 bits fewer than i and j (16 November 2026).</p>
+        <p class="where"><code>tools/c/redmaps.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

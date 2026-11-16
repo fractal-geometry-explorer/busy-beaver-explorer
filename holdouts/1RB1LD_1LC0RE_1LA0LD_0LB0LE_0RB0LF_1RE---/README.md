@@ -89,8 +89,9 @@ These hold for all block lengths and every surrounding tape:
 
 **Open.** Proved in Lean: the halting configurations and no halt in 10^7 steps (`lean/Blank.lean`), thirteen tick,
 borrow and overflow rules (`lean/Rules.lean`). Checked against the machine: the map reproduces every tick boundary of
-the first 10^11 steps exactly, and it runs on to 1.6·10^18 steps without a halting event. Heuristic: the far end
-cannot halt while the last block lasts.
+the first 10^11 steps exactly, and it runs on to 1.6·10^18 steps without a halting event; with the accelerated
+ticks of 16 November, to 3.7·10^216 steps (see below). Heuristic: the far end cannot halt while the last block
+lasts (the run has since worn several last blocks away without a halt).
 
 ## For later
 
@@ -118,6 +119,52 @@ gcc -O2 -o /tmp/turns c/turns.c && /tmp/turns 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF
 No halt in the first 2.77x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with blocks of 8 cells ran
 from blank tape to step 27,751,167,773,191,845,858. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,062,706 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
+
+## Long accelerated run (16 November 2026)
+
+**No halting event to step 3.74·10^216** (trusted; 9,870 events, every one with both cuts agreeing). The map of
+`py/macro.py` is followed with two accelerations, both exact:
+
+- **Many ticks at once** (`py/accel.py`). Between events the separators below the first wall form a base-3 counter
+  (c, r, z = 2, 1, 0; the block before separator i is xs[i]). The borrow of tick t reaches separator i iff 3^i
+  divides V − t (V the counter value), xs[i] drops unless the digit there is 2, the wall cycles `1` → `01101` →
+  `00101` (taking 2 from the block before it and 1 from the block after it every three borrows), and the step count
+  30y + 5j/2 + 210 + 13m + e of every tick is summed in closed form (y grows by 4 per tick; the block lengths a
+  borrow sees are arithmetic progressions). T ticks are skipped at once when every block a borrow reaches stays
+  ≥ 3 and, without a wall, the borrow never reaches the far end (or a separator of another kind). Anything else is
+  a tick or an event of `macro.py`, unchanged. `py/accel.py test` repeats every skip tick by tick with `macro.tick`
+  and compares state and step count: 463 skips (2.5·10^7 ticks) from the first tick, and, with the skips cut to
+  at most 20,000 ticks so that the tick-by-tick side stays cheap, 1,889 skips from the first tick and 1,292, 1,027
+  and 164 skips from saved states at 1.37·10^19, 1.6·10^60 and 3.7·10^216 steps: all equal.
+- **The event oracle in C** (`c/oracle.c`): `macro.oracle` (the machine run on a cut copy, to the next tick
+  boundary, detected the same way) transcribed to C, 40 times faster. `accel.py ... ocheck` makes every call in
+  both and compares: all 754 events of the first minute from the first tick and the 6 events checked at
+  3.7·10^216 steps agreed. The long run used `verify` (each event with cuts 40 and 47, which must agree) and
+  `coracle`.
+
+The run: from the first tick to 1.37·10^19 steps (the Python oracle, 478 events), then to 1.6·10^60 (2,485
+events), then with the C oracle to step 37,438,051,927,887,913,675,548,…,222,203,940 (217 digits), 9,870 events in
+all. No cut copy halted and no event left the map. At the end the list has 223 blocks (the timer has 108 digits);
+the far end reads `…, 18,784,784, 40,962, 503` and tail `011`.
+
+**What happened at the far end.** The README's heuristic was that the far end cannot halt while its last big block
+lasts. The run has now worn several of them away: the last block went 4,158 (1.6·10^18) → 3,106 (1.6·10^60) →
+1,258 (5.6·10^130) → 464 (4.2·10^169), then the far end rearranged itself (`…, 3,034, 219,410, 42,922, 1,156`
+at 3.2·10^187, `…, 41,566, 704` at 1.8·10^210, `…, 40,962, 503` at 3.7·10^216). Each time an O3 overflow or a
+far-end borrow was computed exactly by the cut copies, and none of them reached a halting far end. The list keeps
+growing (one block per O3), so the next overflows go on wearing the end down; whether a halting far end (`111`
+and the 23 others of `py/farend.py`) can ever be built is still the open question.
+
+Reproduce (the C oracle binary is not committed):
+
+```sh
+gcc -O2 -o /tmp/oracle holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/oracle.c
+python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/accel.py test 120                 # skips vs ticks
+ORACLE=/tmp/oracle python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/accel.py run 60 verify ocheck /tmp/a.pkl
+ORACLE=/tmp/oracle python3 holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/py/accel.py run 7200 verify coracle /tmp/m2.pkl
+```
+
+(About two hours on one core in all; `run SECONDS ... START.pkl CKPT.pkl` resumes from a checkpoint.)
 
 ## Pages
 

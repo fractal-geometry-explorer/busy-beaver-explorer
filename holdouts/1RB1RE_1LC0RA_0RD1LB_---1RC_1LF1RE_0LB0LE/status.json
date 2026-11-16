@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to a map on pairs of numbers.</b> Lean proves (kernel, no <code>native_decide</code>) that the machine halts from blank tape if and only if the orbit of (2, 1) under the map <i>f</i> below reaches a pair with r = p + 1. Iterating the map 3,000,000 times, the orbit never does; by then p and r have about 650,000 binary digits, so the machine has run for more than 2<sup>650000</sup> steps. A probability argument says a hit becomes ever less likely (the chance at each decision is about 1/p), so the machine is expected never to halt, but no proof is known."
  ],
@@ -80,6 +80,12 @@
    "title": "Why a halt looks unlikely",
    "text": "Halting can only happen when a doubling run ends: the last step leaves r somewhere in a range of about 2p values, and halting needs exactly r = p+1. Treating the leftover as random, the chance is about 1/(2p) per run; p grows exponentially (about 0.22 bits per map step), so the expected number of future hits is far below 2<sup>-100000</sup>. The closest approach in the first 3·10<sup>6</sup> steps had |r−p−1|/p ≈ 3·10<sup>-6</sup>.",
    "where": "<code>py/orbit.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 3&middot;10<sup>7</sup> map steps",
+   "text": "The map <code>f</code> of <code>lean/Map.lean</code>, iterated from (2, 1) with GMP integers (<code>tools/c/redmaps.c re0</code>, equal to the Python iteration on the first 30,000 steps) for 3&middot;10<sup>7</sup> steps: no pair with r = p + 1; p and r then have about 6.5&middot;10<sup>6</sup> bits, and at every decision step after step 1,000 |r &minus; p &minus; 1| had at most 26 bits fewer than p (16 November 2026).",
+   "where": "<code>tools/c/redmaps.c</code>"
   },
   {
    "level": "open",

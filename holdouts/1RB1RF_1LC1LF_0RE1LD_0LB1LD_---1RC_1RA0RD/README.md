@@ -92,6 +92,17 @@ start, 23 right), 1,548 ones.
 - left, step 968,537,509: `B>0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 `
 - left, step 985,241,447: `B>0 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 `
 
+## Long orbit run (16 November 2026)
+
+`c/psq.c` is `next` of `lean/Phases.lean` transcribed case by case into C with 64-bit counts (equal to
+`py/passmap.py lean_next` on the first 300,000 phases). From `PS 0 2` it iterated **10^11 phases** (1,000 times the
+`native_decide` bound; 2.0·10^10 pass starts, 200 times the earlier 10^8 passes) in 6 minutes: no pass start `PS a 0`
+or `PS a 1`, so by `halts_iff` no halt. After phase 1,000 the smallest c at a pass start was 2 (once, at phase
+122,877, the near miss already known); phase 10^11 is `Q 12610968844 7389023372 2`, so the width is now about
+4·10^10. Computed (trusted), not in Lean.
+
+    gcc -O2 -o psq c/psq.c && ./psq 100000000000 0 psq.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/explainer.html`](../../pages/holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/explainer.html)

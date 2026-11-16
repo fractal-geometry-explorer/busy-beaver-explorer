@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>. The law is checked against direct simulation on every event to 10<sup>9</sup> steps and against an exact accelerated simulator all the way to P<sub>14</sub> (step 2.5&times;10<sup>18</sup>), where the oldest segment runs out as the law says. The same exact run then passes the collapse without halting and goes on to 2.29&times;10<sup>20</sup> steps in a second regime (end counter 204), as simulations of shortened tapes had forecast. Those forecasts put the next collapse around 10<sup>46</sup> steps. No rule for the collapses is known, so halting is undecided."
+  "<b>The question is open.</b> At each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>. The law is checked against direct simulation on every event to 10<sup>9</sup> steps and against an exact accelerated simulator all the way to P<sub>14</sub> (step 2.5&times;10<sup>18</sup>), where the oldest segment runs out as the law says. The same exact run then passes the collapse without halting and goes on to 2.29&times;10<sup>20</sup> steps in a second regime (end counter 204), as simulations of shortened tapes had forecast. A general event law (16 November 2026) reproduces the first collapse exactly from reduced runs and puts the next one in the middle of the tape near 4&times;10<sup>34</sup> steps, not at 10<sup>46</sup>; that middle collapse could not be resolved, so halting is undecided."
  ],
  "claims": [
   {
@@ -66,8 +66,26 @@
   {
    "level": "heuristic",
    "title": "After the collapse: the next one (forecast)",
-   "text": "The law only looks at a segment's distance from the right end, so the right end of P<sub>13</sub> was simulated beforehand from a shortened tape with 3, 4 or 5 kept segments. That forecast said the run would pass the collapse at P<sub>14</sub> without halting and that the end counter would jump from 133 to 204; the full exact run has now done exactly that (previous claim). The same shortened runs say that in the second regime the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse would be some 36 generations later, near 10<sup>46</sup> steps. The second regime has no law yet, and nothing is known about that second collapse.",
+   "text": "The law only looks at a segment's distance from the right end, so the right end of P<sub>13</sub> was simulated beforehand from a shortened tape with 3, 4 or 5 kept segments. That forecast said the run would pass the collapse at P<sub>14</sub> without halting and that the end counter would jump from 133 to 204; the full exact run has now done exactly that (previous claim). The same shortened runs say that in the second regime the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse would be some 36 generations later, near 10<sup>46</sup> steps. The second regime has no law yet, and nothing is known about that second collapse. <i>(16 November 2026: superseded; the law puts the next collapse in the middle of the tape near 4&times;10<sup>34</sup> steps, see below.)</i>",
    "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/bcollapse.py b1 4</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The general event law and the first collapse, reproduced (16 November 2026)",
+   "text": "At right-end D/F records the list [g, y<sub>1</sub>..y<sub>s</sub>, c] follows birth, drain, drain: birth [g,y,c] &rarr; [2&middot;3<sup>s+4</sup>&minus;28, g&minus;3<sup>s+1</sup>+1, y<sub>i</sub>&minus;3<sup>j+1</sup>, c], drain [g+2&middot;3<sup>s+3</sup>, y<sub>i</sub>&minus;3<sup>j+1</sup>, c&minus;1] (j = segments to the right). The collapse at P<sub>14</sub>, simulated exactly on reduced tapes with 4, 5 and 6 kept segments and spliced into the full list (newborn entries fitted as A&middot;3<sup>s</sup>+B, hidden segments drained by 10 events), gives exactly the real list at step 16,989,897,072,297,977,885, and all later records of the exact run match the law continued from it (end counter within 2). The record simulator agrees with direct simulation on all 49 records to 2&times;10<sup>8</sup> steps.",
+   "where": "<code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c</code>, <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/lawev.py</code>, <code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 LOG</code>; compared with <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_far.txt</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The next collapse is in the middle, near 4&times;10<sup>34</sup> steps",
+   "text": "Continued by the law, the list reaches P event 105 with every segment equal to a&middot;3<sup>j+1</sup>&minus;27, coefficients from the left 51, 48, &hellip;, 9, 24, 2, 35, 426, 399, &hellip;, 75 and end counter 170. At event 107 the segment with a = 2 (18th of 35, born at the first collapse) goes negative: a collapse in the middle of the tape, not at the right end, and it comes before the oldest segment or the end counter runs out. The step count there is about 0.4654&middot;g<sup>2</sup> with g = 300,189,270,593,998,214 (a fit), about 4&times;10<sup>34</sup>. This replaces the 10<sup>46</sup> forecast below.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 LOG</code> (stops there with a note)"
+  },
+  {
+   "level": "heuristic",
+   "title": "The middle collapse in a cut-down window: no halt, not resolved",
+   "text": "Exact runs of a window around the dying segment (3 or 7 neighbours on the left, 3 on the right, a canonical generator in front, end counter 170) do not halt (the longer one to 1.15&times;10<sup>19</sup> steps) but never come back to the law: the generator region is merged into the collapse, so the left part of the tape cannot be cut off. What the real collapse does, and whether it can halt, is not known.",
+   "where": "<code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py 7 3 170 3000</code>; output <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_midwin_l7q3.txt</code>"
   },
   {
    "level": "open",
@@ -167,6 +185,6 @@
    }
   ]
  },
- "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P<sub>14</sub> (step 2.5&times;10<sup>18</sup>). An exact run confirms the law up to there, passes that collapse without a halt and continues to 2.29&times;10<sup>20</sup> steps; the next collapse is forecast near 10<sup>46</sup> steps and is not understood.",
+ "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P<sub>14</sub> (step 2.5&times;10<sup>18</sup>). An exact run confirms the law up to there, passes that collapse without a halt and continues to 2.29&times;10<sup>20</sup> steps; a general event law reproduces that collapse exactly and puts the next one in the middle of the tape near 4&times;10<sup>34</sup> steps; that collapse is not resolved.",
  "family": "Nested ternary counter with an exact regime law (segments drained by 3^j per event)"
 }

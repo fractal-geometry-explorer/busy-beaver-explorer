@@ -80,6 +80,17 @@ python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/check_msim.py 2e9
 The far-end generator and the collapse rule, which would make the map complete and let it be iterated past the next
 collapses; then a Lean proof of one cycle of the drain from the shift rules.
 
+## Long accelerated run (16 November 2026)
+
+This machine was part of a halt hunt on the nested ternary counters (with 1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---
+and 1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---). The time went to those two machines, and this one got no new long
+run. The only new check was a list of the right-end D events of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD up to
+10^13 steps with the record-printing macro simulator
+`holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c`, which showed no halt; no law was derived from it.
+The bound stays at 10^19 steps (above), and no halt was found. The general-law method used for the b machines
+(event law, collapses run exactly on reduced tapes and spliced back in, in
+`holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py`) is the natural next step here too.
+
 ## What is proved, and how firmly
 
 | level | claim | where |
@@ -93,6 +104,7 @@ collapses; then a Lean proof of one cycle of the drain from the shift rules.
 | trusted | **No halt in the first 10^19 steps.** A macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; it agrees with the direct simulator at 2x10^9 steps) runs 10,000,000,002,400,213,340 steps without a halt, through the collapses at about 2x10^12. | `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c`; output in `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c1_msim.txt` |
 | heuristic | **The draining law.** Between collapses, the segment j places from the growing end loses 2*3^j blocks per cycle (6, 18, 54, 162, ... per sampled cycle of the macro run), with occasional off-by-one irregularities at the junk near the ends. It is checked on the cycles of the direct run to 4.5x10^9 steps (failing exactly at the collapses) and on the macro run to 10^19; the far-end rule that makes new segments is not pinned down. | `python3 holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/cmap.py c1` |
 | heuristic | **The next collapse.** At 10^19 steps the three segments next to the growing end hold 370, 43,402 and 155,460 blocks; the 370 runs out first, after about 62 more cycles; cycles have been getting longer by a factor of about 2 on average, which puts that collapse near 10^38 steps. | `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c1_msim.txt` |
+| trusted | **No new long run (16 November 2026).** The bound stays at 10^19 steps. | |
 | open | **Does it halt from blank tape?** Not known. Halting needs the head in state B on a 1 with a 1 to its left (B1 -> 0LA, A1 halts); inside the draining regime this does not occur, and what a collapse does in general is not known. |  |
 
 ## Lean

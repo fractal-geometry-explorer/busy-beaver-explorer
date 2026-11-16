@@ -74,6 +74,17 @@ Open, reduced to the three-counter map. Lean, kernel only: `lean/Rules.lean` (20
 `native_decide`. C (`c/canon.c`) + `py/orbit.py validate`: every transition of the direct run up to 1.1·10^10 steps
 is the map's, with the map's step count. `py/orbit.py run 2000`: no halt in 2,000 rounds (about 10^1511 steps).
 
+## Long orbit run (16 November 2026)
+
+`c/xyz.c` iterates the register map (`nxt` of `lean/Model.lean`, in the real counts of `py/orbit.py` `single`, bulk
+runs done at once as in `jump`) from X(2,0,3) with GMP integers; its round values N equal those of `py/orbit.py` (the
+first 12 printed, and N of round 600 exactly). **9,500 rounds** (the earlier run had 2,000), 2.8·10^8 jump steps,
+under a minute on one core: no Z(a, 2), so no halt. N of round 9,500 has 11,902 bits (about 10^3,583; the machine has
+run about 10^7,170 steps). Over rounds 3 to 9,500 the closest Y run to the halting case had |c − b − 3| only 18 bits
+below N (round 907, the approach already reported). Stopped by choice, not by the machine. Computed (trusted).
+
+    gcc -O2 -o xyz c/xyz.c -l:libgmp.so.10 && ./xyz 9500 500 xyz.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/explainer.html`](../../pages/holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/explainer.html)

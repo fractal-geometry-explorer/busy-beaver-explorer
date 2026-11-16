@@ -74,6 +74,16 @@ Open, reduced to the map. Lean: the halting configurations (`step_none_iff`, `le
 (`map_step`, `blank_27`, `halts_iff_orbit`, `lean/Map.lean`), all by the kernel. Computed: the map against
 10^9 machine steps, and 3·10^6 map steps without a halt.
 
+## Long orbit run (16 November 2026)
+
+`tools/c/redmaps.c re0` iterates `f` of `lean/Map.lean` from (2, 1) with GMP integers, case by case (its first
+30,000 iterates equal a direct Python transcription of `py/orbit.py`). **3·10^7 map steps** (10 times the earlier
+run), about 50 minutes on one core: the orbit never reaches r = p + 1. At step 3·10^7, p and r have 6,534,020 and
+6,534,023 bits. At the decision steps (r < p + 2) over steps 1,000 to 3·10^7, |r − p − 1| never had fewer than
+(bits of p, r) − 26 bits (step 25,842,244). Computed (trusted), not in Lean.
+
+    gcc -O2 -o redmaps tools/c/redmaps.c -l:libgmp.so.10 && ./redmaps re0 30000000 1000000 re0.ck
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/explainer.html`](../../pages/holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/explainer.html)

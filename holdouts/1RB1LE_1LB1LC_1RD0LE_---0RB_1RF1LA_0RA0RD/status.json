@@ -11,7 +11,7 @@
   "Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.",
   "The tape is a few long blocks of 1s separated by single 0s. The head keeps returning to the right end in state B with a single block on the tape, <code>Y(n) = 0^&infin; 1^n 0 B&gt;0 0^&infin;</code>. From one such visit to the next, n follows a Collatz-like map: odd n go to 3n &minus; 7, even n go through a nested computation on two blocks whose outcome is piecewise linear on residue classes modulo powers of 2, and which halts for a sparse set of even n."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The run from blank tape has been followed exactly, on a run-length simulator tested against the plain one, to step 1.88&middot;10<sup>18</sup> and through the visits Y(n) for n = 2, 5, 8, 14, 39, 110, 232, 357, 1064, 1614, 4539, 13610, 23544, 67275, 201818, 576606, 1243308, 1864956, 2797428, 4196136, 8162799, 24488390, 37736994, 129867393, 389602172, 584403252, 876604872, 1397089014 without a halt.",
   "<b>Why it is hard.</b> An even n halts with a probability that falls slowly with n (13% of even n below 64, 1% around 2,000, 0.1% around 100,000), so the run has survived real risks; along the orbit the chance of a future halt is small (heuristically of order 10<sup>&minus;4</sup>), but the map is a Collatz-like map with infinitely many residue classes and no proof method is known."
@@ -82,6 +82,12 @@
    "title": "Probviously non-halting",
    "text": "The fraction of even n whose step halts falls from 13% (n &lt; 64) to 4% (64 to 512), 1.1% (512 to 4,096), 0.3% (4,096 to 20,000) and 0.1% (around 100,000), roughly like n<sup>&minus;0.5</sup>. Along the orbit n grows by a factor of about 2 per visit, so if the even values behave like typical ones the chance of a halt after n = 1.4&middot;10<sup>9</sup> is of order 10<sup>&minus;4</sup>.",
    "where": "<code>c/ymap.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1.7&middot;10<sup>20</sup> steps",
+   "text": "The exact run-length simulator (<code>c/yorbit.c</code>: <code>c/orbit.c</code> with 128-bit step counts) runs 3&middot;10<sup>11</sup> moves from blank tape, to step 1.748&middot;10<sup>20</sup>, without a halt; the visits after Y(1,397,089,014) are Y(2,619,541,899) at step 3.51&middot;10<sup>18</sup> and Y(7,858,625,690) at step 1.72&middot;10<sup>19</sup> (16 November 2026).",
+   "where": "<code>c/yorbit.c</code>, <code>c/rle.h</code>"
   },
   {
    "level": "open",

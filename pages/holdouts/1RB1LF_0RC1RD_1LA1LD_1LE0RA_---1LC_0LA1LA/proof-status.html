@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>10<sup>6</sup> rounds of the map: no halt, no small case</h3>
         <p>The orbit from (74, 30), iterated with exact integers for 10<sup>6</sup> rounds, never reaches <code>.halt</code> or <code>.small</code>; c then has 306,184 bits (growth about ×1.236 a round). The first rounds agree with the machine's own round starts.</p>
         <p class="where"><code>py/orbit.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 2&middot;10<sup>7</sup> rounds</h3>
+        <p><code>mapc</code> of <code>lean/Map.lean</code> from (74, 30), iterated with GMP integers (<code>tools/c/redmaps.c mapc</code>, equal to <code>py/orbit.py</code> on the first 30,000 rounds) for 2&middot;10<sup>7</sup> rounds: the orbit never reaches <code>.halt</code> or <code>.small</code>; the numbers then have about 6.1&middot;10<sup>6</sup> bits, and after round 1,000 c − a had at most 26 bits fewer than c (16 November 2026).</p>
+        <p class="where"><code>tools/c/redmaps.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

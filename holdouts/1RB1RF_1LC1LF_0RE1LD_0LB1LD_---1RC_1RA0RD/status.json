@@ -11,7 +11,7 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "Its tape is two counters side by side: at the start of every pass it reads <code>0 0 (10)^a 1^b 10</code>. A pass doubles a, paid for out of b; when b runs short the head bounces off the right end and continues, like a ball folding a strip. The pass-to-pass map on (a, b) is a Collatz-like piecewise linear map with slope 2. Lean proves the whole map, rebounds included, and proves that the machine halts if and only if the map reaches a pass start with at most one 1 in the right block."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to the map.</b> Lean proves, for all parameters, every case of the phase map (plain rounds, the end of a pass, the rebounds off the right end and the special small cases), and proves that the machine halts from blank tape <em>if and only if</em> iterating that map from the first pass start reaches <code>B&gt;0 0 (10)^a 1^c</code> with c &le; 1 (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 2&middot;10<sup>7</sup> passes) do not; a Python copy of the map runs 10<sup>8</sup> passes without it.",
   "<b>Where a halt would come from.</b> From <code>B&gt;0 0 (10)^n</code> followed by blank tape the machine halts within a few steps (C and E zip right over the 10s and E reads a blank). That is the tape after a pass that ends with b = 0, which needs a coincidence of size about 1/width, and only in rare stretches where b is even.",
@@ -83,6 +83,12 @@
    "title": "Growth shape: fixed/power",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.348). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
    "where": "<code>tools/py/bbtools/triage.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 10<sup>11</sup> phases",
+   "text": "The phase map <code>next</code> of <code>lean/Phases.lean</code>, transcribed into C (<code>c/psq.c</code>, equal to <code>py/passmap.py</code> on the first 300,000 phases), iterated 10<sup>11</sup> phases (2&middot;10<sup>10</sup> pass starts) from <code>PS 0 2</code>: no <code>PS a 0</code> or <code>PS a 1</code>; after phase 1,000 the smallest c at a pass start is 2, once (16 November 2026).",
+   "where": "<code>c/psq.c</code>"
   },
   {
    "level": "open",

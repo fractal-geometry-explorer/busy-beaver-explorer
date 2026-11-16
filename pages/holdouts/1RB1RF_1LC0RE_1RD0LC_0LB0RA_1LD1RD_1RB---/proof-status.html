@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -191,6 +191,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt of the counter model in 33,199,619 rounds (round-skipping run)</h3>
         <p><code>py/skip.py</code> stores the blocks at the right end as a size and a rate (the block with q blocks to its right loses exactly 3<sup>q</sup> per round, the last one 2) and runs only the young blocks at the front bounce by bounce; rounds with an event are done by the exact model, which alone can report a halt. Tested against the exact model at every round start up to round 60,000 (through the collapse of round 49,668) and for 3,000 rounds from round 100,000. Observed: no halt up to round 33,199,619; in round 19,080,842 the second block from the right end ran out and the last three blocks merged into one, making no new charge; the one charged pair is now 212th from the right end.</p>
         <p class="where">py/skip.py test 60000; py/skip.py run 33200000</p>
+      </div>
+      <div class="card">
+        <h3>No halt of the counter model in 561,525,639 rounds (accelerated, 16 November)</h3>
+        <p><code>py/cycle.py</code> runs the young blocks at the front symbolically, on affine forms in the number of repeats, with a comparison counting only when it is decided for every value. When the front repeats with a linear drift (plus one geometric term) it skips K rounds at once, with K bounded by the next event of a block behind the front. Every round with an event is done by the exact model. It agrees with <code>py/skip.py</code> at every round start for rounds 1 to 300,000, and on 303,752 rounds (87 skips) from round 41,649,462. From round 41,649,463 it reached round 561,525,639 without a halt: 89,753 skips covered 519,148,318 rounds, 2 rounds went to the exact model, and 24,728 blocks remain. There is still exactly one charged pair (residue 1), now 208th from the right end. The charged block's fate is decided about 2.7&middot;10<sup>12</sup> rounds out, which is beyond this method's memory. This is a bounded run.</p>
+        <p class="where"><code>py/cycle.py</code> (on top of <code>py/skip.py</code>, <code>py/model.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

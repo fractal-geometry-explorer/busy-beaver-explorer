@@ -28,7 +28,10 @@ static void popn(stk *s, ll k){ if(!s->n) return; s->a[s->n-1].len-=k; if(s->a[s
 /* run of index i from the top (0 = top): sym, len (blank beyond) */
 static int symat(stk *s, ll i){ return i < s->n ? s->a[s->n-1-i].sym : 0; }
 static ll lenat(stk *s, ll i){ return i < s->n ? s->a[s->n-1-i].len : (ll)4e18; }
-typedef struct { mach m; stk L, R; int st; ll steps; int halted; ll pos; /* head position (cell index) */
+#ifndef STEPS_T
+#define STEPS_T ll   /* yorbit.c sets __int128 */
+#endif
+typedef struct { mach m; stk L, R; int st; STEPS_T steps; int halted; ll pos; /* head position (cell index) */
   int chain[10][2][2][10], cper[10][2][2];      /* sweep chains: [state][sym][dir 0=L,1=R] */
   int slideT[10][2][2][2];                       /* [state][a][x][dir]: T or 0 */ } tm;
 static void prep(tm *t){

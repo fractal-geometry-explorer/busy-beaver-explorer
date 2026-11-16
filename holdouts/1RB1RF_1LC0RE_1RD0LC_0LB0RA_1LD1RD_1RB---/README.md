@@ -182,6 +182,36 @@ python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/skip.py test 60000
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/skip.py run 33200000 # the event of round 19,080,842 (about 2.5 hours)
 ```
 
+## Long accelerated run (16 November 2026)
+
+**Trusted, bounded: the counter model does not halt in its first 561,525,639 rounds** (up from 33,199,619).
+`py/cycle.py` is built on `py/skip.py`. It runs the young groups at the front *symbolically*. A round is executed
+on affine forms `a + b·j + c·e`, and a comparison counts only when it is decided over the whole box. When the front
+repeats with a linear drift (plus one geometric term, `e_(t+1) = λ e_t + λ t + λ`), K rounds are skipped at once.
+The largest safe K is found by a binary search against the next due event of a group behind the front. Rounds the
+symbolic run cannot decide go to the exact `skip.py` step, and rounds with any event go to the exact model
+(`py/model.py`). A halt can only be reported by the exact model.
+
+- **Tests.** Round starts were compared with `skip.py`:
+  - rounds 1 to 300,000: 299,997 agree, 58 rounds went to the exact model;
+  - from a saved state at round 41,649,462: 697 landing points over 303,752 rounds, 87 skips;
+  - 0 mismatches in both.
+- **Run.** From round 41,649,463 it ran 2,400 s on one core and reached **round 561,525,639**. 89,753 skips
+  covered 519,148,318 rounds, and only 2 rounds went to the exact model. There was no halt. At the end there are
+  24,728 groups and still exactly one charged pair (residue 1). That pair now sits 208th from the right end (it
+  was 212th at round 4.2·10^7), because groups at the right end ran out and merged, as forecast. The last three
+  groups are 28,438,654,666, 1,034,336,182 and 3,165,622,247.
+- **Why the decisive event is still out of reach.** The charged block's fate is decided about 2.7·10^12 rounds out.
+  The front that must be held grows like the square root of the round count, and so do its digits. The skips make
+  the cost per round small, but memory and the time per skip still grow with the front. The checkpoint is already
+  61 MB at 2.5·10^4 groups, so the front would need about 10^6 groups at 10^12 rounds. That needs a closed form for
+  the front's cycle, not a faster simulation (see "For later").
+
+```sh
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/cycle.py test 300000              # vs skip.py
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/cycle.py run 1000000000000 3600 START.pkl CKPT.pkl
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html`](../../pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html)

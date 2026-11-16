@@ -64,6 +64,24 @@ It predicts all 17 next turns of the direct run to 3e9 steps. Iterated beyond it
     python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 check 3e9
     python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxmulti.py 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA--- L B 0 orbit 40
 
+## Long orbit run (16 November 2026)
+
+`py/ctxorbit.py` restarts the class-round orbit of `ctxmulti.py` (same engine, T = 40 cells) with no time limit and a
+checkpoint after every round. After the 17 rounds of the direct run (all predicted), it followed **54 rounds** past the
+end of the direct run (the earlier run stopped at 40) without a halt and without an uncovered round; about 5 hours of
+one core, the last rounds taking 1 to 13 minutes each (the cost grows with the number of blocks, every long block
+needing its own instance). At round 54 the tape has 195 tokens, 64 long blocks `(10100)^n`, the largest with 90 bits.
+
+What the rounds look like: the blocks to the right of the left-end gadget never change once written, and each round
+appends one block, which for consecutive pairs of rounds has the same bit length (21, 21, 24, 24, 27, 27, ...: the
+total about doubles per round). Only the gadget at the left end changes, alternating between two shapes; its counts
+grow slowly (`101 (10100)^12 101 (10100)^33 101 (10100)^22` at round 54), like a counter that gains a little every
+other round. So a halt, if any, would have to come from the gadget. A run-length engine with run crossing
+(tried as a faster `ctxev`) gave no gain here: most steps are spent in a local zig-zag that converts one copy of a
+word per five or so steps, not in long sweeps. Extrapolated (trusted computation, not a proof).
+
+    python3 holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/py/ctxorbit.py f04.pkl 1000     # resumes from f04.pkl
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/explainer.html`](../../pages/holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---/explainer.html)

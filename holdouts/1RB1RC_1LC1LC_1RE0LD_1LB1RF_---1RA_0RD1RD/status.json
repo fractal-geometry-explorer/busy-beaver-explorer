@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to a map.</b> Lean's kernel proves that the machine halts from blank tape iff the orbit of an explicit map on two counts reaches <code>u = v</code> or <code>u = v + 1</code>, and that the first 10,000 rounds do not; the map iterated for 10<sup>6</sup> rounds does not get there, and a probability argument says it never will."
  ],
@@ -134,6 +134,12 @@
    "title": "Why it is expected never to halt",
    "text": "The ratio <code>u/(u+v)</code> moves like a chaotic orbit of an expanding map, so a round lands within one of the diagonal with chance about <code>1/(u+v)</code>, which shrinks geometrically; the total chance of a halt after the computed rounds is about 2<sup>−300000</sup>. No congruence excludes the diagonal (the residues reachable mod m include diagonal ones for every m tried: 2 to 39 and 3<sup>4</sup> to 3<sup>7</sup>).",
    "where": "<code>py/orbit.py</code>, README"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 2&middot;10<sup>7</sup> rounds",
+   "text": "<code>next</code> of <code>lean/Macro.lean</code> from (p, 3, 0), iterated with GMP integers (<code>tools/c/redmaps.c rc</code>, equal to <code>py/orbit.py</code> on the first 30,000 rounds) for 2&middot;10<sup>7</sup> rounds: the orbit never reaches u = v or u = v + 1; the numbers then have about 6.1&middot;10<sup>6</sup> bits, and after round 1,000 u − v had at most 21 bits fewer than u and v (16 November 2026).",
+   "where": "<code>tools/c/redmaps.c</code>"
   },
   {
    "level": "open",

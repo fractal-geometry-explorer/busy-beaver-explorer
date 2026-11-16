@@ -114,6 +114,58 @@ that, the run could be followed from regime to regime by computation (the second
 proof of the regime law for all n (one generation as a Lean theorem from the shift rules) would lift the trusted
 part to the kernel level.
 
+## Long accelerated run (16 November 2026)
+
+Goal: jump whole generations and collapses, past the forecast collapse near 10^46 steps. No halt was found, and the
+run did not get past the next collapse. That collapse comes earlier than forecast, and it is of a different kind.
+
+New tools (in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/`, shared by both machines):
+
+* `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c` is `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c` with exact right records. It prints the step count and the tape (as runs of blocks)
+  each time the head enters a new rightmost cell in a given set of states. It accepts a run-length start tape
+  (`rle:FILE`), so tapes with very long segments can be started directly. Check: all 49 D/F right records up to
+  2x10^8 steps agree exactly with the direct simulator, lists and step counts both.
+* `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/lawev.py` implements the general event law and parses the msimev records. `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py` alternates between
+  the law and reduced exact runs at collapses. `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py` is the middle-collapse experiment.
+  `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rsim.py` is a generic recursive-rule prover; it found no rules here (the junction digits keep whole-tape
+  signatures from recurring), and nothing below uses it.
+
+Findings:
+
+1. **General law (trusted).** At D/F right records the list is [g, y_1..y_s, c] (generator, segments, end counter),
+   and the events cycle birth, drain, drain:
+   * birth: [g, y.., c] -> [2*3^(s+4)-28, g-3^(s+1)+1, y_i-3^(j+1), c]
+   * drain: [g+2*3^(s+3), y_i-3^(j+1), c-1]
+
+   Here j is the number of segments to the right of y_i. The generator reset at a birth is new; in regime 1 it
+   cannot be seen, because g is already 2*3^(s+4)-28 there. At every P event each segment is exactly
+   a*3^(j+1)-27, and every event lowers every coefficient a by 1.
+2. **The first collapse, reproduced from the law alone (trusted).** `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py` simulates the collapse at P_14
+   exactly on reduced tapes with m = 4, 5 and 6 kept segments. It splices the three outcomes into the full list,
+   fitting the newborn left entries as A*3^s+B (e.g. 324*3^s-28 and g-2*3^(s+1)+1) and draining the hidden segments
+   by E = 10 events. The resulting 18-entry list equals the real list at step 16,989,897,072,297,977,885. Every
+   later record in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_far.txt` and `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b2_far.txt` matches the spliced list continued by the law (the end
+   counter to within 2).
+3. **The next collapse is in the middle (event 107).** The law, run on from there, reaches P event 105 with
+   coefficients (from the left) 51, 48, ..., 12, 9, 24, **2**, 35, 426, 399, ..., 75. The same holds for both
+   machines; only c differs (170 for b1, 47 for b2). At event 107 the segment with a = 2 (j = 15, born at the
+   first collapse) goes negative. Its position is 18th of 35, not the right end. The step at that point is about
+   0.4654*g^2 with g = 300,189,270,593,998,214, which is about 4x10^34 (heuristic fit). The 10^46 forecast assumed
+   that the oldest segment runs out first, and is superseded. For b2 the end counter would run out near event 176,
+   so the middle collapse also comes first there.
+4. **Middle collapse: unresolved.** `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py` runs a window around the dying segment exactly, keeping 3 or 7
+   neighbours on its left and 3 on its right, with a canonical generator in front. The 7-neighbour run went 3000 s,
+   to 1.15x10^19 steps (`holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_midwin_l7q3.txt`). Neither run halted, and neither returned to the law. The
+   generator becomes small and irregular, and the left neighbours carry over with coefficients one lower and a
+   remainder. New births come with coefficients near 497 that fall by 3 per generation. The right part keeps
+   draining as before. A model with the left part cut off is therefore not faithful: the collapse merges the
+   generator region, and a real resolution needs the whole tape left of the dying segment, which is about 10^17
+   blocks wide. So halting is still undecided, and the run so far is exact only up to the first collapse plus
+   its law continuation.
+
+This machine is b2; the window runs were made with the b1 table and c = 170, and are taken to stand for both (the right part and the dying segment are the same; not run separately). Reproduce: `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b2 200 /tmp/b2track.log` (it stops at the middle collapse with a note);
+`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py 7 3 170 3000`.
+
 ## What is proved, and how firmly
 
 | level | claim | where |
@@ -127,6 +179,9 @@ part to the kernel level.
 | trusted | **The regime law, every event to 10^9 steps.** From step 103,844 on, every new cell written on the right in state D or F (16 events up to 10^9 steps) has exactly the list of segment lengths that the law P_n, Q_n, R_n predicts, with g_n = 2*3^n+5-28, y_n(j) = 3^j+2(17-n+j)-27, c_n = 38-2n. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/bmap.py b2 direct 1e9` |
 | trusted | **No halt in the first 2.28x10^20 steps, through the first collapse.** The macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; exact, and it agrees with the direct simulator at 2x10^9 steps) ran 55 minutes from blank tape to step 227,980,806,246,614,777,399 without a halt. Every right-end event up to P_14 lies on the law, and P_14, at step 2,515,258,871,431,259,069, is exactly the predicted list: the oldest segment is down to 0 and the end counter is 10. The run then leaves the law, as predicted, passes the collapse without halting, and the next new cell on the right comes at step 16,989,897,072,297,794,501 with the end counter at 81; 4 such events are recorded after the collapse. | `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c MACHINE 4 1e36 - 1 r 3300`; output in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b2_far.txt`; `py/check_msim.py` |
 | heuristic | **After the collapse: the next one (forecast).** The law only looks at a segment's distance from the right end, so the right end of P_13 was simulated beforehand from a shortened tape with 3, 4 or 5 kept segments. That forecast said the run would pass the collapse at P_14 without halting and that the end counter would jump from 10 to 81; the full exact run has now done exactly that (previous claim). The same shortened runs say that in the second regime the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse would be some 36 generations later, near 10^46 steps; for this machine the end counter (−2 per cycle) runs out at about the same time, so the outcome of that second collapse is unclear. The second regime has no law yet, and nothing is known about that second collapse. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/bcollapse.py b2 4` |
+| trusted | **The general event law and the first collapse, reproduced (16 November 2026).** Events cycle birth, drain, drain (formulas in the section above); the collapse at P_14, run exactly on reduced tapes with 4, 5, 6 kept segments and spliced in, gives exactly the real list at step 16,989,897,072,297,977,885, and all later records of the exact run match the law continued from it. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b2 200 LOG`, `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c` |
+| heuristic | **The next collapse is in the middle, near 4x10^34 steps.** At event 107 the segment with coefficient 2 (18th of 35) goes negative, before the oldest segment or the end counter (47 at event 105) runs out; the step count is a fit. Replaces the 10^46 forecast. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b2 200 LOG` |
+| heuristic | **The middle collapse in a cut-down window: no halt, not resolved.** Window runs (to 1.15x10^19 steps) do not halt but never return to the law; the left part of the tape cannot be cut off. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py 7 3 170 3000`, `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_midwin_l7q3.txt` |
 | open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts), which the law never produces. The first collapse did not produce it either (exact run). Whether a later collapse can needs a rule for the collapses, which is not known yet. |  |
 
 ## Lean

@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, back and forth. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -189,6 +189,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>All-ones moments in the first 10<sup>8</sup> phases</h3>
         <p>Iterating the map with the pieces' step counts (<code>py/phasemap.py run 100000000</code>): after n = 405563 (step 9.26&middot;10<sup>14</sup>) the tape is all ones at n = 454194, 469239, 2163591, 10123515, 10839355, 10989362, 14932875, 15458727, 20193339 and 23796235 (the last near step 1.87&middot;10<sup>20</sup>). None is fatal.</p>
         <p class="where"><code>py/phasemap.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 10<sup>11</sup> phases</h3>
+        <p>The phase map <code>next</code> of <code>lean/Phases.lean</code>, transcribed into C (<code>tools/c/doubling_phases.c</code>, checked against <code>py/phasemap.py</code> on the first 300,000 phases), iterated 10<sup>11</sup> phases from blank tape: no phase <code>e x 0</code> or <code>e x 1</code>, about 4.1&middot;10<sup>30</sup> machine steps; 4 further all-ones tapes after the Lean bound, none fatal (16 November 2026).</p>
+        <p class="where"><code>tools/c/doubling_phases.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

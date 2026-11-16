@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>100</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length) for every edge event seen: the overflow, four kinds of merger and seven left-end cases; an exact digit simulator, checked against the direct run, ran to 2.2&middot;10<sup>15</sup> steps without a halt or an unknown event. No closed set of digit configurations has been found: the safe mergers depend on a mod-4 relation between neighbouring digits.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>100</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length) for every edge event seen: the overflow, four kinds of merger and seven left-end cases; an exact digit simulator, checked against the direct run, ran to 2.2&middot;10<sup>15</sup> steps without a halt or an unknown event (accelerated by symbolic macros, 16 November: to 2.88&middot;10<sup>90</sup> steps). No closed set of digit configurations has been found: the safe mergers depend on a mod-4 relation between neighbouring digits.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 1.77&times;10<sup>19</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 17,748,289,296,345,434,315 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,017,009 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.88&times;10<sup>90</sup> steps (accelerated digit model, 16 November)</h3>
+        <p>The digit model run many sweeps at a time, with macros derived symbolically once per window shape (long runs as variables, a comparison counting only when decided over the whole range) and repeating macros applied K at once. The macros were checked against plain sweeps, states and step counts at every landing point, with 0 mismatches. Two walls the digit parser did not list appeared: <code>11000</code> near 4.07&middot;10<sup>20</sup> steps and <code>1110</code> near 4.09&middot;10<sup>20</sup>. They were added as names only, and both later wore away. From the sample at 3&middot;10<sup>7</sup> steps the model ran 1.8&middot;10<sup>45</sup> sweeps to 2.88&middot;10<sup>90</sup> steps: no halt, and no other window it could not read back. This is a bounded run.</p>
+        <p class="where"><code>holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py</code> (argument <code>twin</code>), on top of <code>py/digits.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

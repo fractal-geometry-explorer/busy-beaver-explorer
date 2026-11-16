@@ -140,6 +140,34 @@ No halt in the first 1.77x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 17,748,289,296,345,434,315. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,017,009 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Long accelerated run (16 November 2026)
+
+**Trusted, bounded: no halt in the first 2.88·10^90 steps.** The digit model of `py/digits.py` was run many sweeps
+at a time by the macro code of the sibling machine,
+`holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py`, with the `twin` argument. See that README for
+the method: hierarchical macros `Inc(k)`, derived symbolically once per window shape, and repeated macros applied K
+at once. Every macro is a symbolic run of `digits.py` sweeps.
+
+- **Two walls `digits.py` does not list.** The parser stopped twice on a tape it could not read. In both cases the
+  fix was a new name for a wall, added to the parser's list, so it could read more tapes. Neither name is a rule:
+  the sweeps are still symbolic runs of the machine.
+  - Near 4.07·10^20 steps, `U` = `11000`. It appears after a carry through `[0]S1` under a chain of `S3`.
+  - Near 4.09·10^20 steps, `V` = `1110`. It is what the U leaves behind under the next carry.
+  - Both walls later wore away, and the end state has only S walls.
+- **Tests** (states and step counts at every landing point, against plain `digits.py` sweeps, 0 mismatches):
+  - 1.68·10^7 sweeps across the V event;
+  - 1.05·10^6 sweeps from the final state.
+- **Run.** It starts at the sample 3.0·10^7 steps. 1.68·10^10 sweeps took it to 4.07·10^20 steps (U), then on to
+  4.09·10^20 steps (V). After V was added, 1,500 s on one core took it to
+  **2,878,675,879,048,207,324,504,657,069,243,168,546,249,077,482,525,580,885,987,708,980,697,798,567,911,691,014,460,739,115
+  ≈ 2.88·10^90 steps** (1.8·10^45 sweeps). There was no halt, and no other window that could not be read back.
+  214,395 macros were derived and applied 5.3 million times. The end tape begins `[0]S [218]S0 [16464]S2 [5888]S3 ...`.
+
+```sh
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py test 3e7 1000000 twin
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py run 3e7 3600 twin.pkl twin
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html`](../../pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html)
