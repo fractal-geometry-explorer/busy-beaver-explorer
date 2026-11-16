@@ -88,9 +88,15 @@ Read the defects as particles with a charge mod 3 (the shift they put in the 3-c
   left (45 of 45 updates without a shift), so they form a Sierpinski triangle that starts at the defect. They became all y 131
   times, and each time the word before the `10` was x. That is why the four lifetimes ended without a halt.
 
+* The trigger for a merge is sharper than an all-x gap. `0 x^k 0` occurs all the time (17,770 tapes up to
+  2·10^8 steps, at 3 to 69 tokens from the right end) and never merges when the word before the left wall is x. Every
+  bulk merge came from `y 0 x^k 0` (k = 6 or 9), seen in the deep-sweep window right before each of the four
+  births and nowhere else. `c/tens.c` also counts it: up to 10^11 steps the last one is at 4.07·10^6 steps (the
+  6.5·10^6 one falls between samples). After 10^7 steps, an all-x gap after a bulk `0` wall always has x before the
+  wall (341 of 341 in the every-5th sample to 2·10^8), just as an all-y gap after a `10` always has x before it.
+
 So, by the data, a halt needs a `10` far from both ends, and none has formed since 8.5·10^6 steps. A proof along these
-lines would show that once the walls are spaced out (they are roughly geometric from the right end), no two `0` walls
-with only x between them can meet again. The right end itself runs through four phases (`x 0 0 y 10 x`,
+lines would show that `y 0 x^k 0` (a y word, a wall, only x words, a wall) never forms again in the bulk. The right end itself runs through four phases (`x 0 0 y 10 x`,
 `x y 0 y 10 x`, `x 0 y x 0 x`, `0 x x 0 10 x`), and none of them contains the pattern.
 
 ## Lean
@@ -108,8 +114,8 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 * Done: the sweep pair is the XOR rule (above). Next: prove it in Lean for all lengths (two per-word transducer
   lemmas and an induction over the word list; the toolchain was not available in the 16 November container).
 * The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
-* Done: how `10` defects are made (walls as particles, above). Next: prove two `0` walls with only x between them never meet
-  after the first 8.5·10^6 steps (a wall spacing argument), and write the right end's four phases as rules.
+* Done: how `10` defects are made (walls as particles, above). Next: prove that `y 0 x^k 0` never forms after 10^7 steps (no
+  local rule found: the word before a wall and the gap after it are correlated only through the XOR history), and write the right end's four phases as rules.
 
 ## Deciders tried (F11, 13 November 2026)
 
