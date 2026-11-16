@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 15 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -259,6 +259,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>It probably halts, far beyond any run</h3>
         <p>Visits that reach the right end keep coming at about 1.5 per doubling of the number of visits. In the run the returning head met a frame with a single 1 in 4 of the 31 such visits (12 meetings); on random words of 10,000 tokens there are about as many such meetings per right-end visit (583 in 1,287) and one meeting in a hundred is a halt (5 of 583; for words of 1,000 tokens 35 of 2,959). The words of the run look random behind the periodic block (in one long visit the token statistics of 1.4&middot;10<sup>8</sup> calls matched fair coin flips to three digits; the visits inside a visit form a critical branching process). At these rates a right-end visit halts with probability about 0.4%, and a halt becomes likely only around visit 2<sup>150</sup> or later, when the tape would hold about 2<sup>150</sup> tokens. The events of one deterministic run are not independent trials, so this is an estimate only.</p>
         <p class="where">README</p>
+      </div>
+      <div class="card">
+        <h3>No shortcut to the halt in sight</h3>
+        <p>A dedicated pass tried to skip whole cascades and reach the halt. The words of the run are repetitive but not simple: the greedy LZ77 parsing, a lower bound for every grammar that produces the word and so for every Hashlife-style memo of shared sub-words, has 164 phrases at visit 2<sup>10</sup>, 4,988 at 2<sup>18</sup> and 13,839 at 2<sup>20</sup> (1,060,886 tokens). Extrapolated to visit 2<sup>150</sup> this is about 2<sup>100</sup> phrases on a power law and about 2<sup>33</sup> on a power of log V; ten doublings cannot tell which. Even a working accelerator that reached visit 2<sup>40</sup> would meet a halt with a chance of only about 10% by the estimate above. No accelerator was found.</p>
+        <p class="where"><code>c/lz77.c</code>, README (fifth and sixth look)</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

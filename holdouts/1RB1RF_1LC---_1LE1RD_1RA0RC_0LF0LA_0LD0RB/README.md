@@ -46,21 +46,31 @@ For example D(3,0) -> D(3,2) -> A(5,4) -> D(3,8) -> D(13,4) -> A(11,8) -> A(31,0
 goes like N^2, and the tape grows to the left like the square root of the step count; the right end only moves by a
 few cells.
 
-The map is **computed and checked, not proved**: `py/leftcheck.py` runs the plain machine from built tapes and
-compares: all 7,000 states with n < 70 and k < 50, 300 random states with n up to 400 and k up to 300, the first 170
+The map is **proved in Lean** (`lean/Map.lean`, kernel: `map_step`, from the rows in `lean/MapRules.lean`, see
+Status). Before that it was found and checked numerically: `py/leftcheck.py` runs the plain machine from built tapes
+and compares: all 7,000 states with n < 70 and k < 50, 300 random states with n up to 400 and k up to 300, the first 170
 left-end states of the blank-tape run, and every epoch N = 1..150 to its end. The epoch values the map gives also
 agree with all 126 epochs of the independent accelerated run to 10^100 steps (`py/run.py`).
 
 ## Does it halt?
 
-The only halt is B reading 1. In terms of the map it happens exactly from a state with n odd and k = 1, and such a
-state arises only from a doubling in D that leaves exactly one pair (a doubling in A makes n even, a failed doubling
-makes k even):
+The only halt is B reading 1. In terms of the map, the halting row is **A(n, 1) and D(n, 1) with n odd**: from
+those (and only those) left-end states the machine stops before the next turn at the left end (`hA`, `hD` in
+`lean/MapRules.lean`; the stop is a sweep like `halt_even` in `lean/Rules.lean`). Proved in Lean (`lean/Map.lean`,
+`halts_iff` and `halts_iff_state`):
 
-**the machine halts iff the orbit of the map from D(3, 0) reaches a state D(n, k) with n odd and 2k = n + 7.**
+**the machine halts from blank tape iff the orbit of the map from D(3, 0) reaches a state A(n, 1) or D(n, 1) with
+n odd.**
 
-(Then D(n, k) -> D(2n + 7, 1) -> halt, within the next sweeps; `halt_even` in `lean/Rules.lean` is the kind of
-sweep that stops the machine: state D over an even block of ones before `0 111`.) This also explains the halting epochs: N = 1, 4, 6, 9, 18, 26, 27, 48, 65, 106,
+Which states lead into that row is read off the map (not in Lean): a doubling in A makes n even, a failed doubling
+makes k even (and at least 4), a drain keeps n even, and a conversion gives k = 1 only from A(1, 0) or D(1, 0), which
+the map never produces (all-ones states have n >= 3 after a step). So the only way in is a doubling in D that leaves
+exactly one pair, D(n, k) -> D(2n + 7, 1) with n odd and 2k = n + 7: along the orbit from D(3, 0) the condition above
+is the same as *reaching D(n, k) with n odd and 2k = n + 7*. The two descriptions in earlier notes ("n odd, k = 1"
+and "D(n, k), n odd, 2k = n + 7") are the halting row and the state one step before it. A plain simulation
+confirms both, independently of `py/leftcheck.py`: on all 2,400 states with n < 40, k < 30 and both letters the
+next left-end state or the halt agrees with `py/emap.py`, every A(n, 1) and D(n, 1) with n odd halts, and every
+D(n, (n+7)/2) goes to D(2n + 7, 1). This also explains the halting epochs: N = 1, 4, 6, 9, 18, 26, 27, 48, 65, 106,
 110, 123, 128, 143, ... are the N whose orbit from D(N, 0) meets 2k = n + 7 in D before the next epoch; e.g. N = 26:
 D(26,0) -> A(29,0) -> D(1,15) -> D(9,12) -> D(25,5) -> A(21,10) -> D(7,20) -> D(21,14) -> D(49,1) -> halt.
 
@@ -77,15 +87,12 @@ to control exact remainders of an exponentially growing orbit of a Collatz-like 
 
 ## For later
 
-Stopped at: the complete left-end map on (state, n, k) and the halting condition in terms of it, checked against
-the plain machine but not proved; in Lean only the drain and the halting sweep. Next: prove the map in Lean and the
-reduction `HaltsFromBlank <-> the orbit reaches D(n, (n+7)/2), n odd` (as in
-`holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/lean/Reduction.lean`). The drain rows are `drain` in
-`lean/Rules.lean` (two trips at a time) plus the end k = 1. The conversion rows are a loop of sweeps
-(`bbtools.cycles`). The doubling rows are the hard part: a nested zig-zag in the middle of the tape, an outer loop
-(one pair `01` paid per step) over an inner linear cycle; it needs an induction on the number of pairs paid, with
-the invariant tape found from `py/leftcheck.py`-style traces (print the tape at every turn inside one doubling).
-The failed doubling is the same loop running out of pairs.
+Stopped at: the reduction is proved in Lean (`lean/Map.lean`, kernel): `HaltsFromBlank <-> ∃ i, orbit i = none`,
+where `orbit` iterates the left-end map `emap` from D(3, 0) and `none` is the halting row (n odd, k = 1). What is
+left is the question itself, an orbit of a Collatz-like map. Possible next steps: prove in Lean the remark above that
+the halting row is entered only from D(n, (n+7)/2) (a statement about `emap` alone); a faster certified evaluator of
+`emap` (with the drain runs jumped, as `py/emap.py` `jump`) to push the no-halt bound of the orbit into Lean by
+`native_decide`; or a structural invariant of the epochs.
 
 ## Files
 
@@ -94,6 +101,11 @@ The failed doubling is the same loop running out of pairs.
 - `py/orbit.py`: iterates the map from blank tape for a given number of seconds; `orbit.py epochs K` prints the
   first K epoch values.
 - `lean/Rules.lean` (generated by `py/rules.py`): `drain`, `halt_even` with `halt_even_stop`, `pass_odd`.
+- `lean/MapRules.lean` (generated by `py/maprules.py`): every row of the left-end map and one turn `qstep` of the
+  doubling loop, as theorems for all counts.
+- `lean/Map.lean` (hand-written): the rows restated on left-end states, the doubling loop by induction (`qloop`),
+  the map `emap` and `map_step`, 11 steps from blank tape to D(3, 0) (`blank_11`), and `halts_iff`,
+  `halts_iff_state`.
 - `py/turnacc.py`: the accelerator of the machine itself. It samples at every *turn* of the head, re-tokenises the
   tape with the words `1`, `01`, `10`, and when samples with the same shape have counts in arithmetic progression
   and step counts whose increments are a polynomial in the cycle index (degree up to 4), applies the cycle many
@@ -105,11 +117,11 @@ The failed doubling is the same loop running out of pairs.
 ## Status
 
 Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
-the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel): the drain, how a halt happens.
+the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel): the drain, how a halt happens. Lean (`lean/MapRules.lean`, kernel, 21 theorems from `py/maprules.py`): every row of the left-end map and one turn `qstep` of the doubling loop, for all counts. Lean (`lean/Map.lean`, kernel): the doubling loop by induction, the rows glued into the left-end map `emap` (`map_step`), blank tape reaches D(3, 0) in 11 steps, and the reduction `halts_iff`: the machine halts from blank tape iff the orbit of D(3, 0) under `emap` reaches the halting row A(n, 1), D(n, 1) with n odd.
 C (`tools/c/triage.c`): no halt in 1,000,000,000 steps. Python: no halt in 10^300 steps of the machine
 (`py/run.py`, extrapolated cycles, checked against plain simulation up to 3·10^8), and in 8,598 epochs of the
-left-end map (`py/orbit.py`, more than 10^3,100 steps), the map being checked against the plain machine but not
-proved.
+left-end map (`py/orbit.py`, more than 10^3,100 steps; the map is the one proved in `lean/Map.lean`, the
+iteration itself is Python).
 
 ## Pages
 

@@ -63,6 +63,106 @@ invariant in sight that would prove the opposite.
 * **Heuristic**: the halting chance per visit that reaches the right end, and the rate of such visits (below).
 * **Open**: whether the run from blank tape halts.
 
+## Fifth and sixth look: can whole cascades be skipped? (no way found; what there is, and what stands in the way)
+
+This pass looked for an accelerator: closed forms for many visits at once on words with large exponents, as for
+the ladder machine `1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`. **None was found, and the measurements below say why
+one of that kind cannot exist for this run.** Nothing here changes the status: open.
+
+**One recursion.** Unfolding F once in the clean recursion gives a recursion for T alone, and the visit is T:
+
+    T(b Y)            = c c Y
+    T(c^j b c^i b Z)  = c b T^(j-1)( b^(i+1) T(Z) )         (j >= 1, i >= 0)
+    F(b W)            = b T(W)            T(a Z) = a T(Z)   (a = c b b)
+
+(`py/trec.py rec 20000`: against the model on random words). Behind four b's, three visits hand exactly one T on:
+`T^3(b^4 c^m b Y) = a b^(4+m) T(Y)`.
+
+**The one closed form: a run of b is a binary counter.** Write D(k) for the binary digits of k, lowest first, each
+digit doubled, 0 as `bb` and 1 as `cc`. Then for every k and every word W
+
+    T^3( b^4 D(k) b^r W ) = a b^4 D(k+1) b^r' W ,      so      T^(3k)( b^n W ) = a^k b^4 D(k) b^(n-4-2 len(k)) W
+
+(r' = r minus 2 if k+1 has one more digit than k; checked for all k < 100,000, `py/trec.py counter 100000`). Three
+visits are one increment; a run of n b's lasts for about 2^((n-4)/2) increments and costs O(1) transitions each. This
+is the "nested counter" of the third look, and it is as far as closed forms go: the b's are the zeros of the counter,
+and the words of the run are not runs of b.
+
+**What stands in the way.**
+
+* *The word has no short description.* The word of visit V is `b a^k R`. For R (`py/entropy.py`):
+
+      visit    tokens  a-block k  tokens of R  runs of equal letters  outside repetitions u^n  LZMA, bits
+      1,024    1,619   52         1,462        741                    976                      2,560
+      4,096    7,105   276        6,276        3,093                  4,053                    8,736
+      16,384   19,705  2,425      12,429       6,175                  6,359                    13,600
+      65,536   74,343  10,919     41,585       20,466                 26,419                   48,896
+      131,072  142,780 32,764     44,487       22,353                 29,030                   52,416
+      262,144  274,454 9,988      244,489      131,445                149,599                  86,272
+
+  ("outside repetitions": tokens left when every u^n with |u| <= 40, n >= 4 is taken out.) R has about as many runs
+  as half its tokens, as coin flips would, and a general-purpose compressor needs tens of thousands of bits for it,
+  more at every doubling (roughly like V^0.6). Exponents do not help: the only large one is k. A ladder of levels
+  (the method of the other machine) has a state of a few numbers per level; this word is not of that kind.
+* *Shared pieces do not save it either, at the horizon that matters (sixth look, `c/lz77.c`).* LZMA undercounts the
+  repetition in these words. A sharper measure is z, the number of phrases of the greedy LZ77 parsing (each phrase
+  the longest piece that already occurs earlier): z is a lower bound for the size of *every* grammar (straight-line
+  program) that produces the word, so every exact method that holds the word as hash-consed shared pieces (a
+  Hashlife-style memo, a rope of memoised sub-words, an odometer whose levels are sub-words) needs at least z of them.
+
+      visit      tokens     z       tokens/z        visit      tokens     z       tokens/z
+      1,024      1,619      164     10              32,768     37,575     1,170   32
+      2,048      2,680      202     13              65,536     74,343     2,975   25
+      4,096      7,105      564     13              131,072    142,780    3,150   45
+      8,192      11,201     563     20              262,144    274,454    4,988   55
+      16,384     19,705     850     23              524,288    536,598    13,623  39
+                                                    1,048,576  1,060,886  13,839  77
+
+  So the word is far more repetitive than LZMA said (77 tokens per phrase at visit 2^20; between visits 2^19 and
+  2^20 the word doubled and z grew by 216), and a grammar-based accelerator is not excluded by the size of the word
+  *now*. But z keeps growing in jumps: a least-squares fit gives z ≈ 1.6 · V^0.66, that is about 2^100 phrases at
+  visit 2^150; a fit of the same eleven points by a power of log V, z ∝ (log V)^6.6, gives about 2^33. Ten doublings
+  cannot tell the two apart. Even in the kind case the accelerated model would have to carry billions of shared
+  pieces through some 250 out-of-phase cascades that each read the whole word, and nobody has a closed form for one
+  such cascade on a compressed word.
+* *A visit that reaches the right end rewrites the whole word.* The words before and after visits 32,497, 50,841,
+  113,145 and 118,809 have their last token in common and nothing more (visit 231,897: 12 tokens;
+  `py/entropy.py WRUN rewrite`). So the state at the moments that matter is the whole word, every time.
+* *The work sits in a few enormous visits.* The calls inside a visit behave like a branching process at its
+  critical point (fourth look). The model takes 1.1·10^9 transitions up to visit 131,072 and 3.4·10^10 up to visit
+  1,048,576, and almost all of them in a few visits (`c/wrun.c costs 400000 3000000`: up to visit 400,000 the 98
+  visits with at least 3 million transitions take 5.1 of the 5.4 billion; visit 318,209 alone takes 1.2 billion).
+* *The heavy visits follow a clock, but that does not make them cheap.* The words after the collapses of the block at
+  visits 32,777 and 232,177 start with the same 23,257 tokens (`py/entropy.py WRUN prefix 32778 232178`): `c^4 (b c
+  c)^92`, 743 tokens, and then a word U of 36 tokens (`c b c a b b a c c a c a b c^5 a b c^6`) repeated, 617 times
+  after the first collapse and 5,455 times after the second (a collapse turns the block `a^K` into `(b c c)^K`, here K
+  = 7,796 and 66,372, and U^(K/12) is what is left of that 280 visits later, when the new block of 92 collapses in
+  turn). In the 167,823 visits that follow, all 40 visits of the first stretch that take at least 3 million
+  transitions have a partner in the second stretch **at the same distance from the collapse**, and 25 of the 40 take
+  exactly the same number of transitions (4,903,235 at distance 106,720, for example); the other 15 are the deepest
+  ones, which run past the common part. The three visits of the first stretch that reached the right end (50,841,
+  113,145, 118,809, at distances 18,064, 80,368 and 86,032) are among these: in the second stretch the visits at the
+  same distances (250,241, 312,545, 318,209) take 56, 66 and 1,225 million transitions and stop inside the longer
+  word. The clock has a visible first wheel: of the 559 visits between visits 3,266 and 400,000 that take at least
+  100,000 transitions, 519 come when the block has k = 4 mod 8 copies of `a` (22 at k = 7, 18 at k = 0), and so do all
+  15 right-end visits between visits 1,169 and 400,000 (`c/wrun.c costs 400000 100000`): behind `a^k b^4` the word
+  goes through a cycle of eight increments (24 visits) and hands one T on to the rest at k = 4 mod 8. What the rest
+  does with it is the chaotic part: over the 1,600 increments after visit 50,842 those at k = 1, 2, 3, 5, 6 mod 8
+  change at most 28 tokens, and the 200 at k = 4 mod 8 reach a depth with median 72 tokens, 394 or more for one in ten
+  and 11,034 or more for one in a hundred, the deepest 23,943 of the 41,585 tokens (`py/depth.py`). So *when* a deep
+  visit comes is decided near the front of the word and repeats from collapse to collapse; *whether* it reaches the
+  right end, and what the cascade there does, depends on everything behind. On the common part the run is one fixed
+  sequence of words, but that sequence is itself the chaotic object (its visits are the heavy ones above).
+
+**What it means for the estimate.** A method that follows the run exactly has to carry the word, in some form (at
+least z shared pieces, by the sixth look). And even an accelerator that worked would most likely not decide the
+machine: at 1.5 right-end visits per doubling and a halting chance of about 0.4% each, pushing the run from visit
+2^21 to visit 2^40 (19 more doublings, some 28 more right-end visits) gives a halt with a chance of about 10%; the
+estimate puts the halt near 250 right-end visits, around visit 2^150. At the rate of the
+table the word of visit 2^150 has more bits than any memory holds, and each right-end visit reads all of it. So the
+estimate "it probably halts near visit 2^150" cannot be checked by running, with or without acceleration; a decision
+would have to come from a property of the frames at the right end that does not need the word, and none is known.
+
 ## Fourth look: the complete recursion is a stack machine
 
 Tokens `b = 110`, `c = 111`. During a visit the tape is a **stack of frames** followed by an active part:
@@ -239,8 +339,18 @@ left end shows `(1^8 0)^k` for a while (another word of 9 cells) before `1^5 0 1
   run (it never is in the computations), and that the fast program `c/wrun.c` is the same function.
 * A proof of non-halting would need an invariant of the frames at the right-end events of this run, and the data
   give no hint of one; a proof of halting needs the run itself, about 2^150 visits by the estimate above. A faster
-  exact method would have to skip whole cascades, which behave like a critical branching process on pseudo-random
-  words; hashing repeated sub-words (as Hashlife does) is the only idea not tried.
+  exact method would have to skip whole cascades. The fifth look says what that is up against: the word has no short
+  description by runs, repetitions or LZMA (so hashing repeated sub-words, as Hashlife does, has little to share),
+  and it is rewritten whole at every right-end visit.
+* A dedicated pass (sixth look) aimed at the halt and did not reach it. It measured the LZ77 size of the words
+  (table above) and found no accelerator; what one would need is an identity `T^n(P Z) = P_n T^m(Z)` (the prefix P
+  hands whole T's to the rest Z, as the binary counter on `b^4 D(k)` does) for the cut points of the word, with P_n
+  and m computed on hash-consed sub-words, plus a way through the out-of-phase cascades at the right end. The first
+  part is a Hashlife for this recursion; it would buy doublings, not the 130 or so that the estimate asks for.
+* What the fifth look leaves to try: the run between two collapses on the common part is one fixed sequence of
+  words, `T^t(c^4 (b c c)^92 ... U^n)`, and the deep visits come at fixed t. A description of that sequence (which
+  t, how deep) would predict the right-end visits of every later stretch without running it; the cascade at the
+  right end would still need the word.
 * The twin `1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC` (the same table started in another state, mirrored) should
   fall under the same model with another first word.
 
@@ -289,6 +399,13 @@ python3 py/model.py rec 20000                               # the two-line recur
 /tmp/wrun mc 7 20000 1000 300                               # random words: 35 of 20,000 halt
 /tmp/wrun mc 11 3000 10000 1000                             # longer random words: 5 of 3,000 halt (15 minutes)
 /tmp/wrun run 1048576 131072                                # the run from blank tape (5 minutes; 2097152: 16 minutes)
+python3 py/trec.py rec 20000 && python3 py/trec.py counter 100000   # fifth look: one recursion for T; the binary counter (1 minute)
+python3 py/entropy.py /tmp/wrun                             # fifth look: the table of the words' sizes (1 minute)
+python3 py/entropy.py /tmp/wrun rewrite                     # a right-end visit rewrites the whole word (1 minute)
+/tmp/wrun costs 400000 3000000                              # the heavy visits (40 s); the same distances after visits 32,777 and 232,177
+python3 py/entropy.py /tmp/wrun prefix 32778 232178         # the two words after the collapses share 23,257 tokens
+python3 py/depth.py /tmp/wrun                               # how deep an increment reaches, by k mod 8 (1 minute)
+gcc -O2 -o /tmp/lz77 c/lz77.c && /tmp/wrun wordat 524288 | /tmp/lz77   # sixth look: z = 13,623 (75 s; 1048576: 4 minutes)
 python3 py/model_lean.py | diff - lean/Model.lean           # the generated Lean file is current
 gcc -O2 -o /tmp/wcheck c/wcheck.c && /tmp/wcheck 2e10     # every visit shows a word over 110, 111 (2 minutes)
 cd py && python3 words.py run 3e7                           # rules (1)-(3) against the run

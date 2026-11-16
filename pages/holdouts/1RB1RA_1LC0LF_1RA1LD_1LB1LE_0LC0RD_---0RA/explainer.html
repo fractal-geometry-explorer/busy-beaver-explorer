@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 15 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#stack">Bookmarks: visits inside visits</a><a href="#words">Two letters and a rule that calls itself</a><a href="#parts">A neat end and a disordered middle</a><a href="#collapse">The collapses are not random</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shortcut">Why nobody can run it far enough</a><a href="#stack">Bookmarks: visits inside visits</a><a href="#words">Two letters and a rule that calls itself</a><a href="#parts">A neat end and a disordered middle</a><a href="#collapse">The collapses are not random</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -285,6 +285,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="shortcut">
+  <span class="eyebrow">Sixth look</span>
+  <h2>Why nobody can run it far enough</h2>
+<p>The halt, if it comes, is expected after something like 2<sup>150</sup> visits of the left end, and every visit makes the tape one token longer. To get there a program would have to skip astronomically many steps at once, as programs do for machines whose tapes are simple patterns like <code>a<sup>k</sup> b<sup>m</sup></code> with huge exponents.</p>
+<p>Here the tape is not simple. A fair way to measure that is to cut the word into pieces, each piece either new or a copy of something earlier (the LZ77 parsing). No description built from shared pieces can be shorter than this count. At visit 2<sup>20</sup> the million-token word needs 13,839 pieces, and the count keeps growing, roughly like the visit number to the power 0.66. At visit 2<sup>150</sup> that would be about 2<sup>100</sup> pieces, more than any computer can hold. So the question stays open: the halt is probably there, but out of reach of every run.</p>
+</section>
 <section id="stack">
   <span class="eyebrow">Fourth look</span>
   <h2>Bookmarks: visits inside visits</h2>
@@ -359,7 +365,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 15 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -388,6 +394,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/wrun.c enum L</code>, <code>c/wrun.c mc 7 20000 1000 300</code>, <code>mc 11 3000 10000 1000</code></div></div><div><b>Short words: the first halting ones have 19 tokens</b><p>The first visit on every word of at most 18 tokens (524,286 words) ends with a word again. Two words of 19 tokens halt, one of 20, five of 21, eleven of 22. Of 20,000 random words of 1,000 tokens, each run for 300 visits, 35 halted, among 20,230 visits that reached the right end; of 3,000 random words of 10,000 tokens, 1,000 visits each, 5 halted, among 1,287.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/wrun.c run</code></div></div><div><b>No halt in the first 2,097,152 visits (1.3&middot;10<sup>13</sup> steps)</b><p>The model run exactly from blank tape, with words and frames run-length coded: visit 2,097,152 is at step 13,274,338,602,371. The right end was reached in 31 visits (the latest: 113,145, 118,809, 231,897, 232,177 and 1,095,353), each followed by a cascade of tens of thousands of out-of-phase transitions; the head came back twelve times to one of seven frames with a single 1, always with 2, 5 or 8 zeros (a halt needs 1).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>It probably halts, far beyond any run</b><p>Visits that reach the right end keep coming at about 1.5 per doubling of the number of visits. In the run the returning head met a frame with a single 1 in 4 of the 31 such visits (12 meetings); on random words of 10,000 tokens there are about as many such meetings per right-end visit (583 in 1,287) and one meeting in a hundred is a halt (5 of 583; for words of 1,000 tokens 35 of 2,959). The words of the run look random behind the periodic block (in one long visit the token statistics of 1.4&middot;10<sup>8</sup> calls matched fair coin flips to three digits; the visits inside a visit form a critical branching process). At these rates a right-end visit halts with probability about 0.4%, and a halt becomes likely only around visit 2<sup>150</sup> or later, when the tape would hold about 2<sup>150</sup> tokens. The events of one deterministic run are not independent trials, so this is an estimate only.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/lz77.c</code>, README (fifth and sixth look)</div></div><div><b>No shortcut to the halt in sight</b><p>A dedicated pass tried to skip whole cascades and reach the halt. The words of the run are repetitive but not simple: the greedy LZ77 parsing, a lower bound for every grammar that produces the word and so for every Hashlife-style memo of shared sub-words, has 164 phrases at visit 2<sup>10</sup>, 4,988 at 2<sup>18</sup> and 13,839 at 2<sup>20</sup> (1,060,886 tokens). Extrapolated to visit 2<sup>150</sup> this is about 2<sup>100</sup> phrases on a power law and about 2<sup>33</sup> on a power of log V; ten doublings cannot tell which. Even a working accelerator that reached visit 2<sup>40</sup> would meet a halt with a chance of only about 10% by the estimate above. No accelerator was found.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/wcheck.c</code>, README</div></div><div><b>The halting pattern, and how close the run comes</b><p>By the transition table the machine halts exactly when C reads a 1 and the three cells to its left are <code>0 1 0</code>. In 2&middot;10<sup>10</sup> steps the run was one cell from this 12,171 times (C reads 1, D reads 0, B reads 1), each time with a 1 in place of the first 0.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>haltingWord_halts</code>, <code>word_can_halt</code>, <code>lean/HaltingWord.lean</code></div></div><div><b>Words do not always lead to words: a word that halts</b><p>Started on the visit of the 19-token word <code>b c c c b b b b c c b b b b b b c b c</code> (b = 110, c = 111; head in B on the blank cell left of it) the machine halts on its 6,323rd step, evaluated by Lean's kernel. This refutes the earlier conjecture that every word over b and c leads to such a word again (it had been checked on 81,918 words of at most 16 tokens). The configuration is not one of the run from blank tape.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/far.py</code>, <code>py/wfar2.py</code></div></div><div><b>No proof by window automata</b><p>Finite automata reduction with automata that remember the nearest 6 to 15 cells of one side, the token phase and that the rest is a word over b and c finds no certificate.</p></div></div>
