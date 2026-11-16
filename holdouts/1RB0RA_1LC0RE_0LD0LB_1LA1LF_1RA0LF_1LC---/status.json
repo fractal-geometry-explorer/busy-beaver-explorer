@@ -13,7 +13,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The tape is an exact ternary counter: its digits are pairs of runs of alternating cells, valued by their lengths mod 4, and each trip of the head adds one. That increment is proved in Lean (kernel) for every carry depth, and it covers 99.86% of the trips in the first 3&middot;10<sup>12</sup> steps. The counter keeps shrinking one run of each digit; when such a run runs out, a <em>transfer</em> moves a long run to the right end of the tape, two cells per shuttle of the head. The shuttle itself is now proved in Lean for every list of runs in between and any number of shuttles, and so are the events at a run boundary, including the one pattern that halts.",
   "What is missing is the transfer as a whole (the shuttles before the tail is &ldquo;saturated&rdquo;, transfers nested inside transfers, the pairing of the digits afterwards) and an invariant. The invariant cannot be about residues alone: tapes with exactly the residues of a real configuration but several short runs <em>do halt</em> (for example <code>6 6 4 6 5 5 5 5 6 7</code> at step 5,943). In the real run every transfer of the first 10<sup>14</sup> steps has long runs to spare, but that is an observation, not a proof."
@@ -158,10 +158,16 @@
    "where": "the README, section &ldquo;Family screen&rdquo;"
   },
   {
-   "level": "heuristic",
-   "title": "The four machines would halt together if the first run never gets short",
-   "text": "From the Lean theorems, the four runs stay shifted copies, and the four machines halt together or not at all, provided the first run of the run of 40600 has at least 3 cells every time the head enters it. That is observed (at least 5 cells at each of the 57,701 entries in the first 2&middot;10<sup>10</sup> steps, and growing) but not proved: a bounce removes 1 or 2 cells and nothing local bounds the number of bounces between two sweeps. So halting together is not established.",
-   "where": "README, section &ldquo;One run for four machines&rdquo;; <code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/entries.py</code>"
+   "level": "kernel",
+   "title": "One halting question for four machines, given one condition",
+   "text": "Two tapes that differ only by k periods <code>1010</code> at the left end, just left of the leftmost 1, make the same moves until the head steps onto that leftmost 1; there the head crosses the extra periods and comes back with the same cells if it is in C or D, and both runs halt if it is in F (for every k). After 2, 11, 26 and 50 steps the table started in D, A, B and E is at the same configuration with 0, 1, 2 and 3 periods more. With the renamings and the mirror proved as well: <b>if</b> in the run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- the head never reads a 1 in state B or C with only 0s to its right, then 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---, 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- and 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- each halt if and only if it does (<code>one_question</code>). On the condition for the run of 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- itself, the other two follow it (<code>three_questions</code>). The condition says that the first run never gets shorter than 4 cells; it is not proved.",
+   "where": "<code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/Lockstep.lean</code>, generated part <code>lean/FarEnd.lean</code> (<code>py/farend.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The condition holds in the first 10<sup>14</sup> steps",
+   "text": "No configuration excluded by the condition of <code>one_question</code> occurs in the first 10<sup>11</sup> steps of the run (plain cell simulator), nor in the first 10<sup>14</sup> steps of that run and of the run of 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- (exact run-length simulator). Proving it needs the theory of the transfers: a bounce takes a cell off the first run and the next entry sweeps it, except at the end of a transfer that moves the second run.",
+   "where": "<code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/good.c</code>, <code>py/goodrun.py</code>"
   },
   {
    "level": "open",
@@ -187,7 +193,10 @@
   "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/transfer.py > Transfer.lean   # regenerates lean/Transfer.lean",
   "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/validate.py   # about 2 minutes",
   "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/monitor.py 1e14 out.json   # about 7 minutes",
-  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300"
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/farend.py check",
+  "gcc -O2 -o good holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/good.c && ./good 3 1e11",
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/goodrun.py 1e14 3   # about 7 minutes; 0 for start A"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine counts in base 3, least significant digit at the left end. Its tape is a row of long runs of alternating cells; each pair of neighbouring runs is a digit, valued by the run lengths mod 4, and every trip of the head from the left end and back adds one. The increment is proved, and so is the shuttle that carries a run to the far end when a digit's run is used up; the full transfer and an invariant are not.",
