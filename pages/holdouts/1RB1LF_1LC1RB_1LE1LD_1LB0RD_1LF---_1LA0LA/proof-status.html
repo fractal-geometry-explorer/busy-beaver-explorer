@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood.</p>
-    <p class="asof">Status as of 15 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -183,19 +183,18 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py</code>, <code>accel_check.py</code>, <code>c/wv.c</code></p>
       </div>
       <div class="card">
+        <h3>Accelerated run: no halt up to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>)</h3>
+        <p>The digit engine finds cycle, run and recursion rules by symbolic execution and the macro simulator does the right-end events on cells. The run passes the events after wall visits 3, 14, 23, 114, 117, 107,452 and 6.354&middot;10<sup>2236</sup> and stops at the event after 4.233&middot;10<sup>2237</sup>, where a fuel run of more than 10<sup>14</sup> units needed a rule the engine did not have. That rule (frozen words emitted by cycle rules, 16 November 2026) now exists, and the run of 16 November 2026 gets past that point and well into the return sweep of the event, with no halt: after 2 h 35 min, 14,635 runs of cells are left of the head, from 18,141 when the stall point was passed. It is slow there, not stuck. Each wall visit costs about 200,000 explicit operations of the recursion, and rule discovery is not the bottleneck. Exact by construction, validated only on the range direct simulation can reach, not re-derived independently: read it as strong evidence, not as a proof.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py</code>, numbers in <code>accel_run_1.txt</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 6.60&times;10<sup>17</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 660,252,048,354,256,421 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,019,329 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
-    <div class="cards">
-      <div class="card">
-        <h3>Accelerated run: no halt up to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>)</h3>
-        <p>The digit engine finds cycle, run and recursion rules by symbolic execution and the macro simulator does the right-end events on cells. The run passes the events after wall visits 3, 14, 23, 114, 117, 107,452 and 6.354&middot;10<sup>2236</sup> and stops at the event after 4.233&middot;10<sup>2237</sup>, where a fuel run of more than 10<sup>12</sup> units would need a rule it does not have. Exact by construction, validated only on the range direct simulation can reach, not re-derived independently: read it as strong evidence, not as a proof.</p>
-        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py</code>, numbers in <code>accel_run_1.txt</code></p>
-      </div>
-    </div>
+    <p class="empty">Nothing yet.</p>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">

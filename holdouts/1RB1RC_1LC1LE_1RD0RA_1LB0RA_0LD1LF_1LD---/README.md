@@ -131,6 +131,26 @@ the carry and passes it on in turn. `py/accel.py` computes these schedules as ev
   any invariant has to control those exact values. This looks as hard for this machine as for the others in the
   group whose halting is a coincidence of large numbers.
 
+## Long accelerated run (16 November 2026)
+
+**Not extended in this pass: the run still ends at 10^1757 visits, with no halt.** Unlike the other three machines
+in this pass, `py/accel.py` did not stall here. It is slow by construction:
+
+* at every event the schedules are recomputed for all m counters, O(m) work per event on big integers;
+* m grows by about 3.3 per decade of visits, and there are about 22 events per decade;
+* so the cost of each further decade grows roughly like the square of the decade, and going from 10^1757 to
+  10^3500 would take about 6 CPU-hours.
+
+The halt hunt has one core, shared with three other machines, and it went to the twins and to
+1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---.
+
+`py/farrun.py` is new. It runs the loop of `accel.far` unchanged and pickles the state (counters, separators, visit
+count, event log) every 10 minutes, so a long run can be stopped and resumed:
+`python3 py/farrun.py DIGITS SECONDS CKPT`. Up to 10^200 visits it agrees with `accel.py far 200`: m = 665,
+4,499 events and 1,755 slot or merge rebuilds, also when stopped at 10^100 and resumed. To go further, the next
+steps are this resumable run on a free core, or a C port of `schedules`/`advance`; the per-event work is
+already O(m).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/explainer.html`](../../pages/holdouts/1RB1RC_1LC1LE_1RD0RA_1LB0RA_0LD1LF_1LD---/explainer.html)

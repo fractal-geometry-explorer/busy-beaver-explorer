@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt, never with more than one irregular pattern inside the counter at a time.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt (10<sup>7387</sup> with the local version <code>py/accel2.py</code>), never with more than one irregular pattern inside the counter at a time.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in 10<sup>2000</sup> steps</h3>
         <p><code>py/accel.py</code> applies t sweeps at once between irregular events (the counter plus t, each timer N_i = n_i + c(d_i) minus the wraps of its digit, the step count summed in closed form) and simulates every irregular sweep (overflow, fused digits) with an exact run-length simulator. From blank tape it reaches 10<sup>2000</sup> steps without a halt. It agrees with the plain simulator at every sweep start (checked up to 3&middot;10<sup>6</sup> steps in Python and 3&middot;10<sup>8</sup> with <code>tools/c/tmrun.c</code>), and the run-length simulator agrees with the plain one on random tapes.</p>
         <p class="where"><code>py/accel.py</code>, <code>py/rlsim.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in 10<sup>7387</sup> steps</h3>
+        <p><code>py/accel2.py</code> applies the same rules as <code>py/accel.py</code> locally. The tape is kept as chunks; each bulk ends at a time taken from a heap of block run-out times, and those times do not change during bulks; simulated sweeps run on a window that is widened when the head nears its edge. The overflow is done in closed form (6&middot;n0 + 6&Sigma;n<sub>i</sub> + 10k + 15 steps, checked against <code>py/rlsim.py</code> at every overflow up to 10<sup>700</sup> steps and on 300 random counters). It agrees with <code>accel.py</code> at every simulated sweep up to 10<sup>700</sup> steps (tape, step count, sweep count). From blank tape it reaches 10<sup>7387</sup> steps without a halt: 6,135 digits, 21,566 overflows, every irregular sweep one of the known patterns (run of 16 November 2026, checkpointed and resumed once).</p>
+        <p class="where"><code>python3 py/accel2.py run 1e30000 CKPT</code>, <code>py/accel2.py compare 1e700</code></p>
       </div>
       <div class="card">
         <h3>Many counter tapes with other timers halt</h3>
