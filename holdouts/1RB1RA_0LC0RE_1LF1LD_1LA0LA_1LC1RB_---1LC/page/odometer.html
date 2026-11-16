@@ -1,0 +1,95 @@
+<div class="col">
+<p>Forget the steps and keep only the three numbers c, a, b of each visit. The sweep moves of the previous section
+add up to one rule for the next visit (<code>F</code> in <code>lean/Map.lean</code>, proved for every visit):</p>
+<pre>2b &lt; a          next visit S(c, a − 2b, 2b + 1)
+2b ≥ a, c ≥ 1   carry: go on with (c − 1, 2a + 4, max(b − a/2 − 1, 0))
+2b ≥ a, c = 0   halt if b = a/2,
+                else reset: go on with (a, 4, b − a/2 − 1)</pre>
+<ul><li><b>Fast wheel.</b> If the pool is big enough (2b &lt; a), one sweep doubles the right block, b ↦ 2b + 1,
+paying 2b ones from the pool.</li>
+<li><b>Middle wheel.</b> If the pool is too small and c ≥ 1, one pair of the left block is used up: the pool becomes
+2a + 4 and b drops by a/2 + 1; then the fast wheel tries again.</li>
+<li><b>Slow wheel.</b> If the pool is too small and the left block is empty, the whole pool becomes the new left
+block (c = a), a new pool of 4 starts, and b drops by a/2 + 1, unless b is exactly a/2: then the machine
+<b>halts</b>.</li></ul>
+<p>So the run is a sequence of resets, each one making a left block as long as the pool was. From blank tape the
+first left blocks are 2, 8, 4, 24, 52, 44, 120, …; after 10<sup>11</sup> operations there have been 54 resets and the
+latest left block is 34,047,591,832 pairs long.</p>
+<p>The odometer below applies the rule to any start you type. It starts where the run from blank tape starts; the
+second button loads S(0, 4, 10), which differs from the start of the run only in b, and halts at visit 458 after
+six resets: the halting case is real. Halting starts are not rare among small numbers; the question is whether the run from blank tape ever meets
+one.</p>
+</div>
+<div class="panel" id="h5-odo">
+ <div class="controls">
+  <label class="small" for="h5o-c">c</label><input type="text" class="h5-num" id="h5o-c" inputmode="numeric" value="0" spellcheck="false" autocomplete="off" style="width:5em">
+  <label class="small" for="h5o-a">a</label><input type="text" class="h5-num" id="h5o-a" inputmode="numeric" value="4" spellcheck="false" autocomplete="off" style="width:5em">
+  <label class="small" for="h5o-b">b</label><input type="text" class="h5-num" id="h5o-b" inputmode="numeric" value="1" spellcheck="false" autocomplete="off" style="width:5em">
+  <button type="button" id="h5o-set">Start here</button>
+  <button type="button" id="h5o-blank">The run from blank tape</button>
+  <button type="button" id="h5o-halt">A start that halts</button>
+ </div>
+ <div class="controls" style="margin-top:8px">
+  <button type="button" class="primary" id="h5o-one">Next visit</button>
+  <button type="button" id="h5o-ten">10 visits</button>
+  <button type="button" id="h5o-res">To the next reset</button>
+  <span class="small" id="h5o-info"></span>
+ </div>
+ <canvas class="h5-tape" id="h5o-tape" aria-label="The tape of the current visit" style="margin-top:12px"></canvas>
+ <div id="h5o-wheels" style="margin-top:6px"></div>
+ <div class="log" id="h5o-log" aria-live="polite"></div>
+ <div class="cap">Each log line is one visit; a line with carries or a reset lists the moves the rule made on the way. The bars are scaled to the largest value seen since the start.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var cur, n, resets, halted, log, peak;
+  function start(c, a, b) {
+    cur = [c, a, b]; n = 0; resets = 0; halted = false; log = []; peak = Math.max(c, a, b, 1);
+    $("h5o-c").value = c; $("h5o-a").value = a; $("h5o-b").value = b;
+    log.push(["", "start", "S(" + cur.join(", ") + ")"]);
+    show();
+  }
+  function one() {
+    if (halted) return false;
+    var o = H.odo(cur[0], cur[1], cur[2]), moves = [];
+    o.sub.forEach(function (m) { if (m[0] === "carry") moves.push("carry"); if (m[0] === "reset") { moves.push("reset"); resets++; } });
+    n++;
+    if (!o.s) { halted = true; log.push([n, "HALT", "S(" + cur.join(", ") + "): " + (moves.length ? moves.join(", ") + ", then " : "") + "a reset with b = a/2"]); return false; }
+    var line = (moves.length ? moves.join(", ") + ", then " : "") + "the fast wheel: S(" + o.s.join(", ") + ")";
+    log.push([n, moves.indexOf("reset") >= 0 ? "reset" : moves.length ? "carry" : "fast", line]);
+    cur = o.s; peak = Math.max(peak, cur[0], cur[1], cur[2]);
+    return moves.indexOf("reset") < 0;
+  }
+  function bar(label, v, col, note) {
+    var pct = Math.max(0.5, 100 * v / peak);
+    return '<div style="display:grid;grid-template-columns:2.2em minmax(0,1fr) 9em;gap:10px;align-items:center;margin:4px 0">' +
+      '<span class="mono">' + label + '</span><div style="background:var(--sunk);border-radius:4px;height:12px"><div style="width:' + pct.toFixed(2) +
+      '%;height:12px;border-radius:4px;background:var(' + col + ')"></div></div><span class="mono small">' + H.fmt(v) + ' <span style="color:var(--muted)">' + note + '</span></span></div>';
+  }
+  function show() {
+    if (cur[1] + 2 * cur[0] + 2 * cur[2] < 4000) H.drawTape($("h5o-tape"), cur[0], cur[1], cur[2]);
+    $("h5o-wheels").innerHTML = bar("c", cur[0], "--h5c", "left") + bar("a", cur[1], "--h5a", "pool") + bar("b", cur[2], "--h5b", "right");
+    $("h5o-info").innerHTML = (halted ? '<b class="h5-bad">halted</b> after ' : "") + n + " visit" + (n === 1 ? "" : "s") + ", " + resets + " reset" + (resets === 1 ? "" : "s");
+    var L = log.slice(-200);
+    $("h5o-log").innerHTML = L.map(function (r) {
+      return '<div><span class="t">' + r[0] + "</span><span></span><span>" + r[1] + "</span><span>" + r[2] + "</span></div>";
+    }).join("");
+    var el = $("h5o-log"); el.scrollTop = el.scrollHeight;
+  }
+  function num(id) { var x = parseInt($(id).value, 10); return isFinite(x) && x >= 0 ? x : NaN; }
+  $("h5o-set").addEventListener("click", function () {
+    var c = num("h5o-c"), a = num("h5o-a"), b = num("h5o-b");
+    if (isNaN(c) || isNaN(a) || isNaN(b) || a < 2 || a % 2 || c > 1e6 || a > 1e6 || b > 1e6) { $("h5o-info").textContent = "c, a, b must be whole numbers, a even and at least 2, each at most 10^6"; return; }
+    start(c, a, b);
+  });
+  $("h5o-blank").addEventListener("click", function () { start(0, 4, 1); });
+  $("h5o-halt").addEventListener("click", function () { start(0, 4, 10); });
+  $("h5o-one").addEventListener("click", function () { one(); show(); });
+  $("h5o-ten").addEventListener("click", function () { for (var i = 0; i < 10; i++) one(); show(); });
+  $("h5o-res").addEventListener("click", function () { for (var i = 0; i < 100000 && one(); i++); show(); });
+  H.onTheme(show);
+  start(0, 4, 1);
+})();
+</script>

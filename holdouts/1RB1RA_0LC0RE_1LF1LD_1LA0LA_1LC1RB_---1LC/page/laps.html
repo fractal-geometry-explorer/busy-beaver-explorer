@@ -1,0 +1,143 @@
+<div class="col">
+<p>Cut the operations at the resets and call each piece a <b>lap</b>. A reset sets u = 2u − v and then v = u + 3,
+so <b>every lap starts at u = v − 3</b>, just below the top of the interval, and its left block c and starting
+modulus v satisfy c + v = V + 1, where V is the modulus at the reset that began it. A lap is therefore fixed by two
+numbers, its starting modulus and its allowance of wrap-arounds, and it ends at its (c + 1)-th wrap-around, which
+is the next reset. <b>The machine halts iff some lap ends with an exact hit</b>, 2u = v at that last
+wrap-around.</p>
+<p>How long a lap lasts depends on how many wrap-arounds it is allowed, and that is set by where the previous reset
+landed: a reset that finds 2u − v small makes a long left block and a long next lap. Roughly, a lap starting at
+modulus v ends near v(3 − 2x) for a fraction x between 1/2 and 1, so the modulus at a reset grows by a factor
+between 1 and 2 from lap to lap: about 1.47 on average in theory, about 1.52 in the 54 laps of the run. This is why
+resets are logarithmically rare: reset k comes after about 1.5<sup>k</sup> operations, and 10<sup>11</sup>
+operations reach only 54 of them.</p>
+</div>
+<div class="panel" id="h5-laps">
+ <div class="grid2">
+  <div><h3 style="margin-top:0">The modulus v at each reset</h3>
+   <div style="position:relative"><canvas id="h5l-a" style="display:block;width:100%;height:240px" aria-label="Modulus at each reset, logarithmic scale"></canvas>
+   <div class="mono small h5l-tip" id="h5l-ta"></div></div>
+   <div class="cap">Logarithmic scale. The dashed line is the least-squares fit, ×1.52 per reset.</div></div>
+  <div><h3 style="margin-top:0">How close each reset came to a halt</h3>
+   <div style="position:relative"><canvas id="h5l-b" style="display:block;width:100%;height:240px" aria-label="Fraction (2u - v)/v at each reset"></canvas>
+   <div class="mono small h5l-tip" id="h5l-tb"></div></div>
+   <div class="cap">The fraction (2u − v)/v at the reset; a halt needs exactly 0. The closest call is reset 11, at 0.028.</div></div>
+ </div>
+ <details style="margin-top:12px"><summary class="small">All 54 resets as a table</summary>
+  <div style="overflow-x:auto;max-height:340px;overflow-y:auto"><table id="h5l-tab"><thead><tr><th>reset</th><th>operation</th><th>visit</th><th>v</th><th>2u − v</th><th>(2u − v)/v</th><th>new left block</th></tr></thead><tbody></tbody></table></div>
+ </details>
+ <div class="cap">From <code>c/odo.c</code>, the doubling map in C, run for 10<sup>11</sup> operations (checked against the Python model on the first 50,000 visits and the resets).</div>
+</div>
+<style>.h5l-tip{position:absolute;top:4px;pointer-events:none;display:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:4px 8px;white-space:nowrap}</style>
+<div class="col">
+<h3>The wrap-arounds of a lap are binary digits</h3>
+<p>Write a 1 for each wrap-around of a lap and a 0 for each plain doubling. Doubling modulo a fixed v would give
+exactly the binary digits of u/v; because v grows by one at every operation they are instead the digits of a nearby
+number x with |v<sub>0</sub>x − u<sub>0</sub>| ≤ 1 (between emptying carries). So the first log<sub>2</sub> v
+digits agree with those of u<sub>0</sub>/v<sub>0</sub> and then the two drift apart. The lap ends at its
+(c + 1)-th 1, and an exact hit at that point means the digits from there on start with a 1 followed by about
+log<sub>2</sub> v zeros, to the exact integer. Deciding the machine is deciding where an implicitly defined binary
+expansion has such a pattern: a question of the same kind as whether a given number is normal, for which there is no
+known method.</p>
+</div>
+<div class="panel" id="h5-bits">
+ <div class="controls">
+  <button type="button" id="h5b-prev" aria-label="Previous lap">&#9664;</button>
+  <span class="small">lap <b id="h5b-k">9</b></span>
+  <button type="button" id="h5b-next" aria-label="Next lap">&#9654;</button>
+  <span class="small" id="h5b-info"></span>
+ </div>
+ <div class="mono" style="margin-top:10px;font-size:.82rem;line-height:1.7;overflow-wrap:anywhere">
+  <div><span class="small" style="font-family:var(--body)">wrap-arounds:</span> <span id="h5b-e"></span></div>
+  <div><span class="small" style="font-family:var(--body)">digits of u<sub>0</sub>/v<sub>0</sub>:</span> <span id="h5b-x"></span></div>
+ </div>
+ <div class="cap" id="h5b-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var R = [[2,1,6,2,2],[10,6,13,3,8],[37,24,35,29,4],[45,27,39,13,24],[97,54,67,13,52],[200,104,118,72,44],[288,147,163,41,120],[558,296,314,294,18],[590,309,328,240,86],[749,381,401,131,268],[1293,656,677,19,656],[2596,1302,1325,379,944],[4530,2291,2316,1484,830],[6252,3182,3210,356,2852],[11921,5998,6027,4157,1868],[15647,7855,7886,938,6946],[29557,14818,14851,12021,2828],[35258,17690,17724,16262,1460],[38125,19096,19131,5169,13960],[66137,33147,33184,16736,16446],[99038,49601,49642,16190,33450],[165825,82937,82981,55547,27432],[220698,110377,110422,37818,72602],[366192,183268,183315,102185,81128],[528756,264703,264752,107408,157342],[844296,422900,422950,157330,265618],[1376086,689071,689123,430125,258996],[1893752,947740,947793,238195,709596],[3314503,1658894,1658949,151211,1507736],[6331447,3168101,3168158,2422168,745988],[7824393,3915058,3915116,2367596,1547518],[10918242,5461388,5461449,2782171,2679276],[16278706,8142575,8142638,4352506,3790130],[23856294,11930032,11930096,2079888,9850206],[43562566,21786097,21786163,15459101,6327060],[56220635,28117105,28117172,21649284,6467886],[69160195,34588778,34588846,6765002,27823842],[124815011,62419751,62419820,18278892,44140926],[213110186,106573999,106574070,14989434,91584634],[396278650,198157828,198157900,105248684,92909214],[582125716,291095679,291095752,195378338,95717412],[773567142,386819692,386819766,139388714,247431050],[1268434149,634255648,634255723,301078381,333177340],[1934789553,967433711,967433788,115591420,851842366],[3638390064,1819191855,1819191934,1465409746,353782186],[4345942600,2172962204,2172962284,1686718774,486243508],[5318386536,2659162631,2659162712,1425722664,1233440046],[7785199350,3892535398,3892535482,1483721052,2408814428],[12602929647,6301451266,6301451353,4624014567,1677436784],[15957761143,7978845977,7978846065,4575522867,3403323196],[22764428407,11382190044,11382190134,763144354,10619045778],[44002677680,22001393538,22001393633,20665750627,1335643004],[46674014607,23337087460,23337087556,11530783676,11806303878],[70286668620,35143437594,35143437691,1095845857,34047591832]];  // [operation, visit, v, 2u - v, new left block] for resets 1..54
+  var tb = $("h5l-tab").tBodies[0];
+  tb.innerHTML = R.map(function (r, i) {
+    return "<tr><td>" + (i + 1) + "</td><td>" + H.fmt(r[0]) + "</td><td>" + H.fmt(r[1]) + "</td><td>" + H.fmt(r[2]) + "</td><td>" + H.fmt(r[3]) +
+      "</td><td>" + (r[3] / r[2]).toFixed(3) + "</td><td>" + H.fmt(r[4]) + "</td></tr>";
+  }).join("");
+  var fitA = 8.267, fitR = 1.5191;
+  function chart(cv, tipEl, yOf, yTicks, extra, tipText) {
+    var w = cv.clientWidth || 400, h = cv.clientHeight || 240, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 46, Rr = w - 10, T = 10, B = h - 26;
+    var X = function (k) { return L + (Rr - L) * (k - 0.5) / 54; }, Y = function (t) { return B - (B - T) * t; };
+    g.font = "11px " + H.css("--mono").split(",")[0]; g.lineWidth = 1;
+    yTicks.forEach(function (t) { g.strokeStyle = H.css("--line"); g.beginPath(); g.moveTo(L, Y(t[0])); g.lineTo(Rr, Y(t[0])); g.stroke(); g.fillStyle = H.css("--muted"); g.fillText(t[1], 2, Y(t[0]) + 4); });
+    [1, 10, 20, 30, 40, 50].forEach(function (k) { g.fillStyle = H.css("--muted"); g.fillText(String(k), X(k) - 4, h - 8); });
+    if (extra) extra(g, X, Y, L, Rr);
+    g.strokeStyle = H.css("--accent"); g.lineWidth = 1.2; g.globalAlpha = 0.5; g.beginPath();
+    R.forEach(function (r, i) { var x = X(i + 1), y = Y(yOf(r)); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke(); g.globalAlpha = 1;
+    R.forEach(function (r, i) { g.fillStyle = H.css("--accent"); g.beginPath(); g.arc(X(i + 1), Y(yOf(r)), 4, 0, 7); g.fill(); g.strokeStyle = H.css("--surface"); g.lineWidth = 1.5; g.stroke(); });
+    cv.onmousemove = function (e) {
+      var rc = cv.getBoundingClientRect(), x = e.clientX - rc.left, k = Math.round((x - L) / (Rr - L) * 54 + 0.5);
+      if (k < 1 || k > 54) { tipEl.style.display = "none"; return; }
+      tipEl.innerHTML = tipText(k, R[k - 1]); tipEl.style.display = "block";
+      tipEl.style.left = Math.min(Math.max(0, x + 10), rc.width - tipEl.offsetWidth) + "px";
+    };
+    cv.onmouseleave = function () { tipEl.style.display = "none"; };
+  }
+  var lmax = 11;
+  function draw() {
+    chart($("h5l-a"), $("h5l-ta"), function (r) { return Math.log10(r[2]) / lmax; },
+      [[0, "1"], [2 / lmax, "100"], [4 / lmax, "10^4"], [6 / lmax, "10^6"], [8 / lmax, "10^8"], [10 / lmax, "10^10"]],
+      function (g, X, Y) { g.strokeStyle = H.css("--fg2"); g.setLineDash([5, 4]); g.beginPath();
+        g.moveTo(X(1), Y(Math.log10(fitA * fitR) / lmax)); g.lineTo(X(54), Y(Math.log10(fitA * Math.pow(fitR, 54)) / lmax)); g.stroke(); g.setLineDash([]); },
+      function (k, r) { return "reset " + k + ": v = " + H.fmt(r[2]) + ", after " + H.fmt(r[0]) + " operations"; });
+    chart($("h5l-b"), $("h5l-tb"), function (r) { return r[3] / r[2]; },
+      [[0, "0"], [0.25, "0.25"], [0.5, "0.5"], [0.75, "0.75"], [1, "1"]],
+      function (g, X, Y, L, Rr) { g.strokeStyle = H.css("--open"); g.lineWidth = 2; g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(Rr, Y(0)); g.stroke();
+        g.fillStyle = H.css("--open"); g.fillText("halt", L + 4, Y(0) - 5);
+        g.fillStyle = H.css("--fg2"); if (Rr - L > 420) g.fillText("reset 11: 0.028", X(11) + 8, Y(0.028) - 12); },
+      function (k, r) { return "reset " + k + ": (2u − v)/v = " + H.fmt(r[3]) + " / " + H.fmt(r[2]) + " = " + (r[3] / r[2]).toFixed(4); });
+  }
+  H.onTheme(draw);
+  draw();
+
+  // laps of the run, computed live
+  var laps = null;
+  function getLaps() {
+    if (laps) return laps;
+    laps = []; var d = [0, 2, 5], st = d, e = [], em = 0;
+    for (var k = 0; k < 400000 && laps.length < 16; k++) {
+      var r = H.op(d[0], d[1], d[2]);
+      e.push(r[3] === "visit" ? 0 : 1); if (r[3] === "empty") em++;
+      if (r[3] === "reset") { laps.push({ s: st, e: e, empties: em, end: d }); e = []; em = 0; st = [r[0], r[1], r[2]]; }
+      d = [r[0], r[1], r[2]];
+    }
+    return laps;
+  }
+  var cur = 9;
+  function bits() {
+    var L = getLaps(), lap = L[cur - 1], u0 = lap.s[1], v0 = lap.s[2], e = lap.e, xs = [], x = u0;
+    for (var i = 0; i < e.length; i++) { x *= 2; var b = x >= v0 ? 1 : 0; xs.push(b); x -= b * v0; }
+    var agree = 0; while (agree < e.length && e[agree] === xs[agree]) agree++;
+    function paint(arr, last) {
+      return arr.map(function (b, i) {
+        var st = i < agree ? "color:var(--fg);font-weight:600" : "color:var(--muted)";
+        if (last && i === arr.length - 1) st = "color:var(--surface);background:var(--open);border-radius:3px;padding:0 1px";
+        return '<span style="' + st + '">' + b + "</span>" + ((i + 1) % 8 === 0 ? " " : "");
+      }).join("");
+    }
+    $("h5b-k").textContent = cur;
+    $("h5b-e").innerHTML = paint(e, true);
+    $("h5b-x").innerHTML = paint(xs, false);
+    var end = lap.end;
+    $("h5b-info").textContent = "starts at (c, u, v) = (" + lap.s.join(", ") + "), " + e.length + " operations, " + (lap.s[0] + 1) + " wrap-arounds";
+    $("h5b-cap").innerHTML = "The first " + agree + " digits agree (bold); log<sub>2</sub> v<sub>0</sub> = " + Math.log2(v0).toFixed(1) + ". The red 1 is the reset that ends the lap, at (c, u, v) = (0, " + end[1] + ", " + end[2] +
+      "): 2u − v = " + (2 * end[1] - end[2]) + ", where 0 would have been a halt." + (lap.empties ? " This lap has " + lap.empties + " emptying carr" + (lap.empties > 1 ? "ies" : "y") + ", where u restarts at 1 and the digit pattern starts afresh." : "") +
+      (cur === 1 ? " Lap 1 starts at the initial state, not after a reset." : "");
+  }
+  $("h5b-prev").addEventListener("click", function () { cur = Math.max(1, cur - 1); bits(); });
+  $("h5b-next").addEventListener("click", function () { cur = Math.min(getLaps().length, cur + 1); bits(); });
+  bits();
+})();
+</script>

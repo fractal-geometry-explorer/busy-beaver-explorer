@@ -1,0 +1,111 @@
+<div class="col">
+<p>Every time the head steps onto a cell no earlier step has reached, on the right and in state B, the tape is</p>
+<pre>S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞        (a even, a ≥ 2)</pre>
+<p>a <b>left block</b> of c pairs <code>10</code>, a <b>pool</b> of a ones, a single 0, a <b>right block</b> of b
+pairs, and a final 1 with the head just after it. Between two visits the head sweeps back to the left end of the
+right block and works its way out again. Inside a sweep the tape is</p>
+<pre>0^∞ (10)^c 1^(2p) A&gt; 1 0 1^(4k+1) 0 (10)^z 1111 0^∞</pre>
+<p>with a <b>middle block</b> of 4k + 1 ones growing between the pool and what is left of the right block. Every
+move of the sweep is a Lean theorem for all values of its counts (<code>lean/Rules.lean</code>):</p>
+<ul>
+<li><b>A round</b> (<code>round</code>): two 1s of the pool and one pair of the right block become four 1s of the
+middle block. It costs 8k + 8 steps, because the head crosses the middle block, so a whole sweep costs of the order
+of v<sup>2</sup> steps.</li>
+<li><b>The end of the sweep</b> (<code>final_g</code>): when the right block is used up, the middle block is
+rewritten as a right block twice as long, and the head reaches new ground: the next visit is
+S(c, a − 2b, 2b + 1).</li>
+<li><b>A carry</b> (<code>carry</code>, and <code>carry_z2</code>, <code>carry_z1</code>, <code>carry_z0</code> when
+two, one or no pairs of the right block are left): when the pool runs out first, one pair of the left block is
+used up and the middle block becomes the new pool, which is why the pool jumps from a to 2a + 4.</li>
+<li><b>A reset</b> (<code>reset</code>, <code>reset_z1</code>): when the pool runs out and the left block is
+already empty, the middle block is rewritten as a new left block and a fresh pool of four 1s starts.</li>
+<li><b>The halt</b> (<code>halt_R</code>): if pool, left block and right block all run out in the same round, the
+head walks into the blank left part in state F and finds the undefined transition.</li>
+</ul>
+<p>Pick a visit below to watch the real machine go from it to the next one. Each row of the picture is the tape at
+one moment, time running downwards; the coloured bands at the top and bottom are the blocks of the two visits.
+The zigzags are the rounds: the head runs back and forth across the middle block, which grows by four cells each
+time.</p>
+</div>
+<div class="panel" id="h5-sweep">
+ <div class="controls">
+  <button type="button" id="h5s-prev" aria-label="Previous visit">&#9664;</button>
+  <label class="small" for="h5s-n">From visit</label>
+  <input type="text" class="h5-num" id="h5s-n" inputmode="numeric" value="2" spellcheck="false" autocomplete="off">
+  <button type="button" id="h5s-next" aria-label="Next visit">&#9654;</button>
+  <span class="small">or jump to</span>
+  <button type="button" id="h5s-fast">a doubling</button>
+  <button type="button" id="h5s-carry">a carry</button>
+  <button type="button" id="h5s-reset">a reset</button>
+ </div>
+ <div class="stwrap" style="margin-top:12px"><canvas id="h5s-cv" style="display:block;width:100%" aria-label="Space-time diagram of one sweep"></canvas></div>
+ <div class="h5-key"><span><i style="background:var(--ink)"></i>1</span><span><i style="background:var(--cell0);border:1px solid var(--line)"></i>0</span><span><i style="background:var(--head)"></i>head</span><span><i style="background:var(--h5c)"></i>left block</span><span><i style="background:var(--h5a)"></i>pool</span><span><i style="background:var(--h5b)"></i>right block</span></div>
+ <div class="cap" id="h5s-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var inp = $("h5s-n"), cv = $("h5s-cv");
+  var MAXN = 120;
+  function band(g, c, a, b, x0, cw, y, h) {
+    var segs = [[2 * c, "--h5c"], [a, "--h5a"], [1, "--muted"], [2 * b, "--h5b"], [1, "--fg2"]], x = x0;
+    segs.forEach(function (s) { g.fillStyle = H.css(s[1]); g.fillRect(x * cw, y, s[0] * cw, h); x += s[0]; });
+  }
+  function names(sub) {
+    return sub.map(function (m) {
+      var k = m[0], s = "(" + m[1] + ", " + m[2] + ", " + m[3] + ")";
+      return k === "fast" ? "the right block doubles at " + s : k === "carry" ? "a carry at " + s : k === "reset" ? "a reset at " + s : "the halt at " + s;
+    }).join(", then ");
+  }
+  function draw() {
+    var n = Math.max(0, Math.min(MAXN, parseInt(inp.value, 10) || 0));
+    inp.value = n;
+    var run = H.visits(n + 1), s = run[n].s, t = run[n + 1].s;
+    var str = H.word(s[0], s[1], s[2]);
+    var M = new H.Machine(); M.load(str, 1);
+    var steps = run[n + 1].k - run[n].k;
+    var every = Math.max(1, Math.ceil(steps / 700));
+    var L = -16, R = 2 * str.length + 16, rows = [], heads = [];
+    function snap() { var r = new Uint8Array(R - L); for (var x = L; x < R; x++) r[x - L] = M.get(x); rows.push(r); heads.push(M.p); }
+    snap();
+    for (var i = 1; i <= steps; i++) { M.step(); if (i % every === 0 || i === steps) snap(); }
+    var lo = Math.min(M.lo, 0), hi = Math.max.apply(null, heads), cols = hi - lo + 1;
+    var w = cv.clientWidth || 700, dpr = window.devicePixelRatio || 1;
+    var cw = w / cols, rh = Math.max(1, Math.min(4, Math.floor(520 / rows.length))), bandH = 10, gap = 4;
+    var hgt = Math.ceil(rows.length * rh + 2 * (bandH + gap));
+    cv.style.height = hgt + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = H.css("--cell0"); g.fillRect(0, 0, w, hgt);
+    band(g, s[0], s[1], s[2], -lo, cw, 0, bandH);
+    var ink = H.css("--ink"), head = H.css("--head"), y0 = bandH + gap;
+    for (var r = 0; r < rows.length; r++) {
+      g.fillStyle = ink;
+      var row = rows[r];
+      for (var x = lo; x <= hi; x++) if (x - L >= 0 && x - L < row.length && row[x - L]) g.fillRect((x - lo) * cw, y0 + r * rh, Math.max(cw, 0.7), rh);
+      g.fillStyle = head; g.fillRect((heads[r] - lo) * cw, y0 + r * rh, Math.max(cw, 1.5), rh);
+    }
+    band(g, t[0], t[1], t[2], -lo, cw, y0 + rows.length * rh + gap, bandH);
+    var o = H.odo(s[0], s[1], s[2]);
+    $("h5s-cap").innerHTML = "From visit " + n + ", S(" + s.join(", ") + "), at step " + H.fmt(run[n].k) + " to visit " + (n + 1) + ", S(" + t.join(", ") +
+      "), at step " + H.fmt(run[n + 1].k) + ": " + H.fmt(steps) + " steps" + (every > 1 ? " (one row every " + every + " steps)" : " (one row per step)") +
+      ". What the rule says happens: " + names(o.sub) + ".";
+  }
+  function find(kind) {
+    var run = H.visits(MAXN), from = (parseInt(inp.value, 10) || 0) + 1;
+    for (var k = 0; k < 2; k++) for (var n = (k ? 0 : from); n < MAXN && n < run.length - 1; n++) {
+      var sub = H.odo.apply(null, run[n].s).sub;
+      var has = sub.some(function (m) { return m[0] === kind; });
+      if (kind === "fast" ? sub.length === 1 : has) { inp.value = n; draw(); return; }
+    }
+  }
+  inp.addEventListener("change", draw);
+  $("h5s-prev").addEventListener("click", function () { inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) - 1); draw(); });
+  $("h5s-next").addEventListener("click", function () { inp.value = Math.min(MAXN, (parseInt(inp.value, 10) || 0) + 1); draw(); });
+  $("h5s-fast").addEventListener("click", function () { find("fast"); });
+  $("h5s-carry").addEventListener("click", function () { find("carry"); });
+  $("h5s-reset").addEventListener("click", function () { find("reset"); });
+  H.onTheme(draw);
+  draw();
+})();
+</script>
