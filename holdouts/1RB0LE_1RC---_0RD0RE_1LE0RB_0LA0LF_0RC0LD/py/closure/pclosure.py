@@ -222,6 +222,7 @@ class Explorer:
             counts = stack.pop()
             if len(leaves) + len(stack) > 20000:
                 leaves.append(dict(kind='undecided', why='too many pieces', start=[repr(c) for c in counts]))
+                self.undec.append((key, [repr(c) for c in counts], 'too many pieces'))   # 16 Nov: was missing
                 break
             try:
                 res = self.run_leaf(text, counts)
