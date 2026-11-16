@@ -1,0 +1,40 @@
+<div class="col">
+<p>The proof starts at step 1,277,431, not at step 0. The first 1,277,431 steps are the <b>setup</b>, and Lean
+checks them as one long computation: <code>start_ok</code> runs the symbolic checker from the blank tape to
+template R1_16 with k = 38, j = 163. The sweep rules let it cross long stretches in one move, so that takes about
+148,000 symbolic moves. <span class="ev n">native_decide</span> This is how the run enters level 4: from there on
+it is a sequence of templates.</p>
+<p>What happens in the setup? The machine does the same things as later, at small sizes. From the start the left-end
+list counts down a by 3 per round trip, and resets when a runs out. So the setup is a series of short epochs (the
+table below lists their resets), each roughly twice as long as the one before. In the early ones the numbers are
+too small for the tail to settle into a regime. The first time the tape fits one of the 62 templates is step
+1,277,431, in the epoch that began at step 503,461. That is where the proof takes over.</p>
+<p>The chart shows a (blue) and b (green) at every left-end moment from the blank tape to step 4,054,968, computed
+in your browser (log scale; dots mark the resets). Use the slider to see the list at each moment.</p>
+</div>
+<div class="panel">
+<svg class="pw-chart" id="pw-setchart" viewBox="0 0 760 260" role="img" aria-label="a and b at each left-end moment from blank tape"></svg>
+<div class="controls"><label class="small" for="pw-set">Moment</label><input type="range" id="pw-set" min="0" max="1" value="0" style="flex:1;min-width:140px"><button type="button" id="pw-setprev" aria-label="Previous moment">&#9664;</button><button type="button" id="pw-setnext" aria-label="Next moment">&#9654;</button><button type="button" id="pw-setplay" class="primary">Play</button></div>
+<div class="small" id="pw-setcap"></div>
+<div class="pw-strip" id="pw-setstrip"></div>
+</div>
+<div class="tw"><table class="pw-tbl" id="pw-settbl"></table></div>
+<div class="col"><p class="small">The table lists each reset of the setup and of the first proof epoch: the step, b at
+the last moment before the reset, and the new a just after it. The new a is the old b plus some copies: 6 at the
+first reset of the proof, more during the setup, where pieces of the tail also merge into it.</p></div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, E = Z.ep, LOG = E.LOG, $ = function (i) { return document.getElementById(i); };
+  var ist = LOG.findIndex(function (m) { return m.n === 1277431; }), iend = LOG.findIndex(function (m) { return m.n === 1908405; });
+  var ch = E.lineChart($("pw-setchart"), LOG, { h: 220, xlab: "left-end moment, from the blank tape (0) to step 4,054,968", bands: [[0, ist, "setup"], [iend, LOG.length - 1, "first proof epoch end"]], marks: [[ist, "var(--kernel)", "first template"]], dots: E.RESETS });
+  var show = E.scrubber("pw-set", LOG, ch, function (m, i) { return "moment " + i + ", " + E.mcap(m) + (i < ist ? " (setup)" : ""); });
+  $("pw-set").value = ist; show();
+  var h = "<thead><tr><th>reset at step</th><th>b before</th><th>new a</th></tr></thead><tbody>";
+  E.RESETS.forEach(function (i) {
+    var q = i - 1; while (q > 0 && !LOG[q].b) q--;
+    h += "<tr" + (LOG[i].n > 1277431 ? ' class="on"' : "") + "><td>" + Z.fmt(LOG[i].n) + "</td><td>" + (LOG[q].b || "–") + "</td><td>" + LOG[i].a + "</td></tr>";
+  });
+  $("pw-settbl").innerHTML = h + "</tbody>";
+})();
+</script>

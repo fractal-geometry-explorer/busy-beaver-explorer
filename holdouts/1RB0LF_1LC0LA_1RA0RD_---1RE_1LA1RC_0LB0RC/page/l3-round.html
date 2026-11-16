@@ -1,0 +1,115 @@
+<div class="col">
+<p>From one left-end moment to the next is a <b>round trip</b>: the head sweeps right to the far end of the tape and
+back. What it does to the list depends on the short tail, which takes one of 62 shapes (the 62 <em>templates</em>,
+named <code>R0_0</code> … <code>R3_8</code>, see the next section). In each template the first two numbers are
+written with two free variables:</p>
+<p style="text-align:center;font-family:var(--mono)"><span style="color:var(--accent)">a = 3k + 4</span> &nbsp;&nbsp; <span style="color:var(--kernel)">b = 3j + β</span> &nbsp;&nbsp;(β between 6 and 8, fixed per template)</p>
+<p>Lean proves, for each template t and for <b>every</b> k and j: a round trip takes template t with numbers
+(k + 1, j) to the next template <code>nxt t</code> with numbers (k, j + dj), where dj is a small constant listed for
+each template. So a drops by 3 and b grows by 3·dj. These are the 62 theorems <code>round_0</code> …
+<code>round_61</code>, each a run of the symbolic checker of 200 to 2,500 moves, evaluated by the kernel.
+<span class="ev k">Kernel</span> That is the step from level 2 to level 3: one round trip at level 3 is one run of
+the checker, so one run of the machine.</p>
+<p><b>A small one, cell by cell.</b> Pick a template and small values of k and j, and run one round trip on the
+plain machine. The diagram shows the tape (rows are moments, time going down; dark = 1) and the path of the head
+(orange line): out to the right end over the stretches, and back. The check compares the tape after the trip with
+what the theorem predicts, cell by cell.</p>
+</div>
+<div class="panel">
+<div class="controls">
+<label class="small" for="pw-rt-t">Template</label><select id="pw-rt-t"></select>
+<label class="small" for="pw-rt-k">k (≥ 1)</label><input type="text" id="pw-rt-k" value="2" inputmode="numeric" style="width:5em" spellcheck="false" autocomplete="off">
+<label class="small" for="pw-rt-j">j</label><input type="text" id="pw-rt-j" value="0" inputmode="numeric" style="width:5em" spellcheck="false" autocomplete="off">
+<button type="button" class="primary" id="pw-rt-go">Run one round trip</button>
+</div>
+<div class="small" style="margin-top:10px">Before:</div><div class="pw-strip" id="pw-rt-before"></div>
+<div class="stwrap" style="overflow-x:auto"><canvas id="pw-rt-cv" class="pw-cv" width="600" height="300" aria-label="Space-time diagram of one round trip"></canvas></div>
+<div class="small" style="margin-top:10px">After:</div><div class="pw-strip" id="pw-rt-after"></div>
+<div id="pw-rt-check" class="small"></div>
+</div>
+<div class="col"><p><b>Any size, move by move.</b> The same round trip run by the shift-rule simulator of level 2,
+with k and j as large as you like (up to 10<sup>12</sup>). The log lists its moves: runs of single steps, and whole
+stretches crossed at once by a shift rule. The count of moves does not depend on the size; the count of steps
+does. The result is compared with the theorem's prediction, and, when the trip is under 3·10<sup>7</sup> steps,
+with the plain machine as well.</p></div>
+<div class="panel">
+<div class="controls">
+<label class="small" for="z6r-t">Template</label><select id="z6r-t"></select>
+<label class="small" for="z6r-k">k (≥ 1)</label><input type="text" id="z6r-k" value="1000000" inputmode="numeric" style="width:9em" spellcheck="false" autocomplete="off">
+<label class="small" for="z6r-j">j</label><input type="text" id="z6r-j" value="250000" inputmode="numeric" style="width:9em" spellcheck="false" autocomplete="off">
+<button type="button" class="primary" id="z6r-go">Run one round trip</button>
+<button type="button" id="z6r-small">k = 300, j = 100</button>
+</div>
+<div class="small" style="margin-top:10px">Before:</div><div class="pw-strip" id="z6r-before"></div>
+<div class="small" style="margin-top:10px">After:</div><div class="pw-strip" id="z6r-after"></div>
+<div id="z6r-check" class="small"></div>
+<div class="z6-log" id="z6r-log" aria-label="The moves of the round trip"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, D = Z.D, $ = function (i) { return document.getElementById(i); };
+  function fill(sel) { D.tpl.forEach(function (d, i) { var o = document.createElement("option"); o.value = i; o.textContent = d.name; sel.appendChild(o); }); }
+  // plain round trip with a space-time diagram
+  var sel = $("pw-rt-t"); fill(sel);
+  function go() {
+    var t = +sel.value, k = parseInt($("pw-rt-k").value, 10), j = parseInt($("pw-rt-j").value, 10);
+    if (!(k >= 1)) k = 1; if (!(j >= 0)) j = 0; k = Math.min(k, 60); j = Math.min(j, 60); $("pw-rt-k").value = k; $("pw-rt-j").value = j;
+    var s0 = Z.tplStr(t, k, j); Z.strip($("pw-rt-before"), Z.parse(s0));
+    var c = new Z.Machine(s0, 1), W0 = c.o - 8, width = s0.length + 16, rows = [], hs = [c.h - W0], ret = false;
+    function snap() { var r = new Uint8Array(width + 8); for (var x = 0; x < width + 8; x++) r[x] = c.t[W0 + x]; rows.push(r); }
+    snap();
+    c.run(200000, function () { ret = true; return false; });
+    // replay for the diagram (run() is fast but keeps no history)
+    var d = new Z.Machine(s0, 1); rows = []; hs = [d.h - W0]; var snapD = function () { var r = new Uint8Array(width + 8); for (var x = 0; x < width + 8; x++) r[x] = d.t[W0 + x]; rows.push(r); };
+    snapD();
+    while (d.n < c.n) { d.run(d.n + 1, null); hs.push(d.h - W0); if (d.n % 3 === 0) snapD(); }
+    snapD();
+    var cv = $("pw-rt-cv"), px = Math.max(2, Math.min(5, Math.floor(900 / (width + 8))));
+    cv.width = (width + 8) * px;
+    var rh = Math.max(1, Math.min(3, Math.floor(420 / rows.length))), keep = Math.ceil(rows.length / Math.floor(420 / rh));
+    var R = rows.filter(function (r, i) { return i % keep === 0 || i === rows.length - 1; });
+    cv.height = R.length * rh;
+    var g = cv.getContext("2d"); g.fillStyle = Z.css("--cell0"); g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = Z.css("--ink");
+    R.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (r[x]) g.fillRect(x * px, y * rh, px, rh); });
+    g.strokeStyle = Z.css("--head"); g.lineWidth = 2; g.beginPath();
+    hs.forEach(function (h, i) { var y = i / (hs.length - 1) * cv.height, x = (h + 0.5) * px; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+    g.stroke();
+    var s1 = c.fromHead(); Z.strip($("pw-rt-after"), Z.parse(s1));
+    var nt = D.nxt[t], dj = D.dj[t], want = Z.tplStr(nt, k - 1, j + dj);
+    $("pw-rt-check").innerHTML = (ret ? Z.fmt(c.n) + " steps. " : "") + "Theorem <code>round_" + t + "</code> predicts template <b>" + D.tpl[nt].name + "</b> with k = " + (k - 1) + ", j = " + (j + dj) +
+      " (a = " + (3 * k + 1) + ", b = " + (3 * (j + dj) + D.tpl[nt].beta) + "). " + (ret && s1 === want ? '<span class="pw-ok">&#10003; The tape matches cell for cell.</span>' : '<span class="pw-bad">No match.</span>');
+  }
+  $("pw-rt-go").onclick = go; sel.value = 0; go();
+  // any size, with the shift-rule simulator
+  var sel2 = $("z6r-t"); fill(sel2); sel2.value = 31;
+  function num(id, lo) { var v = Math.floor(Number(String($(id).value).replace(/[ ,_]/g, ""))); if (!(v >= lo)) v = lo; v = Math.min(v, 1e12); $(id).value = v; return v; }
+  function word(w) { return w.length > 12 ? w.slice(0, 12) + "…" : w; }
+  function run2() {
+    var t = +sel2.value, k = num("z6r-k", 1), j = num("z6r-j", 0), d = D.tpl[t];
+    Z.strip($("z6r-before"), Z.tplList(t, k, j));
+    var f = new Z.Fast(Z.tplList(t, k, j), 1); f.trace = [];
+    var r = f.toLeftEnd(1e6), l = f.list(), nt = D.nxt[t], want = Z.tplList(nt, k - 1, j + D.dj[t]);
+    Z.strip($("z6r-after"), l || []);
+    var ok = r === "left" && l && Z.listEq(l, want), msg = "";
+    msg = Z.fmt(f.moves) + " moves (" + Z.fmt(f.cross) + " of them crossings), " + Z.fmt(f.steps) + " steps of the machine. Theorem <code>round_" + t + "</code> predicts <b>" + D.tpl[nt].name +
+      "</b> with k = " + Z.fmt(k - 1) + ", j = " + Z.fmt(j + D.dj[t]) + ". " + (ok ? '<span class="pw-ok">&#10003; The list matches.</span>' : '<span class="pw-bad">No match.</span>');
+    if (f.steps <= 3e7) {
+      var m = new Z.Machine(Z.tplStr(t, k, j), 1), hit = null;
+      m.run(f.steps + 1, function (c) { hit = [c.n, c.fromHead()]; return false; });
+      msg += hit && hit[0] === f.steps && Z.listEq(Z.parse(hit[1]), l) ? ' <span class="pw-ok">&#10003; The plain machine, cell by cell, reaches the same tape at the same step.</span>' : ' <span class="pw-bad">The plain machine disagrees.</span>';
+    } else msg += " (Too long for the plain machine here: " + Z.fmt(f.steps) + " steps.)";
+    $("z6r-check").innerHTML = msg;
+    var log = $("z6r-log"); log.textContent = "";
+    f.trace.forEach(function (x, i) {
+      var e = document.createElement("div");
+      if (x.dir === "S") e.textContent = (i + 1) + ".  " + x.n + " single step" + (x.n > 1 ? "s" : "");
+      else e.innerHTML = (i + 1) + '.  <span class="x">' + (x.dir === "R" ? "cross right" : "cross left") + "</span> in state " + Z.SN[x.st] + ": " + Z.fmt(x.n) + " copies of " + word(x.from) + " become " + word(x.to) + ", " + x.k + " · " + Z.fmt(x.n) + " = " + Z.fmt(x.k * x.n) + " steps";
+      log.appendChild(e);
+    });
+  }
+  $("z6r-go").onclick = run2;
+  $("z6r-small").onclick = function () { $("z6r-k").value = 300; $("z6r-j").value = 100; run2(); };
+  run2();
+})();
+</script>

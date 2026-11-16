@@ -1,0 +1,101 @@
+<div class="col">
+<p><b>The machine 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB halts from a blank tape, at step</b></p>
+<p style="word-break:break-all;font-family:var(--mono);font-size:12px">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</p>
+<p>(bbchallenge count, the halting transition included; 759 digits, about 1.27&middot;10<sup>758</sup>), in state C
+on a 0, two cells left of the leftmost 1, during the visit after visit number 6.457&middot;10<sup>378</sup>, with 887
+levels on the tape.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>statement</th><th>where</th><th>what it rests on</th></tr></thead>
+<tbody>
+<tr><td><code>halts : HaltsFromBlank</code>, <code>halts_in : ∃ c, steps haltN init = some c ∧ step c = none</code>, <code>halt_step : haltN + 1 = 1273570026…4403686</code> (Lean)</td><td><code>lean/Halt.lean</code></td><td><span class="ev n">native_decide</span> the kernel for the level rules, the ladder (<code>stack_run</code>) and the soundness of the run (<code>loop_sound</code>); Lean's three standard axioms; and two compiled evaluations: <code>fsteps0</code> (the first 27,172,911 steps, to visit 3,040) and <code>run0 : loop 100000 true s0 = some haltN</code></td></tr>
+<tr><td><code>halt : halts tm c0</code> (Coq, busycoq's definitions)</td><td><code>coq/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code></td><td><span class="ev k">Kernel</span> no axioms (<code>Print Assumptions halt</code>: closed under the global context); the one long evaluation, <code>loop 10000 true s0 = true</code>, is checked by Coq's kernel. It proves that the machine halts, not when.</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>So the exact step rests on the Lean theorem <code>halt_step</code>, with its two <code>native_decide</code>
+evaluations; that the machine halts at all is also a Coq theorem checked by its kernel alone. Two separately written
+programs (<code>py/accel.py</code> and <code>verify/</code>) give the same step.</p>
+<h3>The whole run, in your browser</h3>
+<p>The accelerated run of the proof, written again in JavaScript with exact big integers: first the plain machine
+to visit 3,040, then hits on the tail with the levels as numbers, until a hit does not come back. It takes a few
+seconds. At the end it checks the last visit: on eight small tapes that have the same 887 levels at their final
+positions but only 1 to 9 blocks each, followed by the final tail, the plain machine must halt after exactly the
+number of steps the formula gives (<code>py/accel.py last</code>).</p>
+</div>
+<div class="panel" id="ld-halt">
+ <div class="controls"><button type="button" class="primary" id="ldb-go">Run to the halt</button><button type="button" id="ldb-stop">Pause</button></div>
+ <div class="readout"><span>hits on the tail <b id="ldb-h">0</b></span><span>put back <b id="ldb-u">0</b></span><span>levels <b id="ldb-l">0</b></span><span>visit <b id="ldb-v">0</b></span><span>step <b id="ldb-s">0</b></span><span>time <b id="ldb-t">0 s</b></span></div>
+ <canvas id="ldb-c" style="width:100%;height:220px" aria-label="Levels on the tape against the number of visits"></canvas>
+ <div id="ldb-out" style="margin-top:8px"></div>
+ <div class="cap">Across: the visit number on a log scale, up to 10<sup>379</sup>. Up: the number of levels on the tape, one dot per hit on the tail. The line is (8/3)<sup>k</sup>: each new level makes the hits on the tail 8/3 times rarer.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var a = null, pts = [], timer = null, t0 = 0, spent = 0, done = false;
+  function lg(b) { var s = b.toString(); return s.length - 1 + Math.log10(+("0." + s.slice(0, 15)) * 10); }
+  function draw() {
+    var cv = $("ldb-c"), w = cv.clientWidth || 600, h = cv.clientHeight || 220, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var Lx = 34, B = h - 20, T = 8, R = w - 28, X = 380, Y = 900;
+    g.strokeStyle = L.css("--line"); g.fillStyle = L.css("--muted"); g.font = "10px " + L.css("--mono").split(",")[0];
+    for (var e = 0; e <= 380; e += 95) { var x = Lx + (R - Lx) * e / X; g.beginPath(); g.moveTo(x, T); g.lineTo(x, B); g.stroke(); g.fillText("10^" + e, x - 10, h - 6); }
+    for (var k = 0; k <= 900; k += 300) { var y = B - (B - T) * k / Y; g.beginPath(); g.moveTo(Lx, y); g.lineTo(R, y); g.stroke(); g.fillText(String(k), 4, y + 3); }
+    g.strokeStyle = L.css("--line-strong"); g.beginPath();
+    for (k = 0; k <= 900; k += 10) { var ex = k * Math.log10(8 / 3); x = Lx + (R - Lx) * ex / X; y = B - (B - T) * k / Y; if (k) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.stroke();
+    g.fillStyle = L.css("--accent");
+    pts.forEach(function (p) { g.fillRect(Lx + (R - Lx) * p[0] / X - 1, B - (B - T) * p[1] / Y - 1, 2, 2); });
+  }
+  function readout() {
+    $("ldb-h").textContent = L.fmtN(a.hits); $("ldb-u").textContent = a.unpeels;
+    $("ldb-l").textContent = a.allLevels().levels.length;
+    $("ldb-v").innerHTML = L.fmtBig(a.visits); $("ldb-s").innerHTML = L.fmtBig(a.steps);
+    $("ldb-t").textContent = ((spent + (timer ? Date.now() - t0 : 0)) / 1000).toFixed(1) + " s";
+  }
+  // py/accel.py last: small tapes with the final levels
+  function lastCheck(lv, tail) {
+    var ok = 0;
+    for (var trial = 0; trial < 8; trial++) {
+      var small = lv.map(function (l, i) { return [l[0], BigInt(1 + (i * 7 + trial * 3) % (2 + trial))]; });
+      var w = L.FRONT[L.CYC[small[0][0]][1]] + small.map(function (l) { return L.levelWord(l[0], l[1]); }).join("") + tail;
+      var r = L.visit(w), b = new L.Accel(L.FRONT[a.fatal[0]] + tail, 0, 0);
+      b.levels = small; b.fatal = a.fatal;
+      if (r.w === null && r.halt === "C" && r.pos === r.edge - 2 && BigInt(r.n + 1) === b.haltingStep()) ok++;
+    }
+    return ok;
+  }
+  function finish() {
+    var hs = a.haltingStep(), all = a.allLevels(), info = a.fatal[1];
+    var okS = hs.toString() === L.HALT_STEP, okV = a.visits.toString() === L.HALT_VISIT;
+    var out = "<b>The visit after visit number " + L.fmtBig(a.visits) + " does not come back.</b> " + all.levels.length + " levels, tail <code>" + L.fmt(all.tail) + "</code>; the machine halts in state " + info.halt + ", at step<br>" +
+      '<span style="word-break:break-all;font-family:var(--mono);font-size:12px">' + hs + "</span><br>" +
+      (okS ? '<span class="ld-ok">&#10003; the step of <code>halt_step</code>, digit for digit</span>' : '<span class="ld-bad">&#10007; differs from <code>halt_step</code></span>') + " &nbsp; " +
+      (okV ? '<span class="ld-ok">&#10003; the visit number of <code>halt.txt</code></span>' : '<span class="ld-bad">&#10007; another visit number</span>');
+    var ok = lastCheck(all.levels, all.tail);
+    out += "<br>The last visit on eight small tapes with these " + all.levels.length + " levels: " + (ok === 8 ? '<span class="ld-ok">&#10003; all eight halt in C, two cells left of the leftmost 1, after exactly the steps of the formula</span>' : '<span class="ld-bad">&#10007; ' + (8 - ok) + " of 8 differ</span>");
+    $("ldb-out").innerHTML = out;
+  }
+  function chunk() {
+    var end = Date.now() + 40;
+    try {
+      while (Date.now() < end) { a.step(); pts.push([lg(a.visits), a.allLevels().levels.length]); }
+    } catch (e) {
+      if (!(e instanceof L.Halt)) throw e;
+      done = true; spent += Date.now() - t0; timer = null; readout(); draw(); finish(); $("ldb-go").textContent = "Run again"; return;
+    }
+    readout(); draw();
+    timer = setTimeout(chunk, 0);
+  }
+  $("ldb-go").addEventListener("click", function () {
+    if (timer) return;
+    if (!a || done) { a = L.startAccel(0); pts = []; spent = 0; done = false; $("ldb-out").innerHTML = ""; }
+    $("ldb-go").textContent = "Running"; t0 = Date.now(); chunk();
+  });
+  $("ldb-stop").addEventListener("click", function () { if (timer) { clearTimeout(timer); timer = null; spent += Date.now() - t0; $("ldb-go").textContent = "Continue"; readout(); } });
+  L.onTheme(draw);
+  draw();
+})();
+</script>

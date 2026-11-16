@@ -1,0 +1,453 @@
+<style>
+:root{--ldf:#d2551f;--ldr1:#2a78d6;--ldr2:#1baf7a;--lds:#eda100;--ldr1p:#cde2fb;--ldr2p:#c9efe0;--ldsp:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--ldr1:#3987e5;--ldr2:#199e70;--lds:#c98500;--ldr1p:#1b3354;--ldr2p:#123a2b;--ldsp:#3d2c08} }
+:root[data-theme="dark"]{--ldr1:#3987e5;--ldr2:#199e70;--lds:#c98500;--ldr1p:#1b3354;--ldr2p:#123a2b;--ldsp:#3d2c08}
+.ld-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.ld-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ld-lv:hover{border-color:var(--accent)}
+.ld-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ld-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.ld-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.ld-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.ld-row:first-child{border-top:0}
+.ld-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ld-row .mono{overflow-wrap:anywhere}
+@media (max-width:560px){.ld-row{grid-template-columns:minmax(0,1fr)}}
+.ld-tape{display:block;width:100%;height:46px;margin-top:6px}
+.ld-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.ld-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.ld-ok{color:var(--kernel);font-weight:600}
+.ld-bad{color:var(--open);font-weight:600}
+.ld-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+.ld-word{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;margin-top:4px}
+.ld-word b{color:var(--ldf)} .ld-word i{font-style:normal;color:var(--ldr1)} .ld-word u{text-decoration:none;color:var(--lds);font-weight:600}
+.ld-tbl td,.ld-tbl th{padding:.25rem .55rem;font-size:.85rem}
+.ld-tbl td{font-family:var(--mono)}
+.else>div{overflow-wrap:anywhere}
+</style>
+<div class="col">
+<p>The question "does this machine halt, and when?" can be asked at four levels of description. Each level keeps
+less detail than the one above it and has a coarser unit of time, and each step down is a theorem saying that the
+lower level does exactly what the machine does. At the bottom, a function that keeps the ladder as numbers runs from
+the tape of visit 3,040 to the halting transition; that evaluation, with the theorems, is the proof (<a href="#bottomline">the bottom line</a>).</p>
+</div>
+<div class="ld-ladder">
+ <a class="ld-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">From blank tape to the halt: 1.27&middot;10<sup>758</sup> steps.</div></a>
+ <a class="ld-lv" href="#digit"><span class="n">Level 2</span><b class="t">Hits on a level</b>
+  <div class="u">At every second visit the tape is a front, levels <code>4^n s</code> and a tail. One unit is one <b>hit</b> (two visits); a level moves to the next of 16 positions, in 112n + c or 56n + c steps.</div>
+  <span class="ev k">Kernel</span> <span class="small">every hit, every n: <code>hit0</code> &hellip; <code>hit15</code></span></a>
+ <a class="ld-lv" href="#transparent"><span class="n">Level 3</span><b class="t">The ladder as an odometer</b>
+  <div class="u">Each level is two numbers, position and block count. One unit is any number <b>y of hits</b> at once on the whole ladder.</div>
+  <span class="ev k">Kernel</span> <span class="small">levels are transparent: <code>stack_run</code></span></a>
+ <a class="ld-lv" href="#fuel"><span class="n">Level 4</span><b class="t">The accelerated run</b>
+  <div class="u">The levels as numbers, only the front and the tail as cells. One unit is one <b>hit on the tail</b>: 3,539 of them from visit 3,040 to the halt.</div>
+  <span class="ev k">Kernel</span> <span class="small">the function is sound: <code>loop_sound</code></span></a>
+</div>
+<div class="col">
+<p>The two evaluations at the bottom, the plain run of the first 27,172,911 steps (<code>fsteps0</code>) and the
+accelerated run (<code>run0</code>), are done by Lean's compiled code (<code>native_decide</code>); everything above
+them is checked by the kernel. A Coq proof makes the same argument with its run checked by its kernel.</p>
+<h3>One moment, four descriptions</h3>
+<p>Pick a visit after the last reset. The browser runs the real machine from blank tape to that visit and reads
+its tape; separately it runs the accelerated model from visit 3,040, with every level kept as two numbers, to the
+same visit. The rows show the same instant at each level; the marks say whether the two computations agree.</p>
+</div>
+<div class="panel" id="ld-moment">
+ <div class="controls">
+  <button type="button" id="ldm-prev" aria-label="Two visits back">&#9664;</button>
+  <input type="range" class="ld-slider" id="ldm-n" min="3040" max="6000" step="2" value="3600" aria-label="Visit number">
+  <button type="button" id="ldm-next" aria-label="Two visits on">&#9654;</button>
+  <span class="small">visit <b id="ldm-lab">3,600</b></span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="ld-row"><span>1 &middot; Machine</span><div><span id="ldm-step"></span>
+   <canvas class="ld-tape" id="ldm-tape" aria-label="The tape at this visit, coloured by part"></canvas>
+   <div class="ld-key"><span><i style="background:var(--ldf)"></i>front and head</span><span><i style="background:var(--ldr1)"></i><i style="background:var(--ldr2)"></i>rungs of blocks, level by level</span><span><i style="background:var(--lds)"></i>separators</span><span><i style="background:var(--muted)"></i>tail</span><span>dark = 1, pale = 0</span></div></div></div>
+  <div class="ld-row"><span>2 &middot; Hits</span><div id="ldm-w"></div></div>
+  <div class="ld-row"><span>3 &middot; Ladder</span><div id="ldm-l"></div></div>
+  <div class="ld-row"><span>4 &middot; Accelerated</span><div id="ldm-a"></div></div>
+ </div>
+ <div class="cap">The tape is drawn left to right with the head at the right end. Visit 6,000 is 54.7 million steps in; the first time, the browser needs about a second to get there.</div>
+</div>
+<script>
+window.LD = (function () {
+  "use strict";
+  var TM = "1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB";
+  var NV, NS, NM;               // next state, write, move, by 2*state+read
+  NV = []; NS = []; NM = [];
+  TM.split("_").forEach(function (g, s) {
+    for (var r = 0; r < 2; r++) {
+      var q = g.substr(3 * r, 3), k = 2 * s + r;
+      if (q[0] === "-") { NS[k] = -1; NV[k] = 0; NM[k] = 0; } else { NV[k] = +q[0]; NM[k] = q[1] === "R" ? 1 : -1; NS[k] = q.charCodeAt(2) - 65; }
+    }
+  });
+  var SN = "ABCDEF";
+  var B0 = BigInt(0), B1 = BigInt(1), B16 = BigInt(16);
+
+  // ---------------------------------------------------------------- one right-end visit on a word (py/words.py, c/cvisit.c)
+  // A word: pairs read from the head leftwards, X = 0 1, Y = 1 1, Z = 1 0, O = 0 0 (cell nearer the head written last).
+  // visit(w, bnd): from the head in A on the blank cell right of the word to the next such moment.
+  // Returns {w (null on halt), n (steps; on halt the steps before the halting transition), sig, times, left, halt, pos, edge}.
+  var tape = new Uint8Array(1 << 16);
+  function visit(w, bnd, maxsteps) {
+    var L = w.length, RM = 4096, N = 2 * L + 8192, off = N - RM;
+    if (tape.length < N) tape = new Uint8Array(N * 2); else tape.fill(0, 0, N);
+    var t = tape;
+    for (var i = 0; i < L; i++) { var c = w.charCodeAt(i); t[off - 1 - 2 * i] = (c === 89 || c === 88) ? 1 : 0; t[off - 2 - 2 * i] = (c === 89 || c === 90) ? 1 : 0; }
+    var p = 0, maxw = -1, s = 0, n = 0, nl = 0, sig = "", times = [], ms = maxsteps || 1e11, b = bnd || 0;
+    for (;;) {
+      var k = 2 * s + t[off + p], s2 = NS[k];
+      if (s2 < 0) return { w: null, n: n, sig: sig, times: times, left: nl, halt: SN[s], pos: p, edge: -2 * L };
+      t[off + p] = NV[k]; if (p > maxw) maxw = p;
+      var p2 = p + NM[k];
+      if (b) {
+        if (p >= b && p2 < b) { sig += "<" + SN[s2]; times.push(n + 1); }
+        if (p < b && p2 >= b) { sig += ">" + SN[s2]; times.push(n + 1); }
+        if (p < b) nl++;
+      }
+      p = p2; s = s2; n++;
+      if (p < -off + 2 || p >= RM - 2) throw new Error("tape too short");
+      if (s === 0 && p > 0 && p > maxw) break;
+      if (n > ms) throw new Error("no visit");
+    }
+    var hi = p - 1, lo = -off, out = [];
+    while (lo < hi && !t[off + lo]) lo++;
+    for (i = hi; i >= lo; i -= 2) { var bb = t[off + i], a = i - 1 >= -off ? t[off + i - 1] : 0; out.push(a ? (bb ? "Y" : "Z") : (bb ? "X" : "O")); }
+    return { w: out.join(""), n: n, sig: sig, times: times, left: nl };
+  }
+  function d2w(d) { return d.map(function (x) { return "Y".repeat(x); }).join("X"); }
+  function w2d(w) { return w.split("X").map(function (x) { return x.length; }); }
+  function fmt(w) {
+    var d = w2d(w).join(" ") + " ";
+    d = d.replace(/((?:4 ){3,})/g, function (m) { return "4^" + m.length / 2 + " "; });
+    d = d.replace(/((?:0 3 ){3,})/g, function (m) { return "(0 3)^" + m.length / 4 + " "; });
+    return d.trim();
+  }
+  var FIRST = ["XY", 9];
+
+  // ---------------------------------------------------------------- the level table (py/accel.py)
+  var CYC = [["0 1 0 1", "H"], ["0 3 1", "V"], ["7 1", "H"], ["5 3", "V"], ["0 6", "H"], ["0 1 0 1", "V"], ["5 0 1", "H"],
+    ["7 1", "V"], ["0 1 3", "H"], ["0 6", "V"], ["10", "H"], ["5 0 1", "V"], ["0 3 1", "H"], ["0 1 3", "V"], ["5 3", "H"], ["10", "V"]];
+  var PASS = { 2: "H", 4: "V", 7: "H", 10: "V", 12: "H", 15: "V" };
+  var INC = { 3: 1, 7: 1, 11: 1, 15: 1 };
+  var POS = {}; CYC.forEach(function (c, i) { POS[c[0] + "|" + c[1]] = i; });
+  var SEPW = {}; CYC.forEach(function (c) { SEPW[c[0]] = d2w(c[0].split(" ").map(Number)) + "X"; });
+  var FRONT = { H: "YYXYX", V: "YYYYYX" }, OTHER = { H: "V", V: "H" };
+  var SIG = { H: "<C>E<E>F<B>E<C>A<D>E", V: "<C>E" }, BLOCK = "YYYYX";
+  var LA = [], LB = [21, 5, 168, 45, 88, 5, 77, 136, 21, 5, 144, 45, 112, 5, 77, 112];
+  for (var p = 0; p < 16; p++) LA[p] = CYC[p][1] === "H" ? 112 : 56;
+  var FC = { H: 107, V: 83 };
+  var PART = { "2,1": [24, 48, 1], "2,2": [24, 91, 1], "2,3": [24, 92, 1], "2,4": [24, 95, 1], "2,5": [24, 98, 1],
+    "4,1": [80, 49, 4], "7,1": [24, 48, 1], "7,2": [24, 91, 1], "7,3": [24, 92, 1], "7,4": [24, 95, 1], "7,5": [24, 98, 1],
+    "10,1": [24, 60, 1], "12,1": [80, 37, 4], "12,2": [80, 80, 4], "12,3": [80, 81, 4], "12,4": [80, 84, 4], "12,5": [80, 87, 4], "15,1": [24, 60, 1] };
+  var FP = { H: [23, 66, 67, 70, 73], V: [35] };
+  function big(x) { return typeof x === "bigint" ? x : BigInt(x); }
+  // a level at (pos, n) after y hits
+  function adv(pos, n, y) {
+    y = big(y); n = big(n);
+    var q = y / B16, r = Number(y % B16);
+    n += BigInt(4) * q;
+    for (var i = 0; i < r; i++) { if (INC[pos]) n += B1; pos = (pos + 1) % 16; }
+    return [pos, n];
+  }
+  // hits passed on by a level at pos during its next y hits
+  function passes(pos, y) {
+    y = big(y);
+    var q = y / B16, r = Number(y % B16), x = BigInt(6) * q;
+    for (var i = 0; i < r; i++) { if (pos in PASS) x += B1; pos = (pos + 1) % 16; }
+    return x;
+  }
+  // the hits a level at pos must get until it has passed on x of them
+  function need(pos, x) {
+    x = big(x);
+    if (x === B0) return B0;
+    var q = (x - B1) / BigInt(6), r = Number((x - B1) % BigInt(6)) + 1, y = B16 * q;
+    while (r) { if (pos in PASS) r--; pos = (pos + 1) % 16; y += B1; }
+    return y;
+  }
+  // steps made inside a level at (pos, n) during its next y hits
+  function lcost(pos, n, y) {
+    y = big(y); n = big(n);
+    var q = y / B16, r = Number(y % B16), tot = B0, p, i;
+    if (q > B0) {
+      var d = 0, inc = 0; p = pos;
+      for (i = 0; i < 16; i++) { d += LA[p] * inc + LB[p]; if (INC[p]) inc++; p = (p + 1) % 16; }
+      tot = q * (BigInt(1344) * n + BigInt(d)) + BigInt(1344 * 4) * (q * (q - B1) / BigInt(2));
+      n += BigInt(4) * q;
+    }
+    p = pos;
+    for (i = 0; i < r; i++) { tot += BigInt(LA[p]) * n + BigInt(LB[p]); if (INC[p]) n += B1; p = (p + 1) % 16; }
+    return tot;
+  }
+  function ftype(w) {
+    if (w.lastIndexOf(FRONT.H, 0) === 0) return ["H", w.slice(5)];
+    if (w.lastIndexOf(FRONT.V, 0) === 0) return ["V", w.slice(6)];
+    return [null, null];
+  }
+  function nextPass(pos) { while (!(pos in PASS)) pos = (pos + 1) % 16; return pos; }
+  var SEPS = Object.keys(SEPW);
+  function tryPeel(rest) {
+    var n = 0;
+    while (rest.substr(5 * n, 5) === BLOCK) n++;
+    if (!n) return null;
+    var r = rest.slice(5 * n);
+    for (var i = 0; i < SEPS.length; i++) if (r.lastIndexOf(SEPW[SEPS[i]], 0) === 0) return [n, SEPS[i], r.slice(SEPW[SEPS[i]].length)];
+    return null;
+  }
+  // the levels readable at the start of a word: [[pos, n]], the kind of hit the tail gets next, the tail
+  function parseWord(w) {
+    var f = ftype(w), t = f[0], rest = f[1], out = [];
+    while (t) {
+      var pr = tryPeel(rest);
+      if (!pr) break;
+      rest = pr[2];
+      var pos = POS[pr[1] + "|" + t];
+      out.push([pos, BigInt(pr[0])]);
+      t = PASS[nextPass(pos)];
+    }
+    return { front: f[0], levels: out, next: t, tail: rest };
+  }
+  function levelWord(pos, n) { return BLOCK.repeat(Number(n)) + SEPW[CYC[pos][0]]; }
+
+  // ---------------------------------------------------------------- the accelerated run (Accel of py/accel.py)
+  function Halt() {}
+  function Accel(word, visits, steps, defer) {
+    this.levels = []; this.R = word; this.visits = big(visits); this.steps = big(steps);
+    this.hits = 0; this.unpeels = 0; this.defer = defer || 0; this.fatal = null; this.tailSteps = 0;
+  }
+  Accel.prototype.parse = function () { return parseWord(this.R); };
+  Accel.prototype.allLevels = function () {
+    var p = this.parse();
+    return { levels: this.levels.map(function (x) { return [x[0], x[1]]; }).concat(p.levels), tail: p.tail };
+  };
+  Accel.prototype.peel = function () {
+    var p = this.parse(), lv = p.levels, k = lv.length - this.defer;
+    if (k <= 0) return;
+    for (var i = 0; i < k; i++) this.levels.push([lv[i][0], lv[i][1]]);
+    var rest = "";
+    for (i = k; i < lv.length; i++) rest += levelWord(lv[i][0], lv[i][1]);
+    this.R = FRONT[PASS[nextPass(lv[k - 1][0])]] + rest + p.tail;
+  };
+  // the front's steps for e hits starting with the kind of the outermost level (or the front itself)
+  Accel.prototype.frontCost = function (e, kind) {
+    var nh = kind === "H" ? (e + B1) / BigInt(2) : e / BigInt(2);
+    return BigInt(FC.H) * nh + BigInt(FC.V) * (e - nh);
+  };
+  // move every peeled level on until the next hit reaches the reduced word
+  Accel.prototype.ready = function () {
+    var e = B0;
+    for (var k = this.levels.length - 1; k >= 0; k--) {
+      var p0 = this.levels[k][0], n0 = this.levels[k][1], y = need(p0, e), a = adv(p0, n0, y);
+      var d = nextPass(a[0]) - a[0]; if (d < 0) d += 16;
+      this.levels[k] = adv(a[0], a[1], d);
+      e = y + BigInt(d);
+      this.steps += lcost(p0, n0, e);
+      if (k === 0) this.steps += this.frontCost(e, CYC[p0][1]);
+    }
+    this.visits += BigInt(2) * e;
+  };
+  // y hits from the front that do not reach the reduced word (y no more than ready() would make)
+  Accel.prototype.advance = function (y) {
+    y = big(y);
+    var e = y;
+    if (this.levels.length) this.steps += this.frontCost(y, CYC[this.levels[0][0]][1]);
+    for (var k = 0; k < this.levels.length; k++) {
+      var p0 = this.levels[k][0], n0 = this.levels[k][1];
+      this.steps += lcost(p0, n0, e);
+      var x = passes(p0, e);
+      this.levels[k] = adv(p0, n0, e);
+      e = x;
+    }
+    if (e !== B0) throw new Error("advance reached the reduced word");
+    this.visits += BigInt(2) * y;
+  };
+  // the hits until the next one reaches the reduced word
+  Accel.prototype.untilTail = function () {
+    var e = B0;
+    for (var k = this.levels.length - 1; k >= 0; k--) {
+      var p0 = this.levels[k][0], y = need(p0, e), a = adv(p0, this.levels[k][1], y);
+      var d = nextPass(a[0]) - a[0]; if (d < 0) d += 16;
+      e = y + BigInt(d);
+    }
+    return e;
+  };
+  Accel.prototype.hit = function () {
+    this.ready();
+    var f = ftype(this.R), t = f[0];
+    var r1 = visit(this.R, -2 * FRONT[t].length);
+    if (r1.w === null) { this.fatal = [t, r1]; throw new Halt(); }
+    if (r1.sig !== SIG[t]) return ["irregular", t, r1.sig];
+    var r2 = visit(r1.w);
+    if (r2.n !== 8 || ftype(r2.w)[0] !== OTHER[t] || r1.n - r1.left + r2.n !== FC[t]) throw new Error("front");
+    this.steps += BigInt(r1.left + FC[this.levels.length ? CYC[this.levels[0][0]][1] : t]);
+    this.tailSteps = r1.left;
+    for (var i = 0; i < this.levels.length; i++) {
+      var lev = this.levels[i];
+      this.steps += BigInt(LA[lev[0]]) * lev[1] + BigInt(LB[lev[0]]);
+      this.levels[i] = adv(lev[0], lev[1], 1);
+    }
+    this.visits += BigInt(2); this.hits++; this.R = r2.w;
+    return null;
+  };
+  Accel.prototype.unpeel = function () {
+    var l = this.levels.pop(), f = ftype(this.R);
+    this.unpeels++;
+    if (!(l[0] in PASS) || PASS[l[0]] !== f[0]) throw new Error("unpeel");
+    this.R = FRONT[CYC[l[0]][1]] + levelWord(l[0], l[1]) + f[1];
+  };
+  // to the state after the next hit on the reduced word; returns the number of levels put back on the way
+  Accel.prototype.step = function () {
+    this.peel();
+    var u = 0;
+    for (;;) {
+      var r = this.hit();
+      if (r === null) return u;
+      if (!this.levels.length) throw new Error("irregular hit with nothing peeled");
+      this.unpeel(); u++;
+    }
+  };
+  // after the halt: the step of the halting transition (bbchallenge count)
+  Accel.prototype.haltingStep = function () {
+    var t = this.fatal[0], info = this.fatal[1], k = (info.sig.match(/</g) || []).length, tot = BigInt(info.left);
+    for (var i = this.levels.length - 1; i >= 0; i--) {
+      var pt = PART[this.levels[i][0] + "," + k];
+      tot += BigInt(pt[0]) * this.levels[i][1] + BigInt(pt[1]); k = pt[2];
+    }
+    tot += BigInt(FP[this.levels.length ? CYC[this.levels[0][0]][1] : t][k - 1]);
+    return this.steps + tot + B1;
+  };
+  Accel.prototype.copy = function () {
+    var a = new Accel(this.R, this.visits, this.steps, this.defer);
+    a.levels = this.levels.map(function (x) { return [x[0], x[1]]; }); a.hits = this.hits; a.unpeels = this.unpeels;
+    return a;
+  };
+
+  // ---------------------------------------------------------------- the direct run, visit by visit, with snapshots
+  function Direct() { this.w = FIRST[0]; this.v = 1; this.k = FIRST[1]; this.snaps = [[1, FIRST[0], FIRST[1]]]; }
+  Direct.prototype.to = function (v) {
+    if (v < this.v) {
+      var s = this.snaps[0];
+      for (var i = 0; i < this.snaps.length; i++) if (this.snaps[i][0] <= v) s = this.snaps[i];
+      this.v = s[0]; this.w = s[1]; this.k = s[2];
+    }
+    while (this.v < v) {
+      var r = visit(this.w);
+      this.w = r.w; this.k += r.n; this.v++;
+      if (this.v % 100 === 0 && this.snaps[this.snaps.length - 1][0] < this.v) this.snaps.push([this.v, this.w, this.k]);
+    }
+    return this;
+  };
+  var SH = null;
+  // one direct run shared by the panels of the page (each reads it right after moving it)
+  function shared() { if (!SH) SH = new Direct(); return SH; }
+  var START = 3040;
+  // the run from blank tape to visit 3,040 (after the reset of visit 3,006), then the accelerated run
+  function startAccel(defer) { var d = shared().to(START); return new Accel(d.w, START, d.k, defer); }
+  var HALT_STEP = "127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686";
+  var HALT_VISIT = "6457109013376761952964397678097307615669340968993585759245814706743742046125940261247241066403890938492170138345021775414788657246855473619762555399924006808185668177937261822888303321241424388506815212830693515134376015491900870498530843289643797903974663993452480048769041949957161985409468353341199468784692405027220745645833011312600661412072060494393516371733163287212276888";
+
+  function fmtN(x) { return Number(x).toLocaleString("en-US"); }
+  function fmtBig(x) {
+    var s = x.toString();
+    if (s.length <= 15) return Number(s).toLocaleString("en-US");
+    return s[0] + "." + s.slice(1, 4) + "·10<sup>" + (s.length - 1) + "</sup>";
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    window.addEventListener("resize", f);
+  }
+  return { TM: TM, visit: visit, d2w: d2w, w2d: w2d, fmt: fmt, FIRST: FIRST, CYC: CYC, PASS: PASS, INC: INC, SEPW: SEPW,
+    FRONT: FRONT, OTHER: OTHER, SIG: SIG, BLOCK: BLOCK, LA: LA, LB: LB, FC: FC, adv: adv, passes: passes, need: need,
+    lcost: lcost, ftype: ftype, nextPass: nextPass, parseWord: parseWord, levelWord: levelWord, Accel: Accel, Halt: Halt,
+    Direct: Direct, shared: shared, START: START, startAccel: startAccel, HALT_STEP: HALT_STEP, HALT_VISIT: HALT_VISIT,
+    fmtN: fmtN, fmtBig: fmtBig, css: css, onTheme: onTheme, big: big };
+})();
+
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var sl = $("ldm-n"), cv = $("ldm-tape"), direct = null, states = null, lastW = null;
+  function init() {
+    direct = L.shared().to(L.START);
+    var m = new L.Accel(direct.w, L.START, direct.k, 0);
+    states = [m.copy()];
+    try { while (Number(m.visits) < 6000) { m.step(); states.push(m.copy()); } } catch (e) {}
+  }
+  function modelAt(v) {
+    var i = states.length - 1;
+    while (i > 0 && Number(states[i].visits) > v) i--;
+    var c = states[i].copy(); c.peel();
+    var y = (v - Number(c.visits)) / 2;
+    if (y > Number(c.untilTail())) return null;
+    c.advance(y);
+    return c;
+  }
+  function wordHtml(w) {
+    var p = L.parseWord(w), out = [];
+    if (!p.front) return L.fmt(w);
+    out.push("<b>" + (p.front === "H" ? "2 1" : "5") + "</b>");
+    p.levels.forEach(function (l) { out.push("<i>4^" + l[1] + "</i> <u>" + L.CYC[l[0]][0] + "</u>"); });
+    if (p.tail) out.push(L.fmt(p.tail));
+    return out.join(" &nbsp;");
+  }
+  function draw(w) {
+    var p = L.parseWord(w), n = w.length;
+    var W = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, h);
+    var cw = W / (2 * n + 1), y0 = 8, ch = h - 16;
+    var cls = [], i, k = 0, fl = p.front === "H" ? 5 : p.front === "V" ? 6 : 0;
+    for (i = 0; i < fl; i++) cls.push("f");
+    p.levels.forEach(function (l, j) {
+      var nb = 5 * Number(l[1]), ns = L.SEPW[L.CYC[l[0]][0]].length;
+      for (var a = 0; a < nb; a++) cls.push(j % 2 ? "r2" : "r1");
+      for (a = 0; a < ns; a++) cls.push("s");
+    });
+    while (cls.length < n) cls.push("t");
+    var col = { f: ["--ldf", "--sunk"], r1: ["--ldr1", "--ldr1p"], r2: ["--ldr2", "--ldr2p"], s: ["--lds", "--ldsp"], t: ["--muted", "--sunk"] }, cc = {};
+    Object.keys(col).forEach(function (key) { cc[key] = [L.css(col[key][0]), L.css(col[key][1])]; });
+    // pair q (q = 0 next to the head) covers cells 2n-2q-2 (far) and 2n-2q-1 (near), left to right
+    for (var q = 0; q < n; q++) {
+      var ch2 = w[q], far = (ch2 === "Y" || ch2 === "Z") ? 1 : 0, near = (ch2 === "Y" || ch2 === "X") ? 1 : 0, c = cc[cls[q]];
+      var x = (2 * n - 2 * q - 2) * cw;
+      g.fillStyle = far ? c[0] : c[1]; g.fillRect(x, y0, Math.max(cw - (cw > 4 ? 1 : 0), .4), ch);
+      g.fillStyle = near ? c[0] : c[1]; g.fillRect(x + cw, y0, Math.max(cw - (cw > 4 ? 1 : 0), .4), ch);
+    }
+    g.fillStyle = L.css("--head"); g.fillRect(2 * n * cw, y0 - 4, Math.max(cw, 2), ch + 8);
+  }
+  function show() {
+    var v = +sl.value;
+    $("ldm-lab").textContent = L.fmtN(v);
+    if (!direct) init();
+    direct.to(v);
+    var w = direct.w, k = direct.k, p = L.parseWord(w), hit = (v - L.START) / 2;
+    lastW = w;
+    $("ldm-step").innerHTML = "step " + L.fmtN(k) + " of the run from blank tape; " + L.fmtN(2 * w.length) + " cells from the left end of the tape to the head";
+    draw(w);
+    $("ldm-w").innerHTML = "the word in digits, front first (it is read from the head leftwards):<div class=\"ld-word\">" + wordHtml(w) + "</div>" +
+      "front <code>" + (p.front === "H" ? "2 1" : "5") + "</code>: the next visit makes " + (p.front === "H" ? "an H-hit" : "a V-hit") + ", the one after it is the 8-step bounce. Hit " + L.fmtN(hit) + " after visit 3,040.";
+    var c = modelAt(v), A = c ? c.allLevels() : null;
+    var same = A && A.tail === p.tail && A.levels.length === p.levels.length && A.levels.every(function (l, j) { return l[0] === p.levels[j][0] && l[1] === p.levels[j][1]; });
+    var rows = p.levels.map(function (l, j) {
+      var pos = l[0];
+      return "<tr><td>" + (j + 1) + "</td><td>" + pos + "</td><td>" + L.CYC[pos][0] + "</td><td>" + L.CYC[pos][1] + "</td><td>" + l[1] + "</td><td>" + (pos in L.PASS ? "passes on " + L.PASS[pos] : "absorbs") + "</td></tr>";
+    }).join("");
+    $("ldm-l").innerHTML = '<div class="tw" style="margin:0"><table class="ld-tbl"><thead><tr><th>level</th><th>position</th><th>separator</th><th>next hit</th><th>blocks n</th><th>that hit</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      (same ? '<span class="ld-ok">&#10003; the model, which only moved these numbers by the table, has the same levels and the same tail</span>' : '<span class="ld-bad">&#10007; the model differs</span>');
+    if (c) {
+      var e = c.untilTail();
+      $("ldm-a").innerHTML = c.levels.length + " levels kept as numbers; the cells it simulates are the front and the tail, " + L.fmtN(c.R.length) + " pairs. The next hit that reaches the tail is " + L.fmtN(Number(e) + 1) + " hits away. Steps counted by the formulas: " + L.fmtN(Number(c.steps)) +
+        (c.steps === BigInt(k) ? ' <span class="ld-ok">&#10003; the step count of the machine</span>' : ' <span class="ld-bad">&#10007; not the machine&rsquo;s step count</span>');
+    } else $("ldm-a").textContent = "";
+  }
+  sl.addEventListener("input", show);
+  $("ldm-prev").addEventListener("click", function () { sl.value = Math.max(+sl.min, +sl.value - 2); show(); });
+  $("ldm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 2); show(); });
+  L.onTheme(function () { if (lastW) draw(lastW); });
+  show();
+})();
+</script>

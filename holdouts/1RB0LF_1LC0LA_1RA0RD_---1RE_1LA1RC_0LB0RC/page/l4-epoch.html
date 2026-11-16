@@ -1,0 +1,180 @@
+<div class="col">
+<p>Round trips need k ≥ 1. When k reaches 0 (a = 4) the countdown cannot go on. What happens next has three parts,
+and Lean checks them together as one <b>end case</b> per template. We call the stretch between two such events an
+<b>epoch</b>.</p>
+<ol>
+<li><b>The reset</b> (three returns to the left end). The last 4 copies of <code>01</code> in a are used up and the
+short word in front of b is rewritten. The old b ends up first in the list, with a few more copies. In the example
+below the new a is 724 + 6 = 730.</li>
+<li><b>The transient</b> (up to about 145 round trips). Each trip still takes 3 from the new a, as before. But the
+tail of the list is in disorder after the reset, so it does not yet follow any of the 62 templates. The new b
+starts small and grows. Now and then two pieces of the tail merge.</li>
+<li><b>Settling.</b> The tail falls into one of the four regimes, and the tape is a template again:
+<code>endT t</code>, with a new k that is large and a new j that is small.</li>
+</ol>
+<p>Lean proves, for each template t and every j: from template t with numbers (0, j + 200), the machine reaches the
+template <code>endT t</code> with numbers (j + endC1, endC2). These are the 62 end cases, checked together as
+<code>ends_ok</code>: runs of the symbolic checker of 4,200 to 127,000 moves each, 2.5 million in all, evaluated by
+compiled code because the kernel runs out of memory on runs this long. <span class="ev n">native_decide</span>
+That is the step from level 3 to level 4: an epoch is k round trips followed by one end case, and at level 4 the
+whole epoch is one move, from (t, k, j) to (endT t′, …) where t′ is the template reached at k = 0.</p>
+</div>
+<div class="col"><p><b>The first epoch end of the proof, in the real run.</b> At step 1,908,405 the tape is template
+R1_10 with k = 0 and j = 239 (a = 4, b = 724). The proof's end case for R1_10 says the run reaches R1_16 with
+k = (239 − 200) + 81 = 120 and j = 259. Below, the browser runs the machine through it, from that step to step
+4,054,968. The slider moves through every moment at which the head is back at the left end. The chart shows a
+(blue) and b (green) at each of those moments.</p></div>
+<div class="panel">
+<svg class="pw-chart" id="pw-ep1chart" viewBox="0 0 760 240" role="img" aria-label="a and b at each left-end moment during the first epoch end"></svg>
+<div class="controls"><label class="small" for="pw-ep1">Moment</label><input type="range" id="pw-ep1" min="0" max="1" value="0" style="flex:1;min-width:140px"><button type="button" id="pw-ep1prev" aria-label="Previous moment">&#9664;</button><button type="button" id="pw-ep1next" aria-label="Next moment">&#9654;</button><button type="button" id="pw-ep1play" class="primary">Play</button></div>
+<div class="small" id="pw-ep1cap"></div>
+<div class="pw-strip" id="pw-ep1strip"></div>
+</div>
+<div class="col"><p><b>The reset, moment by moment.</b> The four left-end moments from step 1,908,405 to step
+1,946,128, as lists. Blue is the first count, green the second.</p></div>
+<div class="panel" id="pw-resetbox"></div>
+<div class="col">
+<p><b>Why "j + 200".</b> During the transient the new a, which comes from the old b, still loses 3 every round trip.
+It must not run out before the tail has settled, or the end case would be a different computation. The symbolic
+checker cannot ask whether a count is zero, so it needs a guarantee up front. The end cases are stated for an old b
+of at least 3 · 200 + β copies (j ≥ 200). The longest transient takes under 150 round trips, so it uses fewer than
+450 of those copies. The potential (level 5) shows that j is always at least 200 when an epoch ends.</p>
+<p>The first button runs all 62 end cases on the plain machine at the smallest size the proof allows (j = 200
+exactly), and checks that each reaches its predicted template cell for cell. The second runs them on the
+shift-rule simulator at any j you choose. These are independent checks of the claims behind <code>ends_ok</code>,
+at one size each; Lean's check covers every size. The chart shows how many left-end moments each end case
+takes.</p>
+</div>
+<div class="panel"><div class="controls"><button type="button" class="primary" id="pw-transgo">Run the 62 end cases at j = 200</button>
+<label class="small" for="z6e-j">or at j =</label><input type="text" id="z6e-j" value="1000000" inputmode="numeric" style="width:9em" spellcheck="false" autocomplete="off"><button type="button" id="z6e-go">Run with shift rules</button></div>
+<div class="small" id="pw-transcap" aria-live="polite"></div>
+<svg class="pw-chart" id="pw-trans" viewBox="0 0 760 220" role="img" aria-label="Number of left-end moments per end case"></svg></div>
+<div class="col"><p><b>Epoch after epoch.</b> In a round trip b grows by roughly 2.2 for every 1 that a loses, and at
+the reset b becomes the new a. So each epoch is about twice as long as the one before. The chart shows the first
+number a at the start of each epoch, read off the certificate's tables starting from the template the run reaches
+at step 1,277,431 (log scale).</p></div>
+<div class="panel"><svg class="pw-chart" id="pw-epochs" viewBox="0 0 760 260" role="img" aria-label="First count a at the start of each epoch, log scale"></svg><div class="cap small" id="pw-epcap"></div></div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, D = Z.D, $ = function (i) { return document.getElementById(i); }, NS = "http://www.w3.org/2000/svg";
+  function mk(svg, tag, at, txt) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt !== undefined) e.textContent = txt; svg.appendChild(e); return e; }
+  function axisLog(svg, x0, x1, y0, y1, lo, hi, xlab) {
+    var L = Math.log10, Y = function (v) { return y1 - (L(v) - L(lo)) / (L(hi) - L(lo)) * (y1 - y0); };
+    for (var e = Math.ceil(L(lo)); e <= Math.floor(L(hi)); e++) {
+      var y = Y(Math.pow(10, e));
+      mk(svg, "line", { x1: x0, x2: x1, y1: y, y2: y, stroke: "var(--line)" });
+      mk(svg, "text", { x: x0 - 6, y: y + 4, "text-anchor": "end" }, "10^" + e);
+    }
+    mk(svg, "text", { x: (x0 + x1) / 2, y: y1 + 30, "text-anchor": "middle" }, xlab);
+    return Y;
+  }
+  function ab(l) { return l[0] === "00" && typeof l[1] === "number" ? [l[1], l[2] === "000" && typeof l[3] === "number" ? l[3] : null] : [null, null]; }
+  // every left-end moment from blank tape to step 4,054,968
+  var LOG = [];
+  new Z.Machine("", 0).run(4054968, function (c) { var l = Z.parse(c.fromHead()), x = ab(l); LOG.push({ n: c.n, l: l, a: x[0], b: x[1], tp: Z.whichTpl(l) }); });
+  var RESETS = []; LOG.forEach(function (m, i) { if (i && m.a && LOG[i - 1].a && m.a > LOG[i - 1].a + 1) RESETS.push(i); });
+  function lineChart(svg, ms, opts) {
+    svg.textContent = "";
+    var x0 = 60, x1 = 740, y0 = 12, y1 = opts.h || 200, vals = [];
+    ms.forEach(function (m) { if (m.a) vals.push(m.a); if (m.b) vals.push(m.b); });
+    var hi = Math.max.apply(null, vals) * 1.6, Y = axisLog(svg, x0, x1, y0, y1, opts.lo || 1, hi, opts.xlab), X = function (i) { return x0 + i / (ms.length - 1) * (x1 - x0); };
+    (opts.bands || []).forEach(function (B) {
+      var r = document.createElementNS(NS, "rect"); r.setAttribute("x", X(B[0])); r.setAttribute("width", Math.max(2, X(B[1]) - X(B[0]))); r.setAttribute("y", y0); r.setAttribute("height", y1 - y0); r.setAttribute("fill", "var(--native-bg)");
+      svg.insertBefore(r, svg.firstChild);
+      mk(svg, "text", { x: X(B[0]) + 4, y: y0 + 12 }, B[2]);
+    });
+    [["a", "var(--accent)"], ["b", "var(--kernel)"]].forEach(function (P) {
+      var d = ""; ms.forEach(function (m, i) { if (m[P[0]]) d += (d && ms[i - 1] && ms[i - 1][P[0]] ? "L" : "M") + X(i).toFixed(1) + "," + Y(m[P[0]]).toFixed(1); });
+      mk(svg, "path", { d: d, fill: "none", stroke: P[1], "stroke-width": "1.6" });
+    });
+    (opts.marks || []).forEach(function (M) {
+      mk(svg, "line", { x1: X(M[0]), x2: X(M[0]), y1: y0, y2: y1, stroke: M[1], "stroke-dasharray": "4 3" });
+      if (M[2]) mk(svg, "text", { x: X(M[0]) - 4, y: y1 - 6, fill: M[1], "text-anchor": "end" }, M[2]);
+    });
+    (opts.dots || []).forEach(function (i) { mk(svg, "circle", { cx: X(i), cy: Y(ms[i].a), r: 3.5, fill: "var(--accent)" }); });
+    var cur = mk(svg, "line", { y1: y0, y2: y1, stroke: "var(--head)", "stroke-width": "2" });
+    return function (i) { cur.setAttribute("x1", X(i)); cur.setAttribute("x2", X(i)); };
+  }
+  function scrubber(pre, ms, chart, capfn) {
+    var rng = $(pre), timer = null, st = $(pre + "strip"); rng.max = ms.length - 1;
+    function show() { var i = +rng.value, m = ms[i]; chart(i); Z.strip(st, m.l); $(pre + "cap").innerHTML = capfn(m, i); }
+    rng.oninput = show;
+    $(pre + "prev").onclick = function () { rng.value = Math.max(0, +rng.value - 1); show(); };
+    $(pre + "next").onclick = function () { rng.value = Math.min(ms.length - 1, +rng.value + 1); show(); };
+    $(pre + "play").onclick = function () {
+      if (timer) { clearInterval(timer); timer = null; this.textContent = "Play"; return; }
+      var btn = this; btn.textContent = "Pause"; if (+rng.value >= ms.length - 1) rng.value = 0;
+      timer = setInterval(function () { if (+rng.value >= ms.length - 1) { clearInterval(timer); timer = null; btn.textContent = "Play"; return; } rng.value = +rng.value + 1; show(); }, 180);
+    };
+    return show;
+  }
+  function mcap(m) {
+    return "step " + Z.fmt(m.n) + (m.a ? "; a = " + m.a : "") + (m.b ? ", b = " + m.b : "") + ". " +
+      (m.tp ? '<span class="pw-ok">Template ' + Z.name(m.tp[0]) + " with k = " + m.tp[1] + ", j = " + m.tp[2] + ".</span>" : "Not a template.");
+  }
+  Z.ep = { LOG: LOG, RESETS: RESETS, lineChart: lineChart, scrubber: scrubber, mcap: mcap, axisLog: axisLog, mk: mk };
+  // the first epoch end of the proof
+  var i0 = LOG.findIndex(function (m) { return m.n === 1908405; }), ms = LOG.slice(i0), ir = ms.findIndex(function (m) { return m.n === 1946128; });
+  var ch = lineChart($("pw-ep1chart"), ms, { xlab: "left-end moment, from step 1,908,405 to step 4,054,968", lo: 3, bands: [[0, ir, "reset"]], marks: [[ms.length - 1, "var(--kernel)", "R1_16"]] });
+  var last = ms[ms.length - 1], endOK = last.tp && last.tp.join() === [31, 120, 259].join();
+  scrubber("pw-ep1", ms, ch, function (m, i) {
+    return mcap(m) + (i === 0 ? " The countdown is over: a = 4." : i <= ir ? " The reset." : i < ms.length - 1 ? " Transient: round trip " + (i - ir) + " since the reset." :
+      (endOK ? ' <span class="pw-ok">&#10003; The end case’s target, exactly as Lean predicts.</span>' : ' <span class="pw-bad">Not the predicted target.</span>'));
+  })();
+  var RC = ["The countdown is over: a = 4 (k = 0). This is template R1_10 with j = 239.",
+            "One round trip later the last copies of a are gone. A short word 0001000 is first, and b has 727 copies.",
+            "43 steps later the head is back: the short word is now 00, 3 copies of 01, and 11.",
+            "One more round trip and those pieces are absorbed. The old b is now first: a = 730 = 724 + 6. A new, short b (7 copies) has started, and the transient begins."];
+  var box = $("pw-resetbox");
+  ms.slice(0, ir + 1).forEach(function (m, q) {
+    var d = document.createElement("div"); d.className = "small"; d.style.marginTop = q ? "14px" : "0"; d.innerHTML = "<b>step " + Z.fmt(m.n) + ".</b> " + RC[q]; box.appendChild(d);
+    var st = document.createElement("div"); st.className = "pw-strip"; box.appendChild(st); Z.strip(st, m.l);
+  });
+  // the 62 end cases
+  function drawTrans(res, label) {
+    var svg = $("pw-trans"); svg.textContent = "";
+    var x0 = 50, x1 = 740, y0 = 10, y1 = 180, mx = Math.max.apply(null, res.map(function (r) { return r[0]; })), bw = (x1 - x0) / 62;
+    for (var v = 0; v <= mx; v += 50) { var y = y1 - v / mx * (y1 - y0); mk(svg, "line", { x1: x0, x2: x1, y1: y, y2: y, stroke: "var(--line)" }); mk(svg, "text", { x: x0 - 6, y: y + 4, "text-anchor": "end" }, v); }
+    res.forEach(function (r, i) { mk(svg, "rect", { x: x0 + i * bw + 1, width: bw - 2, y: y1 - r[0] / mx * (y1 - y0), height: r[0] / mx * (y1 - y0), fill: r[1] ? "var(--native)" : "var(--open)" }); });
+    mk(svg, "text", { x: (x0 + x1) / 2, y: y1 + 30, "text-anchor": "middle" }, "template R0_0 … R3_8: left-end moments until the predicted template");
+    var ok = res.filter(function (r) { return r[1]; }).length;
+    $("pw-transcap").innerHTML = (ok === 62 ? '<span class="pw-ok">&#10003; All 62 end cases reach exactly the predicted template' + label + ".</span>" : '<span class="pw-bad">' + (62 - ok) + " did not match.</span>") +
+      " Longest: " + mx + " left-end moments and " + Z.fmt(Math.max.apply(null, res.map(function (r) { return r[2]; }))) + " steps" + (res[0][3] !== undefined ? "; " + Z.fmt(res.reduce(function (s, r) { return s + r[3]; }, 0)) + " moves in all" : "") + ".";
+  }
+  function runAll(plain, j) {
+    var b1 = $("pw-transgo"), b2 = $("z6e-go"); b1.disabled = b2.disabled = true;
+    var res = [], t = 0, t0 = performance.now();
+    function one() {
+      var want = Z.tplList(D.endT[t], j - 200 + D.endC1[t], D.endC2[t]), mom = 0, hit = false;
+      if (plain) {
+        var c = new Z.Machine(Z.tplStr(t, 0, j), 1), ws = Z.unparse(want);
+        c.run(4e6, function (c) { mom++; if (c.fromHead() === ws) { hit = true; return false; } });
+        res.push([mom, hit, c.n]);
+      } else {
+        var f = new Z.Fast(Z.tplList(t, 0, j), 1);
+        while (f.moves < 3e6) { if (f.toLeftEnd(1e6) !== "left") break; mom++; if (Z.listEq(f.list(), want)) { hit = true; break; } }
+        res.push([mom, hit, f.steps, f.moves]);
+      }
+      t++; $("pw-transcap").textContent = "end case " + t + " of 62 …";
+      if (t < 62) { setTimeout(one, 0); return; }
+      drawTrans(res, " (j = " + Z.fmt(j) + ", " + (plain ? "plain machine" : "shift-rule simulator") + ", " + Z.fmt(Math.round(performance.now() - t0)) + " ms)");
+      b1.disabled = b2.disabled = false;
+    }
+    setTimeout(one, 20);
+  }
+  $("pw-transgo").onclick = function () { runAll(true, 200); };
+  $("z6e-go").onclick = function () { var j = Math.floor(Number(String($("z6e-j").value).replace(/[ ,_]/g, ""))); if (!(j >= 200)) j = 200; j = Math.min(j, 1e12); $("z6e-j").value = j; runAll(false, j); };
+  // epochs from the tables
+  var mac = Z.macro(4000000), ep = [[0, 118]];
+  for (var i = 1; i < mac.length; i++) if (mac[i][3] === "end") ep.push([i, 3 * mac[i][1] + 4]);
+  var svg = $("pw-epochs"), E = ep.slice(0, 14), x0 = 60, x1 = 740, y0 = 14, y1 = 210;
+  var Y = axisLog(svg, x0, x1, y0, y1, 50, Math.max.apply(null, E.map(function (e) { return e[1]; })) * 2, "epoch (the first point is the template the run reaches at step 1,277,431)"), bw = (x1 - x0) / E.length;
+  E.forEach(function (e, q) {
+    var y = Y(e[1]);
+    mk(svg, "rect", { x: x0 + q * bw + bw * 0.18, width: bw * 0.64, y: y, height: y1 - y, fill: "var(--accent)", rx: 2 });
+    mk(svg, "text", { x: x0 + q * bw + bw / 2, y: y - 5, "text-anchor": "middle" }, e[1] >= 1e6 ? (e[1] / 1e6).toFixed(1) + "M" : e[1] >= 1e4 ? Math.round(e[1] / 1e3) + "k" : e[1]);
+  });
+  $("pw-epcap").textContent = "a at each epoch start: " + E.slice(0, 8).map(function (e) { return Z.fmt(e[1]); }).join(", ") + ", … The plain run from blank tape reaches the first of these epoch ends at step 4,054,968, exactly as the tables predict.";
+})();
+</script>

@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Pairs, digits, and a front</a><a href="#levels">Every level is a digit with 16 positions</a><a href="#transparent">Levels are transparent</a><a href="#fuel">Resets, fuel, and 887 levels</a><a href="#halt">Off the edge</a><a href="#trust">What the result rests on</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">From six states to a ladder of numbers</a><a href="#shape">The shape of the run</a><a href="#words">Pairs, digits, and a front</a><a href="#digit">Every level is a digit with 16 positions</a><a href="#transparent">Levels are transparent</a><a href="#fuel">Resets, fuel, and 887 levels</a><a href="#halt">Off the edge</a><a href="#bottomline">It halts, at a step with 759 digits</a><a href="#trust">What the result rests on</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -286,6 +286,463 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="levels">
+  <span class="eyebrow">Four levels</span>
+  <h2>From six states to a ladder of numbers</h2>
+<style>
+:root{--ldf:#d2551f;--ldr1:#2a78d6;--ldr2:#1baf7a;--lds:#eda100;--ldr1p:#cde2fb;--ldr2p:#c9efe0;--ldsp:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--ldr1:#3987e5;--ldr2:#199e70;--lds:#c98500;--ldr1p:#1b3354;--ldr2p:#123a2b;--ldsp:#3d2c08} }
+:root[data-theme="dark"]{--ldr1:#3987e5;--ldr2:#199e70;--lds:#c98500;--ldr1p:#1b3354;--ldr2p:#123a2b;--ldsp:#3d2c08}
+.ld-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.ld-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ld-lv:hover{border-color:var(--accent)}
+.ld-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ld-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.ld-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.ld-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.ld-row:first-child{border-top:0}
+.ld-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ld-row .mono{overflow-wrap:anywhere}
+@media (max-width:560px){.ld-row{grid-template-columns:minmax(0,1fr)}}
+.ld-tape{display:block;width:100%;height:46px;margin-top:6px}
+.ld-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.ld-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.ld-ok{color:var(--kernel);font-weight:600}
+.ld-bad{color:var(--open);font-weight:600}
+.ld-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+.ld-word{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;margin-top:4px}
+.ld-word b{color:var(--ldf)} .ld-word i{font-style:normal;color:var(--ldr1)} .ld-word u{text-decoration:none;color:var(--lds);font-weight:600}
+.ld-tbl td,.ld-tbl th{padding:.25rem .55rem;font-size:.85rem}
+.ld-tbl td{font-family:var(--mono)}
+.else>div{overflow-wrap:anywhere}
+</style>
+<div class="col">
+<p>The question "does this machine halt, and when?" can be asked at four levels of description. Each level keeps
+less detail than the one above it and has a coarser unit of time, and each step down is a theorem saying that the
+lower level does exactly what the machine does. At the bottom, a function that keeps the ladder as numbers runs from
+the tape of visit 3,040 to the halting transition; that evaluation, with the theorems, is the proof (<a href="#bottomline">the bottom line</a>).</p>
+</div>
+<div class="ld-ladder">
+ <a class="ld-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">From blank tape to the halt: 1.27&middot;10<sup>758</sup> steps.</div></a>
+ <a class="ld-lv" href="#digit"><span class="n">Level 2</span><b class="t">Hits on a level</b>
+  <div class="u">At every second visit the tape is a front, levels <code>4^n s</code> and a tail. One unit is one <b>hit</b> (two visits); a level moves to the next of 16 positions, in 112n + c or 56n + c steps.</div>
+  <span class="ev k">Kernel</span> <span class="small">every hit, every n: <code>hit0</code> &hellip; <code>hit15</code></span></a>
+ <a class="ld-lv" href="#transparent"><span class="n">Level 3</span><b class="t">The ladder as an odometer</b>
+  <div class="u">Each level is two numbers, position and block count. One unit is any number <b>y of hits</b> at once on the whole ladder.</div>
+  <span class="ev k">Kernel</span> <span class="small">levels are transparent: <code>stack_run</code></span></a>
+ <a class="ld-lv" href="#fuel"><span class="n">Level 4</span><b class="t">The accelerated run</b>
+  <div class="u">The levels as numbers, only the front and the tail as cells. One unit is one <b>hit on the tail</b>: 3,539 of them from visit 3,040 to the halt.</div>
+  <span class="ev k">Kernel</span> <span class="small">the function is sound: <code>loop_sound</code></span></a>
+</div>
+<div class="col">
+<p>The two evaluations at the bottom, the plain run of the first 27,172,911 steps (<code>fsteps0</code>) and the
+accelerated run (<code>run0</code>), are done by Lean's compiled code (<code>native_decide</code>); everything above
+them is checked by the kernel. A Coq proof makes the same argument with its run checked by its kernel.</p>
+<h3>One moment, four descriptions</h3>
+<p>Pick a visit after the last reset. The browser runs the real machine from blank tape to that visit and reads
+its tape; separately it runs the accelerated model from visit 3,040, with every level kept as two numbers, to the
+same visit. The rows show the same instant at each level; the marks say whether the two computations agree.</p>
+</div>
+<div class="panel" id="ld-moment">
+ <div class="controls">
+  <button type="button" id="ldm-prev" aria-label="Two visits back">&#9664;</button>
+  <input type="range" class="ld-slider" id="ldm-n" min="3040" max="6000" step="2" value="3600" aria-label="Visit number">
+  <button type="button" id="ldm-next" aria-label="Two visits on">&#9654;</button>
+  <span class="small">visit <b id="ldm-lab">3,600</b></span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="ld-row"><span>1 &middot; Machine</span><div><span id="ldm-step"></span>
+   <canvas class="ld-tape" id="ldm-tape" aria-label="The tape at this visit, coloured by part"></canvas>
+   <div class="ld-key"><span><i style="background:var(--ldf)"></i>front and head</span><span><i style="background:var(--ldr1)"></i><i style="background:var(--ldr2)"></i>rungs of blocks, level by level</span><span><i style="background:var(--lds)"></i>separators</span><span><i style="background:var(--muted)"></i>tail</span><span>dark = 1, pale = 0</span></div></div></div>
+  <div class="ld-row"><span>2 &middot; Hits</span><div id="ldm-w"></div></div>
+  <div class="ld-row"><span>3 &middot; Ladder</span><div id="ldm-l"></div></div>
+  <div class="ld-row"><span>4 &middot; Accelerated</span><div id="ldm-a"></div></div>
+ </div>
+ <div class="cap">The tape is drawn left to right with the head at the right end. Visit 6,000 is 54.7 million steps in; the first time, the browser needs about a second to get there.</div>
+</div>
+<script>
+window.LD = (function () {
+  "use strict";
+  var TM = "1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB";
+  var NV, NS, NM;               // next state, write, move, by 2*state+read
+  NV = []; NS = []; NM = [];
+  TM.split("_").forEach(function (g, s) {
+    for (var r = 0; r < 2; r++) {
+      var q = g.substr(3 * r, 3), k = 2 * s + r;
+      if (q[0] === "-") { NS[k] = -1; NV[k] = 0; NM[k] = 0; } else { NV[k] = +q[0]; NM[k] = q[1] === "R" ? 1 : -1; NS[k] = q.charCodeAt(2) - 65; }
+    }
+  });
+  var SN = "ABCDEF";
+  var B0 = BigInt(0), B1 = BigInt(1), B16 = BigInt(16);
+
+  // ---------------------------------------------------------------- one right-end visit on a word (py/words.py, c/cvisit.c)
+  // A word: pairs read from the head leftwards, X = 0 1, Y = 1 1, Z = 1 0, O = 0 0 (cell nearer the head written last).
+  // visit(w, bnd): from the head in A on the blank cell right of the word to the next such moment.
+  // Returns {w (null on halt), n (steps; on halt the steps before the halting transition), sig, times, left, halt, pos, edge}.
+  var tape = new Uint8Array(1 << 16);
+  function visit(w, bnd, maxsteps) {
+    var L = w.length, RM = 4096, N = 2 * L + 8192, off = N - RM;
+    if (tape.length < N) tape = new Uint8Array(N * 2); else tape.fill(0, 0, N);
+    var t = tape;
+    for (var i = 0; i < L; i++) { var c = w.charCodeAt(i); t[off - 1 - 2 * i] = (c === 89 || c === 88) ? 1 : 0; t[off - 2 - 2 * i] = (c === 89 || c === 90) ? 1 : 0; }
+    var p = 0, maxw = -1, s = 0, n = 0, nl = 0, sig = "", times = [], ms = maxsteps || 1e11, b = bnd || 0;
+    for (;;) {
+      var k = 2 * s + t[off + p], s2 = NS[k];
+      if (s2 < 0) return { w: null, n: n, sig: sig, times: times, left: nl, halt: SN[s], pos: p, edge: -2 * L };
+      t[off + p] = NV[k]; if (p > maxw) maxw = p;
+      var p2 = p + NM[k];
+      if (b) {
+        if (p >= b && p2 < b) { sig += "<" + SN[s2]; times.push(n + 1); }
+        if (p < b && p2 >= b) { sig += ">" + SN[s2]; times.push(n + 1); }
+        if (p < b) nl++;
+      }
+      p = p2; s = s2; n++;
+      if (p < -off + 2 || p >= RM - 2) throw new Error("tape too short");
+      if (s === 0 && p > 0 && p > maxw) break;
+      if (n > ms) throw new Error("no visit");
+    }
+    var hi = p - 1, lo = -off, out = [];
+    while (lo < hi && !t[off + lo]) lo++;
+    for (i = hi; i >= lo; i -= 2) { var bb = t[off + i], a = i - 1 >= -off ? t[off + i - 1] : 0; out.push(a ? (bb ? "Y" : "Z") : (bb ? "X" : "O")); }
+    return { w: out.join(""), n: n, sig: sig, times: times, left: nl };
+  }
+  function d2w(d) { return d.map(function (x) { return "Y".repeat(x); }).join("X"); }
+  function w2d(w) { return w.split("X").map(function (x) { return x.length; }); }
+  function fmt(w) {
+    var d = w2d(w).join(" ") + " ";
+    d = d.replace(/((?:4 ){3,})/g, function (m) { return "4^" + m.length / 2 + " "; });
+    d = d.replace(/((?:0 3 ){3,})/g, function (m) { return "(0 3)^" + m.length / 4 + " "; });
+    return d.trim();
+  }
+  var FIRST = ["XY", 9];
+
+  // ---------------------------------------------------------------- the level table (py/accel.py)
+  var CYC = [["0 1 0 1", "H"], ["0 3 1", "V"], ["7 1", "H"], ["5 3", "V"], ["0 6", "H"], ["0 1 0 1", "V"], ["5 0 1", "H"],
+    ["7 1", "V"], ["0 1 3", "H"], ["0 6", "V"], ["10", "H"], ["5 0 1", "V"], ["0 3 1", "H"], ["0 1 3", "V"], ["5 3", "H"], ["10", "V"]];
+  var PASS = { 2: "H", 4: "V", 7: "H", 10: "V", 12: "H", 15: "V" };
+  var INC = { 3: 1, 7: 1, 11: 1, 15: 1 };
+  var POS = {}; CYC.forEach(function (c, i) { POS[c[0] + "|" + c[1]] = i; });
+  var SEPW = {}; CYC.forEach(function (c) { SEPW[c[0]] = d2w(c[0].split(" ").map(Number)) + "X"; });
+  var FRONT = { H: "YYXYX", V: "YYYYYX" }, OTHER = { H: "V", V: "H" };
+  var SIG = { H: "<C>E<E>F<B>E<C>A<D>E", V: "<C>E" }, BLOCK = "YYYYX";
+  var LA = [], LB = [21, 5, 168, 45, 88, 5, 77, 136, 21, 5, 144, 45, 112, 5, 77, 112];
+  for (var p = 0; p < 16; p++) LA[p] = CYC[p][1] === "H" ? 112 : 56;
+  var FC = { H: 107, V: 83 };
+  var PART = { "2,1": [24, 48, 1], "2,2": [24, 91, 1], "2,3": [24, 92, 1], "2,4": [24, 95, 1], "2,5": [24, 98, 1],
+    "4,1": [80, 49, 4], "7,1": [24, 48, 1], "7,2": [24, 91, 1], "7,3": [24, 92, 1], "7,4": [24, 95, 1], "7,5": [24, 98, 1],
+    "10,1": [24, 60, 1], "12,1": [80, 37, 4], "12,2": [80, 80, 4], "12,3": [80, 81, 4], "12,4": [80, 84, 4], "12,5": [80, 87, 4], "15,1": [24, 60, 1] };
+  var FP = { H: [23, 66, 67, 70, 73], V: [35] };
+  function big(x) { return typeof x === "bigint" ? x : BigInt(x); }
+  // a level at (pos, n) after y hits
+  function adv(pos, n, y) {
+    y = big(y); n = big(n);
+    var q = y / B16, r = Number(y % B16);
+    n += BigInt(4) * q;
+    for (var i = 0; i < r; i++) { if (INC[pos]) n += B1; pos = (pos + 1) % 16; }
+    return [pos, n];
+  }
+  // hits passed on by a level at pos during its next y hits
+  function passes(pos, y) {
+    y = big(y);
+    var q = y / B16, r = Number(y % B16), x = BigInt(6) * q;
+    for (var i = 0; i < r; i++) { if (pos in PASS) x += B1; pos = (pos + 1) % 16; }
+    return x;
+  }
+  // the hits a level at pos must get until it has passed on x of them
+  function need(pos, x) {
+    x = big(x);
+    if (x === B0) return B0;
+    var q = (x - B1) / BigInt(6), r = Number((x - B1) % BigInt(6)) + 1, y = B16 * q;
+    while (r) { if (pos in PASS) r--; pos = (pos + 1) % 16; y += B1; }
+    return y;
+  }
+  // steps made inside a level at (pos, n) during its next y hits
+  function lcost(pos, n, y) {
+    y = big(y); n = big(n);
+    var q = y / B16, r = Number(y % B16), tot = B0, p, i;
+    if (q > B0) {
+      var d = 0, inc = 0; p = pos;
+      for (i = 0; i < 16; i++) { d += LA[p] * inc + LB[p]; if (INC[p]) inc++; p = (p + 1) % 16; }
+      tot = q * (BigInt(1344) * n + BigInt(d)) + BigInt(1344 * 4) * (q * (q - B1) / BigInt(2));
+      n += BigInt(4) * q;
+    }
+    p = pos;
+    for (i = 0; i < r; i++) { tot += BigInt(LA[p]) * n + BigInt(LB[p]); if (INC[p]) n += B1; p = (p + 1) % 16; }
+    return tot;
+  }
+  function ftype(w) {
+    if (w.lastIndexOf(FRONT.H, 0) === 0) return ["H", w.slice(5)];
+    if (w.lastIndexOf(FRONT.V, 0) === 0) return ["V", w.slice(6)];
+    return [null, null];
+  }
+  function nextPass(pos) { while (!(pos in PASS)) pos = (pos + 1) % 16; return pos; }
+  var SEPS = Object.keys(SEPW);
+  function tryPeel(rest) {
+    var n = 0;
+    while (rest.substr(5 * n, 5) === BLOCK) n++;
+    if (!n) return null;
+    var r = rest.slice(5 * n);
+    for (var i = 0; i < SEPS.length; i++) if (r.lastIndexOf(SEPW[SEPS[i]], 0) === 0) return [n, SEPS[i], r.slice(SEPW[SEPS[i]].length)];
+    return null;
+  }
+  // the levels readable at the start of a word: [[pos, n]], the kind of hit the tail gets next, the tail
+  function parseWord(w) {
+    var f = ftype(w), t = f[0], rest = f[1], out = [];
+    while (t) {
+      var pr = tryPeel(rest);
+      if (!pr) break;
+      rest = pr[2];
+      var pos = POS[pr[1] + "|" + t];
+      out.push([pos, BigInt(pr[0])]);
+      t = PASS[nextPass(pos)];
+    }
+    return { front: f[0], levels: out, next: t, tail: rest };
+  }
+  function levelWord(pos, n) { return BLOCK.repeat(Number(n)) + SEPW[CYC[pos][0]]; }
+
+  // ---------------------------------------------------------------- the accelerated run (Accel of py/accel.py)
+  function Halt() {}
+  function Accel(word, visits, steps, defer) {
+    this.levels = []; this.R = word; this.visits = big(visits); this.steps = big(steps);
+    this.hits = 0; this.unpeels = 0; this.defer = defer || 0; this.fatal = null; this.tailSteps = 0;
+  }
+  Accel.prototype.parse = function () { return parseWord(this.R); };
+  Accel.prototype.allLevels = function () {
+    var p = this.parse();
+    return { levels: this.levels.map(function (x) { return [x[0], x[1]]; }).concat(p.levels), tail: p.tail };
+  };
+  Accel.prototype.peel = function () {
+    var p = this.parse(), lv = p.levels, k = lv.length - this.defer;
+    if (k <= 0) return;
+    for (var i = 0; i < k; i++) this.levels.push([lv[i][0], lv[i][1]]);
+    var rest = "";
+    for (i = k; i < lv.length; i++) rest += levelWord(lv[i][0], lv[i][1]);
+    this.R = FRONT[PASS[nextPass(lv[k - 1][0])]] + rest + p.tail;
+  };
+  // the front's steps for e hits starting with the kind of the outermost level (or the front itself)
+  Accel.prototype.frontCost = function (e, kind) {
+    var nh = kind === "H" ? (e + B1) / BigInt(2) : e / BigInt(2);
+    return BigInt(FC.H) * nh + BigInt(FC.V) * (e - nh);
+  };
+  // move every peeled level on until the next hit reaches the reduced word
+  Accel.prototype.ready = function () {
+    var e = B0;
+    for (var k = this.levels.length - 1; k >= 0; k--) {
+      var p0 = this.levels[k][0], n0 = this.levels[k][1], y = need(p0, e), a = adv(p0, n0, y);
+      var d = nextPass(a[0]) - a[0]; if (d < 0) d += 16;
+      this.levels[k] = adv(a[0], a[1], d);
+      e = y + BigInt(d);
+      this.steps += lcost(p0, n0, e);
+      if (k === 0) this.steps += this.frontCost(e, CYC[p0][1]);
+    }
+    this.visits += BigInt(2) * e;
+  };
+  // y hits from the front that do not reach the reduced word (y no more than ready() would make)
+  Accel.prototype.advance = function (y) {
+    y = big(y);
+    var e = y;
+    if (this.levels.length) this.steps += this.frontCost(y, CYC[this.levels[0][0]][1]);
+    for (var k = 0; k < this.levels.length; k++) {
+      var p0 = this.levels[k][0], n0 = this.levels[k][1];
+      this.steps += lcost(p0, n0, e);
+      var x = passes(p0, e);
+      this.levels[k] = adv(p0, n0, e);
+      e = x;
+    }
+    if (e !== B0) throw new Error("advance reached the reduced word");
+    this.visits += BigInt(2) * y;
+  };
+  // the hits until the next one reaches the reduced word
+  Accel.prototype.untilTail = function () {
+    var e = B0;
+    for (var k = this.levels.length - 1; k >= 0; k--) {
+      var p0 = this.levels[k][0], y = need(p0, e), a = adv(p0, this.levels[k][1], y);
+      var d = nextPass(a[0]) - a[0]; if (d < 0) d += 16;
+      e = y + BigInt(d);
+    }
+    return e;
+  };
+  Accel.prototype.hit = function () {
+    this.ready();
+    var f = ftype(this.R), t = f[0];
+    var r1 = visit(this.R, -2 * FRONT[t].length);
+    if (r1.w === null) { this.fatal = [t, r1]; throw new Halt(); }
+    if (r1.sig !== SIG[t]) return ["irregular", t, r1.sig];
+    var r2 = visit(r1.w);
+    if (r2.n !== 8 || ftype(r2.w)[0] !== OTHER[t] || r1.n - r1.left + r2.n !== FC[t]) throw new Error("front");
+    this.steps += BigInt(r1.left + FC[this.levels.length ? CYC[this.levels[0][0]][1] : t]);
+    this.tailSteps = r1.left;
+    for (var i = 0; i < this.levels.length; i++) {
+      var lev = this.levels[i];
+      this.steps += BigInt(LA[lev[0]]) * lev[1] + BigInt(LB[lev[0]]);
+      this.levels[i] = adv(lev[0], lev[1], 1);
+    }
+    this.visits += BigInt(2); this.hits++; this.R = r2.w;
+    return null;
+  };
+  Accel.prototype.unpeel = function () {
+    var l = this.levels.pop(), f = ftype(this.R);
+    this.unpeels++;
+    if (!(l[0] in PASS) || PASS[l[0]] !== f[0]) throw new Error("unpeel");
+    this.R = FRONT[CYC[l[0]][1]] + levelWord(l[0], l[1]) + f[1];
+  };
+  // to the state after the next hit on the reduced word; returns the number of levels put back on the way
+  Accel.prototype.step = function () {
+    this.peel();
+    var u = 0;
+    for (;;) {
+      var r = this.hit();
+      if (r === null) return u;
+      if (!this.levels.length) throw new Error("irregular hit with nothing peeled");
+      this.unpeel(); u++;
+    }
+  };
+  // after the halt: the step of the halting transition (bbchallenge count)
+  Accel.prototype.haltingStep = function () {
+    var t = this.fatal[0], info = this.fatal[1], k = (info.sig.match(/</g) || []).length, tot = BigInt(info.left);
+    for (var i = this.levels.length - 1; i >= 0; i--) {
+      var pt = PART[this.levels[i][0] + "," + k];
+      tot += BigInt(pt[0]) * this.levels[i][1] + BigInt(pt[1]); k = pt[2];
+    }
+    tot += BigInt(FP[this.levels.length ? CYC[this.levels[0][0]][1] : t][k - 1]);
+    return this.steps + tot + B1;
+  };
+  Accel.prototype.copy = function () {
+    var a = new Accel(this.R, this.visits, this.steps, this.defer);
+    a.levels = this.levels.map(function (x) { return [x[0], x[1]]; }); a.hits = this.hits; a.unpeels = this.unpeels;
+    return a;
+  };
+
+  // ---------------------------------------------------------------- the direct run, visit by visit, with snapshots
+  function Direct() { this.w = FIRST[0]; this.v = 1; this.k = FIRST[1]; this.snaps = [[1, FIRST[0], FIRST[1]]]; }
+  Direct.prototype.to = function (v) {
+    if (v < this.v) {
+      var s = this.snaps[0];
+      for (var i = 0; i < this.snaps.length; i++) if (this.snaps[i][0] <= v) s = this.snaps[i];
+      this.v = s[0]; this.w = s[1]; this.k = s[2];
+    }
+    while (this.v < v) {
+      var r = visit(this.w);
+      this.w = r.w; this.k += r.n; this.v++;
+      if (this.v % 100 === 0 && this.snaps[this.snaps.length - 1][0] < this.v) this.snaps.push([this.v, this.w, this.k]);
+    }
+    return this;
+  };
+  var SH = null;
+  // one direct run shared by the panels of the page (each reads it right after moving it)
+  function shared() { if (!SH) SH = new Direct(); return SH; }
+  var START = 3040;
+  // the run from blank tape to visit 3,040 (after the reset of visit 3,006), then the accelerated run
+  function startAccel(defer) { var d = shared().to(START); return new Accel(d.w, START, d.k, defer); }
+  var HALT_STEP = "127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686";
+  var HALT_VISIT = "6457109013376761952964397678097307615669340968993585759245814706743742046125940261247241066403890938492170138345021775414788657246855473619762555399924006808185668177937261822888303321241424388506815212830693515134376015491900870498530843289643797903974663993452480048769041949957161985409468353341199468784692405027220745645833011312600661412072060494393516371733163287212276888";
+
+  function fmtN(x) { return Number(x).toLocaleString("en-US"); }
+  function fmtBig(x) {
+    var s = x.toString();
+    if (s.length <= 15) return Number(s).toLocaleString("en-US");
+    return s[0] + "." + s.slice(1, 4) + "·10<sup>" + (s.length - 1) + "</sup>";
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    window.addEventListener("resize", f);
+  }
+  return { TM: TM, visit: visit, d2w: d2w, w2d: w2d, fmt: fmt, FIRST: FIRST, CYC: CYC, PASS: PASS, INC: INC, SEPW: SEPW,
+    FRONT: FRONT, OTHER: OTHER, SIG: SIG, BLOCK: BLOCK, LA: LA, LB: LB, FC: FC, adv: adv, passes: passes, need: need,
+    lcost: lcost, ftype: ftype, nextPass: nextPass, parseWord: parseWord, levelWord: levelWord, Accel: Accel, Halt: Halt,
+    Direct: Direct, shared: shared, START: START, startAccel: startAccel, HALT_STEP: HALT_STEP, HALT_VISIT: HALT_VISIT,
+    fmtN: fmtN, fmtBig: fmtBig, css: css, onTheme: onTheme, big: big };
+})();
+
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var sl = $("ldm-n"), cv = $("ldm-tape"), direct = null, states = null, lastW = null;
+  function init() {
+    direct = L.shared().to(L.START);
+    var m = new L.Accel(direct.w, L.START, direct.k, 0);
+    states = [m.copy()];
+    try { while (Number(m.visits) < 6000) { m.step(); states.push(m.copy()); } } catch (e) {}
+  }
+  function modelAt(v) {
+    var i = states.length - 1;
+    while (i > 0 && Number(states[i].visits) > v) i--;
+    var c = states[i].copy(); c.peel();
+    var y = (v - Number(c.visits)) / 2;
+    if (y > Number(c.untilTail())) return null;
+    c.advance(y);
+    return c;
+  }
+  function wordHtml(w) {
+    var p = L.parseWord(w), out = [];
+    if (!p.front) return L.fmt(w);
+    out.push("<b>" + (p.front === "H" ? "2 1" : "5") + "</b>");
+    p.levels.forEach(function (l) { out.push("<i>4^" + l[1] + "</i> <u>" + L.CYC[l[0]][0] + "</u>"); });
+    if (p.tail) out.push(L.fmt(p.tail));
+    return out.join(" &nbsp;");
+  }
+  function draw(w) {
+    var p = L.parseWord(w), n = w.length;
+    var W = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, h);
+    var cw = W / (2 * n + 1), y0 = 8, ch = h - 16;
+    var cls = [], i, k = 0, fl = p.front === "H" ? 5 : p.front === "V" ? 6 : 0;
+    for (i = 0; i < fl; i++) cls.push("f");
+    p.levels.forEach(function (l, j) {
+      var nb = 5 * Number(l[1]), ns = L.SEPW[L.CYC[l[0]][0]].length;
+      for (var a = 0; a < nb; a++) cls.push(j % 2 ? "r2" : "r1");
+      for (a = 0; a < ns; a++) cls.push("s");
+    });
+    while (cls.length < n) cls.push("t");
+    var col = { f: ["--ldf", "--sunk"], r1: ["--ldr1", "--ldr1p"], r2: ["--ldr2", "--ldr2p"], s: ["--lds", "--ldsp"], t: ["--muted", "--sunk"] }, cc = {};
+    Object.keys(col).forEach(function (key) { cc[key] = [L.css(col[key][0]), L.css(col[key][1])]; });
+    // pair q (q = 0 next to the head) covers cells 2n-2q-2 (far) and 2n-2q-1 (near), left to right
+    for (var q = 0; q < n; q++) {
+      var ch2 = w[q], far = (ch2 === "Y" || ch2 === "Z") ? 1 : 0, near = (ch2 === "Y" || ch2 === "X") ? 1 : 0, c = cc[cls[q]];
+      var x = (2 * n - 2 * q - 2) * cw;
+      g.fillStyle = far ? c[0] : c[1]; g.fillRect(x, y0, Math.max(cw - (cw > 4 ? 1 : 0), .4), ch);
+      g.fillStyle = near ? c[0] : c[1]; g.fillRect(x + cw, y0, Math.max(cw - (cw > 4 ? 1 : 0), .4), ch);
+    }
+    g.fillStyle = L.css("--head"); g.fillRect(2 * n * cw, y0 - 4, Math.max(cw, 2), ch + 8);
+  }
+  function show() {
+    var v = +sl.value;
+    $("ldm-lab").textContent = L.fmtN(v);
+    if (!direct) init();
+    direct.to(v);
+    var w = direct.w, k = direct.k, p = L.parseWord(w), hit = (v - L.START) / 2;
+    lastW = w;
+    $("ldm-step").innerHTML = "step " + L.fmtN(k) + " of the run from blank tape; " + L.fmtN(2 * w.length) + " cells from the left end of the tape to the head";
+    draw(w);
+    $("ldm-w").innerHTML = "the word in digits, front first (it is read from the head leftwards):<div class=\"ld-word\">" + wordHtml(w) + "</div>" +
+      "front <code>" + (p.front === "H" ? "2 1" : "5") + "</code>: the next visit makes " + (p.front === "H" ? "an H-hit" : "a V-hit") + ", the one after it is the 8-step bounce. Hit " + L.fmtN(hit) + " after visit 3,040.";
+    var c = modelAt(v), A = c ? c.allLevels() : null;
+    var same = A && A.tail === p.tail && A.levels.length === p.levels.length && A.levels.every(function (l, j) { return l[0] === p.levels[j][0] && l[1] === p.levels[j][1]; });
+    var rows = p.levels.map(function (l, j) {
+      var pos = l[0];
+      return "<tr><td>" + (j + 1) + "</td><td>" + pos + "</td><td>" + L.CYC[pos][0] + "</td><td>" + L.CYC[pos][1] + "</td><td>" + l[1] + "</td><td>" + (pos in L.PASS ? "passes on " + L.PASS[pos] : "absorbs") + "</td></tr>";
+    }).join("");
+    $("ldm-l").innerHTML = '<div class="tw" style="margin:0"><table class="ld-tbl"><thead><tr><th>level</th><th>position</th><th>separator</th><th>next hit</th><th>blocks n</th><th>that hit</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+      (same ? '<span class="ld-ok">&#10003; the model, which only moved these numbers by the table, has the same levels and the same tail</span>' : '<span class="ld-bad">&#10007; the model differs</span>');
+    if (c) {
+      var e = c.untilTail();
+      $("ldm-a").innerHTML = c.levels.length + " levels kept as numbers; the cells it simulates are the front and the tail, " + L.fmtN(c.R.length) + " pairs. The next hit that reaches the tail is " + L.fmtN(Number(e) + 1) + " hits away. Steps counted by the formulas: " + L.fmtN(Number(c.steps)) +
+        (c.steps === BigInt(k) ? ' <span class="ld-ok">&#10003; the step count of the machine</span>' : ' <span class="ld-bad">&#10007; not the machine&rsquo;s step count</span>');
+    } else $("ldm-a").textContent = "";
+  }
+  sl.addEventListener("input", show);
+  $("ldm-prev").addEventListener("click", function () { sl.value = Math.max(+sl.min, +sl.value - 2); show(); });
+  $("ldm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 2); show(); });
+  L.onTheme(function () { if (lastW) draw(lastW); });
+  show();
+})();
+</script>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -298,40 +755,472 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="words">
   <span class="eyebrow">Reading the tape</span>
   <h2>Pairs, digits, and a front</h2>
+<div class="col">
 <p>Stop the machine each time its head, in state A, stands on the blank cell right of everything it has written (a <em>visit</em>). Read the tape from the head leftwards two cells at a time: X is the pair <code>0 1</code>, Y is <code>1 1</code>; nothing else occurs. Write the lengths of the runs of Y between the X's as <em>digits</em>, so <code>2 1 4 4</code> is <code>Y Y X Y X Y Y Y Y X Y Y Y Y</code>. Each visit makes the word one pair longer.</p>
 <p>At every second visit the word has the same build:</p><pre>front   4^n1 s1   4^n2 s2   ...   4^nk sk   tail</pre>
 <p>The <em>front</em> is <code>2 1</code> or <code>5</code>, in turn. A <em>level</em> is a rung of n blocks <code>4</code> (on the tape: <code>0111111111</code>) followed by a separator s, one of eight short words. The <em>tail</em> is what is left over, down to the blank left end. Going from the front <code>2 1</code> the head makes what we call an H-hit on the rest of the word, from <code>5</code> a V-hit; then a short visit of 8 steps turns the front into the other one.</p>
+</div>
 </section>
-<section id="levels">
-  <span class="eyebrow">The mechanism</span>
+<section id="digit">
+  <span class="eyebrow">Level 1 to level 2</span>
   <h2>Every level is a digit with 16 positions</h2>
+<div class="col">
 <p>The separator and the kind of the next hit give a level 16 possible <em>positions</em>. A hit always moves it to the next one:</p>
+</div>
 <svg viewBox="0 0 560 250" role="img" aria-label="the 16 positions of a level on a ring; six of them pass the hit on" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><circle cx="150.0" cy="30.0" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="150.0" y="34.0" text-anchor="middle" fill="currentColor">0</text><circle cx="186.4" cy="37.2" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="186.4" y="41.2" text-anchor="middle" fill="currentColor">1</text><circle cx="217.2" cy="57.8" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="217.2" y="61.8" text-anchor="middle" fill="currentColor">2</text><circle cx="237.8" cy="88.6" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="237.8" y="92.6" text-anchor="middle" fill="currentColor">3</text><text x="269.7" y="105.2" text-anchor="middle" fill="var(--muted)">+1</text><circle cx="245.0" cy="125.0" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="245.0" y="129.0" text-anchor="middle" fill="currentColor">4</text><circle cx="237.8" cy="161.4" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="237.8" y="165.4" text-anchor="middle" fill="currentColor">5</text><circle cx="217.2" cy="192.2" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="217.2" y="196.2" text-anchor="middle" fill="currentColor">6</text><circle cx="186.4" cy="212.8" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="186.4" y="216.8" text-anchor="middle" fill="currentColor">7</text><text x="173.8" y="248.7" text-anchor="middle" fill="var(--muted)">+1</text><circle cx="150.0" cy="220.0" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="150.0" y="224.0" text-anchor="middle" fill="currentColor">8</text><circle cx="113.6" cy="212.8" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="113.6" y="216.8" text-anchor="middle" fill="currentColor">9</text><circle cx="82.8" cy="192.2" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="82.8" y="196.2" text-anchor="middle" fill="currentColor">10</text><circle cx="62.2" cy="161.4" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="62.2" y="165.4" text-anchor="middle" fill="currentColor">11</text><text x="30.3" y="152.8" text-anchor="middle" fill="var(--muted)">+1</text><circle cx="55.0" cy="125.0" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="55.0" y="129.0" text-anchor="middle" fill="currentColor">12</text><circle cx="62.2" cy="88.6" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="62.2" y="92.6" text-anchor="middle" fill="currentColor">13</text><circle cx="82.8" cy="57.8" r="13" fill="none" fill-opacity="0" stroke="var(--accent)"/><text x="82.8" y="61.8" text-anchor="middle" fill="currentColor">14</text><circle cx="113.6" cy="37.2" r="13" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="113.6" y="41.2" text-anchor="middle" fill="currentColor">15</text><text x="126.2" y="9.3" text-anchor="middle" fill="var(--muted)">+1</text><text x="150" y="121" text-anchor="middle" fill="var(--muted)">one hit =</text><text x="150" y="135" text-anchor="middle" fill="var(--muted)">one step round</text><circle cx="300" cy="60" r="9" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)"/><text x="316" y="64" fill="currentColor">the hit is passed on to the left (6 of 16)</text><circle cx="300" cy="90" r="9" fill="none" stroke="var(--accent)"/><text x="316" y="94" fill="currentColor">the hit is absorbed (10 of 16)</text><text x="291" y="124" fill="var(--muted)">+1</text><text x="316" y="124" fill="currentColor">the rung gains a block (4 per round)</text><text x="291" y="160" fill="currentColor">level k gets (3/8)^(k-1) of all hits,</text><text x="291" y="176" fill="currentColor">so each rung is 8/3 shorter than the one</text><text x="291" y="192" fill="currentColor">to its right</text></svg>
-<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>position</th><th>separator</th><th>hit</th><th>what the level does</th><th>rung</th></tr></thead><tbody><tr><td>0</td><td><code>0 1 0 1</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>1</td><td><code>0 3 1</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>2</td><td><code>7 1</code></td><td>H</td><td>passes on an H-hit</td><td></td></tr><tr><td>3</td><td><code>5 3</code></td><td>V</td><td>absorbs</td><td>+1 block</td></tr><tr><td>4</td><td><code>0 6</code></td><td>H</td><td>passes on an V-hit</td><td></td></tr><tr><td>5</td><td><code>0 1 0 1</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>6</td><td><code>5 0 1</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>7</td><td><code>7 1</code></td><td>V</td><td>passes on an H-hit</td><td>+1 block</td></tr><tr><td>8</td><td><code>0 1 3</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>9</td><td><code>0 6</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>10</td><td><code>10</code></td><td>H</td><td>passes on an V-hit</td><td></td></tr><tr><td>11</td><td><code>5 0 1</code></td><td>V</td><td>absorbs</td><td>+1 block</td></tr><tr><td>12</td><td><code>0 3 1</code></td><td>H</td><td>passes on an H-hit</td><td></td></tr><tr><td>13</td><td><code>0 1 3</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>14</td><td><code>5 3</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>15</td><td><code>10</code></td><td>V</td><td>passes on an V-hit</td><td>+1 block</td></tr></tbody></table></div>
-<p>So the ladder is an odometer: the first level turns with every hit of the front, the second with 6 of every 16 hits of the first, and so on. This table is proved in Lean for every rung length and every surrounding tape (<code>lean/Levels.lean</code>).</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>position</th><th>separator</th><th>hit</th><th>what the level does</th><th>rung</th></tr></thead><tbody><tr><td>0</td><td><code>0 1 0 1</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>1</td><td><code>0 3 1</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>2</td><td><code>7 1</code></td><td>H</td><td>passes on an H-hit</td><td></td></tr><tr><td>3</td><td><code>5 3</code></td><td>V</td><td>absorbs</td><td>+1 block</td></tr><tr><td>4</td><td><code>0 6</code></td><td>H</td><td>passes on a V-hit</td><td></td></tr><tr><td>5</td><td><code>0 1 0 1</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>6</td><td><code>5 0 1</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>7</td><td><code>7 1</code></td><td>V</td><td>passes on an H-hit</td><td>+1 block</td></tr><tr><td>8</td><td><code>0 1 3</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>9</td><td><code>0 6</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>10</td><td><code>10</code></td><td>H</td><td>passes on a V-hit</td><td></td></tr><tr><td>11</td><td><code>5 0 1</code></td><td>V</td><td>absorbs</td><td>+1 block</td></tr><tr><td>12</td><td><code>0 3 1</code></td><td>H</td><td>passes on an H-hit</td><td></td></tr><tr><td>13</td><td><code>0 1 3</code></td><td>V</td><td>absorbs</td><td></td></tr><tr><td>14</td><td><code>5 3</code></td><td>H</td><td>absorbs</td><td></td></tr><tr><td>15</td><td><code>10</code></td><td>V</td><td>passes on a V-hit</td><td>+1 block</td></tr></tbody></table></div>
+<div class="col"><p>So the ladder is an odometer: the first level turns with every hit of the front, the second with 6 of every 16 hits of the first, and so on. This table is proved in Lean for every rung length and every surrounding tape (<code>lean/Levels.lean</code>).</p></div>
+<div class="col">
+<p><span class="ev k">Kernel</span> <code>hit0</code> &hellip; <code>hit15</code> in <code>lean/Hits.lean</code>: for
+every block count n &ge; 1 and every tape to the left, a hit on a level at position p moves it to position p + 1,
+adds the block at the four marked positions, and takes 112n + c (H-hit) or 56n + c (V-hit) steps inside the level; at
+the six passing positions it makes exactly one hit of the stated kind on the rest. They are assembled from
+<code>lean/Levels.lean</code>, one theorem for each stretch of the hit between two crossings of the level's borders.
+The front itself is <code>frontH</code> and <code>frontV</code>: 107 and 83 steps per hit, the bounce visit included.</p>
+<p>Choose a position and a block count; the browser writes the front, the level and a rest on a tape, runs the
+machine through the hit and the bounce, and compares what it finds with the table. The steps inside the level are
+counted by watching the head cross the level's two borders.</p>
+</div>
+<div class="panel" id="ld-hit">
+ <div class="controls">
+  <label class="small" for="ldh-p">position</label><select id="ldh-p"></select>
+  <label class="small" for="ldh-n">blocks n</label><input type="text" id="ldh-n" inputmode="numeric" value="7" spellcheck="false" autocomplete="off" style="width:5em">
+  <label class="small" for="ldh-u">rest</label>
+  <select id="ldh-u"><option value="tail">the tail of visit 6,000</option><option value="lv">a level 4^3 0 6, then that tail</option><option value="blank">blank tape</option></select>
+  <button type="button" class="primary" id="ldh-go">Hit</button>
+  <button type="button" id="ldh-all">All 16 positions</button>
+ </div>
+ <div id="ldh-out" style="margin-top:10px"></div>
+ <div class="cap">The blank rest stands for a level that is never entered, so it is offered only where the hit is absorbed. "All 16 positions" repeats the test for every position with n = 1 to 12 and the chosen rest.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var sel = $("ldh-p"), tail6000 = null;
+  L.CYC.forEach(function (c, p) { var o = document.createElement("option"); o.value = p; o.textContent = p + ": " + c[0] + ", " + c[1] + "-hit" + (p in L.PASS ? ", passes on " + L.PASS[p] : ""); sel.appendChild(o); });
+  sel.value = 2;
+  function rest() {
+    var k = $("ldh-u").value;
+    if (k === "blank") return "";
+    if (!tail6000) tail6000 = L.parseWord(L.shared().to(6000).w).tail;
+    return k === "lv" ? L.levelWord(9, 3) + tail6000 : tail6000;
+  }
+  // one hit and the bounce on front + level + u, measured on the machine
+  function test(pos, n, u) {
+    var t = L.CYC[pos][1], s = L.CYC[pos][0], w = L.FRONT[t] + L.levelWord(pos, n) + u;
+    var b1 = -2 * L.FRONT[t].length, b2 = b1 - 2 * (5 * n + L.SEPW[s].length);
+    var r1 = L.visit(w, b1), r2 = L.visit(w, b2);
+    if (r1.w === null) return { err: "the machine halted during the hit" };
+    var rb = L.visit(r1.w), got = L.parseWord(rb.w), lv = got.levels[0];
+    var inside = r1.left - r2.left, pass = pos in L.PASS, sig = pass ? L.SIG[L.PASS[pos]] : "";
+    var n2 = n + (L.INC[pos] ? 1 : 0), p2 = (pos + 1) % 16, uexp = u;
+    if (pass) { var t2 = L.PASS[pos], a = L.visit(L.FRONT[t2] + u, -2 * L.FRONT[t2].length); if (a.w !== null) { var a2 = L.visit(a.w); uexp = a2.w.slice(L.FRONT[L.OTHER[t2]].length); } else uexp = null; }
+    var expW = uexp === null ? null : L.FRONT[L.OTHER[t]] + L.levelWord(p2, n2) + uexp;
+    return { t: t, lv: lv, n2: n2, p2: p2, inside: inside, want: L.LA[pos] * n + L.LB[pos], sig: r2.sig, wantSig: sig, bounce: rb.n,
+             front: r1.n - r1.left + rb.n, wantFront: L.FC[t], restOk: expW !== null && rb.w === expW, pass: pass };
+  }
+  function mark(ok) { return ok ? '<span class="ld-ok">&#10003;</span>' : '<span class="ld-bad">&#10007;</span>'; }
+  function one() {
+    var pos = +sel.value, n = Math.max(1, Math.min(2000, parseInt($("ldh-n").value, 10) || 1)), u = rest();
+    $("ldh-n").value = n;
+    if (!u && pos in L.PASS) { $("ldh-out").innerHTML = "Position " + pos + " passes the hit on, so it needs a rest to pass it to; choose another rest."; return; }
+    var r = test(pos, n, u);
+    if (r.err) { $("ldh-out").textContent = r.err; return; }
+    var okP = r.lv && r.lv[0] === r.p2 && Number(r.lv[1]) === r.n2;
+    $("ldh-out").innerHTML = '<div class="tw" style="margin:0"><table class="ld-tbl"><thead><tr><th></th><th>the table</th><th>the machine</th><th></th></tr></thead><tbody>' +
+      "<tr><td>level after the hit</td><td>position " + r.p2 + ", n = " + r.n2 + "</td><td>" + (r.lv ? "position " + r.lv[0] + ", n = " + r.lv[1] : "no level") + "</td><td>" + mark(okP) + "</td></tr>" +
+      "<tr><td>steps inside the level</td><td>" + L.LA[pos] + "&middot;" + n + " + " + L.LB[pos] + " = " + r.want + "</td><td>" + r.inside + "</td><td>" + mark(r.inside === r.want) + "</td></tr>" +
+      "<tr><td>calls on the rest</td><td>" + (r.wantSig ? r.wantSig.replace(/</g, "&lt;").replace(/>/g, "&gt;") + " (" + (r.wantSig.length === 4 ? "a V-hit" : "an H-hit") + ")" : "none") + "</td><td>" + (r.sig ? r.sig.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "none") + "</td><td>" + mark(r.sig === r.wantSig) + "</td></tr>" +
+      "<tr><td>steps of the front, with the " + r.bounce + "-step bounce</td><td>" + r.wantFront + "</td><td>" + r.front + "</td><td>" + mark(r.front === r.wantFront) + "</td></tr>" +
+      "<tr><td>the rest afterwards</td><td>" + (r.pass ? "as after one hit directly behind the front" : "untouched") + "</td><td></td><td>" + mark(r.restOk) + "</td></tr>" +
+      "</tbody></table></div><div class=\"small\">In the call list, &lt;C means the head crosses into the rest and is then in C, &gt;E that it comes back in E.</div>";
+  }
+  function all() {
+    var u = rest(), cases = 0, bad = 0;
+    for (var pos = 0; pos < 16; pos++) {
+      if (!u && pos in L.PASS) continue;
+      for (var n = 1; n <= 12; n++) {
+        var r = test(pos, n, u); cases++;
+        if (r.err || !(r.lv && r.lv[0] === r.p2 && Number(r.lv[1]) === r.n2 && r.inside === r.want && r.sig === r.wantSig && r.front === r.wantFront && r.restOk)) bad++;
+      }
+    }
+    $("ldh-out").innerHTML = bad ? '<span class="ld-bad">&#10007; ' + bad + " of " + cases + " hits differ from the table</span>"
+      : '<span class="ld-ok">&#10003; all ' + cases + " hits (" + (u ? "16" : "10") + " positions, n = 1 to 12) do what the table says: position, blocks, steps inside the level, calls on the rest, the front's steps and the rest afterwards</span>";
+  }
+  $("ldh-go").addEventListener("click", one);
+  $("ldh-all").addEventListener("click", all);
+  sel.addEventListener("change", one);
+  one();
+})();
+</script>
 </section>
 <section id="transparent">
-  <span class="eyebrow">Why it can be simulated</span>
+  <span class="eyebrow">Level 2 to level 3</span>
   <h2>Levels are transparent</h2>
+<div class="col">
 <p>A hit on the part of the tape left of some border is always the same short list of <em>calls</em>: the head crosses the border in a certain state and later comes back in a certain state (for a V-hit: in C, back in E; for an H-hit five calls). A level looks at what is to its left only through these calls. And it passes on H-hits and V-hits in turn, exactly as the front does.</p>
 <p>So the tape left of a level behaves <em>exactly</em> as if the front stood directly before it. It only gets its hits more rarely. That makes an exact shortcut possible: keep each level as two numbers (position and rung length), computed with exact integer arithmetic, and run the real machine, cell by cell, only on the front followed by the tail. Step counts stay exact too, because a hit costs 112 n + c or 56 n + c steps inside a level with n blocks. <code>py/accel.py</code> does this, and <code>lean/Ladder.lean</code> does it again as a function proved correct; up to step 10<sup>11</sup> its visit numbers and step counts are those of the plain simulator.</p>
+<p><span class="ev k">Kernel</span> In <code>lean/Ladder.lean</code>, <code>level_run</code> does y hits on one level
+by induction on y, with closed forms for its position, block count, the hits it passes on and its steps
+(<code>advF</code>, <code>passF</code>, <code>costF</code>; 16 hits are one turn: 4 blocks more, 6 hits passed on,
+1344(j + 1) + d steps). <code>stack_run</code>, the transparency lemma, does y hits on a whole ladder by induction on
+the list of levels: every level moves by its closed form, and the hits that come out at the bottom are a run of hits
+on the tape below, exactly as if the front stood right before it.</p>
+<p>The panel takes the tape of visit 6,000 (six levels and a tail) and makes y hits from the front. On the left of
+each row is what the closed forms say, level by level; then the browser checks it twice: by moving each level one hit
+at a time through the table, and by running the real machine for 2y visits. For the tail it runs the machine on the
+front and the tail alone, for as many hits as came out at the bottom, and compares.</p>
+</div>
+<div class="panel" id="ld-stack">
+ <div class="controls">
+  <label class="small" for="lds-y">hits y</label>
+  <input type="range" class="ld-slider" id="lds-y" min="0" max="800" value="56" aria-label="Number of hits">
+  <span class="small">y = <b id="lds-yl">56</b></span>
+  <button type="button" id="lds-check" class="primary">Check against the machine</button>
+ </div>
+ <canvas id="lds-c" style="width:100%;height:250px;margin-top:10px" aria-label="The levels as dials after y hits"></canvas>
+ <div id="lds-out" class="small" style="margin-top:6px"></div>
+ <div class="cap">Each row is a level, outermost first: its 16 positions as a ring of dots (filled: the hit is passed on there), the orange dot where it stands, the hits it got and the block count. A level gets the hits the one above it passed on.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var base = null, cache = {};
+  function init() {
+    if (base) return;
+    var d = L.shared().to(6000), p = L.parseWord(d.w);
+    base = { w: d.w, k: d.k, front: p.front, levels: p.levels, next: p.next, tail: p.tail };
+  }
+  // the closed forms of level_run, level by level
+  function closed(y) {
+    var out = [], e = BigInt(y), steps = new L.Accel("", 0, 0).frontCost(e, base.front);
+    base.levels.forEach(function (l) {
+      var a = L.adv(l[0], l[1], e), x = L.passes(l[0], e);
+      steps += L.lcost(l[0], l[1], e);
+      out.push({ got: e, pos: a[0], n: a[1], passed: x });
+      e = x;
+    });
+    return { lv: out, tailHits: e, steps: steps };
+  }
+  // the same, one hit at a time through the table
+  function hitByHit(y) {
+    var lv = base.levels.map(function (l) { return [l[0], Number(l[1])]; }), x = 0;
+    for (var i = 0; i < y; i++) {
+      for (var k = 0; k < lv.length; k++) {
+        var pos = lv[k][0], passOn = pos in L.PASS;
+        if (L.INC[pos]) lv[k][1]++;
+        lv[k][0] = (pos + 1) % 16;
+        if (!passOn) break;
+        if (k === lv.length - 1) x++;
+      }
+    }
+    return { lv: lv, tailHits: x };
+  }
+  function draw(c) {
+    var cv = $("lds-c"), w = cv.clientWidth || 600, nL = c.lv.length, rowH = 38, h = rowH * nL + 30, dpr = window.devicePixelRatio || 1;
+    cv.style.height = h + "px";
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var font = L.css("--mono").split(",")[0];
+    g.font = "11px " + font;
+    c.lv.forEach(function (l, k) {
+      var cy = 20 + k * rowH, cx = 24, R = 14;
+      for (var p = 0; p < 16; p++) {
+        var ang = -Math.PI / 2 + 2 * Math.PI * p / 16, x = cx + R * Math.cos(ang), y = cy + R * Math.sin(ang);
+        g.beginPath(); g.arc(x, y, p === l.pos ? 4 : 2.2, 0, 7);
+        g.fillStyle = p === l.pos ? L.css("--head") : (p in L.PASS ? L.css("--ldr1") : L.css("--line-strong")); g.fill();
+      }
+      g.fillStyle = L.css("--fg2");
+      var txt = "level " + (k + 1) + ": got " + l.got + " hits, now at position " + l.pos + " (" + L.CYC[l.pos][0] + "), n = " + l.n + ", passed on " + l.passed;
+      if (w < 520) txt = "L" + (k + 1) + ": got " + l.got + ", pos " + l.pos + ", n = " + l.n + ", passed " + l.passed;
+      g.fillText(txt, 48, cy + 4);
+    });
+    g.fillStyle = L.css("--muted");
+    g.fillText("the tail got " + c.tailHits + (c.tailHits === BigInt(1) ? " hit" : " hits"), 48, 20 + nL * rowH - 4);
+  }
+  function show() {
+    init();
+    var y = +$("lds-y").value;
+    $("lds-yl").textContent = y;
+    var c = closed(y), h = hitByHit(y);
+    var same = h.tailHits === Number(c.tailHits) && h.lv.every(function (l, k) { return l[0] === c.lv[k].pos && BigInt(l[1]) === c.lv[k].n; });
+    draw(c);
+    $("lds-out").innerHTML = (same ? '<span class="ld-ok">&#10003; the closed forms equal ' + y + " hits made one at a time through the table</span>" : '<span class="ld-bad">&#10007; the closed forms disagree with the table</span>') +
+      "<br>Steps of the front and the levels for these hits, by the formulas: " + L.fmtN(Number(c.steps)) + (cache[y] ? "<br>" + cache[y] : "");
+  }
+  function check() {
+    init();
+    var y = +$("lds-y").value, c = closed(y), d = L.shared(), w = base.w, k = 0, i, r;
+    for (i = 0; i < 2 * y; i++) { r = L.visit(w); w = r.w; k += r.n; }
+    var p = L.parseWord(w);
+    // the tail alone, behind the front, for the hits that came out at the bottom
+    var tw = L.FRONT[base.next] + base.tail, tsteps = 0, x = Number(c.tailHits);
+    for (i = 0; i < x; i++) {
+      var f = L.ftype(tw)[0], a = L.visit(tw, -2 * L.FRONT[f].length); tsteps += a.left; tw = L.visit(a.w).w;
+    }
+    var tailAlone = L.ftype(tw)[1];
+    var okL = p.levels.length === c.lv.length && c.lv.every(function (l, j) { return p.levels[j][0] === l.pos && p.levels[j][1] === l.n; });
+    var okT = p.tail === tailAlone, okS = BigInt(k) === c.steps + BigInt(tsteps);
+    cache[y] = "The machine, " + L.fmtN(k) + " steps for " + 2 * y + " visits: " +
+      (okL ? '<span class="ld-ok">&#10003; the same six levels</span>' : '<span class="ld-bad">&#10007; other levels</span>') + "; " +
+      (okT ? '<span class="ld-ok">&#10003; the tail is the tail after ' + x + (x === 1 ? " hit" : " hits") + " directly behind the front</span>" : '<span class="ld-bad">&#10007; the tail differs</span>') + "; " +
+      (okS ? '<span class="ld-ok">&#10003; steps = formulas + the ' + L.fmtN(tsteps) + " steps the tail took on its own</span>" : '<span class="ld-bad">&#10007; the steps differ</span>');
+    show();
+  }
+  $("lds-y").addEventListener("input", show);
+  $("lds-check").addEventListener("click", check);
+  L.onTheme(show);
+  show();
+})();
+</script>
 </section>
 <section id="fuel">
-  <span class="eyebrow">The long run</span>
+  <span class="eyebrow">Level 3 to level 4</span>
   <h2>Resets, fuel, and 887 levels</h2>
+<div class="col">
 <p>A hit that reaches the blank left end of the tape comes back in an unusual state, and that flattens the ladder: one sweep turns every block <code>4</code> into <code>0 3</code>. It happened at visits 3, 11 and 25 and, with a ladder of six levels, at visit 3,006 (step 27,167,343). After a reset a new ladder grows at the right end, and the flattened blocks are <em>fuel</em> for its tail. In a cycle of 12 hits,</p>
 <pre>7 3 3 > 5 4 0 4 > 4 0 7 0 4 > 4 0 1 0 1 0 3 4 > 4 4 0 1 3 0 1 4 7 > 5 4 7 > 11 7 >
 4 0 1 0 1 0 10 > 4 5 3 0 1 0 1 0 1 0 3 3 > 5 0 1 0 1 0 3 3 > 7 1 0 1 0 3 3 > 4 0 1 3 0 3 3 3 > 7 3 3</pre>
 <p>the tail uses up two fuel blocks and leaves three new levels behind. But every new level makes the hits on the tail 8/3 times rarer. The fuel left by the reset of visit 3,006 is about 590 blocks, enough for 887 levels: the tail needs about (8/3)<sup>887</sup> ≈ 10<sup>378</sup> visits to eat its way to the left end, and a visit by then takes about 10<sup>379</sup> steps.</p>
+<p><span class="ev k">Kernel</span> The proof does not follow the tail by hand. <code>loop</code> in
+<code>lean/Ladder.lean</code> is <code>py/accel.py</code> again, as a Lean function: it reads levels off the cells
+behind the front and keeps them as numbers (<code>opPeel</code>), jumps to the next hit that reaches the cells
+(<code>opAdv</code>; how far is computed by <code>readyCount</code>, which needs no proof because a wrong count makes
+the step fail), makes that hit on the cells with a small simulator (<code>tailHit</code>), and when the calls do not
+come back as a level expects it writes the deepest level out as cells again and retries (<code>opUnpeel</code>).
+<code>loop_sound</code>: if <code>loop</code> returns N from a configuration of the run, the machine halts after
+exactly N steps. A wrong choice can make <code>loop</code> fail; it cannot make it return a wrong number.</p>
+<p>The stepper is the same algorithm in the browser. It starts from the tape of visit 3,040, reached by running the
+machine for 27,172,911 steps, and each click makes hits that reach the tail; everything above the tail is moved by
+the formulas. While the run is still short enough, each state is compared with the plain machine.</p>
+</div>
+<div class="panel" id="ld-fuel">
+ <div class="controls">
+  <button type="button" class="primary" id="ldf-1">Next hit on the tail</button>
+  <button type="button" id="ldf-12">12 hits on the tail</button>
+  <button type="button" id="ldf-100">100</button>
+  <button type="button" id="ldf-0">Back to visit 3,040</button>
+ </div>
+ <div class="readout"><span>hits on the tail <b id="ldf-h">0</b></span><span>visit <b id="ldf-v">3,040</b></span><span>step <b id="ldf-s"></b></span><span>levels <b id="ldf-l">0</b></span><span>put back <b id="ldf-u">0</b></span></div>
+ <div class="ld-word" id="ldf-w"></div>
+ <div id="ldf-chk" class="small" style="margin-top:6px"></div>
+ <div class="log" id="ldf-log" aria-live="polite"></div>
+ <div class="cap">The grey box is what the function simulates cell by cell: the front, then the tail (the word between the levels and the blank left end), in digits; the levels are kept as numbers. A level "put back" is the deepest level written out as cells after a hit on the tail came back in unusual states.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var a = null, log = [], direct = null, halted = false;
+  function start() {
+    var d = L.shared().to(L.START);
+    a = new L.Accel(d.w, L.START, d.k, 0); a.peel(); log = []; halted = false; direct = d;
+    show();
+  }
+  function show() {
+    var all = a.allLevels();
+    $("ldf-h").textContent = L.fmtN(a.hits); $("ldf-v").innerHTML = L.fmtBig(a.visits); $("ldf-s").innerHTML = L.fmtBig(a.steps);
+    $("ldf-l").textContent = all.levels.length; $("ldf-u").textContent = a.unpeels;
+    var f = L.ftype(a.R);
+    $("ldf-w").innerHTML = "<b>" + (f[0] === "H" ? "2 1" : f[0] === "V" ? "5" : "") + "</b> &nbsp;" + L.fmt(f[1] || a.R);
+    var chk = "";
+    if (a.visits <= BigInt(8000)) {
+      direct.to(Number(a.visits));
+      var p = L.parseWord(direct.w), ok = BigInt(direct.k) === a.steps && p.tail === all.tail && p.levels.length === all.levels.length &&
+        all.levels.every(function (l, j) { return l[0] === p.levels[j][0] && l[1] === p.levels[j][1]; });
+      chk = ok ? '<span class="ld-ok">&#10003; the plain machine at visit ' + L.fmtN(Number(a.visits)) + " has these levels, this tail and this step count</span>"
+               : '<span class="ld-bad">&#10007; the plain machine differs</span>';
+    } else chk = "Beyond visit 8,000 the browser no longer runs the plain machine alongside.";
+    if (halted) chk = "<b>The next hit does not come back: the machine halts.</b> The bottom line runs this to the end and checks the step.";
+    $("ldf-chk").innerHTML = chk;
+    $("ldf-log").innerHTML = log.slice(-80).reverse().map(function (l) { return "<div><span class=\"t\">" + l[0] + "</span><span>" + l[1] + "</span><span>" + l[2] + "</span><span>" + l[3] + "</span></div>"; }).join("");
+  }
+  function go(n) {
+    if (!a) start();
+    for (var i = 0; i < n && !halted; i++) {
+      try {
+        var u = a.step();
+        var f = L.ftype(a.R), t = L.fmt(f[1]);
+        log.push([L.fmtN(a.hits), u ? "+" + u : "", a.allLevels().levels.length, "visit " + L.fmtBig(a.visits) + ": " + (f[0] === "H" ? "2 1" : "5") + " | " + (t.length > 70 ? t.slice(0, 70) + " &hellip;" : t)]);
+      } catch (e) { if (e instanceof L.Halt) halted = true; else throw e; }
+    }
+    show();
+  }
+  $("ldf-1").addEventListener("click", function () { go(1); });
+  $("ldf-12").addEventListener("click", function () { go(12); });
+  $("ldf-100").addEventListener("click", function () { go(100); });
+  $("ldf-0").addEventListener("click", start);
+  start();
+})();
+</script>
 </section>
 <section id="halt">
   <span class="eyebrow">The end</span>
   <h2>Off the edge</h2>
+<div class="col">
 <p>The machine can only halt in state C on a 0, and C is only entered when B reads a 0 and steps left. Inside the tape every 0 stands alone, so this needs B at the blank left end.</p>
-<p>When the fuel is gone, the tail is <code>0 3 1 0 3 1 0 5</code> with blank tape behind it, and an H-hit is due. Its first three calls come back as usual. In the fourth the head runs through the tail in state C, turns the last pairs over, and B arrives on the blank cell left of the tape: one step left, C reads a 0, and the machine halts. The halting step (bbchallenge count) is</p>
-<p style="word-break:break-all;font-family:var(--mono);font-size:12px">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</p>
+<p>When the fuel is gone, the tail is <code>0 3 1 0 3 1 0 5</code> with blank tape behind it, and an H-hit is due. Its first three calls come back as usual. In the fourth the head runs through the tail in state C, turns the last pairs over, and B arrives on the blank cell left of the tape: one step left, C reads a 0, and the machine halts. The halting step is given in <a href="#bottomline">the bottom line</a>.</p>
 <p>The earlier arrivals at the left end (visits 3, 11, 25, 3,006) came in other states and only reset the ladder.</p>
-<p><b>How many steps.</b> The halting step is known exactly (above): about 1.2736·10<sup>758</sup>, so between 10<sup>758</sup> and 2·10<sup>758</sup>. The Lean proof states it (<code>halt_step</code>), and two independent programs give the same number. A rough estimate explains its size: the halt comes at visit 6.46·10<sup>378</sup>, which is about 9.3·(8/3)<sup>887</sup> because each of the 887 levels gets 3/8 of the hits of the one above it. The tape grows by about two cells per visit, and each visit runs over the whole tape, so the step is about 3·(visits)<sup>2</sup>. The Coq proof shows that the machine halts but does not count steps.</p>
+<p><b>How many steps.</b> The halting step is known exactly (see the bottom line): about 1.2736·10<sup>758</sup>, so between 10<sup>758</sup> and 2·10<sup>758</sup>. The Lean proof states it (<code>halt_step</code>), and two independent programs give the same number. A rough estimate explains its size: the halt comes at visit 6.46·10<sup>378</sup>, which is about 9.3·(8/3)<sup>887</sup> because each of the 887 levels gets 3/8 of the hits of the one above it. The tape grows by about two cells per visit, and each visit runs over the whole tape, so the step is about 3·(visits)<sup>2</sup>. The Coq proof shows that the machine halts but does not count steps.</p>
+<p><span class="ev k">Kernel</span> <code>last_visit_halts</code> in <code>lean/Levels.lean</code>: the last visit on the
+word without its 887 levels, <code>2 1 0 3 1 0 3 1 0 5</code> with blank tape to the left, reaches a halting
+configuration after 278 steps. With the levels in between, the halt comes in the same call, later by the steps each
+level makes before it (<code>haltUp_sound</code>, <code>frontHalt_sound</code>, and the constants of
+<code>level_halt</code>). The picture is that visit, run in the browser: one row per step, time going down, the head
+in orange.</p>
+</div>
+<div class="panel" id="ld-last">
+ <div class="controls"><button type="button" class="primary" id="ldl-go">Run the last visit</button><span class="small" id="ldl-info"></span></div>
+ <canvas id="ldl-c" style="width:100%;max-width:640px;height:300px;margin-top:10px" aria-label="Space-time picture of the last visit"></canvas>
+ <div class="cap">Cells left to right with the head starting at the right end; dark cells are 1s. The dashed lines mark the two blank cells just left of the word.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var rows = null;
+  function run() {
+    var w = L.d2w([2, 1, 0, 3, 1, 0, 3, 1, 0, 5]), n = w.length, pad = 4, W = 2 * n + pad + 3, t = new Uint8Array(W), p, s = 0, i;
+    for (i = 0; i < n; i++) { var c = w[i]; t[pad + 2 * n - 1 - 2 * i] = (c === "X" || c === "Y") ? 1 : 0; t[pad + 2 * n - 2 - 2 * i] = (c === "Y" || c === "Z") ? 1 : 0; }
+    p = pad + 2 * n; rows = [];
+    var TM = L.TM.split("_");
+    for (var k = 0; ; k++) {
+      rows.push([t.slice(), p, s]);
+      var q = TM[s].substr(3 * t[p], 3);
+      if (q[0] === "-") break;
+      t[p] = +q[0]; p += q[1] === "R" ? 1 : -1; s = q.charCodeAt(2) - 65;
+    }
+    var edge = pad;
+    $("ldl-info").innerHTML = "the machine reaches a halting configuration after <b>" + (rows.length - 1) + "</b> steps: state " + "ABCDEF"[s] + " reading 0, " + (edge - p) + " cells left of the leftmost cell of the word" +
+      (rows.length - 1 === 278 ? ' <span class="ld-ok">&#10003; 278 steps, as in <code>last_visit_halts</code></span>' : ' <span class="ld-bad">&#10007;</span>');
+    draw();
+  }
+  function draw() {
+    if (!rows) return;
+    var cv = $("ldl-c"), w = cv.clientWidth || 600, h = cv.clientHeight || 300, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var W = rows[0][0].length, cw = w / W, rh = h / rows.length, one = L.css("--ink"), zero = L.css("--sunk"), hd = L.css("--head");
+    rows.forEach(function (r, k) {
+      for (var x = 0; x < W; x++) { g.fillStyle = r[0][x] ? one : zero; g.fillRect(x * cw, k * rh, Math.max(cw - .5, .5), Math.max(rh, .6)); }
+      g.fillStyle = hd; g.fillRect(r[1] * cw, k * rh, Math.max(cw - .5, .5), Math.max(rh, .6));
+    });
+    g.strokeStyle = L.css("--muted"); g.setLineDash([3, 3]);
+    [2, 3].forEach(function (x) { g.beginPath(); g.moveTo(x * cw + cw / 2, 0); g.lineTo(x * cw + cw / 2, h); g.stroke(); });
+    g.setLineDash([]);
+  }
+  $("ldl-go").addEventListener("click", run);
+  L.onTheme(draw);
+  run();
+})();
+</script>
+</section>
+<section id="bottomline">
+  <span class="eyebrow">The bottom line</span>
+  <h2>It halts, at a step with 759 digits</h2>
+<div class="col">
+<p><b>The machine 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB halts from a blank tape, at step</b></p>
+<p style="word-break:break-all;font-family:var(--mono);font-size:12px">127357002621565065257620436683386936787539470067051886613218118511080673366941072419030003169655065867449076569424641011574489482373465883365675526698891984731533897533200967458271672457393649647114596314125471135660566111943361843730621394792642277333936847623104308961000089724168905591219305595735931713864752589517911334410100233581671754237003517860991278921217226890440796227582950616514639336930819296066429511864899248696946158576194825836402868940605014639617724789550009265777033152525606033456073540691727721901256364141236872161550422869463852043401520343212555953181130714885650835768030318277837531565019874900364467386746214009188503718874282272725926187590284697947001726343238522323981475257408390954658553165337971013334254732281910474403686</p>
+<p>(bbchallenge count, the halting transition included; 759 digits, about 1.27&middot;10<sup>758</sup>), in state C
+on a 0, two cells left of the leftmost 1, during the visit after visit number 6.457&middot;10<sup>378</sup>, with 887
+levels on the tape.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>statement</th><th>where</th><th>what it rests on</th></tr></thead>
+<tbody>
+<tr><td><code>halts : HaltsFromBlank</code>, <code>halts_in : ∃ c, steps haltN init = some c ∧ step c = none</code>, <code>halt_step : haltN + 1 = 1273570026…4403686</code> (Lean)</td><td><code>lean/Halt.lean</code></td><td><span class="ev n">native_decide</span> the kernel for the level rules, the ladder (<code>stack_run</code>) and the soundness of the run (<code>loop_sound</code>); Lean's three standard axioms; and two compiled evaluations: <code>fsteps0</code> (the first 27,172,911 steps, to visit 3,040) and <code>run0 : loop 100000 true s0 = some haltN</code></td></tr>
+<tr><td><code>halt : halts tm c0</code> (Coq, busycoq's definitions)</td><td><code>coq/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code></td><td><span class="ev k">Kernel</span> no axioms (<code>Print Assumptions halt</code>: closed under the global context); the one long evaluation, <code>loop 10000 true s0 = true</code>, is checked by Coq's kernel. It proves that the machine halts, not when.</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>So the exact step rests on the Lean theorem <code>halt_step</code>, with its two <code>native_decide</code>
+evaluations; that the machine halts at all is also a Coq theorem checked by its kernel alone. Two separately written
+programs (<code>py/accel.py</code> and <code>verify/</code>) give the same step.</p>
+<h3>The whole run, in your browser</h3>
+<p>The accelerated run of the proof, written again in JavaScript with exact big integers: first the plain machine
+to visit 3,040, then hits on the tail with the levels as numbers, until a hit does not come back. It takes a few
+seconds. At the end it checks the last visit: on eight small tapes that have the same 887 levels at their final
+positions but only 1 to 9 blocks each, followed by the final tail, the plain machine must halt after exactly the
+number of steps the formula gives (<code>py/accel.py last</code>).</p>
+</div>
+<div class="panel" id="ld-halt">
+ <div class="controls"><button type="button" class="primary" id="ldb-go">Run to the halt</button><button type="button" id="ldb-stop">Pause</button></div>
+ <div class="readout"><span>hits on the tail <b id="ldb-h">0</b></span><span>put back <b id="ldb-u">0</b></span><span>levels <b id="ldb-l">0</b></span><span>visit <b id="ldb-v">0</b></span><span>step <b id="ldb-s">0</b></span><span>time <b id="ldb-t">0 s</b></span></div>
+ <canvas id="ldb-c" style="width:100%;height:220px" aria-label="Levels on the tape against the number of visits"></canvas>
+ <div id="ldb-out" style="margin-top:8px"></div>
+ <div class="cap">Across: the visit number on a log scale, up to 10<sup>379</sup>. Up: the number of levels on the tape, one dot per hit on the tail. The line is (8/3)<sup>k</sup>: each new level makes the hits on the tail 8/3 times rarer.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var a = null, pts = [], timer = null, t0 = 0, spent = 0, done = false;
+  function lg(b) { var s = b.toString(); return s.length - 1 + Math.log10(+("0." + s.slice(0, 15)) * 10); }
+  function draw() {
+    var cv = $("ldb-c"), w = cv.clientWidth || 600, h = cv.clientHeight || 220, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var Lx = 34, B = h - 20, T = 8, R = w - 28, X = 380, Y = 900;
+    g.strokeStyle = L.css("--line"); g.fillStyle = L.css("--muted"); g.font = "10px " + L.css("--mono").split(",")[0];
+    for (var e = 0; e <= 380; e += 95) { var x = Lx + (R - Lx) * e / X; g.beginPath(); g.moveTo(x, T); g.lineTo(x, B); g.stroke(); g.fillText("10^" + e, x - 10, h - 6); }
+    for (var k = 0; k <= 900; k += 300) { var y = B - (B - T) * k / Y; g.beginPath(); g.moveTo(Lx, y); g.lineTo(R, y); g.stroke(); g.fillText(String(k), 4, y + 3); }
+    g.strokeStyle = L.css("--line-strong"); g.beginPath();
+    for (k = 0; k <= 900; k += 10) { var ex = k * Math.log10(8 / 3); x = Lx + (R - Lx) * ex / X; y = B - (B - T) * k / Y; if (k) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.stroke();
+    g.fillStyle = L.css("--accent");
+    pts.forEach(function (p) { g.fillRect(Lx + (R - Lx) * p[0] / X - 1, B - (B - T) * p[1] / Y - 1, 2, 2); });
+  }
+  function readout() {
+    $("ldb-h").textContent = L.fmtN(a.hits); $("ldb-u").textContent = a.unpeels;
+    $("ldb-l").textContent = a.allLevels().levels.length;
+    $("ldb-v").innerHTML = L.fmtBig(a.visits); $("ldb-s").innerHTML = L.fmtBig(a.steps);
+    $("ldb-t").textContent = ((spent + (timer ? Date.now() - t0 : 0)) / 1000).toFixed(1) + " s";
+  }
+  // py/accel.py last: small tapes with the final levels
+  function lastCheck(lv, tail) {
+    var ok = 0;
+    for (var trial = 0; trial < 8; trial++) {
+      var small = lv.map(function (l, i) { return [l[0], BigInt(1 + (i * 7 + trial * 3) % (2 + trial))]; });
+      var w = L.FRONT[L.CYC[small[0][0]][1]] + small.map(function (l) { return L.levelWord(l[0], l[1]); }).join("") + tail;
+      var r = L.visit(w), b = new L.Accel(L.FRONT[a.fatal[0]] + tail, 0, 0);
+      b.levels = small; b.fatal = a.fatal;
+      if (r.w === null && r.halt === "C" && r.pos === r.edge - 2 && BigInt(r.n + 1) === b.haltingStep()) ok++;
+    }
+    return ok;
+  }
+  function finish() {
+    var hs = a.haltingStep(), all = a.allLevels(), info = a.fatal[1];
+    var okS = hs.toString() === L.HALT_STEP, okV = a.visits.toString() === L.HALT_VISIT;
+    var out = "<b>The visit after visit number " + L.fmtBig(a.visits) + " does not come back.</b> " + all.levels.length + " levels, tail <code>" + L.fmt(all.tail) + "</code>; the machine halts in state " + info.halt + ", at step<br>" +
+      '<span style="word-break:break-all;font-family:var(--mono);font-size:12px">' + hs + "</span><br>" +
+      (okS ? '<span class="ld-ok">&#10003; the step of <code>halt_step</code>, digit for digit</span>' : '<span class="ld-bad">&#10007; differs from <code>halt_step</code></span>') + " &nbsp; " +
+      (okV ? '<span class="ld-ok">&#10003; the visit number of <code>halt.txt</code></span>' : '<span class="ld-bad">&#10007; another visit number</span>');
+    var ok = lastCheck(all.levels, all.tail);
+    out += "<br>The last visit on eight small tapes with these " + all.levels.length + " levels: " + (ok === 8 ? '<span class="ld-ok">&#10003; all eight halt in C, two cells left of the leftmost 1, after exactly the steps of the formula</span>' : '<span class="ld-bad">&#10007; ' + (8 - ok) + " of 8 differ</span>");
+    $("ldb-out").innerHTML = out;
+  }
+  function chunk() {
+    var end = Date.now() + 40;
+    try {
+      while (Date.now() < end) { a.step(); pts.push([lg(a.visits), a.allLevels().levels.length]); }
+    } catch (e) {
+      if (!(e instanceof L.Halt)) throw e;
+      done = true; spent += Date.now() - t0; timer = null; readout(); draw(); finish(); $("ldb-go").textContent = "Run again"; return;
+    }
+    readout(); draw();
+    timer = setTimeout(chunk, 0);
+  }
+  $("ldb-go").addEventListener("click", function () {
+    if (timer) return;
+    if (!a || done) { a = L.startAccel(0); pts = []; spent = 0; done = false; $("ldb-out").innerHTML = ""; }
+    $("ldb-go").textContent = "Running"; t0 = Date.now(); chunk();
+  });
+  $("ldb-stop").addEventListener("click", function () { if (timer) { clearTimeout(timer); timer = null; spent += Date.now() - t0; $("ldb-go").textContent = "Continue"; readout(); } });
+  L.onTheme(draw);
+  draw();
+})();
+</script>
 </section>
 <section id="trust">
   <span class="eyebrow">How sure is this?</span>

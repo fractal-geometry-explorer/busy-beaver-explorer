@@ -1,0 +1,89 @@
+<div class="col">
+<p>Follow the templates from one round trip to the next (<code>nxt</code> in <code>lean/Tables.lean</code>) and they
+go round in cycles. There are four cycles, called <b>regimes</b> R0 to R3, with 15, 22, 16 and 9 templates. After
+one full lap of a regime the tail is exactly as it was, a has dropped by 45, 66, 48 or 27 (3 per trip), and b has
+grown by 99, 141, 99 or 57. Click a template in the rings to see its shape; the button runs the selected regime's
+whole lap on the machine.</p>
+</div>
+<div class="grid2">
+<div class="panel" style="margin:0"><svg class="pw-rings" id="pw-rings" viewBox="0 0 520 520" role="img" aria-label="The four regimes as rings of templates" style="width:100%;height:auto;max-width:520px"></svg></div>
+<div class="panel" style="margin:0"><div class="small">Template <b id="pw-tname">R0_0</b> as Lean states it (dashed bars: counts with variables):</div><div class="pw-strip" id="pw-ttape"></div><div class="small" id="pw-tinfo"></div>
+<div class="controls" style="margin-top:10px"><button type="button" class="primary" id="z6g-go">Run the lap on the machine</button><button type="button" id="pw-lapplay">Play the lap</button></div>
+<div class="small" id="z6g-out" aria-live="polite"></div>
+<div class="small" style="margin-top:14px">One lap of the selected regime, as observed in the run (a and b are concrete numbers here):</div>
+<div class="tw"><table class="pw-tbl" id="pw-lap"></table></div>
+</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, D = Z.D, $ = function (i) { return document.getElementById(i); }, NS = "http://www.w3.org/2000/svg";
+  var svg = $("pw-rings"), regs = ["R0", "R1", "R2", "R3"], ctr = [[130, 130], [390, 130], [130, 390], [390, 390]], sel = 0;
+  var groups = regs.map(function (R) { return D.tpl.map(function (d, i) { return [d, i]; }).filter(function (x) { return x[0].reg === R; }); });
+  function el(tag, at, txt) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt !== undefined) e.textContent = txt; svg.appendChild(e); return e; }
+  function draw() {
+    svg.textContent = "";
+    groups.forEach(function (g, ri) {
+      var cx = ctr[ri][0], cy = ctr[ri][1], rad = 88;
+      el("text", { x: cx, y: cy - 4, "text-anchor": "middle", fill: "var(--fg)", style: "font:700 15px var(--display)" }, regs[ri]);
+      el("text", { x: cx, y: cy + 14, "text-anchor": "middle", fill: "var(--muted)" }, g.length + " trips a lap");
+      el("circle", { cx: cx, cy: cy, r: rad, fill: "none", stroke: "var(--line-strong)", "stroke-dasharray": "3 4" });
+      g.forEach(function (x, q) {
+        var d = x[0], i = x[1], ang = -Math.PI / 2 + 2 * Math.PI * q / g.length, px = cx + rad * Math.cos(ang), py = cy + rad * Math.sin(ang);
+        var isEnd = D.endT.indexOf(i) >= 0;
+        var n = el("circle", { cx: px, cy: py, r: i === sel ? 10 : 7, fill: i === sel ? "var(--accent)" : "var(--surface)", stroke: isEnd ? "var(--native)" : "var(--fg2)", "stroke-width": isEnd ? 2.5 : 1.2, tabindex: "0", role: "button", "aria-label": "template " + d.name });
+        n.style.cursor = "pointer";
+        n.addEventListener("click", function () { pick(i); });
+        n.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(i); } });
+        if (q === 0 || i === sel) el("text", { x: cx + (rad + 22) * Math.cos(ang), y: cy + (rad + 22) * Math.sin(ang) + 4, "text-anchor": "middle", fill: "var(--fg2)" }, d.name);
+      });
+    });
+    el("text", { x: 260, y: 512, "text-anchor": "middle", fill: "var(--muted)" }, "thick blue outline: a template an epoch end can lead to");
+  }
+  function pick(i) { sel = i; draw(); show(); }
+  function show() {
+    var d = D.tpl[sel];
+    $("pw-tname").textContent = d.name;
+    Z.strip($("pw-ttape"), Z.tplSym(sel, "(3k+4)", "(3j+" + d.beta + ")"));
+    $("pw-tinfo").innerHTML = "Round trip: to <b>" + D.tpl[D.nxt[sel]].name + "</b>, j grows by " + D.dj[sel] + " (b by " + 3 * D.dj[sel] + "). Epoch end: to <b>" + D.tpl[D.endT[sel]].name +
+      "</b> with k = (j − 200) + " + D.endC1[sel] + ", j = " + D.endC2[sel] + ". pot = " + D.potL[sel] + ".";
+    lap(d.reg, sel);
+  }
+  function lap(R, on) {
+    var rows = D.tpl.map(function (d, i) { return [d, i]; }).filter(function (x) { return x[0].reg === R; }), maxr = 0;
+    rows.forEach(function (x) { maxr = Math.max(maxr, x[0].rest.filter(function (y) { return typeof y === "number"; }).length); });
+    var h = '<thead><tr><th>template</th><th>a</th><th>b</th><th colspan="' + maxr + '">tail counts</th></tr></thead><tbody>';
+    rows.forEach(function (x) {
+      var d = x[0], i = x[1], rc = d.rest.filter(function (y) { return typeof y === "number"; });
+      h += '<tr data-i="' + i + '"' + (i === on ? ' class="on"' : "") + "><td>" + d.name + '</td><td class="a">' + d.A + '</td><td class="b">' + d.B + "</td>" + rc.map(function (y) { return "<td>" + y + "</td>"; }).join("") + new Array(maxr - rc.length + 1).join("<td></td>") + "</tr>";
+    });
+    var f = rows[0][0];
+    h += '<tr><td>next lap</td><td class="a">' + (f.A + D.dA[R]) + '</td><td class="b">' + (f.B + D.dB[R]) + '</td><td colspan="' + maxr + '" style="font-family:var(--body)">tail as in the first row</td></tr></tbody>';
+    $("pw-lap").innerHTML = h;
+  }
+  var lapTimer = null;
+  $("pw-lapplay").onclick = function () {
+    if (lapTimer) { clearInterval(lapTimer); lapTimer = null; $("pw-lapplay").textContent = "Play the lap"; return; }
+    var ids = groups[regs.indexOf(D.tpl[sel].reg)].map(function (x) { return x[1]; }), q = ids.indexOf(sel);
+    $("pw-lapplay").textContent = "Stop";
+    lapTimer = setInterval(function () { q = (q + 1) % ids.length; pick(ids[q]); }, 700);
+  };
+  // the whole lap of the selected regime, starting at the selected template, on the shift-rule simulator
+  $("z6g-go").onclick = function () {
+    var t = sel, d = D.tpl[t], ids = groups[regs.indexOf(d.reg)], P = ids.length, k = P + 30, j = 50;
+    var f = new Z.Fast(Z.tplList(t, k, j), 1), cur = [t, k, j], ok = true, steps0 = 0, seen = [];
+    for (var q = 0; q < P; q++) {
+      if (f.toLeftEnd(1e6) !== "left") { ok = false; break; }
+      cur = [D.nxt[cur[0]], cur[1] - 1, cur[2] + D.dj[cur[0]]];
+      var w = Z.whichTpl(f.list());
+      seen.push(w ? D.tpl[w[0]].name : "?");
+      if (!w || w.join() !== cur.join()) { ok = false; break; }
+    }
+    var a0 = 3 * k + 4, b0 = 3 * j + d.beta, a1 = 3 * cur[1] + 4, b1 = 3 * cur[2] + D.tpl[cur[0]].beta;
+    $("z6g-out").innerHTML = ok && cur[0] === t
+      ? '<span class="pw-ok">&#10003; ' + P + " round trips on the machine (" + Z.fmt(f.steps) + " steps), each one landing on the template the tables predict, and back at " + d.name + ".</span> a went from " + a0 + " to " + a1 + " (−" + (a0 - a1) + "), b from " + b0 + " to " + b1 + " (+" + (b1 - b0) + ")."
+      : '<span class="pw-bad">The lap did not go as the tables say (' + seen.join(", ") + ").</span>";
+  };
+  draw(); show();
+})();
+</script>

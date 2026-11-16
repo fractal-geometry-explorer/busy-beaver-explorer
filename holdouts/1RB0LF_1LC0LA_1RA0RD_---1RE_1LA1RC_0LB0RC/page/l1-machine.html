@@ -1,0 +1,102 @@
+<div class="grid2"><div class="col">
+<p>The table has one missing entry: <b>D reading a 0</b>. That is the only way to halt (<code>step_none_iff</code>,
+<span class="ev k">Kernel</span>). The only transition into D is C reading a 1 (C writes 0, moves right, enters D),
+so a halt happens exactly when the head in state C sees <code>1 0</code>. Lean also proves the short ways there
+(<code>halt_C</code>, <code>halt_E</code>, <code>halt_F</code>, <code>halt_D</code> in <code>lean/Rules.lean</code>,
+<span class="ev k">Kernel</span>): <code>C&gt;1 0</code> halts after one step, <code>E&gt;1 1 0</code> and
+<code>F&gt;1 1 0</code> after two, <code>D&gt;1 1 1 0</code> after three.</p>
+<p>The proof never looks for this pattern directly. It shows something stronger: from the blank tape, for every
+number n, the first n steps are all defined. That is the Lean statement <code>¬ HaltsFromBlank</code>, where
+<code>HaltsFromBlank</code> means "some step reaches a configuration with no transition". In the first
+2·10<sup>8</sup> steps the machine is in state D 22,202,037 times, every time on a 1 (<code>c/visits.c</code>,
+<span class="ev c">Computed</span>).</p>
+<p class="small">Press Step to see the halting pattern play out on a made-up tape.</p>
+</div>
+<div class="panel" style="margin:0"><div class="pw-mini" id="pw-haltmini"></div><div class="controls" style="margin-top:8px"><button type="button" id="pw-haltstep">Step</button><button type="button" id="pw-haltreset">Reset</button><span class="small" id="pw-haltcap"></span></div></div>
+</div>
+<div class="col">
+<h3>From cells to a list of numbers</h3>
+<p>Watch the machine for a while (the simulator above) and most of the tape turns out to be long stretches of
+<code>0 1 0 1 0 1 …</code>. Stop it at the moments when the head, in state B, stands at the left end of the written
+tape on a 0: the <b>left-end moments</b>. At those moments the tape reads</p>
+<div class="pw-strip" aria-label="schematic tape"><span class="head">B&gt;</span><span class="lit"><span class="c">0</span><span class="c">0</span></span><span class="run a">(01) × a</span><span class="lit"><span class="c">0</span><span class="c">0</span><span class="c">0</span></span><span class="run b">(01) × b</span><span class="lit"><span class="c">0</span><span class="c">0</span><span class="c">0</span></span><span class="run o">(01) × c</span><span class="run o" style="background:var(--muted)">…</span></div>
+<p>a list of numbers a, b, c, … written as stretches of <code>01</code>, separated by short words such as
+<code>000</code>, <code>00001000</code> or <code>11</code>. The machine is a little computer working on this list.
+The first number <b style="color:var(--accent)">a</b> counts down, the second number <b style="color:var(--kernel)">b</b>
+grows, and the short tail after them goes round in a cycle. The panel steps through the left-end moments of the run
+from blank tape and reads each tape as a list (two or more <code>01</code>s in a row become a number, as in
+<code>py/regimes.py</code>).</p>
+</div>
+<div class="panel">
+ <div class="controls"><button type="button" id="z6l-prev" aria-label="Previous left-end moment">&#9664;</button>
+  <input type="range" class="z6-slider" id="z6l-n" min="0" max="250" value="25" aria-label="Left-end moment">
+  <button type="button" id="z6l-next" aria-label="Next left-end moment">&#9654;</button>
+  <span class="small" id="z6l-lab"></span></div>
+ <div class="small" style="margin-top:8px">The cells, from the head:</div>
+ <div class="pw-mini" id="z6l-cells" style="padding-top:24px"></div>
+ <div class="small" style="margin-top:8px">The same cells as a list:</div>
+ <div class="pw-strip" id="z6l-strip"></div>
+ <div class="small" id="z6l-cap"></div>
+</div>
+<div class="col"><p>The first moment at which the list has the exact shape of one of the proof's 62 templates is step
+1,277,431. The button runs the machine there from blank tape and compares.</p></div>
+<div class="panel">
+<div class="controls"><button type="button" class="primary" id="pw-startgo">Run 1,277,431 steps from blank tape</button><span class="small" id="pw-startcap"></span></div>
+<div class="pw-strip" id="pw-starttape"></div>
+<div class="small" id="pw-startcmp"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, TR = Z.TR, SN = Z.SN, $ = function (i) { return document.getElementById(i); };
+  // the halting pattern on a made-up tape
+  var el = $("pw-haltmini"), cells, h, s, done;
+  function draw(cap) {
+    el.textContent = "";
+    cells.forEach(function (v, i) { var c = document.createElement("div"); c.className = "c" + (v ? " one" : "") + (i === h ? " h" : ""); c.textContent = v; if (i === h) c.dataset.s = done ? "halt" : SN[s]; el.appendChild(c); });
+    $("pw-haltcap").textContent = cap;
+  }
+  function reset() { cells = [1, 1, 0, 1, 0, 0, 0]; h = 3; s = 2; done = false; draw("C reads 1: writes 0, moves right, becomes D."); }
+  $("pw-haltstep").onclick = function () {
+    if (done) return;
+    var a = TR[s][cells[h]];
+    if (!a) { done = true; draw("D reads 0: no transition, the machine halts."); return; }
+    cells[h] = a.w; h += a.m; s = a.s; draw(SN[s] === "D" ? "Now D reads 0. Step again." : "");
+  };
+  $("pw-haltreset").onclick = reset; reset();
+  // left-end moments from blank tape
+  var mom = [], m = new Z.Machine("", 0);
+  m.run(2100000, function (c) { var s0 = c.fromHead(); mom.push({ n: c.n, s: s0, l: Z.parse(s0) }); if (mom.length > 250) return false; });
+  $("z6l-n").max = mom.length - 1;
+  function show() {
+    var i = +$("z6l-n").value, x = mom[i], box = $("z6l-cells");
+    $("z6l-lab").textContent = "moment " + i + ", step " + Z.fmt(x.n);
+    box.textContent = "";
+    var show = x.s.slice(0, 48);
+    for (var q = 0; q < show.length; q++) { var c = document.createElement("div"); c.className = "c" + (show[q] === "1" ? " one" : "") + (q === 0 ? " h" : ""); c.textContent = show[q]; if (q === 0) c.dataset.s = "B"; box.appendChild(c); }
+    if (x.s.length > 48) { var more = document.createElement("div"); more.className = "small"; more.style.alignSelf = "center"; more.style.paddingLeft = "6px"; more.textContent = "… " + Z.fmt(x.s.length - 48) + " more cells"; box.appendChild(more); }
+    Z.strip($("z6l-strip"), x.l);
+    var back = Z.unparse(x.l) === x.s, w = Z.whichTpl(x.l);
+    $("z6l-cap").innerHTML = (back ? '<span class="pw-ok">&#10003; Writing the list back out gives exactly these ' + Z.fmt(x.s.length) + " cells.</span> " : '<span class="pw-bad">The list does not give the tape back.</span> ') +
+      (w ? "This is template " + Z.name(w[0]) + " with k = " + w[1] + ", j = " + w[2] + "." : "Not one of the 62 templates yet.");
+  }
+  $("z6l-n").addEventListener("input", show);
+  $("z6l-prev").onclick = function () { $("z6l-n").value = Math.max(0, +$("z6l-n").value - 1); show(); };
+  $("z6l-next").onclick = function () { $("z6l-n").value = Math.min(mom.length - 1, +$("z6l-n").value + 1); show(); };
+  show();
+  // the start
+  $("pw-startgo").onclick = function () {
+    var btn = $("pw-startgo"); btn.disabled = true; $("pw-startcap").textContent = "running…";
+    setTimeout(function () {
+      var t0 = performance.now(), c = new Z.Machine("", 0), got = null;
+      c.run(1277431, null);
+      var left = c.lone > c.h, onLeft = left && c.s === 1, s0 = c.fromHead(), l = Z.parse(s0);
+      $("pw-startcap").textContent = "done in " + Math.round(performance.now() - t0) + " ms; head in state " + SN[c.s] + (left ? ", nothing written to its left" : "");
+      Z.strip($("pw-starttape"), l);
+      var ok = onLeft && s0 === Z.tplStr(31, 38, 163);
+      $("pw-startcmp").innerHTML = ok ? '<span class="pw-ok">&#10003; Matches template R1_16 with k = 38, j = 163 exactly:</span> a = 3·38 + 4 = 118, b = 3·163 + 7 = 496, cell for cell.' : '<span class="pw-bad">Does not match.</span>';
+      btn.disabled = false;
+    }, 30);
+  };
+})();
+</script>

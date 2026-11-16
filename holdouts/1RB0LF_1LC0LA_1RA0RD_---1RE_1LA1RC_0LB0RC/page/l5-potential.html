@@ -1,0 +1,67 @@
+<div class="col">
+<p>The end cases need j ≥ 200 at the moment k reaches 0. The proof gets this from a <b>potential</b>, a single
+number for each good tape:</p>
+<p style="text-align:center;font-family:var(--mono);font-size:1.05rem">Φ = j + 2k + pot(t)</p>
+<p>where pot(t) is a number between 0 and 15 listed for each template (<code>potL</code> in
+<code>lean/Tables.lean</code>). Two facts about the tables, both checked by Lean's kernel (<code>tables_ok</code>)
+<span class="ev k">Kernel</span>:</p>
+<dl class="pw-dl">
+<dt>in a round trip</dt><dd>k drops by 1 (Φ loses 2), j grows by dj, and pot changes; the tables satisfy
+pot(t) + 2 ≤ pot(nxt t) + dj(t), so Φ never decreases.</dd>
+<dt>after an epoch end</dt><dd>the new values give Φ ≥ endC2 + 2·endC1 + pot(endT) ≥ 215 for every template.</dd>
+</dl>
+<p>So Φ ≥ 215 on every good tape. At an epoch end k = 0, so j ≥ 215 − pot(t) ≥ 215 − 15 = 200, exactly what the end
+cases need. That is the last step down, from level 4 to level 5: the whole run is now one number that never falls
+below 215. The table below runs the same checks as <code>tables_ok</code> in your browser, on the numbers of
+<code>lean/Tables.lean</code>.</p>
+</div>
+<div class="panel">
+<div class="controls"><button type="button" class="primary" id="z6p-go">Check the 62 templates</button><span class="small" id="z6p-sum" aria-live="polite"></span></div>
+<div class="tw" style="max-height:340px;overflow:auto;margin-top:8px"><table class="pw-tbl" id="z6p-tbl"></table></div>
+</div>
+<div class="col"><p>The chart follows Φ along the first 3,000 good tapes of the run, from the tables (log scale; the
+dashed line is 215). Move the slider to read each one.</p></div>
+<div class="panel"><svg class="pw-chart" id="pw-phi" viewBox="0 0 760 260" role="img" aria-label="The potential along the run"></svg>
+<div class="controls"><label class="small" for="z6p-r">Good tape</label><input type="range" class="z6-slider" id="z6p-r" min="0" max="2999" value="38"><button type="button" id="z6p-prev" aria-label="Previous good tape">&#9664;</button><button type="button" id="z6p-next" aria-label="Next good tape">&#9654;</button></div>
+<div class="small" id="z6p-cap"></div>
+<div class="cap small" id="pw-phicap"></div></div>
+<script>
+(function () {
+  "use strict";
+  var Z = window.Z6, D = Z.D, $ = function (i) { return document.getElementById(i); }, mk = Z.ep.mk;
+  function pot(t) { return D.potL[t]; }
+  $("z6p-go").onclick = function () {
+    var h = "<thead><tr><th>t</th><th>pot</th><th>nxt</th><th>dj</th><th>pot + 2 ≤ pot(nxt) + dj</th><th>endT</th><th>endC1</th><th>endC2</th><th>Φ after the end</th></tr></thead><tbody>", ok = 0;
+    for (var t = 0; t < 62; t++) {
+      var n = D.nxt[t], e = D.endT[t], r1 = pot(t) + 2 <= pot(n) + D.dj[t], f = D.endC2[t] + 2 * D.endC1[t] + pot(e), r2 = f >= 215, r3 = pot(t) <= 15;
+      if (r1 && r2 && r3) ok++;
+      h += "<tr><td>" + Z.name(t) + "</td><td>" + pot(t) + "</td><td>" + Z.name(n) + "</td><td>" + D.dj[t] + "</td><td>" + (pot(t) + 2) + " ≤ " + (pot(n) + D.dj[t]) + (r1 ? ' <span class="pw-ok">&#10003;</span>' : ' <span class="pw-bad">&#10007;</span>') +
+        "</td><td>" + Z.name(e) + "</td><td>" + D.endC1[t] + "</td><td>" + D.endC2[t] + "</td><td>" + f + (r2 ? ' <span class="pw-ok">&#10003;</span>' : ' <span class="pw-bad">&#10007;</span>') + "</td></tr>";
+    }
+    $("z6p-tbl").innerHTML = h + "</tbody>";
+    $("z6p-sum").innerHTML = ok === 62 ? '<span class="pw-ok">&#10003; All 62 templates pass both checks, and every pot is at most 15.</span>' : '<span class="pw-bad">' + (62 - ok) + " fail.</span>";
+  };
+  $("z6p-go").onclick();
+  var N = 3000, ms = Z.macro(N), phi = ms.map(Z.phi), svg = $("pw-phi"), x0 = 60, x1 = 740, y0 = 14, y1 = 210;
+  var Y = Z.ep.axisLog(svg, x0, x1, y0, y1, 100, Math.max.apply(null, phi) * 1.5, "good tape number, from step 1,277,431"), X = function (i) { return x0 + i / (N - 1) * (x1 - x0); };
+  mk(svg, "line", { x1: x0, x2: x1, y1: Y(215), y2: Y(215), stroke: "var(--open)", "stroke-dasharray": "5 4" });
+  mk(svg, "text", { x: x1, y: Y(215) + 14, "text-anchor": "end" }, "215");
+  var d = ""; phi.forEach(function (v, i) { d += (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(v).toFixed(1); });
+  mk(svg, "path", { d: d, fill: "none", stroke: "var(--kernel)", "stroke-width": "1.6" });
+  var ends = []; ms.forEach(function (x, i) { if (x[1] === 0) ends.push([i, x[2]]); });
+  ends.forEach(function (e) { mk(svg, "circle", { cx: X(e[0]), cy: Y(phi[e[0]]), r: 3.5, fill: "var(--native)" }); });
+  var cur = mk(svg, "line", { y1: y0, y2: y1, stroke: "var(--head)", "stroke-width": "2" });
+  $("pw-phicap").textContent = "Green: Φ. Blue dots: epoch ends (k = 0), where j was " + ends.map(function (e) { return Z.fmt(e[1]); }).join(", ") + " (all at least 200). Lowest Φ in these good tapes: " + Math.min.apply(null, phi) + ".";
+  function show() {
+    var i = +$("z6p-r").value, x = ms[i], p = phi[i];
+    cur.setAttribute("x1", X(i)); cur.setAttribute("x2", X(i));
+    var how = i === 0 ? "the first template, reached by <code>start_ok</code>" : x[3] === "end" ? "reached by an end case" : "reached by a round trip";
+    $("z6p-cap").innerHTML = "Good tape " + Z.fmt(i) + " (" + how + "): " + Z.name(x[0]) + " with k = " + Z.fmt(x[1]) + ", j = " + Z.fmt(x[2]) + ". Φ = " + Z.fmt(x[2]) + " + " + Z.fmt(2 * x[1]) + " + " + pot(x[0]) + " = <b>" + Z.fmt(p) + "</b>" +
+      (i ? " (" + (p - phi[i - 1] >= 0 ? "+" : "") + Z.fmt(p - phi[i - 1]) + " since the one before)" : "") + "." + (x[1] === 0 ? " k = 0: an epoch ends here, and j = " + Z.fmt(x[2]) + " ≥ 200." : "");
+  }
+  $("z6p-r").addEventListener("input", show);
+  $("z6p-prev").onclick = function () { $("z6p-r").value = Math.max(0, +$("z6p-r").value - 1); show(); };
+  $("z6p-next").onclick = function () { $("z6p-r").value = Math.min(N - 1, +$("z6p-r").value + 1); show(); };
+  show();
+})();
+</script>

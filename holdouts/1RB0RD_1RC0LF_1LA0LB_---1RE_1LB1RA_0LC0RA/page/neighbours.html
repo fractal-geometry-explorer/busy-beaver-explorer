@@ -1,0 +1,45 @@
+<div class="col">
+<p>The shape <code>01001000 (01)^B T</code> alone does not keep the machine running. Take one of the 62 tails and make
+one of its small blocks one pair longer or shorter: of 1,141 such classes tried, 1,136 fall back into the closed set
+after one round, but <b>5 halt</b>, for every size B. One of them, checked cell by cell: with the tail
+<code>0000 (10)^10 000 (10)^4 000 (10)^12 111 0000 101</code> (the last block has 12 pairs; the closed set has this
+tail with 11) and B = 20,002 + 3x, the machine halts after 815,565 + 122x steps (computed by
+<code>py/closure/validate.py tails</code>, confirmed bit by bit at x = 0, 1, 3).</p>
+<p>So the argument really needs the exact list of 62 tails; a statement about all tails would be false. Other
+remainders of B for the 62 tails are harmless: all 1,722 classes tried fall into the closed set.</p>
+<p>The browser can run the halting neighbour, and the tail of the closed set next to it.</p>
+</div>
+<div class="panel" id="rd-near">
+ <div class="controls">
+  <label class="small" for="rdh-k">last block of the tail</label>
+  <select id="rdh-k"><option value="12" selected>(10)^12, the neighbour</option><option value="11">(10)^11, a tail of the closed set</option></select>
+  <label class="small" for="rdh-x">x</label><input type="text" class="rd-num" id="rdh-x" value="0" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rdh-go">Run the machine</button>
+ </div>
+ <div class="rd-out" id="rdh-out"></div>
+ <div class="cap">The tape is <code>A&gt; 01001000 (01)^(20,002 + 3x) T</code>. With the tail of the closed set the browser stops after 2&middot;10<sup>7</sup> steps; a whole round from there takes about 4&middot;10<sup>9</sup> steps. These round ends lie in classes of the list, so that the run from them goes on from class to class for ever follows from the Lean theorem <code>closed_set</code>, not from a bounded run.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); };
+  function go() {
+    var k = +$("rdh-k").value, x = parseInt($("rdh-x").value, 10), out = $("rdh-out");
+    if (!(x >= 0 && x <= 100000)) { out.innerHTML = '<span class="rd-bad">Give x between 0 and 100,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var T = "0000" + X.rep("10", 10) + "000" + X.rep("10", 4) + "000" + X.rep("10", k) + "111" + "0000" + "101", ti = X.tailIndex(T);
+      var m = new X.M().load("01001000" + X.rep("01", 20002 + 3 * x) + T, 0), lim = 2e7, f = 815565 + 122 * x;
+      while (!m.halted && m.k < lim) m.toEvent(lim - m.k);
+      var B = 20002 + 3 * x, cl = ti < 0 ? -1 : X.D.byTail[ti].filter(function (q) { var d = X.D.classes[q]; return d[1] <= B && B % d[2] === d[1] % d[2]; })[0];
+      var tl = (ti >= 0 ? "Tail " + (ti + 1) + " of the 62 of the closed set" : "A tail that is not in the closed set") + ", B = " + X.fmt(B) +
+        (cl >= 0 ? ": class " + (cl + 1) + " of the list (B = " + X.fmt(X.D.classes[cl][1]) + " + " + X.D.classes[cl][2] + "x). " : ". ");
+      if (m.halted) out.innerHTML = tl + "The machine halts after <b>" + X.fmt(m.k) + "</b> steps (state D reads a 0). " +
+        (k === 12 ? (m.k === f ? '<span class="rd-ok">✓ 815,565 + 122 &times; ' + x + " = " + X.fmt(f) + ", as computed in the repository</span>" : '<span class="rd-bad">✗ the formula gives ' + X.fmt(f) + "</span>") : "");
+      else out.innerHTML = tl + "No halt in " + X.fmt(m.k) + " steps (" + X.fmt(m.ev) + " events)." + (k === 12 ? ' <span class="rd-bad">✗ the formula says it halts at step ' + X.fmt(f) + "</span>" : "");
+    }, 20);
+  }
+  $("rdh-go").addEventListener("click", go);
+  go();
+})();
+</script>

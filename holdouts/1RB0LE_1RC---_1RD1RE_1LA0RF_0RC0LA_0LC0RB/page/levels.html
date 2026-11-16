@@ -1,0 +1,275 @@
+<style>
+.pw-strip{display:flex;flex-wrap:wrap;gap:3px;align-items:stretch;font:600 .78rem/1 var(--mono);margin:10px 0}
+.pw-strip .lit{display:flex;gap:1px;flex-wrap:wrap}
+.pw-strip .c{width:11px;height:22px;border:1px solid var(--line-strong);background:var(--cell0);display:flex;align-items:center;justify-content:center;font-size:.66rem;color:var(--muted)}
+.pw-strip .c.one{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.pw-strip .run{display:flex;align-items:center;gap:6px;padding:0 8px;height:22px;border-radius:5px;color:var(--surface);white-space:nowrap}
+.pw-strip .head{height:22px;display:flex;align-items:center;padding:0 6px;border-radius:5px;background:var(--head);color:var(--surface)}
+.pw-strip .inf{height:22px;display:flex;align-items:center;padding:0 4px;color:var(--muted)}
+.pw-v0{background:var(--accent)} .pw-v1{background:var(--kernel)} .pw-v2{background:var(--heur)} .pw-v3{background:var(--fg2)} .pw-v4{background:var(--open)} .pw-v5{background:var(--muted)}
+.pw-strip .run.dash{background:transparent!important;border:1.5px dashed currentColor}
+.pw-strip .pw-c0{color:var(--accent)} .pw-strip .pw-c1{color:var(--kernel)} .pw-strip .pw-c2{color:var(--heur)} .pw-strip .pw-c3{color:var(--fg2)} .pw-strip .pw-c4{color:var(--open)} .pw-strip .pw-c5{color:var(--muted)}
+.pw-note{border-left:3px solid var(--native);background:var(--native-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.pw-note.k{border-color:var(--kernel);background:var(--kernel-bg)}
+.pw-ok{color:var(--kernel);font-weight:600} .pw-bad{color:var(--open);font-weight:600}
+.pw-cv{width:100%;max-width:100%;display:block;border:1px solid var(--line);border-radius:8px;background:var(--cell0);image-rendering:pixelated}
+.pw-bar{width:100%;max-width:100%;display:block;image-rendering:pixelated}
+.pw-mini{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;padding:22px 0 4px;position:relative}
+.pw-mini .c{flex:0 0 24px;height:26px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font:600 .8rem var(--mono);background:var(--cell0);position:relative}
+.pw-mini .c.one{background:var(--ink);color:var(--surface)}
+.pw-mini .c.h::after{content:attr(data-s);position:absolute;top:-21px;left:50%;transform:translateX(-50%);background:var(--head);color:var(--surface);font:700 .72rem/1 var(--mono);padding:3px 5px;border-radius:4px;white-space:nowrap}
+.pw-mini .c.h{outline:2px solid var(--head);outline-offset:1px}
+.pw-tbl td,.pw-tbl th{font-family:var(--mono);font-size:.8rem;padding:.28rem .5rem;white-space:nowrap}
+.pw-tbl tr.on td{background:var(--accent-soft)}
+.pw-scroll{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.pw-scroll table{width:auto;min-width:100%}
+.pw-chart{width:100%;height:auto;max-width:760px;display:block}
+.pw-chart text{font:11px var(--mono);fill:var(--muted)}
+.pw-graph text{font:13px var(--mono)}
+.pw-dl{display:grid;grid-template-columns:minmax(9em,auto) 1fr;gap:6px 16px;margin:12px 0}
+.pw-dl dt{font-family:var(--mono);font-size:.85rem;font-weight:600;overflow-wrap:anywhere}
+.pw-dl dd{margin:0;min-width:0}
+.pw-ineq{font:.8rem/1.45 var(--mono);display:grid;grid-template-columns:auto 1fr;gap:0 10px;align-items:baseline;margin:8px 0}
+.pw-ineq .num{grid-column:2;color:var(--muted);overflow-wrap:anywhere;margin-bottom:6px;font-size:.74rem}
+@media (max-width:560px){.pw-dl{grid-template-columns:1fr}.pw-dl dd{margin-bottom:8px}}
+.pw-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.pw-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.pw-lv:hover{border-color:var(--accent)}
+.pw-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pw-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.pw-lv code{font-size:.8em}
+.pw-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.pw-entry{background:var(--sunk);border:1px dashed var(--line-strong);border-radius:10px;padding:10px 14px;margin:-6px 0 18px;font-size:.88rem;color:var(--fg2)}
+.pw-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.pw-row:first-child{border-top:0}
+.pw-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pw-row code{overflow-wrap:anywhere}
+@media (max-width:560px){.pw-row{grid-template-columns:minmax(0,1fr)}}
+.pw-tape{display:block;width:100%;height:58px;margin-top:6px}
+.pw-slider{flex:1 1 220px;min-width:140px;accent-color:var(--accent)}
+.pw-sel{max-width:100%}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" is answered here at four levels of description. Each level keeps less
+detail than the one above it, and each step down is a Lean theorem, checked by the kernel: what happens at the lower
+level is exactly what the machine does. At the bottom, the question is whether a list of linear inequalities on a
+few numbers is kept by twenty arithmetic cases, and that is a question <code>omega</code> can settle.</p>
+</div>
+<div class="pw-ladder">
+ <a class="pw-lv" href="#p-halt"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">Lean runs the first 29,301 steps from blank tape itself (<code>blank_O</code>).</span></a>
+ <a class="pw-lv" href="#p-forms"><span class="n">Level 2</span><b class="t">Forms and rules</b>
+  <div class="u">The tape at a visit to one end, written as a <b>form</b> such as <code>O a b c</code>: a few run lengths. One unit is one <b>rule</b>: a turn of a cycle or an exit, a few end visits.</div>
+  <span class="ev k">Kernel</span> <span class="small">same run as level 1: each of the 27 rules says the machine goes from form X to form Y in an exact number of steps, for all sizes (<code>lean/Cycle.lean</code>, <code>Phase.lean</code>, <code>Branch.lean</code>, <code>Ends.lean</code>).</span></a>
+ <a class="pw-lv" href="#p-branch"><span class="n">Level 3</span><b class="t">A map on ten forms</b>
+  <div class="u">Only the form at the start of each phase. One unit is one <b>move</b>: a cycle run to its end and one exit. There are 20 cases, each affine in the numbers.</div>
+  <span class="ev k">Kernel</span> <span class="small">same run as level 2: each case <code>mv_*</code> (<code>lean/Closed.lean</code>) chains a cycle iterate and one exit rule.</span></a>
+ <a class="pw-lv" href="#p-invariant"><span class="n">Level 4</span><b class="t">The invariant <code>Good</code></b>
+  <div class="u">For each form, 3 to 16 linear inequalities on its numbers. Not a new clock: one argument that covers <b>every</b> move at once.</div>
+  <span class="ev k">Kernel</span> <span class="small"><code>good_step</code>: from a <code>Good</code> form the machine makes at least one step and reaches a <code>Good</code> form (one <code>mv_*</code> case and <code>omega</code> each).</span></a>
+</div>
+<div class="pw-entry">The way in: <code>table_from_blank</code> <span class="ev k">Kernel</span> follows the run from blank tape through 196 moves, to
+<code>T2 34158019330534 128092572489511 160237983842729 41908435347077</code> at step 5.7·10<sup>29</sup>, and
+<code>good_last</code> <span class="ev k">Kernel</span> checks with <code>decide</code> that this form is <code>Good</code>. From there level 4 takes over (<a href="#bottom">the bottom line</a>).</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick a moment. The browser runs the real machine from blank tape up to it. Separately, it replays the 27 rules on
+numbers alone (level 2), and runs the 20-case map (level 3) from <code>O 14 37 11</code>, and evaluates the
+inequalities of <code>Good</code> (level 4). The rows show the same instant at each level; the check marks say that
+the separate computations agree. The moments are the ends of all the rule turns from step 29,301 up to about
+10<sup>8</sup> steps.</p>
+</div>
+<div class="panel" id="pw-moment">
+ <div class="controls">
+  <button type="button" id="pwm-prev" aria-label="Previous moment">&#9664;</button>
+  <input type="range" class="pw-slider" id="pwm-n" min="0" max="10" value="0" aria-label="Moment number">
+  <button type="button" id="pwm-next" aria-label="Next moment">&#9654;</button>
+  <span class="small">moment <b id="pwm-lab">0</b></span>
+ </div>
+ <div class="controls" style="margin-top:6px"><label class="small" for="pwm-jump">Jump to the start of phase move</label><select id="pwm-jump" class="pw-sel"></select></div>
+ <div style="margin-top:12px">
+  <div class="pw-row"><span>1 · Machine</span><div><span id="pwm-step"></span>
+   <canvas class="pw-tape" id="pwm-tape" aria-label="The tape at this moment, cell by cell, with the runs of the form"></canvas>
+   <div class="small">Each pixel column is one cell or, on a long tape, the share of 1s among a few neighbouring cells (dark = 1). The band under it colours the runs of the form, as in the strip below; the orange mark is the head.</div></div></div>
+  <div class="pw-row"><span>2 · Form and rule</span><div><div class="pw-strip" id="pwm-strip"></div><div id="pwm-rule"></div></div></div>
+  <div class="pw-row"><span>3 · Phase map</span><div id="pwm-map"></div></div>
+  <div class="pw-row"><span>4 · Invariant</span><div id="pwm-good"></div></div>
+ </div>
+ <div class="cap" id="pwm-cap"></div>
+</div>
+<script>
+window.PW=(function(D){
+"use strict";
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent,text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!==undefined)e.textContent=text;if(parent)parent.appendChild(e);return e;}
+// ---- level 1: the machine
+const M=D.machine.split('_').map(s=>[s.slice(0,3),s.slice(3,6)]);
+const SN='ABCDEF';
+const TR=M.map(p=>p.map(t=>t[2]==='-'?null:{w:+t[0],m:t[1]==='R'?1:-1,s:SN.indexOf(t[2])}));
+const W=new Int8Array(12),MV=new Int8Array(12),NX=new Int8Array(12);
+TR.forEach((p,s)=>p.forEach((a,r)=>{const i=s*2+r;if(a){W[i]=a.w;MV[i]=a.m;NX[i]=a.s;}else NX[i]=-1;}));
+function blankCfg(size){const N=size;return{t:new Uint8Array(N),h:N>>1,s:0,n:0,lo:N>>1,hi:(N>>1)+1};}
+function step(c){const i=c.s*2+c.t[c.h];if(NX[i]<0)return false;c.t[c.h]=W[i];c.h+=MV[i];c.s=NX[i];c.n++;if(c.h<c.lo)c.lo=c.h;if(c.h>=c.hi)c.hi=c.h+1;return true;}
+function runTo(c,T){let t=c.t,h=c.h,s=c.s,n=c.n,lo=c.lo,hi=c.hi;while(n<T){const i=s*2+t[h];const ns=NX[i];if(ns<0)break;t[h]=W[i];h+=MV[i];s=ns;n++;if(h<lo)lo=h;else if(h>=hi)hi=h+1;}c.h=h;c.s=s;c.n=n;c.lo=lo;c.hi=hi;return c;}
+function copyCfg(c){return{t:c.t.slice(),h:c.h,s:c.s,n:c.n,lo:c.lo,hi:c.hi};}
+// ---- level 2: forms
+const FN={O:'O a b c',O0:'O a 0 c',S1:'S1 a b c',RF:'RF a k m',EF:'EF a q',T3:'T3 a x d y z c',T2:'T2 a x y c',U3:'U3 a x y z c',RG:'RG a x n m',RG3:'RG3 a x y n m'};
+const FDESC={O:'Start of an odd round-trip phase. The head is at the left end in state A.',
+ S1:'The left-end shape of the 4-visit cycle. It comes right after O. Each turn of the cycle uses up two 14-cell words.',
+ RF:'A visit to the right end in a right phase. The head is in state E just past the end. Each visit turns one 10 into one 1111110 (m − 1, k + 1).',
+ EF:'Start of an even round-trip phase. The head is in state E at the left end.',
+ T3:'The left-end shape of the 5-visit cycle of an even phase. The old run of 1000, now 0010, loses 5 copies a turn.',
+ T2:'The 3-visit cycle with two runs of 10, after T3 runs out of 0010.',
+ U3:'Like T2 but with three runs of 10. The middle one (y) stays frozen at its length.',
+ RG:'A right-phase visit after T2, turning 10 into 1111011.',
+ RG3:'A right-phase visit after U3, with three runs.',
+ RF2:'RF with k = 2q + 1 and the 1111110 run read in pairs (the same tape).',RF2e:'RF with k = 2q, read in pairs.',
+ RG2:'RG with n = 2q, read in pairs.',RG2o:'RG with n = 2q + 1, read in pairs.',RG3p:'RG3 with n = 2q, read in pairs.',RG3o:'RG3 with n = 2q + 1, read in pairs.'};
+function formTape(f,P){const F=D.forms[f];let s='';for(const tk of F.toks){if(typeof tk==='string')s+=tk;else s+=tk[0].repeat(Number(P[F.vars.indexOf(tk[1])]));}return{s,state:SN.indexOf(F.state),side:F.side};}
+function canonCfg(c){let a=c.lo,b=c.hi;while(a<b&&c.t[a]===0)a++;while(b>a&&c.t[b-1]===0)b--;let s='';for(let x=a;x<b;x++)s+=c.t[x];return{s,off:c.h-a,st:c.s};}
+function canonForm(f,P){const T=formTape(f,P);let h=T.side==='L'?0:T.s.length;let a=0,b=T.s.length;while(a<b&&T.s[a]==='0')a++;while(b>a&&T.s[b-1]==='0')b--;return{s:T.s.slice(a,b),off:h-a,st:T.state};}
+function cfgOf(f,P,size){const T=formTape(f,P);const c=blankCfg(size||(1<<16));const o=c.h-(T.side==='L'?0:T.s.length);for(let i=0;i<T.s.length;i++)c.t[o+i]=T.s.charCodeAt(i)-48;c.s=T.state;c.lo=Math.min(o,c.h);c.hi=Math.max(o+T.s.length,c.h+1);return c;}
+function same(x,y){return x.s===y.s&&x.off===y.off&&x.st===y.st;}
+// the cells of the form, with the colour band of each cell (index of the variable, or -1)
+function bands(f,P){const F=D.forms[f];const out=[];for(const tk of F.toks){if(typeof tk==='string'){for(let i=0;i<tk.length;i++)out.push(-1);}else{const vi=F.vars.indexOf(tk[1]);const L=tk[0].length*Number(P[vi]);for(let i=0;i<L;i++)out.push(vi);}}return out;}
+// a strip of a form; P = null (variables) or numbers
+function fstrip(target,f,P){const F=D.forms[f];target.textContent='';const add=(cls,txt)=>{const e=document.createElement('span');e.className=cls;e.textContent=txt;target.appendChild(e);return e;};
+ const lit=s=>{const w=document.createElement('span');w.className='lit';for(const ch of s){const c=document.createElement('span');c.className='c'+(ch==='1'?' one':'');c.textContent=ch;w.appendChild(c);}target.appendChild(w);};
+ add('inf','0…');if(F.side==='L')add('head',F.state+'>');
+ for(const tk of F.toks){if(typeof tk==='string')lit(tk);else{const vi=F.vars.indexOf(tk[1]);const n=P?String(P[vi]):tk[1];add('run pw-v'+vi%6+(P?'':' dash pw-c'+vi%6),'('+tk[0]+') × '+n);}}
+ if(F.side==='R')add('head',F.state+'>');add('inf','…0');}
+const BAND=['--accent','--kernel','--heur','--fg2','--open','--muted'];
+// barcode: cells as bars (wrapping), with bands per run
+function barcode(cv,f,P,str){const T=formTape(f,P);const s=str||T.s;const n=s.length;const Wd=cv.clientWidth||900;const px=Math.max(1,Math.min(6,Math.floor(Wd/n)));
+ const perRow=Math.floor(Wd/px);const rows=Math.ceil(n/perRow);const rh=34;cv.width=perRow*px;cv.height=rows*rh;const g=cv.getContext('2d');g.fillStyle=css('--surface');g.fillRect(0,0,cv.width,cv.height);
+ const band=bands(f,P);const cols=BAND.map(css);
+ for(let i=0;i<n;i++){const r=Math.floor(i/perRow),x=(i%perRow)*px,y=r*rh;g.fillStyle=s[i]==='1'?css('--ink'):css('--cell0');g.fillRect(x,y,px,22);if(band[i]>=0){g.fillStyle=cols[band[i]%6];g.fillRect(x,y+25,px,6);}}}
+// one-line picture of a long tape: cells (a 0/1 string), bands, head index (may be -1 or n)
+function tapeLine(cv,cells,band,head){const w=cv.clientWidth||600,h=cv.clientHeight||58,dpr=window.devicePixelRatio||1;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
+ const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);const n=cells.length+2;const cw=Math.min(8,w/n);const ink=css('--ink'),c0=css('--sunk'),cols=BAND.map(css);
+ const X=i=>(i+1)*cw;const cols_=Math.ceil(n*cw);
+ if(cw>=1){for(let i=0;i<cells.length;i++){g.fillStyle=cells[i]==='1'?ink:c0;g.fillRect(X(i),8,Math.max(cw-(cw>=4?1:0),0.6),28);if(band[i]>=0){g.fillStyle=cols[band[i]%6];g.fillRect(X(i),40,Math.max(cw,0.6),6);}}}
+ else{const per=1/cw;for(let x=0;x<w;x++){const a=Math.max(0,Math.floor(x*per)-1),b=Math.min(cells.length,Math.floor((x+1)*per)-1);if(b<=a)continue;let ones=0;const cnt=new Array(6).fill(0);for(let i=a;i<b;i++){if(cells.charCodeAt(i)===49)ones++;if(band[i]>=0)cnt[band[i]%6]++;}
+   g.fillStyle=c0;g.fillRect(x,8,1,28);g.globalAlpha=ones/(b-a);g.fillStyle=ink;g.fillRect(x,8,1,28);g.globalAlpha=1;let best=-1,bv=0;cnt.forEach((v,j)=>{if(v>bv){bv=v;best=j;}});if(best>=0){g.fillStyle=cols[best];g.fillRect(x,40,1,6);}}}
+ const hx=X(head)+Math.max(cw,1)/2;g.fillStyle=css('--head');g.beginPath();g.moveTo(hx,36);g.lineTo(hx-5,50);g.lineTo(hx+5,50);g.fill();g.fillRect(hx-1,4,2,34);}
+// ---- level 2: the 27 rules, on numbers (BigInt)
+function lin(s){const o={k:0n,c:{}};s.split('+').forEach(t=>{t=t.trim();const m=t.match(/^(\d+)\*([a-z]+)$/);if(m)o.c[m[2]]=(o.c[m[2]]||0n)+BigInt(m[1]);else if(/^\d+$/.test(t))o.k+=BigInt(t);else o.c[t]=(o.c[t]||0n)+1n;});return o;}
+function ev(L,env){let s=L.k;for(const v in L.c)s+=L.c[v]*env[v];return s;}
+const RL={};for(const k in D.rules){const R=D.rules[k];RL[k]={from:R.from,to:R.to,fa:R.fa.map(lin),ta:R.ta.map(lin),st:lin(R.steps)};}
+function bind(rule,P){const env={};const fa=RL[rule].fa;for(let i=0;i<fa.length;i++){const L=fa[i],vs=Object.keys(L.c);if(!vs.length){if(L.k!==P[i])return null;continue;}if(P[i]<L.k)return null;env[vs[0]]=P[i]-L.k;}return env;}
+function apply(rule,P){const env=bind(rule,P);if(!env)return null;const R=RL[rule];return{f:R.to,P:R.ta.map(L=>ev(L,env)),s:ev(R.st,env)};}
+// k turns of a cycle rule at once: the step count of a turn is linear in the numbers, so the sum has a closed form
+function iterate(rule,P,k){const r=apply(rule,P);if(!r)return null;const delta=P.map((p,i)=>r.P[i]-p);const R=RL[rule];const idx={};R.fa.forEach((L,i)=>{const vs=Object.keys(L.c);if(vs.length)idx[vs[0]]=i;});
+ let slope=0n;for(const v in R.st.c)slope+=R.st.c[v]*delta[idx[v]];const K=k;return{f:R.to,P:P.map((p,i)=>p+K*delta[i]),s:K*r.s+slope*K*(K-1n)/2n,s0:r.s,delta,slope};}
+// one move of the branch table (py/macro.py move): which rule, how many turns
+function move(f,P){const one=(rule,Q)=>{const r=apply(rule,Q||P);return r?Object.assign(r,{rule,k:1n}):{esc:rule+' does not apply'};};
+ const cyc=(rule,k)=>{const r=iterate(rule,P,k);return r?Object.assign(r,{rule,k}):{esc:rule+' does not apply'};};
+ if(f==='O')return one(P[1]===0n?'ozero':'oentry');
+ if(f==='S1'){if(P[2]>=2n)return cyc('cycle',P[2]/2n);return one(P[2]===1n?'oexit':'sexit0');}
+ if(f==='RF'){const [a,k,m]=P;if(m>=2n)return cyc('rcyc',m-1n);if(k%2n)return one('rend',[a,(k-1n)/2n,1n]);return one('rende',[a,k/2n,1n]);}
+ if(f==='EF')return one('eentry');
+ if(f==='T3'){const d=P[2],c=P[5];if(P[1]===0n&&P[2]===0n&&P[3]===0n)return{f:'S1',P:[P[0],P[4],P[5]],s:0n,rule:'t3_s1',k:1n};
+  if(d>=5n){const k=d/5n<c/2n?d/5n:c/2n;if(k===0n)return{esc:'T3: the 14-cell words run out before the 0010s'};return cyc('cycle3',k);}return one('texit'+d);}
+ if(f==='T2'){if(P[3]>=2n)return cyc('cycle2',P[3]/2n);return one('t2exit'+P[3]);}
+ if(f==='U3'){if(P[4]>=2n)return cyc('ucyc',P[4]/2n);return one('uexit'+P[4]);}
+ if(f==='RG'){const [a,x,n,m]=P;if(m>=2n)return cyc('gcyc',m-1n);return one(n%2n?'gendo':'gend',[a,x,n/2n,1n]);}
+ if(f==='RG3'){const [a,x,y,n,m]=P;if(m>=2n)return cyc('g3cyc',m-1n);return one(n%2n?'g3endo':'g3end',[a,x,y,n/2n,1n]);}
+ return{esc:'no rule for '+f};}
+const START={f:'O',P:[14n,37n,11n],t:29301n};
+// the replay: rows {t,f,P,mv} (mv = the move out of the row), until step maxT or maxRows rows
+function replay(maxT,maxRows){const rows=[];let f=START.f,P=START.P,t=START.t;while(t<maxT&&rows.length<(maxRows||1e9)){const r=move(f,P);rows.push({t,f,P,mv:r});if(r.esc)break;f=r.f;P=r.P;t+=r.s;}return rows;}
+const key=(f,P)=>f==='O'&&P[1]===0n?'O0':f;
+// the entries of level 3: rows where the form changes (the T3 a 0 0 0 z c that ozero leaves is read as S1)
+function entries(rows){const out=[];let last=null;rows.forEach((r,i)=>{if(r.f==='T3'&&r.P[1]===0n&&r.P[2]===0n&&r.P[3]===0n)return;const k=key(r.f,r.P);if(k!==last||r.f==='O'||r.f==='EF')out.push({i,t:r.t,k,f:r.f,P:r.P});last=k;});return out;}
+// ---- level 3: the 20 cases of lean/Closed.lean, on numbers
+function mvCase(k,P){const B=BigInt;const need=(cond,txt)=>{if(!cond)throw txt;};
+ try{
+ if(k==='O'){const [a,b,c]=P;need(b>=6n&&c>=2n,'needs b ≥ 6, c ≥ 2');return{name:'mv_oentry',why:'b ≥ 6, c ≥ 2',f:'S1',P:[a+1n,b,c-2n]};}
+ if(k==='O0'){const [a,,c]=P;need(c>=3n,'needs c ≥ 3');return{name:'mv_ozero',why:'b = 0, c ≥ 3',f:'S1',P:[a+2n,7n,c-3n]};}
+ if(k==='S1'){const [a,b,c]=P;need(b>=6n,'needs b ≥ 6');const q=c/2n;if(c%2n===0n)return{name:'mv_s1even',why:'c = 2k even, k = '+q,f:'RF',P:[a+3n*q+3n,4n,b+12n*q+7n]};return{name:'mv_s1odd',why:'c = 2k + 1 odd, k = '+q,f:'RF',P:[a+3n*q+3n,5n,b+12n*q+6n]};}
+ if(k==='RF'){const [a,kk,m]=P;need(m>=1n,'needs m ≥ 1');const s=kk+m-1n;const q=s/2n;if(s%2n)return{name:'mv_rfodd',why:'k + m − 1 = 2q + 1 odd, q = '+q,f:'EF',P:[a,q]};return{name:'mv_rfeven',why:'k + m − 1 = 2q even, q = '+q,f:'O',P:[a,0n,q+1n]};}
+ if(k==='EF'){const [a,q]=P;need(a>=7n&&q>=5n,'needs a ≥ 7, q ≥ 5');return{name:'mv_eentry',why:'a ≥ 7, q ≥ 5',f:'T3',P:[5n,14n,a-7n,8n,7n,q-3n]};}
+ if(k==='T3'){const [a,x,d,y,z,c]=P;need(x>=6n&&y>=6n&&z>=6n,'needs x, y, z ≥ 6');const q=d/5n,r=d%5n;const why='d = 5k + '+r+', k = '+q;
+  if(r===0n){need(c>=2n*q+1n,'the 14-cell words run out');return{name:'mv_texit0',why,f:'T2',P:[a+4n*q+1n,x+y+15n*q-1n,z+5n*q+4n,c-2n*q]};}
+  if(r===1n||r===2n){need(c>=2n*q+2n,'the 14-cell words run out');return{name:'mv_texit'+r,why,f:'U3',P:[a+4n*q+2n,x+8n*q+2n*(r-1n),y+7n*q+1n,z+5n*q+5n,c-2n*q-2n]};}
+  need(c>=2n*q+3n,'the 14-cell words run out');return{name:'mv_texit'+r,why,f:'T2',P:[a+4n*q+5n,x+y+15n*q+(r===3n?10n:12n),z+5n*q+9n,c-2n*q-2n]};}
+ if(k==='T2'){const [a,x,y,c]=P;need(x>=6n,'needs x ≥ 6');const q=c/2n;if(c%2n===0n){need(y>=10n,'needs y ≥ 10');return{name:'mv_t2even',why:'c = 2k even, k = '+q,f:'RG',P:[a+3n*q+3n,x+7n*q-1n,4n,y+5n*q-4n]};}
+  need(y>=12n,'needs y ≥ 12');return{name:'mv_t2odd',why:'c = 2k + 1 odd, k = '+q,f:'RG',P:[a+3n*q+3n,x+7n*q-1n,5n,y+5n*q-5n]};}
+ if(k==='U3'){const [a,x,y,z,c]=P;need(x>=2n&&y>=6n,'needs x ≥ 2, y ≥ 6');const q=c/2n;if(c%2n===0n){need(z>=10n,'needs z ≥ 10');return{name:'mv_u3even',why:'c = 2k even, k = '+q,f:'RG3',P:[a+3n*q+3n,x+7n*q+5n,y-2n,4n,z+5n*q]};}
+  need(z>=12n,'needs z ≥ 12');return{name:'mv_u3odd',why:'c = 2k + 1 odd, k = '+q,f:'RG3',P:[a+3n*q+3n,x+7n*q+5n,y-2n,5n,z+5n*q-1n]};}
+ if(k==='RG'){const [a,x,n,m]=P;need(m>=1n,'needs m ≥ 1');const s=n+m-1n;if(s%2n===0n){need(a>=2n,'needs a ≥ 2');const q=s/2n;return{name:'mv_rgeven',why:'n + m − 1 = 2q even, q = '+q,f:'O',P:[a-1n,x+9n,q+1n]};}
+  need(a>=3n&&x>=6n&&s>=7n,'needs a ≥ 3, x ≥ 6, n + m ≥ 8');const q=(s-7n)/2n;return{name:'mv_rgodd',why:'n + m − 1 = 2q + 7 odd, q = '+q,f:'T3',P:[1n,6n,a-3n,11n,x+8n,q+1n]};}
+ if(k==='RG3'){const [a,x,y,n,m]=P;need(m>=1n,'needs m ≥ 1');const s=n+m-1n;if(s%2n===0n){need(y>=4n&&s>=4n,'needs y ≥ 4, n + m ≥ 5');const q=(s-4n)/2n;return{name:'mv_rg3even',why:'n + m − 1 = 2q + 4 even, q = '+q,f:'T2',P:[a+3n,x+9n,y+6n,q+1n]};}
+  need(a>=7n&&x>=10n&&y>=2n&&s>=7n,'needs a ≥ 7, x ≥ 10, y ≥ 2, n + m ≥ 8');const q=(s-7n)/2n;return{name:'mv_rg3odd',why:'n + m − 1 = 2q + 7 odd, q = '+q,f:'T3',P:[5n,14n,a-7n,15n,x+y+5n,q+1n]};}
+ }catch(e){return{err:String(e)};}
+ return{err:'no case'};}
+function sameP(P,Q){return P.length===Q.length&&P.every((p,i)=>p===Q[i]);}
+// ---- level 4: Good
+function goodArgs(k,P){return k==='O0'?[P[0],P[2]]:P;}
+function ineqVal(side,G,P){let s=0n;for(const v in side)s+=BigInt(side[v])*(v==='1'?1n:P[G.vars.indexOf(v)]);return s;}
+function good(k,P){const G=D.good[k];const A=goodArgs(k,P);const list=G.ineq.map(([l,r,txt])=>{const a=ineqVal(l,G,A),b=ineqVal(r,G,A);return{ok:a<=b,txt,a,b};});return{name:G.name,args:A,list,n:list.length,ok:list.filter(x=>x.ok).length,all:list.every(x=>x.ok)};}
+// ---- the moments: the end of every rule turn, up to step maxT
+function moments(maxT){const rows=replay(BigInt(maxT)+1n);const out=[];const MT=BigInt(maxT);
+ rows.forEach((r,i)=>{if(i===0)out.push({t:r.t,f:r.f,P:r.P,row:0,rule:null,j:0,k:0});const m=r.mv;if(m.esc||m.rule==='t3_s1')return;
+  if(m.k===1n&&!m.delta){const t=r.t+m.s;if(t<=MT)out.push({t,f:m.f,P:m.P,row:i,rule:m.rule,j:1,k:1});return;}
+  for(let J=1n;J<=m.k;J++){const j=J;const t=r.t+J*m.s0+m.slope*J*(J-1n)/2n;if(t>MT)break;out.push({t,f:m.f,P:r.P.map((p,q)=>p+J*m.delta[q]),row:i,rule:m.rule,j,k:m.k});}});
+ return{rows,list:out};}
+function fmt(x){return BigInt(x).toLocaleString('en-US');}
+function sci(x){const s=BigInt(x).toString();if(s.length<=15)return BigInt(x).toLocaleString('en-US');return s[0]+'.'+s.slice(1,4)+'·10^'+(s.length-1);}
+function sciH(x){const s=BigInt(x).toString();if(s.length<=15)return BigInt(x).toLocaleString('en-US');return s[0]+'.'+s.slice(1,4)+'·10<sup>'+(s.length-1)+'</sup>';}
+function fP(P){return P.map(p=>{const s=String(p);return s.length>15?sci(p):s;}).join(' ');}
+function onTheme(f){try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',f);}catch(e){}new MutationObserver(f).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});let tm=null;window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(f,120);});}
+return{D,$,css,el,SN,TR,blankCfg,step,runTo,copyCfg,FN,FDESC,formTape,canonCfg,canonForm,cfgOf,same,bands,fstrip,barcode,tapeLine,
+ RL,apply,iterate,move,replay,START,key,entries,mvCase,sameP,good,moments,fmt,sci,sciH,fP,onTheme};
+})(__DATA__);
+</script>
+<script>
+(function(){
+"use strict";
+const P=window.PW,$=P.$;
+const MS=P.moments(1e8),L=MS.list,rows=MS.rows;
+// level 3 on its own: the 20 cases from O 14 37 11, compared with the entries of the rule replay
+const ent=P.entries(P.replay(10n**31n,P.D.replay.length));   // the 197 states that table_run checks
+const map=[{k:'O',f:'O',P:P.START.P}];
+for(let i=0;i+1<ent.length;i++){const c=P.mvCase(map[i].k,map[i].P);map[i].c=c;if(c.err)break;map.push({k:P.key(c.f,c.P),f:c.f,P:c.P});}
+let firstGood=-1;for(let i=ent.length-1;i>=0;i--){if(!P.good(ent[i].k,ent[i].P).all){firstGood=i+1;break;}}
+const sl=$('pwm-n');sl.max=L.length-1;
+const jump=$('pwm-jump');ent.forEach((e,i)=>{if(e.t>L[L.length-1].t)return;const o=document.createElement('option');o.value=i;o.textContent=i+': '+e.f+' '+e.P.join(' ')+' (step '+P.fmt(e.t)+')';jump.appendChild(o);});
+// the machine, with a snapshot at every entry so that going back is quick
+const SIZE=1<<18;let cfg=P.blankCfg(SIZE);const snaps=[];
+function machineAt(T){T=Number(T);if(T<cfg.n){let best=null;for(const s of snaps)if(s.n<=T&&(!best||s.n>best.n))best=s;cfg=best?P.copyCfg(best):P.blankCfg(SIZE);}
+ P.runTo(cfg,T);return cfg;}
+function entryOf(t){let e=0;for(let i=0;i<ent.length;i++)if(ent[i].t<=t)e=i;return e;}
+function show(){const n=+sl.value;$('pwm-lab').textContent=n+' of '+(L.length-1);const m=L[n];const t0=performance.now();
+ const c=machineAt(m.t);
+ const e=entryOf(m.t);if(ent[e].t===m.t&&!snaps.some(s=>s.n===c.n))snaps.push(P.copyCfg(c));
+ const ok=P.same(P.canonCfg(c),P.canonForm(m.f,m.P));
+ const T=P.formTape(m.f,m.P);const o=c.h-(T.side==='L'?0:T.s.length);let cells='';for(let x=o;x<o+T.s.length;x++)cells+=c.t[x];
+ P.tapeLine($('pwm-tape'),cells,P.bands(m.f,m.P),T.side==='L'?0:T.s.length);
+ let width=0,ones=0;{let a=c.lo,b=c.hi;while(a<b&&c.t[a]===0)a++;while(b>a&&c.t[b-1]===0)b--;width=b-a;for(let x=a;x<b;x++)ones+=c.t[x];}
+ $('pwm-step').innerHTML='step <b>'+P.fmt(c.n)+'</b> from blank tape; head in state <b>'+P.SN[c.s]+'</b> at the '+(T.side==='L'?'left':'right')+' end; '+width.toLocaleString('en-US')+' cells from the first 1 to the last, '+ones.toLocaleString('en-US')+' of them 1s';
+ P.fstrip($('pwm-strip'),m.f,m.P);
+ const how=m.rule?'reached by '+(m.k>1n?'turn '+m.j.toLocaleString('en-US')+' of '+m.k.toLocaleString('en-US')+' of the cycle rule ':'the rule ')+'<code>'+m.rule+'</code> from <code>'+rows[m.row].f+' '+rows[m.row].P.join(' ')+'</code>':'the first form of the run, reached by <code>blank_O</code>';
+ $('pwm-rule').innerHTML='<code>'+m.f+' '+m.P.join(' ')+'</code>, '+how+'. '+(ok?'<span class="pw-ok">✓ the machine\'s tape is exactly this form, cell for cell, at exactly this step</span>':'<span class="pw-bad">✗ the tape differs from the form</span>');
+ const E=ent[e],mp=map[e],nx=ent[e+1];const cs=mp&&mp.c;let h='phase move <b>'+e+'</b> starts at <code>'+E.f+' '+E.P.join(' ')+'</code> (step '+P.fmt(E.t)+')';
+ if(mp&&P.sameP(mp.P,E.P)&&mp.k===E.k)h+=' <span class="pw-ok">✓ the map reaches this entry too</span>';else h+=' <span class="pw-bad">✗ the map is elsewhere</span>';
+ if(cs&&!cs.err){const agree=nx&&P.key(cs.f,cs.P)===nx.k&&P.sameP(cs.P,nx.P);h+='<br>case <code>'+cs.name+'</code> ('+cs.why+') sends it to <code>'+cs.f+' '+cs.P.join(' ')+'</code>'+(agree?', reached by the rules at step '+P.fmt(nx.t)+' <span class="pw-ok">✓ same as the rule replay</span>':' <span class="pw-bad">✗ differs from the rule replay</span>');}
+ else if(cs)h+='<br>No case applies yet: '+cs.err+'.';
+ if(m.t>E.t)h+='<br>This moment lies inside that move.';
+ $('pwm-map').innerHTML=h;
+ const g=P.good(E.k,E.P);
+ $('pwm-good').innerHTML='At that entry, '+g.ok+' of the '+g.n+' inequalities of <code>'+g.name+'</code> hold, so the entry '+(g.all?'is <span class="pw-ok">Good</span>':'is <b>not</b> Good')+'. '+
+  (g.all?'':'Early entries are too small for the size condition. ')+'Every entry from number '+firstGood+' on is Good (first at step '+P.sciH(ent[firstGood].t)+'); <code>good_last</code> is entry '+(ent.length-1)+'.';
+ $('pwm-cap').textContent='Machine run to this moment in '+Math.round(performance.now()-t0).toLocaleString('en-US')+' ms. Moment 0 is O 14 37 11 at step 29,301; the last moment is at step '+P.fmt(L[L.length-1].t)+'.';
+ const o2=[...jump.options].findIndex(op=>+op.value===e);if(o2>=0)jump.selectedIndex=o2;}
+sl.addEventListener('input',show);
+$('pwm-prev').addEventListener('click',()=>{sl.value=Math.max(0,+sl.value-1);show();});
+$('pwm-next').addEventListener('click',()=>{sl.value=Math.min(+sl.max,+sl.value+1);show();});
+jump.addEventListener('change',()=>{const e=ent[+jump.value];const i=L.findIndex(m=>m.t===e.t);if(i>=0){sl.value=i;show();}});
+P.onTheme(show);
+sl.value=L.findIndex(m=>m.t===824136n);if(+sl.value<0)sl.value=0;show();
+})();
+</script>

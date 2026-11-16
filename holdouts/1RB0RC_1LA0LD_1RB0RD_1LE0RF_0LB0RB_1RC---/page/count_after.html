@@ -1,0 +1,70 @@
+<div class="col"><h3>The clock, and the machine against it</h3>
+<p>Summed, the rule says that C k is reached at step 16,730,681,219 + 3,029,040 (k &minus; 7) + 92 (k(k &minus; 1) &minus; 42)
+for every k &ge; 7. Type any k. The C simulator <code>py/dumpT.c</code> found C 1397 at step 21,120,462,459 (computed,
+not part of the proof), as the formula predicts. The button runs the real machine in the browser from C 7 and
+records each step at which the tape is exactly C k.</p></div>
+<div class="panel" id="q7k">
+ <div class="controls">
+  <label class="small" for="q7k-k">k</label>
+  <input type="text" id="q7k-k" inputmode="numeric" value="1397" spellcheck="false" autocomplete="off" aria-label="k">
+  <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="1397">1,397</button><button type="button" data-k="1000000">10<sup>6</sup></button>
+ </div>
+ <div class="readout" id="q7k-out"></div>
+ <div class="controls" style="margin-top:10px">
+  <label class="small" for="q7k-m">run the machine from C 7 for</label>
+  <select id="q7k-m"><option value="2">2 periods</option><option value="4" selected>4 periods</option><option value="8">8 periods</option></select>
+  <button type="button" class="primary" id="q7k-go">Run</button><span class="small" id="q7k-st"></span>
+ </div>
+ <div class="q7-tw"><table id="q7k-tab" style="margin-top:8px"></table></div>
+ <div class="cap">The machine run watches every time the head is on the left end of the tape in state A and then compares the whole tape with C k. That happens twice a period: once in the middle of pass 2, where the tape is not C k (pass 3 is the first 55n + 57 steps of pass 2), and once at the end of the period.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Q = window.Q7, $ = function (id) { return document.getElementById(id); };
+  function clock() {
+    var s = $("q7k-k").value.replace(/[,\s_]/g, ""), out = $("q7k-out");
+    if (!/^\d{1,30}$/.test(s) || BigInt(s) < 7n) { out.innerHTML = "<span>k must be a whole number, at least 7</span>"; return; }
+    var k = BigInt(s), t = Q.TC(k);
+    out.innerHTML = "<span>C " + Q.fmt(k) + " at step <b>" + Q.fmt(t) + "</b></span><span>the next period takes <b>" + Q.fmt(184n * k + 3029040n) +
+      "</b> steps</span><span>the tape then has " + Q.fmt(1n + 13n * k + 222182n) + " cells from the head to the last 1</span>" +
+      (k === 1397n ? "<span>" + Q.mark(t === 21120462459n, "the step py/dumpT.c found", "not the step py/dumpT.c found") + "</span>" : "");
+  }
+  $("q7k-k").addEventListener("input", clock);
+  document.querySelectorAll("#q7k [data-k]").forEach(function (b) { b.addEventListener("click", function () { $("q7k-k").value = b.dataset.k; clock(); }); });
+  clock();
+  $("q7k-go").addEventListener("click", function () {
+    var M = +$("q7k-m").value, m = Q.c7(), k = 7, end = 0, rows = [], visits = 0;
+    for (var j = 0; j < M; j++) end += Q.period(7 + j);
+    m.t = 0; $("q7k-go").disabled = true; $("q7k-st").textContent = "running…";
+    function slice() {
+      var until = performance.now() + 40;
+      while (m.t < end && performance.now() < until) {
+        // run to the next time the head is on the left end in state A
+        var c = m.c, o = m.o, i = m.p + o, q = m.q, lo = m.lo + o, hi = m.hi + o, n = 0, lim = end - m.t, hit = false;
+        while (n < lim && n < 2000000) {
+          var y = 2 * q + c[i], s = Q.NS[y];
+          if (s < 0) { lim = n; break; }
+          c[i] = Q.W[y]; i += Q.MV[y]; q = s; n++;
+          if (i < lo) lo = i; else if (i > hi) hi = i;
+          if (q === 0 && i === lo) { hit = true; break; }
+          if (i < 2 || i > m.n - 3) break;
+        }
+        m.p = i - o; m.q = q; m.lo = lo - o; m.hi = hi - o; m.t += n;
+        m.room(m.p - 2, m.p + 2);
+        if (hit) {
+          visits++;
+          if (Q.isC(m, k + 1)) { k++; rows.push([k, m.t]); }
+        }
+      }
+      if (m.t < end) { $("q7k-st").textContent = Q.fmt(m.t) + " steps"; setTimeout(slice, 0); return; }
+      $("q7k-go").disabled = false;
+      $("q7k-st").textContent = Q.fmt(end) + " steps from C 7; the head was " + visits + " times on the left end in state A";
+      $("q7k-tab").innerHTML = "<thead><tr><th>k</th><th>the machine was at C k at step</th><th>the formula</th><th></th></tr></thead><tbody>" +
+        rows.map(function (r) { var t = BigInt(Q.T7) + BigInt(r[1]), f = Q.TC(r[0]); return "<tr><td>" + r[0] + "</td><td>" + Q.fmt(t) + "</td><td>" + Q.fmt(f) + "</td><td>" + Q.mark(t === f, "", "") + "</td></tr>"; }).join("") +
+        "</tbody>";
+    }
+    setTimeout(slice, 0);
+  });
+})();
+</script>
