@@ -169,6 +169,8 @@ halt (`halt_A`, `halt_F`).
 - `c/boundaries.c` (heuristic): the phase boundaries; `c/phases.c` (heuristic): compressed tapes at long-gap
   left-end visits, fast enough for 10¹¹ steps.
 - `py/shape.py`, `py/near_halt.py` (heuristic): compressed tapes at the end visits; neighbourhoods of A, B, F.
+- `page/*.html` with `py/page.py`: the explainer sections (four levels, each with a panel that runs the machine,
+  the rules, the 20-case map or the invariant in the browser); `py/page.py` puts them into `status.json`.
 
 ## What is open
 

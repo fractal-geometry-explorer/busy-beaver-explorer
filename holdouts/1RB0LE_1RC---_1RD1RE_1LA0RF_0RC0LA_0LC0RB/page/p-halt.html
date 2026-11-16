@@ -1,0 +1,23 @@
+<div class="grid2"><div class="col">
+<p>At the top of the ladder is the machine itself: a tape of 0s and 1s, a head, and the table above. Its table has
+one missing entry: <b>B reading a 1</b>. That is the only way to halt. Two transitions lead into B: A reading a 0
+(writes 1, moves right) and F reading a 1 (writes 0, moves right). So the machine halts exactly when the head reads
+<code>A&gt; 0 1</code> or <code>F&gt; 1 1</code> (Lean: <code>halt_A</code>, <code>halt_F</code> in
+<code>lean/Rules.lean</code>). <span class="ev k">Kernel</span></p>
+<p>The proof never looks for these patterns directly. It shows something stronger: from the blank tape, for every
+number n, the first n steps are all defined. That is the Lean statement <code>¬ HaltsFromBlank</code>, where
+<code>HaltsFromBlank</code> means "some step reaches a configuration with no transition".</p>
+<p>Without the proof, the run gives only bounds: no halt in the first 10<sup>4</sup> steps (kernel) and
+10<sup>7</sup> steps (<code>native_decide</code>), both in <code>lean/Blank.lean</code>, and none in 10<sup>9</sup>
+steps of the C simulator. The simulator above (<a href="#run">Watch it run</a>) is this level.</p>
+<p class="small">Press Step to see a halt play out on a made-up tape.</p>
+</div>
+<div class="panel" style="margin:0"><div class="controls"><label class="small" for="pw-haltsel">Pattern</label><select id="pw-haltsel"><option value="A">A&gt; 0 1</option><option value="F">F&gt; 1 1</option></select></div><div class="pw-mini" id="pw-haltmini"></div><div class="controls" style="margin-top:8px"><button type="button" id="pw-haltstep">Step</button><button type="button" id="pw-haltreset">Reset</button></div><div class="small" id="pw-haltcap"></div></div>
+</div>
+<script>
+(function(){const P=window.PW,$=P.$,SN=P.SN,TR=P.TR;const box=$('pw-haltmini');let cells,h,s,done;
+ function reset(){const A=$('pw-haltsel').value==='A';cells=A?[1,0,0,1,0,1]:[1,0,1,1,0,1];h=2;s=A?0:5;done=false;draw(A?'A reads 0: it will write 1, move right and become B.':'F reads 1: it will write 0, move right and become B.');}
+ function draw(cap){box.textContent='';cells.forEach((v,i)=>{const c=document.createElement('div');c.className='c'+(v?' one':'')+(i===h?' h':'');c.textContent=v;if(i===h)c.dataset.s=done?'halt':SN[s];box.appendChild(c);});$('pw-haltcap').textContent=cap;}
+ $('pw-haltstep').onclick=()=>{if(done)return;const a=TR[s][cells[h]];if(!a){done=true;draw('B reads 1: no transition, the machine halts.');return;}cells[h]=a.w;h+=a.m;s=a.s;draw('Now B reads 1. Step again.');};
+ $('pw-haltreset').onclick=reset;$('pw-haltsel').onchange=reset;reset();})();
+</script>

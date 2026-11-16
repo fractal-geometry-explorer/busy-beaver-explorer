@@ -1,0 +1,30 @@
+<div class="col">
+<p style="font:700 1.3rem/1.3 var(--display);margin-top:0">It never halts.</p>
+<p>Started on a blank tape, 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA runs for ever. From step 2,340,515,329 on,
+every round end of its run lies in one of 1,144 classes, every class leads after one round only to classes of the same
+list, and no round of any class reaches the halting transition.</p>
+<p>The Lean theorem is <code>nonhalt : ¬ HaltsFromBlank</code> in <code>lean/Replay.lean</code>, ledger level
+<span class="ev n">native_decide</span>. What it rests on, exactly:</p>
+<ul>
+<li><b>The Lean kernel</b> checks the soundness of the symbolic executor (<code>run_sound</code>, <code>run_pos</code>,
+<code>rule_instN</code>, <code>ruleOK_of_run</code> in <code>lean/Exec.lean</code>), what the two class tests mean
+(<code>clsRun_sound</code>, <code>covers_sound</code>, <code>closed_of_checks</code>, <code>arrives_sound</code>,
+<code>inSetB_sound</code> in <code>lean/Classes.lean</code>), the 15 shift rules (each by <code>rfl</code>), and the
+last implication, <code>nonhalting_of_closed_set</code> (<code>lean/Closed.lean</code>).</li>
+<li><b>Sixteen evaluations by <code>native_decide</code></b>, which trust Lean's compiler as well as its kernel: the six
+cycle rules (<code>rule0_ok</code> &hellip; <code>rule5_ok</code>), the eight chunks of 143 classes
+(<code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>, a round with x free and the coverage test for each class),
+the arrival from blank tape (<code>arrive_ok</code>, 527,489 moves) and its class (<code>start_ok</code>).
+<code>#print axioms nonhalt</code> lists <code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>
+and these sixteen evaluations; there is no <code>sorry</code>.</li>
+<li><b>Not used</b>: the Python search that found the classes, or any simulator outside Lean. The executor's
+choices (which rule, how many times, how to re-bracket) are not trusted; only its soundness is, and that is
+proved.</li>
+<li><b>Not stated in Lean</b>: step counts, such as the step 2,340,515,329 of the first round end in a class; Lean says
+only "reaches, in at least one step". Those come from the simulators (computed).</li>
+</ul>
+<p>There is no kernel-only proof yet: the long runs would have to be cut at checkpoints, which has not been done. A
+second proof of the same statement, in Coq on top of busycoq (<code>coq/H11019.v</code>,
+<code>nonhalt : ~ halts tm c0</code>), evaluates all its runs inside Coq's kernel with <code>vm_compute</code> and
+reports no axioms; the ledger lists it as kernel level.</p>
+</div>

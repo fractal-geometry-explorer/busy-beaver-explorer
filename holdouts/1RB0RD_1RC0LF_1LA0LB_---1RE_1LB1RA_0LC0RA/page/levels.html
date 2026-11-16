@@ -1,0 +1,169 @@
+<style>
+:root{--rdP:#8a8f9a;--rdA:#2a78d6;--rdB:#1baf7a;--rdT:#c0731f}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--rdP:#7d8492;--rdA:#5b9cf0;--rdB:#2fc48d;--rdT:#e09445} }
+:root[data-theme="dark"]{--rdP:#7d8492;--rdA:#5b9cf0;--rdB:#2fc48d;--rdT:#e09445}
+.rd-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.rd-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rd-lv:hover{border-color:var(--accent)}
+.rd-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rd-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.rd-lv code{font-size:.8em}
+.rd-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.rd-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.rd-row:first-child{border-top:0}
+.rd-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rd-row>div{min-width:0}
+@media (max-width:560px){.rd-row{grid-template-columns:minmax(0,1fr)}}
+.rd-tape{display:block;width:100%;height:46px;margin-top:6px}
+.rd-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:4px}
+.rd-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rd-words{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;max-height:8.5em;overflow-y:auto}
+.rd-ok{color:var(--kernel);font-weight:600}
+.rd-bad{color:var(--open);font-weight:600}
+.rd-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.rd-num{width:7.5em}
+.rd-out{margin-top:12px;font-size:.9rem}
+.rd-out .mono{overflow-wrap:anywhere}
+.rd-tt{width:100%;font-size:.86rem}
+.rd-tt td,.rd-tt th{padding:.3rem .55rem}
+.rd-bar{height:8px;border-radius:4px;background:var(--sunk);overflow:hidden;margin-top:8px}
+.rd-bar i{display:block;height:100%;width:0;background:var(--accent)}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level keeps less detail
+than the one above it, and each step down is a theorem saying that the answer is the same. The page walks down the
+ladder: the six-state machine on its tape; the tape read as two long blocks of pairs <code>01</code> and a short
+tail, at the moments state A reaches the left end; whole periods of the tail's cycles, each a rule that holds for
+every size of the two blocks; and finally the ends of rounds, sorted into 1,144 classes that lead only into each
+other and never to the halting transition.</p>
+</div>
+<div class="rd-ladder">
+ <a class="rd-lv" href="#shape"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">no halt in 10,000 steps</span><br>
+  <span class="ev n">native_decide</span> <span class="small">no halt in 10<sup>7</sup> steps (<code>blank_runs_native</code>)</span></a>
+ <a class="rd-lv" href="#words"><span class="n">Level 2</span><b class="t">Two blocks and a tail</b>
+  <div class="u">The tape <code>010 (01)^a 000 (01)^b T</code> as cells and blocks, looked at when state A reaches the left end (an <b>event</b>). One unit is one <b>move</b> of the executor: a whole block crossed by a shift rule, or one step.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>run_sound</code>, the 15 shift rules <code>shRTbl_ok</code>, <code>shLTbl_ok</code></span></a>
+ <a class="rd-lv" href="#cycles"><span class="n">Level 3</span><b class="t">The tail's cycles</b>
+  <div class="u">A whole-tape template with counts <code>b + 3x</code> that comes back after 18 to 44 events, a smaller by 27 to 66 pairs and b larger by 57 to 141. One unit is one <b>period</b>; N periods are one move.</div>
+  <span class="ev n">native_decide</span> <span class="small">six cycle rules for all x: <code>rule0_ok</code> &hellip; <code>rule5_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">N periods at once, N itself may depend on x: <code>rule_instN</code></span></a>
+ <a class="rd-lv" href="#closed"><span class="n">Level 4</span><b class="t">Round ends <code>node B T</code></b>
+  <div class="u">The tape <code>01001000 (01)^B T</code> when the left block is used up: a tail T and a number B. One unit is one <b>round</b>.</div>
+  <span class="ev n">native_decide</span> <span class="small">1,144 classes, one round each: <code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>; the run gets there: <code>arrive_ok</code>, <code>start_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">a closed set implies no halt: <code>closed_of_checks</code>, <code>nonhalting_of_closed_set</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick an event. The browser runs the real machine from blank tape up to that moment and reads its tape. The rows
+show the same instant at each level: the cells, the two blocks and the tail, the cycle rule of the Lean proof whose
+template the tape fits (if any), and the round the moment belongs to. Where a rule fits, the browser runs the
+machine on to the end of the rule's period and checks that it arrives exactly where the rule says.</p>
+</div>
+<div class="panel" id="rd-moment">
+ <div class="controls">
+  <button type="button" id="rdm-prev" aria-label="Previous event">&#9664;</button>
+  <input type="range" class="rd-slider" id="rdm-n" min="1" max="3600" value="1001" aria-label="Event number">
+  <button type="button" id="rdm-next" aria-label="Next event">&#9654;</button>
+  <span class="small">event <b id="rdm-lab">1,001</b> of the run</span>
+ </div>
+ <div class="controls" style="margin-top:8px"><span class="small">Round ends:</span>
+  <button type="button" data-rdm="367">367</button><button type="button" data-rdm="762">762</button>
+  <button type="button" data-rdm="1627">1,627</button><button type="button" data-rdm="3540">3,540</button></div>
+ <div style="margin-top:12px">
+  <div class="rd-row"><span>1 · Machine</span><div><span id="rdm-step"></span>
+   <canvas class="rd-tape" id="rdm-tape" aria-label="The tape at this event, coloured by part"></canvas>
+   <div class="rd-key"><span><i style="background:var(--rdP)"></i>first three cells</span><span><i style="background:var(--rdA)"></i>left block <code>(01)^a</code></span><span><i style="background:var(--rdB)"></i>big block <code>(01)^b</code></span><span><i style="background:var(--rdT)"></i>tail T</span><span>dark = 1, pale = 0; the triangle is the head, state A</span></div></div></div>
+  <div class="rd-row"><span>2 · Blocks</span><div><div class="rd-words" id="rdm-w"></div><div class="small" id="rdm-wc"></div></div></div>
+  <div class="rd-row"><span>3 · Cycle rule</span><div id="rdm-r"></div></div>
+  <div class="rd-row"><span>4 · Round</span><div id="rdm-g"></div></div>
+ </div>
+ <div class="cap">The step counts are exact: the browser counts every step from blank tape. Event 3,600 is about 1.2&middot;10<sup>8</sup> steps in; the first jump that far takes a second.</div>
+</div>
+<script>
+window.RD = (function () {
+  "use strict";
+/*CORE*/
+  var X = mkCore("1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA", 0);
+  X.D = /*DATA*/;
+  X.D.byTail = X.D.tails.map(function () { return []; });
+  X.D.classes.forEach(function (c, i) { X.D.byTail[c[0]].push(i); });
+  // The run from blank tape, event by event: steps, tape (head cell to the last 1), and the round ends met.
+  var m = null, evK = [0], evT = [""], nodes = [];
+  X.nodeOf = function (t) { var r = /^01001000((?:01)*)(.*)$/.exec(t); return r ? { B: r[1].length / 2, T: X.trim(r[2]) } : null; };
+  X.events = function (n) {
+    if (!m) m = new X.M();
+    while (evK.length <= n) {
+      if (!m.toEvent(1e9)) break;
+      var t = m.right(); evK.push(m.k); evT.push(t);
+      var nd = X.nodeOf(t); if (nd) { nd.ev = evK.length - 1; nd.k = m.k; nodes.push(nd); }
+    }
+    return { k: evK, t: evT, nodes: nodes };
+  };
+  // The tape at an event as parts: [prefix, a, b, tail] or null.
+  X.parts = function (t) { var r = /^(010|110)((?:01)*)000((?:01)*)(.*)$/.exec(t); return r ? { p: r[1], a: r[2].length / 2, b: r[3].length / 2, T: X.trim(r[4]) } : null; };
+  // A short word as blocks of 10 or 01 (two copies or more), for reading.
+  X.tailText = function (s) {
+    var out = [], i = 0, lit = "";
+    while (i < s.length) {
+      var best = null;
+      ["10", "01"].forEach(function (w) { var n = 0; while (s.substr(i + 2 * n, 2) === w) n++; if (n >= 2 && (!best || n > best[1])) best = [w, n]; });
+      if (best) { if (lit) out.push(lit); lit = ""; out.push("(" + best[0] + ")<sup>" + best[1] + "</sup>"); i += 2 * best[1]; } else { lit += s[i]; i++; }
+    }
+    if (lit) out.push(lit);
+    return out.join(" ");
+  };
+  X.tailIndex = function (T) { return X.D.tails.indexOf(T); };
+  return X;
+})();
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sl = $("rdm-n");
+  function show() {
+    var n = +sl.value; $("rdm-lab").textContent = X.fmt(n);
+    var R = X.events(n + 44), k = R.k[n], t = R.t[n], P = X.parts(t), nd = X.nodeOf(t);
+    $("rdm-step").innerHTML = "step " + X.fmt(k) + " of the run from blank tape; " + X.fmt(t.length) + " cells from the head to the last 1";
+    var segs;
+    if (P) {
+      var i1 = 3 + 2 * P.a, i2 = i1 + 3, i3 = i2 + 2 * P.b;
+      segs = [[0, 3, "--rdP"], [3, i1, "--rdA"], [i1, i2, "--rdP"], [i2, i3, "--rdB"], [i3, t.length, "--rdT"]];
+      $("rdm-w").innerHTML = "A&gt; " + P.p + " (01)<sup>" + P.a + "</sup> 000 (01)<sup>" + P.b + "</sup> " + X.tailText(P.T);
+      var back = P.p + X.rep("01", P.a) + "000" + X.rep("01", P.b) + P.T;
+      $("rdm-wc").innerHTML = (X.trim(back) === X.trim(t) ? '<span class="rd-ok">✓ prefix, blocks and tail spell exactly the tape</span>' : '<span class="rd-bad">✗ the parts differ from the tape</span>') +
+        "; a = " + X.fmt(P.a) + " pairs in the left block, b = " + X.fmt(P.b) + " in the big block, a tail of " + P.T.length + " cells";
+    } else {
+      segs = [[0, t.length, "--rdT"]];
+      $("rdm-w").innerHTML = "A&gt; " + X.tailText(t);
+      $("rdm-wc").innerHTML = "Not of the form <code>010 (01)^a 000 (01)^b T</code>: early in the run, or while a round changes over.";
+    }
+    X.drawTape($("rdm-tape"), t, segs, 0);
+    var f = null;
+    X.D.rules.some(function (r) { var xs = X.match(r, t); if (xs) f = { r: r, xs: xs }; return !!xs; });
+    if (!f) $("rdm-r").innerHTML = "The tape fits none of the six templates: this event lies inside a period, in the start-up of a tail, or near the end of a round. Where no template fits, the executor works move by move.";
+    else {
+      var e = f.r.ev, later = R.t[n + e], ok = later !== undefined && X.trim(later) === X.trim(X.inst(f.r, X.counts(f.r, f.xs, true)));
+      $("rdm-r").innerHTML = "It is the start of a period of <b>cycle rule " + f.r.n + "</b> (" + e + " events) with x = (" + f.xs.join(", ") + "): the rule says that " + e +
+        " events later the two blocks have " + X.counts(f.r, f.xs, true).join(" and ") + " pairs instead of " + X.counts(f.r, f.xs, false).join(" and ") + ", the rest unchanged. " +
+        (later === undefined ? "" : ok ? '<span class="rd-ok">✓ the machine is there at event ' + X.fmt(n + e) + ", step " + X.fmt(R.k[n + e]) + "</span>" : '<span class="rd-bad">✗ the machine differs at event ' + X.fmt(n + e) + "</span>");
+    }
+    var last = null; R.nodes.forEach(function (d) { if (d.ev <= n) last = d; });
+    var g = "";
+    if (nd) g = "<b>This is a round end</b>: <code>01001000 (01)^" + nd.B + " T</code>. ";
+    else if (last) g = "Round " + (R.nodes.indexOf(last) + 1) + " so far; the last round end was at event " + X.fmt(last.ev) + ", B = " + X.fmt(last.B) + ". ";
+    var cur = nd || last;
+    if (cur) {
+      var ti = X.tailIndex(cur.T);
+      g += ti >= 0 ? "Its tail is tail " + (ti + 1) + " of the 62 tails of the closed set. " : "Its tail is not one of the 62 tails of the closed set (an early round). ";
+      g += "B = " + X.fmt(cur.B) + " is below 20,000, so it is in no class yet: the classes begin at B &ge; 20,000. The run first stands on a class at step 2,340,515,329, at the round end with B = 28,531 (<code>arrive_ok</code>, <code>start_ok</code>).";
+    }
+    $("rdm-g").innerHTML = g;
+  }
+  sl.addEventListener("input", show);
+  $("rdm-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  $("rdm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  document.querySelectorAll("[data-rdm]").forEach(function (b) { b.addEventListener("click", function () { sl.value = b.dataset.rdm; show(); }); });
+  X.onTheme(show);
+  show();
+})();
+</script>

@@ -169,6 +169,8 @@ python3 holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/py/check.py full    #
 - [`pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/explainer.html`](../../pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/explainer.html)
 - [`pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/proof-status.html`](../../pages/holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/proof-status.html)
 
+The explainer's hand-written sections (a ladder of levels with a panel per level, and the run to the halt in the browser) are in `page/*.html`; `python3 py/page.py` copies them into `status.json`, then `python3 holdouts/build_pages.py 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE` builds the page.
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

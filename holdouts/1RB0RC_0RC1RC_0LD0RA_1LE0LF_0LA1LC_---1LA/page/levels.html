@@ -1,0 +1,171 @@
+<style>
+:root{--rcA:#2a78d6;--rcB:#1baf7a;--rcC:#b0862a}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--rcA:#5b9cf0;--rcB:#2fc48d;--rcC:#d6a845} }
+:root[data-theme="dark"]{--rcA:#5b9cf0;--rcB:#2fc48d;--rcC:#d6a845}
+.rc-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.rc-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rc-lv:hover{border-color:var(--accent)}
+.rc-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rc-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.rc-lv code{font-size:.8em}
+.rc-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.rc-lv .ev{margin-top:4px}
+.rc-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.rc-row:first-child{border-top:0}
+.rc-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rc-row>div{min-width:0}
+@media (max-width:560px){.rc-row{grid-template-columns:minmax(0,1fr)}}
+.rc-tape{display:block;width:100%;height:46px;margin-top:6px}
+.rc-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:4px}
+.rc-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rc-words{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;max-height:8.5em;overflow-y:auto}
+.rc-ok{color:var(--kernel);font-weight:600}
+.rc-bad{color:var(--open);font-weight:600}
+.rc-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.rc-num{width:7.5em}
+.rc-out{margin-top:12px;font-size:.9rem}
+.rc-out .mono{overflow-wrap:anywhere}
+.rc-tt{width:100%;font-size:.86rem}
+.rc-tt td,.rc-tt th{padding:.3rem .55rem}
+.rc-tt td:first-child{font-family:var(--mono)}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level keeps less detail
+than the one above it, and each step down is a theorem saying that the answer is the same. The page walks down the
+ladder: the six-state machine on its tape; the tape read as blocks of repeated words at the moments state E reaches
+the left end; whole cycles of the long phases, each a rule that holds for every size of the blocks; and finally one
+number r, the length of the last block, which grows by 321,042,928 every period and never leads to a halt.</p>
+</div>
+<div class="rc-ladder">
+ <a class="rc-lv" href="#shape"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">no halt in 10,000 steps</span><br>
+  <span class="ev n">native_decide</span> <span class="small">no halt in 10<sup>7</sup> steps (<code>blank_runs_native</code>)</span></a>
+ <a class="rc-lv" href="#words"><span class="n">Level 2</span><b class="t">Blocks of words</b>
+  <div class="u">The tape as cells and blocks <code>(w)^n</code>, looked at when state E reaches the left end (an <b>event</b>). One unit is one <b>move</b> of the executor: a whole block crossed by a shift rule, or one step.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>run_sound</code>, the 31 shift rules <code>shRTbl_ok</code>, <code>shLTbl_ok</code></span></a>
+ <a class="rc-lv" href="#phases"><span class="n">Level 3</span><b class="t">Cycles of the phases</b>
+  <div class="u">A whole-tape template with counts <code>b + 2x</code> that comes back with counts <code>b' + 2x</code> after 2, 4 or 72 events. One unit is one <b>cycle</b>; N cycles are one move.</div>
+  <span class="ev n">native_decide</span> <span class="small">twelve cycle rules for all x: <code>rule0_ok</code> &hellip; <code>rule11_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">N cycles at once: <code>rule_instN</code></span></a>
+ <a class="rc-lv" href="#cycle"><span class="n">Level 4</span><b class="t">The growth cycle <code>C(r)</code></b>
+  <div class="u">One number r. C(65 + 2x) comes back as C(65 + 2(x + 160,521,464)). One unit is one <b>period</b>, 116,320,154 events.</div>
+  <span class="ev n">native_decide</span> <span class="small"><code>grow_cyc</code>, <code>reach_cyc</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">the cycle implies no halt: <code>nonhalting_of_growth_cycle</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick an event. The browser runs the real machine from blank tape up to that moment and reads its tape. The rows
+show the same instant at each level: the cells, the blocks of words, the cycle rule of the Lean proof whose template
+the tape fits (if any), and where the moment sits on the way to the growth cycle. Where a rule fits, the browser
+also runs the machine on to the end of the rule's cycle and checks that it arrives exactly where the rule says.</p>
+</div>
+<div class="panel" id="rc-moment">
+ <div class="controls">
+  <button type="button" id="rcm-prev" aria-label="Previous event">&#9664;</button>
+  <input type="range" class="rc-slider" id="rcm-n" min="1" max="2600" value="440" aria-label="Event number">
+  <button type="button" id="rcm-next" aria-label="Next event">&#9654;</button>
+  <span class="small">event <b id="rcm-lab">440</b> of the run</span>
+ </div>
+ <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span>
+  <button type="button" data-rcm="100">100</button><button type="button" data-rcm="210">210</button>
+  <button type="button" data-rcm="438">438</button><button type="button" data-rcm="1108">1,108</button>
+  <button type="button" data-rcm="2477">2,477</button></div>
+ <div style="margin-top:12px">
+  <div class="rc-row"><span>1 · Machine</span><div><span id="rcm-step"></span>
+   <canvas class="rc-tape" id="rcm-tape" aria-label="The tape at this event, coloured by block"></canvas>
+   <div class="rc-key"><span><i style="background:var(--rcA)"></i>seven-cell words <code>1011001</code></span><span><i style="background:var(--rcB)"></i>three-cell words (<code>011</code>, <code>101</code>, <code>110</code>) and trains of them</span><span><i style="background:var(--rcC)"></i>other cells</span><span>dark = 1, pale = 0; the triangle is the head, state E</span></div></div></div>
+  <div class="rc-row"><span>2 · Blocks</span><div><div class="rc-words" id="rcm-w"></div><div class="small" id="rcm-wc"></div></div></div>
+  <div class="rc-row"><span>3 · Cycle rule</span><div id="rcm-r"></div></div>
+  <div class="rc-row"><span>4 · Growth cycle</span><div id="rcm-g"></div></div>
+ </div>
+ <div class="cap">The step counts are exact: the browser counts every step from blank tape. Event 2,600 is about 1.4&middot;10<sup>8</sup> steps in; the first jump that far takes a second.</div>
+</div>
+<script>
+window.RC = (function () {
+  "use strict";
+/*CORE*/
+  var X = mkCore("1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA", 4);
+  X.D = /*DATA*/;
+  // The run from blank tape, event by event: steps and tape (from the head to the last 1).
+  var m = null, evK = [0], evT = [""];
+  X.events = function (n) {
+    if (!m) m = new X.M();
+    while (evK.length <= n) {
+      if (!m.toEvent(1e9)) break;
+      evK.push(m.k); evT.push(m.right());
+    }
+    return { k: evK, t: evT };
+  };
+  // Blocks of words, for display and colouring: [word, count] or a literal string.
+  var WORDS = ["1011001", "0110110110110", "1101100110110", "0110110011011", "011", "101", "110"];
+  X.blocks = function (s) {
+    var out = [], i = 0, lit = "";
+    while (i < s.length) {
+      var best = null;
+      for (var j = 0; j < WORDS.length; j++) {
+        var w = WORDS[j], n = 0;
+        while (s.substr(i + n * w.length, w.length) === w) n++;
+        if (n >= (w.length > 3 ? 2 : 3) && (!best || n * w.length > best[1] * best[0].length)) best = [w, n];
+      }
+      if (best) { if (lit) out.push(lit); lit = ""; out.push(best); i += best[1] * best[0].length; } else { lit += s[i]; i++; }
+    }
+    if (lit) out.push(lit);
+    return out;
+  };
+  X.blocksHTML = function (bl) {
+    return bl.map(function (b) { return typeof b === "string" ? b : "(" + b[0] + ")<sup>" + b[1] + "</sup>"; }).join(" ");
+  };
+  X.segs = function (bl) {
+    var out = [], i = 0;
+    bl.forEach(function (b) {
+      var len = typeof b === "string" ? b.length : b[0].length * b[1];
+      out.push([i, i + len, typeof b === "string" ? "--rcC" : b[0] === "1011001" ? "--rcA" : "--rcB"]); i += len;
+    });
+    return out;
+  };
+  // All rules of the Lean proof as templates: the twelve cycle rules of ExecData.lean (native_decide) and the two
+  // phases of Phases.lean (kernel; there counts are b + x, any x).
+  X.allRules = function () { return X.D.lean.concat(X.D.rules); };
+  X.ruleName = function (r) { return r.name || "cycle rule " + r.n; };
+  X.firstMatch = function (tape) {
+    var rs = X.allRules();
+    for (var i = 0; i < rs.length; i++) { var xs = X.match(rs[i], tape); if (xs) return { r: rs[i], xs: xs }; }
+    return null;
+  };
+  return X;
+})();
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sl = $("rcm-n");
+  function show() {
+    var n = +sl.value; $("rcm-lab").textContent = X.fmt(n);
+    var R = X.events(n + 72), k = R.k[n], t = R.t[n], bl = X.blocks(t);
+    $("rcm-step").innerHTML = "step " + X.fmt(k) + " of the run from blank tape; " + X.fmt(t.length) + " cells from the head to the last 1";
+    X.drawTape($("rcm-tape"), t, X.segs(bl), 0);
+    $("rcm-w").innerHTML = "E&gt; " + X.blocksHTML(bl);
+    var cells = bl.map(function (b) { return typeof b === "string" ? b : X.rep(b[0], b[1]); }).join("");
+    $("rcm-wc").innerHTML = (cells === t ? '<span class="rc-ok">✓ the blocks spell exactly the tape</span>' : '<span class="rc-bad">✗ the blocks differ from the tape</span>') +
+      "; " + bl.length + " tokens for " + X.fmt(t.length) + " cells";
+    var f = X.firstMatch(t), r3 = $("rcm-r");
+    if (!f) r3.innerHTML = "The tape fits none of the 14 templates: this event lies inside a cycle or in an irregular stretch between phases. Where no template fits, the executor works move by move, with shift rules across the blocks and single steps in between.";
+    else {
+      var e = f.r.ev, cs = X.counts(f.r, f.xs, true), pred = X.inst(f.r, cs), later = R.t[n + e];
+      var ok = later !== undefined && X.trim(later) === X.trim(pred);
+      r3.innerHTML = "It is the start of <b>" + X.ruleName(f.r) + "</b> (" + e + " events a cycle) with x = (" + f.xs.join(", ") + "): " +
+        "<span class=\"mono\">" + X.text(f.r, X.counts(f.r, f.xs, false)) + "</span>. The rule says that " + e + " events later the tape is the template with counts " +
+        X.counts(f.r, f.xs, true).join(", ") + ". " + (later === undefined ? "" : ok ? '<span class="rc-ok">✓ the machine is there at event ' + X.fmt(n + e) + ", step " + X.fmt(R.k[n + e]) + "</span>"
+        : '<span class="rc-bad">✗ the machine differs at event ' + X.fmt(n + e) + "</span>");
+    }
+    var p = (/^0((?:1011001)*)/.exec(t) || ["", ""])[1].length / 7;
+    $("rcm-g").innerHTML = "Not yet: the left block has " + p + " seven-cell words. The run first reaches C(r), with r = 16,797,709, at event 6,086,451 and step 1,818,198,163,340,705 (computed). This moment is " +
+      (n / 6086451 * 100).toFixed(3) + "% of the way in events. Lean replays that whole start-up in 5,037,044 executor moves (<code>arrive_run</code>).";
+  }
+  sl.addEventListener("input", show);
+  $("rcm-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  $("rcm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  document.querySelectorAll("[data-rcm]").forEach(function (b) { b.addEventListener("click", function () { sl.value = b.dataset.rcm; show(); }); });
+  X.onTheme(show);
+  show();
+})();
+</script>

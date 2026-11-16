@@ -1,0 +1,87 @@
+<div class="col">
+<p>An excursion is three million steps over a fixed list of cells, so Lean simply runs it. The difficulty is that the
+tape left of X holds the blocks, whose number n is a variable. <code>lean/Window.lean</code> solves this with a list
+simulator on a window: <code>wsteps n &#10216;l, r, s&#10217;</code> runs the machine on the cells <code>l</code> (left of
+the head, nearest first) and <code>r</code> (from the head on, blank beyond its end), and fails if the head would move
+left of <code>l</code>. <span class="ev k">Kernel</span> <code>wsteps_over</code> (with <code>wsteps_over1</code> and
+<code>wsteps_over3</code> for windows of one and three cells): a run on the window that succeeds is a run of the
+machine with any tape at all further left. So a single evaluation covers every n.</p>
+<p><span class="ev n">native_decide</span> The three facts of <code>lean/Period.lean</code> that are evaluated:</p>
+</div>
+<pre>theorem w1_ok : wsteps 1517479 &#10216;[true], X, .B&#10217; = some &#10216;[], false :: r1t, .E&#10217;
+theorem w2_ok : wsteps 1511551 &#10216;[true, true, false], r1t, .B&#10217; = some &#10216;[], false :: r2t, .E&#10217;
+theorem close : [true, false] ++ r2t = accb ++ X</pre>
+<div class="col">
+<p>The first excursion starts with the head on the first cell of X in state B and the 1 written by pass 1 as its whole
+window on the left; it ends with that window used up, the head back on that cell, now a 0, in state E. The second
+starts with the three cells <code>0 1 1</code> written by pass 2. The last fact says that what the second excursion
+leaves behind, behind the two cells <code>1 0</code> that pass 3 writes in front of it, is one more block
+<code>1010001000100</code> followed by X again. <code>period</code> chains the five pieces with these facts, and
+<code>rep_rotate</code> moves the new block to the front:
+<code>1 0 (1000100010010)^(n+1) = (1010001000100)^(n+1) 1 0</code>. Then <code>C (n+1)</code> reaches
+<code>C (n+2)</code> in 184n + 3,029,224 steps, for every n.</p>
+<h3>Evaluate them in the browser</h3>
+<p>The browser runs the same window simulator on the X of <code>lean/Data.lean</code> and checks the three facts.
+To see that the check has teeth, flip a cell of X first.</p>
+</div>
+<div class="panel" id="q7w">
+ <div class="controls">
+  <label class="small" for="q7w-flip">flip cell of X</label>
+  <input type="number" class="q7-num" id="q7w-flip" min="0" max="222181" placeholder="none" aria-label="Cell of X to flip (empty for none)">
+  <button type="button" class="primary" id="q7w-go">Evaluate</button>
+  <span class="small" id="q7w-st"></span>
+ </div>
+ <div id="q7w-out" style="margin-top:10px"></div>
+ <canvas id="q7w-cv" style="width:100%;height:220px;margin-top:10px" aria-label="Where the head is during the two excursions"></canvas>
+ <div class="cap">Where the head is during the two excursions, as a cell of the window counted from the first cell of X (up the page) against the step (across), sampled every 2,000 steps. Each excursion runs out to the right end of the tape and back.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Q = window.Q7, $ = function (id) { return document.getElementById(id); }, last = null;
+  function evaluate() {
+    var fl = $("q7w-flip").value.trim(), X = Q.getX(), f = fl === "" ? -1 : Math.floor(+fl);
+    if (f >= 0 && f < Q.XLEN) { X = X.slice(); X[f] ^= 1; }
+    var t0 = performance.now();
+    var w1 = Q.wsteps(1517479, [1], X, 1, 2000);
+    var ok1 = !w1.fail && w1.l.length === 0 && w1.st === 4 && w1.r[0] === 0;
+    var r1t = ok1 ? w1.r.slice(1) : new Uint8Array(0);
+    var w2 = Q.wsteps(1511551, [1, 1, 0], r1t, 1, 2000);
+    var ok2 = !w2.fail && w2.l.length === 0 && w2.st === 4 && w2.r[0] === 0;
+    var r2t = ok2 ? w2.r.slice(1) : new Uint8Array(0), ok3 = r2t.length === 11 + Q.XLEN;
+    if (ok3) { for (var i = 0; i < 11; i++) if (r2t[i] !== +Q.ACCB[i + 2]) { ok3 = false; break; } }
+    if (ok3) { for (i = 0; i < Q.XLEN; i++) if (r2t[11 + i] !== X[i]) { ok3 = false; break; } }
+    ok3 = ok3 && Q.ACCB.slice(0, 2) === "10";
+    var ms = performance.now() - t0;
+    function res(w) { return w.fail !== undefined ? "the run fails after " + Q.fmt(w.fail) + " steps (" + (w.why === "left" ? "the head would leave the window on the left" : "it halts") + ")" :
+      "ends with " + w.l.length + " cells left of the head, in state " + Q.SN[w.st] + " on a " + w.r[0] + "; the head never went left of window cell " + w.min; }
+    $("q7w-out").innerHTML =
+      '<div class="q7-row"><span>w1_ok</span><div>' + res(w1) + (ok1 ? "; r1 has " + Q.fmt(r1t.length) + " cells" : "") + Q.mark(ok1, "as stated", "not as stated") + "</div></div>" +
+      '<div class="q7-row"><span>w2_ok</span><div>' + (ok1 ? res(w2) + (ok2 ? "; r2 has " + Q.fmt(r2t.length) + " cells" : "") : "needs r1") + Q.mark(ok2, "as stated", "not as stated") + "</div></div>" +
+      '<div class="q7-row"><span>close</span><div><code>1 0</code> followed by r2 is ' + Q.fmt(2 + r2t.length) + " cells; <code>1010001000100</code> followed by X is " + Q.fmt(13 + Q.XLEN) + Q.mark(ok3, "the two lists are equal", "the two lists differ") + "</div></div>";
+    $("q7w-st").textContent = "3,029,030 steps in " + Math.round(ms) + " ms" + (f >= 0 && f < Q.XLEN ? ", with cell " + Q.fmt(f) + " of X flipped" : ", on X as it is");
+    last = [w1.path || [], w2.path || []]; draw();
+  }
+  function draw() {
+    if (!last) return;
+    var cv = $("q7w-cv"), w = cv.clientWidth || 600, h = cv.clientHeight || 220, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var all = last[0].concat(last[1]), mx = 1, L = 46, B = h - 22;
+    all.forEach(function (v) { if (v > mx) mx = v; });
+    var N = all.length - 1 || 1, sx = function (i) { return L + i / N * (w - L - 6); }, sy = function (v) { return B - v / mx * (B - 10); };
+    g.strokeStyle = Q.css("--line"); g.lineWidth = 1; g.beginPath(); g.moveTo(L, 10); g.lineTo(L, B); g.lineTo(w - 6, B); g.stroke();
+    g.fillStyle = Q.css("--muted"); g.font = "11px " + (Q.css("--mono").split(",")[0] || "monospace");
+    g.fillText(Math.round(mx / 1000) + "k", 4, 16); g.fillText("0", 30, B);
+    g.fillText("excursion 1", sx(last[0].length / 2) - 30, h - 6); g.fillText("excursion 2", sx(last[0].length + last[1].length / 2) - 30, h - 6);
+    [[0, last[0], "--q7x"], [last[0].length, last[1], "--q7b"]].forEach(function (S) {
+      g.strokeStyle = Q.css(S[2]); g.lineWidth = 1.5; g.beginPath();
+      S[1].forEach(function (v, i) { var x = sx(S[0] + i), y = sy(v); if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+      g.stroke();
+    });
+  }
+  $("q7w-go").addEventListener("click", function () { $("q7w-st").textContent = "running…"; setTimeout(evaluate, 20); });
+  Q.onTheme(draw);
+  setTimeout(evaluate, 50);
+})();
+</script>

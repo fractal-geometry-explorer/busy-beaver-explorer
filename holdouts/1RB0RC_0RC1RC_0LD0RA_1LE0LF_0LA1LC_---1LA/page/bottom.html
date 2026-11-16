@@ -1,0 +1,30 @@
+<div class="col">
+<p style="font:700 1.3rem/1.3 var(--display);margin-top:0">It never halts.</p>
+<p>Started on a blank tape, 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA runs for ever. From step
+1,818,198,163,340,705 on its run is the growth cycle: C(r) comes back as C(r + 321,042,928) after 116,320,154
+arrivals of state E at the left end, and so on without end.</p>
+<p>The Lean theorem is <code>nonhalt : ¬ HaltsFromBlank</code> in <code>lean/Replay.lean</code>, ledger level
+<span class="ev n">native_decide</span>. What it rests on, exactly:</p>
+<ul>
+<li><b>The Lean kernel</b> checks the definitions of the machine, the soundness of the symbolic executor
+(<code>run_sound</code>, <code>run_pos</code>, <code>rule_instN</code>, <code>ruleOK_of_run</code> in
+<code>lean/Exec.lean</code>), the 31 shift rules (<code>lean/ExecData.lean</code>, each by <code>rfl</code>) and the
+last implication, <code>nonhalting_of_growth_cycle</code> (<code>lean/Cycle.lean</code>).</li>
+<li><b>Fourteen evaluations by <code>native_decide</code></b>, which trust Lean's compiler as well as its kernel:
+the twelve cycle rules (<code>rule0_ok</code> &hellip; <code>rule11_ok</code>, from 422 to 201,007 executor moves
+each), the arrival from blank tape (<code>arrive_run</code>, 5,037,044 moves) and the period
+(<code>period_run</code>, 5,581,714 moves). <code>#print axioms nonhalt</code> lists <code>propext</code>,
+<code>Quot.sound</code> and these fourteen evaluations; there is no <code>sorry</code>.</li>
+<li><b>Not used</b>: any simulator outside Lean. The executor's strategy (which rule, how many times, how to
+re-bracket the tape) is not trusted; only its soundness is, and that is proved.</li>
+<li><b>Not stated in Lean</b>: the numbers of steps and events, such as the step 1,818,198,163,340,705 at which
+C(16,797,709) is first reached; Lean says only "reaches, in at least one step". Those counts come from
+<code>py/closure/accel.py</code>, <code>py/replay/engine.py</code> and <code>verify/sim3.cpp</code>, which agree
+(computed, not proved).</li>
+</ul>
+<p>The short cycle rules can be checked by the kernel alone (<code>decide +kernel</code> was tried on rule 4, 422
+moves, and rule 11, 3,255 moves); the drain rule and the two long runs have not been, so there is no kernel-only
+proof of <code>nonhalt</code> yet. A second proof of the same statement, in Coq on top of busycoq
+(<code>coq/H65826.v</code>, <code>nonhalt : ~ halts tm c0</code>), evaluates all its runs inside Coq's kernel with
+<code>vm_compute</code> and reports no axioms; the ledger lists it as kernel level.</p>
+</div>

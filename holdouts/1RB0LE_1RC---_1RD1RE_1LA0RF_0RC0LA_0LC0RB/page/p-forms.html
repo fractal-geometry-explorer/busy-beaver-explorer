@@ -1,0 +1,41 @@
+<div class="col">
+<p>Watch the machine for a while and its tape turns out to be made of long runs of a few short words:
+<code>1000</code>, <code>10</code>, a 14-cell word such as <code>00001000001000</code>, and a few others, with short
+fixed pieces between them. So the tape can be written as a <b>form</b>: a pattern with the run lengths as numbers.
+That is level 2. For example</p>
+<div class="pw-strip" id="pw-oform"></div>
+<p>is the form <code>O a b c</code>: the head in state A at the left end, then seven 0s, a copies of
+<code>1000</code>, b copies of <code>10</code>, c copies of the 14-cell word, and <code>101</code>. The proof uses
+ten forms. Seven are seen with the head at the <b>left</b> end, in state A or E (the "round-trip" forms, counting
+<code>O a 0 c</code> separately), and three with the head at the <b>right</b> end, in state E (the "right-phase"
+forms). Pick one to see its shape:</p>
+</div>
+<div class="panel">
+<div class="controls"><label class="small" for="pw-fsel">Form</label><select id="pw-fsel"></select></div>
+<div class="pw-strip" id="pw-fstrip"></div>
+<div class="small" id="pw-fdesc"></div>
+</div>
+<div class="col"><p>A form names a whole tape, so a sequence of forms with step counts is a description of the run
+as faithful as the machine itself, as long as every form is on the tape at exactly the stated step. The first time
+the run is in one of these forms is at step 29,301, in the form <code>O 14 37 11</code>. Lean proves this by running
+the machine (<code>blank_O</code> in <code>lean/Table.lean</code>). <span class="ev k">Kernel</span> Try it: the
+button runs the machine in your browser and compares the tape with the form, cell for cell. In the picture below
+each cell is a thin bar (dark = 1), and the coloured band under it shows which run of the form it belongs to.</p></div>
+<div class="panel">
+<div class="controls"><button type="button" class="primary" id="pw-startgo">Run 29,301 steps from blank tape</button><span class="small" id="pw-startcap"></span></div>
+<canvas class="pw-bar" id="pw-startbar" width="900" height="60" aria-label="The tape at step 29,301, cell by cell"></canvas>
+<div class="small" id="pw-startcmp"></div>
+</div>
+<script>
+(function(){const P=window.PW,$=P.$,FN=P.FN;
+ P.fstrip($('pw-oform'),'O',null);
+ const sel=$('pw-fsel');Object.keys(FN).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=FN[k];sel.appendChild(o);});
+ function show(){const k=sel.value;if(k==='O0'){P.fstrip($('pw-fstrip'),'O',['a','0','c']);$('pw-fdesc').textContent='O with no 10 at all. It comes after RF when k is even, and it becomes S1 after one pass.';return;}P.fstrip($('pw-fstrip'),k,null);$('pw-fdesc').textContent=P.FDESC[k];}
+ sel.onchange=show;show();
+ let last=null;
+ function draw(){if(last)P.barcode($('pw-startbar'),'O',[14,37,11],last);}
+ $('pw-startgo').onclick=()=>{const b=$('pw-startgo');b.disabled=true;$('pw-startcap').textContent='running…';setTimeout(()=>{const c=P.blankCfg(1<<16);P.runTo(c,29301);const got=P.canonCfg(c),want=P.canonForm('O',[14,37,11]);
+  $('pw-startcap').textContent='done: step '+c.n.toLocaleString('en-US')+', head in state '+P.SN[c.s];const T=P.formTape('O',[14,37,11]);let s='';for(let x=c.h;x<c.h+T.s.length;x++)s+=c.t[x];last=s;draw();
+  $('pw-startcmp').innerHTML=P.same(got,want)?'<span class="pw-ok">✓ The tape is exactly O 14 37 11:</span> seven 0s, 14 × <code>1000</code> (blue band), 37 × <code>10</code> (green), 11 × <code>00001000001000</code> (purple), then <code>101</code>; head at the left end in state A, nothing to its left.':'<span class="pw-bad">✗ Does not match.</span>';b.disabled=false;},30);};
+ P.onTheme(draw);})();
+</script>

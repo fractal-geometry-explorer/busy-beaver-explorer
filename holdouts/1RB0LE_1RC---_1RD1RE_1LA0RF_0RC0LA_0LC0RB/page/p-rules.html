@@ -1,0 +1,59 @@
+<div class="col">
+<p>Using these passes, Lean proves <b>27 rules</b>. Each rule says: from form X with numbers like (a, b + 6, c + 2),
+the machine reaches form Y with numbers that are simple formulas of a, b, c, in an exact number of steps that is
+also a formula. The rule holds for <b>every</b> value of the variables. <span class="ev k">Kernel</span> This is the
+theorem that ties level 2 to level 1: a rule is a statement <code>steps N (X …) = some (Y …)</code> about the machine
+itself, so a chain of rules is a stretch of the real run, step count included.</p>
+<p>The central example is the <b>4-visit cycle</b> <code>cycle</code>: <code>S1 a (b+2) (c+2)</code> reaches
+<code>S1 (a+3) (b+14) c</code> in exactly 80a + 72b + 1356 steps. Each turn uses up two of the 14-cell words (c drops
+by 2), and the runs of <code>1000</code> and <code>10</code> grow by 3 and 12. The head visits the left end four times
+on the way.</p>
+<p>Each rule's proof is a <b>symbolic run</b>: Lean steps the machine on a tape whose runs have lengths like
+<code>b + 2</code>, uses a pass to cross a whole run at once, and at the end shows the tape it got is the target form
+(by regrouping, e.g. <code>(0010)^a 0</code> = <code>0 (0100)^a</code>). Lean also proves the k-fold repeats such as
+<code>cycle_iter</code>, by induction on k. The rules are in <code>lean/Cycle.lean</code>, <code>lean/Phase.lean</code>,
+<code>lean/Branch.lean</code> and <code>lean/Ends.lean</code>.</p>
+<p>Try any rule: choose small numbers for its variables, and the browser runs the real machine for exactly the
+stated number of steps. The picture shows the tape over time (rows are moments, time going down; dark = 1) and the
+path of the head (orange line). The check compares the result with the target form, cell for cell.</p>
+</div>
+<div class="panel">
+<div class="controls"><label class="small" for="pw-rsel">Rule</label><select id="pw-rsel"></select><span id="pw-rvars" style="display:contents"></span><button type="button" class="primary" id="pw-rgo">Run it</button></div>
+<div class="small" id="pw-rstate"></div>
+<div class="small" style="margin-top:8px">Before:</div><div class="pw-strip" id="pw-rbefore"></div>
+<div class="stwrap" style="overflow-x:auto"><canvas id="pw-rcv" class="pw-cv" width="600" height="300" aria-label="Space-time diagram of the rule"></canvas></div>
+<div class="small" style="margin-top:8px">After:</div><div class="pw-strip" id="pw-rafter"></div>
+<div id="pw-rcheck" class="small"></div>
+</div>
+<script>
+(function(){const P=window.PW,$=P.$,D=P.D,css=P.css,SN=P.SN;
+const RDESC={oentry:'O to S1: the start of the 4-visit cycle.',cycle:'One turn of the 4-visit cycle.',oexit:'S1 with one 14-cell word left: into the right phase RF.',sexit0:'S1 with no 14-cell word left: into the right phase RF.',
+ rcyc:'One right-end visit: one 10 becomes one 1111110.',rend:'RF with k odd and one 10 left: the 1111110s fold in pairs into 14-cell words, giving EF.',rende:'RF with k even and one 10 left: gives O a 0 c.',
+ ozero:'O a 0 c: one pass gives T3 (a+2) 0 0 0 7 c, which is the same tape as S1 (a+2) 7 c.',eentry:'EF to T3: the start of the 5-visit cycle.',cycle3:'One turn of the 5-visit cycle: 5 copies of 0010 and 2 words used up.',
+ texit0:'T3 with no 0010 left: the first two runs of 10 merge, giving T2.',texit1:'T3 with one 0010 left: gives U3.',texit2:'T3 with two 0010 left: gives U3.',texit3:'T3 with three 0010 left: gives T2.',texit4:'T3 with four 0010 left: gives T2.',
+ cycle2:'One turn of the 3-visit cycle.',t2exit0:'T2 with no word left: into the right phase RG.',t2exit1:'T2 with one word left: into RG.',ucyc:'One turn of the U3 cycle.',uexit0:'U3 with no word left: into RG3.',uexit1:'U3 with one word left: into RG3.',
+ gcyc:'One right-end visit of RG: one 10 becomes one 1111011.',gend:'RG with n even and one 10 left: gives O.',gendo:'RG with n odd and one 10 left: gives T3.',g3cyc:'One right-end visit of RG3.',g3end:'RG3 with n even: gives T2.',g3endo:'RG3 with n odd: gives T3.'};
+P.RDESC=RDESC;
+function linVars(e){return (e.match(/[a-z]+/g)||[]);}
+function evalLin(e,env){return e.split('+').reduce((s,t)=>{t=t.trim();const m=t.match(/^(\d+)\*([a-z]+)$/);if(m)return s+(+m[1])*env[m[2]];if(/^\d+$/.test(t))return s+(+t);return s+env[t];},0);}
+const sel=$('pw-rsel');Object.keys(D.rules).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});
+function vars(){const R=D.rules[sel.value];const vs=[];R.fa.forEach(a=>linVars(a).forEach(v=>{if(!vs.includes(v))vs.push(v);}));return vs;}
+function inputs(){const box=$('pw-rvars');box.textContent='';vars().forEach(v=>{const l=document.createElement('label');l.className='small';l.textContent=v;l.htmlFor='pw-rv-'+v;const i=document.createElement('input');i.type='text';i.id='pw-rv-'+v;i.value='2';i.inputMode='numeric';i.style.width='3.6em';i.spellcheck=false;i.autocomplete='off';box.appendChild(l);box.appendChild(i);});}
+let last=null;
+function go(){const k=sel.value,R=D.rules[k];const env={};vars().forEach(v=>{let x=parseInt($('pw-rv-'+v).value,10);if(!(x>=0))x=0;x=Math.min(x,40);$('pw-rv-'+v).value=x;env[v]=x;});
+ const P0=R.fa.map(a=>evalLin(a,env)),P1=R.ta.map(a=>evalLin(a,env)),N=evalLin(R.steps,env);
+ $('pw-rstate').innerHTML=RDESC[k]+' Lean: <code>'+R.from+' '+R.fa.map(a=>/[+]/.test(a)?'('+a+')':a).join(' ')+'</code> reaches <code>'+R.to+' '+R.ta.map(a=>/[+]/.test(a)?'('+a+')':a).join(' ')+'</code> in <code>'+R.steps.replace(/\*/g,'')+'</code> steps.';
+ P.fstrip($('pw-rbefore'),R.from,P0);const c=P.cfgOf(R.from,P0,1<<15);const hs=[];const lo0=c.lo-6;
+ const every=Math.max(1,Math.ceil(N/1400));const snaps=[];
+ const take=()=>{snaps.push([c.t.slice(lo0,lo0+2000),c.h]);};take();hs.push(c.h);let ok=true;
+ while(c.n<N){if(!P.step(c)){ok=false;break;}hs.push(c.h);if(c.n%every===0)take();}take();
+ last={snaps,hs,lo0,c:{lo:c.lo,hi:c.hi}};draw();
+ P.fstrip($('pw-rafter'),R.to,P1);const got=P.canonCfg(c),want=P.canonForm(R.to,P1);
+ $('pw-rcheck').innerHTML=N.toLocaleString('en-US')+' steps, head now in state '+SN[c.s]+'. The rule predicts <b>'+R.to+' '+P1.join(' ')+'</b>. '+(ok&&P.same(got,want)?'<span class="pw-ok">✓ The tape matches cell for cell.</span>':'<span class="pw-bad">✗ No match.</span>');}
+function draw(){if(!last)return;const {snaps,hs,lo0,c}=last;
+ let mn=c.lo,mx=c.hi;for(const h of hs){if(h<mn)mn=h;if(h>mx)mx=h;}const L=mn-3,Rr=mx+3;const width=Rr-L;const cv=$('pw-rcv');const px=Math.max(1,Math.min(5,Math.floor(900/width)));cv.width=width*px;const rh=Math.max(1,Math.min(3,Math.floor(420/snaps.length)));
+ const keep=Math.ceil(snaps.length/Math.floor(420/rh));const S=snaps.filter((r,i)=>i%keep===0||i===snaps.length-1);cv.height=S.length*rh;const g=cv.getContext('2d');g.fillStyle=css('--cell0');g.fillRect(0,0,cv.width,cv.height);g.fillStyle=css('--ink');
+ S.forEach(([r],y)=>{for(let x=0;x<width;x++){const v=r[L-lo0+x];if(v)g.fillRect(x*px,y*rh,px,rh);}});
+ g.strokeStyle=css('--head');g.lineWidth=1.3;g.beginPath();const st=Math.max(1,Math.floor(hs.length/4000));for(let i=0;i<hs.length;i+=st){const y=i/(hs.length-1)*cv.height,x=(hs[i]-L+0.5)*px;i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();}
+sel.onchange=()=>{inputs();go();};$('pw-rgo').onclick=go;sel.value='cycle';inputs();go();P.onTheme(draw);})();
+</script>

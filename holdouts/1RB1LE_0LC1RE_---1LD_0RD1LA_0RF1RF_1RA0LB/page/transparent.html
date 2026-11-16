@@ -1,0 +1,117 @@
+<div class="col">
+<p>A hit on the part of the tape left of some border is always the same short list of <em>calls</em>: the head crosses the border in a certain state and later comes back in a certain state (for a V-hit: in C, back in E; for an H-hit five calls). A level looks at what is to its left only through these calls. And it passes on H-hits and V-hits in turn, exactly as the front does.</p>
+<p>So the tape left of a level behaves <em>exactly</em> as if the front stood directly before it. It only gets its hits more rarely. That makes an exact shortcut possible: keep each level as two numbers (position and rung length), computed with exact integer arithmetic, and run the real machine, cell by cell, only on the front followed by the tail. Step counts stay exact too, because a hit costs 112 n + c or 56 n + c steps inside a level with n blocks. <code>py/accel.py</code> does this, and <code>lean/Ladder.lean</code> does it again as a function proved correct; up to step 10<sup>11</sup> its visit numbers and step counts are those of the plain simulator.</p>
+<p><span class="ev k">Kernel</span> In <code>lean/Ladder.lean</code>, <code>level_run</code> does y hits on one level
+by induction on y, with closed forms for its position, block count, the hits it passes on and its steps
+(<code>advF</code>, <code>passF</code>, <code>costF</code>; 16 hits are one turn: 4 blocks more, 6 hits passed on,
+1344(j + 1) + d steps). <code>stack_run</code>, the transparency lemma, does y hits on a whole ladder by induction on
+the list of levels: every level moves by its closed form, and the hits that come out at the bottom are a run of hits
+on the tape below, exactly as if the front stood right before it.</p>
+<p>The panel takes the tape of visit 6,000 (six levels and a tail) and makes y hits from the front. On the left of
+each row is what the closed forms say, level by level; then the browser checks it twice: by moving each level one hit
+at a time through the table, and by running the real machine for 2y visits. For the tail it runs the machine on the
+front and the tail alone, for as many hits as came out at the bottom, and compares.</p>
+</div>
+<div class="panel" id="ld-stack">
+ <div class="controls">
+  <label class="small" for="lds-y">hits y</label>
+  <input type="range" class="ld-slider" id="lds-y" min="0" max="800" value="56" aria-label="Number of hits">
+  <span class="small">y = <b id="lds-yl">56</b></span>
+  <button type="button" id="lds-check" class="primary">Check against the machine</button>
+ </div>
+ <canvas id="lds-c" style="width:100%;height:250px;margin-top:10px" aria-label="The levels as dials after y hits"></canvas>
+ <div id="lds-out" class="small" style="margin-top:6px"></div>
+ <div class="cap">Each row is a level, outermost first: its 16 positions as a ring of dots (filled: the hit is passed on there), the orange dot where it stands, the hits it got and the block count. A level gets the hits the one above it passed on.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var base = null, cache = {};
+  function init() {
+    if (base) return;
+    var d = L.shared().to(6000), p = L.parseWord(d.w);
+    base = { w: d.w, k: d.k, front: p.front, levels: p.levels, next: p.next, tail: p.tail };
+  }
+  // the closed forms of level_run, level by level
+  function closed(y) {
+    var out = [], e = BigInt(y), steps = new L.Accel("", 0, 0).frontCost(e, base.front);
+    base.levels.forEach(function (l) {
+      var a = L.adv(l[0], l[1], e), x = L.passes(l[0], e);
+      steps += L.lcost(l[0], l[1], e);
+      out.push({ got: e, pos: a[0], n: a[1], passed: x });
+      e = x;
+    });
+    return { lv: out, tailHits: e, steps: steps };
+  }
+  // the same, one hit at a time through the table
+  function hitByHit(y) {
+    var lv = base.levels.map(function (l) { return [l[0], Number(l[1])]; }), x = 0;
+    for (var i = 0; i < y; i++) {
+      for (var k = 0; k < lv.length; k++) {
+        var pos = lv[k][0], passOn = pos in L.PASS;
+        if (L.INC[pos]) lv[k][1]++;
+        lv[k][0] = (pos + 1) % 16;
+        if (!passOn) break;
+        if (k === lv.length - 1) x++;
+      }
+    }
+    return { lv: lv, tailHits: x };
+  }
+  function draw(c) {
+    var cv = $("lds-c"), w = cv.clientWidth || 600, nL = c.lv.length, rowH = 38, h = rowH * nL + 30, dpr = window.devicePixelRatio || 1;
+    cv.style.height = h + "px";
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var font = L.css("--mono").split(",")[0];
+    g.font = "11px " + font;
+    c.lv.forEach(function (l, k) {
+      var cy = 20 + k * rowH, cx = 24, R = 14;
+      for (var p = 0; p < 16; p++) {
+        var ang = -Math.PI / 2 + 2 * Math.PI * p / 16, x = cx + R * Math.cos(ang), y = cy + R * Math.sin(ang);
+        g.beginPath(); g.arc(x, y, p === l.pos ? 4 : 2.2, 0, 7);
+        g.fillStyle = p === l.pos ? L.css("--head") : (p in L.PASS ? L.css("--ldr1") : L.css("--line-strong")); g.fill();
+      }
+      g.fillStyle = L.css("--fg2");
+      var txt = "level " + (k + 1) + ": got " + l.got + " hits, now at position " + l.pos + " (" + L.CYC[l.pos][0] + "), n = " + l.n + ", passed on " + l.passed;
+      if (w < 520) txt = "L" + (k + 1) + ": got " + l.got + ", pos " + l.pos + ", n = " + l.n + ", passed " + l.passed;
+      g.fillText(txt, 48, cy + 4);
+    });
+    g.fillStyle = L.css("--muted");
+    g.fillText("the tail got " + c.tailHits + (c.tailHits === BigInt(1) ? " hit" : " hits"), 48, 20 + nL * rowH - 4);
+  }
+  function show() {
+    init();
+    var y = +$("lds-y").value;
+    $("lds-yl").textContent = y;
+    var c = closed(y), h = hitByHit(y);
+    var same = h.tailHits === Number(c.tailHits) && h.lv.every(function (l, k) { return l[0] === c.lv[k].pos && BigInt(l[1]) === c.lv[k].n; });
+    draw(c);
+    $("lds-out").innerHTML = (same ? '<span class="ld-ok">&#10003; the closed forms equal ' + y + " hits made one at a time through the table</span>" : '<span class="ld-bad">&#10007; the closed forms disagree with the table</span>') +
+      "<br>Steps of the front and the levels for these hits, by the formulas: " + L.fmtN(Number(c.steps)) + (cache[y] ? "<br>" + cache[y] : "");
+  }
+  function check() {
+    init();
+    var y = +$("lds-y").value, c = closed(y), d = L.shared(), w = base.w, k = 0, i, r;
+    for (i = 0; i < 2 * y; i++) { r = L.visit(w); w = r.w; k += r.n; }
+    var p = L.parseWord(w);
+    // the tail alone, behind the front, for the hits that came out at the bottom
+    var tw = L.FRONT[base.next] + base.tail, tsteps = 0, x = Number(c.tailHits);
+    for (i = 0; i < x; i++) {
+      var f = L.ftype(tw)[0], a = L.visit(tw, -2 * L.FRONT[f].length); tsteps += a.left; tw = L.visit(a.w).w;
+    }
+    var tailAlone = L.ftype(tw)[1];
+    var okL = p.levels.length === c.lv.length && c.lv.every(function (l, j) { return p.levels[j][0] === l.pos && p.levels[j][1] === l.n; });
+    var okT = p.tail === tailAlone, okS = BigInt(k) === c.steps + BigInt(tsteps);
+    cache[y] = "The machine, " + L.fmtN(k) + " steps for " + 2 * y + " visits: " +
+      (okL ? '<span class="ld-ok">&#10003; the same six levels</span>' : '<span class="ld-bad">&#10007; other levels</span>') + "; " +
+      (okT ? '<span class="ld-ok">&#10003; the tail is the tail after ' + x + (x === 1 ? " hit" : " hits") + " directly behind the front</span>" : '<span class="ld-bad">&#10007; the tail differs</span>') + "; " +
+      (okS ? '<span class="ld-ok">&#10003; steps = formulas + the ' + L.fmtN(tsteps) + " steps the tail took on its own</span>" : '<span class="ld-bad">&#10007; the steps differ</span>');
+    show();
+  }
+  $("lds-y").addEventListener("input", show);
+  $("lds-check").addEventListener("click", check);
+  L.onTheme(show);
+  show();
+})();
+</script>

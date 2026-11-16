@@ -1,0 +1,131 @@
+<div class="col">
+<p>The first 16,730,681,219 steps are checked in Lean by running them. Run one cell at a time this would be slow,
+so <code>lean/Block.lean</code> cuts the tape into blocks of 16 cells, each kept as a number from 0 to 65,535 (cell i
+of a block is bit i). A configuration of the block machine, <code>MC</code>, is the list of blocks left of the head,
+the list from the head on, the state, and whether the head is on the first cell of its block or on the last.</p>
+<p>A table <code>tbl</code> has one entry for each state, block and side of entry: 6 &middot; 2<sup>16</sup> &middot; 2 =
+786,432 entries. An entry says what the machine does inside the block until the head leaves it: the new block, the
+new state, the side it leaves on and the number of steps. It is computed by <code>brun</code>, a run on the block's
+16 cells alone, and <code>brun_ok</code> proves that such a run is a run of the machine whatever lies outside the
+block. The simulator <code>msim</code> makes one table lookup per block crossing; <code>chkF</code> then makes the
+few steps that are left one at a time and compares the result with a given configuration.</p>
+<p><span class="ev k">Kernel</span> <code>chkF_ok</code>: if <code>chkF</code> returns true for a start c, a step count t
+and an end g, then <code>steps t (sem c) = some g.toCfg</code>, a statement about the machine itself.
+<span class="ev n">native_decide</span> <code>tblOk</code>: every entry of the table is what <code>mkEntry</code>
+computes (20 s). Neither needs anyone to trust the table.</p>
+</div>
+<div class="col"><h3>One table entry</h3>
+<p>Click cells to set a block, choose a state and a side, and the browser runs <code>brun</code> on those 16 cells.
+Each row is one step inside the block.</p></div>
+<div class="panel" id="q7e">
+ <div class="controls">
+  <label class="small" for="q7e-q">state</label>
+  <select id="q7e-q"><option>A</option><option>B</option><option>C</option><option selected>D</option><option>E</option><option>F</option></select>
+  <label class="small" for="q7e-s">head on</label>
+  <select id="q7e-s"><option value="1" selected>the first cell (entering from the left)</option><option value="0">the last cell (entering from the right)</option></select>
+  <button type="button" id="q7e-rnd">A block of C 7</button>
+ </div>
+ <div class="cells" id="q7e-cells" role="group" aria-label="The 16 cells of the block; click to flip"></div>
+ <div class="readout" id="q7e-out"></div>
+ <div class="q7-tw"><pre id="q7e-tr" style="margin:6px 0 0;max-height:22em"></pre></div>
+ <div class="cap">The index is <code>idx q b side = (stIdx q &middot; 65536 + b) &middot; 2 + side</code>, as in <code>lean/Block.lean</code>.
+ An entry is empty (<code>none</code>) when the run halts inside the block or is still inside after 4,000 steps (<code>FUEL</code>); the block machine then falls back to single steps. <span id="q7e-cnt"></span></div>
+</div>
+<div class="col"><h3>The two simulators side by side</h3>
+<p>From blank tape, the browser runs the plain machine and the block simulator for the same number of steps and
+compares every cell, the head and the state.</p></div>
+<div class="panel" id="q7c">
+ <div class="controls">
+  <label class="small" for="q7c-n">steps</label>
+  <select id="q7c-n"><option value="1000">1,000</option><option value="100000">100,000</option><option value="10000000" selected>10,000,000</option><option value="100000000">100,000,000</option></select>
+  <button type="button" class="primary" id="q7c-go">Run both</button>
+ </div>
+ <div class="readout" id="q7c-out"></div>
+</div>
+<div class="col"><h3>The whole run to C 7</h3>
+<p>Lean cuts the run into eight chunks at the steps T&middot;i/8, T = 16,730,681,219. The configurations at the cuts
+come from the C simulator <code>py/dumpT.c</code>, which only proposes them: <code>chunk1</code> &hellip;
+<code>chunk8</code> each check one chunk with <code>chkF</code> (<code>native_decide</code>, about 3 minutes each), and
+<code>reach_C7</code> chains them into <code>steps 16730681219 init = some (C 7)</code>. The last chunk ends at
+<code>finalF</code>, and <code>finalF_ok</code> (kernel) says that <code>finalF</code> is C 7.</p>
+<p>The same run fits in a browser. This button runs the block simulator of this page from blank tape through the eight
+chunks and compares the end with C 7 built from X. It takes some seconds; the page stays usable meanwhile, and the
+panel at the top of the page then starts from this C 7 instead of the one built from X.</p></div>
+<div class="panel" id="q7r">
+ <div class="controls"><button type="button" class="primary" id="q7r-go">Run 16,730,681,219 steps</button><span class="small" id="q7r-st"></span></div>
+ <div class="q7-tw"><table style="margin-top:10px"><thead><tr><th>chunk</th><th>Lean theorem</th><th>ends at step</th><th>block crossings so far</th></tr></thead><tbody id="q7r-tb"></tbody></table></div>
+ <div class="readout" id="q7r-out"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Q = window.Q7, $ = function (id) { return document.getElementById(id); };
+  // one table entry
+  var bits = [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0], cells = $("q7e-cells"), els = [];
+  for (var i = 0; i < 16; i++) {
+    var d = document.createElement("button"); d.type = "button"; d.className = "cell"; d.setAttribute("aria-label", "cell " + i);
+    d.style.padding = "0"; d.dataset.i = i;
+    d.addEventListener("click", function () { var j = +this.dataset.i; bits[j] ^= 1; entry(); });
+    cells.appendChild(d); els.push(d);
+  }
+  function entry() {
+    var b = 0; bits.forEach(function (v, j) { if (v) b |= 1 << j; els[j].classList.toggle("one", !!v); });
+    var q = Q.SN.indexOf($("q7e-q").value), side = +$("q7e-s").value, tr = [], e = Q.brun(q, b, side, tr);
+    els.forEach(function (el, j) { el.classList.toggle("hd", j === (side ? 0 : 15)); el.setAttribute("data-s", j === (side ? 0 : 15) ? Q.SN[q] : ""); });
+    var key = "block <b>" + b.toString(16).padStart(4, "0") + "</b> (" + b + "), index <b>" + Q.fmt(Q.idx(q, b, side)) + "</b>";
+    $("q7e-out").innerHTML = "<span>" + key + "</span>" + (e.none ? "<span>entry: <b>none</b>, " + (e.none === "halt" ? "the machine halts in the block (F reading 1) after " + e.n + " steps" : "still inside after 4,000 steps") + "</span>" :
+      "<span>leaves on the <b>" + (e.dir ? "right" : "left") + "</b> in state <b>" + Q.SN[e.q] + "</b> after <b>" + e.n + "</b> step" + (e.n === 1 ? "" : "s") + "</span><span>new block <b>" + e.b.toString(16).padStart(4, "0") + "</b></span>");
+    var lines = tr.slice(0, 200).map(function (r, t) {
+      var s = ""; for (var x = 0; x < 16; x++) s += x === r[0] ? "[" + ((r[2] >> x) & 1) + "]" : " " + ((r[2] >> x) & 1) + " ";
+      return String(t).padStart(4) + "  " + Q.SN[r[1]] + "  " + s;
+    });
+    if (tr.length > 200) lines.push("  ... " + (tr.length - 200) + " more steps");
+    $("q7e-tr").textContent = "step state  cells 0..15 of the block, [x] under the head\n" + lines.join("\n");
+    $("q7e-cnt").textContent = "This page has computed " + Q.fmt(Q.entries()) + " of the 786,432 entries so far, as the simulators needed them.";
+  }
+  $("q7e-q").addEventListener("change", entry);
+  $("q7e-s").addEventListener("change", entry);
+  $("q7e-rnd").addEventListener("click", function () {
+    var r = Q.c7(), j = Math.floor(r.lo / 16) + Math.floor(Math.random() * ((r.hi - r.lo) / 16)), b = 0;
+    for (var x = 0; x < 16; x++) bits[x] = r.get(16 * j + x);
+    $("q7e-q").value = Q.SN[Math.floor(Math.random() * 5)]; $("q7e-s").value = String(Math.random() < 0.5 ? 1 : 0);
+    entry();
+  });
+  entry();
+  // side by side
+  $("q7c-go").addEventListener("click", function () {
+    var n = +$("q7c-n").value, out = $("q7c-out");
+    out.innerHTML = '<span class="q7-busy">running&hellip;</span>';
+    setTimeout(function () {
+      var t0 = performance.now(), m = new Q.Tape(); m.run(n);
+      var t1 = performance.now(), B = new Q.Blocks(); B.run(n);
+      var t2 = performance.now();
+      out.innerHTML = "<span>machine: <b>" + Q.fmt(n) + "</b> steps in " + Math.round(t1 - t0) + " ms</span><span>blocks: <b>" + Q.fmt(B.cross) +
+        "</b> crossings and <b>" + Q.fmt(B.single) + "</b> single steps in " + Math.round(t2 - t1) + " ms</span><span>head on cell <b>" + Q.fmt(m.p) +
+        "</b> in state <b>" + Q.SN[m.q] + "</b>, tape cells " + Q.fmt(m.lo) + " to " + Q.fmt(m.hi) + "</span><span>" +
+        Q.mark(Q.same(B, m), "every cell, the head and the state agree", "the two simulators disagree") + "</span>";
+      entry();
+    }, 30);
+  });
+  // the whole reach
+  var tb = $("q7r-tb"), ends = [], s = 0;
+  Q.CHUNKS.forEach(function (c, i) { s += c; ends.push(s); });
+  tb.innerHTML = ends.map(function (e, i) { return "<tr><td>" + (i + 1) + "</td><td><code>chunk" + (i + 1) + "</code></td><td>" + Q.fmt(e) + '</td><td id="q7r-c' + i + '">&ndash;</td></tr>'; }).join("");
+  function done(R) {
+    R.log.forEach(function (l) { $("q7r-c" + (l[0] - 1)).innerHTML = Q.fmt(l[2]) + (l[1] === ends[l[0] - 1] ? ' <span class="q7-ok">&#10003;</span>' : ' <span class="q7-bad">&#10007;</span>'); });
+    $("q7r-st").textContent = "done in " + (R.ms / 1000).toFixed(1) + " s";
+    $("q7r-out").innerHTML = "<span>step <b>" + Q.fmt(R.B.t) + "</b>, head on cell <b>" + Q.fmt(R.tape.p) + "</b> in state <b>" + Q.SN[R.tape.q] +
+      "</b>, " + Q.fmt(R.B.cross) + " block crossings and " + Q.fmt(R.B.single) + " single steps in all</span><span>" +
+      Q.mark(R.ok, "the tape is exactly C 7: 0 (1010001000100)^7 X, the head on its left end in state A", "the tape is not C 7") + "</span>";
+    $("q7r-go").disabled = true;
+  }
+  $("q7r-go").addEventListener("click", function () {
+    $("q7r-go").disabled = true;
+    Q.reach(function (B, log, ci) {
+      log.forEach(function (l) { $("q7r-c" + (l[0] - 1)).innerHTML = Q.fmt(l[2]) + (l[1] === ends[l[0] - 1] ? ' <span class="q7-ok">&#10003;</span>' : ' <span class="q7-bad">&#10007;</span>'); });
+      $("q7r-st").textContent = "step " + Q.fmt(B.t) + " (" + Math.floor(100 * B.t / Q.T7) + "%)";
+    });
+  });
+  Q.onReach(done);
+})();
+</script>

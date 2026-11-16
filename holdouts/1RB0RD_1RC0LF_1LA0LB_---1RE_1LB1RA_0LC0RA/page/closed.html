@@ -1,0 +1,103 @@
+<div class="col">
+<p>Call a <em>class</em> all round ends with a given tail T and a given remainder of B (and B at least 20,000). For one
+class the symbolic executor runs one whole round with B = r0 + m&middot;x, where x is an unknown. The result is the
+next round end: a new tail T' and a new size B' = k + c&middot;x. Whatever x is, B' has one of a few remainders; all of
+them must be classes of the list. Nothing about x is remembered, so the list over-counts what the real run can do.</p>
+<p>Starting from the round end the real run reaches after 2,340,515,329 steps (B = 28,531), the search
+(<code>py/closure/closure.py bfs</code>) stops by itself: <b>62 tails, 1,144 classes</b>, and every class leads only to
+classes already on the list. In none of the 1,144 symbolic rounds does the machine reach its halting transition
+(state D reading 0). The remainders are not a hidden Collatz problem here: the search never asks which remainder
+comes next in the real run, it accepts all of them.</p>
+<p>In Lean (<code>lean/Classes.lean</code>, <code>lean/ClassData.lean</code>) each class is a record (tail, r0, m, K,
+next tail, k, c), and two tests are evaluated for every class by <code>native_decide</code>, 143 classes to a chunk
+(<code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>): <code>clsRun</code>, the executor's round of K + 1 moves from
+<code>node (r0 + m x) tail</code> with x free must end at <code>node (k + c x) next</code>; and <code>covers</code>,
+for every j below a common multiple P of the moduli of the next tail's classes, some class of that tail must contain
+B' = k + c&middot;j, with c&middot;P a multiple of its modulus, so that the same class serves j, j + P, j + 2P, and so
+on. The kernel proves what the two tests mean (<code>clsRun_sound</code>, <code>covers_sound</code>) and that a list
+passing both is closed (<code>closed_of_checks</code>); with the arrival, <code>nonhalting_of_closed_set</code>
+(<code>lean/Closed.lean</code>, kernel) gives the theorem.</p>
+<p>The panel below holds the 1,144 records as they are in <code>lean/ClassData.lean</code>. The browser runs the
+coverage test, as written in <code>Classes.lean</code>, and follows the run from B = 28,531 through the classes. The
+rounds themselves (<code>clsRun</code>) take about 4&middot;10<sup>9</sup> machine steps each, too many for the browser;
+they are what Lean evaluates.</p>
+</div>
+<div class="panel" id="rd-cls">
+ <div class="controls">
+  <label class="small" for="rdc-t">Tail</label><select id="rdc-t"></select>
+  <label class="small" for="rdc-c">class</label><select id="rdc-c" style="max-width:100%"></select>
+  <button type="button" id="rdc-all">Test all 1,144 classes</button>
+ </div>
+ <div class="rd-out" id="rdc-out"></div>
+</div>
+<div class="panel" id="rd-follow">
+ <div class="controls">
+  <span class="small">From B = 28,531 and its tail, follow</span>
+  <select id="rdf-n"><option value="10">10 rounds</option><option value="100">100 rounds</option><option value="1302" selected>1,302 rounds</option><option value="5000">5,000 rounds</option></select>
+  <button type="button" class="primary" id="rdf-go">Follow the classes</button>
+ </div>
+ <div class="rd-out" id="rdf-out"></div>
+ <div class="cap">Each round: find the class whose tail is T and whose r0 &le; B &equiv; r0 (mod m), set x = (B &minus; r0) / m, then B becomes k + c&middot;x and T the next tail. Exact integer arithmetic (BigInt). That such a class is always found is what the coverage test guarantees; that the machine really goes there is <code>clsRun</code>. <code>py/closure/validate.py real</code> compared 1,302 consecutive rounds of the real run with the classes, B up to 437 digits, all exact; 684 classes and all 62 tails occurred (computed).</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, D = X.D, $ = function (id) { return document.getElementById(id); }, st = $("rdc-t"), sc = $("rdc-c");
+  function gcd(a, b) { while (b) { var t = a % b; a = b; b = t; } return a; }
+  function lcm(a, b) { return a / gcd(a, b) * b; }
+  // covers, as in lean/Classes.lean: l = the classes of the next tail, P = lcm of their moduli; for every j < P some d
+  // in l has d.r0 <= k + c j, (k + c j) mod d.m = d.r0 mod d.m and d.m | c P. Returns {ok, P, uses} (uses: class per j).
+  function covers(c) {
+    var l = D.byTail[c[4]].map(function (i) { return D.classes[i]; }), P = l.reduce(function (a, d) { return lcm(a, d[2]); }, 1), uses = [];
+    if (!(P > 0) || !l.length) return { ok: false, P: P, uses: uses };
+    for (var j = 0; j < P; j++) {
+      var B = c[5] + c[6] * j, hit = -1;
+      for (var q = 0; q < l.length && hit < 0; q++) { var d = l[q]; if (d[1] <= B && B % d[2] === d[1] % d[2] && (c[6] * P) % d[2] === 0) hit = D.byTail[c[4]][q]; }
+      if (hit < 0) return { ok: false, P: P, uses: uses, j: j };
+      uses.push(hit);
+    }
+    return { ok: true, P: P, uses: uses };
+  }
+  D.tails.forEach(function (t, i) { var o = document.createElement("option"); o.value = i; o.textContent = (i + 1) + " (" + D.byTail[i].length + " classes)"; st.appendChild(o); });
+  function fillC() {
+    sc.innerHTML = "";
+    D.byTail[+st.value].forEach(function (ci) { var c = D.classes[ci], o = document.createElement("option"); o.value = ci; o.textContent = "B = " + X.fmt(c[1]) + " + " + c[2] + "x"; sc.appendChild(o); });
+  }
+  function show() {
+    var ci = +sc.value, c = D.classes[ci], v = covers(c), mods = {};
+    v.uses.forEach(function (u) { mods[u] = 1; });
+    var targets = Object.keys(mods).map(Number).sort(function (a, b) { return a - b; });
+    $("rdc-out").innerHTML = "<p>Class " + (ci + 1) + " of 1,144: tail " + (c[0] + 1) + ", B = " + X.fmt(c[1]) + " + " + c[2] + "x.</p>" +
+      '<div class="small">round end before:</div><div class="rd-words">A&gt; 01001000 (01)<sup>' + X.fmt(c[1]) + " + " + c[2] + "x</sup> " + X.tailText(D.tails[c[0]]) + "</div>" +
+      '<div class="small" style="margin-top:6px">one round later (' + X.fmt(c[3] + 1) + ' executor moves in Lean, any x):</div><div class="rd-words">A&gt; 01001000 (01)<sup>' + X.fmt(c[5]) + " + " + c[6] + "x</sup> " + X.tailText(D.tails[c[4]]) + "</div>" +
+      "<p>The next tail is tail " + (c[4] + 1) + ", which has " + D.byTail[c[4]].length + " classes; their moduli have common multiple P = " + v.P + ". " +
+      (v.ok ? '<span class="rd-ok">✓ covers: for each of the ' + v.P + " values of x mod " + v.P + " the new B lies in a class of the list</span> (classes " + targets.map(function (t) { return t + 1; }).join(", ") + ")."
+        : '<span class="rd-bad">✗ not covered at j = ' + v.j + "</span>") + "</p>";
+  }
+  st.addEventListener("change", function () { fillC(); show(); });
+  sc.addEventListener("change", show);
+  $("rdc-all").addEventListener("click", function () {
+    var ok = 0, bad = [], used = {};
+    D.classes.forEach(function (c, i) { var v = covers(c); if (v.ok) { ok++; v.uses.forEach(function (u) { used[u] = 1; }); } else bad.push(i + 1); });
+    var reached = Object.keys(used).length, low = D.classes.every(function (c) { return c[1] >= 20000; });
+    $("rdc-out").innerHTML = (bad.length ? '<span class="rd-bad">✗ classes ' + bad.slice(0, 20).join(", ") + " fail</span>" : '<span class="rd-ok">✓ all 1,144 classes pass the coverage test</span>') +
+      (low ? ' <span class="rd-ok">✓ every class starts at B &ge; 20,000</span>' : "") + ". " + X.fmt(reached) + " classes are the target of some class, over " + D.tails.length + " tails.";
+  });
+  $("rdf-go").addEventListener("click", function () {
+    var N = +$("rdf-n").value, out = $("rdf-out"), t = X.tailIndex(D.start), B = 28531n, seen = {}, cls = {}, i, log = [];
+    seen[t] = 1;
+    for (i = 1; i <= N; i++) {
+      var d = null, di = -1;
+      D.byTail[t].some(function (q) { var e = D.classes[q]; if (BigInt(e[1]) <= B && B % BigInt(e[2]) === BigInt(e[1] % e[2])) { d = e; di = q; return true; } return false; });
+      if (!d) break;
+      var x = (B - BigInt(d[1])) / BigInt(d[2]); B = BigInt(d[5]) + BigInt(d[6]) * x; t = d[4]; seen[t] = 1; cls[di] = 1;
+      if (i <= 6) log.push("round " + i + ": class " + (di + 1) + ", B = " + B.toString());
+    }
+    var s = B.toString();
+    out.innerHTML = (i > N ? '<span class="rd-ok">✓ every round end found its class</span>' : '<span class="rd-bad">✗ no class at round ' + i + "</span>") +
+      ". After " + X.fmt(N) + " rounds B has <b>" + s.length + " digits</b> (" + s.slice(0, 12) + "&hellip;" + s.slice(-6) + "); " + Object.keys(cls).length + " classes and " + Object.keys(seen).length + " tails were used." +
+      '<div class="rd-words" style="margin-top:8px">' + log.join("<br>") + "</div>";
+  });
+  fillC(); show();
+})();
+</script>
