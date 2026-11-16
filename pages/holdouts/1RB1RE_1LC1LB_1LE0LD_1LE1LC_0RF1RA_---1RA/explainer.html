@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 15 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -356,7 +356,7 @@ step 7.3e29  2 4 u^780830244113908 9 u^3 12 4 u^14 4 u^2 4 u^2 4 u^3 4^2 u^2 15 
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 15 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -377,6 +377,7 @@ step 7.3e29  2 4 u^780830244113908 9 u^3 12 4 u^14 4 u^2 4 u^2 4 u^3 4^2 u^2 15 
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 60,039 cells have been visited and 56,234 of them hold a 1.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/epochs.py</code></div></div><div><b>83 epochs, 7&middot;10<sup>29</sup> steps, no halt</b><p>The macro simulator with proved cycle jumps (<code>tools/py/bbtools/cycles.py</code>, exact step counts) runs to 10<sup>30</sup> steps. The unit count m of epoch 83 is 780,830,244,113,908; m' = 3m/2 + d with d in {&minus;2, +1, +4} (m even) or {&minus;1/2, +5/2} (m odd), and an epoch takes 1.500&middot;m<sup>2</sup> steps.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/visit.py check 3e7</code>, <code>py/runstack.py</code></div></div><div><b>The visit map against the machine</b><p>The Python form of the map (and a one-to-one mirror of the Lean definitions) predicts all 5,405 visits of the first 3&middot;10<sup>7</sup> steps; the run-list simulator it is compared with agrees with a cell-by-cell run at every visit of the first 3&middot;10<sup>6</sup> steps and with <code>py/epochs.py</code> at epoch 82.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/last_step.py</code>; <code>visit</code> in <code>py/visit.py</code></div></div><div><b>The last step before a halt</b><p>Among all 1,628,875 lists of the domain with at most 6 runs (each at most 13), the next visit halts exactly from <code>[X, 1]</code> and <code>[X, 4, odd, odd, even, &hellip;, even]</code>; only <code>[X&minus;6, 3]</code> maps to <code>[X, 1]</code>. And directly from the map: the last run of the orbit (a 1) can only become even at a visit where every run except the last two is even, so a halt needs the cascade to work through the whole stack.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/visit.py epochs 100000</code></div></div><div><b>260,000 epochs, about 10<sup>91568</sup> steps, no halt</b><p>The exact run-list simulator (every step of the machine, the proved sweep applied in bulk, big integers) runs 100,000 epochs in a minute: the step count then has 116,996 bits (about 10<sup>35219</sup>) and the stack 113,485 runs. A 15-minute run of the same program reached 260,000 epochs (304,184 bits). No halt.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/visit.py epochs 100000</code></div></div><div><b>The stack is touched only near its top</b><p>In 100,000 epochs the head passed 1 entry of the stack in 73% of the epochs, 2 in 22%, 3 in 4%, 4 in 0.27%, 5 in 0.04%, 6 twice, while the stack gains 0.28 entries per epoch; its size never came back more than 10 entries below an earlier value. If the parities keep behaving like coin flips, the chance that the stack is ever emptied is negligible.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/adversary.py bfs 19</code>, <code>best 60000</code>, <code>sample 40 2000</code></div></div><div><b>No parity sequence found that halts</b><p>For large m the next stack depends only on the stack and the parity of m. Following both parities from every stack, starting from the stack of step 181,417: 468,328 stacks to depth 19, 60,000 best-first expansions, and a sampled search to depth 40 (117,306 stacks, each ending with an odd run and holding at least 3 odd runs) meet no halt. The stack can be dug down to four runs, so this is evidence and not an invariant.</p></div></div>
@@ -393,6 +394,7 @@ step 7.3e29  2 4 u^780830244113908 9 u^3 12 4 u^14 4 u^2 4 u^2 4 u^3 4^2 u^2 15 
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh
 cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA &amp;&amp; python3 py/rules.py | diff - lean/Rules.lean &amp;&amp; python3 py/visit_rules.py | diff - lean/VisitRules.lean
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/last_step.py
 python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py check 3e7
 python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py epochs 100000
 python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py bfs 19

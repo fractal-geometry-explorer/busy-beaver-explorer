@@ -45,6 +45,21 @@ from blank tape reaches the visit `l0 = [12, 1, 1, 1, 1, 1, 1, 1, 1, 1]` at step
 all even.** This is the exact Collatz-like condition; whether it ever happens is open. One invariant is easy (the
 number of even runs stays odd) but does not exclude it.
 
+### What a halt needs, exactly
+
+Two facts about the map, the first read off its definition, the second checked by enumeration:
+
+- **The map only touches the list up to the run after the first odd run;** everything after it is copied. The last
+  run of the orbit is 1 (odd) from the start. It can change only at a visit where the first odd run is the last run
+  (then it becomes `W = 1` again, odd) or the last but one (then `W = r_j + r_last + 2` is even if `r_last` is odd).
+  So **a halt needs a visit at which every run except the last two is even** (after `r0 += 2`): the cascade must
+  have worked through the whole stack down to its bottom.
+- **One and two visits before a halt** (`py/last_step.py`, all 1,628,875 lists of D with at most 6 runs, each at most
+  13, first run up to 22): `visit l` has only even runs exactly when `l = [X, 1]` or
+  `l = [X, 4, odd, odd, even, ..., even]`; the only lists of D mapped to `[X, 1]` are `[X-6, 3]`, and none is mapped
+  to `[X, 3]`. So (as far as these bounds reach) `[X, 1]` cannot occur in the orbit of `[12, 1^9]`, and a halt needs a
+  visit with the list `[X, 4, odd, odd, even, ..., even]`. (An enumeration on small lists, not a proof for all lists.)
+
 ### Epochs
 
 Most visits are sweeps `[X, 4, u^(n+2), L] -> [X+6, 4, u^n, L]`. An **epoch** starts at `[6, 4, u^m, L]`, runs about
@@ -110,6 +125,8 @@ Open (Collatz-like, with an exact reduced map).
 - **Trusted computation:** no halt in 100,000 epochs (about 10^35219 steps; 260,000 epochs, about 10^91568 steps, in a
   longer run) with `py/runstack.py`, an exact simulator checked against direct simulation; the Python visit map
   against the machine at 5,405 visits.
+- **Exact, by hand from the map:** a halt needs a visit at which all runs but the last two are even. **Trusted
+  (enumeration of small lists):** the lists one visit before a halt are `[X, 4, odd, odd, even, ..., even]` (`py/last_step.py`).
 - **Heuristic:** the depth the head reaches into the stack falls off geometrically while the stack grows linearly, so
   the probability of ever emptying it is tiny; no halt in the adversarial search over parities.
 - **Open:** whether the orbit of `[12, 1^9]` under the visit map ever reaches a list with only even runs.
@@ -138,6 +155,7 @@ search, not proved), not just the size of the stack.
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh
 cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA
 python3 py/rules.py | diff - lean/Rules.lean
+python3 py/last_step.py        # lists one visit before a halt (about a minute)
 python3 py/visit_rules.py | diff - lean/VisitRules.lean
 (cd ../../tools/py && python3 -m bbtools.ctl 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 4 lean H175628 Blank) | diff - lean/EdgeCert.lean
 python3 py/visit.py check 3e7          # the visit map (both forms) against the machine at 5,405 visits, 1 min

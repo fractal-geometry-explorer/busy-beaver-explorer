@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 15 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open, and it is now an exact arithmetic question.</b> Read the tape as a list of runs of ones. Lean proves that from one visit of the left end to the next the list changes by an explicit map (<code>visit</code>), and that the machine halts from blank tape exactly when the orbit of the list <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> under this map reaches a list in which every run is even (<code>halts_iff</code>). The map is a counter growing by 3/2 per epoch whose parities drive a growing stack of slower counters; a halt needs the whole stack used up. An exact simulator ran 260,000 epochs (about 10<sup>91568</sup> steps) without a halt, and the depth the head reaches into the stack falls off geometrically, so a halt looks very unlikely; it is not excluded."
  ],
@@ -89,6 +89,12 @@
   },
   {
    "level": "trusted",
+   "title": "The last step before a halt",
+   "text": "Among all 1,628,875 lists of the domain with at most 6 runs (each at most 13), the next visit halts exactly from <code>[X, 1]</code> and <code>[X, 4, odd, odd, even, &hellip;, even]</code>; only <code>[X&minus;6, 3]</code> maps to <code>[X, 1]</code>. And directly from the map: the last run of the orbit (a 1) can only become even at a visit where every run except the last two is even, so a halt needs the cascade to work through the whole stack.",
+   "where": "<code>py/last_step.py</code>; <code>visit</code> in <code>py/visit.py</code>"
+  },
+  {
+   "level": "trusted",
    "title": "260,000 epochs, about 10<sup>91568</sup> steps, no halt",
    "text": "The exact run-list simulator (every step of the machine, the proved sweep applied in bulk, big integers) runs 100,000 epochs in a minute: the step count then has 116,996 bits (about 10<sup>35219</sup>) and the stack 113,485 runs. A 15-minute run of the same program reached 260,000 epochs (304,184 bits). No halt.",
    "where": "<code>python3 py/visit.py epochs 100000</code>"
@@ -146,6 +152,7 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh",
   "cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA && python3 py/rules.py | diff - lean/Rules.lean && python3 py/visit_rules.py | diff - lean/VisitRules.lean",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/last_step.py",
   "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py check 3e7",
   "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py epochs 100000",
   "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py bfs 19",
