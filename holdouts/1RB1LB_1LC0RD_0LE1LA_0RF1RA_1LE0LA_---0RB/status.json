@@ -92,6 +92,12 @@
    "title": "Closed tape language searches (16 November 2026)",
    "text": "None closes; each reaches a halting configuration in its abstraction or runs out of budget. Abstract regular model checking over whole-tape automata, merging states by k-step Moore equivalence (forward, reversed, both), k = 1..6, forward from blank and backward from F reading 0. Run-length windows with lengths mod 3 (the F11 sweep tried M = 1, 2, 4 only): K = 2..16 nearest runs with exact lengths below 3 halt; exact lengths up to 4..8, or runs near the blank ends kept exact, exceed 5 to 30 million abstract configurations. The reason found: the bulk is a full shift (any word string), so windows of K runs grow like 2<sup>K</sup>, while the right end needs exact lengths.",
    "where": "<code>c/rlwin.cpp</code> (run-length windows); the model-checking scripts are in the project folder <code>ctl-696/tools</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Halting needs a short gap that the XOR rule turns all y",
+   "text": "Every left-visit tape up to 3·10<sup>7</sup> steps parses as words 111 and 110 with inserted defects <code>0</code> and <code>10</code>. The halting read <code>1 0 0</code> needs the pattern <code>0 10 (110)* 0</code>, which never occurs. In mutation tests on real tapes, random words between defects stay clear in 99 of 100 runs over 60 more left visits; every halting run, shrunk to its smallest change, alters the words W in a gap <code>10 W 0</code>, which the XOR rule then turns into all 110 (for example 10 xyxyx 0 becomes 10 yyyyy 0), giving the pattern. So what keeps the machine from halting is a condition on the XOR orbit of these gaps, of any length, which a fixed-window closed tape language cannot express.",
+   "where": "mutation tests, 16 November 2026 (project folder <code>ctl-696/tools/mut*.py</code>, <code>trace.py</code>)"
   }
  ],
  "check": [
