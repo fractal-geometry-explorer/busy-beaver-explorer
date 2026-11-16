@@ -34,6 +34,15 @@ slot digits at once). Unlike the binary sibling, the change of one overflow is r
 regular pairs of events to 3·10^9 steps; the rest flip digits in both directions, as Zeckendorf normalisation does),
 and the numeration of the slots has not been pinned down.
 
+**The shuttle, first look.** Between events the head turns, in state A on a 0, at a fixed base cell (cell 48
+relative to the left end at the event of step 451,388,940). Left of it the digit pairs (both cells `00` or `11`)
+change at frequencies in ratios near the golden ratio, and the sequence of L values looks like a binary increment in
+which the cleared carry region is rewritten as an alternating `1010` pattern, the Zeckendorf way of writing a
+Fibonacci counter. Right of it single cells (53, 59, 67, 79, 85, 91, 97, 131, ... from the left end) change at roughly
+halving rates, but not as a clean binary counter: R gains on about 1/φ of the ticks. So the two-counter picture of the
+binary sibling carries over with a third level of counting in the right counter, and the binary sibling's
+accelerated simulator (`py/accel.py` there) does not apply as it is.
+
 ## What is established
 
 **Proved in Lean, kernel only** (`lean/Blank.lean`): the halting configurations (`step_none_iff`); no halt in 10,000
