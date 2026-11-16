@@ -105,6 +105,21 @@ A is visited 108 times, the closest to its line being |Q − 3P + 16| = 749 (P m
 residue mod 8). B is visited 1,236 times, always with P ≡ 7 mod 8 and Q even, so Q − 3P + 24 is odd and the B line
 is never hit in this sample (not proved: the class set allows B with Q odd), the closest being 2,999 away.
 
+**Further, with the node map (`nodemap.py`, 16 November 2026).** Iterating the certificate's pieces with exact
+integers from the first big node: 1,000,000 nodes (counts up to 2,031 digits), no halt, and the closest approaches
+to the two lines are still the early ones (749 and 2,999). **B is visited with Q odd**: first at node 3,693 (step
+count of 124 digits, just past the sample above), 60 times in the first 10^6 nodes. The accelerated simulator
+(`pclosure.real_nodes`) gives the same first visit. So the even-Q pattern was an artifact of the sample, and the B
+line is a real part of the question.
+
+Why it took so long. In the regime with big counts the node map acts on the ratio r = Q/P like a continued
+fraction: C goes to B with r → (r − 1)/4 (if r > 1), B and A go to C with r → (r − 3)/8 (if r > 3), the
+`10100001 (1000)^P …` shapes loop with r → (1 − r)/(4r) and go to A with r → (r − 1)/4, and A and B with r < 3
+go to those shapes with r → (3 − r)/(8r). The only way into B with Q odd is A with Q odd and Q ≥ 11P − 12, then C
+with Q odd and Q ≥ P + 16; that needs an earlier ratio within about 1/180 of 1 (or of 3), a near miss of a line.
+Such near misses are rare but not excluded by anything; no inequality invariant keeps the run out (a template
+polyhedra search over the certificate, with 12 slopes, loses every relational bound).
+
 ## Lean replay of the class search (16 November 2026)
 
 `halts_iff_lines` (`lean/Lines.lean`), proved in Lean with `native_decide`:
@@ -142,7 +157,7 @@ check takes about 7 minutes with 4 parallel jobs.
 - The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question
   whether the orbit ever lands on one of the two lines. It looks like the Collatz-like ("cryptid") machines of
   family F12 rather than a closed-set candidate.
-- Prove that B is only visited with Q even (an invariant finer than the class set: it would remove the B line).
+- ~~Prove that B is only visited with Q even~~: false, the run visits B with Q odd from node 3,693 on (above).
 - Write the node map as an explicit map on (shape, P, Q) from the certificate and iterate it with big integers; the
   certificate has every piece as affine forms, so this is mechanical.
 - Done: the Lean replay of the certificate (above), with `native_decide`. A kernel-only check would need a faster
@@ -163,6 +178,7 @@ python3 $D/hline.py summary $D/classes_mod2.json.gz
 python3 $D/pvalidate.py $D/classes_mod2.json.gz pieces && python3 $D/pvalidate.py $D/classes_mod2.json.gz points
 python3 $D/hline.py plain
 python3 $D/hline.py run 120 $D/classes_mod2.json.gz
+python3 $D/nodemap.py $D/classes_mod2.json.gz 1000000          # the node map, exact, about 8 minutes
 ```
 
 <!-- related machines: written by holdouts/related.py -->
