@@ -1,0 +1,75 @@
+<div class="col">
+<p>Everything above comes down to the following. There is no tape and there are no states left, only three whole
+numbers and five cases.</p>
+</div>
+<div class="panel">
+<pre style="font-size:.9rem;margin:0">start with  c = 0,  u = 2,  v = 5
+
+repeat:
+    if 2u &lt; v:                          u ← 2u,  v ← v + 1
+    otherwise, if c &gt; 0:
+        if 2u &gt; v:                      c ← c − 1,  u ← 2u − v,  v ← v + 1
+        if 2u = v:                      c ← c − 1,  u ← 1,       v ← v + 2
+    otherwise (c = 0):
+        if 2u &gt; v:                      c ← 2(v − u − 1),  u ← 2u − v,  v ← u + 3
+        if 2u = v:                      stop</pre>
+<p style="margin-bottom:0"><span class="ev k">Kernel</span> <b>The machine 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC halts from a
+blank tape if and only if this loop stops.</b> (In the reset line the new v uses the new u, so v becomes
+2u − v + 3 in terms of the old values.)</p>
+</div>
+<div class="col">
+<h3>The same thing as a recursive definition</h3>
+<p>Write H(c, u, v) for "the loop stops when started from (c, u, v)". Then H is the predicate defined by</p>
+</div>
+<div class="panel">
+<pre style="font-size:.9rem;margin:0">H(c, u, v) = H(c, 2u, v + 1)                        if 2u &lt; v
+H(c, u, v) = H(c − 1, 2u − v, v + 1)                if 2u &gt; v and c ≥ 1
+H(c, u, v) = H(c − 1, 1, v + 2)                     if 2u = v and c ≥ 1
+H(c, u, v) = H(2(v − u − 1), 2u − v, 2u − v + 3)    if 2u &gt; v and c = 0
+H(c, u, v) = true                                   if 2u = v and c = 0
+
+The machine halts  ⟺  H(0, 2, 5).</pre>
+</div>
+<div class="col">
+<p>H is defined by unbounded recursion, so "H(0, 2, 5) is false" means "the recursion never terminates". Each case
+moves to a state with a larger v except the reset, which can lower it; that is why there is no measure that would
+make the recursion obviously finite or obviously infinite.</p>
+<h3>What the three numbers are on the tape</h3>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>number</th><th>on the tape S(c, a, b) = (10)<sup>c</sup> 1<sup>a</sup> 0 (10)<sup>b</sup> 1 B&gt;0</th><th>in the loop</th></tr></thead>
+<tbody>
+<tr><td><code>c</code></td><td>the pairs <code>10</code> of the left block</td><td>wrap-arounds left before the next reset</td></tr>
+<tr><td><code>u</code></td><td>b + 1: the pairs of the right block, plus one</td><td>the number that is doubled</td></tr>
+<tr><td><code>v</code></td><td>a/2 + b + 2: half the pool, plus the right block, plus two</td><td>the modulus; it grows by one at almost every operation</td></tr>
+<tr><td><code>(0, 2, 5)</code></td><td>S(0, 4, 1), the tape at step 43 from blank</td><td>the start</td></tr>
+<tr><td>stop</td><td>pool, left block and right block run out together</td><td>a reset with 2u = v</td></tr>
+</tbody></table></div>
+<h3>One lap at a time</h3>
+<p>Since every reset leaves u = v − 3, the loop can also be read as a recursion on laps. Lap(c, v) runs the loop
+from (c, v − 3, v) up to its (c + 1)-th wrap-around, the first one with c = 0; say that happens at (0, u, V). If
+2u = V the machine halts; otherwise the next lap is Lap(2(V − u − 1), 2u − V + 3). The run from blank tape is lap 1
+from (0, 2, 5) followed by Lap(2, 5), Lap(8, 6), Lap(4, 32), Lap(24, 16), …, and its 54th reset is at
+V = 35,143,437,691.</p>
+<h3>In Lean</h3>
+<p>This is the definition the theorem is about, copied from <code>lean/Doubling.lean</code>; <code>none</code> is the
+stop.</p>
+</div>
+<pre>def op : Nat × Nat × Nat → Option (Nat × Nat × Nat)
+  | (c, u, v) =>
+    if 2 * u &lt; v then some (c, 2 * u, v + 1)
+    else match c with
+      | c + 1 =&gt; if 2 * u = v then some (c, 1, v + 2) else some (c, 2 * u - v, v + 1)
+      | 0 =&gt; if 2 * u = v then none else some (2 * (v - u - 1), 2 * u - v, 2 * u - v + 3)
+
+def opIter : Nat → Nat × Nat × Nat → Option (Nat × Nat × Nat)
+  | 0, s => some s
+  | n + 1, s => (op s).bind (opIter n)
+
+theorem halts_iff_op : HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none</pre>
+<div class="col">
+<p><code>HaltsFromBlank</code> is the machine's own halting from blank tape, defined from its transition table in
+<code>lean/Machine.lean</code>. The proof (<code>lean/Map.lean</code> for the tape, <code>lean/Doubling.lean</code>
+for the arithmetic) is checked by Lean's kernel with only the standard axioms; nothing about the run is assumed.
+What is not known is the value of H(0, 2, 5): the loop has been run for 10<sup>11</sup> operations (10<sup>7</sup>
+of them inside Lean) without stopping.</p>
+</div>

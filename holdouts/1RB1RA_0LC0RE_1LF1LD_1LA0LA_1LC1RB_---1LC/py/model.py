@@ -10,14 +10,14 @@ and the next such moment is given by `step` (an "odometer" with three wheels):
     2b >= a, c >= 1  -> step(c - 1, 2a + 4, max(b - a/2 - 1, 0))     carry: one 10 of the left block becomes 1s
     2b >= a, c = 0   -> halt if b = a/2, else step(a, 4, b - a/2 - 1) reset: the 1s become the new left block
 
-With u = b + 1 and m = a/2 + b + 2 (so a = 2(m - u - 1)) the odometer is a doubling map with a growing modulus
+With u = b + 1 and v = a/2 + b + 2 (so a = 2(v - u - 1)) the odometer is a doubling map with a growing modulus
 (`op`; one operation is a doubling step or a carry):
 
-    2u < m           u <- 2u,      m <- m + 1                       a visit S
-    2u > m, c >= 1   u <- 2u - m,  m <- m + 1,  c <- c - 1          carry
-    2u = m, c >= 1   u <- 1,       m <- m + 2,  c <- c - 1          carry that empties the fast wheel
-    2u > m, c = 0    c <- 2(m - u - 1),  u <- 2u - m,  m <- u + 3   reset
-    2u = m, c = 0    halt
+    2u < v           u <- 2u,      v <- v + 1                       a visit S
+    2u > v, c >= 1   u <- 2u - v,  v <- v + 1,  c <- c - 1          carry
+    2u = v, c >= 1   u <- 1,       v <- v + 2,  c <- c - 1          carry that empties the fast wheel
+    2u > v, c = 0    c <- 2(v - u - 1),  u <- 2u - v,  v <- u + 3   reset
+    2u = v, c = 0    halt
 
     python3 py/model.py check        # the rule against direct simulation (c < 6, a < 30, b < 34) and the run (3e6 steps);
                                      # the doubling map against the rule (200,000 visits of the run)
@@ -42,29 +42,29 @@ def step(c, a, b):
         c, a, b = a, 4, b - a // 2 - 1
 
 
-def op(c, u, m):
-    """One operation of the doubling map: (c, u, m, kind) with kind in visit, carry, reset; or "halt"."""
+def op(c, u, v):
+    """One operation of the doubling map: (c, u, v, kind) with kind in visit, carry, reset; or "halt"."""
     t = 2 * u
-    if t < m:
-        return (c, t, m + 1, "visit")
+    if t < v:
+        return (c, t, v + 1, "visit")
     if c:
-        return (c - 1, t - m, m + 1, "carry") if t > m else (c - 1, 1, m + 2, "carry")
-    if t > m:
-        return (2 * (m - u - 1), t - m, t - m + 3, "reset")
+        return (c - 1, t - v, v + 1, "carry") if t > v else (c - 1, 1, v + 2, "carry")
+    if t > v:
+        return (2 * (v - u - 1), t - v, t - v + 3, "reset")
     return "halt"
 
 
 def visits(n):
     """The first n visits (c, a, b) of the run, by the doubling map."""
-    c, u, m = 0, 2, 5
-    out = [(c, 2 * (m - u - 1), u - 1)]
+    c, u, v = 0, 2, 5
+    out = [(c, 2 * (v - u - 1), u - 1)]
     while len(out) < n:
-        r = op(c, u, m)
+        r = op(c, u, v)
         if r == "halt":
             out.append("halt"); break
-        c, u, m, kind = r
+        c, u, v, kind = r
         if kind == "visit":
-            out.append((c, 2 * (m - u - 1), u - 1))
+            out.append((c, 2 * (v - u - 1), u - 1))
     return out
 
 
