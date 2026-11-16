@@ -46,6 +46,9 @@ A section may instead carry a "rewriter", for machines whose law is a rewriting 
     level     the evidence level of the rules
   The engine's `BB.visit` applies the rules; tools/tests and the hand-back notes compare it with the machine.
 
+A section may also carry a "widget" for the machines of tools/pages/xs_widgets.py (with "xs" in the explainer
+object), and "html_after", HTML placed after the stepper, rewriter or widget.
+
   The stepper does arithmetic only: it is as right as the rules typed into it, which is why each rule shows its
   evidence level and should name the Lean theorem in `text`.
 
@@ -63,6 +66,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "py"))
 
 from bbtools.machine import STATES, Machine  # noqa: E402
+from xs_widgets import XS_CSS, XS_ENGINE, XS_UI  # noqa: E402
 
 LEVELS = [
     ("kernel", "k", "Kernel", "proved in Lean, checked by the kernel only"),
@@ -770,6 +774,7 @@ def build(spec, home="../index.html"):
     st_steps = int(st.get("steps", 2000))
     presets = ex.get("presets", [])
     sections = ex.get("sections", [])
+    widgets = any(s.get("widget") for s in sections)
     cmp_ = spec.get("compare", [])
     short = spec.get("crumb", m.text)
     toc = [("machine", "The machine"), ("run", "Watch it run"), ("glance", "The run at a glance")]
@@ -782,7 +787,7 @@ def build(spec, home="../index.html"):
          f'<meta name="description" content="An interactive explainer of the {m.n}-state machine '
          f'{html.escape(m.text)}: the table, where it can halt, the machine running in the browser, a space-time '
          f'diagram, and what is known about it, each result marked by what it rests on.">',
-         FONTS, f"<style>{CSS}</style>", "</head>", "<body>", '<div class="wrap">', '<header class="hero">',
+         FONTS, f"<style>{CSS}{XS_CSS if widgets else ''}</style>", "</head>", "<body>", '<div class="wrap">', '<header class="hero">',
          f'  <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {html.escape(short)} / explained</p>',
          f'  <span class="eyebrow">A {m.n}-state Busy Beaver machine · {spec.get("asof", "")}</span>',
          f"  <h1>{title}</h1>", f'  <p class="machine-id">{html.escape(m.text)}</p>']
@@ -894,6 +899,12 @@ def build(spec, home="../index.html"):
                     raise ValueError(f"unknown level {r['level']!r} in stepper rule {r['name']!r}")
             steppers[s["id"]] = s["stepper"]
             o.append(f'  <div class="panel stp" data-stepper="{html.escape(s["id"])}"></div>')
+        if s.get("widget"):
+            if not ex.get("xs"):
+                raise ValueError(f"section {s['id']!r} has a widget but the explainer has no 'xs' object")
+            o.append(f'  <div class="panel xsw" data-xs="{html.escape(s["widget"])}"></div>')
+        if s.get("html_after"):
+            o.append(s["html_after"] if isinstance(s["html_after"], str) else "\n".join(s["html_after"]))
         o.append("</section>")
     if cmp_:
         opts = "".join(f'<option value="{i}">{html.escape(c["machine"])} ({html.escape(c["relation"])})</option>'
@@ -936,12 +947,13 @@ def build(spec, home="../index.html"):
           "</code>; edit that file and rebuild rather than editing this page.</p>",
           '  <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">'
           "github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>", "</footer>", "</div>"]
-    data = json.dumps({"machine": m.text, **({"compare": cmp_} if cmp_ else {}),
+    data = json.dumps({"machine": m.text, **({"compare": cmp_} if cmp_ else {}), **({"xs": ex["xs"]} if widgets else {}),
                        **({"steppers": steppers} if steppers else {}), **({"rewriters": rewriters} if rewriters else {}),
                        **({"levels": {k: list(v) for k, v in LEVEL.items()}} if steppers or rewriters else {})},
                       ensure_ascii=False).replace("</", "<\\/")
     o += [f'<script type="application/json" id="spec">{data}</script>',
-          f'<script id="engine">{ENGINE}</script>', f"<script>{UI}</script>", "</body>", "</html>"]
+          f'<script id="engine">{ENGINE}</script>', f"<script>{UI}</script>"] + ([f'<script id="xs-engine">{XS_ENGINE}</script>', f"<script>{XS_UI}</script>"] if widgets else [])
+    o += ["</body>", "</html>"]
     return "\n".join(o) + "\n"
 
 
