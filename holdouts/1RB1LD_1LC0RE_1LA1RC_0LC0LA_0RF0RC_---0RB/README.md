@@ -31,6 +31,13 @@ advanced by the same ticks, an overflow at length m adding about 2^m to W. Here 
 W is not plain binary in this reading; its numeration is open. The restructure seen between 2.5·10^10 and 3.1·10^10 steps comes at m of about 28, about when the far end of the
 window (digit m + 12 or less) reaches the end of the 36-digit word.
 
+**The shuttle, first look.** Between events the head turns, in state A on a 0, at a fixed base cell (cell 66
+relative to the left end at the event of step 369,153,949). Left of it a binary counter in 3-cell digits (cells 63,
+60, 57, ... changing at halving rates). Right of it 2-cell digits (cells 70, 72, 74, ...) change at rates that are not
+a binary counter's (34,093, 17,046, 25,570, 12,785, 14,916, 7,457, ... changes in the same stretch): the right counter
+has its own numeration, a third level of counting, which has not been decoded. The accelerated simulator of
+`1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` (`py/accel.py` there) needs both counters binary and does not apply as it is.
+
 ## What is established
 
 **Proved in Lean, kernel only**: the halting configurations (`step_none_iff`, `lean/Blank.lean`); no halt in
