@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). After step 5,043 the next pass to reach the left end did so near step 3.3·10<sup>11</sup>, as a reduced system had predicted, and did not halt. It left 134,619 pairs <code>10 1110</code> between the old zone and a new one; passes cannot cross them, so nothing reaches the left end again until they are used up. Separately, Lean reduces the question exactly: an exact pass-by-pass macro machine on the tape read in pairs (<code>11</code>/<code>01</code>) is proved sound for all words, and the machine halts from blank tape <i>iff</i> this macro orbit halts (<code>halts_iff</code>, <code>lean/Reduce.lean</code>); running the orbit with <code>native_decide</code> gives no halt in the first 4&middot;10<sup>8</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves that, read in pairs, the tape at each turn is a binary word and one round trip of the head is one <i>XOR sweep</i> of it: find the rightmost <code>00</code>, flip the letter left of it, replace every letter right of it by the XOR of itself and its right neighbour, append <code>11</code> (<code>mstep_ok</code>). A halt needs a <code>00</code> only at the very left end. The block of <code>111110</code> words enters the sweep only through its length mod 3 (<code>zone_step</code>), so Lean drops it: the machine halts from blank tape <i>iff</i> the <i>zone orbit</i> halts (<code>halts_iff_zone</code>), and compiled evaluation runs that orbit through the first 1.7&middot;10<sup>15</sup> steps without a halt. Since the arrival near step 3.3&middot;10<sup>11</sup> the tape holds a new zone, a stranded block of 403,835 letters with a <code>00</code> every three letters, and the old zone at the left end. Every sweep stops at the block&rsquo;s first <code>00</code> or before, so by <code>swr_append_ok</code> the old zone cannot move, and the machine cannot halt, until the new zone has eaten the whole block. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> it ate about 29 letters.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -146,6 +146,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>orbT k</code>: the k-th state of the macro machine from blank tape with its step count (<code>orbT_sound</code>). <code>halts_iff</code>: the machine halts from blank tape if and only if some macro step of the orbit halts.</p>
         <p class="where"><code>orbT_sound</code>, <code>halts_iff</code>, <code>lean/Reduce.lean</code></p>
       </div>
+      <div class="card">
+        <h3>One round trip is one XOR sweep</h3>
+        <p>At a turn at the right end, read in pairs, the tape is a binary word. When it has a <code>00</code>, one macro step is exactly one sweep: the rightmost <code>00</code> is found, the letter left of it is flipped, every letter right of it becomes the XOR of itself and its right neighbour, and <code>11</code> is appended (4d + 14 steps, <i>d</i> the depth of the <code>00</code>). A <code>00</code> only at the very left end halts; no <code>00</code> at all is a reset at the left end.</p>
+        <p class="where"><code>mstep_ok</code>, <code>mstep_halt</code>, <code>lean/Bits.lean</code>; the sweep <code>swr</code> in <code>lean/Xor.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The leftmost-zone reduction</h3>
+        <p>For every length of the block of words the sweep does the same thing to the rest of the word; the length enters only mod 3, through one letter (<code>zone_step</code>). A sweep that finds its <code>00</code> early leaves everything further left untouched (<code>swr_append_ok</code>), and a sweep through a stretch without <code>00</code> acts beyond it only through the stretch&rsquo;s last letter (<code>swr_split</code>).</p>
+        <p class="where"><code>lean/Xor.lean</code> (the same file for the four machines with this block)</p>
+      </div>
+      <div class="card">
+        <h3>Halting is a question about the zone orbit</h3>
+        <p>The zone orbit keeps only the count of the block of words and the rest of the word; it uses the sweep at the right end and the pass machine at the left end. The machine halts from blank tape if and only if the zone orbit halts.</p>
+        <p class="where"><code>halts_iff_zone</code>, <code>lean/Zone.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halting needs the left end</h3>
+        <p>Every halt of the macro step happens at the left end of the word: a sweep halts exactly when the only <code>00</code> of the word is at its very left end, and the other halting cases of the pass machine are passes that run off the left end.</p>
+        <p class="where"><code>mstep_halt</code>, <code>lean/Bits.lean</code>; <code>scanF</code> / <code>scan</code>, <code>apass</code> in <code>lean/Sweep.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -159,6 +179,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The first 15,000 macro steps of the orbit, evaluated by compiled code: no halt, more than 4&middot;10<sup>8</sup> machine steps (through the six resets of the left end).</p>
         <p class="where"><code>orbit_runs</code>, <code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.7&middot;10<sup>15</sup> steps</h3>
+        <p>3&middot;10<sup>7</sup> steps of the zone orbit, evaluated by compiled code, without a halt; they cover more than 1.7&middot;10<sup>15</sup> machine steps.</p>
+        <p class="where"><code>zone_runs</code>, <code>blank_runs_zone</code>, <code>lean/ZoneRun.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -167,23 +192,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The real machine runs 5·10<sup>11</sup> steps without a halt. Passes reached the left end of the tape at triggers 1, 2, 3, 6, 27, 51 (step 5,043) and 403,962 (between steps 3.25·10<sup>11</sup> and 3.30·10<sup>11</sup>). At the last one the 134,619 words of the block stayed behind as <code>1110 10</code> and a new zone started at the right end.</p>
         <p class="where"><code>c/snap.c</code>, <code>c/reduced.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code></p>
       </div>
+      <div class="card">
+        <h3>The reduced system</h3>
+        <p>With the growing block cut to 10 words at every trigger (cutting whole words keeps the length mod 3, so by <code>zone_step</code> the cut is exact between arrivals at the left end), the run from trigger 1,000 reaches the left end at trigger 403,962 without a halt. The real machine did the same near step 3.3·10<sup>11</sup>. Beyond that arrival the reduced run is no guide, because the block left behind is used up and its length matters.</p>
+        <p class="where"><code>c/reduced.c</code>; <code>README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Two zones</h3>
+        <p>Since the arrival near step 3.3&middot;10<sup>11</sup> the tape holds a new zone, a stranded block of 403,835 letters with a <code>00</code> every three letters, and the old zone at the left end. Every sweep stops at the block&rsquo;s first <code>00</code> or before, so by <code>swr_append_ok</code> the old zone cannot move, and the machine cannot halt, until the new zone has eaten the whole block. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> it ate about 29 letters.</p>
+        <p class="where"><code>c/xs.c</code>, <code>c/z1.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code>, from the state written by <code>lean/DumpState.lean</code>; <code>README.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>The reduced system</h3>
-        <p>With the growing block cut to 10 words at every trigger (which, by the two crossings, should not change the rest of the tape; checked against the real machine on 20,000 triggers, not proved), the run from trigger 1,000 reaches the left end at trigger 403,962 without a halt. The real machine did the same near step 3.3·10<sup>11</sup>. Beyond that arrival the reduced run is no guide, because the block left behind is used up and its length matters.</p>
-        <p class="where"><code>c/reduced.c</code>; <code>README.md</code></p>
-      </div>
-      <div class="card">
         <h3>The leftmost zone alone</h3>
         <p>The leftmost zone run by itself, one arriving pass at a time, from the real configuration of trigger 100, reaches the left end in tick 403,863 (trigger 403,962) with the blocks later seen in the real tape. A model, checked against the real machine at this one arrival.</p>
         <p class="where"><code>c/zone.c</code>; <code>README.md</code></p>
-      </div>
-      <div class="card">
-        <h3>Halting needs the left end</h3>
-        <p>At the snapshots taken the 0s inside the tape are single, so the halting pattern can only form at the leftmost block. Observed, not proved.</p>
-        <p class="where"><code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

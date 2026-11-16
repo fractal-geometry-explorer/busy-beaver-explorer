@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves the halting pattern, the left-going pass over a block and the two crossings of the block of <code>111110</code> words for every length. A halt needs a pass that reaches a lone 1 at the left end of the tape (given the observed fact that 0s inside the tape are single). The last pass to reach the left end did so at step 178,267,564 and did not halt; none has come within 50 cells of it since, in a reduced system followed to trigger 1,073,741,824. Separately, Lean reduces the question exactly: an exact pass-by-pass macro machine on the tape read in pairs (<code>11</code>/<code>01</code>) is proved sound for all words, and the machine halts from blank tape <i>iff</i> this macro orbit halts (<code>halts_iff</code>, <code>lean/Reduce.lean</code>); running the orbit with <code>native_decide</code> gives no halt in the first 4&middot;10<sup>8</sup> steps."
+  "<b>The question is open.</b> Lean proves that, read in pairs, the tape at each turn is a binary word and one round trip of the head is one <i>XOR sweep</i> of it: find the rightmost <code>00</code>, flip the letter left of it, replace every letter right of it by the XOR of itself and its right neighbour, append <code>11</code> (<code>mstep_ok</code>). A halt needs a <code>00</code> only at the very left end. The block of <code>111110</code> words enters the sweep only through its length mod 3 (<code>zone_step</code>), so Lean drops it: the machine halts from blank tape <i>iff</i> the <i>zone orbit</i> halts (<code>halts_iff_zone</code>), and compiled evaluation runs that orbit through the first 1.7&middot;10<sup>15</sup> steps without a halt. Since the last arrival the tape holds a new zone, a stranded block of 9,357 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 9,357 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10)."
  ],
  "claims": [
   {
@@ -70,15 +70,39 @@
    "where": "<code>orbit_runs</code>, <code>blank_runs_orbit</code>, <code>lean/OrbitRun.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "One round trip is one XOR sweep",
+   "text": "At a turn at the right end, read in pairs, the tape is a binary word. When it has a <code>00</code>, one macro step is exactly one sweep: the rightmost <code>00</code> is found, the letter left of it is flipped, every letter right of it becomes the XOR of itself and its right neighbour, and <code>11</code> is appended (4d + 12 steps, <i>d</i> the depth of the <code>00</code>). A <code>00</code> only at the very left end halts; no <code>00</code> at all is a reset at the left end.",
+   "where": "<code>mstep_ok</code>, <code>mstep_halt</code>, <code>lean/Bits.lean</code>; the sweep <code>swr</code> in <code>lean/Xor.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The leftmost-zone reduction",
+   "text": "For every length of the block of words the sweep does the same thing to the rest of the word; the length enters only mod 3, through one letter (<code>zone_step</code>). A sweep that finds its <code>00</code> early leaves everything further left untouched (<code>swr_append_ok</code>), and a sweep through a stretch without <code>00</code> acts beyond it only through the stretch&rsquo;s last letter (<code>swr_split</code>).",
+   "where": "<code>lean/Xor.lean</code> (the same file for the four machines with this block)"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting is a question about the zone orbit",
+   "text": "The zone orbit keeps only the count of the block of words and the rest of the word; it uses the sweep at the right end and the pass machine at the left end. The machine halts from blank tape if and only if the zone orbit halts.",
+   "where": "<code>halts_iff_zone</code>, <code>lean/Zone.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 1.7&middot;10<sup>15</sup> steps",
+   "text": "3&middot;10<sup>7</sup> steps of the zone orbit, evaluated by compiled code, without a halt; they cover more than 1.7&middot;10<sup>15</sup> machine steps.",
+   "where": "<code>zone_runs</code>, <code>blank_runs_zone</code>, <code>lean/ZoneRun.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in 10<sup>11</sup> steps; the arrivals at the left end",
    "text": "The real machine runs 10<sup>11</sup> steps without a halt. Passes reached the left end of the tape at triggers 1, 3, 8, 13, 37, 144 and 9472 (step 178,267,564). At the last one the zone started again at the right end and a block of about 3,140 words stayed behind.",
    "where": "<code>c/snap.c</code>, <code>c/reduced.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code>"
   },
   {
-   "level": "heuristic",
+   "level": "trusted",
    "title": "The reduced system",
-   "text": "With the growing block cut to 10 words at every trigger (which, by the two crossings, should not change the rest of the tape; checked against the real machine on 20,000 triggers, not proved), the run from trigger 20,000 to 1,073,741,824 has no halt and no arrival at the left end; the deepest pass came within 50 cells of it.",
+   "text": "With the growing block cut to 10 words at every trigger (cutting whole words keeps the length mod 3, so by <code>zone_step</code> the cut is exact between arrivals at the left end), the run from trigger 20,000 to 1,073,741,824 has no halt and no arrival at the left end; the deepest pass came within 50 cells of it.",
    "where": "<code>c/reduced.c</code>; <code>README.md</code>"
   },
   {
@@ -88,10 +112,16 @@
    "where": "<code>c/zone.c</code>; <code>README.md</code>"
   },
   {
-   "level": "heuristic",
+   "level": "kernel",
    "title": "Halting needs the left end",
-   "text": "At the snapshots taken the 0s inside the tape are single, so the halting pattern can only form at the leftmost block. Observed, not proved.",
-   "where": "<code>README.md</code>"
+   "text": "Every halt of the macro step happens at the left end of the word: a sweep halts exactly when the only <code>00</code> of the word is at its very left end, and the other halting cases of the pass machine are passes that run off the left end.",
+   "where": "<code>mstep_halt</code>, <code>lean/Bits.lean</code>; <code>scanF</code> / <code>scan</code>, <code>apass</code> in <code>lean/Sweep.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Two zones",
+   "text": "Since the last arrival the tape holds a new zone, a stranded block of 9,357 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 9,357 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10). The old zone moving as if alone while the block lasts is a hand argument from the Lean lemmas (the cells that can differ spread from the new zone by at most one per sweep that reaches the block), checked against the zone orbit at all 23 passes of a run of 3&middot;10<sup>10</sup> sweeps.",
+   "where": "<code>c/xs.c</code>, <code>c/z1.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code>, from the state written by <code>lean/DumpState.lean</code>; <code>README.md</code>"
   },
   {
    "level": "open",
@@ -126,9 +156,9 @@
     "text": "Crossing the block of words is proved not to depend on its length."
    },
    {
-    "level": "trusted",
-    "value": "10<sup>11</sup> steps",
-    "text": "No halt; the last arrival at the left end was at step 178,267,564."
+    "level": "native",
+    "value": "1.7&middot;10<sup>15</sup> steps",
+    "text": "No halt, by compiled evaluation of the zone orbit (Lean)."
    }
   ],
   "presets": [
@@ -161,6 +191,17 @@
      "<p>The machine halts only on <code>0 0 1 D&gt; 0</code>: the pass finds a block of length 1 with two 0s on its left. Inside the tape the 0s are single (observed), so this needs a pass that gets through the whole zone and finds a lone 1 at the very left end of the tape.</p>",
      "<p>Passes reached the left end at triggers 1, 3, 8, 13, 37, 144 and 9472 (a trigger is a new cell on the right in state B). At the last one, step 178,267,564, the zone started again at the right end; the block of about 3,140 words it had built stayed behind, between the new zone and the old one. The old zone now moves only when the new one overflows.</p>",
      "<p>Cutting the growing block short should not change the rest of the tape, because Lean proves that crossing it does not depend on its length. That reduction is checked on 20,000 triggers but not proved. The reduced run, followed to trigger 1,073,741,824, has no halt and no new arrival at the left end.</p>"
+    ]
+   },
+   {
+    "id": "xor-sweep",
+    "eyebrow": "Proved",
+    "heading": "One round trip is one XOR sweep",
+    "html": [
+     "<p>Read two cells at a time (<code>11</code> is the letter 1, <code>01</code> the letter 0), the tape at each turn at the right end is a binary word. Lean proves that one round trip of the head does exactly this to it (<code>mstep_ok</code>):</p>",
+     "<ol><li>find the rightmost <code>00</code>;</li><li>flip the letter just left of it;</li><li>replace every letter right of it by the XOR of itself and its right neighbour;</li><li>append <code>11</code>.</li></ol>",
+     "<p>If the only <code>00</code> is at the very left end, the machine halts. So a halt needs a pass that gets all the way to the left end of the tape. The block of <code>111110</code> words is the stretch <code>&hellip;011011</code> at the right end. XOR differences turn it into itself shifted, so its length does not matter, except mod 3 (<code>zone_step</code>). Lean drops the block and keeps only its length: <b>the machine halts if and only if this smaller system, the zone orbit, halts</b> (<code>halts_iff_zone</code>). Compiled evaluation runs the zone orbit through the first 1.7&middot;10<sup>15</sup> steps without a halt.</p>",
+     "<p>Since the last arrival the tape holds a new zone, a stranded block of 9,357 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 9,357 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10).</p>"
     ]
    },
    {
