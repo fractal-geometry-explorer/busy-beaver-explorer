@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> This machine is proved in Lean to halt from blank tape exactly when its twin 1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE halts from blank tape started in state B. The twin's own question is its run from state A, a different run, so the two holdouts remain two questions; the twin's analysis has not yet produced a decision."
  ],
@@ -68,6 +68,12 @@
    "title": "It is the twin, started in state B",
    "text": "Renaming the states, every transition agrees with 1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE except E1 → 0LB, which with the next two steps does what the twin’s A1 → 1LE does in one. So this machine halts from blank tape if and only if the twin halts from blank tape started in state B (and likewise from every configuration).",
    "where": "<code>twin</code>, <code>halts_iff</code>, <code>lean/Twin.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 3.1&times;10<sup>89</sup> steps (accelerated model of the first machine)",
+   "text": "1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE started in state B on blank tape runs to step 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083 without halting (its accelerated counter model, trusted, checked against the direct simulator to 4&middot;10<sup>8</sup> steps). By <code>twin</code> and <code>sim_steps</code> (every run of that machine is matched by a run of this machine at least as long), this machine does not halt from blank tape within that many steps.",
+   "where": "<code>holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/accel.py run 100000 2400 CKPT.pkl B</code>; <code>lean/Twin.lean</code>"
   },
   {
    "level": "open",

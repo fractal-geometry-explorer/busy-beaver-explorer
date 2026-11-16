@@ -108,6 +108,30 @@ python3 holdouts/1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD/py/model.py far 870
 . /etc/profile.d/lean.sh && holdouts/1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD/lean/check.sh
 ```
 
+## Long accelerated run (16 November 2026)
+
+**No halt in the first 2.16·10^37 steps** (trusted, bounded): step 21,622,797,242,713,355,695,099,328,749,058,417,170,
+which is 4.02·10^18 bounces, with 38 digits at the end. No step of this run is extrapolated, unlike the heuristic
+10^89-bounce run of `py/model.py far`. It is a second, independent model: it does not use the gap counter's
+rules or the hybrid model.
+
+- `py/digits.py`: an exact model at the sample points of `cfg` (one per bounce). It reads the tape **mirrored**
+  and reuses the generic window engine of `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py`
+  (class `Spec`) on the mirror machine `1LB0LF_1RC1LF_1LA0RD_0RC0LE_1RD---_0LC0LD`, with the sample changed to
+  the head on 0 with `1 1 1` and blank tape to its right. Runs are runs of gaps 3. The walls are T2 = gaps 1 1 1,
+  T1 = gap 1 and T0 = gap 5 (ternary digits 2, 1, 0; the borrow passes T0), and any other block becomes a wall of
+  its own name. Each bounce is a **symbolic run of the machine** (`tools/py/bbtools/symtm.py`) on a window around
+  the borrow chain, with long runs as variables. So the uncovered stop patterns of "Why the rules were not
+  completed" are not needed: every window shape that comes up is run by the machine itself.
+- `py/accel.py`: that holdout's `py/macro4.py` (hierarchical macros, cycle skips only within classes).
+- Checks: `python3 py/digits.py check DUMP` against `c/gapdump` (`./gapdump 1000000000`): all 29,691 bounces up to
+  10^9 steps agree exactly, gap lists and step counts. `python3 py/accel.py test DUMP 1000000`: macros and 17
+  cycle skips agree with single bounces over 1.07·10^6 bounces.
+- The run (`python3 py/accel.py run DUMP 1800 CKPT.pkl`, from the last sample of `./gapdump 3000000`) never
+  stopped: no symbolic rule halted (E reading 1), needed a case split or failed to parse. It is slower than the
+  other machines' runs: 1.7·10^6 macros were derived, and only 8,470 macro applications were made, because most
+  macro keys did not recur. End state: `/mnt/project-files/halt-hunt/f06left/1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD_state_2.16e37.pkl`.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD/explainer.html`](../../pages/holdouts/1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD/explainer.html)

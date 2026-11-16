@@ -91,6 +91,34 @@ No halt in the first 1.28x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 12,898,417,544,340,449,177. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,030,112 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Long accelerated run (16 November 2026)
+
+**No halt in the first 1.58·10^90 steps** (trusted, bounded). The run went from 3.16·10^15 (`py/far.py`) and
+1.28·10^19 (deep macro run) to step
+1,578,876,552,607,361,854,469,488,992,087,048,632,075,651,671,447,769,379,626,315,387,251,771,122,050,682,298,818,165,240,
+after 1.57·10^45 rounds. It passed the next absorption by END, the "cheaper first" item (3) above, at about 10^18 steps.
+
+- `py/digits.py`: an exact model at the rounds (state D at the left end). It reads the tape **mirrored** and reuses
+  the generic window engine of `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py` (class `Spec`)
+  on the mirror machine `1LB---_1LC1LF_1RD1LA_1RB0RE_1RF1RF_0LB0RD`. Runs are runs of the background word 100.
+  The walls, as blocks 1^a 0^b, are Q = 2/1, R = 1/4, S = 1/1 1/1 and P = 1/3 (the README's defects q, r, s, p),
+  T = 1/1 (END and the clusters it leaves), and any other single block as a wall of its own name. Each round is a
+  **symbolic run of the machine** (`tools/py/bbtools/symtm.py`) on a window: the carry chain of S digits and the
+  stop digit, more if needed, and the whole tape at overflows, collisions and absorptions. Long runs are
+  variables, and each rule is cached by its window shape. The collisions and the END absorptions are therefore
+  not hand rules. They are window shapes like any other.
+- `py/accel.py`: that holdout's `py/macro4.py` (hierarchical macros of rounds, derived symbolically, plus cycle
+  skips used only while every run stays in its class), pointed at this model.
+- Checks: `python3 py/digits.py check FILE` against the direct C sampler `c/sampg.c`
+  (`./sampg MACHINE A D 1 2 300000000`). All 22,676 rounds up to 3·10^8 steps agree exactly, tapes and step
+  counts, with 0 mismatches. `python3 py/accel.py test 100000 1000000`: the macros agree with single rounds over
+  10^6 rounds.
+- The run (`python3 py/accel.py run 100000 1800 CKPT.pkl`, 30 minutes) never stopped: no symbolic rule halted,
+  needed a case split or failed to parse. The block before END goes 9 (at 2.3·10^15 steps), ..., 1 (5.8·10^17).
+  END then absorbs the last digit (8.7·10^17 to 1.0·10^18), and a new block before END of 426 periods appears.
+  That block is at 205 at the end of the run, with 75 digits. End state:
+  `/mnt/project-files/halt-hunt/f06left/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD_state_1.58e90.pkl`.
+
 ## Pages
 
 - [`pages/holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/explainer.html`](../../pages/holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/explainer.html)
