@@ -1,23 +1,27 @@
-(** * 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE halts
+(** * 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE halts, after exactly K steps
 
-    BB(6) holdout, bbchallenge id 172044.  The final theorem is [halts_172044 : halts tm c0].
+    BB(6) holdout, bbchallenge id 172044.  The final theorems are
+
+      [halts_172044 : halts tm c0]
+      [steps_172044 : halts_in tm c0 (N.to_nat K) /\ forall n, halts_in tm c0 n -> n = N.to_nat K]
+
+    with K = 853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808
+    111420498351739937140047615589682 (about 8.53e131), the number of steps to the halting configuration.  With
+    the halting transition counted (the bbchallenge convention) the machine runs for K + 1 steps.
 
     The machine keeps a binary odometer on its tape: counters (011)^n separated by 11 (bit 0) or 01 (bit 1).
-    A visit of the right end is a binary increment of the bits ([visit], proved for every zone), and V visits
-    are applied at once in closed form ([jump], a port of the Lean proof in the busy-beaver-explorer repository,
-    holdouts/1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE/lean).  Between jumps a run-length simulator follows the
-    machine ([gstep]: one transition, a run crossed one or two copies at a time, a copy unpacked), with two
-    block rules for whole counter levels ([macL]: D walks left across 1 0 (011)^k 1; [macR]: C walks right
-    across (100)^m 1 0 1 1 0).  Every round is proved to follow the machine ([round_next], [round_halt]); the
-    simulator's strategy is not trusted.  [run_halts] evaluates 2^25 rounds from blank tape with the kernel's
-    virtual machine (about 3 minutes); the halting transition F0 is met after 19,026,768 rounds.
-
-    The halt comes after 853177647932005270554892218084645935472995035642746848454477793277027802995098762076
-    895667304703808111420498351739937140047615589683 steps (about 8.53e131, computed by separate simulators;
-    this file proves the halt, not the step count). *)
+    A visit of the right end is a binary increment of the bits ([visit], proved for every zone, with its step
+    count [vcnt]), and V visits are applied at once in closed form ([jump], with the number of steps [Jz V ps],
+    a sum over the levels of the odometer).  Between jumps a run-length simulator follows the machine
+    ([gstep]: one transition, a run crossed one or two copies at a time, a copy unpacked), with two block rules
+    for whole counter levels ([macL]: D walks left across 1 0 (011)^k 1; [macR]: C walks right across
+    (100)^m 1 0 1 1 0).  Every lemma states its exact number of steps, as busycoq's [multistep].  Every round
+    is proved to follow the machine and to add its steps to the count ([round_sound]); the simulator's
+    strategy is not trusted.  [run_halts] evaluates 2^25 rounds from blank tape with the kernel's virtual
+    machine; the halting transition F0 is met after 19,026,768 rounds, with the count K. *)
 
 From Coq Require Import String.
-From Coq Require Import Lists.List Arith PArith NArith Lia Bool.
+From Coq Require Import Lists.List Arith PArith NArith ZArith Lia Bool.
 Import ListNotations.
 From BusyCoq Require Import Individual62.
 Set Default Goal Selector "!".
@@ -25,6 +29,7 @@ Set Default Goal Selector "!".
 Module M172044.
 
 (** * Sim *)
+
 (** Part 1: a run-length simulator for any machine, and its soundness. *)
 
 (** ** Tapes as lists of items *)
@@ -75,81 +80,104 @@ Definition st_eqb (a b : Q) : bool :=
 Lemma st_eqb_eq : forall a b, st_eqb a b = true -> a = b.
 Proof. destruct a, b; simpl; congruence. Qed.
 
+(** Counted runs: [c ->> n / c'] is busycoq's [multistep], exactly [n] steps. *)
+
+Lemma ms_trans : forall tm n m k c c' c'', c -[ tm ]->> n / c' -> c' -[ tm ]->> m / c'' -> k = (n + m)%nat ->
+  c -[ tm ]->> k / c''.
+Proof. intros. subst. eapply multistep_trans; eassumption. Qed.
+
+Lemma ms_eq : forall tm n m c c', c -[ tm ]->> n / c' -> n = m -> c -[ tm ]->> m / c'.
+Proof. intros. subst. assumption. Qed.
+
+Lemma ms_conf : forall tm n c c1 c2, c -[ tm ]->> n / c1 -> c1 = c2 -> c -[ tm ]->> n / c2.
+Proof. intros. subst. assumption. Qed.
+
+Lemma ms_refl : forall tm c, c -[ tm ]->> 0 / c.
+Proof. intros. constructor. Qed.
+
+Lemma ms_refl' : forall tm c c' n, c = c' -> n = O -> c -[ tm ]->> n / c'.
+Proof. intros. subst. constructor. Qed.
+
 Section Generic.
 Variable T : TM.
 
 (** The head works on the word [r] (cells already passed in [l], nearest first) until it leaves it on the far
-    side; [None] if it leaves on the near side, halts, or the fuel runs out. *)
-Fixpoint segRun (fuel : nat) (l r : list Sym) (q : Q) : option (list Sym * Q) :=
+    side, and counts its steps; [None] if it leaves on the near side, halts, or the fuel runs out. *)
+Fixpoint segRun (fuel : nat) (l r : list Sym) (q : Q) : option (list Sym * Q * N) :=
   match fuel with
   | O => None
   | S fuel' =>
     match r with
-    | [] => Some (l, q)
+    | [] => Some (l, q, 0%N)
     | s :: r' =>
       match T (q, s) with
       | None => None
-      | Some (s', R, q') => segRun fuel' (s' :: l) r' q'
+      | Some (s', R, q') =>
+        match segRun fuel' (s' :: l) r' q' with Some (a, b, k) => Some (a, b, N.succ k) | None => None end
       | Some (s', L, q') =>
         match l with
         | [] => None
-        | y :: l' => segRun fuel' l' (y :: s' :: r') q'
+        | y :: l' =>
+          match segRun fuel' l' (y :: s' :: r') q' with Some (a, b, k) => Some (a, b, N.succ k) | None => None end
         end
       end
     end
   end.
 
-Lemma segRun_sound : forall fuel l r q l' q', segRun fuel l r q = Some (l', q') ->
-  forall L R, (l *> L) {{q}}> (r *> R) -[ T ]->* (l' *> L) {{q'}}> R.
+Lemma segRun_sound : forall fuel l r q l' q' k, segRun fuel l r q = Some (l', q', k) ->
+  forall L R, (l *> L) {{q}}> (r *> R) -[ T ]->> N.to_nat k / (l' *> L) {{q'}}> R.
 Proof.
-  induction fuel as [|fuel IH]; intros l r q l' q' H L R; simpl in H; [discriminate|].
+  induction fuel as [|fuel IH]; intros l r q l' q' k H L R; simpl in H; [discriminate|].
   destruct r as [|s r'].
-  - inversion H; subst. apply evstep_refl.
+  - inversion H; subst. constructor.
   - revert H. destruct (T (q, s)) as [[[s' []] q1]|] eqn:E; intro H; try discriminate.
     + destruct l as [|y l0]; [discriminate|].
-      eapply evstep_step.
+      destruct (segRun fuel l0 (y :: s' :: r') q1) as [[[a b] k0]|] eqn:E2; inversion H; subst.
+      rewrite N2Nat.inj_succ. econstructor.
       * simpl. eapply step_left. exact E.
-      * apply (IH _ _ _ _ _ H L R).
-    + eapply evstep_step.
+      * apply (IH _ _ _ _ _ _ E2 L R).
+    + destruct (segRun fuel (s' :: l) r' q1) as [[[a b] k0]|] eqn:E2; inversion H; subst.
+      rewrite N2Nat.inj_succ. econstructor.
       * simpl. eapply step_right. exact E.
-      * apply (IH _ _ _ _ _ H L R).
+      * apply (IH _ _ _ _ _ _ E2 L R).
 Qed.
 
-Definition cross (q : Q) (w : list Sym) : option (list Sym) :=
+Definition cross (q : Q) (w : list Sym) : option (list Sym * N) :=
   match segRun 200 [] w q with
-  | Some (w', q') => if st_eqb q' q then Some w' else None
+  | Some (w', q', k) => if st_eqb q' q then Some (w', k) else None
   | None => None
   end.
 
-Lemma cross_sound1 : forall q w w', cross q w = Some w' ->
-  forall L R, L {{q}}> (w *> R) -[ T ]->* (w' *> L) {{q}}> R.
+Lemma cross_sound1 : forall q w w' k, cross q w = Some (w', k) ->
+  forall L R, L {{q}}> (w *> R) -[ T ]->> N.to_nat k / (w' *> L) {{q}}> R.
 Proof.
-  unfold cross. intros q w w' H L R.
-  destruct (segRun 200 [] w q) as [[res q']|] eqn:E; try discriminate.
+  unfold cross. intros q w w' k H L R.
+  destruct (segRun 200 [] w q) as [[[res q'] k0]|] eqn:E; try discriminate.
   destruct (st_eqb q' q) eqn:Eq; try discriminate.
   apply st_eqb_eq in Eq. inversion H; subst.
-  exact (segRun_sound _ _ _ _ _ _ E L R).
+  exact (segRun_sound _ _ _ _ _ _ _ E L R).
 Qed.
 
-Lemma cross_sound : forall q w w', cross q w = Some w' ->
-  forall n L R, L {{q}}> (w ^^ n *> R) -[ T ]->* (w' ^^ n *> L) {{q}}> R.
+Lemma cross_sound : forall q w w' k, cross q w = Some (w', k) ->
+  forall n L R, L {{q}}> (w ^^ n *> R) -[ T ]->> (n * N.to_nat k) / (w' ^^ n *> L) {{q}}> R.
 Proof.
-  intros q w w' H n. induction n as [|n IH]; intros L R.
-  - apply evstep_refl.
-  - simpl lpow. rewrite Str_app_assoc.
-    eapply evstep_trans.
-    + apply (cross_sound1 _ _ _ H L).
-    + eapply evstep_trans.
-      * apply IH.
-      * simpl lpow. rewrite Str_app_assoc. rewrite lpow_shift'. apply evstep_refl.
+  intros q w w' k H n. induction n as [|n IH]; intros L R.
+  - constructor.
+  - replace (w' ^^ S n *> L) with (w' ^^ n *> w' *> L)
+      by (simpl lpow; rewrite Str_app_assoc, lpow_shift'; reflexivity).
+    simpl lpow. rewrite Str_app_assoc.
+    eapply ms_trans.
+    + apply (cross_sound1 _ _ _ _ H L).
+    + apply IH.
+    + lia.
 Qed.
 
-(** ** One round of the generic simulator, head moving right in the frame of [T] *)
+(** ** One round of the generic simulator, head moving right in the frame of [T], with its step count *)
 
 Inductive res :=
   | Halt                                              (* the halting transition *)
-  | Same (f b : list item) (q : Q)                    (* same direction *)
-  | Turn (f b : list item) (q : Q).                   (* the head turned: front and back exchanged *)
+  | Same (f b : list item) (q : Q) (k : N)            (* same direction, after k steps *)
+  | Turn (f b : list item) (q : Q).                   (* one step, and the head turned: front and back exchanged *)
 
 Definition unpack (w : list Sym) (n : positive) (f : list item) : list item :=
   List.map Bit w ++ (match n with xH => f | _ => Run w (Pos.pred n) :: f end).
@@ -172,7 +200,7 @@ Qed.
 Definition act (o : option (Sym * dir * Q)) (f' b : list item) : res :=
   match o with
   | None => Halt
-  | Some (s', R, q') => Same f' (Bit s' :: b) q'
+  | Some (s', R, q') => Same f' (Bit s' :: b) q' 1
   | Some (s', L, q') => Turn b (Bit s' :: f') q'
   end.
 
@@ -218,11 +246,11 @@ Definition dbl (w : list Sym) (n : positive) (f b : list item) (q : Q) : option 
   | xO h | xI h =>
     match cross q (w ++ w) with
     | None => None
-    | Some v =>
+    | Some (v, k) =>
       let f' := match n with xI _ => Run w 1 :: f | _ => f end in
-      let k := length w in
-      let b' := if weqb (firstn k v) (skipn k v) then pushRun (firstn k v) (2 * h) b else pushRun v h b in
-      Some (Same f' b' q)
+      let m := length w in
+      let b' := if weqb (firstn m v) (skipn m v) then pushRun (firstn m v) (2 * h) b else pushRun v h b in
+      Some (Same f' b' q (Npos h * k))
     end
   end.
 
@@ -230,28 +258,28 @@ Definition gstep (f b : list item) (q : Q) : res :=
   match f with
   | Run w n :: f' =>
     match cross q w with
-    | Some w' => Same f' (pushRun w' n b) q
+    | Some (w', k) => Same f' (pushRun w' n b) q (Npos n * k)
     | None =>
       match dbl w n f' b q with
       | Some r => r
-      | None => Same (unpack w n f') b q
+      | None => Same (unpack w n f') b q 0
       end
     end
   | _ =>
     match popc f with
-    | None => Same f b q
+    | None => Same f b q 0
     | Some (s, f') => act (T (q, s)) f' b
     end
   end.
 
-Lemma dbl_same : forall w n f b q f2 b2 q2, dbl w n f b q = Some (Same f2 b2 q2) ->
-  semR (Run w n :: f) b q -[ T ]->* semR f2 b2 q2.
+Lemma dbl_same : forall w n f b q f2 b2 q2 k2, dbl w n f b q = Some (Same f2 b2 q2 k2) ->
+  semR (Run w n :: f) b q -[ T ]->> N.to_nat k2 / semR f2 b2 q2.
 Proof.
-  intros w n f b q f2 b2 q2 H. unfold dbl in H.
-  assert (G : forall h, (n = xO h \/ n = xI h) -> forall v, cross q (w ++ w) = Some v ->
-     semR (Run w n :: f) b q -[ T ]->*
+  intros w n f b q f2 b2 q2 k2 H. unfold dbl in H.
+  assert (G : forall h, (n = xO h \/ n = xI h) -> forall v k, cross q (w ++ w) = Some (v, k) ->
+     semR (Run w n :: f) b q -[ T ]->> N.to_nat (Npos h * k) /
      semR (match n with xI _ => Run w 1 :: f | _ => f end) (pushRun v h b) q).
-  { intros h Hn v Hc. unfold semR. rewrite den_pushRun. simpl den.
+  { intros h Hn v k Hc. unfold semR. rewrite den_pushRun. simpl den.
     assert (E : forall t, w ^^ Pos.to_nat n *> t = (w ++ w) ^^ Pos.to_nat h *>
                (match n with xI _ => w ^^ Pos.to_nat 1 *> t | _ => t end)).
     { intros t. rewrite lpow_double. destruct Hn as [-> | ->].
@@ -259,33 +287,34 @@ Proof.
       - rewrite Pos2Nat.inj_xI. change (Pos.to_nat 1) with (S O).
         replace (S (2 * Pos.to_nat h)) with (2 * Pos.to_nat h + S O)%nat by lia.
         rewrite lpow_add, Str_app_assoc. reflexivity. }
-    rewrite E. destruct Hn as [-> | ->]; simpl den; apply (cross_sound _ _ _ Hc). }
+    rewrite E. rewrite N2Nat.inj_mul. change (N.to_nat (Npos h)) with (Pos.to_nat h).
+    destruct Hn as [-> | ->]; simpl den; apply (cross_sound _ _ _ _ Hc). }
   destruct n as [h|h|]; [| |discriminate];
-  (destruct (cross q (w ++ w)) as [v|] eqn:Hc; [|discriminate]);
+  (destruct (cross q (w ++ w)) as [[v k]|] eqn:Hc; [|discriminate]);
   inversion H; subst; clear H;
   (destruct (weqb (firstn (length w) v) (skipn (length w) v)) eqn:Ew;
    [ apply weqb_eq in Ew;
-     eapply evstep_trans; [apply (G h ltac:(auto) v eq_refl)|];
-     unfold semR; rewrite !den_pushRun;
-     rewrite <- (firstn_skipn (length w) v) at 1; rewrite Ew, Pos2Nat.inj_xO, <- lpow_double;
-     apply evstep_refl
-   | apply (G h ltac:(auto) v eq_refl)]).
+     eapply ms_conf; [apply (G h ltac:(auto) v k eq_refl)
+       | unfold semR; rewrite !den_pushRun;
+         rewrite <- (firstn_skipn (length w) v) at 1; rewrite Ew, Pos2Nat.inj_xO, <- lpow_double;
+         reflexivity]
+   | apply (G h ltac:(auto) v k eq_refl)]).
 Qed.
 
-Lemma act_same : forall q s f' b g b' q', act (T (q, s)) f' b = Same g b' q' ->
-  semR (Bit s :: f') b q -[ T ]->* semR g b' q'.
+Lemma act_same : forall q s f' b g b' q' k, act (T (q, s)) f' b = Same g b' q' k ->
+  semR (Bit s :: f') b q -[ T ]->> N.to_nat k / semR g b' q'.
 Proof.
-  intros q s f' b g b' q' H. unfold act in H.
+  intros q s f' b g b' q' k H. unfold act in H.
   destruct (T (q, s)) as [[[s' []] q1]|] eqn:E; inversion H; subst.
-  unfold semR. simpl. eapply evstep_step; [eapply step_right; exact E|]. simpl. apply evstep_refl.
+  unfold semR. simpl. econstructor; [eapply step_right; exact E|]. simpl. constructor.
 Qed.
 
 Lemma act_turn : forall q s f' b g b' q', act (T (q, s)) f' b = Turn g b' q' ->
-  semR (Bit s :: f') b q -[ T ]->* flip_conf (semR g b' q').
+  semR (Bit s :: f') b q -[ T ]->> 1 / flip_conf (semR g b' q').
 Proof.
   intros q s f' b g b' q' H. unfold act in H.
   destruct (T (q, s)) as [[[s' []] q1]|] eqn:E; inversion H; subst.
-  unfold semR. simpl. eapply evstep_step; [eapply step_left; exact E|]. simpl. apply evstep_refl.
+  unfold semR. simpl. econstructor; [eapply step_left; exact E|]. simpl. constructor.
 Qed.
 
 Lemma act_halt : forall q s f' b, act (T (q, s)) f' b = Halt -> halted T (semR (Bit s :: f') b q).
@@ -298,31 +327,34 @@ Qed.
 Lemma semR_pop : forall f s f' b q, popc f = Some (s, f') -> semR f b q = semR (Bit s :: f') b q.
 Proof. intros. unfold semR. simpl. rewrite (popc_den _ _ _ H). reflexivity. Qed.
 
-Lemma gstep_same : forall f b q f' b' q', gstep f b q = Same f' b' q' ->
-  semR f b q -[ T ]->* semR f' b' q'.
+Lemma gstep_same : forall f b q f' b' q' k, gstep f b q = Same f' b' q' k ->
+  semR f b q -[ T ]->> N.to_nat k / semR f' b' q'.
 Proof.
-  intros f b q f' b' q' H. unfold gstep in H.
+  intros f b q f' b' q' k H. unfold gstep in H.
   destruct f as [|[s|w n] f0].
-  - rewrite (semR_pop [] S0 []) by reflexivity. apply (act_same _ _ _ _ _ _ _ H).
-  - apply (act_same _ _ _ _ _ _ _ H).
-  - destruct (cross q w) as [w'|] eqn:Ec.
-    + inversion H; subst. unfold semR. rewrite den_pushRun. simpl. apply (cross_sound _ _ _ Ec).
+  - rewrite (semR_pop [] S0 []) by reflexivity. apply (act_same _ _ _ _ _ _ _ _ H).
+  - apply (act_same _ _ _ _ _ _ _ _ H).
+  - destruct (cross q w) as [[w' k0]|] eqn:Ec.
+    + injection H as H1 H2 H3 H4.
+      assert (Ek : N.to_nat k = (Pos.to_nat n * N.to_nat k0)%nat) by (subst; destruct k0; simpl; lia).
+      rewrite Ek. subst.
+      unfold semR. rewrite den_pushRun. simpl. apply (cross_sound _ _ _ _ Ec).
     + destruct (dbl w n f0 b q) as [r|] eqn:Ed.
-      * subst r. apply (dbl_same _ _ _ _ _ _ _ _ Ed).
-      * inversion H; subst. unfold semR. rewrite den_unpack. apply evstep_refl.
+      * subst r. apply (dbl_same _ _ _ _ _ _ _ _ _ Ed).
+      * inversion H; subst. unfold semR. rewrite den_unpack. constructor.
 Qed.
 
 Lemma gstep_turn : forall f b q f' b' q', gstep f b q = Turn f' b' q' ->
-  semR f b q -[ T ]->* flip_conf (semR f' b' q').
+  semR f b q -[ T ]->> 1 / flip_conf (semR f' b' q').
 Proof.
   intros f b q f' b' q' H. unfold gstep in H.
   destruct f as [|[s|w n] f0].
   - rewrite (semR_pop [] S0 []) by reflexivity. apply (act_turn _ _ _ _ _ _ _ H).
   - apply (act_turn _ _ _ _ _ _ _ H).
-  - destruct (cross q w) as [w'|]; [inversion H|].
+  - destruct (cross q w) as [[w' k0]|]; [inversion H|].
     destruct (dbl w n f0 b q) as [r|] eqn:Ed; [|inversion H].
     subst r. unfold dbl in Ed. destruct n; try discriminate;
-    destruct (cross q (w ++ w)); inversion Ed.
+    destruct (cross q (w ++ w)) as [[? ?]|]; inversion Ed.
 Qed.
 
 Lemma gstep_halt : forall f b q, gstep f b q = Halt -> halted T (semR f b q).
@@ -331,10 +363,10 @@ Proof.
   destruct f as [|[s|w n] f0].
   - rewrite (semR_pop [] S0 []) by reflexivity. apply (act_halt _ _ _ _ H).
   - apply (act_halt _ _ _ _ H).
-  - destruct (cross q w); [inversion H|].
+  - destruct (cross q w) as [[? ?]|]; [inversion H|].
     destruct (dbl w n f0 b q) as [r|] eqn:Ed; [|inversion H].
     subst r. unfold dbl in Ed. destruct n; try discriminate;
-    destruct (cross q (w ++ w)); inversion Ed.
+    destruct (cross q (w ++ w)) as [[? ?]|]; inversion Ed.
 Qed.
 
 End Generic.
@@ -353,11 +385,11 @@ Proof.
   - apply step_right. assumption.
 Qed.
 
-Lemma ff_evstep : forall tm c c', c -[ flip (flip tm) ]->* c' -> c -[ tm ]->* c'.
+Lemma ff_multistep : forall tm n c c', c -[ flip (flip tm) ]->> n / c' -> c -[ tm ]->> n / c'.
 Proof.
-  intros tm c c' H. induction H.
-  - apply evstep_refl.
-  - eapply evstep_step; [apply ff_step; eassumption | assumption].
+  intros tm n c c' H. induction H.
+  - constructor.
+  - econstructor; [apply ff_step; eassumption | assumption].
 Qed.
 
 Lemma ff_halted : forall tm c, halted (flip (flip tm)) c -> halted tm c.
@@ -376,34 +408,34 @@ Definition tmd (d : bool) : TM := if d then tm else flip tm.
 Definition sem (d : bool) (f b : list item) (q : Q) : Q * tape :=
   if d then semR f b q else flip_conf (semR f b q).
 
-Lemma to_tm : forall d c c', c -[ tmd d ]->* c' ->
-  (if d then c else flip_conf c) -[ tm ]->* (if d then c' else flip_conf c').
+Lemma to_tm : forall d n c c', c -[ tmd d ]->> n / c' ->
+  (if d then c else flip_conf c) -[ tm ]->> n / (if d then c' else flip_conf c').
 Proof.
-  intros [] c c' H; cbn beta iota in *; unfold tmd in H.
+  intros [] n c c' H; cbn beta iota in *; unfold tmd in H.
   - exact H.
-  - apply ff_evstep. apply flip_evstep. exact H.
+  - apply ff_multistep. apply flip_multistep. exact H.
 Qed.
 
-Lemma gstep_sound_same : forall d f b q f' b' q', gstep (tmd d) f b q = Same f' b' q' ->
-  sem d f b q -[ tm ]->* sem d f' b' q'.
+Lemma gstep_sound_same : forall d f b q f' b' q' k, gstep (tmd d) f b q = Same f' b' q' k ->
+  sem d f b q -[ tm ]->> N.to_nat k / sem d f' b' q'.
 Proof.
-  intros d f b q f' b' q' H. unfold sem.
-  apply to_tm. apply (gstep_same _ _ _ _ _ _ _ H).
+  intros d f b q f' b' q' k H. unfold sem.
+  apply to_tm. apply (gstep_same _ _ _ _ _ _ _ _ H).
 Qed.
 
 Lemma gstep_sound_turn : forall d f b q f' b' q', gstep (tmd d) f b q = Turn f' b' q' ->
-  sem d f b q -[ tm ]->* sem (negb d) f' b' q'.
+  sem d f b q -[ tm ]->> 1 / sem (negb d) f' b' q'.
 Proof.
   intros d f b q f' b' q' H. unfold sem.
-  pose proof (to_tm d _ _ (gstep_turn _ _ _ _ _ _ _ H)) as G.
+  pose proof (to_tm d _ _ _ (gstep_turn _ _ _ _ _ _ _ H)) as G.
   destruct d; cbn beta iota in *.
   - exact G.
   - rewrite flip_conf_involutive in G. exact G.
 Qed.
 
-Lemma gstep_sound_halt : forall d f b q, gstep (tmd d) f b q = Halt -> halts tm (sem d f b q).
+Lemma gstep_sound_halt : forall d f b q, gstep (tmd d) f b q = Halt -> halted tm (sem d f b q).
 Proof.
-  intros d f b q H. apply halted_halts.
+  intros d f b q H.
   pose proof (gstep_halt _ _ _ _ H) as G. unfold sem.
   destruct d; cbn beta iota in *; unfold tmd in G.
   - exact G.
@@ -413,35 +445,57 @@ Qed.
 End Machine.
 
 (** * Mac *)
+
 Definition tm := Eval compute in (TM_from_str "1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE"%string).
-Notation "c -->* c'" := (c -[ tm ]->* c') (at level 40).
+Notation "c ->> n / c'" := (c -[ tm ]->> n / c') (at level 40, n at next level).
+
+(** One counted step. *)
+Ltac cstep := eapply multistep_S; [prove_step | simpl_tape].
+Ltac csteps n := replace n with (S (pred n)) by lia; cstep.
 
 (** 011 read from its right end, and 100 read from its left end. *)
 Definition W : list Sym := [1;1;0].
 Definition X : list Sym := [1;0;0].
 
-Lemma shiftD : forall k (Y r : side), (W ^^ k *> Y) <{{D}} r -->* Y <{{D}} X ^^ k *> r.
-Proof. unfold W, X. es. Qed.
+Lemma shiftD : forall k (Y r : side), (W ^^ k *> Y) <{{D}} r ->> (3 * k) / Y <{{D}} X ^^ k *> r.
+Proof.
+  induction k as [|k IH]; intros Y r.
+  - constructor.
+  - replace (3 * S k)%nat with (S (S (S (3 * k)))) by lia.
+    cbn [lpow]. rewrite !Str_app_assoc. rewrite <- (lpow_shift' _ _ X).
+    unfold W at 1. cbn [Str_app].
+    do 3 cstep.
+    apply (IH Y (X *> r)).
+Qed.
 
-Lemma shiftC : forall k (L r : side), L {{C}}> X ^^ k *> r -->* (W ^^ k *> L) {{C}}> r.
-Proof. unfold W, X. es. Qed.
+Lemma shiftC : forall k (L r : side), L {{C}}> X ^^ k *> r ->> (3 * k) / (W ^^ k *> L) {{C}}> r.
+Proof.
+  induction k as [|k IH]; intros L r.
+  - constructor.
+  - replace (3 * S k)%nat with (S (S (S (3 * k)))) by lia.
+    cbn [lpow]. rewrite !Str_app_assoc. rewrite <- (lpow_shift' _ _ W).
+    unfold X at 1. cbn [Str_app].
+    do 3 cstep.
+    apply (IH (W *> L) r).
+Qed.
 
 Lemma macL_tape : forall k (Y r : side),
-  D;; (0 >> W ^^ (S k) *> 1 >> Y) {{1}} r -->* D;; Y {{1}} (X ^^ k *> 1 >> 0 >> 1 >> 1 >> 0 >> r).
+  D;; (0 >> W ^^ (S k) *> 1 >> Y) {{1}} r ->> (5 + 3 * k) / D;; Y {{1}} (X ^^ k *> 1 >> 0 >> 1 >> 1 >> 0 >> r).
 Proof.
   intros k Y r. simpl lpow. unfold W at 1. simpl Str_app.
-  do 5 step.
+  do 5 cstep.
   apply (shiftD k (1 >> Y)).
 Qed.
 
 Lemma macR_tape : forall m (L r : side),
-  L {{C}}> X ^^ m *> 1 >> 0 >> 1 >> 1 >> 0 >> r -->* (1 >> 1 >> W ^^ (S m) *> L) {{C}}> r.
+  L {{C}}> X ^^ m *> 1 >> 0 >> 1 >> 1 >> 0 >> r ->> (3 * m + 5) / (1 >> 1 >> W ^^ (S m) *> L) {{C}}> r.
 Proof.
-  intros m L r. eapply evstep_trans; [apply shiftC|].
-  do 5 step. apply evstep_refl.
+  intros m L r. eapply ms_trans; [apply shiftC| |reflexivity].
+  do 5 cstep. constructor.
 Qed.
 
 (** * Zone *)
+
 (** 101, the repeat of 011 read one cell later. *)
 Definition U : list Sym := [1;0;1].
 
@@ -486,27 +540,24 @@ Fixpoint inc (lv : list (bool * N)) : option (list (bool * N)) :=
 
 (** ** The pieces *)
 
-Lemma p_start : forall T, (0 >> 1 >> T) {{A}}> 0inf -->* T {{D}}> 1 >> 1 >> 0 >> 0 >> 1 >> 0inf.
-Proof. intros. do 6 step. apply evstep_refl. Qed.
+Lemma p_start : forall T, (0 >> 1 >> T) {{A}}> 0inf ->> 6 / T {{D}}> 1 >> 1 >> 0 >> 0 >> 1 >> 0inf.
+Proof. intros. do 6 cstep. constructor. Qed.
 
-Lemma p_left : forall n L R, (U ^^ n *> L) {{D}}> 1 >> R -->* L {{D}}> 1 >> X ^^ n *> R.
+Lemma p_left : forall n L R, (U ^^ n *> L) {{D}}> 1 >> R ->> (3 * n) / L {{D}}> 1 >> X ^^ n *> R.
 Proof.
   intros n L R.
   pose proof (shiftD n (1 >> L) R) as H. rewrite rot in H. exact H.
 Qed.
 
 Lemma p_pass : forall T R,
-  (0 >> 1 >> 1 >> 0 >> 1 >> T) {{D}}> 1 >> R -->* T {{D}}> 1 >> 1 >> 0 >> 1 >> 1 >> 0 >> R.
-Proof. intros. do 5 step. apply evstep_refl. Qed.
+  (0 >> 1 >> 1 >> 0 >> 1 >> T) {{D}}> 1 >> R ->> 5 / T {{D}}> 1 >> 1 >> 0 >> 1 >> 1 >> 0 >> R.
+Proof. intros. do 5 cstep. constructor. Qed.
 
-Lemma p_turn : forall T R, (1 >> 1 >> T) {{D}}> 1 >> R -->* (W *> T) {{C}}> R.
-Proof. intros. do 5 step. apply evstep_refl. Qed.
+Lemma p_turn : forall T R, (1 >> 1 >> T) {{D}}> 1 >> R ->> 5 / (W *> T) {{C}}> R.
+Proof. intros. do 5 cstep. constructor. Qed.
 
-Lemma p_sep : forall L R, L {{C}}> 1 >> 0 >> 1 >> 1 >> 0 >> R -->* (1 >> 1 >> W *> L) {{C}}> R.
-Proof. intros. do 5 step. apply evstep_refl. Qed.
-
-Lemma p_end : forall L, L {{C}}> 1 >> 0 >> 0 >> 1 >> 0inf -->* (0 >> W *> L) {{A}}> 0inf.
-Proof. intros. do 4 step. simpl_tape. apply evstep_refl. Qed.
+Lemma p_end : forall L, L {{C}}> 1 >> 0 >> 0 >> 1 >> 0inf ->> 4 / (0 >> W *> L) {{A}}> 0inf.
+Proof. intros. do 4 cstep. simpl_tape. constructor. Qed.
 
 (** ** The carry *)
 
@@ -531,11 +582,19 @@ Proof. intros. reflexivity. Qed.
 Lemma N_succ_pred : forall n, N.eqb n 0 = false -> n = N.succ (n - 1).
 Proof. intros n H. apply N.eqb_neq in H. lia. Qed.
 
-Lemma carry : forall (t : side) lv b n r lv' R (Fn : side -> side), lv = (b, n) :: r -> inc lv = Some lv' ->
-  (forall L, L {{C}}> R -->* (Fn L) {{A}}> 0inf) ->
-  (nb b >> W ^^ N.to_nat n *> lvT r t) {{D}}> 1 >> R -->* (Fn (ext lv lv' t)) {{A}}> 0inf.
+(** The steps of the carry: 6n + 4 for each bit 1 passed (out and back), 5 for the turn. *)
+Fixpoint ccnt (lv : list (bool * N)) : N :=
+  match lv with
+  | [] => 0%N
+  | (true, n) :: r => (6 * n + 4 + ccnt r)%N
+  | (false, _) :: _ => 5%N
+  end.
+
+Lemma carry : forall (t : side) lv b n r lv' R (Fn : side -> side) kF, lv = (b, n) :: r -> inc lv = Some lv' ->
+  (forall L, L {{C}}> R ->> kF / (Fn L) {{A}}> 0inf) ->
+  (nb b >> W ^^ N.to_nat n *> lvT r t) {{D}}> 1 >> R ->> (N.to_nat (ccnt lv) + kF) / (Fn (ext lv lv' t)) {{A}}> 0inf.
 Proof.
-  intros t lv. induction lv as [|p lv0 IH]; intros b n r lv' R Fn Heq Hinc HF; [discriminate|].
+  intros t lv. induction lv as [|p lv0 IH]; intros b n r lv' R Fn kF Heq Hinc HF; [discriminate|].
   inversion Heq; subst p lv0. clear Heq.
   destruct b.
   - (* bit 1: pass and carry on *)
@@ -543,50 +602,63 @@ Proof.
     destruct r as [|[b2 n2] r2]; [discriminate|].
     destruct (inc ((b2, n2) :: r2)) as [r'|] eqn:Ei; [|discriminate].
     inversion Hinc; subst lv'. clear Hinc.
-    rewrite (N_succ_pred n En). set (m := (n - 1)%N).
-    rewrite wrep_succ. simpl lvT. unfold W at 1. simpl Str_app. rewrite rot.
-    eapply evstep_trans; [apply p_pass|].
-    eapply evstep_trans; [apply p_left|].
-    eapply evstep_trans.
+    pose proof (N_succ_pred n En) as Hn. set (m := (n - 1)%N) in *.
+    assert (Hc : (N.to_nat (ccnt ((true, n) :: (b2, n2) :: r2)) + kF)%nat =
+       (5 + (3 * N.to_nat m + (N.to_nat (ccnt ((b2, n2) :: r2)) + (3 * N.to_nat m + 5 + kF))))%nat).
+    { cbn [ccnt]. rewrite Hn. lia. }
+    rewrite Hc. rewrite Hn. clear Hc.
+    rewrite (wrep_succ m). simpl lvT. unfold W at 1. simpl Str_app. rewrite rot.
+    eapply ms_trans; [apply p_pass| |reflexivity].
+    eapply ms_trans; [apply p_left| |reflexivity].
+    eapply ms_conf.
     + apply (IH b2 n2 r2 r' (X ^^ N.to_nat m *> 1 >> 0 >> 1 >> 1 >> 0 >> R)
-        (fun L => Fn (1 >> 1 >> W ^^ S (N.to_nat m) *> L)) eq_refl eq_refl).
-      intros L. eapply evstep_trans; [apply macR_tape|]. apply HF.
+        (fun L => Fn (1 >> 1 >> W ^^ S (N.to_nat m) *> L)) (3 * N.to_nat m + 5 + kF)%nat eq_refl eq_refl).
+      intros L. eapply ms_trans; [apply macR_tape| apply HF |reflexivity].
     + unfold ext. simpl hdb. simpl lvT. simpl nb.
       destruct b2; simpl hdb.
-      * rewrite N2Nat.inj_succ. apply evstep_refl.
+      * rewrite N2Nat.inj_succ. reflexivity.
       * replace (N.succ m + 1)%N with (N.succ (N.succ m)) by lia. rewrite !N2Nat.inj_succ.
         rewrite lpow_shift'. change (W ^^ S (S (N.to_nat m))) with (W ++ W ^^ S (N.to_nat m)).
-        rewrite Str_app_assoc. apply evstep_refl.
+        rewrite Str_app_assoc. reflexivity.
   - (* bit 0: turn *)
     simpl in Hinc. destruct (N.eqb n 0) eqn:En; [discriminate|].
     inversion Hinc; subst lv'. clear Hinc.
+    cbn [ccnt]. change (N.to_nat 5) with 5%nat.
     rewrite (N_succ_pred n En) at 1. rewrite wrep_succ. simpl nb. unfold W at 1. simpl Str_app.
-    eapply evstep_trans; [apply p_turn|].
-    eapply evstep_trans; [apply HF|].
-    unfold ext. simpl. apply evstep_refl.
+    eapply ms_trans; [apply p_turn| |reflexivity].
+    eapply ms_conf; [apply HF|].
+    unfold ext. simpl. reflexivity.
 Qed.
 
+(** The steps of a visit. *)
+Definition vcnt (n0 : N) (lv : list (bool * N)) : N := (10 + 6 * n0 + ccnt lv)%N.
+
 Theorem visit : forall n0 lv lv' t, inc lv = Some lv' ->
-  (zoneT n0 lv t) {{A}}> 0inf -->* (zoneT (n0 + if hdb lv then 1 else 2)%N lv' t) {{A}}> 0inf.
+  (zoneT n0 lv t) {{A}}> 0inf ->> N.to_nat (vcnt n0 lv) /
+  (zoneT (n0 + if hdb lv then 1 else 2)%N lv' t) {{A}}> 0inf.
 Proof.
   intros n0 lv lv' t H.
   destruct lv as [|[b n] r]; [discriminate|].
+  replace (N.to_nat (vcnt n0 ((b, n) :: r))) with
+    (6 + (3 * N.to_nat n0 + (N.to_nat (ccnt ((b, n) :: r)) + (3 * N.to_nat n0 + 4))))%nat
+    by (unfold vcnt; lia).
   unfold zoneT at 1. simpl lvT. rewrite rot.
-  eapply evstep_trans; [apply p_start|].
-  eapply evstep_trans; [apply p_left|].
-  eapply evstep_trans.
+  eapply ms_trans; [apply p_start| |reflexivity].
+  eapply ms_trans; [apply p_left| |reflexivity].
+  eapply ms_conf.
   - apply (carry t ((b, n) :: r) b n r lv' (X ^^ N.to_nat n0 *> 1 >> 0 >> 0 >> 1 >> 0inf)
-      (fun L => 0 >> W ^^ N.to_nat (n0 + 1) *> L) eq_refl H).
-    intros L. eapply evstep_trans; [apply shiftC|].
-    eapply evstep_trans; [apply p_end|].
-    rewrite wN_succ_l. apply evstep_refl.
+      (fun L => 0 >> W ^^ N.to_nat (n0 + 1) *> L) _ eq_refl H).
+    intros L. eapply ms_trans; [apply shiftC| |reflexivity].
+    eapply ms_conf; [apply p_end|].
+    rewrite wN_succ_l. reflexivity.
   - unfold ext, zoneT. simpl hdb. destruct b.
-    + apply evstep_refl.
+    + reflexivity.
     + replace (n0 + 2)%N with (n0 + 1 + 1)%N by lia.
-      rewrite (wN_succ_r (n0 + 1)). apply evstep_refl.
+      rewrite (wN_succ_r (n0 + 1)). reflexivity.
 Qed.
 
 (** * Jump *)
+
 (** Many visits of a zone at once: a port of lean/Jump.lean, counts in [N]. *)
 
 Definition b2n (b : bool) : N := if b then 1%N else 0%N.
@@ -774,12 +846,45 @@ Qed.
 
 Definition zoneN (ps : list (bool * N)) (top : N) (t : side) : side := zoneT (n0of ps) (physP ps top) t.
 
+Lemma incN_bump : forall d ps x, incN (bump d ps) = Some x -> exists y, incN ps = Some y.
+Proof.
+  intros d [|[[] M] r] x H; simpl in H; try discriminate.
+  - destruct (incN r) as [r'|] eqn:E; [|discriminate]. exists ((false, M) :: r'). simpl. rewrite E. reflexivity.
+  - eexists. reflexivity.
+Qed.
+
+(** The steps of a visit in the coordinates N_j: 6 N_j + 4 for every level the carry reaches, and 11. *)
+Fixpoint chain (ps : list (bool * N)) : N :=
+  match ps with
+  | [] => 0%N
+  | (b, M) :: r => (6 * M + 4 + if b then chain r else 0)%N
+  end.
+
+Lemma chain_vcnt : forall top ps y, goodAll (List.tl ps) = true -> incN ps = Some y ->
+  vcnt (n0of ps) (physP ps top) = (11 + chain ps)%N.
+Proof.
+  intros top ps. induction ps as [|[b M] r IH]; intros y Hg H; [discriminate|].
+  destruct b.
+  - destruct r as [|[b' M'] rest]; [discriminate|].
+    change (match incN ((b', M') :: rest) with Some r' => Some ((false, M) :: r') | None => None end
+      = Some y) in H.
+    destruct (incN ((b', M') :: rest)) as [z|] eqn:Ez; [|discriminate].
+    cbn [List.tl goodAll] in Hg. apply andb_prop in Hg. destruct Hg as [HM Hg]. apply N.leb_le in HM.
+    assert (Hg' : goodAll (List.tl ((b', M') :: rest)) = true) by exact Hg.
+    assert (IHr := IH z Hg' eq_refl).
+    unfold vcnt in *. cbn [physP n0of ccnt chain b2n] in *.
+    destruct rest as [|p rest']; cbn [physP ccnt] in *; destruct b'; cbn [b2n] in *; lia.
+  - unfold vcnt. destruct r as [|[b' M'] rest]; cbn [physP n0of ccnt chain b2n]; lia.
+Qed.
+
 Lemma visitN : forall ps ps' top t, goodN ps top = true -> incN (bump 2 ps) = Some ps' ->
-  (zoneN ps top t) {{A}}> 0inf -->* (zoneN ps' top t) {{A}}> 0inf.
+  (zoneN ps top t) {{A}}> 0inf ->> N.to_nat (11 + chain ps) / (zoneN ps' top t) {{A}}> 0inf.
 Proof.
   intros ps ps' top t Hg H.
   destruct ps as [|[b M] r]; [discriminate|].
+  destruct (incN_bump _ _ _ H) as [y Hy].
   simpl in Hg. apply andb_true_iff in Hg. destruct Hg as [Hg Ht]. apply N.leb_le in Ht.
+  rewrite <- (chain_vcnt top ((b, M) :: r) y Hg Hy).
   pose proof (inc_physP top Ht (bump 2 ((b, M) :: r)) ps' Hg H) as Hi.
   rewrite physP_bump in Hi.
   pose proof (visit (n0of ((b, M) :: r)) _ _ t Hi) as Hv.
@@ -811,24 +916,164 @@ Proof.
   simpl. f_equal. f_equal. lia.
 Qed.
 
-Theorem jump : forall ps top t V, ovf V ps = 0%N -> goodN (after V ps) top = true ->
-  (zoneN ps top t) {{A}}> 0inf -->* (zoneN (after V ps) top t) {{A}}> 0inf.
+
+(** ** The number of steps of V visits, in closed form *)
+
+(** [Qz n] is the sum of [div2 x] for [x < n]. *)
+Definition Qz (n : N) : Z :=
+  let m := Z.of_N (N.div2 n) in if N.odd n then (m * m)%Z else (m * (m - 1))%Z.
+
+Lemma Qz_succ : forall n, Qz (n + 1) = (Qz n + Z.of_N (N.div2 n))%Z.
 Proof.
-  intros ps top t V. induction V as [|V IH] using N.peano_ind; intros Ho Hg.
-  - rewrite after_zero. apply evstep_refl.
+  intros n. unfold Qz. destruct (N.odd n) eqn:E.
+  - destruct (par_odd n E) as [E1 E2]. rewrite E1, E2. rewrite N2Z.inj_add. lia.
+  - destruct (par_even n E) as [E1 E2]. rewrite E1, E2. lia.
+Qed.
+
+Fixpoint Gt (V : N) (ps : list (bool * N)) : Z :=
+  match ps with
+  | [] => 0%Z
+  | (b, M) :: r =>
+    (Z.of_N V * (6 * Z.of_N (M + b2n b) + 4) - 6 * Qz (V + b2n b + 1) + Gt (N.div2 (V + b2n b)) r)%Z
+  end.
+
+(** No count of a level would go below 0 (checked by the simulator). *)
+Fixpoint ntr (V : N) (ps : list (bool * N)) : bool :=
+  match ps with
+  | [] => true
+  | (b, M) :: r => andb (N.leb (N.div2 (V + b2n b + 1)) (M + b2n b)) (ntr (N.div2 (V + b2n b)) r)
+  end.
+
+Definition ntrT (V : N) (ps : list (bool * N)) : bool :=
+  match ps with [] => true | (b, _) :: r => ntr (N.div2 (V + b2n b)) r end.
+
+Lemma div2_mono : forall x y, (x <= y)%N -> (N.div2 x <= N.div2 y)%N.
+Proof. intros x y H. pose proof (d2 x). pose proof (d2 y). destruct (N.odd x), (N.odd y); cbn [b2n] in *; lia. Qed.
+
+Lemma ntr_mono : forall ps V W, ntr V ps = true -> (W <= V)%N -> ntr W ps = true.
+Proof.
+  induction ps as [|[b M] r IH]; intros V W H Hle; [reflexivity|].
+  cbn [ntr] in *. apply andb_prop in H. destruct H as [H1 H2]. apply N.leb_le in H1.
+  apply andb_true_intro. split.
+  - apply N.leb_le. pose proof (div2_mono (W + b2n b + 1) (V + b2n b + 1) ltac:(lia)). lia.
+  - apply (IH _ _ H2). apply div2_mono. lia.
+Qed.
+
+Lemma ntrT_mono : forall ps V W, ntrT V ps = true -> (W <= V)%N -> ntrT W ps = true.
+Proof.
+  intros [|[b M] r] V W H Hle; [reflexivity|]. cbn [ntrT] in *.
+  apply (ntr_mono _ _ _ H). apply div2_mono. lia.
+Qed.
+
+Lemma chain_addV : forall ps V, ntr V ps = true ->
+  Z.of_N (chain (addV V ps)) = (Gt (V + 1) ps - Gt V ps)%Z.
+Proof.
+  induction ps as [|[b M] r IH]; intros V H; [reflexivity|].
+  cbn [ntr] in H. apply andb_prop in H. destruct H as [H1 H2]. apply N.leb_le in H1.
+  cbn [addV chain Gt].
+  replace (V + 1 + b2n b)%N with (V + b2n b + 1)%N by lia.
+  replace (V + b2n b + 1 + 1)%N with ((V + b2n b + 1) + 1)%N by lia.
+  rewrite (Qz_succ (V + b2n b + 1)).
+  remember (V + b2n b)%N as c eqn:Hc.
+  destruct (N.odd c) eqn:Eo.
+  - destruct (par_odd c Eo) as [_ E2]. rewrite E2.
+    rewrite N2Z.inj_add, N2Z.inj_add, N2Z.inj_mul, N2Z.inj_sub by lia.
+    rewrite (IH (N.div2 c) H2). rewrite Hc in *. rewrite !N2Z.inj_add. lia.
+  - destruct (par_even c Eo) as [_ E2]. rewrite E2.
+    rewrite N2Z.inj_add, N2Z.inj_add, N2Z.inj_mul, N2Z.inj_sub by lia.
+    rewrite Hc in *. rewrite !N2Z.inj_add. lia.
+Qed.
+
+Lemma Gt_bump : forall W d ps, ps <> [] -> Gt W (bump d ps) = (Gt W ps + 6 * Z.of_N W * Z.of_N d)%Z.
+Proof. intros W d [|[b M] r] H; [congruence|]. cbn [bump Gt]. rewrite !N2Z.inj_add. ring. Qed.
+
+Lemma ntr_bump : forall V ps, ntrT V ps = true -> ntr V (bump (2 * V) ps) = true.
+Proof.
+  intros V [|[b M] r] H; [reflexivity|]. cbn [ntrT] in H. cbn [bump ntr].
+  rewrite H. rewrite andb_true_r. apply N.leb_le.
+  pose proof (d2 (V + b2n b + 1)). destruct (N.odd (V + b2n b + 1)), b; cbn [b2n] in *; lia.
+Qed.
+
+Lemma Gt_zero : forall ps, Gt 0 ps = 0%Z.
+Proof.
+  induction ps as [|[b M] r IH]; [reflexivity|]. cbn [Gt].
+  destruct b; cbn [b2n]; simpl N.add; simpl N.div2; rewrite IH; reflexivity.
+Qed.
+
+(** The steps of [V] visits from [ps]. *)
+Definition Jz (V : N) (ps : list (bool * N)) : Z :=
+  (11 * Z.of_N V + 6 * Z.of_N V * (Z.of_N V - 1) + Gt V ps)%Z.
+
+Lemma Jz_succ : forall V ps, ps <> [] -> ntrT V ps = true ->
+  Jz (V + 1) ps = (Jz V ps + Z.of_N (11 + chain (after V ps)))%Z.
+Proof.
+  intros V ps Hp H. unfold Jz, after.
+  rewrite !N2Z.inj_add. rewrite (chain_addV _ _ (ntr_bump V ps H)). rewrite !Gt_bump by exact Hp.
+  rewrite !N2Z.inj_add, !N2Z.inj_mul. ring.
+Qed.
+
+Lemma Jz_nonneg : forall V ps, ps <> [] -> ntrT V ps = true -> (0 <= Jz V ps)%Z.
+Proof.
+  intros V ps Hp. induction V as [|V IH] using N.peano_ind; intros H.
+  - unfold Jz. rewrite Gt_zero. lia.
+  - rewrite <- N.add_1_r in *. rewrite (Jz_succ V ps Hp (ntrT_mono ps (V + 1) V H ltac:(lia))).
+    pose proof (IH (ntrT_mono ps (V + 1) V H ltac:(lia))). lia.
+Qed.
+
+Theorem jump : forall ps top t V, ovf V ps = 0%N -> goodN (after V ps) top = true -> ntrT V ps = true ->
+  (zoneN ps top t) {{A}}> 0inf ->> Z.to_nat (Jz V ps) / (zoneN (after V ps) top t) {{A}}> 0inf.
+Proof.
+  intros ps top t V. induction V as [|V IH] using N.peano_ind; intros Ho Hg Hn.
+  - rewrite after_zero. unfold Jz. rewrite Gt_zero. constructor.
   - rewrite <- N.add_1_r in *.
     pose proof (ovf_succ _ _ Ho) as Ho'.
+    assert (Hn' : ntrT V ps = true) by (apply (ntrT_mono _ _ _ Hn); lia).
     assert (Hs : incN (bump 2 (after V ps)) = Some (after (V + 1) ps)).
     { unfold after. pose proof (bump_addV V 0 ps) as E. rewrite N.add_0_r in E. rewrite E.
       replace (2 * (V + 1))%N with (2 * V + 2)%N by lia.
       apply addV_succ. rewrite ovf_bump. exact Ho. }
     assert (Hg' : goodN (after V ps) top = true).
     { pose proof (goodN_incN _ _ _ Hs Hg) as G. rewrite goodN_bump in G. exact G. }
-    eapply evstep_trans; [apply (IH Ho' Hg')|].
-    apply (visitN _ _ _ _ Hg' Hs).
+    assert (Hp : ps <> []) by (intro; subst; discriminate).
+    rewrite (Jz_succ V ps Hp Hn'). pose proof (Jz_nonneg V ps Hp Hn').
+    eapply ms_trans; [apply (IH Ho' Hg' Hn')|apply (visitN _ _ _ _ Hg' Hs)|lia].
 Qed.
 
+(** The same sum with one multiplication per level, for the evaluation. *)
+Fixpoint Gf (V : N) (ps : list (bool * N)) : Z :=
+  match ps with
+  | [] => 0%Z
+  | (b, M) :: r =>
+    let c := (V + b2n b)%N in
+    let m := Z.of_N (N.div2 (c + 1)) in
+    let e := if N.odd c then 1%Z else 0%Z in
+    let a := (6 * Z.of_N (M + b2n b) + 4)%Z in
+    (m * (2 * a - 6 * (m - e)) - (e + Z.of_N (b2n b)) * a + Gf (N.div2 c) r)%Z
+  end.
+
+Lemma Gf_Gt : forall ps V, Gf V ps = Gt V ps.
+Proof.
+  induction ps as [|[b M] r IH]; intros V; [reflexivity|]. cbn [Gf Gt]. rewrite IH.
+  unfold Qz. replace (V + b2n b + 1 + 1)%N with (V + b2n b + 1 + 1)%N by reflexivity.
+  remember (V + b2n b)%N as c eqn:Hc.
+  pose proof (d2 c) as Ec. pose proof (d2 (c + 1)) as Ec1.
+  destruct (N.odd c) eqn:Eo.
+  - destruct (par_odd c Eo) as [E1 E2]. rewrite E1. rewrite E2 in *. cbn [b2n] in *.
+    assert (Hv : Z.of_N V = (Z.of_N c - Z.of_N (b2n b))%Z) by (subst c; rewrite N2Z.inj_add; lia).
+    rewrite Hv. rewrite N2Z.inj_add. replace (Z.of_N c) with (2 * Z.of_N (N.div2 c) + 1)%Z by lia. ring.
+  - destruct (par_even c Eo) as [E1 E2]. rewrite E1. rewrite E2 in *. cbn [b2n] in *.
+    assert (Hv : Z.of_N V = (Z.of_N c - Z.of_N (b2n b))%Z) by (subst c; rewrite N2Z.inj_add; lia).
+    rewrite Hv. replace (Z.of_N c) with (2 * Z.of_N (N.div2 c))%Z by lia. ring.
+Qed.
+
+Definition Jf (V : N) (ps : list (bool * N)) : Z :=
+  let v := Z.of_N V in (v * (6 * v + 5) + Gf V ps)%Z.
+
+Lemma Jf_Jz : forall V ps, Jf V ps = Jz V ps.
+Proof. intros. unfold Jf, Jz. rewrite Gf_Gt. ring. Qed.
+
 (** * Run *)
+
 (** The simulator with level macros and jumps, its soundness, and the run from blank tape. *)
 
 (** ** One phase for the runs (port of [canonL] in lean/Run.lean) *)
@@ -1043,8 +1288,9 @@ Proof.
   apply Bool.eqb_prop in H. apply N.eqb_eq in H1. apply IH in H2. subst. reflexivity.
 Qed.
 
-(** At a visit, the back stack in canonical phase, and the zone [V] visits later if [jump] applies. *)
-Definition tryJump (b : list item) : option (list item) :=
+(** At a visit, the back stack in canonical phase, and the zone [V] visits later if [jump] applies, with the
+    number of steps of the [V] visits. *)
+Definition tryJump (b : list item) : option (list item * N) :=
   let cb := canonL b in
   match parseZone cb with
   | None => None
@@ -1054,21 +1300,22 @@ Definition tryJump (b : list item) : option (list item) :=
     let top := snd p in
     let V := chooseV ps in
     let ps' := after V ps in
-    if andb (andb (andb (andb (andb (N.leb 8 V) (N.eqb (ovf V ps) 0)) (goodN ps' top)) (N.eqb (n0of ps) n0))
-       (lv_eqb (physP ps top) lv)) (items_eqb (encZone n0 lv rest) cb)
-    then Some (encZone (n0of ps') (physP ps' top) rest)
+    if andb (andb (andb (andb (andb (andb (N.leb 8 V) (N.eqb (ovf V ps) 0)) (goodN ps' top)) (N.eqb (n0of ps) n0))
+       (lv_eqb (physP ps top) lv)) (items_eqb (encZone n0 lv rest) cb)) (ntrT V ps)
+    then Some (encZone (n0of ps') (physP ps' top) rest, Z.to_N (Jf V ps))
     else None
   end.
 
-Lemma tryJump_sound : forall b b', tryJump b = Some b' ->
-  (den b 0inf) {{A}}> 0inf -->* (den b' 0inf) {{A}}> 0inf.
+Lemma tryJump_sound : forall b b' k, tryJump b = Some (b', k) ->
+  (den b 0inf) {{A}}> 0inf ->> N.to_nat k / (den b' 0inf) {{A}}> 0inf.
 Proof.
-  intros b b' H. unfold tryJump in H.
+  intros b b' k H. unfold tryJump in H.
   destruct (parseZone (canonL b)) as [[n0 [lv rest]]|]; [|discriminate].
   set (ps := fst (toN n0 lv)) in *. set (top := snd (toN n0 lv)) in *.
   set (V := chooseV ps) in *. clearbody ps top V.
   match type of H with (if ?c then _ else _) = _ => destruct c eqn:Ec end; [|discriminate].
-  inversion H; subst b'. clear H.
+  inversion H; subst b' k. clear H.
+  apply andb_true_iff in Ec. destruct Ec as [Ec Ht].
   apply andb_true_iff in Ec. destruct Ec as [Ec He].
   apply andb_true_iff in Ec. destruct Ec as [Ec Hl].
   apply andb_true_iff in Ec. destruct Ec as [Ec Hn].
@@ -1076,8 +1323,8 @@ Proof.
   apply andb_true_iff in Ec. destruct Ec as [_ Hv].
   apply N.eqb_eq in Hv. apply N.eqb_eq in Hn. apply lv_eqb_eq in Hl. apply items_eqb_eq in He.
   rewrite <- (den_canonL b). rewrite <- He.
-  rewrite !den_encZone. subst n0 lv.
-  apply (jump ps top (den rest 0inf) V Hv Hg).
+  rewrite !den_encZone. subst n0 lv. rewrite Z_N_nat, Jf_Jz.
+  apply (jump ps top (den rest 0inf) V Hv Hg Ht).
 Qed.
 
 (** ** The level macros *)
@@ -1088,55 +1335,95 @@ Definition xrun (m : N) (b : list item) : list item :=
 Lemma den_xrun : forall m b t, den (xrun m b) t = X ^^ N.to_nat m *> den b t.
 Proof. intros [|p] b t; reflexivity. Qed.
 
+Definition predN (k : positive) : N := (Npos k - 1)%N.
+Lemma predN_eq : forall k, predN k = (Npos k - 1)%N. Proof. reflexivity. Qed.
+Global Opaque predN.
+
 (** D moving left, front [1 0 (011)^k 1 ...]. *)
-Definition macL (f b : list item) : option (list item * list item) :=
+Definition macL (f b : list item) : option (list item * list item * N) :=
   match f with
   | Bit S1 :: Bit S0 :: Run w k :: Bit S1 :: Y =>
-    if weqb w W then Some (Bit 1 :: Y, xrun (Npos k - 1) (Bit 1 :: Bit 0 :: Bit 1 :: Bit 1 :: Bit 0 :: b))
+    if weqb w W then Some (Bit 1 :: Y, xrun (predN k) (Bit 1 :: Bit 0 :: Bit 1 :: Bit 1 :: Bit 0 :: b),
+                           (5 + 3 * predN k)%N)
     else None
   | _ => None
   end.
 
-Lemma macL_sound : forall f b f' b', macL f b = Some (f', b') -> sem false f b D -->* sem false f' b' D.
+Lemma macL_sound : forall f b f' b' k, macL f b = Some (f', b', k) ->
+  sem false f b D -[ tm ]->> N.to_nat k / sem false f' b' D.
 Proof.
-  intros f b f' b' H. unfold macL in H.
-  destruct f as [|[[]|] [|[[]|] [|[[]|w k] [|[[]|] Y]]]]; try discriminate.
+  intros f b f' b' k H. unfold macL in H.
+  destruct f as [|[[]|] [|[[]|] [|[[]|w k0] [|[[]|] Y]]]]; try discriminate.
   destruct (weqb w W) eqn:E; [|discriminate]. apply weqb_eq in E. subst w.
-  inversion H; subst. clear H.
-  unfold sem, semR. simpl den. rewrite den_xrun. simpl.
+  assert (Ek : k = (5 + 3 * predN k0)%N) by congruence.
+  assert (Ek' : N.to_nat k = (5 + 3 * N.to_nat (predN k0))%nat) by (rewrite Ek; lia).
+  rewrite Ek'. clear Ek Ek'. inversion H; subst.
+  unfold sem, semR. simpl den. rewrite den_xrun. simpl. rewrite predN_eq.
   rewrite pos_pred_N. apply macL_tape.
 Qed.
 
 (** C moving right, front [(100)^m 1 0 1 1 0 ...]. *)
-Definition macR (f b : list item) : option (list item * list item) :=
+Definition macR (f b : list item) : option (list item * list item * N) :=
   match f with
   | Run w m :: Bit S1 :: Bit S0 :: Bit S1 :: Bit S1 :: Bit S0 :: f' =>
-    if weqb w X then Some (f', Bit 1 :: Bit 1 :: Run W (m + 1) :: b) else None
-  | Bit S1 :: Bit S0 :: Bit S1 :: Bit S1 :: Bit S0 :: f' => Some (f', Bit 1 :: Bit 1 :: Run W 1 :: b)
+    if weqb w X then Some (f', Bit 1 :: Bit 1 :: Run W (m + 1) :: b, (3 * Npos m + 5)%N) else None
+  | Bit S1 :: Bit S0 :: Bit S1 :: Bit S1 :: Bit S0 :: f' => Some (f', Bit 1 :: Bit 1 :: Run W 1 :: b, 5%N)
   | _ => None
   end.
 
-Lemma macR_sound : forall f b f' b', macR f b = Some (f', b') -> sem true f b C -->* sem true f' b' C.
+Lemma macR_sound : forall f b f' b' k, macR f b = Some (f', b', k) ->
+  sem true f b C -[ tm ]->> N.to_nat k / sem true f' b' C.
 Proof.
-  intros f b f' b' H. unfold macR in H.
+  intros f b f' b' k H. unfold macR in H.
   destruct f as [|[[]|w m] f]; try discriminate.
   - destruct f as [|[[]|] [|[[]|] [|[[]|] [|[[]|] f]]]]; try discriminate.
     inversion H; subst. unfold sem, semR. simpl den.
     apply (macR_tape 0).
   - destruct f as [|[[]|] [|[[]|] [|[[]|] [|[[]|] [|[[]|] f]]]]]; try discriminate.
     destruct (weqb w X) eqn:E; [|discriminate]. apply weqb_eq in E. subst w.
-    inversion H; subst. unfold sem, semR. simpl den.
+    assert (Ek : k = (3 * Npos m + 5)%N) by congruence.
+    assert (Ek' : N.to_nat k = (3 * Pos.to_nat m + 5)%nat) by (rewrite Ek; lia).
+    rewrite Ek'. clear Ek Ek'. inversion H; subst.
+    unfold sem, semR. simpl den.
     rewrite Pos2Nat.inj_add. change (Pos.to_nat 1) with (S O). rewrite Nat.add_1_r.
     apply macR_tape.
 Qed.
 
-(** ** One round *)
+(** ** One round, counting steps *)
 
-Record mc := MC { dir : bool; fr : list item; bk : list item; stt : Q }.
+Record mc := MC { dir : bool; fr : list item; bk : list item; stt : Q; cnt : N }.
 
 Definition semc (c : mc) : Q * tape := sem (dir c) (fr c) (bk c) (stt c).
 
-Inductive rr := RHalt | RNext (c : mc).
+(** [c'] is reached from [c] in [cnt c' - cnt c] steps. *)
+Definition reach (c c' : mc) : Prop :=
+  (cnt c <= cnt c')%N /\ semc c -[ tm ]->> (N.to_nat (cnt c') - N.to_nat (cnt c)) / semc c'.
+
+Lemma reach_refl : forall c, reach c c.
+Proof. intros c. split; [lia|]. rewrite Nat.sub_diag. constructor. Qed.
+
+Lemma reach_trans : forall c1 c2 c3, reach c1 c2 -> reach c2 c3 -> reach c1 c3.
+Proof.
+  intros c1 c2 c3 [H1 G1] [H2 G2]. split; [lia|].
+  eapply ms_trans; [exact G1|exact G2|lia].
+Qed.
+
+Lemma reach_add : forall c c' k, cnt c' = (cnt c + k)%N -> semc c -[ tm ]->> N.to_nat k / semc c' -> reach c c'.
+Proof.
+  intros c c' k E H. split; [lia|]. rewrite E. eapply ms_eq; [exact H|lia].
+Qed.
+
+(** The machine halts [cnt] steps after the configuration [c] was counted. *)
+Definition hreach (c : mc) (n : N) : Prop :=
+  (cnt c <= n)%N /\ exists ch, semc c -[ tm ]->> (N.to_nat n - N.to_nat (cnt c)) / ch /\ halted tm ch.
+
+Lemma hreach_trans : forall c c' n, reach c c' -> hreach c' n -> hreach c n.
+Proof.
+  intros c c' n [H1 G1] [H2 [ch [G2 Hh]]]. split; [lia|]. exists ch. split; [|exact Hh].
+  eapply ms_trans; [exact G1|exact G2|lia].
+Qed.
+
+Inductive rr := RHalt (n : N) | RNext (c : mc).
 
 Definition isA (q : Q) : bool := match q with A => true | _ => false end.
 Definition isC (q : Q) : bool := match q with C => true | _ => false end.
@@ -1145,34 +1432,37 @@ Definition isD (q : Q) : bool := match q with D => true | _ => false end.
 (** At a visit: canonical phase, then a jump if one applies. *)
 Definition atVisit (c : mc) : mc :=
   match c with
-  | MC true [] b A =>
+  | MC true [] b A n =>
     match tryJump b with
-    | Some b' => MC true [] b' A
-    | None => MC true [] (canonL b) A
+    | Some (b', k) => MC true [] b' A (n + k)
+    | None => MC true [] (canonL b) A n
     end
   | _ => c
   end.
 
-Lemma atVisit_sound : forall c, semc c -->* semc (atVisit c).
+Lemma atVisit_sound : forall c, reach c (atVisit c).
 Proof.
-  intros [[] [|x f] b []]; try apply evstep_refl.
-  unfold atVisit. destruct (tryJump b) as [b'|] eqn:E.
-  - unfold semc, sem, semR. simpl. apply (tryJump_sound _ _ E).
-  - unfold semc, sem, semR. simpl. rewrite den_canonL. apply evstep_refl.
+  intros [[] [|x f] b [] n]; try apply reach_refl.
+  unfold atVisit. destruct (tryJump b) as [[b' k]|] eqn:E.
+  - apply (reach_add (MC true [] b A n) (MC true [] b' A (n + k)) k eq_refl).
+    unfold semc, sem, semR. simpl. apply (tryJump_sound _ _ _ E).
+  - apply (reach_add (MC true [] b A n) (MC true [] (canonL b) A n) 0 ltac:(simpl; lia)). unfold semc, sem, semR. simpl. rewrite den_canonL. constructor.
 Qed.
 
 Definition macros (c : mc) : option mc :=
   match c with
-  | MC false f b D => match macL f b with Some (f', b') => Some (MC false f' b' D) | None => None end
-  | MC true f b C => match macR f b with Some (f', b') => Some (MC true f' b' C) | None => None end
+  | MC false f b D n => match macL f b with Some (f', b', k) => Some (MC false f' b' D (n + k)) | None => None end
+  | MC true f b C n => match macR f b with Some (f', b', k) => Some (MC true f' b' C (n + k)) | None => None end
   | _ => None
   end.
 
-Lemma macros_sound : forall c c', macros c = Some c' -> semc c -->* semc c'.
+Lemma macros_sound : forall c c', macros c = Some c' -> reach c c'.
 Proof.
-  intros [[] f b []] c' H; simpl in H; try discriminate.
-  - destruct (macR f b) as [[f' b']|] eqn:E; inversion H; subst. apply (macR_sound _ _ _ _ E).
-  - destruct (macL f b) as [[f' b']|] eqn:E; inversion H; subst. apply (macL_sound _ _ _ _ E).
+  intros [[] f b [] n] c' H; simpl in H; try discriminate.
+  - destruct (macR f b) as [[[f' b'] k]|] eqn:E; inversion H; subst.
+    apply (reach_add (MC true f b C n) (MC true f' b' C (n + k)) k eq_refl). apply (macR_sound _ _ _ _ _ E).
+  - destruct (macL f b) as [[[f' b'] k]|] eqn:E; inversion H; subst.
+    apply (reach_add (MC false f b D n) (MC false f' b' D (n + k)) k eq_refl). apply (macL_sound _ _ _ _ _ E).
 Qed.
 
 Definition round (c : mc) : rr :=
@@ -1181,92 +1471,128 @@ Definition round (c : mc) : rr :=
   | Some c2 => RNext c2
   | None =>
     match gstep (tmd tm (dir c1)) (fr c1) (bk c1) (stt c1) with
-    | Halt => RHalt
-    | Same f b q => RNext (MC (dir c1) f b q)
-    | Turn f b q => RNext (MC (negb (dir c1)) f b q)
+    | Halt => RHalt (cnt c1)
+    | Same f b q k => RNext (MC (dir c1) f b q (cnt c1 + k))
+    | Turn f b q => RNext (MC (negb (dir c1)) f b q (cnt c1 + 1))
     end
   end.
 
-Lemma round_next : forall c c', round c = RNext c' -> semc c -->* semc c'.
-Proof.
-  intros c c' H. unfold round in H.
-  eapply evstep_trans; [apply atVisit_sound|].
-  destruct (macros (atVisit c)) as [c2|] eqn:Em.
-  - inversion H; subst. apply macros_sound. exact Em.
-  - destruct (atVisit c) as [d f b q] eqn:Ea. simpl in H.
-    destruct (gstep (tmd tm d) f b q) as [|f' b' q'|f' b' q'] eqn:Eg; inversion H; subst.
-    + apply (gstep_sound_same tm _ _ _ _ _ _ _ Eg).
-    + apply (gstep_sound_turn tm _ _ _ _ _ _ _ Eg).
-Qed.
+Definition rsound (c : mc) (r : rr) : Prop :=
+  match r with RHalt n => hreach c n | RNext c' => reach c c' end.
 
-Lemma round_halt : forall c, round c = RHalt -> halts tm (semc c).
+Lemma round_sound : forall c, rsound c (round c).
 Proof.
-  intros c H. unfold round in H.
-  destruct (macros (atVisit c)) as [c2|] eqn:Em; [discriminate|].
+  intros c. unfold round.
   pose proof (atVisit_sound c) as Hv.
-  destruct (atVisit c) as [d f b q] eqn:Ea. simpl in H.
-  destruct (gstep (tmd tm d) f b q) eqn:Eg; try discriminate.
-  eapply halts_evstep; [|exact Hv].
-  apply (gstep_sound_halt tm _ _ _ _ Eg).
+  destruct (macros (atVisit c)) as [c2|] eqn:Em.
+  - simpl. eapply reach_trans; [exact Hv|]. apply macros_sound. exact Em.
+  - destruct (atVisit c) as [d f b q n] eqn:Ea. cbn [dir fr bk stt cnt].
+    destruct (gstep (tmd tm d) f b q) as [|f' b' q' k|f' b' q'] eqn:Eg; simpl.
+    + eapply hreach_trans; [exact Hv|]. split; [simpl; lia|].
+      exists (semc (MC d f b q n)). split.
+      * simpl. rewrite Nat.sub_diag. constructor.
+      * apply (gstep_sound_halt tm _ _ _ _ Eg).
+    + eapply reach_trans; [exact Hv|].
+      apply (reach_add (MC d f b q n) (MC d f' b' q' (n + k)) k eq_refl). apply (gstep_sound_same tm _ _ _ _ _ _ _ _ Eg).
+    + eapply reach_trans; [exact Hv|].
+      apply (reach_add (MC d f b q n) (MC (negb d) f' b' q' (n + 1)) 1 eq_refl). apply (gstep_sound_turn tm _ _ _ _ _ _ _ Eg).
 Qed.
 
 (** [p] rounds. *)
 Fixpoint run (p : positive) (c : mc) : rr :=
   match p with
   | xH => round c
-  | xO p' => match run p' c with RHalt => RHalt | RNext c1 => run p' c1 end
+  | xO p' => match run p' c with RHalt n => RHalt n | RNext c1 => run p' c1 end
   | xI p' =>
     match run p' c with
-    | RHalt => RHalt
-    | RNext c1 => match run p' c1 with RHalt => RHalt | RNext c2 => round c2 end
+    | RHalt n => RHalt n
+    | RNext c1 => match run p' c1 with RHalt n => RHalt n | RNext c2 => round c2 end
     end
   end.
 
-Lemma round_sound : forall c,
-  match round c with RHalt => halts tm (semc c) | RNext c' => semc c -->* semc c' end.
+Lemma seq_sound : forall c r, rsound c r -> forall (g : mc -> rr), (forall c1, rsound c1 (g c1)) ->
+  rsound c (match r with RHalt n => RHalt n | RNext c1 => g c1 end).
 Proof.
-  intros c. destruct (round c) as [|c'] eqn:E; [apply round_halt; exact E|apply round_next; exact E].
+  intros c [n|c1] H g G; [exact H|].
+  specialize (G c1). simpl in H. destruct (g c1) as [n|c2]; simpl in *.
+  - eapply hreach_trans; [exact H|exact G].
+  - eapply reach_trans; [exact H|exact G].
 Qed.
 
-Lemma seq_sound : forall c r, (match r with RHalt => halts tm (semc c) | RNext c' => semc c -->* semc c' end) ->
-  forall (g : mc -> rr), (forall c1, match g c1 with RHalt => halts tm (semc c1) | RNext c' => semc c1 -->* semc c' end) ->
-  match (match r with RHalt => RHalt | RNext c1 => g c1 end) with
-  | RHalt => halts tm (semc c) | RNext c' => semc c -->* semc c' end.
-Proof.
-  intros c [|c1] H g G; [exact H|].
-  specialize (G c1). destruct (g c1) as [|c2].
-  - eapply halts_evstep; [exact G|exact H].
-  - eapply evstep_trans; [exact H|exact G].
-Qed.
-
-Lemma run_sound : forall p c,
-  match run p c with RHalt => halts tm (semc c) | RNext c' => semc c -->* semc c' end.
+Lemma run_sound : forall p c, rsound c (run p c).
 Proof.
   induction p as [p IH|p IH|]; intros c; simpl.
-  - apply (seq_sound c (run p c) (IH c) (fun c1 => match run p c1 with RHalt => RHalt | RNext c2 => round c2 end)).
+  - apply (seq_sound c (run p c) (IH c) (fun c1 => match run p c1 with RHalt n => RHalt n | RNext c2 => round c2 end)).
     intros c1. apply (seq_sound c1 (run p c1) (IH c1) round round_sound).
   - apply (seq_sound c (run p c) (IH c) (run p) IH).
   - apply round_sound.
 Qed.
 
-Definition start : mc := MC true [] [] A.
+Definition start : mc := MC true [] [] A 0.
 
 Lemma semc_start : semc start = c0.
 Proof. reflexivity. Qed.
 
-(** * Halt *)
-(** The simulator, started on blank tape, meets the halting transition within 2^25 rounds (evaluated by the
-    kernel's virtual machine, [vm_compute]). *)
-Lemma run_halts : run 33554432 start = RHalt.
-Proof. vm_cast_no_check (eq_refl RHalt). Time Qed.
-
-Theorem halts_172044 : halts tm c0.
+(** If the run from blank tape halts with count [n], the machine halts after exactly [n] steps (the halting
+    transition not counted: [halts_in] counts the steps to the halting configuration). *)
+Lemma run_halts_in : forall p n, run p start = RHalt n -> halts_in tm c0 (N.to_nat n).
 Proof.
-  pose proof (run_sound 33554432 start) as H. rewrite run_halts in H.
-  rewrite semc_start in H. exact H.
+  intros p n H. pose proof (run_sound p start) as G. rewrite H in G.
+  destruct G as [_ [ch [G Hh]]]. rewrite semc_start in G. simpl in G.
+  exists ch. split; [|exact Hh]. eapply ms_eq; [exact G|lia].
 Qed.
 
+(** * Halt *)
+
+(** Splitting a counted run, and the uniqueness of the halting time. *)
+Lemma ms_split : forall tm n d c c'', c -[ tm ]->> (n + d) / c'' -> exists c', c -[ tm ]->> n / c' /\ c' -[ tm ]->> d / c''.
+Proof.
+  intros tm n. induction n as [|n IH]; intros d c c'' H.
+  - exists c. split; [constructor|exact H].
+  - simpl in H. inversion H as [|k1 x1 c1 x2 Hs Hr]; subst.
+    destruct (IH d c1 c'' Hr) as [c' [H1 H2]]. exists c'. split; [econstructor; eassumption|exact H2].
+Qed.
+
+Lemma halted_stuck : forall tm c c', halted tm c -> ~ (c -[ tm ]-> c').
+Proof.
+  intros tm [q [[l s] r]] c' Hh Hs. unfold halted in Hh.
+  inversion Hs; subst; congruence.
+Qed.
+
+Lemma halts_in_le : forall tm c n m, halts_in tm c n -> halts_in tm c m -> (n <= m)%nat -> n = m.
+Proof.
+  intros tm c n m [ch1 [H1 Hh1]] [ch2 [H2 Hh2]] Hle.
+  destruct (ms_split tm n (m - n) c ch2 ltac:(replace (n + (m - n))%nat with m by lia; exact H2)) as [c' [G1 G2]].
+  pose proof (multistep_deterministic _ _ _ _ _ H1 G1) as E. subst c'.
+  destruct (m - n)%nat eqn:Ed; [lia|].
+  inversion G2 as [|k1 x1 c1 x2 Hs Hr]; subst. exfalso. exact (halted_stuck _ _ _ Hh1 Hs).
+Qed.
+
+Lemma halts_in_unique : forall tm c n m, halts_in tm c n -> halts_in tm c m -> n = m.
+Proof.
+  intros tm c n m H1 H2. destruct (Nat.le_ge_cases n m).
+  - exact (halts_in_le _ _ _ _ H1 H2 H).
+  - symmetry. exact (halts_in_le _ _ _ _ H2 H1 H).
+Qed.
+
+(** The number of steps to the halting configuration (the halting transition, the bbchallenge convention,
+    adds one: 853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589683). *)
+Definition K : N := 853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589682%N.
+
+Lemma run_halts : run 33554432%positive start = RHalt K.
+Proof. vm_cast_no_check (eq_refl (RHalt K)). Time Qed.
+
+Theorem halts_172044 : halts tm c0.
+Proof. exists (N.to_nat K). exact (run_halts_in _ _ run_halts). Qed.
+
+(** The machine reaches its halting configuration after exactly K steps, and only then. *)
+Theorem steps_172044 : halts_in tm c0 (N.to_nat K) /\ forall n, halts_in tm c0 n -> n = N.to_nat K.
+Proof.
+  pose proof (run_halts_in _ _ run_halts) as H. split; [exact H|].
+  intros n Hn. exact (halts_in_unique _ _ _ _ Hn H).
+Qed.
 
 End M172044.
 
 Print Assumptions M172044.halts_172044.
+Print Assumptions M172044.steps_172044.

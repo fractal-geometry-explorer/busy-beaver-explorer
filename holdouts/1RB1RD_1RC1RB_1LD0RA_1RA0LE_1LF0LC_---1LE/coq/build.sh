@@ -1,10 +1,10 @@
 #!/bin/sh
-# Build the busycoq halting proof of 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE (bbchallenge 172044).
+# Build the busycoq proof that 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE (bbchallenge 172044) halts, with its exact step count.
 # usage: sh build.sh /path/to/busycoq
 #   (a checkout of the BB6 branch of https://github.com/meithecatte/busycoq, which has BB62.v and Individual62.v)
 # Needs Coq 8.18 (tested with 8.18.0). Copies the proof into busycoq's verify/, compiles busycoq's core files
-# with plain coqc (no native compiler needed), then the proof. The proof takes about 3 minutes, almost all of it
-# the vm_compute run of run_halts, and about 600 MB of memory.
+# with plain coqc (no native compiler needed), then the proof. The proof takes about 9 minutes, almost all of it
+# the vm_compute run of run_halts, and about 700 MB of memory.
 set -e
 BC=${1:?give the path of a busycoq checkout (BB6 branch)}
 HERE=$(cd "$(dirname "$0")" && pwd)
