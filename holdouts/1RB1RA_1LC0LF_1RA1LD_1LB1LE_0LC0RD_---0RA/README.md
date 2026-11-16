@@ -124,12 +124,14 @@ and the words of the run are not runs of b.
   same distances (250,241, 312,545, 318,209) take 56, 66 and 1,225 million transitions and stop inside the longer
   word. The clock has a visible first wheel: of the 559 visits between visits 3,266 and 400,000 that take at least
   100,000 transitions, 519 come when the block has k = 4 mod 8 copies of `a` (22 at k = 7, 18 at k = 0), and so do all
-  15 right-end visits between visits 1,169 and 400,000 (`c/wrun.c costs 400000 100000`): behind `a^k b^4` the word is seen to
-  go through a cycle of eight increments (24 visits) and to hand one T on to the rest at k = 4 mod 8; what the rest
-  does with it is the chaotic part. So *when* a deep visit comes is decided near the front of the word and repeats
-  from collapse to collapse; *whether* it reaches the right end, and what the cascade there does, depends on
-  everything behind. On the common part the run is one fixed sequence of words, but that sequence is itself the
-  chaotic object (its visits are the heavy ones above).
+  15 right-end visits between visits 1,169 and 400,000 (`c/wrun.c costs 400000 100000`): behind `a^k b^4` the word
+  goes through a cycle of eight increments (24 visits) and hands one T on to the rest at k = 4 mod 8. What the rest
+  does with it is the chaotic part: over the 1,600 increments after visit 50,842 those at k = 1, 2, 3, 5, 6 mod 8
+  change at most 28 tokens, and the 200 at k = 4 mod 8 reach a depth with median 72 tokens, 394 or more for one in ten
+  and 11,034 or more for one in a hundred, the deepest 23,943 of the 41,585 tokens (`py/depth.py`). So *when* a deep
+  visit comes is decided near the front of the word and repeats from collapse to collapse; *whether* it reaches the
+  right end, and what the cascade there does, depends on everything behind. On the common part the run is one fixed
+  sequence of words, but that sequence is itself the chaotic object (its visits are the heavy ones above).
 
 **What it means for the estimate.** A method that follows the run exactly has to carry the word. At the rate of the
 table the word of visit 2^150 has more bits than any memory holds, and each right-end visit reads all of it. So the
@@ -372,6 +374,7 @@ python3 py/entropy.py /tmp/wrun                             # fifth look: the ta
 python3 py/entropy.py /tmp/wrun rewrite                     # a right-end visit rewrites the whole word (1 minute)
 /tmp/wrun costs 400000 3000000                              # the heavy visits (40 s); the same distances after visits 32,777 and 232,177
 python3 py/entropy.py /tmp/wrun prefix 32778 232178         # the two words after the collapses share 23,257 tokens
+python3 py/depth.py /tmp/wrun                               # how deep an increment reaches, by k mod 8 (1 minute)
 python3 py/model_lean.py | diff - lean/Model.lean           # the generated Lean file is current
 gcc -O2 -o /tmp/wcheck c/wcheck.c && /tmp/wcheck 2e10     # every visit shows a word over 110, 111 (2 minutes)
 cd py && python3 words.py run 3e7                           # rules (1)-(3) against the run
