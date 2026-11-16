@@ -6,7 +6,7 @@ words `111110` grows by two cells per round trip of the head. Left of it lies a 
 every round trip rewrites: a pass coming from the right end cuts each block of three or more 1s in two and stops at
 the first block of length 1. How deep the passes reach behaves like a counter, deeper passes being rarer and rarer.
 The machine can halt only when a pass gets through everything and meets a block of length 1 at the very left end
-of the tape. No halt in 5·10^11 steps. A pass reached the left end for the first time since step 5,043 near step
+of the tape. No halt in 5·10^11 steps; Lean proves none in the first 5.5·10^27 (`blank_runs_shield`). A pass reached the left end for the first time since step 5,043 near step
 3.3·10^11; it did not halt. It left 134,619 pairs `10 1110` behind, which passes cannot cross, and a new zone started
 at the right end.
 
@@ -152,13 +152,50 @@ the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA`, trusted) the deepest 
 come at sweeps 3.7·10^6 (73), 2·10^7 (79), 5.4·10^8 (91), 1.3·10^9 (97), 7.9·10^9 (104) and 2.2·10^10 (105). At about
 ten letters per factor of 10 the block of 403,835 letters lasts for about 10^40000 sweeps (an extrapolation).
 
+## The cascade and the shield (Lean, every length)
+
+`lean/Cascade.lean`, the same file in the folders of the four machines with this block, recasts the sweep. Keep the
+word `Z` of the zone orbit as a row of one-bit cells, cell 0 next to the block of words. A sweep is an *event* that
+enters at cell 0 and travels away from the block: `P c` (the sweep arrives carrying the letter `c`; at cell 0 that is
+the block's letter `pat n`) or `F` (the sweep stopped just before this cell and flips it). Every cell does the same
+thing with its own bit `x`:
+
+| event | `x = 0` | `x = 1` |
+|---|---|---|
+| `F` | `x` becomes 1, nothing goes on | `x` becomes 0, nothing goes on |
+| `P 0` | `F` goes on (the `00` is here) | `P 1` goes on |
+| `P 1` | `P 0` goes on, `x` becomes 1 | `P 1` goes on, `x` becomes 0 |
+
+One sweep is exactly one such event (`swr_feed_ok`): it dies inside the word, which is then the new word, or it
+leaves the last cell, as `F` a halt (`swr_feed_halt`) and as `P` a reset (`swr_feed_reset`). What a cell's bit does
+depends on the event only, never on the bit (`cell_bit`: `F` and `P 1` toggle it, `P 0` leaves it). Hence a row of
+`m` cells fed `2^m` copies of any list of events is back where it started (`run_rep_pow`), and the first `m` cells
+of the zone orbit are periodic, with a period dividing `3 · 2^m` (`zone_period`). Each cell sees only what the cells
+nearer the block let through, so the word is a cascade: the new zone drives the stranded block, which drives the old
+zone. `never_halts_of_quiet` (`lean/ZoneCascade.lean`): if nothing leaves the word during `3 · 2^|Z|` sweeps from a
+state of the zone orbit, nothing ever does and the machine never halts.
+
+`lean/Shield.lean` turns the frozen old zone into a bound. An event that reaches the untouched part of the stranded
+block dies within five of its cells and changes nothing beyond them (`sb_stop`, all three phases, all three events),
+so a row made of anything, then `5k` cells of the block, then anything, fed at most `k` events lets nothing out
+(`shield`). The block has 403,835 = 5 · 80,767 cells, so the word lets nothing out, and the machine cannot halt,
+until the new zone has sent 80,767 events into the block. The first 96 cells (the new zone and the first 20 cells
+of the block) are periodic: by compiled evaluation at zone step 3·10^7 (`zone96`, with `per`, the period computed by
+doubling, proved right by `per_run`) they are back after `3 · 2^44 ≈ 5.3·10^13` sweeps and let 42,405 events through
+per period, fewer than the 80,763 that the remaining 403,815 cells of the block need. Each sweep costs at least `4n`
+steps with `n` the growing block count: **no halt in the first 5.5·10^27 steps** (`blank_runs_shield`). The bound counts only the events into the block; it
+does not use that most events die in cells already eaten, which is why the extrapolation above is so much larger.
+
 ## Status
 
 Open. Proved in Lean (kernel): the halting pattern, the pass over a block and its stop, the two crossings of the
 block of words; one round trip of the head is one XOR sweep of the word read in pairs, and a halt needs a pass that
 reaches the left end (`mstep_ok`, `mstep_halt`); the length of the block of words does not matter beyond mod 3
 (`zone_step`); the machine halts iff the zone orbit halts (`halts_iff_zone`). Compiled evaluation: no halt in the
-first 1.7·10^15 steps. Trusted runs from the Lean state: the old zone cannot move until the new zone has eaten the 403,835-letter stranded block. Nothing is known that keeps the leftmost block from
+first 1.7·10^15 steps. Proved in Lean, with one compiled evaluation: the zone orbit is a cascade of one-bit cells,
+periodic on every prefix of its word; the stranded block stops every event within five cells, so the old zone is
+frozen until the new zone has sent 80,767 events into it, which takes more than 5.3·10^13 sweeps: **no halt in the first
+5.5·10^27 steps**. Nothing is known that keeps the leftmost block from
 being a lone 1 when a pass arrives, and nothing that forces it.
 
 ## What is proved
@@ -178,6 +215,12 @@ being a lone 1 when a pass arrives, and nothing that forces it.
 | the machine halts iff the zone orbit halts | kernel | `halts_iff_zone`, `lean/Zone.lean` |
 | no halt in the first 1.7·10^15 steps (3·10^7 steps of the zone orbit) | native | `zone_runs`, `blank_runs_zone`, `lean/ZoneRun.lean` |
 | two zones: the stranded block (403,835 letters, a 00 every three) shields the old zone until the new zone has eaten it; in 3·10^10 more sweeps of the orbit the new zone ate about 29 letters of it, no halt | trusted | `c/xs.c`, `c/z1.c` in the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA`, from `lean/DumpState.lean` |
+| one sweep is one event fed to a cascade of identical one-bit cells; a halt or a reset when the event leaves the last cell | kernel | `swr_feed_ok`, `swr_feed_halt`, `swr_feed_reset`, `lean/Cascade.lean` |
+| a cell's bit changes by the event only; the first `m` cells of the zone orbit are periodic with a period dividing `3 · 2^m`; quiet for one period means quiet forever | kernel | `cell_bit`, `run_rep_pow`, `zone_period`, `never_of_quiet`, `lean/Cascade.lean` |
+| if nothing leaves the word during `3 · 2^|Z|` sweeps from a state of the zone orbit, the machine never halts | kernel | `never_halts_of_quiet`, `lean/ZoneCascade.lean` |
+| the stranded block stops every event within five cells; `5k` cells of it let nothing out for `k` events | kernel | `sb_stop`, `shield`, `lean/Shield.lean` |
+| at zone step 3·10^7 the first 96 cells have period `3 · 2^44` sweeps and send 42,405 events per period further into the block | native | `zone96`, `per_run`, `lean/Shield.lean` |
+| **no halt in the first 5.5·10^27 steps** | native | `blank_runs_shield`, `lean/Shield.lean` |
 
 ### Exact reduction (Lean)
 
