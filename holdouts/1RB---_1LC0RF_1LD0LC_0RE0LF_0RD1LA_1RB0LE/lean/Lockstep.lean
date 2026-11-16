@@ -20,7 +20,7 @@ first machine and keeps track of `n` (`tnext`); `Good n c` says that this tracke
   steps is `Good` (`Good30773`), it halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC
   does.
 
-`Good30773` is not proved.  The cell q is the rightmost cell the run has visited, and the condition says that the
+`Good30773` is proved in `RightEnd.lean` (`good30773`, `two_machines'`).  The cell q is the rightmost cell the run has visited, and the condition says that the
 head leaves it to the right only in state B on a 1.  The README has the numbers.  Kernel only: `propext` and
 `Quot.sound`.
 -/

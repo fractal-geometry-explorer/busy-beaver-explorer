@@ -129,7 +129,7 @@ A counter that is rebuilt when it overflows belongs with the counter families (F
 
 Next step: The same as for the sister machine: the carry rule of a digit, then the rebuild at an overflow.
 
-## One halting question for two machines, given one condition (F09, 16 November 2026)
+## One halting question for two machines (F09, 16 November 2026)
 
 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a
 mirror with the states renamed, started in state C. The two runs are one run, shifted. After 2 and 49 steps both are
@@ -152,12 +152,20 @@ and the mirror are proved too (`halts_114265`). So:
   so far (`Good30773`). Then 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if
   1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does.
 
-**Checked, not proved.** The condition holds in the first 10^11 steps (`holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c`). The head moves right from q
-only 100 times, all of them before step 4.5·10^6, while the counter in the wall was being rebuilt after its first
-overflows. The rest of the time the right end of the tape does not move. So the condition is about the rebuilds:
-it says that a rebuild only ever lengthens the right end in this one way. The next rebuild is far beyond
-simulation, so proving the condition needs the theory of the counter and its rebuild, just as the halting question
-itself does.
+**Proved (16 November 2026): the condition holds.** `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/RightEnd.lean` (kernel only: `propext` and
+`Quot.sound`) proves `Good30773` for every number of steps (`good30773`). It looked like a statement about the
+rebuilds of the counter, but it is a local fact about the last four cells of the tape, q-3 to q. Keep only those four
+cells and the state and forget everything left of them: with the head inside the window, the state, the cells left
+of the head inside the window and the cells from the head to q; with the head further left, the four cells only, and
+let the head come back in any state that a move right can produce (B, D, E or F). From step 2 on this
+over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the
+head is left of the window, the last three cells read `101`). None of the 32 moves right from q except in state B on
+a 1, and the set is closed under a step (`closed`, by `decide`). `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/rightend.py` computes the 32. So:
+
+* **`two_machines'`**: 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does. No condition.
+
+Before the proof, the condition was checked in the first 10^11 steps (`holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c`): the head moves right from q only
+100 times, all before step 4.5·10^6, during the first rebuilds of the counter.
 
 The note `F09-same-table-pairs.md` called this pair "not a shift". Its tapes differ in about 1,330 cells at the
 counter end only when the two runs are compared at the same step. Compared at matching visits, they differ by one
