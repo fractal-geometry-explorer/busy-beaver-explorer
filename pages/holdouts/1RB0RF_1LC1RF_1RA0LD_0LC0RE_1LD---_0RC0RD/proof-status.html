@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -176,6 +176,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The model is the machine's run, bounce by bounce</h3>
         <p><code>c/gapdump.c</code> reads the gap list off the real machine at every sample point; the model (<code>py/model.py check</code>) predicts every one of the 129,587 bounces up to 2&middot;10<sup>10</sup> steps. The flat transcription of the Lean definitions agrees with the fast run-length version on the first 2,979.</p>
         <p class="where"><code>c/gapdump.c</code>, <code>py/model.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.16&times;10<sup>37</sup> steps (accelerated, no extrapolation)</h3>
+        <p>A second model, independent of the gap counter's rules: every bounce is a symbolic run of the machine on a window of the mirrored tape, and hierarchical macros of bounces are derived the same way. It ran to step 21,622,797,242,713,355,695,099,328,749,058,417,170 (4.02&middot;10<sup>18</sup> bounces) without a halt, a case split or an unreadable tape. Checked: all 29,691 bounces up to 10<sup>9</sup> steps agree exactly with <code>c/gapdump</code>, and the macros agree with single bounces over 10<sup>6</sup> bounces. This is a bounded run.</p>
+        <p class="where"><code>py/digits.py check</code>, <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, "Long accelerated run (16 November 2026)"</p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

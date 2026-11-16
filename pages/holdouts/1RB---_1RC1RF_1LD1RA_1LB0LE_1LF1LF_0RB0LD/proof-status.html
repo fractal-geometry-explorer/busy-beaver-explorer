@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 1.28&times;10<sup>19</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 12,898,417,544,340,449,177 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,030,112 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.58&times;10<sup>90</sup> steps (accelerated counter model)</h3>
+        <p>A model of one round at a time, in which every round (overflows, collisions and absorptions by END included) is a symbolic run of the machine on a window of the mirrored tape, and hierarchical macros of rounds are derived the same way. It ran from blank tape to step 1,578,876,552,607,361,854,469,488,992,087,048,632,075,651,671,447,769,379,626,315,387,251,771,122,050,682,298,818,165,240 (1.57&middot;10<sup>45</sup> rounds) without a halt, a case split or an unreadable tape. It passed an absorption by END near 10<sup>18</sup> steps. Checked: all 22,676 rounds up to 3&middot;10<sup>8</sup> steps agree exactly with the direct simulator, and the macros agree with single rounds over 10<sup>6</sup> rounds. This is a bounded run.</p>
+        <p class="where"><code>py/digits.py check</code> (with <code>c/sampg.c</code>), <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, "Long accelerated run (16 November 2026)"</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

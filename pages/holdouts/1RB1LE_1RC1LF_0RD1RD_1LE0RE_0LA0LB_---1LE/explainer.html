@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -317,7 +317,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -338,6 +338,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></div></div><div><b>No halt in the first 1.99&times;10<sup>19</sup> steps (exact macro run)</b><p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 19,991,980,548,116,890,254 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,018,533 steps. This is a bounded run and says nothing about later steps.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README (table)</div></div><div><b>The timers</b><p>At the right-end visits (counter overflows) the last block loses 9 ones, the one before it 24, the one before that 96, the next about 384 (C simulation to 2·10<sup>10</sup> steps, no halt).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>twin</code>, <code>lean/Twin.lean</code> of the twin</div></div><div><b>Twin: this machine's table from state B</b><p>Its twin 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD halts from blank tape exactly when this machine halts from blank tape started in state B (step simulation with one transition replaced by three steps).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/digits.py check</code> (with <code>c/sampb.c</code>), <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, "Long accelerated run (16 November 2026)"</div></div><div><b>No halt in the first 5.7&times;10<sup>90</sup> steps (accelerated counter model)</b><p>A model of one counter round at a time, with the right-end phase included. Every round is a symbolic run of the machine on a window of the mirrored tape, and hierarchical macros of rounds are derived the same way. It ran from blank tape to step 5,710,760,547,545,706,450,531,585,424,618,529,375,013,306,891,261,050,110,631,683,661,118,727,156,559,638,200,078,015,117 (2.28&middot;10<sup>45</sup> rounds) without a halt, a case split or an unreadable tape. Checked: the rounds agree exactly with the direct simulator for all 19,219 rounds up to 4&middot;10<sup>8</sup> steps, and the macros agree with single rounds over 10<sup>6</sup> rounds. This is a bounded run.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/accel.py run 100000 2400 CKPT.pkl B</code>; README</div></div><div><b>Started in state B: no halt in the first 3.1&times;10<sup>89</sup> steps</b><p>The same model from blank tape in state B (the twin's question) reached step 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083 (5.54&middot;10<sup>44</sup> rounds) without a halt. Checked: the rounds agree exactly with the direct simulator for all 19,307 rounds up to 4&middot;10<sup>8</sup> steps.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known: the exhaustion cases of the right-end map are not in closed form, and no invariant excluding a chain on a run of length 2 mod 3 is known. Regular-language (CTL) searches over counter tokens failed.</p></div></div>
 </section>
 <section id="check">

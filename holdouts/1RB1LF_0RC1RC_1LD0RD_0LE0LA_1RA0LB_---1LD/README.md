@@ -114,6 +114,16 @@ No halt in the first 1.99x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 19,952,976,721,474,659,050. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,023,252 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Long accelerated run (16 November 2026)
+
+**No halt in the first 3.10·10^89 steps** (trusted, bounded). This machine halts from blank tape exactly when
+1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE started in state B does (`twin`, `lean/Twin.lean`). Every run of that
+machine is matched by a run of this one that is at least as long (`sim_steps`). The accelerated counter model of
+that machine (`holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/accel.py run 100000 2400 CKPT.pkl B`, see
+its README, "Long accelerated run") ran from state B to step
+309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083
+without a halt. Its rounds agree with the direct simulator for all 19,307 rounds up to 4·10^8 steps.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html`](../../pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html)

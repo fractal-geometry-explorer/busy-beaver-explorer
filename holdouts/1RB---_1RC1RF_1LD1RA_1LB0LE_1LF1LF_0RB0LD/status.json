@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a base-4 counter whose digits are defects in a periodic background. Lean proves its rounds for all block lengths; the collisions of digits, which happen because the blocks between them run out at a critical rate, are only described empirically, and a tape of the same shape is proved to halt, so a proof has to follow the block lengths exactly."
  ],
@@ -86,6 +86,12 @@
    "title": "What an overflow does to the blocks",
    "text": "Between two overflows with the same digits and no collision, the block before END loses 1 period and the j-th block from the right loses 4<sup>j</sup> (1, 4, 16, 64, 256 at the overflows of steps 1.6&middot;10<sup>7</sup> to 4.4&middot;10<sup>7</sup>). The block before END went 8, 7, &hellip;, 1 and END then absorbed the last digit over six overflows (clusters 1,1,1 &rarr; 3,1 &rarr; 1,0,1 &rarr; 3 &rarr; 1,0 &rarr; 2 &rarr; 1), during which no new digit is made and the first block keeps growing; the next block before END went 42, 41, &hellip;, 29 by 10<sup>10</sup> steps and is at 9 after 3.16&middot;10<sup>15</sup>.",
    "where": "<code>py/counter.py</code>, <code>py/far.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 1.58&times;10<sup>90</sup> steps (accelerated counter model)",
+   "text": "A model of one round at a time, in which every round (overflows, collisions and absorptions by END included) is a symbolic run of the machine on a window of the mirrored tape, and hierarchical macros of rounds are derived the same way. It ran from blank tape to step 1,578,876,552,607,361,854,469,488,992,087,048,632,075,651,671,447,769,379,626,315,387,251,771,122,050,682,298,818,165,240 (1.57&middot;10<sup>45</sup> rounds) without a halt, a case split or an unreadable tape. It passed an absorption by END near 10<sup>18</sup> steps. Checked: all 22,676 rounds up to 3&middot;10<sup>8</sup> steps agree exactly with the direct simulator, and the macros agree with single rounds over 10<sup>6</sup> rounds. This is a bounded run.",
+   "where": "<code>py/digits.py check</code> (with <code>c/sampg.c</code>), <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, \"Long accelerated run (16 November 2026)\""
   },
   {
    "level": "open",

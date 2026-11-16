@@ -152,6 +152,48 @@ No halt in the first 1.99x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 19,991,980,548,116,890,254. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,018,533 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Long accelerated run (16 November 2026)
+
+**No halt in the first 5.71·10^90 steps from blank tape, and none in the first 3.10·10^89 steps from blank tape
+started in state B** (the twin's question). Both bounds are trusted (Python), and they are bounded runs.
+
+The model is the one asked for under "For later": one counter round at a time, with the right-end phase included.
+`py/digits.py` reads the tape at every left-end visit (state E on the blank cell at the left end, one sample per
+round). It reads it **mirrored**, so that the generic window engine of
+`holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/digits.py` (class `Spec`) can be reused unchanged on the
+mirror machine `1LB1RE_1LC1RF_0LD1LD_1RE0LE_0RA0RB_---1RE`. In the mirror the tape is a list of digits
+`(110)^r W`, with walls W0 = 1/1, W1 = 3/1, W2 = 3/1 1/1, W3 = 4/1 (blocks 1^a 0^b; these are the README's
+digits 0 to 3), plus a few walls that appear briefly after overflows. Any other single block becomes a wall of its
+own name. After the walls come the last run and the end cells `11` (or `1`). A round (a "sweep") is computed by a
+**symbolic run of the machine** (`tools/py/bbtools/symtm.py`) on a window. The window holds the carry chain
+(trailing W3) and the stop digit, more digits if the run needs them, and the whole tape at an overflow. In that
+last case the symbolic run goes to the right end, through the timer phase, and back. Runs longer than 7 are
+variables. Each rule is cached by its window shape, so no law is assumed. The "unusual event" at each left-end
+visit, the zero-length runs left by an overflow (W2 W0 with r = 0, ends `1`), is just another window shape.
+`py/accel.py` is a copy of that holdout's `py/macro4.py` (hierarchical macros Inc(k) derived symbolically on
+window keys, plus cycle skips that are applied only while every run stays in its class). Two changes: the window
+rule caches are capped for memory, and start state B is an option.
+
+Validation:
+- `python3 py/digits.py check FILE` against the direct C sampler `c/sampb.c` (`./sampb MACHINE A|B 400000000`):
+  every one of the 19,219 rounds up to 4·10^8 steps (start A, 19 overflows) and of the 19,307 rounds (start B)
+  is predicted exactly, both the tape and the step count, with 0 mismatches and 0 unparsed samples.
+- `python3 py/accel.py test 100000 1000000 [B]`: the macros agree with plain sweeps, states and step counts, over
+  10^6 rounds from step 10^5 (both starts).
+- Runs: `python3 py/accel.py run 100000 2400 CKPT.pkl [B]`. Start A reached step
+  5,710,760,547,545,706,450,531,585,424,618,529,375,013,306,891,261,050,110,631,683,661,118,727,156,559,638,200,078,015,117
+  after 2.28·10^45 rounds, with 79 digits. Start B reached step
+  309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083
+  after 5.54·10^44 rounds, with 73 digits. Neither run stopped: no symbolic rule halted, needed a case split or
+  failed to parse. A halt would show up as one of these, because the E-chain on a run of length 2 mod 3 needs a
+  split on the residue of a variable run, or is met by a concrete run.
+  End states: `/mnt/project-files/halt-hunt/f06left/` (pickles `(state, step, rounds)`).
+- Progress slows with depth. From about 10^88 steps on, the step count grows only by a factor of about 15 per
+  10 minutes, because new macros are derived all the time (31,005 in 150 s, with an uncapped cache). A likely
+  cause is that the top runs (about 1.13·10^6, 3.2·10^5, 3.2·10^6, ...) are below the macro thresholds 4^(k+1),
+  so they enter the keys as constants. These top runs shrink only by a few hundred between 10^43 and 10^90 steps, so their exhaustion,
+  the next place where a halt could come from, is far beyond this run.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html`](../../pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html)

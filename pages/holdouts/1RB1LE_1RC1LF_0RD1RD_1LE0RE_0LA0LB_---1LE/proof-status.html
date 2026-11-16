@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -171,6 +171,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The timers</h3>
         <p>At the right-end visits (counter overflows) the last block loses 9 ones, the one before it 24, the one before that 96, the next about 384 (C simulation to 2·10<sup>10</sup> steps, no halt).</p>
         <p class="where">README (table)</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 5.7&times;10<sup>90</sup> steps (accelerated counter model)</h3>
+        <p>A model of one counter round at a time, with the right-end phase included. Every round is a symbolic run of the machine on a window of the mirrored tape, and hierarchical macros of rounds are derived the same way. It ran from blank tape to step 5,710,760,547,545,706,450,531,585,424,618,529,375,013,306,891,261,050,110,631,683,661,118,727,156,559,638,200,078,015,117 (2.28&middot;10<sup>45</sup> rounds) without a halt, a case split or an unreadable tape. Checked: the rounds agree exactly with the direct simulator for all 19,219 rounds up to 4&middot;10<sup>8</sup> steps, and the macros agree with single rounds over 10<sup>6</sup> rounds. This is a bounded run.</p>
+        <p class="where"><code>py/digits.py check</code> (with <code>c/sampb.c</code>), <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, "Long accelerated run (16 November 2026)"</p>
+      </div>
+      <div class="card">
+        <h3>Started in state B: no halt in the first 3.1&times;10<sup>89</sup> steps</h3>
+        <p>The same model from blank tape in state B (the twin's question) reached step 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083 (5.54&middot;10<sup>44</sup> rounds) without a halt. Checked: the rounds agree exactly with the direct simulator for all 19,307 rounds up to 4&middot;10<sup>8</sup> steps.</p>
+        <p class="where"><code>py/accel.py run 100000 2400 CKPT.pkl B</code>; README</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
