@@ -81,9 +81,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</p>
     <h1>What is known about 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</h1>
     <p class="machine">1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</p>
-    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Lean. The ledger below says what each part rests on.</span></p>
+    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Lean and by Coq. The ledger below says what each part rests on.</span></p>
     <p>This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape, after about 1.27·10<sup>758</sup> steps. The exact step is known, and the halt is a Lean theorem: the rules of the machine's ladder of counters are proved for every size and every number of counters with Lean's kernel, and the long run itself is evaluated inside Lean by a function that is proved correct (compiled evaluation, <code>native_decide</code>).</p>
-    <p class="asof">Status as of 14 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -94,6 +94,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>Also proved in Coq</h3>
+        <p>A second proof assistant checks the same result: <code>halt : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. It needs no direct run first: the verified accelerated run starts on the blank tape and takes about 30 seconds; the whole file compiles in about 2 minutes. The same files are on a branch of our fork of busycoq, ready to be proposed upstream: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/claude/project-thread-3u4y3s">project-thread-3u4y3s</a>.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Shift-overflow structural counter</b>. These are labels read off the run by others, not results.</p>
@@ -111,6 +115,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-kernel">kernel</span> Proved in Lean, kernel-checked</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The machine halts (Coq, on busycoq's definitions)</h3>
+        <p><code>halt : halts tm c0</code>, with busycoq's <code>TM</code>, <code>halts</code> and <code>c0</code>. The 16 level hits, the 9 halting hits and the two fronts are proved for every block count by busycoq's symbolic execution; <code>stack_run</code> (any number of hits on any ladder) and <code>loop_ok</code> (a shortcut run that keeps the levels as numbers and simulates only the tail cells, sound by construction) are ordinary proofs. The run from the blank tape, <code>loop 10000 true s0 = true</code>, is one evaluation checked by Coq's kernel (about 30 seconds; it makes no plain run of 27 million steps first and batches up to 64 tail hits per pass over the levels). <code>Print Assumptions halt</code>: closed under the global context. Coq 8.18.0, about 2 minutes for the file; too little fuel makes the check fail.</p>
+        <p class="where"><code>coq/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code>, <code>coq/build.sh</code>, <code>coq/build.log</code></p>
+      </div>
       <div class="card">
         <h3>Levels are transparent: any list of levels, any number of hits</h3>
         <p>A <em>call</em> on a tape T is a run that enters T in one state and leaves it in another, whatever lies to the right; a V-hit is one call, an H-hit five. <code>hit0</code> … <code>hit15</code> (from the stretch theorems): a hit on a level with j + 1 blocks at each of the 16 positions is such a hit, takes 112(j+1) + c or 56(j+1) + c steps inside the level, leaves the level at the next position, and at the six passing positions makes exactly one hit on the rest. <code>level_run</code>: y hits in a row on one level, with closed forms for position, block count, hits passed on and steps (16 hits are one turn: 4 blocks more, 6 hits passed on). <code>stack_run</code>: by induction on the list of levels, y hits on a whole ladder act level by level as the table says and pass the remaining hits to the tape below. <code>front_run</code>: the front and its two visits per hit. <code>haltUp_sound</code>, <code>frontHalt_sound</code>: a hit below the levels that halts (in its first call, or in the fourth call of an H-hit) is a halt of the machine, with the steps made in every level before it.</p>
@@ -224,7 +233,8 @@ python3 accel.py last               # the last visit on small tapes, direct run 
 gcc -O2 -o /tmp/visits ../c/visits.c &amp;&amp; /tmp/visits 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB 1e10 A 2 100000000 2 &gt; /tmp/v.txt
 python3 accel.py check /tmp/v.txt   # visit numbers and step counts against the direct run
 python3 levels_lean.py &gt; ../lean/Levels.lean ; python3 hits_lean.py &gt; ../lean/Hits.lean ; python3 halt_lean.py &gt; ../lean/Halt.lean ; python3 rules.py &gt; ../lean/Rules.lean
-python3 words.py ; python3 vmodel.py 3000000</code></pre>
+python3 words.py ; python3 vmodel.py 3000000
+sh holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/coq/build.sh /path/to/busycoq      # Coq proof; a checkout of the BB6 branch of ccz181078/busycoq; about 2 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
