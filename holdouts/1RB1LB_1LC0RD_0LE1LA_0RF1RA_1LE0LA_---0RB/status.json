@@ -98,6 +98,12 @@
    "title": "Halting needs a short gap that the XOR rule turns all y",
    "text": "Every left-visit tape up to 3·10<sup>7</sup> steps parses as words 111 and 110 with inserted defects <code>0</code> and <code>10</code>. The halting read <code>1 0 0</code> needs the pattern <code>0 10 (110)* 0</code>, which never occurs. In mutation tests on real tapes, random words between defects stay clear in 99 of 100 runs over 60 more left visits; every halting run, shrunk to its smallest change, alters the words W in a gap <code>10 W 0</code>, which the XOR rule then turns into all 110 (for example 10 xyxyx 0 becomes 10 yyyyy 0), giving the pattern. So what keeps the machine from halting is a condition on the XOR orbit of these gaps, of any length, which a fixed-window closed tape language cannot express.",
    "where": "mutation tests, 16 November 2026 (project folder <code>ctl-696/tools/mut*.py</code>, <code>trace.py</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "No new 10 defect after 8.5 million steps",
+   "text": "Reading the defects as particles with charge mod 3 (<code>0</code> = 1, <code>10</code> = 2): a <code>10</code> in the bulk forms when two <code>0</code> walls with only 111 words between them meet, and it ends by cancelling with the next <code>0</code> wall. In the real run there are only four such lifetimes, the last ending at 8.5·10<sup>6</sup> steps, and none forms after that up to 10<sup>11</sup> steps (21,812 tapes checked, no halt). While one lives, the words after it change by v<sub>i</sub> = w<sub>i−1</sub> xor w<sub>i</sub> with 110 fed in from the left. They became all 110 131 times, and each time the word before the <code>10</code> was 111, so the halting pattern never formed.",
+   "where": "<code>c/tens.c</code> (census of 10 defects), 16 November 2026"
   }
  ],
  "check": [

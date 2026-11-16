@@ -73,6 +73,26 @@ the next wall never reaching all y. That is a condition over GF(2) on gaps of an
 cannot see, and which explains why the window and model-checking searches above close only by reaching a halt.
 A proof would need to show how `10` defects are made at the right end and what gap words they start with.
 
+## Walls as particles (16 November 2026)
+
+Read the defects as particles with a charge mod 3 (the shift they put in the 3-cell alignment): `0` has charge 1,
+`10` has charge 2. In the real run (`c/tens.c`, which tokenizes the tape at new left cells):
+
+* A `10` in the bulk is born when two `0` walls with only x words between them meet: `0 x^k 0` becomes
+  `x^(k+1) 10` (1 + 1 = 2). It ends when it and the next `0` wall cancel: `10 W 0` becomes words (2 + 1 = 0).
+* There are only 4 such `10` lifetimes, at 8·10^3 to 2.7·10^4, 2.2 to 2.8·10^6, 4.1 to 5.6·10^6 and 6.6 to 8.5·10^6
+  steps, each 9 to 60 tokens from the right end. After 8.5·10^6 steps there is none up to 10^11 steps (every 20th new
+  left cell checked, 21,812 tapes, no halt). The other `10`s are the fixed one at the right end (`0 y 10 x 1`) and short-lived
+  ones at the left end.
+* While a `10` lives, the words after it change each deep sweep by v[i] = w[i-1] xor w[i], with y fed in from the
+  left (45 of 45 updates without a shift), so they form a Sierpinski triangle that starts at the defect. They became all y 131
+  times, and each time the word before the `10` was x. That is why the four lifetimes ended without a halt.
+
+So, by the data, a halt needs a `10` far from both ends, and none has formed since 8.5·10^6 steps. A proof along these
+lines would show that once the walls are spaced out (they are roughly geometric from the right end), no two `0` walls
+with only x between them can meet again. The right end itself runs through four phases (`x 0 0 y 10 x`,
+`x y 0 y 10 x`, `x 0 y x 0 x`, `0 x x 0 10 x`), and none of them contains the pattern.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
@@ -88,7 +108,8 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 * Done: the sweep pair is the XOR rule (above). Next: prove it in Lean for all lengths (two per-word transducer
   lemmas and an induction over the word list; the toolchain was not available in the 16 November container).
 * The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
-* How `10` defects are made and which gap words they start with (the danger is a gap the XOR rule turns all y).
+* Done: how `10` defects are made (walls as particles, above). Next: prove two `0` walls with only x between them never meet
+  after the first 8.5·10^6 steps (a wall spacing argument), and write the right end's four phases as rules.
 
 ## Deciders tried (F11, 13 November 2026)
 
