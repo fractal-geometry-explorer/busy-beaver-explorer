@@ -271,6 +271,10 @@ def relations(data):
     return rel
 
 
+# Pairs proved to be one halting question (the relation is not a configuration match, so the screen cannot see it).
+SAME_QUESTION = {frozenset(("1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE", "1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC"))}
+
+
 def lean_twin(machine, other, o, slowed=False):
     """What lean/Twin.lean proves about the pair, if one of the two folders has it."""
     for m in (machine, other):
@@ -358,7 +362,18 @@ def paragraphs(machine, rels, steps, o):
                 f" Renaming the states as shown turns this machine's table into the other one, the halting "
                 f"transition included. The other machine starts in its own state A, which is not this machine's "
                 f"A: its run from blank tape is the run of this table started in another state. ")
-        if shared == 0:
+        others = [r["to"] if i == 0 else r["from"] for r, i in tables]
+        proved = [m for m in others if frozenset((machine, m)) in SAME_QUESTION]
+        lean_name = "two_machines'"
+        if shared == 0 and proved:
+            head += (f"In the first {n} steps of each, no configuration of this machine's run occurs in the other's "
+                     f"at the same step, even up to a shift of the tape. Compared at matching visits instead, "
+                     f"{'they are' if not many else 'this one and ' + o.link(proved[0]) + ' are'} one run seen in a "
+                     f"mirror, the second with one more word at the far end, and it is proved that the two halt "
+                     f"together or not at all (Lean: {o.code(lean_name)}, Coq: {o.code('TailWord.eqv')}; "
+                     f"see the section \"One halting question for two machines\"). So these two are one halting "
+                     f"question.")
+        elif shared == 0:
             head += (f"These are different runs: in the first {n} steps of each, no configuration of this machine's "
                      f"run occurs in {'any of the others' if many else 'the other'}, even up to a shift of the "
                      f"tape. So each of these holdouts is its own halting question, and settling one does not "
