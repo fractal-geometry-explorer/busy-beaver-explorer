@@ -186,15 +186,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">This machine writes short words of 1s and 0s, and both ends of its tape grow like the logarithm of the step count, the mark of a counter. Its macro rules have not been worked out yet. It has run 10<sup>10</sup> steps without halting.</p></div>
+  <div class="col"><p class="lede">This machine runs two binary counters at once. One at the left end counts through all its values in each round; between two of its steps the head runs right and takes one from a second counter, and each borrow of that counter moves one word from one pile to another. Nobody knows whether it halts: it has run 10<sup>10</sup> steps without halting.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>10</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
-    <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>exp/exp</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>2 rules</b><span class="small">Increment and overflow of the left counter, proved in Lean for every length.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>39 / 39</b><span class="small">Regular rounds that follow the round law exactly.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</div>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">Short words</a><a href="#doubling">A run that doubles</a><a href="#halt">Where a halt could happen</a><a href="#later">What is not known</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">Two counters and two piles</a><a href="#phases">Phase changes</a><a href="#halt">Where a halt could happen</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -285,27 +285,29 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
-<section id="tape">
-  <span class="eyebrow">The tape</span>
-  <h2>Short words</h2>
-<p>At the left end the tape reads <code>F&gt;0 1 0 1 0 ... 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1 0 1 0 ...</code>: a stretch <code>(1 0)^n</code> followed by the words <code>1 1 0</code>, <code>1 1 0 0</code> and <code>1 0</code>. On the right the tape is single 1s separated by one, two or three 0s.</p>
-<p>The head reaches new cells on the left in groups of four (states F, B, E, A). Between 8&middot;10<sup>7</sup> and 1.9&middot;10<sup>8</sup> steps the stretch <code>(1 0)^n</code> goes from 34 words to 39 and then falls back to 34: something at its right end consumes it, like a carry.</p>
-</section>
-<section id="doubling">
+<section id="counters">
   <span class="eyebrow">Structure</span>
-  <h2>A run that doubles</h2>
-<p>Read the tape just right of the head, each time the head is at the left end in state F, as the words a = <code>1100</code>, b = <code>110</code> and c = <code>10</code>. It always looks like <code>c^s MID b^m c c 0 b^j</code>: a stretch of c's, a middle part MID, a run of m b's, and after <code>c c 0</code> a second run of j b's.</p>
-<p>From one such visit to the next, as long as MID stays the same, the stretch grows by two words and the two runs trade: (m, j) becomes (m - j - k, 2j + k) with a constant k for the phase. The total m + j stays the same while j more than doubles, so a phase lasts only a few visits; for example (33, 1), (29, 5), (21, 13), (5, 29) with k = 3. When m is too small to go on, MID changes, like the next digit of a counter, and a new phase starts with a small j. This held for all 39 transitions seen in 5&middot;10<sup>9</sup> steps (k between 1 and 23). How MID and k change from phase to phase, and so whether a phase can ever end in the halting pattern, is not known.</p>
+  <h2>Two counters and two piles</h2>
+<p>Stop the machine each time the head stands on the leftmost cell in state F, and read the tape right of it in the words a = <code>1100</code>, b = <code>110</code>, c = <code>10</code>. It reads</p>
+<p><code>c^s &nbsp;H&nbsp; X_1 bb X_2 bb &hellip; bb X_w &nbsp;b^m&nbsp; cc0 &nbsp;b^j</code></p>
+<ul><li><code>c^s</code> is a binary counter set to 0: its digits are four cells, <code>1010</code> for 0 and <code>1000</code> for 1, the lowest on the right. Lean proves how it counts: the carry runs left over the 1-digits, turning them into 0-digits, and sets the first 0-digit (<code>incr</code>); when every digit is 1 it runs off the end and the counter starts again at 0 with one digit more (<code>overflow</code>).</li>
+<li>H is a short header, almost always <code>ab</code>.</li>
+<li><code>X_1 &hellip; X_w</code> is a second binary counter, with digit a for 1 and cc for 0, the lowest on the left.</li>
+<li><code>b^m</code> and <code>b^j</code> are two piles of the word b, separated by the marker <code>cc0</code>.</li></ul>
+<p>In one round the left counter runs through all its 2<sup>s/2</sup> values. Between two of its increments the head runs right once and subtracts one from the second counter. Each time that counter passes from 0 to its largest value (a borrow), one b moves from the first pile to the second. At the end of the round the left counter overflows: the head reaches a new cell on the left in state F, and the counter is two cells longer (s + 2).</p>
+<p>So a round sends t words from pile m to pile j, where t is the number of borrows in 2<sup>s/2</sup> subtractions. In the next round there are twice as many subtractions, so t doubles: this is the doubling seen at the left end, (m, j) &rarr; (m &minus; t, j + t) with t twice as large each round. All 39 such rounds up to 10<sup>10</sup> steps follow it exactly (<code>py/round_law.py</code>).</p>
+  <div class="panel stp" data-stepper="counters"></div>
+</section>
+<section id="phases">
+  <span class="eyebrow">Open</span>
+  <h2>Phase changes</h2>
+<p>When the first pile is too small for the next round (m &lt; t) the round ends differently. From the header <code>ab</code> the left counter comes back two digits shorter (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code>; from those headers the next visit has s + 2, the header <code>ab</code> again, one more digit in the second counter, and one more b in the piles. 24 phase changes happened up to 10<sup>10</sup> steps; the new digits of the second counter are not yet predicted, so the run cannot yet be followed past them by arithmetic.</p>
+<p>A halt needs F to read a 1, and a closed tape language of 5-cell windows confines it to <code>F&gt;1 1 1 0 1 0</code>; the regular rounds never produce it, so the question is decided in the phase changes.</p>
 </section>
 <section id="halt">
   <span class="eyebrow">Halting</span>
   <h2>Where a halt could happen</h2>
 <p>The machine stops when F reads a 1. A closed tape language with windows of 5 cells, which contains every configuration reachable from blank tape, adds that the five cells right of the head must read <code>1 1 0 1 0</code>: <code>F&gt;1 1 1 0 1 0</code>.</p>
-</section>
-<section id="later">
-  <span class="eyebrow">Open</span>
-  <h2>What is not known</h2>
-<p>Not known: the counter's digits and carry rule, and whether <code>F&gt;1 1 1 0 1 0</code> can arise.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -319,7 +321,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -330,22 +332,23 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>incr</code>, <code>overflow</code>, <code>lean/Counter.lean</code> (generated by <code>py/gen_counter.py</code>)</div></div><div><b>The left counter: increment and overflow, for every length</b><p>Digits of four cells, <code>1 0 1 0</code> = 0 and <code>1 0 0 0</code> = 1, least significant on the right, followed by <code>1 0</code>, with the head in E on the 0 after it. <code>incr</code>: <code>L 1010 (1000)^n 1 E&gt;0 R</code> reaches <code>L 1000 (1010)^n 1 0 C&gt; R</code> in 10n + 7 steps, for every n, L and R. <code>overflow</code>: from <code>0^inf (1000)^n 1 E&gt;0 R</code> the counter becomes n + 1 zero digits, <code>0^inf (1010)^(n+1) 1 0 C&gt; R</code>, in 10n + 13 steps (the head visits a new cell on the left in state F on the way).</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000</code></div></div><div><b>No halt in the first 10<sup>10</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt; at the end the tape holds 255 ones.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 394 cells have been visited and 225 of them hold a 1.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5</code></div></div><div><b>Where a halt can be</b><p>A closed tape language of windows of 5 cells (<code>tools/py/bbtools/ctl.py</code>, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have F reading a 1 with <code>F&gt;1 1 1 0 1 0</code>.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/exp</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.093). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087).</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 1000000000 records 100000</code></div></div><div><b>The stretch at the left</b><p>At the left records between 8&middot;10<sup>7</sup> and 1.9&middot;10<sup>8</sup> steps the left end reads <code>F&gt;0 (1 0)^n 1^2 0^2 1^2 0 ...</code> with n going 34, 35, ..., 39, then back to 34 and up again: the stretch grows one word per record and is periodically consumed.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5000000000 at F L 5000 | python3 py/phase_check.py</code>, output in <code>py/phase_check_5e9.txt</code></div></div><div><b>A doubling map at the left end</b><p>Read the tape right of the head at the left-end visits in state F as words a = <code>1100</code>, b = <code>110</code>, c = <code>10</code>: it has the form <code>c^s MID b^m c c 0 b^j</code>. Between consecutive visits with the same middle word MID, s grows by 2 and (m, j) becomes (m - j - k, 2j + k) for a constant k of the phase: the total m + j is conserved while j roughly doubles, e.g. (33, 1) &rarr; (29, 5) &rarr; (21, 13) &rarr; (5, 29) with k = 3 between 5.4&middot;10<sup>7</sup> and 7.2&middot;10<sup>7</sup> steps. A phase ends when m is too small for the next step; then MID changes (like a counter digit) and a new phase starts with small j. Checked on all 39 such transitions from step 1,158 to 5&middot;10<sup>9</sup> (24 phases, k from 1 to 23), no exception; only the very first transition (step 636) differs.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The macro configuration family has not been found.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun MACHINE 10000000000 at F L 5000 &gt; fl.txt; python3 py/round_law.py fl.txt</code>, output in <code>py/round_law_1e10.txt</code></div></div><div><b>The round law, on all 39 regular rounds up to 10<sup>10</sup> steps</b><p>At the visits of the head, in state F, to the leftmost cell, the tape right of it reads, in words a = <code>1100</code>, b = <code>110</code>, c = <code>10</code>, <code>c^s H X_1 bb X_2 bb ... bb X_w b^m cc0 b^j</code>, with a header H (<code>ab</code>, <code>ababcc</code> or <code>abccbcc</code>) and right-counter digits X = a (1) or cc (0), X_1 least significant, value v. With D = 2<sup>s/2</sup> and t the number of borrows of D decrements from v (t = (D &minus; v &minus; 1) div 2<sup>w</sup> + 1), a round with m &ge; t (m &gt; t when H is not <code>ab</code>) goes to (s + 2, H, v &minus; D mod 2<sup>w</sup>, m &minus; t, j + t). All 39 such rounds from step 1,756 to 10<sup>10</sup> follow it exactly; within a phase t doubles, which is the doubling map (m, j) &rarr; (m &minus; j &minus; k, 2j + k) seen before.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">turn histogram of that round (<code>bbtools.explore turns</code>)</div></div><div><b>Alternating ticks</b><p>In the round from step 4,982 to 7,434 (s = 10) the head turns at the low end of the left counter 64 times; 32 of them are increments (turn counts 32, 16, 8, 4, 2 at the digit positions, as for a 5-digit binary counter run through all its values) and 32 go right and decrement the right counter (3 digits, 4 borrows, m from 5 to 1, j from 1 to 5).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span><div class="w"><code>py/round_law_1e10.txt</code> (the 24 phase changes)</div></div><div><b>The phase changes, and the question</b><p>When m is too small for the next round (m &lt; t) the round ends differently: from H = <code>ab</code> the left counter loses two digits (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code> (four times it stays <code>ab</code> with m + j growing by 4); from those headers the next visit has s + 2, header <code>ab</code>, one more right digit and m + j + 1. The new digits are not yet predicted. Whether the machine halts is open.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 1000000000
-gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000 at F L 5000 &gt; fl.txt
+python3 holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/py/round_law.py fl.txt
+python3 holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/py/gen_counter.py   # writes lean/Counter.lean
 cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5</code></pre>
 </section>
 <footer class="foot">
@@ -353,7 +356,7 @@ cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC
   <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>
 </footer>
 </div>
-<script type="application/json" id="spec">{"machine": "1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---"}</script>
+<script type="application/json" id="spec">{"machine": "1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---", "steppers": {"counters": {"tape": "F> 0 c^{s} ab X b^{m} cc0 b^{j}   (X fixed; t borrows this round)", "vars": [{"name": "s", "label": "counter length s", "start": "30"}, {"name": "m", "label": "pile m", "start": "33"}, {"name": "j", "label": "pile j", "start": "1"}, {"name": "t", "label": "borrows t", "start": "4"}], "counters": [{"name": "r", "label": "rounds", "start": "0"}], "rules": [{"name": "Regular round", "level": "trusted", "text": "The round law, checked on all 39 regular rounds to 10<sup>10<\/sup> steps (<code>py/round_law.py<\/code>); the counter steps inside it are proved in Lean (<code>incr<\/code>, <code>overflow<\/code>).", "guard": [{"form": {"m": 1, "t": -1}, "text": "m &ge; t"}], "set": {"s": {"s": 1, "_": 2}, "m": {"m": 1, "t": -1}, "j": {"j": 1, "t": 1}, "t": {"t": 2}}, "add": {"r": {"_": 1}}}], "note": "Starts at the visit at step 54,454,224 (s = 30, m = 33, j = 1, and t = 4 borrows in the coming round). Three regular rounds follow, to (s, m, j) = (36, 5, 29) at step 72,347,964, as in the machine; then t = 32 &gt; m and the next round is a phase change, which the stepper does not model. The stepper does arithmetic only."}}, "levels": {"kernel": ["k", "Kernel"], "native": ["n", "native_decide"], "trusted": ["c", "Computed"], "heuristic": ["h", "Heuristic"], "open": ["o", "Open"]}}</script>
 <script id="engine">
 var BB = (function () {
   "use strict";

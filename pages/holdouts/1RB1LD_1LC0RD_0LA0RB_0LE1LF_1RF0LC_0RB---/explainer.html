@@ -186,15 +186,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. Its tape is a long word of three tokens that grows at the left end three cells at a time, at irregular moments; no rule behind it has been found. This page runs the real machine in your browser and lists what is known.</p></div>
+  <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. Counting how often its head crosses each part of the tape shows a counter that counts in base 3 on one side and base 2 on the other; how the two bases trade places is not known. This page runs the real machine in your browser and lists what is known.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in the C simulator; 262 cells visited.</span></div>
+    <div class="fact"><span class="ev h">Heuristic</span><b>&times;3 / &times;&frac12;</b><span class="small">Crossings per base-3 and per base-2 word.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>+3 cells</b><span class="small">The left end grows three cells at a time, 61 times so far.</span></div>
-    <div class="fact"><span class="ev h">Heuristic</span><b>&times;1.2&ndash;2.8</b><span class="small">Irregular ratios between the times of successive extensions.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Shift-overflow counter</b>. These are labels read off the run by others, not results.</div>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A word with no visible rule</a><a href="#future">What is missing</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A word with no visible rule</a><a href="#radix">Counting in two bases at once</a><a href="#future">What is missing</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -290,6 +290,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>A word with no visible rule</h2>
 <p>Stop the simulator whenever the head reaches a new cell at the left end of the tape. It is then always in state C, and the tape reads <code>C&gt;0 0^2 1 0 (1^2 0)^m V</code>: a run of m blocks <code>1^2 0</code>, and then a long word V built from the three tokens <code>1 0</code>, <code>1^2 0</code> and <code>0^3 1</code>. Within twelve steps the head moves out two more cells and goes back right; three cells are added each time.</p><p>Unlike the counters of its neighbours in this group, the prefix does not simply grow: m went up and down 14 times in the first 10<sup>11</sup> steps, and V changes along its whole length between extensions. The moments of the last seven extensions are 1.5, 3.2, 8.1, 23, 36, 43 and 65 billion steps. Their ratios range from 1.2 to 2.8, so this is not a binary counter.</p>
 </section>
+<section id="radix">
+  <span class="eyebrow">Structure</span>
+  <h2>Counting in two bases at once</h2>
+<p>Cut the tape into words of the form 1s followed by 0s. Four kinds occur: <code>10</code>, <code>110</code>, <code>1000</code> and <code>11000</code>. Now run the machine from one extension of the left end to the next (19 million steps around step 2.3&middot;10<sup>8</sup>) and count how often the head crosses the left edge of each word, going right.</p>
+<p>From the left end the counts are 0, 2, 12, 44, 142, 430, 1,294, 3,645, 10,935, 32,805, 98,415: each <code>110</code> word is crossed three times as often as the one before it. Then they halve over a few <code>10</code> and <code>1000</code> words (29,524, 14,762, 7,381), jump by 5/2, triple again over the next block of <code>110</code> words up to 498,285, and from there halve, with a few more jumps, down to 1 at the right end.</p>
+<p>That is the visit pattern of a counter: a digit of base b is passed b times as rarely as the digit before it. Here the digits <code>110</code> have base 3 and the pairs of <code>10</code> / <code>1000</code> base 2, the busiest place is in the middle, and counting goes outwards in both directions. The left end grows by three cells when the base-3 block at the left end overflows.</p>
+<p>What is missing is the rule at the junctions, where the counts change by 5/2, 3/10 or 3/5 rather than by a whole base: there the words of one kind become the other, which is why the extensions come at irregular times (ratios 1.2 to 2.8).</p>
+</section>
 <section id="future">
   <span class="eyebrow">Why it is open</span>
   <h2>What is missing</h2>
@@ -307,7 +315,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -322,14 +330,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 262 cells visited (203 left of the start, 59 right), 115 ones at the end.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun ... records</code></div></div><div><b>The left end grows three cells at a time</b><p>All 61 moments in the first 10<sup>11</sup> steps when the head, in state C, reaches a new cell at the left end have the shape <code>C&gt;0 0^2 1 0 (1^2 0)^m V</code>, with V made of <code>1 0</code>, <code>1^2 0</code> and <code>0^3 1</code>; each is followed within 12 steps by two more new cells. m is not monotone: it fell 14 times, the last time at step 35,830,421,385 (from 18 to 16).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the records of the 10<sup>11</sup>-step run</div></div><div><b>Irregular, roughly geometric growth</b><p>The left end moved at steps 1.5&middot;10<sup>9</sup>, 3.2&middot;10<sup>9</sup>, 8.1&middot;10<sup>9</sup>, 2.3&middot;10<sup>10</sup>, 3.6&middot;10<sup>10</sup>, 4.3&middot;10<sup>10</sup> and 6.5&middot;10<sup>10</sup>; the ratios range from 1.2 to 2.8. The width grows like the logarithm of the step count (236 cells at 10<sup>9</sup> steps, 262 at 10<sup>11</sup>).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The structure, and the question itself</b><p>Not known: what the word V encodes, what decides when the left end moves, and whether the machine halts (it halts only in state F reading a 1).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 py/visits.py 230340600 249136500</code>, output in <code>py/visits_2.3e8.txt</code></div></div><div><b>A mixed-radix counter of words</b><p>Between the left extensions at steps 230,340,555 and 249,136,554, the head crosses the left edge of each word (as the tape stands at the start) rightwards: 3,645, 10,935, 32,805, 98,415 times for four consecutive <code>110</code> words (ratio 3.000), then 29,524 and 14,762 and 7,381 over the next binary words (ratio 1/2 per pair), then &times;5/2 into the next <code>110</code> block, 18,455, 55,365, 166,095, 498,285 (ratio 3), then 149,485, 74,743, &hellip; and down by halves to 1 at the right end. The junction factors are 0.300, 2.500, 0.600 (to 3 decimals). So the tape counts in base 3 to the left and base 2 to the right of its busiest word; the left end grows when the base-3 block next to it overflows.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">turn histogram (<code>bbtools.explore turns</code>)</div></div><div><b>The left prefix is a base-3 block</b><p>In the stretch from step 3,083,613 to 3,258,424 the head turns at cells 5, 8, 11, 14, 17, 20 (from the left end) 25, 75, 225, 675, 2,025, 6,075 times: exactly three times as often per three cells.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The rule, and the question itself</b><p>Not known: how the junctions move (which turns digits of one base into the other), hence when the left end next grows, and whether the machine halts (it halts only in state F reading a 1).</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---/lean/check.sh
-gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB--- 100000000000 records 100000</code></pre>
+gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB--- 100000000000 records 100000
+python3 holdouts/1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---/py/visits.py 230340600 249136500</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LD_1LC0RD_0LA0RB_0LE1LF_1RF0LC_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

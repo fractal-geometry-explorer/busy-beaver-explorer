@@ -13,34 +13,59 @@ bbchallenge id 158007. One of the six-state holdouts whose halting from blank ta
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C (`tools/c/tmrun.c`): no halt in 1,000,000,000 steps.
+Open. Proved in Lean (the same development as for the twin `1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD`, generated for this table):
+
+- the halting configurations (`step_none_iff`, `lean/Blank.lean`); no halt in 10,000 steps by the kernel and in
+  10^7 by `native_decide`;
+- the token model: the eight rewriting rules (`lean/Rules.lean`, from `../1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/py/rules.py twin`) and the map
+  `next` with `next_sound` (`lean/Tokens.lean`), with the head in state A (the twin's D);
+- the checked accelerated simulator `stepH` with `halts_iff` (`lean/Sim.lean`) and `no_halt_2e9`, no halt in 2·10^9
+  steps (`lean/Run.lean`, `native_decide`).
+
+Not proved: the resets, the epochs, and the relation to the twin (observed, below). A proof for the twin does not
+transfer by itself: the two runs are different runs of one table, and they differ at the right end of the tape,
+which is exactly where the resets happen.
 
 ## What it does
 
 The table is that of `1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD` with states renamed (here A, B, C, D = there D, A, B, C), so the start state differs.
-The runs fall into step: at every time this machine is at the left end in state A, its tape equals the twin's tape
-77 steps later (state D at the left end), except for the last two cells (at step 553,148,029 this one ends
-`...1 0 1 0 1`, the twin at 553,148,106 ends `...1 0 1 0 1^3`). See the twin's README for the counter: digits as
-`00`/`11` pairs, overflows `A>0 0 1^(2n+1) -> A>0 0 1^(2n+3)` doubling in time, a marker walking right one `10` per
-overflow, epoch restarts (here at steps 8, 37, 206, 809, 3,782, 17,297, 22,706,588 and 81,579,887;
-`python3 holdouts/1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/py/digits.py 100000000 twin` prints the digit strings).
+Everything in the twin's README ("What it does") holds here with A for D: the same token frames and rules, the same
+binary counter in the left word, overflows whose gaps follow `D(n+1) = 2D(n) + 34` / `2D(n) - 14`, the marker walking
+along the track of 0s, and epochs ended by resets.
+
+**The relation to the twin.** From step 22.7·10^6 on, every token frame of this machine is phi of the twin's frame
+at the same position in the run, where phi replaces the last two tokens `1 0` of the right word by `0` (the twin's
+tape ends `...1 0 1^3`, this one's `...1 0 1`). So this machine's resets happen at `L | 1 0` where the twin's happen at
+`L | 1 1 0`, and they produce phi of the twin's frame. This machine reaches each frame 67 steps before the twin reaches the corresponding
+one in the epoch from 22.7·10^6, 77 in the next, 87 in the one after (each reset is 10 steps shorter here).
+Checked frame by frame (`../1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/py/twin.py`) over 3·10^6 frames across the reset at step 81.58·10^6, and at the
+next two epoch starts by the epoch extrapolation (`../1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/py/epochs.py run N twin`).
+
+Epochs here: restarts at steps 8, 37, 206, 809, 3,782, 17,297, 22,706,588 and 81,579,887; the next predicted by the
+extrapolation (heuristic) at step 3,219,517,448,110.
 
 Halting: only F0; F is entered only from E1 (`1RF`), 9,523,774 times in 10^8 steps, always onto a 1.
 
-## Later
+## How far it was run
 
-- Run-length frame map (`py/frames.py`, `lean/Pieces.lean`, `lean/Cases.lean`, `lean/Frames.lean`): frames
-  are the two sides of the head as lists of runs; 68 cases, each proved by a symbolic run for all parameters
-  and all lists, so the frame map is sound (`rlNext_sound`); the run from blank tape reaches its first frame and
-  the first 100,000 frames exist (`native_decide`). Open: that the table is defined on every frame the machine reaches.
-  That needs an invariant of the run lists closed under the table; `NGramClosure` in `bbtools.listframe` (n-grams
-  of runs, lengths cut at 4) did not close for 1RB0RC_1LC0RE with n = 3 (the over-approximation reaches a frame
-  that halts) and ran out of time with n = 4.
-- Frame maps with scalar parameters (the method of 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC) do not close here:
-  `py/shapes.py 1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA 10000000 7` finds 455,393 distinct tape shapes at head turns in 10^7 steps, growing tenfold
-  per decade (32 for that machine). A proof needs frames with a list parameter (the counter's digit word), and
-  Lean pieces that act on the word by induction.
-- Any proof for the twin should carry over; the different right end needs checking.
+- Lean: 10^7 steps (`native_decide`), 2·10^9 (`no_halt_2e9`, checked token simulator).
+- C, cell by cell: 10^9 steps; C token model (`../1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD/c/toksim.c twin`): 10^11 steps without a halt, every overflow gap of the epoch from 81,579,887 following the twin's law.
+- Epoch extrapolation (heuristic): to step 3.2·10^12, the end of the second long epoch, in step with the twin.
+
+## Open questions
+
+- Everything open for the twin (the reset and the overflow law as theorems).
+- The transfer: prove that phi commutes with the token rules (they read only the start of the right word, so this
+  is local) and with the resets (`L | 1 1 0` against `L | 1 0` for every left word that occurs); then this machine
+  halts iff the twin does.
+
+## Earlier approaches
+
+- Run-length frame map (`py/frames.py`, `lean/Pieces.lean`, `lean/Cases.lean`, `lean/Frames.lean`): 68 cases,
+  each proved for all parameters and lists (`rlNext_sound`); the first 100,000 frames from blank tape exist
+  (`native_decide`). Open: that the table is defined on every frame reached.
+- Frame maps with scalar parameters do not close: `py/shapes.py` finds 455,393 distinct tape shapes at head turns in
+  10^7 steps.
 
 ## First look
 

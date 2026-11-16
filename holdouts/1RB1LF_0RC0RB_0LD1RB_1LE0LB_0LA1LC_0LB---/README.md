@@ -1,7 +1,8 @@
 # 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---
 
-bbchallenge id 57056. One of the six-state holdouts whose halting from blank tape is open. Family: Counter with words 1 0 / 1 1 0 0 / 1 0^3 (exp/exp; structure not yet found).
-
+bbchallenge id 57056, group G12. One of the six-state holdouts whose halting from blank tape is open. Family: two
+binary counters fed by alternating ticks, with borrows moving words between two runs (exp/exp; phase changes not
+modelled).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -12,51 +13,82 @@ bbchallenge id 57056. One of the six-state holdouts whose halting from blank tap
 | E | 0LA | 1LC |
 | F | 0LB | --- |
 
-## What it does (first look)
+## What it does
 
-At the left end the tape reads `F>0 1 0 1 0 ... 1 0 1^2 0^2 1^2 0 1^2 0^2 1^2 0 1 0 1 0 ...`: a stretch `(1 0)^n` followed by the words `1 1 0`, `1 1 0 0` and `1 0`. On the right the tape is single 1s separated by one, two or three 0s.
+Words: a = `1100`, b = `110`, c = `10` (read longest first). Each time the head is in F on the leftmost visited
+cell (a *left-end visit*), the tape right of it reads
 
-The head reaches new cells on the left in groups of four (states F, B, E, A). Between 8·10^7 and 1.9·10^8 steps the stretch `(1 0)^n` goes from 34 words to 39 and then falls back to 34: something at its right end consumes it, like a carry.
+    F>0  c^s  H  X_1 bb X_2 bb ... bb X_w  b^m  cc0  b^j
 
-## What is established
+* `c^s` is the **left counter**, here at 0. Its digits are four cells, `1010` = 0 and `1000` = 1, least significant
+  on the right, followed by `1 0`; the head comes back to it in E on the 0 after that `1`. Lean proves both of its
+  rules for every length n and every tape L, R around it (`lean/Counter.lean`):
+  * `incr`: `L 1010 (1000)^n 1 E>0 R` → `L 1000 (1010)^n 1 0 C> R` in 10n + 7 steps;
+  * `overflow`: `0^inf (1000)^n 1 E>0 R` → `0^inf (1010)^(n+1) 1 0 C> R` in 10n + 13 steps (the head visits a new
+    cell on the left in state F: this is the left-end visit).
+* H is a short header: `ab` most of the time, `ababcc` or `abccbcc` after a phase change.
+* `X_1 .. X_w` is the **right counter**: digit a = 1, cc = 0, X_1 least significant; v its value.
+* `b^m` and `b^j` are two **piles** of b, separated by the marker `cc0`. Nothing is written right of `b^j`.
 
-**Proved in Lean, kernel only:** the halting configurations (`step_none_iff`, `lean/Blank.lean`); no halt in 10,000 steps.
+**A round** runs from one left-end visit to the next. The left counter runs through all its 2^(s/2) values; between
+two of its increments the head goes right once and decrements the right counter; each borrow of the right counter
+(0 → 2^w − 1) moves one b from the first pile to the second; at the end the left counter overflows and is one digit
+longer. In the round from step 4,982 to 7,434 (s = 10) the head turns 64 times at the low end of the left counter:
+32 increments (turn counts 32, 16, 8, 4, 2 at its digits) and 32 trips to the right counter (3 digits, 4 borrows).
 
-**Proved in Lean with `native_decide`:** no halt in 10^7 steps.
+**Round law.** With D = 2^(s/2) and t = (D − v − 1) div 2^w + 1 (the borrows of D decrements from v):
 
-**Computed** (trusted):
+    m ≥ t (and m > t if H ≠ ab):   (s, H, v, m, j)  →  (s + 2, H, v − D mod 2^w, m − t, j + t)
 
-- No halt in the first 10^10 steps: The C simulator `tools/c/tmrun.c` runs 10^10 steps from blank tape without a halt; at the end the tape holds 255 ones. (`tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000`)
-- No halt in the first 10^9 steps: The C simulator `tools/c/triage.c` runs 10^9 steps without a halt; at the end 394 cells have been visited and 225 of them hold a 1. (`holdouts/triage.json`)
-- Where a halt can be: A closed tape language of windows of 5 cells (`tools/py/bbtools/ctl.py`, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have F reading a 1 with `F>1 1 1 0 1 0`. (`python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5`)
+All 39 regular rounds from step 1,756 to 10^10 follow it exactly (`py/round_law.py`, output
+`py/round_law_1e10.txt`). Within a phase D is a multiple of 2^w, so v stays and t doubles each round: this is the
+doubling map (m, j) → (m − j − k, 2j + k) found before (`py/phase_check.py`, k = t − j).
 
-- A doubling map at the left end: at the left-end visits in state F the tape right of the head reads, in words
-  a = `1100`, b = `110`, c = `10`, `c^s MID b^m c c 0 b^j`. Between consecutive visits with the same MID, s grows
-  by 2 and (m, j) → (m - j - k, 2j + k), k constant in the phase (m + j conserved, j doubling), e.g. (33, 1) → (29, 5)
-  → (21, 13) → (5, 29) with k = 3. All 39 transitions from step 1,158 to 5·10^9 (24 phases, k from 1 to 23) follow it;
-  only the first one (step 636) does not. A phase ends when m is too small, and MID changes like a counter digit.
-  (`tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5000000000 at F L 5000 | python3 py/phase_check.py`, output `py/phase_check_5e9.txt`)
+**Phase changes.** When m < t the round ends differently (24 times up to 10^10 steps). From H = `ab` the left
+counter comes back two digits shorter (s − 4) and the header becomes `ababcc` or `abccbcc` (four times it stays `ab`,
+with m + j growing by 4); from those headers the next visit has s + 2, header `ab`, w + 1 digits and m + j + 1. The
+new digits X and the new piles are not yet predicted. Example: (s, H, X, m, j) = (36, ab, 1111111101100, 5, 29) at
+step 72,347,964 → (32, ababcc, 1111110010001, 31, 4) at step 77,767,580.
 
-**Heuristic:**
+## Status
 
-- Growth shape: exp/exp: Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a *counter* or of a Collatz-like map whose values are written on the tape (fitted exponent 0.093). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a *counter* or of a Collatz-like map whose values are written on the tape (fitted exponent 0.087).
-- The stretch at the left: At the left records between 8·10^7 and 1.9·10^8 steps the left end reads `F>0 (1 0)^n 1^2 0^2 1^2 0 ...` with n going 34, 35, ..., 39, then back to 34 and up again: the stretch grows one word per record and is periodically consumed.
+Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps, the two
+rules of the left counter (`incr`, `overflow`, `lean/Counter.lean`). Proved with `native_decide`: no halt in 10^7
+steps. Computed (trusted): no halt in 10^10 steps; the round law on all 39 regular rounds to 10^10; a closed tape
+language of 5-cell windows confines a halt to `F>1 1 1 0 1 0`.
 
-**Open:** whether it halts. The rules for MID and k from phase to phase, and a proof of the phase step, are not known.
+## How far it was run
 
-## For later
+Direct simulation (`tools/c/tmrun.c`) to 10^10 steps (68 left-end visits, 39 regular rounds, 24 phase changes; at
+step 6,779,924,480 the configuration is s = 46, w = 19, v = 444116, m = 38, j = 12, H = `ab`). The round law alone
+takes the run one round further, to s = 48, m = 22, j = 28 (t = 16); the round after needs t = 32 > m and is a phase
+change. There is no
+accelerated run past phase changes, since their rule is missing and each round costs about 2^(s/2) ticks.
 
-The doubling map at the left end (see above) is the place to start: find how MID and k change from one phase to the
-next, prove the phase step with `bbtools.symtm` (with m, j and s as variables), and look for the inner counter that
-makes the time between visits double.
+## Open questions
 
-Not known: the counter's digits and carry rule, and whether `F>1 1 1 0 1 0` can arise. Tools that should help: `tools/py/bbtools/explore.py` (`events`, `tokens`), `bbtools.macro`, and for proved rules `bbtools.symtm.prove`.
+* The phase-change map: the new right-counter digits and piles from (s, H, X, m, j) when m < t. A fit
+  v' = 2^w + 3 − r mod 2^(w+1), with r the decrements left after the failed borrow, matches three of the seven
+  `ababcc`/`abccbcc` → `ab` changes, is off by one in three and does not apply to the seventh (there m = t), so the
+  rule is close to but not that.
+* With that map, a `halts_iff` reduction to an arithmetic system in (s, H, v, w, m, j) and a run over many phases.
+* Whether a phase change can ever produce `F>1 1 1 0 1 0` (the only possible halt).
+
+## Layout
+
+| path | what it is |
+|---|---|
+| `lean/Machine.lean`, `lean/Blank.lean` | the machine, the halting configurations and bounded runs (generated) |
+| `lean/Counter.lean` | the increment and overflow rules of the left counter (generated by `py/gen_counter.py`) |
+| `py/round_law.py`, `py/round_law_1e10.txt` | the round law checked at every left-end visit to 10^10 steps, and the phase changes |
+| `py/phase_check.py`, `py/phase_check_5e9.txt` | the earlier check of the doubling map (m, j) → (m − j − k, 2j + k) |
 
 ## Check
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/lean/check.sh
-gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000
+gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 10000000000 at F L 5000 > fl.txt
+python3 holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/py/round_law.py fl.txt
 cd tools/py && python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5
 ```
 

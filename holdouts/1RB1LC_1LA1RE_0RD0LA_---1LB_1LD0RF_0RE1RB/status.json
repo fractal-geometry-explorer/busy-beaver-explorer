@@ -11,11 +11,11 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "Its run is a binary counter on the left, whose overflows come at doubling times, and a word of binary digits on the right through which each overflow moves a marker one block; when the marker reaches the end of the tape the word is rebuilt longer and the counter starts again."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
-  "<b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow while the step count doubles, and a marker block <code>1^11</code> moves one block right through the periodic end <code>(1^5 0)^m</code> of W. When it reaches the end, W is rebuilt longer (at steps 17,682,600, 5,745,422,543 and 49,800,461,566).",
-  "<b>Why it is hard.</b> A halt can only come out of a restructure; similar configurations with random words halt quickly, so the run is kept safe by the particular words it writes, and nobody has worked out the restructure rule."
+  "<b>What it does.</b> At each overflow of its left counter the tape is <code>C&gt;0 (1 0)^z W</code>. Every shuttle of the head adds one to the z-digit counter L on the left and one to a binary counter R whose bits sit in fixed slots of W; when L overflows (z grows by one) R has gained 2<sup>z</sup>, and W changes by exactly one binary carry starting at slot z. Late in an epoch that carry moves a marker bit one block right per overflow, with gaps obeying D' = 2D + 2 exactly. When R overflows the word is rebuilt (steps 17,682,600, 5,745,422,543, 49,800,461,566).",
+  "<b>Why it is hard.</b> The counter laws are seen in the run and in runs from constructed tapes but not yet proved (one tick is a sweep of hundreds of steps); a halt can only come out of a restructure, which is set off by R's overflow and copies L into the new word, and its rule has not been worked out."
  ],
  "claims": [
   {
@@ -50,20 +50,38 @@
   },
   {
    "level": "heuristic",
-   "title": "A binary counter and a moving marker",
-   "text": "Within an epoch the step counts of successive overflows double, and the block <code>1^11</code> in the periodic tail <code>(1^5 0)^m</code> moves one block right per overflow.",
-   "where": "the records of the 10<sup>11</sup>-step run"
-  },
-  {
-   "level": "heuristic",
    "title": "Random words of the same shape halt",
    "text": "Started from <code>C&gt;0 (1 0)^z W</code> with random short words W, the machine often halts within a hundred steps (in state D reading the 0 next to the last cell), so non-halting is a property of the words the run writes, not of the shape.",
    "where": "experiments with a direct simulator started from given tapes"
   },
   {
+   "level": "trusted",
+   "title": "The overflow law: one binary carry per overflow",
+   "text": "For consecutive overflow events (z, W) and (z + 1, W') of the run, W' differs from W by one binary carry (digits p<sub>1</sub> &lt; &hellip; &lt; p<sub>k</sub>, 1 &rarr; 0 at all but the last, 0 &rarr; 1 at the last) at 55 of the 106 pairs up to 2&middot;10<sup>9</sup> steps (96 of 162 up to 5&middot;10<sup>10</sup>); the other pairs are restructures and their aftermath. Re-running one event (step 17,857,444) with every z from 0 to 16 shows the carry always starts at a fixed slot for z (slots 2, 5, 8, 11, 18, 21, 24, &hellip;, 3 digits apart with a few separators): W holds a binary number R and an overflow at length z adds 2<sup>z</sup>.",
+   "where": "<code>py/overflows.py check</code>, <code>py/overflows.py slots</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The marker and the doubling gaps",
+   "text": "Late in an epoch W = P <code>111110 (110)^b 111</code> in digits (the marker is the single 1 bit of R's high part, cells <code>1^11 0</code>); each overflow gives P <code>110 111110 (110)^(b-1) 111</code>, and the gap D between overflows becomes exactly 2D + 2: 26 such moves and 23 consecutive pairs, all as predicted, in the first 5&middot;10<sup>10</sup> steps.",
+   "where": "<code>py/overflows.py check</code> on <code>tmrun ... at C L</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two counters on one clock",
+   "text": "Between overflows the head shuttles around a point near the start of W; the turning points left of it follow the ruler sequence of a binary counter (L, digits as cell pairs <code>0 0</code>/<code>1 1</code>) and those right of it the ruler sequence of a second one (R, the slots of W). The overflow law is what this predicts.",
+   "where": "turning points of the head between steps 17,857,444 and 18,032,242"
+  },
+  {
+   "level": "trusted",
+   "title": "Restructures are set off by R",
+   "text": "From the event at step 9,008,202, re-run with z = 5..13, R overflows before L and the next event is a restructure after 3,441,111 to 3,453,981 steps, about the same for every z; what it writes depends on z (the digits of L are copied into the new word).",
+   "where": "<code>py/overflows.py slots EVENTS 9008202 0 14</code>"
+  },
+  {
    "level": "open",
    "title": "The restructures, and the question itself",
-   "text": "Not known: the rule that maps one epoch to the next, why the run's words never lead to the halting configuration, and whether the machine halts.",
+   "text": "Not known: the tick of the two counters as proved shift rules (so the overflow law for all z is not a theorem), the rule of a restructure as a function of (z, L, W), why the run's words never lead to the halting configuration, and whether the machine halts.",
    "where": ""
   }
  ],
@@ -73,7 +91,7 @@
   "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB 100000000000 records 100000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. A binary counter moves a marker through a word one block per overflow, and the word is rebuilt whenever the marker reaches its end. This page runs the real machine in your browser and lists what is known.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping. Two binary counters tick together; each overflow of the left one adds a power of two to the right one, which shows up as a marker moving through a word, and when the right one overflows the word is rebuilt. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
     "level": "trusted",
@@ -86,9 +104,9 @@
     "text": "Restructures at 1.8&middot;10<sup>7</sup>, 5.7&middot;10<sup>9</sup> and 5.0&middot;10<sup>10</sup> steps."
    },
    {
-    "level": "heuristic",
-    "value": "&times;2",
-    "text": "The step counts of successive counter overflows double."
+    "level": "trusted",
+    "value": "+2<sup>z</sup>",
+    "text": "Each overflow of the left counter adds 2<sup>z</sup> to the number in the word: one binary carry."
    }
   ],
   "presets": [
@@ -109,11 +127,83 @@
     ]
    },
    {
+    "id": "counters",
+    "eyebrow": "The mechanism",
+    "heading": "Two counters on one clock",
+    "html": [
+     "<p>Between two overflow events the head does not visit the left end. It shuttles back and forth around a point near the start of W, and each shuttle (a <b>tick</b>) does two things. On its left it adds one to a binary counter L: the z zero digits of the prefix, written while counting in pairs of cells <code>0 0</code> and <code>1 1</code>, lowest digit next to W. On its right it adds one to a second binary counter R whose bits live inside W. You can see both in where the head turns: left of the point the turning places follow the ruler sequence 1, 2, 1, 3, 1, 2, 1, 4, &hellip; of L, and right of it the ruler sequence of R.</p><p>An overflow event is the moment L has counted all 2<sup>z</sup> of its values: it is reset, and one digit longer. In those 2<sup>z</sup> ticks R has gained exactly 2<sup>z</sup>. That is easy to test: take one event, change only z, and run to the next event. The word changes by one binary carry, and where the carry starts depends only on z:</p><pre>event at step 17,857,444, W in digits:\n    11111011111101101111101111111111100011011111000111111111111110110110&hellip;\n z=6 ........................0..0..0..1..................................\n z=7 ...........................0..0..1..................................\n z=9 .................................1..................................\n z=10 ............................................1.......................\n z=12 ..........................................................0..1.......\n z=14 ................................................................1....</pre><p>So R's bits sit in fixed <b>slots</b> of W, mostly three digits apart (<code>1 1 b</code>), with a few separating stretches, and an overflow at length z adds 2<sup>z</sup> to R. The bits of R below z never change again in the epoch: they are frozen at whatever the start of the epoch left there.</p>"
+    ],
+    "stepper": {
+     "tape": "C>0 (1 0)^{z} P 111110 (110)^{b} 111   (W in digits)",
+     "vars": [
+      {
+       "name": "z",
+       "label": "left counter length z",
+       "start": "13"
+      },
+      {
+       "name": "b",
+       "label": "blocks between marker and end b",
+       "start": "11"
+      },
+      {
+       "name": "D",
+       "label": "gap D to the previous overflow",
+       "start": "174798"
+      }
+     ],
+     "counters": [
+      {
+       "name": "t",
+       "label": "step",
+       "start": "18032242"
+      }
+     ],
+     "rules": [
+      {
+       "name": "One overflow of L (marker moves one block)",
+       "level": "trusted",
+       "text": "z grows by one, the marker moves one block right, and the gap becomes 2D + 2; checked at every marker move in the first 5&middot;10<sup>10</sup> steps, not proved.",
+       "guard": [
+        {
+         "form": {
+          "b": 1,
+          "_": -1
+         },
+         "text": "b &ge; 1"
+        }
+       ],
+       "set": {
+        "z": {
+         "z": 1,
+         "_": 1
+        },
+        "b": {
+         "b": 1,
+         "_": -1
+        },
+        "D": {
+         "D": 2,
+         "_": 2
+        }
+       },
+       "add": {
+        "t": {
+         "D": 2,
+         "_": 2
+        }
+       }
+      }
+     ],
+     "note": "Starts from the event at step 18,032,242 of the run from blank tape. Eleven applications reach b = 0 at step 733,663,420, as in the run; the marker then merges with the end of the word, and the next restructure of the run came at step 5,745,422,543. The stepper only does the arithmetic of the rule."
+    }
+   },
+   {
     "id": "restructure",
     "eyebrow": "Why it is open",
     "heading": "Restructures",
     "html": [
-     "<p>When the marker reaches the end of the tape the word is rebuilt longer and z starts again from 1: a <b>restructure</b>. In the first 10<sup>11</sup> steps the last restructures came at steps 17,682,600 (W then has 102 digits), 5,745,422,543 (131 digits) and 49,800,461,566 (163 digits); at step 96,162,430,390 the run is at z = 30 with 192 digits and the marker a few blocks from the end, so the next restructure should come at a few times 10<sup>11</sup> steps. Each epoch lasts about as many doublings as there are blocks in the periodic tail, so the epochs grow roughly geometrically, by a factor of 8 in the last two.</p><p>The machine halts only in state D reading a 0. Started from configurations of the same shape with random words, it often halts within a hundred steps with <code>D&gt;0 1</code> at the right end of the tape. The run never meets such words: what it writes at a restructure is special, and what makes it safe has not been worked out. A halt, if there is one, would come out of a restructure.</p>"
+     "<p>When R overflows, the marker having reached the end of the tape, the word is rebuilt longer and z starts again from 1: a <b>restructure</b>. It is set off by R, not by L: re-running one late event with different z, the restructure comes after the same number of steps for every z large enough, but what it writes depends on z, since the digits of L at that moment are copied into the new word. In the first 10<sup>11</sup> steps the last restructures came at steps 17,682,600 (W then has 102 digits), 5,745,422,543 (131 digits) and 49,800,461,566 (163 digits); at step 96,162,430,390 the run is at z = 30 with 192 digits.</p><p>The machine halts only in state D reading a 0. Started from configurations of the same shape with random words, it often halts within a hundred steps with <code>D&gt;0 1</code> at the right end of the tape. The run never meets such words: what it writes at a restructure is special, and what makes it safe has not been worked out. A halt, if there is one, would come out of a restructure.</p>"
     ]
    },
    {
@@ -131,5 +221,5 @@
   ]
  },
  "family": "binary counter moving a marker through a word",
- "summary": "A binary counter on the left whose overflows move a marker block through the periodic end of a word; when the marker reaches the end the word is rebuilt longer (epochs of 5.7e9 and 4.4e10 steps). Open, no halt in 10^11 steps."
+ "summary": "Two binary counters fed by one clock: L (the z zero digits at the left) and R (bits in fixed slots of the word W); each overflow of L adds 2^z to R, a single carry in W, so late in an epoch a marker bit moves one block per doubling until R overflows and the word is rebuilt. Open, no halt in 10^11 steps."
 }

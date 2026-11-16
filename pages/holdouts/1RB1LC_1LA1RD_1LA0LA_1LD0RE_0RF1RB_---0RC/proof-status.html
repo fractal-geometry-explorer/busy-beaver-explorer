@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p>Its run is a counter of the Fibonacci kind on the left, whose overflows come at times growing by the golden ratio, and a word of binary digits on the right that the counter's carries rewrite; at rare restructures the word is rebuilt longer. Lean proves that a halt can only happen at the right edge.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 16 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -150,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Every time C is at the left end on <code>0 1 0</code>, the tape from the head on is <code>(1 0)^z</code> followed by odd blocks of 1s separated by single 0s (a string of binary digits read in pairs). In the first 10<sup>11</sup> steps z rises by one from each such moment to the next, except at 11 restructures where it falls back to 1 (the first such moment is at step 40): steps 105, 184, 529, 660, 3,423, 13,944, 149,177, 370,694, 1,993,257, 442,705,820 and 75,515,153,373.</p>
         <p class="where"><code>tmrun ... records</code>, read in pairs of cells</p>
       </div>
+      <div class="card">
+        <h3>The change of one overflow depends only on z, at fixed places</h3>
+        <p>Re-running the event at step 2,554,963 with z = 0..21 in place of its z = 16, the next event has W changed in a few digits at places fixed by z and moving right as z grows (positions 2, 19, 22, 25, &hellip;), after 1,760, 2,648, 4,374, 7,384, &hellip;, 2,381,024, 3,852,470 steps for z = 5..21 (ratio 1.6180 at the end). In the run to 3&middot;10<sup>9</sup> steps, 26 of the 132 regular pairs of events are a single binary carry and 106 other local rewrites.</p>
+        <p class="where"><code>py/overflows.py slots</code>, <code>py/overflows.py check</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -157,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A Fibonacci counter</h3>
         <p>Within an epoch the ratio of successive overflow times tends to 1.618 (1.534, 1.583, 1.604, 1.609 at z = 37, 39, 41, 42): the counter has Fibonacci-many states per digit count.</p>
         <p class="where">the records of the 10<sup>11</sup>-step run</p>
+      </div>
+      <div class="card">
+        <h3>Two counters on one clock, Fibonacci style</h3>
+        <p>The same mechanism as the binary sibling 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB: a counter of z digits on the left and a number in slots of W advanced together, an overflow adding a Fibonacci-sized amount to W; the numeration of the slots is not pinned down.</p>
+        <p class="where">comparison with the sibling's slot experiment</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
