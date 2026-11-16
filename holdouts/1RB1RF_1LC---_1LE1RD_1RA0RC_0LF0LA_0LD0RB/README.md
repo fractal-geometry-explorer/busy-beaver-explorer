@@ -105,7 +105,7 @@ The failed doubling is the same loop running out of pairs.
 ## Status
 
 Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
-the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel): the drain, how a halt happens.
+the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel): the drain, how a halt happens. Lean (`lean/MapRules.lean`, kernel, 21 theorems from `py/maprules.py`): every row of the left-end map and one turn `qstep` of the doubling loop, for all counts; the loop induction and the gluing into the map are not written yet.
 C (`tools/c/triage.c`): no halt in 1,000,000,000 steps. Python: no halt in 10^300 steps of the machine
 (`py/run.py`, extrapolated cycles, checked against plain simulation up to 3·10^8), and in 8,598 epochs of the
 left-end map (`py/orbit.py`, more than 10^3,100 steps), the map being checked against the plain machine but not

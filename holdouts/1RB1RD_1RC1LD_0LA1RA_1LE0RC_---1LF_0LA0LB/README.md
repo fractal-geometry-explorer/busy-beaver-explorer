@@ -92,7 +92,7 @@ case with `symtm.prove`.
 ## Status
 
 Open. Lean: the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel and in 10,000,000
-by `native_decide` (`lean/Blank.lean`); the two sweeps and the twelve-trip engine cycle for all lengths (`lean/Rules.lean`). C
+by `native_decide` (`lean/Blank.lean`); the two sweeps and the twelve-trip engine cycle for all lengths (`lean/Rules.lean`). Lean (`lean/Twin.lean`, kernel): renaming the states A→C, B→A, C→B turns this table into the table of 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA, so this machine halts from blank tape exactly when that one halts from blank tape started in state C (`twin`); the two blank-tape runs differ, so this decides neither. C
 (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 
 ## Pages
