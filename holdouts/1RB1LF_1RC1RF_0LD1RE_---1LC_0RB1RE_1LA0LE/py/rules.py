@@ -65,6 +65,26 @@ RULES = [
      'An odd pool `1^3` next to the bracket `1^2 0 (10)^c`: the bracket joins the middle block.'),
     ('halt_run', '0^inf 1 0 (10)^n B> 0^inf', '0^inf D> 0 0 1 0 1 (01)^n 0 0^inf',
      '`T(none, 1, n)` runs into the undefined transition (D reading 0).'),
+    # canonical forms for the assembly (lean/Map.lean)
+    ('c_start1', 'L 1 1 0 1 0 B> 0^inf', 'L 1 1 0 A> 1 1 1 0^inf', '`T(a, 1)` to the round state with w = 1.'),
+    ('c_start0', 'L 1 1 0 B> 0^inf', 'L 1 1 0 A> 1 1 0^inf', '`T(a, 0)` to the round state with w = 0.'),
+    ('c_round_last', 'L 1 1 1 0 A> 1 (11)^n 0 1 0^inf', 'L 1 0 A> 1 1 1 1 1 (11)^n 0^inf', 'The round from w = 2 to w = 1.'),
+    ('c_round_w1', 'L 1 1 1 0 A> 1 (11)^n 0^inf', 'L 1 0 A> 1 1 1 (11)^n 1 0^inf', 'The round from w = 1 to w = 0.'),
+    ('c_carry_w3', 'L 0 1 1 0 A> 1 (11)^n 0 1 0 1 0^inf', 'L 0 1 1 1 1 (11)^n 0 A> 1 1 1 0^inf', 'A carry at w = 3.'),
+    ('c_carry_w2', 'L 0 1 1 0 A> 1 (11)^n 0 1 0^inf', 'L 0 1 1 1 1 (11)^n 0 A> 1 1 0^inf', 'A carry at w = 2.'),
+    ('c_bracket', '0^inf 1 0 A> 1 (11)^n 0 1 0 1 0 1 0 (10)^z 1 0^inf', '0^inf 1 1 0 (10)^n 1 0 1 1 0 A> 1 1 1 0 (10)^z 1 0^inf',
+     'A pool of 1 without bracket, w >= 5: the middle block becomes the bracket.'),
+    ('c_bracket_w4', '0^inf 1 0 A> 1 (11)^n 0 1 0 1 0 1 0^inf', '0^inf 1 1 0 (10)^n 1 0 1 1 0 A> 1 1 1 0^inf', 'The same at w = 4.'),
+    ('c_bracket_w3', '0^inf 1 0 A> 1 (11)^n 0 1 0 1 0^inf', '0^inf 1 1 0 (10)^n 1 0 1 1 0 A> 1 1 0^inf', 'The same at w = 3.'),
+    ('c_bracket_w2', '0^inf 1 0 A> 1 (11)^n 0 1 0^inf', '0^inf 1 1 0 (10)^n 1 0 1 1 0 B> 0^inf', 'The same at w = 2: the visit `T(n+1, 2, 0)`.'),
+    ('c_restart', '0^inf 1 0 A> 1 1 1 (11)^n 0^inf', '0^inf 1 1 0 A> 1 1 1 0 (10)^n 1 0^inf',
+     'A pool of 1 without bracket at w = 1: a fresh sweep with pool 2 and w = n + 2.'),
+    ('c_odd_w0', '0^inf 1 0 A> 1 (11)^n 1 0^inf', '0^inf (11)^n 1 1 1 1 1 1 1 0 B> 0^inf',
+     'A pool of 1 without bracket at w = 0: the odd pool `T(none, 2n+7, 0)`.'),
+    ('c_merge', '0^inf 1 1 0 (10)^c 1 1 1 0 A> 1 (11)^n 0 1 0 (10)^z 1 0^inf', '0^inf 1 1 0 A> 1 (11)^c 1 1 1 1 1 1 (11)^n 0 (10)^z 1 0^inf',
+     'A pool of 3 next to the bracket, w >= 3: the bracket joins the middle block.'),
+    ('c_merge_w2', '0^inf 1 1 0 (10)^c 1 1 1 0 A> 1 (11)^n 0 1 0^inf', '0^inf 1 1 0 A> 1 (11)^c 1 1 1 1 1 1 (11)^n 0^inf', 'The same at w = 2.'),
+    ('c_merge_w1', '0^inf 1 1 0 (10)^c 1 1 1 0 A> 1 (11)^n 0^inf', '0^inf 1 1 0 A> 1 (11)^c 1 1 1 1 (11)^n 1 0^inf', 'The same at w = 1.'),
 ]
 
 EXTRA = """/-- `T(none, 1, n) = 0^inf 1 0 (10)^n B> 0^inf` halts, for every n: the only halting visits of the right end. -/

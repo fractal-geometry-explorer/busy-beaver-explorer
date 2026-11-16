@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The two long passes of an excursion over the <code>11010</code> block are proved in Lean for every block length (kernel). In between, the head works on a counter whose digits and carry rule are not decoded yet. The C simulator runs 10<sup>11</sup> steps without a halt."
  ],
@@ -62,6 +62,24 @@
    "title": "Proposed family: F06, block-list counters",
    "text": "This machine has the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a mirror with the states renamed (<code>related.json</code>), started in another state. On the screen the two runs have the same numbers within a few cells at every record (for example 137,409 and 137,401 visited cells at 1.6&middot;10<sup>10</sup> steps, a block of 27,165 five-cell words in both and 32 copies of a 25-cell word in both). That is an observation at the sampled records, not a proof that the two runs correspond. The description does not grow during the present epoch: 117 to 147 level-2 tokens at the four right-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and 306 to 314 runs in the macro simulator (blocks of 5 cells) at 80 sampled right-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^k</code> grows. The counter in the wall, with its five free cells per 25-cell digit, is described above; the sister's page has the periods 8, 64 and 512 of its first digits and the one overflow seen so far (between steps 1.4&middot;10<sup>6</sup> and 4.5&middot;10<sup>6</sup> in the sister's run). A counter that is rebuilt when it overflows belongs with the counter families (F06), not with the bounded engines (F01).",
    "where": "the README, section &ldquo;Family screen&rdquo;"
+  },
+  {
+   "level": "kernel",
+   "title": "One halting question for two machines (the shifted runs)",
+   "text": "1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE mirrored, with the states renamed, started in state C. After 2 and 49 steps the two runs are at the same configuration, except that the second has the word <code>10001101</code> once more at the right end. Two tapes that differ only by k such words just right of a cell q, with blank tape beyond q in the first, make the same moves until the head moves right from q. In state B on a 1 the head crosses the k words and comes back with the same cells, for every k (<code>far_B</code>); q then moves two cells to the right. With the renaming and the mirror proved as well: <b>if</b> in the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost cell visited so far only in state B on a 1 (from step 2 on), then it halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does (<code>two_machines</code>). The condition is proved (next claim).",
+   "where": "<code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/Lockstep.lean</code>, generated part <code>lean/FarEnd.lean</code> (<code>py/farend.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The condition is proved: the right end grows only through <code>far_B</code>",
+   "text": "<code>Good30773</code> is a fact about the last four cells of the tape, q&minus;3 to q, and not about the rebuilds of the counter. Keep only those four cells and the state, and forget everything left of them: with the head inside the window, the state, the cells left of the head in the window and the cells from the head to q; with the head further left, the four cells only, and let the head come back in any state that a move right can produce (B, D, E or F). Starting from step 2 this over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the head is left of the window the last three cells read <code>101</code>). None of them moves right from q except in state B on a 1, and the set is closed under a step (<code>closed</code>, by <code>decide</code>). So the condition holds for every number of steps (<code>good30773</code>), and <b>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does</b> (<code>two_machines'</code>), with no condition.",
+   "where": "<code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/RightEnd.lean</code> (kernel only: <code>propext</code>, <code>Quot.sound</code>); the 32 configurations from <code>py/rightend.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The condition holds in the first 10<sup>11</sup> steps (now proved for all steps)",
+   "text": "In the first 10<sup>11</sup> steps of the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost visited cell 100 times, always in state B on a 1, and all before step 4.5&middot;10<sup>6</sup>, while the counter in the wall was rebuilt after its first overflows; afterwards the right end of the tape does not move. At 270,284 visits of the head to the left end in state C, the tape of the run from C is the tape of the run from A followed by <code>10001101</code>. Proving the condition needs the theory of the counter's rebuild.",
+   "where": "<code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code>"
   },
   {
    "level": "open",

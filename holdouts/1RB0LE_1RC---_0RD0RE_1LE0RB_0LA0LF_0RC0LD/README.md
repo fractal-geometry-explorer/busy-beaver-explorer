@@ -105,21 +105,71 @@ A is visited 108 times, the closest to its line being |Q − 3P + 16| = 749 (P m
 residue mod 8). B is visited 1,236 times, always with P ≡ 7 mod 8 and Q even, so Q − 3P + 24 is odd and the B line
 is never hit in this sample (not proved: the class set allows B with Q odd), the closest being 2,999 away.
 
+**Further, with the node map (`nodemap.py`, 16 November 2026).** Iterating the certificate's pieces with exact
+integers from the first big node: 1,000,000 nodes (counts up to 2,031 digits), no halt, and the closest approaches
+to the two lines are still the early ones (749 and 2,999). **B is visited with Q odd**: first at node 3,693 (step
+count of 124 digits, just past the sample above), 60 times in the first 10^6 nodes. The accelerated simulator
+(`pclosure.real_nodes`) gives the same first visit. So the even-Q pattern was an artifact of the sample, and the B
+line is a real part of the question.
+
+Why it took so long. In the regime with big counts the node map acts on the ratio r = Q/P like a continued
+fraction: C goes to B with r → (r − 1)/4 (if r > 1), B and A go to C with r → (r − 3)/8 (if r > 3), the
+`10100001 (1000)^P …` shapes loop with r → (1 − r)/(4r) and go to A with r → (r − 1)/4, and A and B with r < 3
+go to those shapes with r → (3 − r)/(8r). The only way into B with Q odd is A with Q odd and Q ≥ 11P − 12, then C
+with Q odd and Q ≥ P + 16; that needs an earlier ratio within about 1/180 of 1 (or of 3), a near miss of a line.
+Such near misses are rare but not excluded by anything; no inequality invariant keeps the run out (a template
+polyhedra search over the certificate, with 12 slopes, loses every relational bound).
+
+## Lean replay of the class search (16 November 2026)
+
+`halts_iff_lines` (`lean/Lines.lean`), proved in Lean with `native_decide`:
+
+    HaltsFromBlank ↔ ∃ P, P % 2 = 1 ∧ 21 ≤ P ∧ (Reach init (A P (3P − 16)) ∨ Reach init (B P (3P − 24)))
+
+with A and B the two shapes above, as explicit configurations. So "halts if and only if the orbit hits one of the two
+lines" is now a Lean theorem, not only a result of the programs.
+
+How it is checked. `py/replay/explore.py` redoes the class search with the replay engine (`py/replay/engine.py`, the
+Python model of the Lean executor) and writes a certificate (`py/replay/cert.json.gz`): 185 classes (text and
+parity of every count, all counts ≥ 20), 6,294 leaves, 45 cycle rules, and the arrival (7,227 executor moves from
+blank tape end at `F> 00001 (1000)^35 1010000100001`). Each class has a tree of primitive splits of its free
+variables (a residue, the first few values, or a comparison of two variables) whose leaves each run, with the
+variables still free, to a node of a listed class or to a halt. `py/replay/gen.py` re-checks all of it in Python
+(about 4 minutes) and writes the Lean data.
+
+In Lean: `lean/Exec.lean` is the symbolic executor with several variables (copied from the replay of
+1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA, with the event and the rule strategy changed) and its soundness
+theorems; `lean/Pieces.lean` has the split trees (`chk_sound`: the leaves cover every value), the classes, and the
+generic theorem `halts_iff_of_checks`: if every class passes `clsOK`, every entry of `pre` passes `preOK` and the
+arrival passes, then the machine halts if and only if its run reaches an entry of `pre` (a start that runs into a
+halting class). The certificate is stored as strings of numbers (`lean/Data.lean`) and read back by `lean/Decode.lean`;
+the reader is not trusted, the theorems are about the lists it returns. `lean/Check0.lean` … `Check7.lean` evaluate
+`clsOK` on all classes, `lean/Arrive.lean` the arrival and `pre`, `lean/Replay.lean` assembles `halts_iff_pre`, and
+`lean/Lines.lean` writes the 14 entries of `pre` out as the two lines.
+
+What it rests on: the soundness theorems are checked by the kernel; the evaluations of the checks (the 8 class
+chunks, the arrival, `pre`) are `native_decide`, so they also trust Lean's compiler. `#print axioms halts_iff_lines`
+lists only `propext`, `Classical.choice`, `Quot.sound` and the `native_decide` axioms of those checks. The whole
+check takes about 7 minutes with 4 parallel jobs.
+
 ## Open, and next steps
 
 - The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question
   whether the orbit ever lands on one of the two lines. It looks like the Collatz-like ("cryptid") machines of
   family F12 rather than a closed-set candidate.
-- Prove that B is only visited with Q even (an invariant finer than the class set: it would remove the B line).
+- ~~Prove that B is only visited with Q even~~: false, the run visits B with Q odd from node 3,693 on (above).
 - Write the node map as an explicit map on (shape, P, Q) from the certificate and iterate it with big integers; the
   certificate has every piece as affine forms, so this is mechanical.
-- A Lean replay of the certificate (as for 1RB0RC_0RC1RC…) would make "halts iff a line is hit" a kernel result; it
-  needs an executor with two variables.
+- Done: the Lean replay of the certificate (above), with `native_decide`. A kernel-only check would need a faster
+  executor or much more time.
 
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh
+. /etc/profile.d/lean.sh && holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/lean/check.sh    # about 7 minutes, 4 jobs
+R=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/replay
+python3 $R/explore.py /tmp/cert.json                    # the replay certificate, about 25 minutes
+python3 $R/gen.py --check                               # re-checks py/replay/cert.json.gz in Python, writes nothing
 python3 holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/phases.py 4e7
 D=holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure
 python3 $D/pclosure.py bfs /tmp/classes.json 5          # the search, about 5 minutes (BBMOD=8: residues mod 8); it prints
@@ -128,6 +178,7 @@ python3 $D/hline.py summary $D/classes_mod2.json.gz
 python3 $D/pvalidate.py $D/classes_mod2.json.gz pieces && python3 $D/pvalidate.py $D/classes_mod2.json.gz points
 python3 $D/hline.py plain
 python3 $D/hline.py run 120 $D/classes_mod2.json.gz
+python3 $D/nodemap.py $D/classes_mod2.json.gz 1000000          # the node map, exact, about 8 minutes
 ```
 
 <!-- related machines: written by holdouts/related.py -->

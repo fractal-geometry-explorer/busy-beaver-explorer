@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A counter that doubles</a><a href="#restructure">Restructures</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#family">A counter that doubles</a><a href="#window">What decides the window</a><a href="#restructure">Restructures</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -290,6 +290,17 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>A counter that doubles</h2>
 <p>Stop the simulator whenever the head reaches a new cell at the left end in state A with <code>1 0</code> after it. For most of the run the tape then reads <code>A&gt;0 1 0 (1^2 0)^m 1^4 0 W</code>. From one such moment to the next m grows by one block and the gap in steps doubles:</p><table><tr><th>step</th><th>m</th><th>gap</th></tr><tr><td>184,604,713</td><td>21</td><td>92,274,735</td></tr><tr><td>369,153,952</td><td>22</td><td>184,549,239</td></tr><tr><td>738,252,743</td><td>23</td><td>369,098,791</td></tr><tr><td>1,476,450,176</td><td>24</td><td>738,197,433</td></tr></table><p>So the left prefix behaves like a counter that overflows at doubling gaps. Each overflow rewrites W, but only a stretch of about ten blocks; the part on the left of that window stays fixed, and the window moves right as the epoch goes on.</p>
 </section>
+<section id="window">
+  <span class="eyebrow">The mechanism</span>
+  <h2>What decides the window</h2>
+<p>Take one overflow moment, change only the length m of the counter <code>(1^2 0)^m</code>, and run to the next one. W, read in pairs of cells (<code>1 0</code> is 0, <code>1 1</code> is 1), changes only in a short window, and the window starts exactly at digit m &minus; 1:</p><pre>event at step 100,161 (m = 9), W in digits:
+    101000001111110001000101010101000011
+ m=5  ....111100.0001.....................    2,813 steps
+ m=7  ......1.0..0.01.....................   11,187 steps
+ m=9  ........0...00.11...................   45,117 steps
+ m=11 ..........000.1...1.................  180,183 steps
+ m=13 ............0..11...1...............  720,819 steps</pre><p>So the window is not a thing that travels on its own: it is where the counter's overflow lands, and m decides it. Two sibling machines show the same experiment more cleanly: in 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB the change is one binary carry starting at a slot fixed by the counter length, because a number held in W is advanced by the same ticks as the counter. Here the change flips digits both ways, so the number in W is written in some other numeration, not yet found. When the window reaches the end of W the word is rebuilt.</p>
+</section>
 <section id="restructure">
   <span class="eyebrow">Why it is open</span>
   <h2>Restructures</h2>
@@ -307,7 +318,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -318,14 +329,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   </div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (F0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></div></div><div><b>A halt can only happen at the right edge</b><p>A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_at_edge</code>, <code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></div></div><div><b>A halt can only happen at the right edge</b><p>A closed tape language from windows of 3 cells covers every configuration of the run from blank tape; in all of its abstract configurations where F can read a 0 (the only halting transition), the tape right of the head is blank. So the machine halts exactly when F steps onto the blank region right of everything written.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code></div></div><div><b>No halt in the first 10<sup>11</sup> steps</b><p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps without a halt; 178 cells visited (162 left of the start, 16 right), 90 ones at the end.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tmrun ... records</code></div></div><div><b>The overflow configurations of the run</b><p>In the first 10<sup>11</sup> steps there are 48 moments from step 373 on where the head reaches a new cell at the left end in state A followed by <code>1 0</code>; the tape then reads <code>A&gt;0 1 0 (1^2 0)^m 1^j 0 W</code>. j = 4 at 35 of them; the others lie near the restructures (j = 10 to 12 before step 31,544, j = 1 to 6 near 55,000, and j = 16 from step 2,885,841,555 to 25,031,766,563). The last is at step 66,670,838,854 with m = 29. m rises by one from each to the next except at the restructures at about 55,000 steps and at step 31,237,358,656 (one block fewer), and at step 2,885,841,555, where it stays the same.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the records of the 10<sup>11</sup>-step run</div></div><div><b>A counter whose gaps double</b><p>The gap between successive overflows is within 0.5% of twice the previous one at 20 of the 24 overflows from step 100,161 on: 11,811,159,969 steps before step 25,031,766,563 and 23,622,320,125 before step 66,670,838,854. The four exceptions (steps 2,885,841,555, 4,362,236,690, 31,237,358,656 and 43,048,518,729) are where the block after the prefix changes and at the restructure.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the records of the 10<sup>11</sup>-step run</div></div><div><b>A moving window</b><p>Between overflows the left part of W stays fixed and the changes stay in a window of about ten blocks, which drifts right as the epoch goes on; a restructure follows when the window meets the right end.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The restructures, and the question itself</b><p>Not known: the rule that maps W at one overflow to W at the next, the restructure rule, and whether the machine halts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/overflows.py check</code>, <code>py/overflows.py slots</code></div></div><div><b>The window starts at digit m − 1</b><p>In the epoch from step 55,349 to 1.48&middot;10<sup>9</sup> (m = 1..23, W of 36 digits in pairs of cells), each overflow at counter length m changes W only in digits m &minus; 1 to at most m + 12, and always digit m &minus; 1. Re-running the event at step 100,161 with m = 1..14 instead of 9 gives the same: the change starts at digit m &minus; 1 whatever the actual run did, so an overflow's effect depends on m and the digits of W near m only.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The restructures, and the question itself</b><p>Not known: the numeration of W in which one overflow is a stated arithmetic rule (the window flips digits both ways, so it is not plain binary in the pair reading), the counter laws as proved shift rules, the restructure rule, and whether the machine halts.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -20,6 +20,17 @@ m = 29). Each overflow rewrites only a window of about ten blocks of W, which dr
 reaches the right end, W is rebuilt (a restructure): at about 55,000 steps, and between 2.5·10^10 and 3.1·10^10
 steps. The machine halts only in state F reading a 0, and Lean proves that this can only happen at the right edge.
 
+**The window is fixed by m.** Read W (after `1^4 0`) in pairs of cells (`1 0` = 0, `1 1` = 1). In the epoch from
+step 55,349 to 1.48·10^9 (m = 1 to 23, W of 36 digits) the overflow at counter length m changes W only in digits
+m − 1 to at most m + 12, and digit m − 1 always changes (`py/overflows.py check`). Re-running the event at step
+100,161 with any m from 1 to 14 gives the same picture: the change starts exactly at digit m − 1 (`py/overflows.py
+slots`), so what an overflow does to W depends on m and on W near digit m only. The same experiment on the sibling
+machines `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` (binary carries in fixed slots) and
+`1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC` (Fibonacci) points to the same mechanism: the counter and a number in W
+advanced by the same ticks, an overflow at length m adding about 2^m to W. Here the changes flip digits both ways, so
+W is not plain binary in this reading; its numeration is open. The restructure seen between 2.5·10^10 and 3.1·10^10 steps comes at m of about 28, about when the far end of the
+window (digit m + 12 or less) reaches the end of the 36-digit word.
+
 ## What is established
 
 **Proved in Lean, kernel only**: the halting configurations (`step_none_iff`, `lean/Blank.lean`); no halt in
@@ -32,14 +43,28 @@ everything written (`halt_at_edge`, `halts_iff_edge`, `lean/Edge.lean`, from the
 **Computed** (trusted C): no halt in 10^11 steps (`tools/c/tmrun.c`; 178 cells, 162 left and 16 right of the start,
 90 ones). All 48 overflow moments from step 373 on have the shape above.
 
-**Heuristic**: the doubling gaps; the moving window.
+**Computed** (Python, `py/overflows.py`): the window law above (first changed digit m − 1, at most 14 digits) at
+all 23 overflows of the epoch from step 55,349, and in the re-runs with m = 1..14.
 
-**Open**: the per-overflow rule for W, the restructure rule, and the question.
+**Heuristic**: the doubling gaps (ratio 2.0000 from m = 16 on in that epoch); the shared mechanism with the siblings.
 
-## For later
+**Open**: the numeration of W (so that one overflow is a stated arithmetic rule), the restructure rule, and the
+question.
 
-* Decode the window: compare W before and after one overflow, started from constructed tapes, and look for a
-  finite transducer (the window may be the carry of a multiplication).
+## Status
+
+Open. Lean proves (kernel) the halting configurations, no halt in 10,000 steps and that a halt can only happen at the
+right edge; `native_decide` gives no halt in 10^7 steps. No macro law is proved.
+
+## How far it was run
+
+Direct C simulation to 10^11 steps (m = 29 at step 66,670,838,854). No accelerated run: the change of W per overflow
+is known only by simulating the overflow.
+
+## Open questions
+
+* Decode the window: the re-runs (`py/overflows.py slots`) give W before and after one overflow for every m; find
+  the numeration in which this is one addition, as for the binary sibling.
 * Prove the counter step `(1^2 0)^m -> (1^2 0)^(m+1)` in Lean as a macro rule with W as a black box, if the window
   rule can be stated.
 * Watch the run past 10^11 for the next restructure (the next overflow is due near 1.1·10^11 steps).
@@ -50,12 +75,17 @@ everything written (`halt_at_edge`, `halts_iff_edge`, `lean/Edge.lean`, from the
 |---|---|
 | `lean/Machine.lean`, `lean/Blank.lean` | the machine, the halting configurations and bounded runs (generated) |
 | `lean/EdgeCert.lean`, `lean/Edge.lean` | the closed tape language (from `bbtools.ctl`, K = 3) and the right-edge theorem |
+| `py/overflows.py` | the overflow events as (m, W), the window of each overflow, the re-runs with other m |
+| `py/tmsim.py` | a plain simulator started from a given tape, run to the next event |
 
 ## Check
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/lean/check.sh
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 100000000000 records 100000
+./tmrun 1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB 2000000000 at A L 1000 > ev.txt
+python3 holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/py/overflows.py check ev.txt
+python3 holdouts/1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/py/overflows.py slots ev.txt 100161 1 15
 ```
 
 ## Pages

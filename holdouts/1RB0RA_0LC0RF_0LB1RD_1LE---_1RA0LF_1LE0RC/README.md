@@ -129,6 +129,55 @@ A counter that is rebuilt when it overflows belongs with the counter families (F
 
 Next step: The same as for the sister machine: the carry rule of a digit, then the rebuild at an overflow.
 
+## One halting question for two machines (F09, 16 November 2026)
+
+1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is the table of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE read in a
+mirror with the states renamed, started in state C. The two runs are one run, shifted. After 2 and 49 steps both are
+at `C>1 1` on blank tape, except that the second run has the word `10001101` once more at the right end. From then
+on, at every visit of the head in state C to the left end of the tape, the second tape is the first followed by
+`10001101`: 270,284 visits in the first 10^11 steps of each run. The right end of the tape is made of these words, and in the second run there is one more of
+them.
+
+`holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/Lockstep.lean` (kernel only: `propext` and `Quot.sound`) proves why this is so. Its generated part is
+`holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/FarEnd.lean`, written by `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/farend.py`. `Rel k n c c'` says that `c'` is `c` with k words `10001101`
+inserted just right of a cell q, n cells right of the head, with blank tape beyond q in `c`. Every step keeps the
+relation unless the head moves right from cell q. When the head moves right from q in state B, on a 1, it crosses
+the k words and comes back one cell left of q in D, with `1 0 1` from q on and the k words after them. This takes
+44k + 5 steps, for every k (`far_B`). The cell q then moves two cells to the right. Any other move right from q is
+the excluded case (`Bad`). `trk` runs 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE and keeps track of n. The renaming
+and the mirror are proved too (`halts_114265`). So:
+
+* **`two_machines`**: suppose that in the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE from blank tape, after
+  its first 2 steps, the head moves right from cell q only in state B on a 1. Here q is the rightmost cell visited
+  so far (`Good30773`). Then 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if
+  1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does.
+
+**Proved (16 November 2026): the condition holds.** `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/RightEnd.lean` (kernel only: `propext` and
+`Quot.sound`) proves `Good30773` for every number of steps (`good30773`). It looked like a statement about the
+rebuilds of the counter, but it is a local fact about the last four cells of the tape, q-3 to q. Keep only those four
+cells and the state and forget everything left of them: with the head inside the window, the state, the cells left
+of the head inside the window and the cells from the head to q; with the head further left, the four cells only, and
+let the head come back in any state that a move right can produce (B, D, E or F). From step 2 on this
+over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the
+head is left of the window, the last three cells read `101`). None of the 32 moves right from q except in state B on
+a 1, and the set is closed under a step (`closed`, by `decide`). `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/rightend.py` computes the 32. So:
+
+* **`two_machines'`**: 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does. No condition.
+
+Before the proof, the condition was checked in the first 10^11 steps (`holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c`): the head moves right from q only
+100 times, all before step 4.5·10^6, during the first rebuilds of the counter.
+
+The note `F09-same-table-pairs.md` called this pair "not a shift". Its tapes differ in about 1,330 cells at the
+counter end only when the two runs are compared at the same step. Compared at matching visits, they differ by one
+word.
+
+Reproduce (from the folder of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE, `holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE`):
+
+    . /etc/profile.d/lean.sh && lean/check.sh
+    python3 py/farend.py check                     # far_B by simulation for k = 0..4
+    gcc -O2 -o good c/good.c && ./good 1e11        # the condition (about 8 minutes)
+    gcc -O2 -o lockstep c/lockstep.c && ./lockstep 1e11   # the two runs at every left-end visit (about 17 minutes)
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/explainer.html`](../../pages/holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/explainer.html)

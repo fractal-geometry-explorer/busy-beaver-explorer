@@ -9,13 +9,13 @@
  "source": "holdouts/1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---/status.json",
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
-  "The tape is a mixture of the words <code>10</code>, <code>1000</code> and <code>110</code> with no visible order, and the head works through it in a zigzag, one cell right and three left (states D and B alternating). The right end is a wall of repeated <code>110</code>s, which the run occasionally extends. Unlike a counter, nothing on the tape doubles or repeats; the visited region grows by only about 20 to 25 cells per tenfold increase in time."
+  "Mirrored and with its states renamed, this machine has the engine of 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE--- and the F02 two-word sweepers: a base-3 counter N with 3-cell digits at the right end (the wall of <code>110</code>s of the first look is made of its top digits), binary counters with 4-cell digits on the left, and an undecoded middle between them. The laws of N and of the binary streams are proved in Lean for every size."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>10</sup> steps.",
-  "<b>Where a halt would come from.</b> The machine halts only in state F reading 1, and F is entered only from D reading 1 (<code>0LF</code>), stepping left. So a halt needs D to read a 1 whose left neighbour is 1. In the first 10<sup>8</sup> steps D reads a 1 3,571,420 times, and the cell to its left is always 0.",
-  "<b>Why it is hard.</b> No counter or repeating cycle has shown up: macro machines with blocks of 2 to 6 cells do not compress the run (with blocks of k cells, about one macro step per k steps), and the contents of the tape look irregular. A finite-automaton invariant (CTL) with windows of up to 8 cells does not close. A proof would need an invariant that captures why the halting pattern never forms, and none is known."
+  "<b>The question is open.</b> No halt in LONGRUN_STEPS steps of the C simulator; Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>) and the laws of the outer parts of the tape for every size.",
+  "<b>Where a halt would come from.</b> Only F1 halts and F is entered only from D reading 1 (<code>0LF</code>), millions of times (3,571,420 in 10<sup>8</sup> steps), always with a 0 left of D. The rare transition is E1 (66 times in 10<sup>8</sup> steps), the counterpart of the rare D1 events of its relative.",
+  "<b>What is missing.</b> The rules of the middle part, and an invariant explaining why D never reads 1 next to a 1."
  ],
  "claims": [
   {
@@ -38,38 +38,50 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>9</sup> steps",
-   "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 239 cells have been visited and 103 of them hold a 1.",
-   "where": "<code>holdouts/triage.json</code>"
-  },
-  {
-   "level": "trusted",
-   "title": "Slow, irregular growth",
-   "text": "Cells visited (from the C simulator's records): 163 at 10<sup>6</sup>, 174 at 10<sup>7</sup>, 221 at 10<sup>8</sup>, 238 at 10<sup>9</sup>, 257 at 10<sup>10</sup> steps. The tape grows by a roughly constant number of cells per factor of 10 in time.",
-   "where": "<code>tools/c/tmrun.c</code> (records)"
-  },
-  {
-   "level": "trusted",
    "title": "The halting pattern never forms",
-   "text": "F (the halting state) is entered only from D reading 1. In the first 10<sup>8</sup> steps D reads a 1 3,571,420 times and the cell to its left is a 0 every time, so F always reads 0.",
-   "where": "state counts and windows, <code>tools/c/tm.h</code>"
+   "text": "F is entered only from D reading 1, 3,571,420 times in the first 10<sup>8</sup> steps, always with a 0 left of D, so F reads 0.",
+   "where": "state counts, <code>tools/c/tm.h</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The base-3 counter N, for every size",
+   "text": "Read the cells right of N's low end three at a time from the head outward, <code>010</code> = 0, <code>110</code> = 1, <code>100</code> = 2, blank beyond. A visit in state C adds one; it comes back out in A without carry and in D with a carry; a carry through all digits makes the blank into a new digit 2.",
+   "where": "<code>n_inc0</code>, <code>n_inc1</code>, <code>n_inc0_carry</code>, <code>n_inc1_carry</code>, <code>n_overflow</code>, <code>lean/Counter.lean</code> (rows in <code>lean/VisitR.lean</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The binary streams, for every size",
+   "text": "The stream laws of the F02 sibling 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- hold for the mirror image of this machine with its states renamed (C, A, B, E, D as the sibling's A, B, C, D, E): a visit in state A to an a/z stream on the left is a binary increment, a visit in state C to the counter M adds one and wraps.",
+   "where": "<code>vb_even</code>, <code>vb_odd</code>, <code>ve_odd</code>, <code>m_inc</code>, <code>m_wrap</code>, <code>lean/Stream.lean</code> (29 rows in <code>lean/VisitL.lean</code>, predicate <code>VisL</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The run uses the counter law",
+   "text": "In the run, the cells right of 126 are entered only in state C, and all 142,058 of those visits, from step 689,712 to step 43,905,102, are rows of the counter law; then the middle reaches 126 and N's low end moves outward. At 10<sup>9</sup> steps N fills cells 149 to 191 (15 digits).",
+   "where": "<code>c/vislaws.c</code>, <code>c/cross.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Three parts of the tape",
+   "text": "The crossing profile at 10<sup>9</sup> steps: ×1/3 every 3 cells going right over 149 to 191 (N), no pattern over 62 to 149 (the middle), ×2 every 4 cells going right over 22 to 62 (binary counters with 4-cell digits), a few hundred over -46 to 22.",
+   "where": "<code>c/cross.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 30,000,000,000 steps",
+   "text": "The C simulator runs 30,000,000,000 steps from blank tape without a halt; at the end cells -50 to 213 (264 cells), 118 ones.",
+   "where": "<code>c/longrun.c</code>"
   },
   {
    "level": "heuristic",
-   "title": "No macro structure found",
-   "text": "Macro machines with blocks of 3 and 6 cells take about one macro step per 3, respectively 6 to 7, steps over 10<sup>7</sup> steps (<code>bbtools.macro</code>), so the run has no long uniform stretches for a shift rule to cross; the accelerator <code>bbtools.cycles</code> (blocks of 4) finds no linear cycle in 10<sup>7</sup> steps.",
-   "where": "<code>tools/py/bbtools/macro.py</code>"
-  },
-  {
-   "level": "heuristic",
-   "title": "Growth shape: fixed/fixed",
-   "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
-   "where": "<code>tools/py/bbtools/triage.py</code>"
+   "title": "The mirror of a relative",
+   "text": "Mirrored and renamed, the table is 1RB0LE_1LC0RE_0RA0LD_1LA1RB_0LC0RF_0LC---, which shares the prefix 1RB0LE_1LC0RE_0RA0LD_1LA with 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---; most of its configurations in the first 10<sup>7</sup> steps occur, mirrored, in that machine's run (holdouts/related.json).",
+   "where": "<code>holdouts/related.json</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The run looks chaotic on a slowly growing tape; no structure that would rule out the halting pattern has been found.",
+   "text": "Not known. Needed: the rules of the middle part and of the rare E1 events, then why D never reads 1 next to a 1.",
    "where": ""
   },
   {
@@ -82,15 +94,22 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB--- 1000000000"
+  "gcc -O2 -o longrun holdouts/1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---/c/longrun.c && ./longrun 1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB--- 100000000000",
+  "gcc -O2 -o cross holdouts/1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---/c/cross.c && ./cross 1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB--- 1000000000",
+  "gcc -O2 -o vislaws holdouts/1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---/c/vislaws.c && ./vislaws 1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB--- 43905102 R 126 3"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this machine stirs a small tape in an irregular way, growing it only a few cells at a time. This page runs the real machine in your browser and lists what is known.",
+  "lede": "Nobody knows. Started on a blank tape, this machine runs a base-3 counter at its right end and binary counters at its left, both proved in Lean, with a middle part between them that nobody has decoded yet. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>10</sup> steps",
-    "text": "No halt in the C simulator."
+    "value": "30,000,000,000 steps",
+    "text": "No halt in the C simulator; 264 cells visited."
+   },
+   {
+    "level": "kernel",
+    "value": "2 laws",
+    "text": "The base-3 counter and the binary streams, proved for every size."
    },
    {
     "level": "native",
@@ -98,14 +117,9 @@
     "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
    },
    {
-    "level": "trusted",
-    "value": "257 cells",
-    "text": "Visited after 10<sup>10</sup> steps; about logarithmic growth."
-   },
-   {
-    "level": "heuristic",
-    "value": "Chaotic",
-    "text": "No counter, cycle or macro structure found."
+    "level": "open",
+    "value": "The middle",
+    "text": "Where the time goes and the rare events start; not decoded."
    }
   ],
   "presets": [
@@ -118,23 +132,45 @@
   },
   "sections": [
    {
-    "id": "look",
-    "eyebrow": "What it does",
-    "heading": "An irregular, slowly growing tape",
+    "id": "parts",
+    "eyebrow": "Structure",
+    "heading": "A relative in a mirror",
     "html": [
-     "<p>Read the tape in words <code>a = 10</code>, <code>b = 1000</code>, <code>c = 110</code>. At step 230,472,415 it is</p>",
-     "<p><code>a b c b^5 c b c^2 b^4 a^2 b^6 a^2 b^2 a^2 b^2 a^4 b c^2 a^2 b a^2 c^2 a^2 b a^2 b c b a^6 c b a^2 c^13 a</code></p>",
-     "<p>with a wall <code>c^13</code> of <code>110</code>s at the right end. Most of the time the head zigzags: D and B alternate, the head moving one cell right and three left, so it drifts left two cells at a time through the tape; A, C and E turn it around. The middle of the tape is rewritten over and over with no visible pattern, while the left part and the wall change rarely.</p>",
-     "<p>The tape grows slowly: 163 cells at 10<sup>6</sup> steps, 221 at 10<sup>8</sup>, 257 at 10<sup>10</sup>.</p>"
+     "<p>Mirror the tape and rename the states (C, A, B, E, D, F as A, B, C, D, E, F): the table becomes 1RB0LE_1LC0RE_0RA0LD_1LA1RB_0LC0RF_0LC---, which shares the prefix 1RB0LE_1LC0RE_0RA0LD_1LA with 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE--- and the F02 two-word sweepers. So it is the same cascade of counters, seen in a mirror: the base-3 counter at the right end and the binary streams on the left. The crossing profile (<code>c/cross.c</code>, 10<sup>9</sup> steps, cells -46 to 192):</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><tr><th>cells at 10<sup>9</sup> steps</th><th>crossings</th><th>part</th></tr><tr><td>about 149 to 191</td><td>×1/3 every 3 cells going right (6,052,568 at 149, 2,017,523 at 152 … 1 at 191)</td><td><b>N</b>, a base-3 counter, 15 digits</td></tr><tr><td>62 to 149</td><td>up to 36 million, no simple pattern</td><td>the <b>middle</b>, not decoded</td></tr><tr><td>22 to 62</td><td>×2 every 4 cells going right (1,883 at 22 … 1,563,086 at 62)</td><td>binary counters with 4-cell digits</td></tr><tr><td>-46 to 22</td><td>a few hundred, falling to 1 at the left end</td><td>runs of <code>01</code> growing at rare left-end events</td></tr></table></div>"
+    ]
+   },
+   {
+    "id": "counter",
+    "eyebrow": "Proved",
+    "heading": "The right counter",
+    "html": [
+     "<p><b>The right counter N (proved).</b> Read the cells right of N's low end three at a time from the head outward: <code>010</code> = 0, <code>110</code> = 1, <code>100</code> = 2; blank beyond. A visit in state C adds one; it comes back out in state A (no carry) or D (carry); a carry through every digit turns blank cells into a new digit 2. <code>lean/Counter.lean</code> proves it for every number of digits (<code>n_inc0</code>, <code>n_inc1</code>, <code>n_inc0_carry</code>, <code>n_inc1_carry</code>, <code>n_overflow</code>), from five rows (<code>lean/VisitR.lean</code>, predicate <code>Vis</code>). In the run, the cells right of 126 are entered only in state C and all 142,058 of those visits are these rows, from step 689,712 until step 43,905,102 (<code>c/vislaws.c</code>); then the middle reaches 126 and N's low end moves outward. The wall of <code>110</code>s at the right end is made of N's top digits.</p>"
+    ]
+   },
+   {
+    "id": "streams",
+    "eyebrow": "Proved",
+    "heading": "The binary streams on the left",
+    "html": [
+     "<p><b>The binary streams (proved).</b> <code>lean/Stream.lean</code> proves the stream laws of the F02 sibling 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- for the mirror image of this machine with the states renamed (predicate <code>VisL</code>, streams left of the head, nearest cell first): a visit in state A (the sibling's B) to an a/z stream is a binary increment (<code>vb_odd</code>, <code>vb_even</code>, <code>ve_odd</code>), a visit in state C (the sibling's A) to the counter M adds one and wraps (<code>m_inc</code>, <code>m_wrap</code>). From 29 token rows mined left of cell 30 (<code>lean/VisitL.lean</code>).</p>"
     ]
    },
    {
     "id": "halt",
-    "eyebrow": "The halting question",
-    "heading": "What a halt would need",
+    "eyebrow": "Halting",
+    "heading": "Where it could halt",
     "html": [
-     "<p>The machine halts only in state F reading 1, and F is entered only from D reading 1 (<code>0LF</code>), stepping left. So a halt needs D to read a 1 whose left neighbour is 1. In the first 10<sup>8</sup> steps D reads a 1 3,571,420 times, and the cell to its left is always 0.</p>",
-     "<p>For a run this irregular, the honest summary is that it behaves like a random process on a tape that grows very slowly, with one forbidden pattern that has never appeared. Whether something forbids it, or it is only unlikely, is not known.</p>"
+     "<p><b>Where it could halt.</b> Only F1 halts, and F is entered only from D reading 1 (<code>0LF</code>), which is frequent here: 3,571,420 times in the first 10<sup>8</sup> steps, always with a 0 left of D, so F reads 0 and goes on with <code>0RB</code>. In the renamed table this is the step E1 = <code>0RF</code> followed by F0 = <code>0LC</code>; the relatives have E1 = <code>0RA</code> or <code>0RE</code> there. The rare transition is E1 (<code>1LA</code>, the renamed D1 = <code>1RB</code>): 66 times in 10<sup>8</sup> steps, the counterpart of the rare D1 events of 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---. <code>holdouts/related.json</code> already notes that most of this machine's configurations in its first 10<sup>7</sup> steps also occur, mirrored, in the run of that machine.</p>"
+    ]
+   },
+   {
+    "id": "open",
+    "eyebrow": "Open",
+    "heading": "What is left",
+    "html": [
+     "<ul><li>Decode the middle (cells 62 to 149 at 10<sup>9</sup> steps).</li><li>Why D never reads 1 with a 1 to its left (millions of times per 10<sup>8</sup> steps): a local invariant that no CTL window up to 8 cells captures; it should follow from the decoded layout.</li></ul>",
+     "<ul><li>Direct C simulation (<code>c/longrun.c</code>): 30,000,000,000 steps, no halt; at the end cells -50 to 213 (264 cells), 118 ones.</li><li>No macro-level accelerator: the time is spent in the undecoded middle.</li></ul>"
     ]
    },
    {
@@ -160,6 +196,6 @@
    }
   ]
  },
- "family": "chaotic small tape with a 110 wall",
- "summary": "Zigzags over a tape of 10, 1000 and 110 words that looks random, bounded on the right by a wall of 110s; grows about 20 to 25 cells per tenfold time."
+ "family": "F02 engine with a different D1/F path: counters behind a growing middle",
+ "summary": "The mirror image of a relative of 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---: a base-3 counter at the right end and binary counters at the left (both proved in Lean for every size), with an undecoded middle."
 }

@@ -168,6 +168,46 @@ Reproduce (from the folder of 32883, about 12 minutes each):
     python3 py/shift4.py check 300     # every entry, n against n + 4
     python3 py/entries.py 3 2e10       # first-run length at every entry, run of 40600 (5 minutes)
 
+### In Lean: one halting question, given one condition (16 November 2026)
+
+`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/Lockstep.lean` (kernel only: `propext` and `Quot.sound`; its generated part is
+`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/FarEnd.lean`, written by `holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/farend.py`) proves the shared run as one theorem about the four machines from blank
+tape. It does not need the ten entries above. It compares two tapes that differ only by k periods `1010` inserted at
+the left end, just left of the leftmost 1 (`Rel k`). Every step keeps that relation except a step onto the leftmost
+1, and there the head is in one of the five states a left move leads to:
+
+| state on the leftmost 1 | both tapes |
+|---|---|
+| C | the head crosses the k extra periods and comes back out in B with the same cells as without them (`far_C`, every k) |
+| D | the same, out in A (`far_D`) |
+| F | both halt at once |
+| A or B | the tapes are told apart: **the excluded case** (`Bad`) |
+
+After 2, 11, 26 and 50 steps the table started in D, A, B and E is at `0^inf 1 B>1`, with 0, 1, 2 and 3 periods
+`1010` more on the left (`at_D`, `at_A`, `at_B`, `at_E`, by evaluation). The renamings and the mirror are proved too
+(`halts_40600`, `halts_103746`, `halts_131976`). So:
+
+* **`one_question`**: if in the run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- from blank tape the head never reads
+  a 1 in state B or C with only 0s to its right (`Good40600`), then 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---,
+  1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- and 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- each halt from blank tape
+  if and only if 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- does.
+* **`three_questions`**: if in the run of 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- the head never reads a 1 in state
+  A or B with only 0s to its left, then 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- and
+  1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- each halt if and only if it does.
+
+**What the condition says.** The only moves to the right from a 0 are A0 and E0, and both write a 1, so an excluded
+configuration can only be reached by a move to the left: D on a 0, or C on a 1, just right of the leftmost 1. In the
+table of 32883 that is a doubled cell `00` or `11` within three cells of the left end, a first run of at most 3 cells.
+A sweep reaches the leftmost 1 in C, which is harmless. So the condition is the old proviso in an exact form: the
+first run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (of 1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC--- for the second
+theorem) never gets shorter than 4 cells.
+
+**Checked, not proved.** The condition holds in the first 10^11 steps on a plain cell simulator (`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/c/good.c`) and in
+the first 10^14 steps on the run-length simulator (`holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/goodrun.py`), for both runs. Both runs are 23,850,930 and 23,850,932 cells wide after 10^14 steps (start D, start A). Along the accelerated run of 1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE--- (`py/accel.py`) it holds for the first 1.0·10^30 steps (3.8·10^14 trips; `py/good.py`, 54 minutes): every macro step at the right end of a concrete trip is replayed cell by cell, no cycle jump moves a count near the right end, and the counter trips done in closed form leave the right end as the checked trips do (the argument is in the script). Proving it needs the
+same theory of the transfers as the halting question itself: in the run, the first run loses a cell at a bounce and is
+always swept (and lengthened) before the next one, except at the end of a transfer that moves the second run, and
+nothing local rules out a tail that sends the head back sooner (a game against an arbitrary tail drains it).
+
 ## Files
 
 | path | what it is |
@@ -192,6 +232,7 @@ Reproduce (from the folder of 32883, about 12 minutes each):
 | `py/rework.py` | the rounds of a wall trip as a function on lists of blocks: finds the cases, checks them on the plain simulator, predicts a wall trip |
 | `py/wall.py` | the copy loop for the symbolic runs: finds the round form and jumps over the whole loop |
 | `py/accel.py` | the run with counter trips applied in closed form (no halt through 10³³ steps) |
+| `py/good.py` | the condition Good40600 of the lockstep theorem along the accelerated run (holds through 10³⁰ steps) |
 | `py/replay.py` | finds the walls and how far the left end replays the blank run |
 | `c/growth.c` | width, ones and left-end extensions at 1-2-5 steps, fast |
 | `runs/` | outputs of the long runs |

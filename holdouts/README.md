@@ -53,6 +53,10 @@ running the machines (10^7 steps each, `tools/c/cfgmatch.c`, `lockstep.c`, `tape
 `related.py check` (run by the tests) says whether they are current. Only the comparison of tables is exact;
 everything about runs is an observation.
 
+Whether any of these relations can be *proved*, so that one proof settles several machines, is in
+[`EQUIVALENCES.md`](EQUIVALENCES.md): a re-sync bisimulation checked in Lean (`tools/lean/TM/Sync.lean`) closes for none
+of the open pairs, nor for 23 new candidates from a hash screen, so the 552 open holdouts remain 552 distinct questions.
+
 ## Proofs and labels from outside
 
 `external.json` holds, for every machine, what is known from outside its own ledger: Rocq proofs in open pull requests

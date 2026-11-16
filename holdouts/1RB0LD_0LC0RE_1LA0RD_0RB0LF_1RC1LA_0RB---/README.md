@@ -13,22 +13,67 @@ bbchallenge id 55410. One of the six-state holdouts whose halting from blank tap
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C (`tools/c/tmrun.c`): no halt in 10,000,000,000 steps.
+Open. Proved in Lean (kernel): the halting configurations and the first 10,000 steps (`lean/Blank.lean`, 10^7 with
+`native_decide`), and the laws of two of the three parts of the tape for every size (`lean/Counter.lean`,
+`lean/Stream.lean`, below). Not decoded: the middle part of the tape. C: no halt in 30,000,000,000 steps.
 
 ## What it does
 
-The tape is a mixture of the words <code>10</code>, <code>1000</code> and <code>110</code> with no visible order, and the head works through it in a zigzag, one cell right and three left (states D and B alternating). The right end is a wall of repeated <code>110</code>s, which the run occasionally extends. Unlike a counter, nothing on the tape doubles or repeats; the visited region grows by only about 20 to 25 cells per tenfold increase in time.
+Mirror the tape and rename the states (C, A, B, E, D, F as A, B, C, D, E, F): the table becomes
+1RB0LE_1LC0RE_0RA0LD_1LA1RB_0LC0RF_0LC---, which shares the prefix 1RB0LE_1LC0RE_0RA0LD_1LA with
+1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE--- and the F02 two-word sweepers. So it is the same cascade of counters, seen
+in a mirror: the base-3 counter at the right end and the binary streams on the left. The crossing profile
+(`c/cross.c`, 10^9 steps, cells -46 to 192):
 
-- **Growth.** Cells visited: 163 (10^6), 174 (10^7), 221 (10^8), 238 (10^9), 257 (10^10) steps.
-- **Halting.** Only F1 halts; F is entered only from D1 (`0LF`). In 10^8 steps D reads 1 3,571,420 times, always with a 0
-  to its left.
-- **No structure found.** `bbtools.macro` with blocks of 3 / 6 cells needs one macro step per ~3 / ~6-7 steps
-  over 10^7 steps; `bbtools.cycles` (k = 4) finds no linear cycle in 10^7 steps; CTL windows up to 8 cells do not close (group scan).
+| cells at 10^9 steps | crossings | part |
+|---|---|---|
+| about 149 to 191 | ×1/3 every 3 cells going right (6,052,568 at 149, 2,017,523 at 152 … 1 at 191) | **N**, a base-3 counter, 15 digits |
+| 62 to 149 | up to 36 million, no simple pattern | the **middle**, not decoded |
+| 22 to 62 | ×2 every 4 cells going right (1,883 at 22 … 1,563,086 at 62) | binary counters with 4-cell digits |
+| -46 to 22 | a few hundred, falling to 1 at the left end | runs of `01` growing at rare left-end events |
 
-## Later
+**The right counter N (proved).** Read the cells right of N's low end three at a time from the head outward:
+`010` = 0, `110` = 1, `100` = 2; blank beyond. A visit in state C adds one; it comes back out in state A (no carry)
+or D (carry); a carry through every digit turns blank cells into a new digit 2. `lean/Counter.lean` proves it for
+every number of digits (`n_inc0`, `n_inc1`, `n_inc0_carry`, `n_inc1_carry`, `n_overflow`), from five rows
+(`lean/VisitR.lean`, predicate `Vis`). In the run, the cells right of 126 are entered only in state C and all
+142,058 of those visits are these rows, from step 689,712 until step 43,905,102 (`c/vislaws.c`); then the middle
+reaches 126 and N's low end moves outward. The wall of `110`s at the right end is made of N's top digits.
 
-- Look for an invariant (a regular language of tapes, or a weighted count) that excludes the halting pattern;
-  try CTL with word-based windows (the tape is made of a few words) instead of fixed cell windows.
+**The binary streams (proved).** `lean/Stream.lean` proves the stream laws of the F02 sibling
+1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- for the mirror image of this machine with the states renamed (predicate
+`VisL`, streams left of the head, nearest cell first): a visit in state A (the sibling's B) to an a/z stream is a
+binary increment (`vb_odd`, `vb_even`, `ve_odd`), a visit in state C (the sibling's A) to the counter M adds one and
+wraps (`m_inc`, `m_wrap`). From 29 token rows mined left of cell 30 (`lean/VisitL.lean`).
+
+**Where it could halt.** Only F1 halts, and F is entered only from D reading 1 (`0LF`), which is frequent here: 3,571,420
+times in the first 10^8 steps, always with a 0 left of D, so F reads 0 and goes on with `0RB`. In the renamed table
+this is the step E1 = `0RF` followed by F0 = `0LC`; the relatives have E1 = `0RA` or `0RE` there. The rare transition
+is E1 (`1LA`, the renamed D1 = `1RB`): 66 times in 10^8 steps, the counterpart of the rare D1 events of
+1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---. `holdouts/related.json` already notes that most of this machine's
+configurations in its first 10^7 steps also occur, mirrored, in the run of that machine.
+
+## How far it was run
+
+- Direct C simulation (`c/longrun.c`): 30,000,000,000 steps, no halt; at the end cells -50 to 213 (264 cells), 118 ones.
+- No macro-level accelerator: the time is spent in the undecoded middle.
+
+## Open questions
+
+- Decode the middle (cells 62 to 149 at 10^9 steps).
+- Why D never reads 1 with a 1 to its left (millions of times per 10^8 steps): a local invariant that no CTL window
+  up to 8 cells captures; it should follow from the decoded layout.
+
+## Scripts
+
+- `c/cross.c`, `c/longrun.c`, `c/d1ev.c`, `c/vislaws.c` (as in 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---).
+- `py/make_lean.py py/lean_config.json lean/` (from this folder; the config holds the renaming) writes
+  `lean/VisitL.lean`, `lean/VisitR.lean`, `lean/Counter.lean`, `lean/Stream.lean`; `py/rows.json` holds the rows.
+
+## Earlier notes
+
+- `bbtools.macro` with blocks of 3 / 6 cells needs one macro step per about 3 / 6-7 steps over 10^7 steps;
+  `bbtools.cycles` (k = 4) finds no linear cycle in 10^7 steps; CTL windows up to 8 cells do not close (group scan).
 
 ## First look
 

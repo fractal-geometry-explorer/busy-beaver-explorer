@@ -4,6 +4,7 @@ invariant finder, the Lean generator and the status-page builder.
 
 usage: python3 tools/tests/test_tools.py        (from anywhere; builds the C programs into a temporary directory)
 """
+import hashlib
 import json
 import os
 import random
@@ -27,6 +28,7 @@ import merge_parts  # noqa: E402
 import build_status  # noqa: E402
 import explainer_status  # noqa: E402
 import build_explainer  # noqa: E402
+import syncpair  # noqa: E402
 
 THIS = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 HOLDOUT = "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE"
@@ -674,6 +676,54 @@ class TestExplainerPage(unittest.TestCase):
         self.assertEqual(build_explainer.halt_analysis(Machine.parse("1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA")),
                          [("E1", [("D0", 1, "R", "D>0 1")])])
 
+    def test_xs_widgets(self):
+        sec = {"id": "x", "heading": "X", "html": "<p>x</p>", "widget": "sweep"}
+        spec = {"title": "T", "machine": THIS, "explainer": {"sections": [sec], "xs": {"state": "C", "off": 0, "cost": 12}}}
+        page = build_explainer.build(spec)
+        self.assertIn('data-xs="sweep"', page)
+        self.assertIn('<script id="xs-engine">', page)
+        self.assertNotIn('<script id="xs-engine">', build_explainer.build({"title": "T", "machine": THIS}))
+        with self.assertRaises(ValueError):
+            build_explainer.build({"title": "T", "machine": THIS, "explainer": {"sections": [sec]}})
+
+    @unittest.skipUnless(shutil.which("node"), "node is not installed")
+    def test_xs_engine(self):
+        """The XOR-sweep engine of the F08 pages: at each of the first 2,000 turns at the right end of the real
+        machine, the sweep rule gives the next word and 4 d + cost steps, the zone orbit is the real machine, and at
+        Lean's zone step 3 * 10^7 (the zone orbit here skips Lean's few turns that are not at the right end, so it is
+        compared at the same machine step) it is in the state that lean/DumpState.lean prints (t, n, md5 of Z)."""
+        ms = [["1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA", 2, 0, 12, 1798864615611754, 29990528, "d9b3638b0e41fea64f76c522e742e492"],
+              ["1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA", 2, 0, 12, 1798978906793042, 29991481, "3d997df242dc51c85718f48ff7a4bad3"],
+              ["1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA", 3, -1, 14, 1752176669723814, 29596028, "f79c5015525dd3794af7d025a46570bd"],
+              ["1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB", 3, 0, 12, 1786522819770046, 29887259, "6b3349565dee546e40c25955bcc79af3"]]
+        path = os.path.join(BUILD, "xs.js")
+        with open(path, "w") as f:
+            f.write(build_explainer.ENGINE + build_explainer.XS_ENGINE)
+            f.write("const MS = %s;\n" % json.dumps(ms))
+            f.write(r"""
+console.log(JSON.stringify(MS.map(([t, st, off, cost, T]) => {
+  const m = BB.parse(t), xc = { state: st, off: off }, r = new BB.Run(m), Z = new BB.Zone(m, xc, cost);
+  let w = BB.xsNext(r, xc), bad = 0, sweeps = 0;
+  if (Z.t !== r.steps) bad++;
+  for (let k = 0; k < 2000; k++) {
+    const s = BB.xsSweep(w), s0 = r.steps, w2 = BB.xsNext(r, xc, 1e8);
+    if (s.kind === "ok") { sweeps++; if (s.x.concat([1, 1]).join("") !== w2.join("") || r.steps - s0 !== 4 * s.d + cost) bad++; }
+    const q = BB.xsRun(m, xc, w), w3 = BB.xsNext(q, xc, 1e8);
+    if (w3.join("") !== w2.join("") || q.steps !== r.steps - s0) bad++;
+    Z.step();
+    if (Z.t !== r.steps || Z.word().join("") !== w2.join("")) bad++;
+    w = w2;
+  }
+  while (Z.t < T && !Z.halted) Z.step();
+  return [bad, sweeps, Z.t, Z.n, Z.z.slice().reverse().join("")];
+})));
+""")
+        got = json.loads(subprocess.run(["node", path], check=True, capture_output=True, text=True).stdout)
+        for m, (bad, sweeps, t, n, z) in zip(ms, got):
+            self.assertEqual(bad, 0, m[0])
+            self.assertGreater(sweeps, 1980, m[0])
+            self.assertEqual([t, n, hashlib.md5(z.encode()).hexdigest()], m[4:], m[0])
+
     @unittest.skipUnless(shutil.which("node"), "node is not installed")
     def test_engine_against_python(self):
         rng = random.Random(7)
@@ -700,6 +750,41 @@ class TestExplainerPage(unittest.TestCase):
                     break
                 py.append([s, side, r.tape.hi - r.tape.lo, r.config_str()])
             self.assertEqual(g["recs"], py, t)
+
+
+class TestSync(unittest.TestCase):
+    BB2 = "1RB1LB_1LA---_------_------_------_------"
+    DETOUR = "1LD1LB_1LA---_------_0RE1RE_1RB1RB_------"    # BB(2) with a three-step detour on A0
+
+    def test_toy_closes_and_lean_current(self):
+        """The toy pair closes with windows of 2 cells, and the committed Lean file is what the tool writes now."""
+        (AL, AR, S), pairs, certs = syncpair.closure(self.BB2, self.DETOUR, False, 2)
+        C = json.loads(json.dumps(syncpair.dump(self.BB2, self.DETOUR, False, AL, AR, S, pairs, certs)))
+        with open(os.path.join(TOOLS, "lean", "Test", "Sync.lean")) as f:
+            self.assertEqual(f.read().rstrip("\n"), syncpair.lean_file(C, "SyncToy").rstrip("\n"))
+
+    def test_resync_toy(self):
+        r = syncpair.resync(self.BB2, self.DETOUR, False, 100)
+        self.assertEqual(r[0], "bothhalt")
+
+    def test_nonequivalent_fails(self):
+        """A pair whose halting differs cannot close."""
+        with self.assertRaises(syncpair.Fail):
+            syncpair.closure(self.BB2, "1RB1LB_1LA1LA_------_------_------_------", False, 2)
+
+    def test_cfghash_mirror(self):
+        """The mirror hashes of a run are the forward hashes of the mirror-image machine's run, step for step."""
+        exe = cc("cfghash")
+        rng = random.Random(3)
+        for _ in range(20):
+            text = random_machine(rng, 4)
+            mir = syncpair.mirror_text(text)
+            a = subprocess.run([exe, text, "300", "1"], capture_output=True, text=True, check=True).stdout.split("\n")
+            b = subprocess.run([exe, mir, "300", "1"], capture_output=True, text=True, check=True).stdout.split("\n")
+            fa = [x[2:] for x in a if x.startswith("M ")]
+            fb = [x[2:] for x in b if x.startswith("F ")]
+            self.assertEqual(fa, fb, text)
+            self.assertTrue(fa)
 
 
 if __name__ == "__main__":

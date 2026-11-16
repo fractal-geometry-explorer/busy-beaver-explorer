@@ -11,7 +11,7 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "Its run is a counter of the Fibonacci kind on the left, whose overflows come at times growing by the golden ratio, and a word of binary digits on the right that the counter's carries rewrite; at rare restructures the word is rebuilt longer. Lean proves that a halt can only happen at the right edge."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>) and that a halt can only happen at the right edge (kernel); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
   "<b>What it does.</b> At each overflow of its counter the tape is <code>C&gt;0 (1 0)^z W</code>; z grows by one per overflow and the step counts grow by a factor tending to the golden ratio. Eleven times in 10<sup>11</sup> steps the word W is rebuilt (a restructure), the last at step 75,515,153,373.",
@@ -59,6 +59,18 @@
    "title": "A Fibonacci counter",
    "text": "Within an epoch the ratio of successive overflow times tends to 1.618 (1.534, 1.583, 1.604, 1.609 at z = 37, 39, 41, 42): the counter has Fibonacci-many states per digit count.",
    "where": "the records of the 10<sup>11</sup>-step run"
+  },
+  {
+   "level": "trusted",
+   "title": "The change of one overflow depends only on z, at fixed places",
+   "text": "Re-running the event at step 2,554,963 with z = 0..21 in place of its z = 16, the next event has W changed in a few digits at places fixed by z and moving right as z grows (positions 2, 19, 22, 25, &hellip;), after 1,760, 2,648, 4,374, 7,384, &hellip;, 2,381,024, 3,852,470 steps for z = 5..21 (ratio 1.6180 at the end). In the run to 3&middot;10<sup>9</sup> steps, 26 of the 132 regular pairs of events are a single binary carry and 106 other local rewrites.",
+   "where": "<code>py/overflows.py slots</code>, <code>py/overflows.py check</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two counters on one clock, Fibonacci style",
+   "text": "The same mechanism as the binary sibling 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB: a counter of z digits on the left and a number in slots of W advanced together, an overflow adding a Fibonacci-sized amount to W; the numeration of the slots is not pinned down.",
+   "where": "comparison with the sibling's slot experiment"
   },
   {
    "level": "open",
@@ -109,6 +121,14 @@
     ]
    },
    {
+    "id": "slots",
+    "eyebrow": "The mechanism",
+    "heading": "What one overflow adds",
+    "html": [
+     "<p>Take one overflow moment, change nothing but the length z of the zero prefix, and run to the next one. The word W changes in a handful of digits whose places depend only on z, and move right as z grows; the time it takes grows by the golden ratio:</p><pre>event at step 2,554,963, W in digits:\n    110000001101101101111101111111111101101100011111011011000111&hellip;\n z=5  .........................0..0..0..1..........................   1,760 steps\n z=8  ...................0..1........0..1..........................   7,384 steps\n z=11 ............................0..0..1..1.......................  31,300 steps\n z=14 ...................0..1........0.....1..........1............ 132,654 steps\n z=17 .........................0.....0..1.............1.....1......  562,042 steps</pre><p>That is the picture of a sibling machine, 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB, where the same experiment shows a clean binary carry: a counter of z digits on the left and a number held in fixed slots of W are advanced by the same ticks, so when the left counter overflows, W has gained everything it counted. Here the left counter counts the Fibonacci way, the amount added is Fibonacci-sized, and normalising it flips several digits at once. The exact numeration of the slots is the next thing to find.</p>"
+    ]
+   },
+   {
     "id": "restructure",
     "eyebrow": "Why it is open",
     "heading": "Restructures",
@@ -131,5 +151,5 @@
   ]
  },
  "family": "Fibonacci counter feeding a word",
- "summary": "A Fibonacci counter (step counts grow by the golden ratio) on the left that rewrites a word of binary digits, with restructures at growing intervals; halts only at the right edge. Open, no halt in 10^11 steps."
+ "summary": "A Fibonacci counter of z digits on the left and a number in fixed slots of the word W advanced by the same ticks; each overflow (gaps growing by the golden ratio) adds to W what the counter counted, and rare restructures rebuild W. Halts only at the right edge (Lean); open, no halt in 10^11 steps."
 }
