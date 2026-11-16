@@ -49,8 +49,29 @@ None closes (each reaches a halt in its abstraction or exceeds its budget):
   abstract configurations.
 
 Why: the bulk is a full shift (any word string), so windows of K runs grow like 2^K, while the right end needs
-exact lengths. Next: automata that keep the right-end zone exact and let the bulk be any word string with walls
-(TM.CTL accepts general automata on both sides). Scripts and notes: project folder `ctl-696/`.
+exact lengths. The next section shows the bulk is not quite free either: gaps after a `10` defect are constrained.
+Scripts and notes: project folder `ctl-696/`.
+
+## Defects and the danger pattern (16 November 2026)
+
+Every tape seen when the head first reaches a new left cell (all 7,409 up to 3*10^7 steps) parses greedily as
+words x = 111, y = 110 with two kinds of inserted defect, `0` and `10`, and a final 1. The only way into the halting
+read `1 0 0` is the pattern `0 10 (110)* 0`: a `10` defect right after a 0, then y words, then a `0` defect. It never
+occurs in those tapes.
+
+Mutation tests on real tapes (scripts `mut*.py` in project folder `ctl-696/tools/`), run for 60 more left visits:
+
+* Replace the words left of the first defect with random words: 150 of 150 runs stay clear.
+* Replace all words between defects with random words (defects and the last 12 tokens kept, tapes containing the
+  pattern dropped): 99 of 100 clear. Changing the defect types or positions too: 92 to 94 of 100 clear.
+* Every halting run, shrunk to the smallest set of changed words, changes the words in a short gap `10 W 0`. In
+  each deep sweep that gap is rewritten by the XOR rule (`10 xyxyx 0` becomes `10 yyyyy 0`), and once W is all y
+  with a y or 0 before the `10`, the pattern appears and the next sweep halts.
+
+So the bulk is not a free shift after all. Safety depends on the XOR orbit of the words between a `10` defect and
+the next wall never reaching all y. That is a condition over GF(2) on gaps of any length, which a fixed window
+cannot see, and which explains why the window and model-checking searches above close only by reaching a halt.
+A proof would need to show how `10` defects are made at the right end and what gap words they start with.
 
 ## Lean
 
@@ -67,6 +88,7 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 * Done: the sweep pair is the XOR rule (above). Next: prove it in Lean for all lengths (two per-word transducer
   lemmas and an induction over the word list; the toolchain was not available in the 16 November container).
 * The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
+* How `10` defects are made and which gap words they start with (the danger is a gap the XOR rule turns all y).
 
 ## Deciders tried (F11, 13 November 2026)
 
