@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 16 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine is a counter that grows by a factor 3/2 per epoch (two moves proved in Lean), whose parities drive a growing stack of slower counters. Lean also proves that a halt can only happen past the right end of the tape, which would need the whole stack to be used up; through 83 epochs (10<sup>30</sup> steps) the stack only grows and its bottom has frozen."
+  "<b>The question is open, and it is now an exact arithmetic question.</b> Read the tape as a list of runs of ones. Lean proves that from one visit of the left end to the next the list changes by an explicit map (<code>visit</code>), and that the machine halts from blank tape exactly when the orbit of the list <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> under this map reaches a list in which every run is even (<code>halts_iff</code>). The map is a counter growing by 3/2 per epoch whose parities drive a growing stack of slower counters; a halt needs the whole stack used up. An exact simulator ran 260,000 epochs (about 10<sup>91568</sup> steps) without a halt, and the depth the head reaches into the stack falls off geometrically, so a halt looks very unlikely; it is not excluded."
  ],
  "claims": [
   {
@@ -46,6 +46,24 @@
    "where": "<code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The moves of one visit",
+   "text": "Eight shift rules, each for all values of its counts and all tapes around: the entry, E crossing even runs, E meeting an odd run (joined with the next one, or turned into units if it is the last), the halt when E meets two 0s, an even run crumbling into units, the run before it absorbing two of them, and the conversion at the left end.",
+   "where": "<code>lean/VisitRules.lean</code>, written by <code>py/visit_rules.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The visit map",
+   "text": "For every list l of the domain D (runs &ge; 1, none of length 2, first run even and &ge; 12 or the list starting 6, 4, 1, 1): from the visit with runs l the machine reaches the visit with runs <code>visit l</code>, which is again in D, or halts if <code>visit l = none</code>. And <code>visit l = none</code> exactly when all runs (the first after adding 2) are even.",
+   "where": "<code>visit_step</code>, <code>scan_none_iff</code>, <code>lean/Visit.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halting is a question about the visit map",
+   "text": "The run from blank tape is at the visit [12, 1<sup>9</sup>] after 423 steps, so the machine halts from blank tape if and only if the orbit of that list under <code>visit</code> reaches <code>none</code>. (Axioms: propext, Quot.sound, Classical.choice.)",
+   "where": "<code>blank_to_V</code>, <code>halts_iff</code>, <code>lean/Visit.lean</code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -62,6 +80,36 @@
    "title": "83 epochs, 7&middot;10<sup>29</sup> steps, no halt",
    "text": "The macro simulator with proved cycle jumps (<code>tools/py/bbtools/cycles.py</code>, exact step counts) runs to 10<sup>30</sup> steps. The unit count m of epoch 83 is 780,830,244,113,908; m' = 3m/2 + d with d in {&minus;2, +1, +4} (m even) or {&minus;1/2, +5/2} (m odd), and an epoch takes 1.500&middot;m<sup>2</sup> steps.",
    "where": "<code>py/epochs.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The visit map against the machine",
+   "text": "The Python form of the map (and a one-to-one mirror of the Lean definitions) predicts all 5,405 visits of the first 3&middot;10<sup>7</sup> steps; the run-list simulator it is compared with agrees with a cell-by-cell run at every visit of the first 3&middot;10<sup>6</sup> steps and with <code>py/epochs.py</code> at epoch 82.",
+   "where": "<code>python3 py/visit.py check 3e7</code>, <code>py/runstack.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The last step before a halt",
+   "text": "Among all 1,628,875 lists of the domain with at most 6 runs (each at most 13), the next visit halts exactly from <code>[X, 1]</code> and <code>[X, 4, odd, odd, even, &hellip;, even]</code>; only <code>[X&minus;6, 3]</code> maps to <code>[X, 1]</code>. And directly from the map: the last run of the orbit (a 1) can only become even at a visit where every run except the last two is even, so a halt needs the cascade to work through the whole stack.",
+   "where": "<code>py/last_step.py</code>; <code>visit</code> in <code>py/visit.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "260,000 epochs, about 10<sup>91568</sup> steps, no halt",
+   "text": "The exact run-list simulator (every step of the machine, the proved sweep applied in bulk, big integers) runs 100,000 epochs in a minute: the step count then has 116,996 bits (about 10<sup>35219</sup>) and the stack 113,485 runs. A 15-minute run of the same program reached 260,000 epochs (304,184 bits). No halt.",
+   "where": "<code>python3 py/visit.py epochs 100000</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The stack is touched only near its top",
+   "text": "In 100,000 epochs the head passed 1 entry of the stack in 73% of the epochs, 2 in 22%, 3 in 4%, 4 in 0.27%, 5 in 0.04%, 6 twice, while the stack gains 0.28 entries per epoch; its size never came back more than 10 entries below an earlier value. If the parities keep behaving like coin flips, the chance that the stack is ever emptied is negligible.",
+   "where": "<code>python3 py/visit.py epochs 100000</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No parity sequence found that halts",
+   "text": "For large m the next stack depends only on the stack and the parity of m. Following both parities from every stack, starting from the stack of step 181,417: 468,328 stacks to depth 19, 60,000 best-first expansions, and a sampled search to depth 40 (117,306 stacks, each ending with an odd run and holding at least 3 odd runs) meet no halt. The stack can be dug down to four runs, so this is evidence and not an invariant.",
+   "where": "<code>python3 py/adversary.py bfs 19</code>, <code>best 60000</code>, <code>sample 40 2000</code>"
   },
   {
    "level": "heuristic",
@@ -96,42 +144,47 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. A halt needs the stack to be emptied; the parities of m that drive it look random. The epoch-end cases (parity of m and the first items of the list) are read off the run, not proved.",
-   "where": ""
+   "text": "Not known. Exactly: does the orbit of [12, 1<sup>9</sup>] under the visit map ever reach a list whose runs are all even? That needs the whole stack to be used up. The number of even runs stays odd, which does not exclude it; no other invariant is known.",
+   "where": "<code>halts_iff</code>, <code>lean/Visit.lean</code>"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000",
-  "cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA && python3 py/rules.py | diff - lean/Rules.lean",
+  "cd holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA && python3 py/rules.py | diff - lean/Rules.lean && python3 py/visit_rules.py | diff - lean/VisitRules.lean",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/last_step.py",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py check 3e7",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/visit.py epochs 100000",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py bfs 19",
+  "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adversary.py sample 40 2000",
   "python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L \"pre:2 4 1^\"",
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 1e9",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 300"
  ],
  "explainer": {
-  "lede": "Nobody knows. This machine is a counter that multiplies itself by about 3/2, over and over; each time, whether the count is odd or even nudges a stack of slower counters next to it. It can only stop if that stack is ever used up. This page runs the real machine in your browser and explains the mechanism.",
+  "lede": "Nobody knows, but the question is now pure arithmetic. Read the tape as a list of numbers (the lengths of its runs of ones): each time the head comes back to the left end, the list has changed by a simple rule, and the machine stops only if every number in the list is ever even at once. This page runs the real machine in your browser and explains the rule.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "halts &hArr; all even",
+    "text": "The machine halts exactly when the list of runs, followed by the proved visit map, becomes all even."
+   },
    {
     "level": "kernel",
     "value": "+6 / &minus;2",
     "text": "One sweep: the long run grows by 6, the unit block loses 2 (proved for all sizes)."
    },
    {
-    "level": "kernel",
-    "value": "right edge",
-    "text": "The only place a halt can happen (proved)."
-   },
-   {
     "level": "trusted",
-    "value": "10<sup>30</sup> steps",
-    "text": "No halt; 83 epochs, the last with 7.8&middot;10<sup>14</sup> units."
+    "value": "10<sup>91568</sup> steps",
+    "text": "No halt in 260,000 epochs of an exact simulator."
    },
    {
-    "level": "native",
-    "value": "10<sup>7</sup> steps",
-    "text": "No halt, proved in Lean; the first 10,000 by the kernel alone."
+    "level": "heuristic",
+    "value": "73% / 22% / 4%",
+    "text": "Epochs that reach 1, 2, 3 entries into the stack: deeper is geometrically rarer."
    }
   ],
   "presets": [
@@ -152,6 +205,18 @@
      "<pre>[X, 4, u<sup>n</sup>, L]     a long run X, a run of 4, n units, then a list L of short runs</pre>",
      "<svg viewBox=\"0 0 560 78\" role=\"img\" aria-label=\"one sweep: the long run grows by 6, two units disappear\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><text x=\"120\" y=\"23\" text-anchor=\"end\" fill=\"var(--muted)\">before</text><rect x=\"126.0\" y=\"8\" width=\"141.3\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"196.7\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">X</text><rect x=\"269.3\" y=\"8\" width=\"21.9\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"280.3\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">4</text><rect x=\"293.2\" y=\"8\" width=\"141.3\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"363.9\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">u u u u u u</text><rect x=\"436.6\" y=\"8\" width=\"117.4\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"495.3\" y=\"23\" text-anchor=\"middle\" fill=\"var(--fg)\">L</text><text x=\"120\" y=\"57\" text-anchor=\"end\" fill=\"var(--muted)\">after a sweep</text><rect x=\"126.0\" y=\"42\" width=\"189.1\" height=\"22\" rx=\"3\" fill=\"var(--accent-soft)\" stroke=\"var(--line-strong)\"/><text x=\"220.6\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">X + 6</text><rect x=\"317.1\" y=\"42\" width=\"21.9\" height=\"22\" rx=\"3\" fill=\"var(--sunk)\" stroke=\"var(--line-strong)\"/><text x=\"328.1\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">4</text><rect x=\"341.0\" y=\"42\" width=\"93.6\" height=\"22\" rx=\"3\" fill=\"var(--heur-bg)\" stroke=\"var(--line-strong)\"/><text x=\"387.8\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">u u u u</text><rect x=\"436.6\" y=\"42\" width=\"117.4\" height=\"22\" rx=\"3\" fill=\"var(--native-bg)\" stroke=\"var(--line-strong)\"/><text x=\"495.3\" y=\"57\" text-anchor=\"middle\" fill=\"var(--fg)\">L</text></svg>",
      "<p>The head never goes far to the right: it shuttles across X and the first units only. That is why the right end of the tape has not moved since step 180,000.</p>"
+    ]
+   },
+   {
+    "id": "visitmap",
+    "eyebrow": "The exact rule",
+    "heading": "One visit of the left end, as a rule on a list of numbers",
+    "html": [
+     "<p>Write the tape as the list of its runs of ones, left to right, for instance <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> (the tape at step 423). A <em>visit</em> is the moment the head stands, in state B, on the blank cell just left of the tape. Between two visits the head makes one trip into the tape and back, and the list changes like this:</p>",
+     "<ol><li>The first run grows by 2.</li><li>The head runs to the right over the even runs until it meets the <b>first odd run</b>. <b>If there is none, the machine halts</b> past the right end.</li><li>The odd run is glued to the run after it (their lengths add, plus 2).</li><li>On the way back, the even run just before, of length 2t, <b>crumbles</b> into t runs of length 1 (&ldquo;units&rdquo;); the run before that swallows two of them and grows by 4, and is then glued in the same way, so that the run before it crumbles too, and so on to the left end.</li></ol>",
+     "<svg viewBox='0 0 640 150' role='img' aria-label='One visit: the first odd run is glued to its neighbour and the even run before it crumbles into units' style='max-width:100%;height:auto;font:13px ui-monospace,monospace'><g fill='none' stroke='currentColor'><rect x='10' y='20' width='120' height='26'/><rect x='140' y='20' width='80' height='26'/><rect x='230' y='20' width='50' height='26'/><rect x='290' y='20' width='70' height='26'/><rect x='10' y='100' width='140' height='26'/><rect x='160' y='100' width='18' height='26'/><rect x='184' y='100' width='18' height='26'/><rect x='212' y='100' width='150' height='26'/><path d='M180 50 L180 94 M176 86 L180 94 L184 86'/><path d='M290 50 L290 94 M286 86 L290 94 L294 86'/></g><g fill='currentColor'><text x='50' y='38'>18</text><text x='172' y='38'>8</text><text x='250' y='38'>5</text><text x='318' y='38'>4</text><text x='372' y='38'>&hellip;  before</text><text x='60' y='118'>24</text><text x='165' y='118'>1</text><text x='189' y='118'>1</text><text x='278' y='118'>11</text><text x='372' y='118'>&hellip;  after</text><text x='10' y='78'>18+2+4</text><text x='188' y='78'>8 &rarr; 4 units, 2 swallowed</text><text x='298' y='78'>5+4+2</text></g></svg>",
+     "<p>Example: <code>[18, 8, 5, 4, &hellip;]</code> becomes <code>[24, 1, 1, 11, &hellip;]</code>. If the cascade reaches the very first run and that one crumbles, the list restarts as <code>[6, 4, 1, 1, &hellip;]</code>: that is the conversion that ends an epoch.</p>",
+     "<p>Lean's kernel has checked this rule for <em>every</em> list of the kind the machine produces, and that the machine reaches the list above after 423 steps. So the halting question is exactly: <b>starting from <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> and applying the rule over and over, do we ever get a list with only even numbers?</b> Every unit is odd, so all the units of the stack would have to be gone at the same moment.</p>"
     ]
    },
    {
@@ -188,6 +253,16 @@
     ]
    },
    {
+    "id": "far",
+    "eyebrow": "Evidence",
+    "heading": "How far it was followed, and why a halt looks unlikely",
+    "html": [
+     "<p>With the rule, a program can follow the machine exactly and very far: 100,000 epochs take a minute, and by then the number of steps the real machine would have made has about 35,000 digits. A longer run reached 260,000 epochs (a step count of about 91,500 digits). No halt.</p>",
+     "<p>The stack grows by about 0.28 entries per epoch, and each epoch disturbs only its top: one entry in 73% of the epochs, two in 22%, three in 4%, four in 0.27%, five in 0.04%. Reaching one entry deeper is about five times rarer each time, while the stack is by now tens of thousands of entries deep. If the parities of the counter behave like coin flips, as they appear to, the stack is never emptied.</p>",
+     "<p>This is not a proof, for the same reason the Collatz problem is open: nobody can rule out a very special run of parities. A search that lets an adversary choose every parity (hundreds of thousands of stacks) found no way to make the machine halt, but it also found that an adversary can dig the stack almost to its bottom, so a proof would need a finer invariant.</p>"
+    ]
+   },
+   {
     "id": "classes",
     "eyebrow": "Remainder classes",
     "heading": "Does any remainder class halt?",
@@ -211,7 +286,7 @@
    }
   ]
  },
- "summary": "All the work is at the left end: a long run grows by 6 for every 2 units it eats (proved), then is converted into half as many units (proved), so the unit count m goes to about 3m/2 per epoch; the parity of m drives a stack of slower counters to the right, and a halt (proved: only past the right end) needs that stack used up.",
- "family": "3/2 counter feeding a stack of slower counters",
+ "summary": "Exact reduced map, proved in Lean (halts_iff): read as runs of 1s, the tape changes between visits of the left end by an explicit map on lists, and the machine halts iff the orbit of [12, 1^9] reaches a list with only even runs; a 3/2 counter whose parities drive a stack of slower counters, no halt in 260,000 epochs (about 10^91568 steps).",
+ "family": "Collatz-like: 3/2 counter feeding a stack of slower counters (exact visit map on run lists)",
  "decision": "open"
 }

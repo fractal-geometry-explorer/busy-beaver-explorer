@@ -1,7 +1,7 @@
 # 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC
 
 bbchallenge id 92170. One of the six-state holdouts whose halting from blank tape is open (group G07).
-Family: **nested counters with growth about 15/7, halting only at the right edge (Lean)**. Decision: **open**.
+Family: **nested counters with growth about 15/7 (levels of ones and 7-cell words), halting only at the right edge (Lean)**. Decision: **open**.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -24,33 +24,86 @@ Sample (step 7,293,164,582, the 50,000th visit of the right end in C, 133,715 ce
 
     11111 000 a 1111 a 00 1^39759 a 00 a^7934 1111 a 00 1^34254 a 00 a^584 11111 0 11111 0000 10
 
-The level cycle was checked symbolically with `bbtools.symtm`: the head crosses the block `a^Y` (re-bracketed as
-`(0111111)^Y`) and the ones grow by 10 in some visits, but the 8 visits do not form a single shift-rule run (the
-word of the block changes as a defect walks through it), so the cycle is not proved yet.
+### Shift rules (proved)
+
+`lean/Rules.lean` (written by `py/rules.py` with `bbtools.symtm.prove`, checked by the kernel) proves the four moves
+the head is made of, for every n:
+
+- `walk`: C walks left over a run of ones, five steps a cell, changing nothing;
+- `words_left`: C walks left through a block `(0111111)^(n+1)`: every 0 moves one cell to the right;
+- `glider`: the three cells `110` with B on the first pass a block `a^n` to the right and leave it unchanged;
+- `ones_to_words`: E, moving right, turns a run `1^(7+6n)` into `1011 11 (101111)^n` and stands on its last 1.
+
+The level cycle `1^(x+1) 000 a^(y+2) 11111 0 1111 0 1^12 B>  ->  1^(x+16) 000 a^(y+1)` (same tail, 144y + 598
+steps) is a chain of 21 such pieces; its Lean term is too heavy for one kernel theorem, so it is proved by the
+symbolic replay below, not in Lean.
+
+### An exact accelerated simulator
+
+`py/ws.py` keeps each side of the head as a stack of entries `[len, mult]` (mult words `1^len 0`), with exact big
+integers, and moves a whole run of ones or a whole block of equal words at once (the moves above, found and cached
+per (state, word) by a bounded direct run). `py/cyc.py` adds **cycle jumps**: when the same shape of the stacks comes
+back three times with the numbers changing linearly, it replays the stretch once more with the changing numbers
+replaced by variables (`py/lin.py`: affine forms `b + m*y`, y >= 0; any comparison that is not decided for all y, or
+any halt, makes the attempt fail) and, if the replay closes, applies the cycle k times at once, with k the largest
+count for which every decreasing number stays above its base. So every jump is proved for all values of its
+variables before it is used; about 4,700 such rules appear.
+
+Checks: `py/test_ws.py` compares `ws.Sim` with a cell-by-cell run at all 431,269 macro configurations of the first
+2·10^7 steps (0 mismatches); `py/test_cyc.py` compares the accelerated run with the plain `ws.Sim` run at every
+sample point the accelerated run stops at, up to 10^10 steps (7,807 points, all equal; the 7,808th lies past the
+plain run's end).
+
+### How far it was run
+
+`py/far.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 240` (four minutes): **no halt in 2^8269 steps** (the step count has
+8,270 bits; far.py prints the bit length; about 10^2489), with 181 million macro steps and 81,000 cycle jumps; the tape is then 14 to 24 entries
+of the stacks (levels), its numbers of about 8,000 bits each. A longer run (`far.py ... 570`, 9.5 minutes) reached **2^17783 steps** (a step count of 17,784 bits, about 10^5353; 397 million macro steps, 180,000
+jumps, 7,200 cycle rules) without a halt.
+
+The levels behave as described: the main jumps are `X + 15, Y - 1` (144Y + 5206 steps), `X + 15, Y - 3, Z + 2`,
+`X + 5, Y - 2, Z + 1` and `X + 5, Z + 1, Y - 2` on the active level and its neighbour, and every few levels a run of
+ones is rebuilt into words.
 
 ## Where it can halt
 
 The halting transition is E0, reached only as D0 -> 1RE. A closed tape language from windows of 4 cells
 (`lean/EdgeCert.lean`, checked by `decide` in `lean/Edge.lean`) proves that **the machine halts from blank tape
 exactly when E steps onto the blank region past the right end of the tape** (`halts_iff_edge`), that is, when D
-reads the blank cell just right of the tape. The right end is where the active level works (state C visits it
-about every 100 steps), so a halt is a question of which state the head is in there, decided by the remainders of
-the rebuilds.
+reads the blank cell just right of the tape. With windows of 7 cells (`python3 -m bbtools.ctl ... 7`, closed, 22,365
+abstract configurations; not in Lean) the halt also needs the 7 cells left of E to be ones: the tape must end in a
+run of at least six ones that A reads to its end (A1 -> 1RD, D0 -> 1RE, E0 halts).
+
+**The last run decides, by its length mod 6.** Let the head enter the last run of ones of the tape, `1^r` followed
+by blank, moving right. A direct check for r <= 300 (`py/lastrun.py`; for E, `ones_to_words` extends it to all r) gives: in state
+E it halts iff r ≡ 2 (mod 6), in state A iff r ≡ 1 (mod 6); in every other state, and for the other remainders, the
+head turns back left without a halt. In the run (all macro configurations of the first 2^38 (2.7·10^11) steps of `ws.Sim` and
+of the accelerated run to 2^4025 steps outside its jumps) the head, moving right inside the last run with r ones
+still ahead, is never in state A with r ≡ 1 or in E with r ≡ 2; r is at most 15, and the head always reaches the
+blank past the end in state B. The last run is short (`... 11111 0 1111 0 1^12` most of the time, also `1^13`,
+`1^11`, `1^6`, `1`), so a halt needs the head to come to that short tail in the wrong phase, which is what the
+remainders of the rebuilds would have to arrange.
 
 ## Status
 
 Open.
 
-- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `halts_iff_edge` (`lean/Edge.lean`).
-  **native_decide:** `blank_runs_native` (10^7 steps).
-- **Trusted:** no halt in 1.2·10^10 steps (`tools/c`, direct run).
-- **Heuristic:** the level cycle and the rebuild rule (read off the run).
+- **Kernel:** `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`); `halts_iff_edge` (`lean/Edge.lean`);
+  `walk`, `words_left`, `glider`, `ones_to_words` (`lean/Rules.lean`). **native_decide:** `blank_runs_native`
+  (10^7 steps).
+- **Trusted:** no halt in 1.2·10^10 steps (`tools/c`, direct run); **no halt in 2^17783 steps** (2^8269 in four minutes) with the accelerated
+  simulator (`py/ws.py`, `py/cyc.py`: exact integers, every cycle jump proved by a symbolic replay before use; checked
+  against direct simulation as above). The last-run criterion (mod 6): a finite check for r <= 300, for E extended to all r by `ones_to_words`.
+- **Heuristic:** the level cycle as a closed formula, the rebuild rule (about 7 ones per word, growth 15/7), and the
+  observation that the head never comes to the last run in a halting phase.
 
 ## Next steps
 
-Find the exact 8-visit cycle (the block's word changes as a defect moves through it: state it with the defect's
-position as a second count) and prove it with `bbtools.symtm.prove` and fit the rebuild map by remainder, as for
-1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---.
+Write the level map as one exact function: the shape of the stacks at the start of each level (a few dozen shapes
+appear) and the affine map of its numbers, with the case split by the remainders mod 7 (and mod 6 for the tail); then
+show (or refute) that the tail `5 4 12` is always entered in a non-halting phase. The accelerator already lists the
+proved cycle rules (`Acc.rules`), so the map can be read off them; proving it in Lean needs the level cycle split into
+kernel-sized pieces (the 21-piece chain was too heavy as one term).
 
 ## Pages
 
@@ -62,6 +115,11 @@ position as a second count) and prove it with `bbtools.symtm.prove` and fit the 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/check.sh
 (cd tools/py && python3 -m bbtools.ctl 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 4 lean H92170 Blank) | diff - holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/EdgeCert.lean
+cd holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/py
+python3 rules.py | diff - ../lean/Rules.lean
+python3 test_ws.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 2e7       # ws.Sim against a cell-by-cell run
+python3 test_cyc.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1e10     # accelerated against plain ws.Sim
+python3 far.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 240           # the accelerated run, 4 minutes
 ```
 
 <!-- related machines: written by holdouts/related.py -->

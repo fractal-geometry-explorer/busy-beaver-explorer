@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -194,7 +194,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>right edge</b><span class="small">The only place a halt can happen (proved).</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>&times;15/7</b><span class="small">Growth of a level per round.</span></div>
-    <div class="fact"><span class="ev c">Computed</span><b>1.2&middot;10<sup>10</sup></b><span class="small">Steps without a halt (direct C run).</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>2<sup>17783</sup></b><span class="small">Steps without a halt (exact accelerated simulator, proved jumps).</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">Levels of ones and seven-cell words</a><a href="#halt">Only at the right edge</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">Levels of ones and seven-cell words</a><a href="#halt">Only at the right edge</a><a href="#lastrun">The last run of ones, counted mod 6</a><a href="#far">2&lt;sup&gt;17783&lt;/sup&gt; steps without a halt</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -298,6 +298,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The machine stops only when E reads a 0, and E is entered only from D reading a 0 (D0 &rarr; 1RE). A <em>closed tape language</em> (a finite description, from windows of 4 cells, of every tape the run can produce, checked by Lean's kernel) shows that this can only happen when D stands on the blank cell just past the right end of the tape. Patterns such as <code>a 00 a</code> inside the tape never produce a halt.</p>
 <p>The right end is exactly where the active level works (state C visits it every hundred steps or so), so whether the machine stops depends on the state in which the head arrives there after a rebuild: a question about the remainders of the rebuilds, which is open.</p>
 </section>
+<section id="lastrun">
+  <span class="eyebrow">The deciding moment</span>
+  <h2>The last run of ones, counted mod 6</h2>
+<p>Look at the very end of the tape. It almost always ends with a short run of ones, for instance <code>11111 0 1111 0 111111111111</code> (twelve ones at the end). When the head comes from the left and walks right into that last run, what happens depends only on its state and on the length r of the run, counted modulo 6:</p>
+<svg viewBox='0 0 520 120' width='100%' style='max-width:520px' role='img' aria-label='Halting phases of the last run'><g font-family='monospace' font-size='13' fill='currentColor'><text x='10' y='20'>r mod 6:</text><text x='110' y='20'>0</text><text x='170' y='20'>1</text><text x='230' y='20'>2</text><text x='290' y='20'>3</text><text x='350' y='20'>4</text><text x='410' y='20'>5</text><text x='10' y='55'>state E</text><text x='10' y='95'>state A</text><rect x='98' y='38' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='158' y='38' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='218' y='38' width='36' height='24' rx='4' fill='#d9534f' stroke='currentColor' stroke-opacity='.4'/><rect x='278' y='38' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='338' y='38' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='398' y='38' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='98' y='78' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='158' y='78' width='36' height='24' rx='4' fill='#d9534f' stroke='currentColor' stroke-opacity='.4'/><rect x='218' y='78' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='278' y='78' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='338' y='78' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/><rect x='398' y='78' width='36' height='24' rx='4' fill='none' stroke='currentColor' stroke-opacity='.4'/></g></svg>
+<p>Red marks a halt: in state E with r &equiv; 2, or in state A with r &equiv; 1 (mod 6), the head runs off the end and stops; in all other cases (and in the other four states) it turns back. In every run we could follow, the head always arrived at that last run in a safe phase. So the whole question is whether the rebuilds of the levels, steered by their remainders mod 7, can ever deliver the head to the end in a red phase.</p>
+</section>
+<section id="far">
+  <span class="eyebrow">How far</span>
+  <h2>2<sup>17783</sup> steps without a halt</h2>
+<p>Simulating cell by cell stops being useful after about 10<sup>10</sup> steps. The exact simulator in <code>py/ws.py</code> keeps the tape as stacks of runs (<em>this many words of that many ones</em>) and moves through a whole run at once. On top of it, <code>py/cyc.py</code> spots a stretch of the run that repeats with numbers changing by fixed amounts (like <code>X + 15, Y &minus; 1</code>), re-runs that stretch once with the numbers replaced by symbols to prove it works for all larger values, and then jumps over thousands of repetitions in one step.</p>
+<p>Checked against the plain machine, this reached 2<sup>8269</sup> steps (a number with about 2,490 decimal digits) in four minutes and 2<sup>17783</sup> steps (about 5,350 digits) in under ten, with no halt. That is evidence, not a proof: the machine could still halt later.</p>
+</section>
 <section id="related-machines">
   <span class="eyebrow">Family</span>
   <h2>Related machines</h2>
@@ -327,7 +340,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -339,12 +352,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>The halting configurations</b><p>The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10,000 steps</b><p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff_edge</code>, <code>lean/Edge.lean</code>, <code>lean/EdgeCert.lean</code></div></div><div><b>A halt can only happen past the right end</b><p>A closed tape language from windows of 4 cells covers the run from blank tape; in it the halting transition E0 can only fire with blank tape from the head on: the machine halts iff E steps onto the blank region right of the tape (after D0 &rarr; 1RE on the last cell's neighbour).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>walk</code>, <code>words_left</code>, <code>glider</code>, <code>ones_to_words</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Four shift rules</b><p>For every n: C walks left over 1<sup>n</sup>; C walks left through (0111111)<sup>n+1</sup>, shifting every 0 one cell right; the glider 110 (state B) passes a<sup>n</sup> unchanged; E turns 1<sup>7+6n</sup> into words of five ones.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c</code></div></div><div><b>No halt in 1.2&middot;10<sup>10</sup> steps</b><p>Direct C run; at step 7,293,164,582 the tape (133,715 cells) reads 11111 000 a 1111 a 00 1<sup>39759</sup> a 00 a<sup>7934</sup> 1111 a 00 1<sup>34254</sup> a 00 a<sup>584</sup> 11111 0 11111 0000 10 (a = 1111110).</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>The cycle of the active level</b><p>Every 8 visits of the right end, X + 15 and Y &minus; 1 on the last level, until Y = 0; read off direct runs to 1.2&middot;10<sup>10</sup> steps.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/ws.py</code>, <code>py/cyc.py</code>, <code>py/lin.py</code>, <code>py/far.py</code>; checks <code>py/test_ws.py</code>, <code>py/test_cyc.py</code></div></div><div><b>No halt in 2<sup>17783</sup> steps</b><p>An exact simulator on stacks of words (big integers) with cycle jumps; every jump is first replayed with its changing numbers as variables (affine forms, all comparisons decided for all values) and used only if the replay closes. Checked against a cell-by-cell run at 431,269 macro configurations (2&middot;10<sup>7</sup> steps) and against its plain version at 7,807 sample points up to 10<sup>10</sup> steps. Four minutes: 2<sup>8269</sup> steps (about 10<sup>2489</sup>); 9.5 minutes: 2<sup>17783</sup> steps (about 10<sup>5353</sup>), 180,000 jumps; no halt.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/lastrun.py</code>; <code>python3 -m bbtools.ctl 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 7</code></div></div><div><b>The last run decides by its length mod 6</b><p>When the head enters the last run of ones 1<sup>r</sup> (blank after it) moving right, it halts iff it is in E with r &equiv; 2 (mod 6) or in A with r &equiv; 1 (mod 6); otherwise it turns back. Finite check for r &le; 300, extended to all r for E by <code>ones_to_words</code>. With windows of 7 cells the closed tape language also needs r &ge; 6.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>The cycle of the active level</b><p>Every 8 visits of the right end, X + 15 and Y &minus; 1 on the last level, until Y = 0; read off direct runs to 1.2&middot;10<sup>10</sup> steps. The accelerator proves each instance it uses by a symbolic replay (for all values above a base), but the general cycle is not a Lean theorem.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>Rebuilds at about 7 ones per word</b><p>When a level is used up the ones are rebuilt into words; sizes grow by about 15/7 per round.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">read off <code>ws.Sim</code> and <code>cyc.Acc</code> runs</div></div><div><b>Never in the halting phase at the end</b><p>In all macro configurations of the first 2<sup>38</sup> steps, and of the accelerated run to 2<sup>4025</sup> steps outside its jumps, the head never moves right inside the last run in A with r &equiv; 1 or E with r &equiv; 2 (mod 6); the last run has at most 15 ones and the head reaches the blank past the end only in state B.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The level cycle and the rebuild rule are read off the run, not proved; a halt needs D at the right end, which depends on the remainders of the rebuilds.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The level map is not written as one closed formula; a halt needs the head to reach the short last run in state E or A at the wrong length mod 6, which depends on the remainders of the rebuilds.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
 <section id="check">
@@ -352,6 +369,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/check.sh
+cd holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/py &amp;&amp; python3 rules.py | diff - ../lean/Rules.lean
+python3 test_ws.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 2e7 &amp;&amp; python3 test_cyc.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1e10
+python3 far.py 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 240      # 2^8269 steps, no halt (570 s: 2^17783)
+python3 lastrun.py
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 1000000000
 (cd tools/py &amp;&amp; python3 -m bbtools.ctl 1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC 4 lean H92170 Blank) | diff - holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC/lean/EdgeCert.lean</code></pre>
 </section>
