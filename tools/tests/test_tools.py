@@ -27,6 +27,7 @@ import merge_parts  # noqa: E402
 import build_status  # noqa: E402
 import explainer_status  # noqa: E402
 import build_explainer  # noqa: E402
+import syncpair  # noqa: E402
 
 THIS = "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB"
 HOLDOUT = "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE"
@@ -700,6 +701,41 @@ class TestExplainerPage(unittest.TestCase):
                     break
                 py.append([s, side, r.tape.hi - r.tape.lo, r.config_str()])
             self.assertEqual(g["recs"], py, t)
+
+
+class TestSync(unittest.TestCase):
+    BB2 = "1RB1LB_1LA---_------_------_------_------"
+    DETOUR = "1LD1LB_1LA---_------_0RE1RE_1RB1RB_------"    # BB(2) with a three-step detour on A0
+
+    def test_toy_closes_and_lean_current(self):
+        """The toy pair closes with windows of 2 cells, and the committed Lean file is what the tool writes now."""
+        (AL, AR, S), pairs, certs = syncpair.closure(self.BB2, self.DETOUR, False, 2)
+        C = json.loads(json.dumps(syncpair.dump(self.BB2, self.DETOUR, False, AL, AR, S, pairs, certs)))
+        with open(os.path.join(TOOLS, "lean", "Test", "Sync.lean")) as f:
+            self.assertEqual(f.read().rstrip("\n"), syncpair.lean_file(C, "SyncToy").rstrip("\n"))
+
+    def test_resync_toy(self):
+        r = syncpair.resync(self.BB2, self.DETOUR, False, 100)
+        self.assertEqual(r[0], "bothhalt")
+
+    def test_nonequivalent_fails(self):
+        """A pair whose halting differs cannot close."""
+        with self.assertRaises(syncpair.Fail):
+            syncpair.closure(self.BB2, "1RB1LB_1LA1LA_------_------_------_------", False, 2)
+
+    def test_cfghash_mirror(self):
+        """The mirror hashes of a run are the forward hashes of the mirror-image machine's run, step for step."""
+        exe = cc("cfghash")
+        rng = random.Random(3)
+        for _ in range(20):
+            text = random_machine(rng, 4)
+            mir = syncpair.mirror_text(text)
+            a = subprocess.run([exe, text, "300", "1"], capture_output=True, text=True, check=True).stdout.split("\n")
+            b = subprocess.run([exe, mir, "300", "1"], capture_output=True, text=True, check=True).stdout.split("\n")
+            fa = [x[2:] for x in a if x.startswith("M ")]
+            fb = [x[2:] for x in b if x.startswith("F ")]
+            self.assertEqual(fa, fb, text)
+            self.assertTrue(fa)
 
 
 if __name__ == "__main__":
