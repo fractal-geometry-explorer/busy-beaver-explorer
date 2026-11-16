@@ -63,7 +63,7 @@ invariant in sight that would prove the opposite.
 * **Heuristic**: the halting chance per visit that reaches the right end, and the rate of such visits (below).
 * **Open**: whether the run from blank tape halts.
 
-## Fifth look: can whole cascades be skipped? (no way found; what there is, and what stands in the way)
+## Fifth and sixth look: can whole cascades be skipped? (no way found; what there is, and what stands in the way)
 
 This pass looked for an accelerator: closed forms for many visits at once on words with large exponents, as for
 the ladder machine `1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB`. **None was found, and the measurements below say why
@@ -104,6 +104,27 @@ and the words of the run are not runs of b.
   as half its tokens, as coin flips would, and a general-purpose compressor needs tens of thousands of bits for it,
   more at every doubling (roughly like V^0.6). Exponents do not help: the only large one is k. A ladder of levels
   (the method of the other machine) has a state of a few numbers per level; this word is not of that kind.
+* *Shared pieces do not save it either, at the horizon that matters (sixth look, `c/lz77.c`).* LZMA undercounts the
+  repetition in these words. A sharper measure is z, the number of phrases of the greedy LZ77 parsing (each phrase
+  the longest piece that already occurs earlier): z is a lower bound for the size of *every* grammar (straight-line
+  program) that produces the word, so every exact method that holds the word as hash-consed shared pieces (a
+  Hashlife-style memo, a rope of memoised sub-words, an odometer whose levels are sub-words) needs at least z of them.
+
+      visit      tokens     z       tokens/z        visit      tokens     z       tokens/z
+      1,024      1,619      164     10              32,768     37,575     1,170   32
+      2,048      2,680      202     13              65,536     74,343     2,975   25
+      4,096      7,105      564     13              131,072    142,780    3,150   45
+      8,192      11,201     563     20              262,144    274,454    4,988   55
+      16,384     19,705     850     23              524,288    536,598    13,623  39
+                                                    1,048,576  1,060,886  13,839  77
+
+  So the word is far more repetitive than LZMA said (77 tokens per phrase at visit 2^20; between visits 2^19 and
+  2^20 the word doubled and z grew by 216), and a grammar-based accelerator is not excluded by the size of the word
+  *now*. But z keeps growing in jumps: a least-squares fit gives z ≈ 1.6 · V^0.66, that is about 2^100 phrases at
+  visit 2^150; a fit of the same eleven points by a power of log V, z ∝ (log V)^6.6, gives about 2^33. Ten doublings
+  cannot tell the two apart. Even in the kind case the accelerated model would have to carry billions of shared
+  pieces through some 250 out-of-phase cascades that each read the whole word, and nobody has a closed form for one
+  such cascade on a compressed word.
 * *A visit that reaches the right end rewrites the whole word.* The words before and after visits 32,497, 50,841,
   113,145 and 118,809 have their last token in common and nothing more (visit 231,897: 12 tokens;
   `py/entropy.py WRUN rewrite`). So the state at the moments that matter is the whole word, every time.
@@ -133,7 +154,11 @@ and the words of the run are not runs of b.
   right end, and what the cascade there does, depends on everything behind. On the common part the run is one fixed
   sequence of words, but that sequence is itself the chaotic object (its visits are the heavy ones above).
 
-**What it means for the estimate.** A method that follows the run exactly has to carry the word. At the rate of the
+**What it means for the estimate.** A method that follows the run exactly has to carry the word, in some form (at
+least z shared pieces, by the sixth look). And even an accelerator that worked would most likely not decide the
+machine: at 1.5 right-end visits per doubling and a halting chance of about 0.4% each, pushing the run from visit
+2^21 to visit 2^40 (19 more doublings, some 28 more right-end visits) gives a halt with a chance of about 10%; the
+estimate puts the halt near 250 right-end visits, around visit 2^150. At the rate of the
 table the word of visit 2^150 has more bits than any memory holds, and each right-end visit reads all of it. So the
 estimate "it probably halts near visit 2^150" cannot be checked by running, with or without acceleration; a decision
 would have to come from a property of the frames at the right end that does not need the word, and none is known.
@@ -317,6 +342,11 @@ left end shows `(1^8 0)^k` for a while (another word of 9 cells) before `1^5 0 1
   exact method would have to skip whole cascades. The fifth look says what that is up against: the word has no short
   description by runs, repetitions or LZMA (so hashing repeated sub-words, as Hashlife does, has little to share),
   and it is rewritten whole at every right-end visit.
+* A dedicated pass (sixth look) aimed at the halt and did not reach it. It measured the LZ77 size of the words
+  (table above) and found no accelerator; what one would need is an identity `T^n(P Z) = P_n T^m(Z)` (the prefix P
+  hands whole T's to the rest Z, as the binary counter on `b^4 D(k)` does) for the cut points of the word, with P_n
+  and m computed on hash-consed sub-words, plus a way through the out-of-phase cascades at the right end. The first
+  part is a Hashlife for this recursion; it would buy doublings, not the 130 or so that the estimate asks for.
 * What the fifth look leaves to try: the run between two collapses on the common part is one fixed sequence of
   words, `T^t(c^4 (b c c)^92 ... U^n)`, and the deep visits come at fixed t. A description of that sequence (which
   t, how deep) would predict the right-end visits of every later stretch without running it; the cascade at the
@@ -375,6 +405,7 @@ python3 py/entropy.py /tmp/wrun rewrite                     # a right-end visit 
 /tmp/wrun costs 400000 3000000                              # the heavy visits (40 s); the same distances after visits 32,777 and 232,177
 python3 py/entropy.py /tmp/wrun prefix 32778 232178         # the two words after the collapses share 23,257 tokens
 python3 py/depth.py /tmp/wrun                               # how deep an increment reaches, by k mod 8 (1 minute)
+gcc -O2 -o /tmp/lz77 c/lz77.c && /tmp/wrun wordat 524288 | /tmp/lz77   # sixth look: z = 13,623 (75 s; 1048576: 4 minutes)
 python3 py/model_lean.py | diff - lean/Model.lean           # the generated Lean file is current
 gcc -O2 -o /tmp/wcheck c/wcheck.c && /tmp/wcheck 2e10     # every visit shows a word over 110, 111 (2 minutes)
 cd py && python3 words.py run 3e7                           # rules (1)-(3) against the run
