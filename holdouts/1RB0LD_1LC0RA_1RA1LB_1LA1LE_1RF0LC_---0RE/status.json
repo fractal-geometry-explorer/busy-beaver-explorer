@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 17 November 2026.",
  "verdict": [
-  "<b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>."
+  "<b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules, and proves that the machine halts from blank tape if and only if the orbit of this macro step from P(4) stops. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>."
  ],
  "claims": [
   {
@@ -47,9 +47,9 @@
   },
   {
    "level": "kernel",
-   "title": "The run from blank tape follows the macro step",
-   "text": "The machine is at P(4) after 31 steps; <code>orbit k 4</code> applies the macro step k times, and <code>orbit_sound</code> turns any value of it into a statement about the machine.",
-   "where": "<code>init_P4</code>, <code>orbit_sound</code>, <code>no_halt_of_orbit</code>, <code>lean/Orbit.lean</code>"
+   "title": "The run from blank tape follows the macro step, and halts exactly when the orbit stops",
+   "text": "The machine is at P(4) after 31 steps; <code>orbit k 4</code> applies the macro step k times, and <code>orbit_sound</code> turns any value of it into a statement about the machine. <code>halts_iff</code> joins both directions in one theorem: the machine halts from blank tape if and only if <code>orbit k 4 = none</code> for some k, that is, some macro step from P(4) on halts. It rests only on the axioms propext, Classical.choice and Quot.sound.",
+   "where": "<code>init_P4</code>, <code>orbit_sound</code>, <code>no_halt_of_orbit</code>, <code>lean/Orbit.lean</code>; <code>halts_iff</code>, <code>pstep_never_unknown</code>, <code>lean/Iff.lean</code>"
   },
   {
    "level": "kernel",

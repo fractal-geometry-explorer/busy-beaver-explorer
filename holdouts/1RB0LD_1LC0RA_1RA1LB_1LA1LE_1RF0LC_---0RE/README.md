@@ -55,6 +55,7 @@ a sparse set?), hence "Cryptid".
 | kernel | 21 symbolic rules (generated) | `lean/Rules.lean` from `py/rules.py` |
 | kernel | the macro step: `pstep n` returns P(n′) with exact steps or a halt, sound for **every** n | `pstep_sound`, `lean/Macro.lean` |
 | kernel | blank → P(4) in 31 steps; any value of `orbit k 4` is a true run | `init_P4`, `orbit_sound`, `lean/Orbit.lean` |
+| kernel | **`halts_iff`: the machine halts from blank tape if and only if `orbit k 4 = none` for some k** (the fuel in `pstep` never runs out, and a macro step takes at least 8 steps) | `halts_iff`, `pstep_never_unknown`, `lean/Iff.lean` |
 | kernel | 200 rounds without a halt, > 10⁸⁶ steps | `orbit_200`, `orbitT_200_big` |
 | native | 2,000 rounds without a halt, > 10⁷⁹⁸ steps | `orbit_2000`, `orbitT_2000_big` |
 | trusted | closed form = `pstep` for 1 ≤ n ≤ 200,000 (Python transcription of the Lean function) | `py/macro.py check 200000` |
