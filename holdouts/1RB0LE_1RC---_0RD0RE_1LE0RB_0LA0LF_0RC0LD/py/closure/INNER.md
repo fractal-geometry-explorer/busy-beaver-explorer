@@ -185,3 +185,5 @@ Columns: classes found, undecided pieces, halting pieces, inner rules (empty whe
 |`1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB`|LD|still growing (no undecided)|4266|0|0|0|
 |`1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB`|RA|still growing (no undecided)|17|0|271|50|
 |`1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE`|LE|still growing (no undecided)|1241|0|0|0|
+
+Follow-up (17 Nov 2026): block lists as repeats with their own free counts, with cover checks and widening, are in `pclosure_list.py`; see `LISTS.md`.
