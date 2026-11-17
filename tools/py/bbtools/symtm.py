@@ -538,7 +538,7 @@ def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=Tr
     end = Config.parse(end) if isinstance(end, str) else end
     trace = []
     try:
-        fin = run(m, start.copy(), lambda c: not c.steps.is_zero() and same_config(c, end), max_moves=max_moves, cross=cross, trace=trace,
+        fin = run(m, start.copy(), lambda c: c.state == end.state and not c.steps.is_zero() and same_config(c, end), max_moves=max_moves, cross=cross, trace=trace,
                   rotate=rotate)
     except (TouchContext, NeedSplit, Halted, RuntimeError) as e:
         raise ProofError(f"{name}: {type(e).__name__}: {e}")

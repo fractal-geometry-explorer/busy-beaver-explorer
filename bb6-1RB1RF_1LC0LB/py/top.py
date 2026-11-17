@@ -38,7 +38,9 @@ TURN_TAIL = "C> 1 1 0 0 1 0 1 R"        # the walk's phase: `W5 (0 1 R)` in Coun
 LAST_TAIL = "C> 0 1 0^inf"              # the right end
 MOVES = 2000                            # move budget for a piece (more: `long`)
 WALL_MOVES = 6000                       # the same for a piece with copy loops jumped over
+LONG_MOVES = 30000                      # ... for a wall trip that does not close in WALL_MOVES
 GEN_MOVES = 2000                        # move budget for a symbolic trial
+LONG = 16                               # a block this long left as a number is generalised again, with walls
 
 
 # ---------------------------------------------------------------- cutting a trip
@@ -121,12 +123,12 @@ def run_piece(start, turn, moves=MOVES, jumps=None, walls=True):
     return wall.run(M, Config.parse(start), _at_end(turn), max_moves=moves, jumps=jumps)
 
 
-def find_piece(bs, ss, k, j, walls=False):
+def find_piece(bs, ss, k, j, walls=False, moves=None):
     """(frm, toks): the smallest stretch of the tape the piece runs on; (None, reason) if it does not close."""
     for frm in range(j, -1, -1):
         toks = piece_tokens(bs, ss, k, j, frm)
         try:
-            run_piece(start_str(toks, k, frm), k > 0, WALL_MOVES if walls else MOVES, walls=walls)
+            run_piece(start_str(toks, k, frm), k > 0, moves or (WALL_MOVES if walls else MOVES), walls=walls)
             return frm, toks
         except TouchContext:
             continue
@@ -135,7 +137,7 @@ def find_piece(bs, ss, k, j, walls=False):
     return None, "TouchContext"
 
 
-def generalize(toks, k, frm, walls=False):
+def generalize(toks, k, frm, walls=False, moves=None):
     """Make blocks symbolic, longest first, `2x + r` with the smallest r that keeps the symbolic run closing (the r
     literal pairs all on one side of `(1010)^x`, or all but one; for a wall trip, split in any way).
     Returns (toks, values) with values[var] the variable's value in this trip."""
@@ -158,7 +160,7 @@ def generalize(toks, k, frm, walls=False):
                 trial = list(toks)
                 trial[i] = (v, a, b)
                 try:
-                    run_piece(start_str(trial, k, frm), k > 0, WALL_MOVES if walls else GEN_MOVES, walls=walls)
+                    run_piece(start_str(trial, k, frm), k > 0, moves or (WALL_MOVES if walls else GEN_MOVES), walls=walls)
                 except Exception:   # noqa: BLE001
                     continue
                 toks, vals[v], done = trial, (n - r) // 2, True
@@ -256,7 +258,11 @@ class Shape:
             self.jumps = [(cfg.copy(), fin.copy())]
         except Exception:   # noqa: BLE001
             self.jumps = []
-            fin = wall.run(M, cfg.copy(), _at_end(self.turn), max_moves=WALL_MOVES, jumps=self.jumps)
+            try:
+                fin = wall.run(M, cfg.copy(), _at_end(self.turn), max_moves=WALL_MOVES, jumps=self.jumps)
+            except RuntimeError:            # a long wall trip
+                self.jumps = []
+                fin = wall.run(M, cfg.copy(), _at_end(self.turn), max_moves=LONG_MOVES, jumps=self.jumps)
         self.wall = any(isinstance(j, wall.Jump) for j in self.jumps)
         self.steps = fin.steps
         self.lhs = blocks(cfg.left)
@@ -305,15 +311,36 @@ def cut(before):
     or with 'long' set when the piece does not close."""
     bs, ss = norm(before)
     k, j = walk(bs, ss)
-    walls = False
+    walls, moves = False, None
     frm, toks = find_piece(bs, ss, k, j)
     if frm is None:                     # a trip that builds a wall: the copy loops jumped over (`wall.py`)
         walls = True
         frm, toks = find_piece(bs, ss, k, j, walls=True)
-    if frm is None:
-        return {"k": k, "j": j, "long": toks}
-    gt, vals = generalize(toks, k, frm, walls=walls)
+    if frm is None:                     # the piece runs into the walked levels: the whole trip is the piece
+        j0 = len(bs) - 1
+        whole = piece_tokens(bs, ss, 0, j0, 0)
+        try:
+            run_piece(start_str(whole, 0, 0), False, WALL_MOVES, walls=True)
+        except Exception:   # noqa: BLE001  (a run that does not close)
+            whole = None
+        if whole is not None:
+            k, j, frm, toks, walls = 0, j0, 0, whole, True
+        else:                           # a long wall trip: once more with a larger move budget
+            moves = LONG_MOVES
+            frm, toks = find_piece(bs, ss, k, j, walls=True, moves=moves)
+            if frm is None:
+                return {"k": k, "j": j, "long": toks}
+    gt, vals = generalize(toks, k, frm, walls=walls, moves=moves)
+    if not walls and _long_literal(gt):     # a block the plain run cannot make symbolic: try with the copy loops jumped
+        gw, vw = generalize(toks, k, frm, walls=True)
+        if len(_long_literal(gw)) < len(_long_literal(gt)):
+            gt, vals = gw, vw
     return {"k": k, "j": j, "frm": frm, "start": start_str(gt, k, frm), "vals": vals, "bs": bs, "ss": ss}
+
+
+def _long_literal(toks):
+    """The blocks of at least LONG pairs left as numbers."""
+    return [t for t in toks if isinstance(t, int) and t >= LONG]
 
 
 def predict(c):
