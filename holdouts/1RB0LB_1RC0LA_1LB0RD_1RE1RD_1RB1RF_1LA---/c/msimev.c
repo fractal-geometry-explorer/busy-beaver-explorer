@@ -90,9 +90,11 @@ int main(int argc,char**argv){
   double wall= argc>6? atof(argv[6]):1e30; long maxev = argc>7? atol(argv[7]): -1;
   hi=0;
   if(argc>4 && !strncmp(argv[4],"rle:",4)){
-    /* run-length start: file "STATE HEADBLOCK NRUNS" then NRUNS lines "BITS COUNT" (blocks of K cells, left to
-       right); the head is on the first cell of block HEADBLOCK, facing right; every cell given counts as visited */
-    FILE*f=fopen(argv[4]+4,"r"); char sc; long long hb; long nr_; if(fscanf(f," %c %lld %ld",&sc,&hb,&nr_)!=3) return 1;
+    /* run-length start: file "STATE HEADBLOCK NRUNS [VISITED]" then NRUNS lines "BITS COUNT" (blocks of K cells,
+       left to right); the head is on the first cell of block HEADBLOCK, facing right; the first VISITED cells count
+       as visited (default: every cell given) */
+    FILE*f=fopen(argv[4]+4,"r"); char sc; long long hb, vis=-1; long nr_; if(fscanf(f," %c %lld %ld",&sc,&hb,&nr_)!=3) return 1;
+    { int ch; while((ch=fgetc(f))==' '||ch=='\t'); if(ch!='\n'&&ch!=EOF){ ungetc(ch,f); if(fscanf(f,"%lld",&vis)!=1) return 1; } }
     st=sc-'A'; static char wb[64]; static unsigned long long cnts[1<<20]; static uint32_t vals[1<<20];
     long long pos=0;
     for(long i=0;i<nr_;i++){ unsigned long long c; if(fscanf(f," %63s %llu",wb,&c)!=2) return 1; uint32_t v=0; for(int j=0;j<K;j++) v=v*2+(wb[j]-'0'); vals[i]=v; cnts[i]=c; }
@@ -106,7 +108,7 @@ int main(int argc,char**argv){
     /* right part pushed from the far end */
     long long tot=0; for(long i=0;i<nr_;i++) tot+=cnts[i];
     { long long bb2=tot; for(long i=nr_-1;i>=0;i--){ long long c=cnts[i]; long long start=bb2-c; long long lo= start<hb? hb: start; if(bb2>lo) push(R,&nr,vals[i],bb2-lo); bb2=start; if(bb2<=hb) break; } }
-    lpos=hb*K; hi=tot*K-1;
+    lpos=hb*K; hi= vis>=0? vis-1 : tot*K-1;
   } else
   if(argc>4 && strcmp(argv[4],"-")){ FILE*f=fopen(argv[4],"r"); char sc; long hidx; static char b[1<<25], bb[1<<25];
     if(fscanf(f," %c %ld %s",&sc,&hidx,b)!=3) return 1; fclose(f); st=sc-'A'; long n=strlen(b);
