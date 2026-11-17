@@ -6,11 +6,11 @@ import Map
 `Map.lean` proves that the machine halts iff the orbit of the visit `T(none, 2, 0)` under the node map `F` reaches
 `none`.  This file proves, by arithmetic alone, that `F` is the map `op` of the explainer, on two kinds of states:
 
-* `ev c u m` (an even pool; the bracket `c` is not touched):
+* `ev c u v` (an even pool; the bracket `c` is not touched):
 
-      2u < m     u ← 2u,      m ← m + 1
-      2u > m     u ← 2u − m,  m stays
-      2u = m     the odd pool `od c (2m − 3) 0`
+      2u < v     u ← 2u,      v ← v + 1
+      2u > v     u ← 2u − v,  v stays
+      2u = v     the odd pool `od c (2v − 3) 0`
 
 * `od c A b` (the visit `T(c, A, b)` with an odd pool `A = 2i + 3`; one operation is one whole sweep):
 
@@ -33,8 +33,8 @@ Main results:
   step 7), reaches the halt**;
 * `halts_iff_pool`: **it halts iff the orbit of `op` reaches an odd pool without bracket `od none A 0` with
   `A = 2^(k+2) − 2k − 3`** for some `k` (1, 3, 9, 23, 53, 115, …);
-* `pool_sources` and `event_pool`: such a pool comes from an event `2u = m` without bracket, and then it halts iff
-  `m = 2^(k+1) − k`, or from one of the two rarer odd pools `2A + 5` (an odd pool that overflows by one) and
+* `pool_sources` and `event_pool`: such a pool comes from an event `2u = v` without bracket, and then it halts iff
+  `v = 2^(k+1) − k`, or from one of the two rarer odd pools `2A + 5` (an odd pool that overflows by one) and
   `2c + 2A + 5` (a merge that ends as the tail runs out);
 * `op_kernel`, `op_native`: the first 10^4 (kernel) and 10^7 (compiled) operations do not halt.
 
@@ -48,7 +48,7 @@ namespace H21883
 /-! ## The map -/
 
 inductive DS where
-  | ev (c : Option Nat) (u m : Nat)
+  | ev (c : Option Nat) (u v : Nat)
   | od (c : Option Nat) (A b : Nat)
   deriving DecidableEq, Repr
 
@@ -71,10 +71,10 @@ def odStep (c : Option Nat) (i b : Nat) : Option DS :=
 
 /-- One operation; `none` is the halt.  (States that no run meets map to themselves.) -/
 def op : DS → Option DS
-  | .ev c u m =>
-    if 2 * u < m then some (.ev c (2 * u) (m + 1))
-    else if m < 2 * u then some (.ev c (2 * u - m) m)
-    else some (.od c (2 * m - 3) 0)
+  | .ev c u v =>
+    if 2 * u < v then some (.ev c (2 * u) (v + 1))
+    else if v < 2 * u then some (.ev c (2 * u - v) v)
+    else some (.od c (2 * v - 3) 0)
   | .od c A b =>
     if A = 1 ∧ c = none then none
     else if A % 2 = 1 ∧ 3 ≤ A then odStep c ((A - 3) / 2) b
@@ -100,12 +100,12 @@ theorem opIter_one (s : DS) : opIter 1 s = op s := by
 theorem opIter_succ' (n : Nat) (s : DS) : opIter (n + 1) s = (opIter n s).bind op := by
   rw [opIter_add]; cases opIter n s <;> simp [opIter_one]
 
-theorem op_lt (c : Option Nat) (u m : Nat) (h : 2 * u < m) : op (.ev c u m) = some (.ev c (2 * u) (m + 1)) := by
+theorem op_lt (c : Option Nat) (u v : Nat) (h : 2 * u < v) : op (.ev c u v) = some (.ev c (2 * u) (v + 1)) := by
   simp [op, h]
-theorem op_gt (c : Option Nat) (u m : Nat) (h : m < 2 * u) : op (.ev c u m) = some (.ev c (2 * u - m) m) := by
-  simp [op, h, show ¬ 2 * u < m by omega]
-theorem op_eq (c : Option Nat) (u m : Nat) (h : 2 * u = m) : op (.ev c u m) = some (.od c (2 * m - 3) 0) := by
-  simp [op, show ¬ 2 * u < m by omega, show ¬ m < 2 * u by omega]
+theorem op_gt (c : Option Nat) (u v : Nat) (h : v < 2 * u) : op (.ev c u v) = some (.ev c (2 * u - v) v) := by
+  simp [op, h, show ¬ 2 * u < v by omega]
+theorem op_eq (c : Option Nat) (u v : Nat) (h : 2 * u = v) : op (.ev c u v) = some (.od c (2 * v - 3) 0) := by
+  simp [op, show ¬ 2 * u < v by omega, show ¬ v < 2 * u by omega]
 theorem op_od (c : Option Nat) (i b : Nat) : op (.od c (2 * i + 3) b) = odStep c i b := by
   simp only [op]
   rw [if_neg (show ¬ (2 * i + 3 = 1 ∧ c = none) by omega), if_pos (show (2 * i + 3) % 2 = 1 ∧ 3 ≤ 2 * i + 3 by omega), show (2 * i + 3 - 3) / 2 = i by omega]
@@ -516,7 +516,7 @@ theorem halts_iff_op : HaltsFromBlank ↔ ∃ n, opIter n s0 = none := by
 
 /-! ## Halting pools -/
 
-theorem op_ev_some (c : Option Nat) (u m : Nat) : op (.ev c u m) ≠ none := by
+theorem op_ev_some (c : Option Nat) (u v : Nat) : op (.ev c u v) ≠ none := by
   simp only [op]; repeat' split
   all_goals simp
 
@@ -529,7 +529,7 @@ theorem op_none_iff (s : DS) : op s = none ↔ ∃ b, s = .od none 1 b := by
   constructor
   · intro h
     cases s with
-    | ev c u m => exact absurd h (op_ev_some c u m)
+    | ev c u v => exact absurd h (op_ev_some c u v)
     | od c A b =>
       simp only [op] at h
       split at h
@@ -543,7 +543,7 @@ theorem op_none_iff (s : DS) : op s = none ↔ ∃ b, s = .od none 1 b := by
 theorem op_to_od_none {s : DS} {B b : Nat} (h : op s = some (.od none B b)) (hB : B % 2 = 1) :
     b = 0 ∨ ∃ b', s = .od none (B + 2 * b' + 2) b' ∧ b = 2 * b' + 2 := by
   cases s with
-  | ev c u m =>
+  | ev c u v =>
     simp only [op] at h
     split at h
     · cases h
@@ -623,7 +623,7 @@ theorem haltPool_eq (k : Nat) : haltPool k = 2 ^ (k + 2) - 2 * k - 3 := by
 
 /-- Backwards from an odd pool without bracket to the pool `T(none, A, 0)` it started as. -/
 theorem back (n : Nat) : ∀ B b, opIter n s0 = some (.od none B b) → B % 2 = 1 →
-    ∃ m k, opIter m s0 = some (.od none (B + 2 * 2 ^ (k + 1) - 2 * k - 4) 0) ∧ b = 2 ^ (k + 1) - 2 := by
+    ∃ v k, opIter v s0 = some (.od none (B + 2 * 2 ^ (k + 1) - 2 * k - 4) 0) ∧ b = 2 ^ (k + 1) - 2 := by
   induction n with
   | zero => intro B b h; simp [opIter, s0] at h
   | succ n ih =>
@@ -635,9 +635,9 @@ theorem back (n : Nat) : ∀ B b, opIter n s0 = some (.od none B b) → B % 2 = 
       rw [hs, Option.bind_some] at h
       rcases op_to_od_none h hB with rfl | ⟨b', rfl, rfl⟩
       · exact ⟨n + 1, 0, by rw [opIter_succ', hs, Option.bind_some, h]; congr 3, rfl⟩
-      · obtain ⟨m, k, hm, hb⟩ := ih _ _ hs (by omega)
+      · obtain ⟨v, k, hm, hb⟩ := ih _ _ hs (by omega)
         have hP := two_pow_ge k
-        refine ⟨m, k + 1, ?_, ?_⟩
+        refine ⟨v, k + 1, ?_, ?_⟩
         · rw [hm, hb, Nat.pow_succ 2 (k + 1)]; congr 3; omega
         · rw [hb, Nat.pow_succ 2 (k + 1)]; omega
 
@@ -656,9 +656,9 @@ theorem halts_iff_pool : HaltsFromBlank ↔ ∃ n k, opIter n s0 = some (.od non
       | some s =>
         rw [hs, Option.bind_some] at hN
         obtain ⟨b, rfl⟩ := (op_none_iff s).1 hN
-        obtain ⟨m, k, hm, -⟩ := back N 1 b hs rfl
+        obtain ⟨v, k, hm, -⟩ := back N 1 b hs rfl
         have hP := two_pow_ge k
-        refine ⟨m, k, ?_⟩
+        refine ⟨v, k, ?_⟩
         rw [hm, show 1 + 2 * 2 ^ (k + 1) - 2 * k - 4 = 2 ^ (k + 2) - 2 * k - 3 by simp only [Nat.pow_succ] at hP ⊢; omega]
   · rintro ⟨n, k, hn⟩
     have hP := two_pow_ge k
@@ -668,15 +668,15 @@ theorem halts_iff_pool : HaltsFromBlank ↔ ∃ n k, opIter n s0 = some (.od non
     rw [opIter_add, opIter_add, hn, Option.bind_some, hr, Option.bind_some, opIter_one]
     simp [op]
 
-/-- Where a pool without bracket `T(none, A, 0)` comes from: an event `2u = m` without bracket (then `A = 2m − 3`,
-so `A` is a halting pool iff `m = 2^(k+1) − k`), an odd pool that overflows by one (`A = 2A' + 5`), or a merge that
+/-- Where a pool without bracket `T(none, A, 0)` comes from: an event `2u = v` without bracket (then `A = 2v − 3`,
+so `A` is a halting pool iff `v = 2^(k+1) − k`), an odd pool that overflows by one (`A = 2A' + 5`), or a merge that
 ends as the tail runs out (`A = 2c + 2A' + 5`). -/
 theorem pool_sources {s : DS} {A : Nat} (h : op s = some (.od none A 0)) (hA : A % 2 = 1) :
-    (∃ u m, s = .ev none u m ∧ 2 * u = m ∧ A = 2 * m - 3) ∨
+    (∃ u v, s = .ev none u v ∧ 2 * u = v ∧ A = 2 * v - 3) ∨
     (∃ i, s = .od none (2 * i + 3) (i + 1) ∧ A = 2 * (2 * i + 3) + 5) ∨
     (∃ c i, s = .od (some c) (2 * i + 3) (i + 1) ∧ A = 2 * c + 2 * (2 * i + 3) + 5) := by
   cases s with
-  | ev c u m =>
+  | ev c u v =>
     simp only [op] at h
     split at h
     · cases h
@@ -684,7 +684,7 @@ theorem pool_sources {s : DS} {A : Nat} (h : op s = some (.od none A 0)) (hA : A
       · cases h
       · simp only [Option.some.injEq, DS.od.injEq] at h
         obtain ⟨rfl, rfl, -⟩ := h
-        exact Or.inl ⟨u, m, rfl, by omega, rfl⟩
+        exact Or.inl ⟨u, v, rfl, by omega, rfl⟩
   | od c A0 b0 =>
     simp only [op] at h
     split at h
@@ -726,7 +726,7 @@ theorem pool_sources {s : DS} {A : Nat} (h : op s = some (.od none A 0)) (hA : A
       · exact h1 ⟨hB1, rfl⟩
       · exact h2 ⟨by omega, by omega⟩
 
-theorem event_pool (k m : Nat) : 2 * m - 3 = 2 ^ (k + 2) - 2 * k - 3 ↔ m = 2 ^ (k + 1) - k := by
+theorem event_pool (k v : Nat) : 2 * v - 3 = 2 ^ (k + 2) - 2 * k - 3 ↔ v = 2 ^ (k + 1) - k := by
   have hP := two_pow_ge k
   rw [Nat.pow_succ 2 (k + 1)]; omega
 

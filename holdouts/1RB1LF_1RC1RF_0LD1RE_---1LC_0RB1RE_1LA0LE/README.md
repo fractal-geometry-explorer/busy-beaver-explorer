@@ -1,6 +1,6 @@
 # 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE
 
-bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling map with a growing modulus (odd-pool events)**. Decision: **open** (proved in Lean: it halts iff its right-end map reaches T(none, 1, b), and iff the doubling map in (u, m) below, odd pools and brackets included, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket; no halt in 10^11 operations of the exact map, about 5·10^10 right-end visits; heuristically a later halt has probability of order 10^-11).
+bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling map with a growing modulus (odd-pool events)**. Decision: **open** (proved in Lean: it halts iff its right-end map reaches T(none, 1, b), and iff the doubling map in (u, v) below, odd pools and brackets included, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket; no halt in 10^11 operations of the exact map, about 5·10^10 right-end visits; heuristically a later halt has probability of order 10^-11).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -21,14 +21,14 @@ a *pool* of a 1s, a block of b pairs, and sometimes a *bracket* to the left. The
 The map from one visit to the next is now complete (`py/model.py`, function `step`; proved in Lean as `F` in
 `lean/Map.lean`, and in the arithmetic form below as `op` in `lean/Doubling.lean`); it has three parts.
 
-**1. An even pool: a doubling map.** The bracket is not touched. With u = b + 2 and m = a/2 + b + 3:
+**1. An even pool: a doubling map.** The bracket is not touched. With u = b + 2 and v = a/2 + b + 3:
 
-    2u < m     next visit T(c, a − 2b − 2, 2b + 2):    u ← 2u,      m ← m + 1
-    2u > m     carry (no visit in between):            u ← 2u − m,  m stays     (as if at T(c, 2a + 2, b − a/2 − 1))
-    2u = m     next visit T(c, 2m − 3, 0): the pool becomes odd
+    2u < v     next visit T(c, a − 2b − 2, 2b + 2):    u ← 2u,      v ← v + 1
+    2u > v     carry (no visit in between):            u ← 2u − v,  v stays     (as if at T(c, 2a + 2, b − a/2 − 1))
+    2u = v     next visit T(c, 2v − 3, 0): the pool becomes odd
 
-So u is doubled modulo m again and again, and the modulus m grows by one at every doubling that does not wrap.
-Nothing else happens until the doubling lands exactly on a multiple of m.
+So u is doubled modulo v again and again, and the modulus v grows by one at every doubling that does not wrap.
+Nothing else happens until the doubling lands exactly on a multiple of v.
 
 **2. An odd pool.** From T(c, A, 0) the pair block doubles (b = 0, 2, 6, 14, …, the pool loses 2b + 2 each time)
 until the pool cannot pay. Then, without a bracket, what the sweep has built stays behind as a new bracket and the
@@ -39,8 +39,8 @@ bracket always starts as T(none, A, 0), and it comes down to exactly 1 if and on
 
     A = 2^(k+2) − 2k − 3  for some k:   1, 3, 9, 23, 53, 115, 241, 495, 1005, 2027, …
 
-Since A = 2m − 3 at an event, **the machine halts iff, at a time with no bracket, the doubling map hits 2u = m with
-m = 2^(k+1) − k**. (Two rarer sources of an odd pool without bracket: a merge that ends exactly as the tail runs
+Since A = 2v − 3 at an event, **the machine halts iff, at a time with no bracket, the doubling map hits 2u = v with
+v = 2^(k+1) − k**. (Two rarer sources of an odd pool without bracket: a merge that ends exactly as the tail runs
 out gives T(none, 2c + p + 9, 0), which could also be a halting pool; an odd pool that overflows with a = 2b + 1 gives
 T(none, 2a + 5, 0) = T(none, 2^(K+3) − 1, 0), which never is.) Example: T(none, 12, 19) → T(none, 53, 0) →
 (51, 2) → (45, 6) → (31, 14) → (1, 30) → halt, so halting configurations of this form exist; the question is only
@@ -51,13 +51,13 @@ whether the run from blank tape ever meets one.
 As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. At a visit of the right end
 in state B (subscript c: a bracket 1^2 0 (10)^c to the left; no subscript, no bracket):
 
-    E_c(u, m) := 0^∞ 1^2 0 (10)^c 1^(2(m−u−1)) 0 (10)^(u−2) B> 0^∞     (even pool)
+    E_c(u, v) := 0^∞ 1^2 0 (10)^c 1^(2(v−u−1)) 0 (10)^(u−2) B> 0^∞     (even pool)
     O_c(A, b) := 0^∞ 1^2 0 (10)^c 1^A 0 (10)^b B> 0^∞                  (A = 2i + 3 odd)
 
     0^∞ A> 0^∞            --7-->                     E(2, 4)
-    E_c(u, m)             --6u²-->                   E_c(2u, m + 1)                 2u < m
-    (u, m)                --6d² − 4d + 2-->          (2u − m, m)                    2u > m, d = m − u (no visit)
-    (u, m)                --6u² − 4u + 5-->          O_c(2m − 3, 0)                 2u = m
+    E_c(u, v)             --6u²-->                   E_c(2u, v + 1)                 2u < v
+    (u, v)                --6d² − 4d + 2-->          (2u − v, v)                    2u > v, d = v − u (no visit)
+    (u, v)                --6u² − 4u + 5-->          O_c(2v − 3, 0)                 2u = v
     O_c(2i+3, b)          --6(b + 2)²-->             O_c(2i − 2b + 1, 2b + 2)       b < i
     O(2i+3, i)          --6(i + 2)²-->             O(1, 2i + 2)
     O(1, b)             --2b + 7-->                HALT
@@ -68,7 +68,7 @@ in state B (subscript c: a bracket 1^2 0 (10)^c to the left; no subscript, no br
     O_c(2i+3, i+1)        --6i² + 32i + 4c + 51-->   O(2c + 4i + 11, 0)           bracket c
     O_c(2i+3, b)          --6i² + 32i + 4c + 48-->   (b − i − 1, c + i + b + 6)     bracket c, b ≥ i + 2 (no visit)
 
-A bare pair (u, m) is not a visit: the next rule applies to it directly and the step counts add up. The rules are
+A bare pair (u, v) is not a visit: the next rule applies to it directly and the step counts add up. The rules are
 `op` of `lean/Doubling.lean`, proved, with the halts-iff. The step counts are proved for the tape moves they are
 built from (`lean/Rules.lean`); the totals are sums of those, checked against direct simulation (`py/model.py rules`:
 7,640 tapes and every visit of the first 3·10^6 steps), not yet stated in Lean. Example: E(21, 28) = T(none, 12, 19)
@@ -91,10 +91,10 @@ steps) there are 35 odd-pool events, 18 of them without bracket, and no halt. Th
     5, 13, 165, 989, 1853, 13309, 26333, 44669, 49909, 19855861, 169438117, 283866789, 1487681501, 1992437437,
     3603147421, 10918121213, 46694013501, 51055443101
 
-All are ≡ 5 (mod 8) (an event after at least one carry has m ≡ 0 mod 4), which rules out the targets with
+All are ≡ 5 (mod 8) (an event after at least one carry has v ≡ 0 mod 4), which rules out the targets with
 k ≢ 0 (mod 4) for such events but not the others (53, 1005, 16357, …). The closest call was 989 against 1005
-(m = 496 against 504). Events with a bracket repeat earlier pools (165, 13309, 26333, … appear twice or three times):
-after a bracket forms, the right part restarts from a small seed (u = m − 2) and different seeds fall into the same
+(v = 496 against 504). Events with a bracket repeat earlier pools (165, 13309, 26333, … appear twice or three times):
+after a bracket forms, the right part restarts from a small seed (u = v − 2) and different seeds fall into the same
 orbit of the doubling map.
 
 ## Status
@@ -109,9 +109,9 @@ orbit of the doubling map.
   move is a theorem for all parameters (`m_*`, from `lean/Rules.lean`, which `py/rules.py` now generates with 15
   more rules in these forms), and `F_sem` assembles them. The axioms are `propext`, `Classical.choice`, `Quot.sound`.
 * **Lean, kernel: the doubling map, a layer above `F` (`lean/Doubling.lean`).** `op` works on even states
-  `ev c u m` and odd pools `od c A b` (the visit T(c, A, b), A = 2i + 3; one operation is one whole odd sweep):
+  `ev c u v` and odd pools `od c A b` (the visit T(c, A, b), A = 2i + 3; one operation is one whole odd sweep):
 
-      ev:  2u < m → ev c (2u) (m+1);   2u > m → ev c (2u−m) m;   2u = m → od c (2m−3) 0
+      ev:  2u < v → ev c (2u) (v+1);   2u > v → ev c (2u−v) v;   2u = v → od c (2v−3) 0
       od:  b < i → od c (A−2b−2) (2b+2);   b = i → od none 1 (2b+2) (halt next) or, with bracket c,
            ev none (c+2b+5) (c+2b+7);   b = i + r, no bracket: r = 1 → od none (2A+5) 0, r = 2 → ev none (A+3) (A+5),
            r ≥ 3 → ev (some (A+1)) (r−2) r;   with bracket c: r = 1 → od none (2c+2A+5) 0, r ≥ 2 → ev none (r−1) (c+i+b+6)
@@ -121,7 +121,7 @@ orbit of the doubling map.
   `halts_iff_op`: the machine halts from blank tape iff `op` from `ev none 2 4` (the visit at step 7) halts.
   `halts_iff_pool`: iff the orbit reaches `od none A 0` with A = 2^(k+2) − 2k − 3 (`pool_run` does the odd pool's
   doubling for every k, and `back` traces any halting visit back to the pool it started as). `pool_sources`: such a pool
-  comes from an event 2u = m without bracket (and `event_pool`: 2m − 3 is a halting pool iff m = 2^(k+1) − k), from an
+  comes from an event 2u = v without bracket (and `event_pool`: 2v − 3 is a halting pool iff v = 2^(k+1) − k), from an
   odd pool that overflows by one (2A + 5), or from a merge that ends with the tail (2c + 2A + 5). The first 10^4
   operations (kernel) and 10^7 (`native_decide`) do not halt. Axioms `propext`, `Classical.choice`, `Quot.sound`. This
   makes the page's simple rule a proved halts-iff; `py/model.py` and the C runs remain the fast way to follow it.
@@ -133,17 +133,17 @@ orbit of the doubling map.
 * Trusted: `c/fast.c` prints the same first 20,000 visits as `py/model.py` (they include 13 odd events); 10^11
   operations without a halt.
 * Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
-* Heuristic: the map stays at a modulus m for about two operations, and each hits 2u = m with chance about 1/m, so
-  a halt at the target m = 2^(k+1) − k has chance about 2^-k; the targets not yet passed start at k = 36, which
+* Heuristic: the map stays at a modulus v for about two operations, and each hits 2u = v with chance about 1/v, so
+  a halt at the target v = 2^(k+1) − k has chance about 2^-k; the targets not yet passed start at k = 36, which
   gives about 10^-11 in total. The modulus is not monotone (a merge makes it jump, a new bracket restarts the right
   part at a small one, but those phases have a bracket and cannot halt), so this is an estimate, not a bound.
-* Why no congruence helps (round 11). Write D = m − u. At a fixed modulus the carries double D, and the doubling
-  that does not wrap is D ↦ 2D − (m − 1) with m ↦ m + 1; an event is D = m/2. So an event at modulus m needs the
-  value of D on arrival at m to be m/2^i with 2^i dividing m: every event after the first arrival has 4 | m (this
-  is the mod 8 fact above), and a target m = 2^(k+1) − k needs D = m/2^i with i ≤ v₂(k). Backwards, (D, m) has
-  two predecessors when D and m are even, none when D is odd and m even, and one otherwise: a critical branching
+* Why no congruence helps (round 11). Write D = v − u. At a fixed modulus the carries double D, and the doubling
+  that does not wrap is D ↦ 2D − (v − 1) with v ↦ v + 1; an event is D = v/2. So an event at modulus v needs the
+  value of D on arrival at v to be v/2^i with 2^i dividing v: every event after the first arrival has 4 | v (this
+  is the mod 8 fact above), and a target v = 2^(k+1) − k needs D = v/2^i with i ≤ ν₂(k). Backwards, (D, v) has
+  two predecessors when D and v are even, none when D is odd and v even, and one otherwise: a critical branching
   process again, as for 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC, so the states that reach a given target thin out
-  like 1/m without any residue class being excluded.
+  like 1/v without any residue class being excluded.
 * Open: whether an event ever falls on a target. The doubling map with a moving modulus is chaotic; no invariant
   that excludes the targets was found (mod 8 excludes three targets in four), and none is expected.
 
@@ -152,10 +152,10 @@ orbit of the doubling map.
 * Done (17 November 2026): the arithmetic layer, `lean/Doubling.lean` (see Status).
 * Prove in Lean that the pool 2A + 5 never halts (the README's argument: an odd pool that overflows by one is
   2^(K+3) − 1), so that only events and merges remain as sources of halting pools.
-* A faster simulator: k doublings at once are one multiplication by 2^k and one division by m with a small
+* A faster simulator: k doublings at once are one multiplication by 2^k and one division by v with a small
   correction (the modulus moves by at most k), valid when the remainder is not near 0; this would give about 10^13
   operations and, with exact step counts added, a halting step if one is ever found.
-* Describe the set of moduli m at which seeds u = m − 2 produce an event (4, 8, 12, 16, 32, 44, 48, 64, 84, 96,
+* Describe the set of moduli v at which seeds u = v − 2 produce an event (4, 8, 12, 16, 32, 44, 48, 64, 84, 96,
   104, 112, 128, 496, …; many seeds share one): if it could be shown to miss 2^(k+1) − k, the bracketed phases
   would be understood, though not the phases after a merge.
 

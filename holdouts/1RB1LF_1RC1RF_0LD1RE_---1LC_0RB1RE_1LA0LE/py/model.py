@@ -13,11 +13,11 @@ C(x, p, w): a pool 1^x, a middle block 1^p and a tail worth w rounds; `step` is 
     x = 3      an odd pool runs out: without a bracket the middle block stays behind as a bracket and the pool is 2;
                with a bracket the bracket is added to the middle block and the bracket is gone
 
-For even a (the bracket is not touched), with u = b + 2 and m = a/2 + b + 3, this is a doubling map:
+For even a (the bracket is not touched), with u = b + 2 and v = a/2 + b + 3, this is a doubling map:
 
-    2u < m     T(a - 2b - 2, 2b + 2):   u <- 2u,      m <- m + 1      (a visit)
-    2u > m     carry, no visit:         u <- 2u - m,  m unchanged     (as if at T(2a + 2, b - a/2 - 1))
-    2u = m     T(c, 2m - 3, 0): an odd pool
+    2u < v     T(a - 2b - 2, 2b + 2):   u <- 2u,      v <- v + 1      (a visit)
+    2u > v     carry, no visit:         u <- 2u - v,  v unchanged     (as if at T(2a + 2, b - a/2 - 1))
+    2u = v     T(c, 2v - 3, 0): an odd pool
 
 The only halting visits are T(None, 1, b).  An odd pool without bracket always starts as T(None, A, 0), and it
 reaches 1 exactly when A = 2^(k+2) - 2k - 3 for some k (`halting_pool`): 1, 3, 9, 23, 53, 115, 241, 495, 1005, ...
@@ -163,11 +163,11 @@ def check():
     nd = 0
     for a in range(2, 120, 2):
         for b in range(0, 120):
-            u, m = b + 2, a // 2 + b + 3
+            u, v = b + 2, a // 2 + b + 3
             r = step(None, a, b)
-            while 2 * u > m:
-                u = 2 * u - m
-            want = (None, 2 * m - 3, 0) if 2 * u == m else (None, 2 * (m + 1 - 3 - (2 * u - 2)), 2 * u - 2)
+            while 2 * u > v:
+                u = 2 * u - v
+            want = (None, 2 * v - 3, 0) if 2 * u == v else (None, 2 * (v + 1 - 3 - (2 * u - 2)), 2 * u - 2)
             nd += 1
             if r != want:
                 bad += 1; print("doubling map differs at", a, b, r, want)
@@ -223,14 +223,14 @@ def events(maxops):
 # ---- The doubling map `op` of lean/Doubling.lean, with the number of machine steps of each operation ----
 
 def op(s):
-    """One operation on ('ev', c, u, m) or ('od', c, A, b); None is the halt (the same map as `op` in Lean)."""
+    """One operation on ('ev', c, u, v) or ('od', c, A, b); None is the halt (the same map as `op` in Lean)."""
     if s[0] == 'ev':
-        _, c, u, m = s
-        if 2 * u < m:
-            return ('ev', c, 2 * u, m + 1)
-        if m < 2 * u:
-            return ('ev', c, 2 * u - m, m)
-        return ('od', c, 2 * m - 3, 0)
+        _, c, u, v = s
+        if 2 * u < v:
+            return ('ev', c, 2 * u, v + 1)
+        if v < 2 * u:
+            return ('ev', c, 2 * u - v, v)
+        return ('od', c, 2 * v - 3, 0)
     _, c, A, b = s
     if A == 1 and c is None:
         return None
@@ -250,11 +250,11 @@ def op_steps(s):
     """Machine steps charged to one operation: the steps between two visits are the sum over the operations between
     them (the halt: steps up to and including the halting step)."""
     if s[0] == 'ev':
-        _, c, u, m = s
-        if 2 * u < m:
+        _, c, u, v = s
+        if 2 * u < v:
             return 6 * u * u
-        if m < 2 * u:
-            d = m - u
+        if v < 2 * u:
+            d = v - u
             return 6 * d * d - 4 * d + 2
         return 6 * u * u - 4 * u + 5
     _, c, A, b = s
