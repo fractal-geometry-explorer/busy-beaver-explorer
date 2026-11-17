@@ -235,7 +235,7 @@ class TestTop(unittest.TestCase):
         # every trip to 10^9 steps that counter.py does not cover is an instance of a family of TopFam.lean (any
         # number of blocks in the list), a wall trip of Rework.lean (any list of blocks before the copied level,
         # rework.py) or goes through a shape of Top.lean, and each ends as it says
-        self.assertEqual(dict(top.check(10 ** 9)), {"family": 36, "proved": 190, "wall": 29})
+        self.assertEqual(dict(top.check(10 ** 9)), {"family": 44, "proved": 182, "wall": 29})
 
     def test_rework_on_machine(self):
         # the round function of Rework.lean (py/rework.py, from the saved cases) on random lists of blocks, round
@@ -350,6 +350,42 @@ class TestAccel(unittest.TestCase):
             if s <= n:
                 self.assertEqual(plain.get(s), t, s)
         self.assertTrue(accel.JUMPS)
+
+
+class TestCoverage(unittest.TestCase):
+    def test_family_tokens(self):
+        # coverage.family_predict, on token lists, is family.predict, on cells, for the trips to 10^10 steps
+        import collections
+        import coverage
+        import family
+        coverage._init()
+        n = 0
+        for _, a, _ in coverage.trips(10 ** 10, collections.Counter()):
+            a = coverage.norm(a)
+            old, new = family.predict(coverage._FAMS, a), coverage.family_predict(coverage._FAMS, a)
+            self.assertEqual(old is None, new is None)
+            if old is not None:
+                self.assertEqual(counter.blocks([int(c) for c in old[1]]), new)
+                n += 1
+        self.assertGreater(n, 50)
+
+    def test_drop_cells(self):
+        import coverage
+        for its in ([("P", 5)], [0, ("P", 3), 1], [1, 1, ("P", 1), 0], [("P", 1), ("P", 2)]):
+            cells = "".join("10" * x[1] if isinstance(x, tuple) else str(x) for x in its)
+            for n in range(len(cells) + 1):
+                got = "".join("10" * x[1] if isinstance(x, tuple) else str(x) for x in coverage.drop_cells(its, n))
+                self.assertEqual(got, cells[:len(cells) - n], (its, n))
+
+    def test_coverage_to_1e12(self):
+        # every trip of the accelerated run to 10^12 steps is an instance of a theorem
+        import collections
+        import coverage
+        coverage._init()
+        tally = collections.Counter()
+        for _, a, b in coverage.trips(10 ** 12, tally):
+            tally[coverage.classify((a, b))[0]] += 1
+        self.assertFalse({"unlisted", "pending", "WRONG", "long"} & set(tally), tally)
 
 
 def cost(t):

@@ -46,6 +46,7 @@ from bbtools.symtm import (Blank, Config, Ctx, Halted, Lin, NeedSplit, Rep, Touc
                            tokens, try_cross, try_rotate)
 
 M = Machine.parse("1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---")
+sys.setrecursionlimit(max(sys.getrecursionlimit(), 20000))     # the rounds recurse along the list
 CASES = os.path.join(HERE, "..", "lean", "rework_cases.txt")
 SHAPES = os.path.join(HERE, "..", "lean", "rework_shapes.txt")     # the wall shapes the cases were found from
 B_, C_ = 1, 2
