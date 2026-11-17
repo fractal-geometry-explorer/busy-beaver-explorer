@@ -71,15 +71,17 @@ halts within a hundred steps (`D>0 1` at the right end), so non-halting depends 
 
 Open. Proved in Lean (kernel): the halting configurations, no halt in 10,000 steps, and the right sweep through the
 last block (halt at the end of the tape exactly for length 1 mod 3 when entered in E); with `native_decide`: no halt
-in 10^7 steps. Computed (trusted C and Python): no halt in 10^11 steps; the overflow events and their carry law as
-above; the accelerated simulator agrees exactly with the direct run to 2·10^10 steps. Heuristic: no halt in
-1.6·10^45 steps by the accelerated simulator, whose tick model is checked on every directly simulated tick but not
-proved. Not proved: any of the counter laws for all parameters (the tick of L and R is a sweep of several hundred steps
-with a dozen intermediate shapes, not decoded into shift rules yet).
+in 10^7 steps, and, from a certificate accepted by a checker whose soundness is kernel-checked, **no halt in
+1.2·10^70 steps** (`lean/Long.lean`). Computed (trusted C and Python): no halt in 10^11 steps; the overflow events and
+their carry law as above; the accelerated simulator agrees exactly with the direct run to 2·10^10 steps. Not proved:
+any of the counter laws for all parameters and all words (the certificate checks each tick shape only for the layouts
+the run actually meets), and the question.
 
 ## How far it was run
 
-Accelerated (`py/accel.py run 1e45`): to 1.6·10^45 steps, 23 rebuilds, no halt. Direct C simulation to 10^11 steps
+Proved in Lean (`lean/Long.lean`, `native_decide`): 12,198,487,909,209,082,368,679,859,826,732,096,416,911,140,917,107,868,
+420,374,132,270,946,987 ≈ 1.2·10^70 steps without a halt. Accelerated (`py/accel.py run 1e70`): to 1.2·10^70 steps
+in 9 minutes, 20,226 batches, no halt. Direct C simulation to 10^11 steps
 (z = 30, the fourth recorded epoch). With the marker law (`py/overflows.py
 predict` on the events of an epoch whose marker is in the periodic tail) the end of an epoch can be placed exactly
 from its last two events, since each further event is one doubling (D' = 2D + 2); the restructure itself is not
@@ -97,6 +99,16 @@ or D on a 1.
 
 **Proved in Lean with `native_decide`**: no halt in 10^7 steps (`blank_runs_native`).
 
+**Proved in Lean, kernel only** (`lean/Tick.lean`, generic over the machine, and `lean/Cert.lean`): the certificate
+checker is sound, `checkCert_sound`: if `checkCert s = some N` then `steps N init = some c` for some `c`. See *The
+certificate* below.
+
+**Proved in Lean with `native_decide`** (`lean/Long.lean`): the certificate `lean/cert.txt` (770 KB, 60,256
+operations, made by `py/accel.py cert 1e70`) is accepted, `cert_ok`; so `runs_N`, a run of N ≈ 1.2·10^70 steps from
+blank tape; `no_halt_within`, every run of at most N steps is defined; `halt_late`, a halt, if any, comes after more
+than N steps. The evaluation trusts Lean's compiler (`check.sh` compiles the checker to a shared library with the
+toolchain's C compiler and loads it, about 4 minutes); the axioms are the usual three and the `native_decide` one.
+
 **Computed** (trusted C): no halt in 10^11 steps (`tools/c/tmrun.c`; 385 cells, 312 ones). All 144 overflow moments
 of the run have the shape `(1 0)^z W` with W of odd blocks; z rises by one between them except at 16 restructures.
 
@@ -107,17 +119,41 @@ consecutive marker moves to 5·10^10 steps.
 **Computed** (Python, `py/test_accel.py`): the accelerated simulator gives the 126 events (C at the left end on a 0)
 of the direct run to 2·10^10 steps exactly, with the same step counts, z and W.
 
-**Heuristic** (`py/accel.py`): no halt in 1.6·10^45 steps; the right end of the tape is reached 83 times, never in F.
-The tick model (a tick changes only the counter digits and costs G(k) + F(j)) is checked on 8,416 directly simulated
-ticks, not proved.
+**Computed** (`py/accel.py run 1e45`): the right end of the tape is reached 83 times in 1.6·10^45 steps, never in F.
+(The tick model of the simulator is no longer needed for the step bound: the Lean checker checks every tick shape the
+certificate uses.)
 
 **Heuristic**: the two counters on one clock (from the ruler sequences of the head's turning points); random words of
 the same shape halt quickly.
 
-**Open**: the tick in shift rules, the restructure rule, why the run's words are safe, and the question.
+**Open**: the tick in shift rules for all layouts, the restructure rule, why the run's words are safe, and the question.
 
 The closed-tape-language search (`bbtools.ctl`, K up to 6) does not confine the halt to an edge: it allows `D>0 1` with
 blank beyond, one cell from the right end.
+
+## The certificate
+
+Lean cannot run 10^70 steps one at a time, so `py/accel.py cert` writes a certificate and `lean/Cert.lean` checks it.
+The configuration is kept as two lists of cells. An operation is `D n` (n plain steps), `L`/`R` (a new layout of the
+left or right counter: gap lengths between the digits) or `B d` (d ticks of both counters at once). Most of the run is
+in the 20,226 batches; the plain steps between them are the overflows, new digits and rebuilds.
+
+To accept `B d` the checker trusts nothing from the simulator:
+
+1. The head must be on the base cell, a 0, in state A. The left list is cut by the layout into a first gap and digit
+   pairs (`00`/`11`) with their gaps, the right list into a first gap and single digits with their gaps; the cut is
+   confirmed by rebuilding both lists from it. This gives the counter values a and b.
+2. A tick is three visits: right of the base cell, left, right again (arrivals at the base cell in `(A,1)`, `(E,1)`,
+   `(A,0)`). The checker runs the left part for every carry length k on a window holding only the first k + 1 digits
+   of L and their gaps, and the right part for every carry length j on a window with the first j + 1 digits of R. A
+   window run fails if the head would leave the window, so its result holds whatever the rest of the tape is
+   (`wrun_sound`). Each part must arrive at the base cell in the same states as a reference tick and end with its low
+   digits incremented; G(k) and F(j) are the step counts it took. Results are cached while a layout keeps its first
+   blocks, so each carry length is checked once per layout.
+3. `TM.side_sound` puts the two parts together into a whole tick, `TM.tick` turns the checks into "from any a, b
+   (with no carry out of the known digits) one tick adds one to both in G(tz1 a) + F(tz1 b) steps", and `TM.batch`
+   into d ticks in `csum G a d + csum F b d` steps, where `cnt a d k = (a+d+2^k)/2^(k+1) − (a+2^k)/2^(k+1)` counts
+   the values with k trailing ones.
 
 ## Open questions
 
@@ -137,8 +173,11 @@ blank beyond, one cell from the right end.
 | `py/overflows.py` | the overflow events as (z, W), the carry law check, the slot experiment, the end-of-epoch prediction |
 | `lean/Edge.lean`, `lean/EdgeHalt.lean` | the right sweep through the last block and the halt at the end of the tape |
 | `py/gen_edge.py` | generates `lean/Edge.lean` with `bbtools.symtm` |
-| `py/accel.py` | the accelerated simulator (two learned binary counters, ticks applied arithmetically), its right-end log |
+| `py/accel.py` | the accelerated simulator (two learned binary counters, ticks applied arithmetically), its right-end log, the certificate writer |
 | `py/test_accel.py` | its test against `tools/c/tmrun.c` (events to 6·10^9 steps by default) |
+| `lean/Tick.lean` | window runs, two-sided ticks and batches of counter ticks, with their soundness (any machine) |
+| `lean/Cert.lean` | the certificate checker for this machine and `checkCert_sound` |
+| `lean/Long.lean`, `lean/cert.txt` | the certificate and the theorem: no halt in 1.2·10^70 steps (`native_decide`) |
 | `py/tmsim.py` | a plain simulator started from a given tape, run to the next event |
 
 ## Check
@@ -151,6 +190,7 @@ python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/overflows.py check
 python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/overflows.py slots ev.txt 17857444 0 17
 python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/test_accel.py 2e10
 python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/accel.py run 1e45
+python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/accel.py cert 1e70 cert.txt   # 9 minutes; = lean/cert.txt
 ```
 
 ## Pages
