@@ -3,8 +3,8 @@
 bbchallenge id 35366. One of the six-state holdouts whose halting from blank tape is open.  It is a
 **two-variable piecewise-linear map in disguise**: the tape is two blocks of ones, `1^a 0 1^c`, and one "round"
 of the machine (thousands to billions of steps) replaces `(a, c)` by a new pair in which `c` is roughly tripled.
-Lean's kernel proves that the machine halts **if and only if** the orbit of this map reaches one of four exact
-differences between `c` and `a`.  The orbit has been followed for 10^6 rounds without reaching them; nothing
+Lean's kernel proves, with no extra assumption, that the machine halts **if and only if** the orbit of this map
+reaches one of four exact differences between `c` and `a`.  The orbit has been followed for 10^6 rounds without reaching them; nothing
 seems to stop it from doing so except chance, which shrinks geometrically.
 
 | state | read 0 | read 1 |
@@ -35,7 +35,9 @@ blocks by a few ones.  Which blocks change is decided by parity (this is what `p
 | `K[4, 1, z]`, `K[2, 1, z]` | **halt** | `halt4_*`, `halt2_*` |
 
 plus five rules that shrink a block `9` to `1` (`e9`, `e7`, `e5`, `e3`, `e1`) and one for an odd right block
-(`o0`).  So a round with three blocks `(f, m, z)` (`f` even, `m` odd) moves two ones out of each of the first two
+(`o0`).  21 more rules cover short blocks: an even right block of 6 to 16, where the block `9` is not fully shrunk
+before the right block runs out (`e0_three`, `e9_one`, ..., `e1_two`), and a first block of 4 (`e0_four`, ...,
+`e1_two_four`, `halt4_one`).  They give the same map on every round start the orbit can reach.  So a round with three blocks `(f, m, z)` (`f` even, `m` odd) moves two ones out of each of the first two
 blocks and six into the last; this repeats until the first block is down to 2 or the middle one to 1, and then the
 three blocks become two again.  That whole *phase* is one step of the map below.
 
@@ -86,10 +88,12 @@ Open, reduced to the map.  Lean, all by the kernel (axioms `propext`, `Quot.soun
   all values of its counts;
 - `lean/Rounds.lean`: the rules on blocks (`Blk`), the loop by induction (`loopN`), the phases (`phase_lt`,
   `phase_ge`, `phase_halt`);
-- `lean/Map.lean`: `round_ok` and `round_halt` (the map `mapc`), `init_reach` (step 6,998 is `K[74, 30]`) and
-  **`halts_iff`: if the orbit of `mapc` from `(74, 30)` never meets a `.small` case, the machine halts from blank
-  tape iff the orbit reaches `.halt`**.  The `.small` cases (blocks too short for the rules, such as `c < 18`) are
-  not met in the first 10^6 rounds (`py/orbit.py`, computed).
+- `lean/Small.lean`: the rounds with short blocks (`start_even_all`, `short_even`, `short_even_halt`);
+- `lean/Map.lean`: `round_ok` and `round_halt` (the map `mapc`, on every round start with `a` even, `a >= 4`,
+  `c >= 6`), `mapc_ok_dom` (the map keeps that domain), `init_reach` (step 6,998 is `K[74, 30]`), `orbit_dom` and
+  **`halts_iff`: the machine halts from blank tape iff the orbit of `mapc` from `(74, 30)` reaches `.halt`**, with
+  no assumption.  (Until 17 November 2026 the theorem assumed that the orbit never meets a block too short for the
+  rules; the short-block rules removed that.)
 
 Also `lean/Blank.lean`: the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in
 10,000,000 by `native_decide`. C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
@@ -101,9 +105,6 @@ python3 holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/py/rules.py > .../lea
 
 ## For later
 
-- The `.small` cases could be removed from `halts_iff` by proving that the orbit stays in the large region
-  (`a >= 6` with `c >= 18` when `c` is even), which holds after round 1 in every computed step but needs an
-  argument about the map, or by proving rules for the small blocks too.
 - The map itself: any invariant of the orbit that keeps `|c - a|` away from the four values would prove
   non-halting.  Residues modulo small numbers do not: for every modulus `N = 2^k 3^j` up to 1458 tried, the
   residues of `(a, c)` reachable from `(10, 6)` when either branch of each case may be taken include halting ones.
@@ -112,7 +113,7 @@ python3 holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/py/rules.py > .../lea
 
 `tools/c/redmaps.c mapc` iterates `mapc` of `lean/Map.lean` from (74, 30) with GMP integers, case by case as in the
 Lean definition (its first 30,000 iterates equal those of `py/orbit.py`). **2·10^7 rounds** (20 times the earlier run),
-about 25 minutes on one core: the orbit never reaches `.halt` or `.small`. After 2·10^7 rounds the two numbers of
+about 25 minutes on one core: the orbit never reaches `.halt` or `.small` (`.small` is now unreachable by `orbit_dom`). After 2·10^7 rounds the two numbers of
 (a, c) have 6,128,355 and 6,128,360 bits; over rounds 1,000 to 2·10^7 the halting difference c − a never came closer than
 26 bits below the size of the numbers (round 405,638). Computed (trusted), not in Lean.
 
@@ -128,3 +129,10 @@ about 25 minutes on one core: the orbit never reaches `.halt` or `.small`. After
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/lean/check.sh
 ```
+
+## Compared with DeepMind's proof
+
+google-deepmind/cryptids (commit `3647718`) proves the same map in `BusyBeaver/BB6/M_1RB1LF_0RC1RD_1LA1LD_1LE0RA_HHH1LC_0LA1LA.lean`
+(compiled here, see `tools/deepmind/`).  Its configuration `C(a, b) = 0^inf 110 A> (11)^a 0 1^b` is our `(2a + 2, b)`:
+it starts at step 74 from `C(0, 9)`, and its 7th state is our `(74, 30)`, after which the two orbits agree.  Its
+`next` passes through three sweep states (`C`, `M3`, `M4`) and is contracted to a one-state `highLevelNext`.

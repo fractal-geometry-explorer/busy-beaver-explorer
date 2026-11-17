@@ -71,6 +71,28 @@ RULES = [
     ("end2_o", ["1 1", "1 (11)^y+2", "1 (11)^z"], 3, "The same with an odd last block."),
     ("end2_three_e", ["1 1", "1^3", "(11)^z"], 3, "`end2_e` with a middle block of 3."),
     ("end2_three_o", ["1 1", "1^3", "1 (11)^z"], 3, "`end2_o` with a middle block of 3."),
+    # Short second blocks (an even right block below 18) and a first block of 4: these complete `mapc` so that it
+    # needs no `.small` case (the orbit from (74, 30) then stays in the domain by `orbit_dom`).
+    ("e0_three", ["(11)^x+3", "(11)^3"], 2, "A right block of 6: a block `9` is split off, leaving `2`."),
+    ("e9_one", ["(11)^x+3", "1 1", "1^9"], 4, "Blocks `2, 9` after the first: they merge into `12` and the first gains 6."),
+    ("e7_one", ["(11)^x+3", "1 1", "1^7", "(11)^z"], 4, "Blocks `2, 7, z`: the first gains 4, the last 12, `2` and `7` vanish."),
+    ("e5_one", ["(11)^x+3", "1 1", "1^5", "(11)^z"], 4, "Blocks `2, 5, z`: the first gains 2, the last 12."),
+    ("e3_one", ["(11)^x+3", "1 1", "1^3", "(11)^z"], 4, "Blocks `2, 3, z`: the first is unchanged, the last gains 12."),
+    ("e1_one", ["(11)^x+4", "1 1", "1", "(11)^z"], 4, "Blocks `2, 1, z`: the first loses 2, the last gains 12."),
+    ("e1_one_six", ["1^6", "1 1", "1", "(11)^z"], 4, "`e1_one` with a first block of 6."),
+    ("e1_two", ["(11)^x+3", "1^4", "1", "(11)^z"], 2, "Blocks `4, 1, z`: the first loses 2, `4` becomes `1`, the last gains 9."),
+    ("e0_four", ["1^4", "(11)^y+4"], 2, "`e0` with a first block of 4."),
+    ("e9_four", ["1^4", "(11)^y+2", "1^9"], 2, "`e9` with a first block of 4."),
+    ("e7_four", ["1^4", "(11)^y+2", "1^7", "(11)^z"], 2, "`e7` with a first block of 4."),
+    ("e5_four", ["1^4", "(11)^y+2", "1^5", "(11)^z"], 2, "`e5` with a first block of 4."),
+    ("e3_four", ["1^4", "(11)^y+2", "1^3", "(11)^z"], 2, "`e3` with a first block of 4."),
+    ("e1_four", ["1^4", "(11)^y+3", "1", "(11)^z"], 2, "`e1` with a first block of 4: it becomes 2."),
+    ("e0_three_four", ["1^4", "(11)^3"], 2, "`e0_three` with a first block of 4."),
+    ("e9_one_four", ["1^4", "1 1", "1^9"], 4, "`e9_one` with a first block of 4."),
+    ("e7_one_four", ["1^4", "1 1", "1^7", "(11)^z"], 4, "`e7_one` with a first block of 4."),
+    ("e5_one_four", ["1^4", "1 1", "1^5", "(11)^z"], 4, "`e5_one` with a first block of 4."),
+    ("e3_one_four", ["1^4", "1 1", "1^3", "(11)^z"], 4, "`e3_one` with a first block of 4."),
+    ("e1_two_four", ["1^4", "1^4", "1", "(11)^z"], 2, "`e1_two` with a first block of 4."),
 ]
 
 # halting rounds: (name, start blocks, doc)
@@ -79,6 +101,7 @@ HALTS = [
     ("halt4_o", ["1^4", "1", "1 (11)^z"], "The same with an odd last block."),
     ("halt2_e", ["1 1", "1", "(11)^z"], "Middle block 1 with a first block of 2: the machine halts."),
     ("halt2_o", ["1 1", "1", "1 (11)^z"], "The same with an odd last block."),
+    ("halt4_one", ["1^4", "1 1", "1", "(11)^z"], "Blocks `4, 2, 1, z`: the machine halts."),
 ]
 
 
