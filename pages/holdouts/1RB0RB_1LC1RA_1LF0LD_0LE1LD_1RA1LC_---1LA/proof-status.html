@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves that, read in pairs, the tape at each turn is a binary word and one round trip of the head is one <i>XOR sweep</i> of it: find the rightmost <code>00</code>, flip the letter left of it, replace every letter right of it by the XOR of itself and its right neighbour, append <code>11</code> (<code>mstep_ok</code>). A halt needs a <code>00</code> only at the very left end. The block of <code>111110</code> words enters the sweep only through its length mod 3 (<code>zone_step</code>), so Lean drops it: the machine halts from blank tape <i>iff</i> the <i>zone orbit</i> halts (<code>halts_iff_zone</code>), and compiled evaluation runs that orbit through the first 1.7&middot;10<sup>15</sup> steps without a halt. Since the last arrival the tape holds a new zone, a stranded block of 8,397 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 8,397 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10).</p>
+      <p><b>The question is open.</b> Lean proves that, read in pairs, the tape at each turn is a binary word and one round trip of the head is one <i>XOR sweep</i> of it: find the rightmost <code>00</code>, flip the letter left of it, replace every letter right of it by the XOR of itself and its right neighbour, append <code>11</code> (<code>mstep_ok</code>). A halt needs a <code>00</code> only at the very left end. The block of <code>111110</code> words enters the sweep only through its length mod 3 (<code>zone_step</code>), so Lean drops it: the machine halts from blank tape <i>iff</i> the <i>zone orbit</i> halts (<code>halts_iff_zone</code>), and compiled evaluation runs that orbit through the first 1.7&middot;10<sup>15</sup> steps without a halt. Since the last arrival the tape holds a new zone, a stranded block of 8,397 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 8,397 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10). Run a whole period at a time (<code>lean/Window.lean</code>), the cascade gives <b>no halt in the first 1.5&middot;10<sup>39</sup> steps</b> (compiled evaluation, <code>lean/WindowRun.lean</code>), and the C engine runs it for 3&middot;2<sup>77</sup> sweeps without a halt or a reset.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Every halt of the macro step happens at the left end of the word: a sweep halts exactly when the only <code>00</code> of the word is at its very left end, and the other halting cases of the pass machine are passes that run off the left end.</p>
         <p class="where"><code>mstep_halt</code>, <code>lean/Bits.lean</code>; <code>scanF</code> / <code>scan</code>, <code>apass</code> in <code>lean/Sweep.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The cascade a period at a time</h3>
+        <p>A cell is back to its bit after a list of events or after two copies of it, so the events that enter cell m during the first 3&middot;2<sup>d</sup> sweeps can be built cell by cell (one or two passes each, d the number of cells that needed two). Run through the rest of the word, they give every event that leaves it in that window.</p>
+        <p class="where"><code>wfold_run</code>, <code>window_quiet</code>, <code>window_of_check</code>, <code>lean/Window.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -184,6 +189,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>3&middot;10<sup>7</sup> steps of the zone orbit, evaluated by compiled code, without a halt; they cover more than 1.7&middot;10<sup>15</sup> machine steps.</p>
         <p class="where"><code>zone_runs</code>, <code>blank_runs_zone</code>, <code>lean/ZoneRun.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.5&middot;10<sup>39</sup> steps</h3>
+        <p>At zone step 3&middot;10<sup>7</sup>, the word cut after 135 cells has a window of 3&middot;2<sup>63</sup> sweeps and nothing leaves the word in it: no halt and no reset. Every sweep takes at least 4n steps, n the block count.</p>
+        <p class="where"><code>window_runs</code>, <code>blank_runs_window</code>, <code>lean/WindowRun.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -201,6 +211,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Two zones</h3>
         <p>Since the last arrival the tape holds a new zone, a stranded block of 8,397 letters and the old zone at the left end. By the Lean lemmas the old zone moves only when a sweep gets through the new zone, and for as long as the block lasts it then moves exactly as it would alone: run alone it has no reset and no halt in the 8,397 ticks the block covers. In 3&middot;10<sup>10</sup> sweeps from zone step 3&middot;10<sup>7</sup> only 23 sweeps got through (about 7 per factor of 10). The old zone moving as if alone while the block lasts is a hand argument from the Lean lemmas (the cells that can differ spread from the new zone by at most one per sweep that reaches the block), checked against the zone orbit at all 23 passes of a run of 3&middot;10<sup>10</sup> sweeps.</p>
         <p class="where"><code>c/xs.c</code>, <code>c/z1.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code>, from the state written by <code>lean/DumpState.lean</code>; <code>README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>Windows up to 3&middot;2<sup>77</sup> sweeps</h3>
+        <p>Cut after 161 cells, the window is 3&middot;2<sup>77</sup> sweeps: nothing leaves the word. The 79 events that reach the old zone in it are all background, so the old zone has so far moved exactly as alone. The background events come about 1.35 per doubling of the window, the front of the disturbance moves about 3.3 cells per doubling (cell 255 at d = 77). If both speeds hold, the front reaches the old zone at d &asymp; 2,600, after about 3,500 background events, before the 9,947 the old zone alone needs to let a sweep through.</p>
+        <p class="where"><code>c/window.c</code>, <code>c/passtimes.c</code> in the folder of <code>1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA</code>; <code>README.md</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -229,7 +244,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA/lean/check.sh
 gcc -O2 -o snap holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/snap.c &amp;&amp; ./snap 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA 1e8 2e8 1e9
-gcc -O2 -o reduced holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/reduced.c &amp;&amp; ./reduced 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA B 1111 10 1e8 20000</code></pre>
+gcc -O2 -o reduced holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/reduced.c &amp;&amp; ./reduced 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA B 1111 10 1e8 20000
+gcc -O2 -o window holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/window.c &amp;&amp; ./window STATE 161 timeline    # STATE from lean/DumpState.lean</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -1,6 +1,7 @@
 import OrbitRun
 import ZoneRun
 import ZoneCascade
+import WindowRun
 import Shield
 
 /-! The axioms behind the main results: `propext`, `Quot.sound` and `Classical.choice` for the kernel-checked
@@ -29,3 +30,7 @@ theorems, and in addition the auxiliary axiom that `native_decide` adds for `orb
 #print axioms H25821.shield
 #print axioms H25821.per_run
 #print axioms H25821.blank_runs_shield
+#print axioms XS.wfold_run
+#print axioms XS.window_of_check
+#print axioms H25821.window_runs
+#print axioms H25821.blank_runs_window
