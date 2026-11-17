@@ -75,6 +75,34 @@ pattern, not on a proof). H has one element per doubling of N, so if N behaves l
 the chance that it lies in H is about 1/N: already about 2^(-43) for N = 8534636888060, and N grows doubly
 exponentially, so the chance of any later hit is negligible.
 
+## The recursion in rule form
+
+Exact tapes, then the rules with the exact number of machine steps, as the bbchallenge wiki writes Antihydra's.
+One family, the macro configurations (Lean `cfg ⟨X, a, mid, b, tail⟩`), with R a row of blocks `1^y 0`:
+
+    C(X; R) := 0^∞ 1^X F> 0 0 R 0^∞
+
+(k units `(10)^k` in front of the first block that is not a unit, Y, or of an empty block followed by the block Z;
+Z = 0 at the end of the tape):
+
+    0^∞ A> 0^∞                         --102-->          C(10; 1^3)
+    C(X; (10)^k 1^Y 0 R)               --6k + 18-->      C(X − 2; (10)^(k+2) 1^(Y−2) 0 R)    X ≥ 3, Y ≥ 2
+    C(0; (10)^k 1^Y 0 R)               --6k + 14-->      C(0; (10)^(k+2) 1^(Y−2) 0 R)        Y ≥ 2
+    C(X; (10)^k 0 1^Z 0 R)             --6k + 20-->      C(X − 4; 1^(2k+Z+5) 0 R)            X ≥ 5
+    C(2; 1^Y 0 R)                      --15-->           C(5; 1^(Y−1) 0 R)                   Y odd
+    C(X; (10)^a 0 1 0 1^Y 0 R)         --8k + 20-->      C(2k + 7; 1^(Y−1) 0 R)              X = 0 or 3, k = a (+1 if X = 3)
+    C(X; (10)^a 0 1^Z)                 --8k + Z + 27-->  C(2k + Z + 4; 1^3)                  X = 0 or 3, k as above
+    C(4; (10)^k)                       --6k + 18-->      HALT                                D reads 0
+
+If a round or merge leaves X = 1, 2 more steps walk that 1 over the gap as a unit (`norm`). These are `mstep` of
+`lean/Macro.lean` with its cases merged, and the step counts are part of the Lean statement: `mstep_sound` proves
+`steps n (cfg s) = some (cfg s')` with n the cost, `mstep_halt` the halt (`haltcfg`, 6k + 17 steps, plus the
+halting transition), `init_cfg` the start, `halts_iff`/`halts_iff_four` the halts-iff. `py/macro.py rules` checks the
+merged table against `mstep` and direct simulation: 17,639 configurations (42 halting) and all 6,095 configurations
+of the first 10^7 steps from blank tape at the predicted step. Example: O(20) = C(20; 1^3) → C(18; (10)^3) (18) →
+C(14; 1^11) (merge, 38) → five rounds (18, 30, 42, 54, 66) → C(4; (10)^11) → halt (84): 350 steps, as in direct
+simulation.
+
 ## Status and evidence
 
 **Lean, kernel only.**
@@ -115,6 +143,7 @@ number of inner epochs, a Collatz-like map of N; nothing visible excludes an exa
 . /etc/profile.d/lean.sh && holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/lean/check.sh   # about 2 minutes
 python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/macro.py check 1e8     # block machine vs machine
 python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/macro.py run 20000000  # the number in MacroRun.lean
+python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/macro.py rules           # the rule table and its step counts against mstep and direct simulation
 python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/outer.py 9             # the outer orbit, ~10 minutes
 python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/gen_rules.py           # regenerate lean/Rules.lean
 ```

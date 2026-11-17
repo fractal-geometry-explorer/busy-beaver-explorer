@@ -47,6 +47,38 @@ operations, and this is why the reset count grows only logarithmically with the 
 thousands of resets are out of reach of any step-by-step method, and the doubling map with a moving modulus has no
 known shortcut).
 
+## The recursion in rule form
+
+Exact tapes, then rules with exact step counts, as the bbchallenge wiki writes Antihydra's. The Lean proof works on
+the sweep of `lean/Map.lean`, one level below the doubling map, so the table does too (Lean: `S c p b` with
+a = 2p + 2, and `Rc c p k z`):
+
+    S(c, a, b)    := 0^∞ (10)^c 1^a 0 (10)^b 1 B> 0^∞                    (a visit; a even, a ≥ 2)
+    R(c, p, k, z) := 0^∞ (10)^c 1^(2p) A> 1 0 1^(4k+1) 0 (10)^z 1111 0^∞   (inside a sweep)
+
+    0^∞ A> 0^∞              --43-->        S(0, 4, 1)                 blank_to_S
+    S(c, a, 0)              --24-->        S(c, a, 1)                 start0
+    S(c, a, n + 1)          --4n + 22-->   R(c, a/2 − 1, 0, n)        start_g
+    R(c, p + 1, k, z + 1)   --8k + 8-->    R(c, p, k + 1, z)          round
+    R(c, p + 1, k, 0)       --12k + 18-->  S(c, 2p + 2, 2k + 3)       final_g
+    R(c + 1, 0, k, z + 3)   --12k + 22-->  R(c, 2k + 2, 1, z)         carry
+    R(c + 1, 0, k, 2)       --12k + 32-->  S(c, 4k + 6, 3)            carry_z2
+    R(c + 1, 0, k, 1)       --12k + 20-->  S(c, 4k + 8, 1)            carry_z1
+    R(c + 1, 0, k, 0)       --12k + 36-->  S(c, 4k + 8, 1)            carry_z0 (the emptying carry)
+    R(0, 0, k, z + 2)       --12k + 20-->  R(2k + 2, 1, 0, z)         reset
+    R(0, 0, k, 1)           --12k + 26-->  S(2k + 2, 4, 1)            reset_z1
+    R(0, 0, k, 0)           --16k + 31-->  HALT                       halt_run (16k + 30), then F reads 0
+
+Every step count is a Lean theorem for all values of its counts (`blank_to_S` in `lean/Map.lean`, the rest in
+`lean/Rules.lean`; the halt row adds the halting transition). `lean/Map.lean` rewrites the moves onto S and R and
+proves `halts_iff`: the machine halts iff these rules, from S(0, 4, 1), reach the halt row (its `Reach` statements
+keep the tapes, not the counts). `lean/Doubling.lean` turns them into the doubling map on
+(c, u, v) = (c, b + 1, a/2 + b + 2). Checked against direct simulation (`py/model.py rules`): each rule on 3,740
+tapes, rule chains from 2,856 visits to the next visit or halt (28 halting), and all 377 visits of the first 10^7
+steps of the run at the predicted step. A doubling (2b < a) takes 4b² + 12b + 24 = 4u² + 4u + 16 steps. Example:
+S(1, 2, 6) → R(1, 0, 0, 5) (42) → R(0, 2, 1, 2) (carry, 22) → R(0, 0, 3, 0) (rounds, 16 + 24) → halt (79):
+183 steps, as in direct simulation.
+
 ## The run
 
 `c/odo.c` is `op` in C. In 10^11 operations (50,000,165,924 visits) there are 54 resets and 42 emptying carries, and no
@@ -141,6 +173,7 @@ into `status.json`; `python3 holdouts/build_pages.py` then rebuilds the pages.
 cd holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC
 python3 py/rules.py                     # regenerates lean/Rules.lean (Map.lean and Doubling.lean are by hand)
 python3 py/model.py check
+python3 py/model.py rules               # the rule table and its step counts against direct simulation
 python3 py/model.py resets 1e8
 gcc -O2 -o /tmp/odo c/odo.c
 /tmp/odo 1000000000 dump 50000 | cmp - <(python3 py/model.py dump 50000)     # C against Python

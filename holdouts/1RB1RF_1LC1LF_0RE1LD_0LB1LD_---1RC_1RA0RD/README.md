@@ -78,6 +78,36 @@ of `next` from `PS 0 2` (reached after 4 steps, `init_ps`) is such a `PS a c`. `
 10^8 phases by `native_decide` (about 100 s). `py/passmap.py lean` iterates a Python copy of `next` and compares it
 with `pass_map` at 10^8 pass starts (all agree).
 
+## The recursion in rule form
+
+Exact tapes, then one rule per case of `next` with the exact number of machine steps, as the bbchallenge wiki
+writes Antihydra's (m ≥ 2 in the Q rows):
+
+    PS(a, c)   := 0^∞ B> 0 0 (10)^a 1^c 0^∞
+    Q(R, m, c) := 0^∞ (10)^R (11)^m A> 1^c 0^∞
+
+    0^∞ A> 0^∞     --4-->                   PS(0, 2)                              pc_init
+    PS(a, 0)       --2a + 5-->              HALT                                  pc_halt0 (2a + 4), then E reads 0
+    PS(a, 1)       --2a + 7-->              HALT                                  pc_halt1 (2a + 6), then E reads 0
+    PS(0, 2)       --21-->                  PS(0, 5)                              pc_ps02
+    PS(0, c)       --24-->                  PS(2, c − 2)          c ≥ 3           pc_ps0
+    PS(a, c)       --2a + 12-->             Q(a − 1, 2, c)        a ≥ 1, c ≥ 2    pc_start
+    Q(R, m, c)     --6jm + 6j² + 2j-->      Q(R − j, m + 2j, c − 2j)   R ≥ 1, c ≥ 3, j = min(R, ⌊(c − 1)/2⌋) (sum)
+    Q(0, m, c)     --10m + 20-->            PS(m + 2, c − 4)      c ≥ 5           pc_end
+    Q(0, m, 1|2|3|4)  --2m + 8 | 2m + 6 | 8m + 19 | 8m + 17-->
+                                            PS(0, 2m + 4 | 2m + 2 | 2m + 7 | 2m + 5)   pc_end1 … pc_end4
+    Q(1, m, 1|2)   --2m + 24 | 2m + 22-->   PS(2, 2m + 2 | 2m)                    pc_one1, pc_one2
+    Q(R, m, 1|2)   --2m + 12 | 2m + 10-->   Q(R − 2, 2, 2m + 4 | 2m + 2)   R ≥ 2  pc_reb1, pc_reb2
+
+The rules are `next` of `lean/Phases.lean` (`next_sound`, `ps_halts`), with the halts-iff (`halts_iff`) and the
+start (`init_ps`). The rows with a piece name have their step count in the statement of that piece in
+`lean/Pieces.lean` (shifted variables; `next_sound` keeps only "some number of steps"). The rounds row is j rounds of
+`pc_round` (6m + 8 steps each) joined by induction in `q_rounds` without the total, so that total is checked against
+direct simulation only. `py/passmap.py rules 0`: all 7,696 phases of a grid (60 halting), target and steps; all
+1,437 phases of the first 10^7 steps from blank tape at the predicted step. Example: PS(1, 4) → Q(0, 2, 4) (14) →
+PS(0, 9) (33) → PS(2, 7) (24) → Q(1, 2, 7) (16) → Q(0, 4, 5) (20) → PS(6, 1) (60) → halt (19): 186 steps, as in
+direct simulation. (The wiki page reads the run at other moments, C(z, m) with a doubling rule of 6z² steps.)
+
 ## Later
 
 - Is there a closed form? In the plain case x = a + 2 doubles; the rebounds look like a reflection with modulus
@@ -122,4 +152,5 @@ or `PS a 1`, so by `halts_iff` no halt. After phase 1,000 the smallest c at a pa
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/lean/check.sh
+python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py rules 0     # the rule table and its step counts against direct simulation
 ```

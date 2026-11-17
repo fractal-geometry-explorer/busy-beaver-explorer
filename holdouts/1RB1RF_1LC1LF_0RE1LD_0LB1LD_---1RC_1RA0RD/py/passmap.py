@@ -18,6 +18,9 @@ usage (from the repository root):
   python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py lean PASSES
         iterate lean_next, a copy of the phase map `next` that lean/Phases.lean proves, from PS 0 2, and compare
         it with pass_map at every pass start (PS a c is the pass start (a, c - t, t) of pass_map)
+  python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/passmap.py rules 0
+        the rule table: lean_next with the number of machine steps of each phase (phase_steps), against direct
+        simulation on a grid of phases and on every phase of the first 10^7 steps from blank tape
 """
 import os
 import re
@@ -177,7 +180,101 @@ def iterate(n):
     print(f"passes ending with b even: {even}; parity changes of b: {flips}; ends with b <= 5: {dict(sorted(near.items()))}")
 
 
+def phase_steps(p):
+    """Machine steps from the phase p to lean_next(p), or to the halt (counting the halting step)."""
+    if p[0] == "ps":
+        _, a, c = p
+        if c <= 1:
+            return 2 * a + 5 + 2 * c
+        if a == 0:
+            return 21 if c == 2 else 24
+        return 2 * a + 12
+    _, R, m, c = p
+    if R >= 1 and c >= 3:
+        j = min(R, (c - 1) // 2)
+        return 6 * j * m + 6 * j * j + 2 * j
+    if R == 0:
+        return 10 * m + 20 if c >= 5 else {1: 2 * m + 8, 2: 2 * m + 6, 3: 8 * m + 19, 4: 8 * m + 17}[c]
+    if R == 1:
+        return 2 * m + (24 if c == 1 else 22)
+    return 2 * m + (12 if c == 1 else 10)
+
+
+TT = {}
+for _i, _g in enumerate(M.split("_")):
+    for _v in (0, 1):
+        _t = _g[3 * _v:3 * _v + 3]
+        TT[(_i, _v)] = None if _t[0] == "-" else (int(_t[0]), 1 if _t[1] == "R" else -1, ord(_t[2]) - 65)
+
+
+def phase_cfg(p):
+    """(cells, head index, state) of PS a c (state B) or Q R m c (state A)."""
+    if p[0] == "ps":
+        return "00" + "10" * p[1] + "1" * p[2], 0, 1
+    left = "10" * p[1] + "11" * p[2]
+    return left + "1" * p[3], len(left), 0
+
+
+def at_phase(tape, h, st, p):
+    w, hp, sp = phase_cfg(p)
+    return st == sp and sorted(i - h for i in tape) == [i - hp for i, c in enumerate(w) if c == "1"]
+
+
+def sim_phase(p, limit=10 ** 6):
+    """Direct simulation from p to the first moment it is at lean_next(p), or to the halt: (target, steps)."""
+    y = lean_next(p)
+    w, h, st = phase_cfg(p)
+    tape = {i: 1 for i, c in enumerate(w) if c == "1"}
+    if y is not None:
+        wy, hy, sy = phase_cfg(y)
+        ky = [i - hy for i, c in enumerate(wy) if c == "1"]
+    for n in range(limit):
+        t = TT[(st, 1 if h in tape else 0)]
+        if t is None:
+            return "halt", n + 1
+        if t[0]:
+            tape[h] = 1
+        else:
+            tape.pop(h, None)
+        h += t[1]; st = t[2]
+        if y is not None and st == sy and len(tape) == len(ky) and sorted(i - h for i in tape) == ky:
+            return y, n + 1
+    return "?", limit
+
+
+def rules():
+    bad = n = halts = 0
+    ps = [("ps", a, c) for a in range(0, 30) for c in range(0, 40)]
+    qs = [("q", R, m, c) for R in range(0, 16) for m in range(2, 16) for c in range(1, 30)]
+    for p in ps + qs:
+        r, k = sim_phase(p)
+        n += 1; halts += r == "halt"
+        if r != ("halt" if lean_next(p) is None else lean_next(p)) or k != phase_steps(p):
+            bad += 1; print("differs at", p, r, k, lean_next(p), phase_steps(p))
+    print(f"rules grid: {n} phases ({halts} halting), {bad} failures")
+    N = 10 ** 7
+    p, due, nv = ("ps", 0, 2), 4, 0
+    tape, h, st = {}, 0, 0
+    for i in range(1, N + 1):
+        t = TT[(st, 1 if h in tape else 0)]
+        if t[0]:
+            tape[h] = 1
+        else:
+            tape.pop(h, None)
+        h += t[1]; st = t[2]
+        if i == due:
+            nv += 1
+            if not at_phase(tape, h, st, p):
+                bad += 1; print("run differs at step", i, p); break
+            p, due, last = lean_next(p), due + phase_steps(p), i
+    print(f"rules run: {nv} phases in the first {N:.0e} steps, the last at step {last}, "
+          f"{'each at the predicted step' if not bad else 'FAILED'}")
+    return bad
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3 or sys.argv[1] not in ("check", "iterate", "lean"):
+    if len(sys.argv) != 3 or sys.argv[1] not in ("check", "iterate", "lean", "rules"):
         sys.exit(__doc__)
+    if sys.argv[1] == "rules":
+        sys.exit(1 if rules() else 0)
     {"check": check, "iterate": iterate, "lean": lean}[sys.argv[1]](int(sys.argv[2]))

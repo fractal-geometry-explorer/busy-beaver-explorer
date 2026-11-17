@@ -42,6 +42,33 @@ from the right block; in Y it is the other way round (left +3, middle -1, right 
 X(2,0,3) after 29 steps. Lean (`halts_iff`, `lean/Model.lean`): **the machine halts if and only if the orbit of
 X(2,0,3) reaches Z(a,2)**, i.e. a Y run whose middle block empties exactly when the right block has 3 ones.
 
+## The recursion in rule form
+
+The same rules with their exact step counts, as the bbchallenge wiki writes Antihydra's (families X, Y, Z above):
+
+    start          0^∞ A> 0^∞      --29-->       X(2,0,3)
+    X, bulk        X(a+4,b,c+2)    --4b+13-->    X(a+1,b+2,c+1)
+    X, a = 3       X(3,b,c+2)      --4b+13-->    X(1,b+1,c+1)
+    X, a = 2       X(2,b,c+2)      --4b+25-->    X(2,b+2,c+1)
+    X to Y         X(1,b,c+2)      --4b+13-->    Y(3,b,c+1)
+    X to Z         X(0,0,c+2)      --9-->        Z(3,c+1)
+    X, c = 1       X(a+5,b,1)      --8b+37-->    X(a,0,2b+9)
+    end of round   X(2,b,1)        --8b+49-->    X(0,0,2b+9)
+    X, c = 1       X(4,b,1) / X(3,b,1) / X(1,b,1)  --8b+47 / 8b+43 / 8b+33-->  X(4,0,2b+7) / X(4,0,2b+5) / X(1,0,2b+5)
+    Y, bulk        Y(a,b+1,c+2)    --4b+13-->    Y(a+3,b,c+1)
+    Y to Z         Y(a,0,c+2)      --9-->        Z(a+3,c+1)
+    Y to X         Y(a,b,1)        --8b+25-->    X(a,1,2b+3)
+    Z to X         Z(a,c+6)        --11-->       X(a+4,0,c+1)
+    Z, small c     Z(a,1) / Z(a,3) / Z(a,4) / Z(a,5)  --17 / 29 / 21 / 27-->  X(a,1,1) / X(a,0,5) / X(a+2,0,3) / X(a+2,0,5)
+    halt           Z(a,2)          --6-->        HALT          (F reads 0)
+
+(a >= 3 for Y and Z.) The halt row counts the halting transition (`z_halt` is the 5 steps before it). Every count is
+in the statement of the rule's theorem in `lean/Rules.lean`, the start is `blank_to_X`; `lean/Model.lean` uses them
+as "at least one step" (`rule_some`, `rule_none`) for `halts_iff`. `py/exact.py` checks every row against direct
+simulation: 25,919 tapes (38 halting) and the 5,262 tapes the rows predict in the first 10^7 steps from blank tape.
+Example: X(1,2,6) -> Y(3,2,5) -> Y(6,1,4) -> Y(9,0,3) -> Z(12,2) -> halt in 21 + 17 + 13 + 9 + 6 = 66 steps, as
+direct simulation gives.
+
 ## Rounds
 
 A round starts at `X(0,0,N)` (the whole tape is ones, N odd). It opens with a doubling stage:
@@ -97,4 +124,5 @@ below N (round 907, the approach already reported). Stopped by choice, not by th
 PYTHONPATH=tools/py python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/gen_rules.py      # regenerates lean/Rules.lean
 gcc -O2 -o /tmp/canon holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/c/canon.c && /tmp/canon 11000000000 | python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/orbit.py validate
 python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/orbit.py run 2000
+python3 holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/py/exact.py          # the rule table and its step counts against direct simulation, ~3 s
 ```

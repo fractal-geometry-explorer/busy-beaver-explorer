@@ -2,6 +2,8 @@
 
   python3 macro.py check STEPS     compare every macro configuration of the first STEPS steps with a direct run
   python3 macro.py run N           N macro steps from the first macro configuration (the number in MacroRun.lean)
+  python3 macro.py rules           the rule table (`rule`, on rows of blocks) against `mstep` and against direct
+                                   simulation: a grid of configurations, and every one of the first 10^7 steps
   (the outer orbit: see outer.py)
 """
 import os, sys
@@ -130,8 +132,133 @@ def run(N):
     print(f"{N} macro steps: configuration {s}, machine step {t}")
 
 
+# ---- The rule table: mstep written on exact tapes C(X; R) = 0^inf 1^X F> 0 0 R 0^inf, R a row of blocks 1^y 0 ----
+
+def blocks(s):
+    """The row of blocks right of the gap of cfg s (block lengths; the last one may be the tail)."""
+    X, a, m, b, t = s
+    r = [1] * a + ([0] if m == 'z' else [2 * m[1] + 2] if isinstance(m, tuple) else []) + [1] * b
+    return (X, r + ([2 * t + 3] if t is not None else []))
+
+
+def walk1(X, r, n):
+    """X - 2 or X - 4 can be 1: two more steps walk that 1 over the gap, where it becomes a unit."""
+    return (0, [1] + r, n + 2) if X == 1 else (X, r, n)
+
+
+def rule(X, r):
+    """One rule of the table on C(X; r): (X', r', steps) or ('halt', steps).  r: block lengths."""
+    while r and r[-1] == 0:
+        r = r[:-1]
+    k = 0
+    while k < len(r) and r[k] == 1:
+        k += 1
+    if X == 2:
+        return (5, [r[0] - 1] + r[1:], 15)                                  # the first block loses a 1
+    if k < len(r) and r[k] >= 2:                                           # a round against the block Y = r[k]
+        r2 = [1] * (k + 2) + [r[k] - 2] + r[k + 1:]
+        return walk1(X - 2, r2, 6 * k + 18) if X >= 3 else (0, r2, 6 * k + 14)
+    Z, rest = (r[k + 1], r[k + 2:]) if k + 1 < len(r) else (0, [])     # a gap (or the end) after k units
+    if X >= 5:                                                             # merge
+        return walk1(X - 4, [2 * k + Z + 5] + rest, 6 * k + 20)
+    if X == 4:
+        return ('halt', 6 * k + 18)
+    kk = k + 1 if X == 3 else k                                            # restart (X = 0 or 3)
+    if rest:
+        return (2 * kk + 7, [rest[0] - 1] + rest[1:], 8 * kk + 20)        # here Z = 1
+    return (2 * kk + Z + 4, [3], 8 * kk + Z + 27)                          # at the end: an outer configuration
+
+
+def cells(X, r):
+    c = [1] * X + [0, 0]
+    for y in r:
+        c += [1] * y + [0]
+    return c, X
+
+
+def inv(s):
+    X, a, m, b, t = s
+    return X != 1 and not (X % 2 == 0 and X != 0 and m is not None) and not (X == 2 and a + b == 0 and t is None)
+
+
+TBL = {}
+for _i, _g in enumerate(M.split("_")):
+    for _v in (0, 1):
+        _t = _g[3 * _v:3 * _v + 3]
+        TBL[(_i, _v)] = None if _t[0] == "-" else (int(_t[0]), 1 if _t[1] == "R" else -1, ord(_t[2]) - 65)
+
+
+def run_cells(c, h, st, n):
+    """n steps of the machine; ('halt', step) if it halts first, else (tape dict, head, state)."""
+    tape = {i: v for i, v in enumerate(c) if v}
+    for i in range(n):
+        tr = TBL[(st, tape.get(h, 0))]
+        if tr is None:
+            return 'halt', i + 1
+        if tr[0]:
+            tape[h] = 1
+        else:
+            tape.pop(h, None)
+        h += tr[1]; st = tr[2]
+    return tape, h, st
+
+
+def same(tape, h, st, X, r):
+    c, hc = cells(X, r)
+    return st == 5 and sorted(i - h for i in tape) == [i - hc for i, v in enumerate(c) if v]
+
+
+def check_rules():
+    bad = n = halts = 0
+    for X in range(0, 25):
+        for a in range(7):
+            for m in [None, 'z'] + [('e', q) for q in range(4)]:
+                for b in range(6):
+                    for t in [None] + list(range(4)):
+                        s = (X, a, m, b, t)
+                        if not inv(s):
+                            continue
+                        n += 1
+                        res = mstep(s)
+                        u = rule(*blocks(s))
+                        if res[0] == 'halt':
+                            halts += 1
+                            ok = u[0] == 'halt' and run_cells(*cells(*blocks(s)), 5, u[1]) == ('halt', u[1])
+                        else:
+                            X2, r2 = blocks(res[1])
+                            ok = u[0] != 'halt' and (u[0], [y for y in u[1]]) == (X2, r2 + [0] * (len(u[1]) - len(r2))) \
+                                and u[2] == res[2]
+                            if ok:
+                                tp = run_cells(*cells(*blocks(s)), 5, u[2])
+                                ok = tp[0] != 'halt' and same(*tp, u[0], u[1])
+                        if not ok:
+                            bad += 1; print("differs at", s, res, u)
+    print(f"rules grid: {n} configurations ({halts} halting), {bad} failures")
+    N = 10 ** 7
+    x, due, nv = (10, [3]), 102, 0
+    tape, h, st = {}, 0, 0
+    for i in range(1, N + 1):
+        tr = TBL[(st, tape.get(h, 0))]
+        if tr[0]:
+            tape[h] = 1
+        else:
+            tape.pop(h, None)
+        h += tr[1]; st = tr[2]
+        if i == due:
+            nv += 1
+            if not same(tape, h, st, *x):
+                bad += 1; print("run differs at step", i, x); break
+            y = rule(*x)
+            x, due, last = (y[0], y[1]), due + y[2], i
+    print(f"rules run: {nv} configurations C(X; R) in the first {N:.0e} steps, the last at step {last}, "
+          f"{'each at the predicted step' if not bad else 'FAILED'}")
+    return bad
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "check":
         check(int(float(sys.argv[2])))
+    elif sys.argv[1] == "rules":
+        sys.exit(1 if check_rules() else 0)
     elif sys.argv[1] == "run":
         run(int(float(sys.argv[2])))
