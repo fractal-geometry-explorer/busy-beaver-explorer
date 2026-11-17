@@ -46,6 +46,34 @@ T(none, 2a + 5, 0) = T(none, 2^(K+3) − 1, 0), which never is.) Example: T(none
 (51, 2) → (45, 6) → (31, 14) → (1, 30) → halt, so halting configurations of this form exist; the question is only
 whether the run from blank tape ever meets one.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. At a visit of the right end
+in state B (subscript c: a bracket 1^2 0 (10)^c to the left; no subscript, no bracket):
+
+    E_c(u, m) := 0^∞ 1^2 0 (10)^c 1^(2(m−u−1)) 0 (10)^(u−2) B> 0^∞     (even pool)
+    O_c(A, b) := 0^∞ 1^2 0 (10)^c 1^A 0 (10)^b B> 0^∞                  (A = 2i + 3 odd)
+
+    0^∞ A> 0^∞            --7-->                     E(2, 4)
+    E_c(u, m)             --6u²-->                   E_c(2u, m + 1)                 2u < m
+    (u, m)                --6d² − 4d + 2-->          (2u − m, m)                    2u > m, d = m − u (no visit)
+    (u, m)                --6u² − 4u + 5-->          O_c(2m − 3, 0)                 2u = m
+    O_c(2i+3, b)          --6(b + 2)²-->             O_c(2i − 2b + 1, 2b + 2)       b < i
+    O(2i+3, i)          --6(i + 2)²-->             O(1, 2i + 2)
+    O(1, b)             --2b + 7-->                HALT
+    O_c(2i+3, i)          --6(i + 2)²-->             E(c + 2i + 5, c + 2i + 7)    bracket c
+    O(2i+3, i+1)        --6i² + 44i + 78-->        O(4i + 11, 0)
+    O(2i+3, i+2)        --6i² + 36i + 59-->        (2i + 6, 2i + 8), no bracket   (no visit)
+    O(2i+3, i+r)        --6i² + 36i + 58-->        (r − 2, r), bracket 2i + 4     r ≥ 3 (no visit)
+    O_c(2i+3, i+1)        --6i² + 32i + 4c + 51-->   O(2c + 4i + 11, 0)           bracket c
+    O_c(2i+3, b)          --6i² + 32i + 4c + 48-->   (b − i − 1, c + i + b + 6)     bracket c, b ≥ i + 2 (no visit)
+
+A bare pair (u, m) is not a visit: the next rule applies to it directly and the step counts add up. The rules are
+`op` of `lean/Doubling.lean`, proved, with the halts-iff. The step counts are proved for the tape moves they are
+built from (`lean/Rules.lean`); the totals are sums of those, checked against direct simulation (`py/model.py rules`:
+7,640 tapes and every visit of the first 3·10^6 steps), not yet stated in Lean. Example: E(21, 28) = T(none, 12, 19)
+halts after 268 + 1125 + 24 + 96 + 384 + 1536 + 67 = 3,500 steps.
+
 ## Inside one step
 
 Between two visits the machine is in configurations `… 1^x 0 [A>1] 1^p tail`: pool 1^x, middle block 1^p, and a
@@ -153,6 +181,7 @@ runs from blank tape, not on their tables. Details are in `holdouts/EQUIVALENCES
 cd holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE
 python3 py/rules.py                     # regenerates lean/Rules.lean (lean/Map.lean is by hand)
 python3 py/model.py check               # the map against direct simulation
+python3 py/model.py rules               # the rule table and its step counts against direct simulation
 gcc -O2 -o /tmp/rec c/rec.c && /tmp/rec 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 3000000000 R B 10000000 | python3 py/model.py checkrec
 gcc -O2 -o /tmp/fast c/fast.c
 /tmp/fast 1000000000 dump 20000 | cmp - <(python3 py/model.py dump 20000)     # C against Python

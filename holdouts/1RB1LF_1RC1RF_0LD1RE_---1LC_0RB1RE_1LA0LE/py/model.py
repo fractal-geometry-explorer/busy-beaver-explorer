@@ -23,6 +23,7 @@ The only halting visits are T(None, 1, b).  An odd pool without bracket always s
 reaches 1 exactly when A = 2^(k+2) - 2k - 3 for some k (`halting_pool`): 1, 3, 9, 23, 53, 115, 241, 495, 1005, ...
 
     python3 py/model.py check          # step against direct simulation: a grid, the run from blank tape, the doubling map
+    python3 py/model.py rules          # op (lean/Doubling.lean) and op_steps against direct simulation
     python3 py/model.py events 1e6     # the odd pools of the first 10^6 operations of the run
     ./rec MACHINE 3000000000 R B 10000000 | python3 py/model.py checkrec    # every visit of 3*10^9 steps (c/rec.c)
     python3 py/model.py dump 5000      # the first visits "c a b" (c = -1: none), same output as `c/fast dump 5000`
@@ -219,9 +220,129 @@ def events(maxops):
     print(f"no halt in {visits} visits, {cnt[0]} operations; now {s}")
 
 
+# ---- The doubling map `op` of lean/Doubling.lean, with the number of machine steps of each operation ----
+
+def op(s):
+    """One operation on ('ev', c, u, m) or ('od', c, A, b); None is the halt (the same map as `op` in Lean)."""
+    if s[0] == 'ev':
+        _, c, u, m = s
+        if 2 * u < m:
+            return ('ev', c, 2 * u, m + 1)
+        if m < 2 * u:
+            return ('ev', c, 2 * u - m, m)
+        return ('od', c, 2 * m - 3, 0)
+    _, c, A, b = s
+    if A == 1 and c is None:
+        return None
+    i = (A - 3) // 2
+    if b < i:
+        return ('od', c, 2 * (i - b) + 1, 2 * b + 2)
+    if b == i:
+        return ('od', None, 1, 2 * b + 2) if c is None else ('ev', None, c + 2 * b + 5, c + 2 * b + 7)
+    r = b - i
+    if c is None:
+        return ('od', None, 4 * i + 11, 0) if r == 1 else ('ev', None, 2 * i + 6, 2 * i + 8) if r == 2 else \
+            ('ev', 2 * i + 4, r - 2, r)
+    return ('od', None, 2 * c + 4 * i + 11, 0) if r == 1 else ('ev', None, r - 1, c + i + b + 6)
+
+
+def op_steps(s):
+    """Machine steps charged to one operation: the steps between two visits are the sum over the operations between
+    them (the halt: steps up to and including the halting step)."""
+    if s[0] == 'ev':
+        _, c, u, m = s
+        if 2 * u < m:
+            return 6 * u * u
+        if m < 2 * u:
+            d = m - u
+            return 6 * d * d - 4 * d + 2
+        return 6 * u * u - 4 * u + 5
+    _, c, A, b = s
+    if A == 1:
+        return 2 * b + 7
+    i = (A - 3) // 2
+    if b <= i:
+        return 6 * (b + 2) ** 2
+    r = b - i
+    if c is None:
+        return 6 * i * i + (44 * i + 78 if r == 1 else 36 * i + 59 if r == 2 else 36 * i + 58)
+    return 6 * i * i + 32 * i + 4 * c + (51 if r == 1 else 48)
+
+
+def state(v):
+    """The state of `op` of the visit T(c, a, b)."""
+    c, a, b = v
+    return ('ev', c, b + 2, a // 2 + b + 3) if a % 2 == 0 else ('od', c, a, b)
+
+
+def sim_steps(c, a, b, limit=10 ** 7):
+    """Direct simulation from T(c, a, b): (next visit or 'halt', number of steps)."""
+    T = table()
+    w = word(c, a, b)
+    tape = {i: int(ch) for i, ch in enumerate(w)}
+    pos, st, lo, hi = len(w), 1, 0, len(w)
+    for k in range(limit):
+        t = T[(st, tape.get(pos, 0))]
+        if t is None:
+            return "halt", k + 1
+        tape[pos] = t[0]; pos += t[1]; st = t[2]
+        lo = min(lo, pos)
+        if pos > hi:
+            hi = pos
+            if st == 1:
+                r = parse_t(tape, lo, pos)
+                if r:
+                    return r, k + 1
+    return "?", limit
+
+
+def check_rules():
+    """`op` and `op_steps` against direct simulation: a grid of visits, and every visit of the first 3*10^6 steps."""
+    bad = n = 0
+    for c in (None, 0, 1, 2, 5):
+        for a in range(1, 40):
+            for b in range(0, 40):
+                if c is not None and a == 1:
+                    continue
+                r, k = sim_steps(c, a, b)
+                s, tot = state((c, a, b)), 0
+                while True:
+                    tot += op_steps(s); s = op(s)
+                    if s is None or r != "halt" and s == state(r):
+                        break
+                n += 1
+                if (s is None) != (r == "halt") or tot != k:
+                    bad += 1; print("rules: differs at", c, a, b, r, k, tot)
+    print(f"rules grid: {n} visits, {bad} failures")
+    T = table()
+    tape, pos, st, lo, hi = {}, 0, 0, 0, 0
+    s, acc, nv = state(START), 7, 0
+    for k in range(3 * 10 ** 6):
+        t = T[(st, tape.get(pos, 0))]
+        tape[pos] = t[0]; pos += t[1]; st = t[2]
+        lo = min(lo, pos)
+        if pos > hi:
+            hi = pos
+            if st == 1 and k + 1 > 7:
+                r = parse_t(tape, lo, pos)
+                if r is None:
+                    continue
+                while True:
+                    acc += op_steps(s); s = op(s)
+                    if s == state(r):
+                        break
+                nv += 1
+                if acc != k + 1:
+                    bad += 1; print("rules run: step count differs at step", k + 1, acc); acc = k + 1
+    print(f"rules run: {nv} visits in 3e6 steps, step counts {'ok' if not bad else 'FAILED'}")
+    return bad
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "check":
         sys.exit(1 if check() else 0)
+    elif sys.argv[1] == "rules":
+        sys.exit(1 if check_rules() else 0)
     elif sys.argv[1] == "checkrec":
         sys.exit(checkrec())
     elif sys.argv[1] == "events":
