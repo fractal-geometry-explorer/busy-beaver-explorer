@@ -13,7 +13,9 @@ it as the machine's standing. It lives in one file so that updating it never tou
 """
 import html
 import json
+import math
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -215,6 +217,77 @@ STUDIED_PAGES = {
 }
 
 
+GITHUB = "https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/"
+_NUM = r"(?:(\d+(?:\.\d+)?)\s*(?:·|&middot;|×)\s*)?(?:10<sup>([\d,]+)</sup>|10\^([\d,]+))|(\d[\d,]*)"
+_STEPS = re.compile(r"(?:" + _NUM + r")\s*(?:machine )?steps")
+
+
+def _log10(m):
+    a, e1, e2, plain = m.groups()
+    if e1 or e2:
+        return int((e1 or e2).replace(",", "")) + (math.log10(float(a)) if a else 0)
+    v = int(plain.replace(",", ""))
+    return math.log10(v) if v > 0 else 0
+
+
+def lean_bound(spec):
+    """The largest number of steps from blank tape that a Lean claim (kernel or native_decide) of the ledger says
+    the machine runs without halting, read from the claim titles: (log10 of it, level), or None."""
+    best = None
+    for c in spec.get("claims", []):
+        t = c.get("title", "")
+        if c.get("level") not in ("kernel", "native") or not re.search(r"(?i)no halt|without a halt|without halting", t):
+            continue
+        vals = [_log10(m) for m in _STEPS.finditer(t)]
+        if vals and (best is None or max(vals) > best[0]):
+            best = (max(vals), c["level"])
+    return best
+
+
+_REDUCTIONS = None
+
+
+def reductions():
+    """holdouts/reductions.json, with the halt-together groups turned into {machine: [{m, h}]}."""
+    global _REDUCTIONS
+    if _REDUCTIONS is None:
+        with open(os.path.join(HERE, "reductions.json")) as f:
+            red = json.load(f)
+        together = {}
+        def link(a, b, how):
+            together.setdefault(a, []).append({"m": b, "h": how})
+            together.setdefault(b, []).append({"m": a, "h": how})
+        for g in red["together"]:
+            for i, a in enumerate(g["machines"]):
+                for b in g["machines"][i + 1:]:
+                    link(a, b, g["how"])
+        with open(os.path.join(HERE, "related.json")) as f:
+            for x in json.load(f)["same_run"]:
+                if x["differing_steps"] == 0:
+                    link(*x["machines"], "same run observed to 10^7 steps")
+        red["together_by"] = together
+        _REDUCTIONS = red
+    return _REDUCTIONS
+
+
+def lean_results(M, folder, spec):
+    """The index fields of a machine's Lean results: its map (mp), halt-together partners (ht), Lean no-halt bound
+    (bl, bk), DeepMind's result (dm) and the link to its Lean folder."""
+    red = reductions()
+    mp = red["maps"].get(M)
+    if mp:
+        mp = {"t": "iff" if mp["kind"] == "iff" else "cond", "n": mp["vars"], "v": mp["state"], "s": mp["start"],
+              "h": mp["halts_when"], "fn": mp["file"] or "lean/",
+              "f": GITHUB + f"holdouts/{M}/lean/" + mp["file"]}
+    dm = red["deepmind"].get(M)
+    b = lean_bound(spec)
+    lean = folder + "/lean" if os.path.isdir(os.path.join(REPO, folder, "lean")) else folder
+    return {"mp": mp, "mt": 0 if not mp else (1 if mp["t"] == "iff" else 2), "mn": mp["n"] if mp else None,
+            "ht": red["together_by"].get(M, []), "bl": round(b[0], 2) if b else None, "bk": b[1] if b else "",
+            "dm": {"k": dm["kind"], "u": red["deepmind_base"] + dm["path"]} if dm else None,
+            "lean": GITHUB.replace("/blob/", "/tree/") + lean}
+
+
 def index_rows(triage, known, spec_by):
     rows = []
     ext = external()
@@ -242,6 +315,7 @@ def index_rows(triage, known, spec_by):
             "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0,
             "pr": [[p["n"], p["claim"]] for p in e.get("prs", [])],
         })
+        rows[-1].update(lean_results(M, folder, s))
     return rows
 
 
@@ -268,7 +342,7 @@ INDEX = r"""<!doctype html>
  --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
-.wrap{max-width:1100px;margin:0 auto;padding:32px 16px 64px;display:grid;gap:24px}
+.wrap{max-width:1640px;margin:0 auto;padding:32px 16px 64px;display:grid;gap:24px}
 h1,h2{font-family:var(--mono);margin:0;letter-spacing:-.01em}
 h1{font-size:clamp(1.4rem,3.2vw,2rem)} h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 p{margin:0;max-width:72ch} a{color:var(--link)}
@@ -296,6 +370,19 @@ td.n{color:var(--muted);white-space:normal;min-width:12ch}
 td.st{white-space:normal;min-width:30ch}
 #tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;font:12px var(--mono);display:none;max-width:90vw;z-index:5}
 footer{font-size:.88rem;color:var(--muted)}
+td.n{min-width:44ch!important;font-size:.8rem}
+td.mp{white-space:normal;min-width:26ch;max-width:36ch;font-size:.8rem}
+td.mp code,td.hc code{font-family:var(--mono);font-size:.74rem}
+td.hc{white-space:normal;min-width:22ch;max-width:30ch;font-size:.8rem}
+td.bd{font-family:var(--mono);font-size:.78rem}
+td.lk{font-size:.8rem} td.lk a{margin-right:6px}
+td.tg{white-space:normal;min-width:44ch;font-size:.78rem} td.tg a{white-space:nowrap;font-family:var(--mono);font-size:.72rem}
+.lvl{font-size:.7rem;padding:0 5px;border-radius:4px;border:1px solid var(--rule);color:var(--muted);margin-left:4px;white-space:nowrap}
+.lvl.k{border-color:var(--s-here);color:var(--s-here)} .lvl.c{border-color:var(--s-pr);color:var(--s-pr)}
+.hide-run .run{display:none}
+select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);font:13px var(--body)}
+.stat button{all:unset;cursor:pointer;display:grid} .stat button:hover b{text-decoration:underline}
+.new{outline:2px dashed var(--s-computed);outline-offset:4px}
 </style>
 </head>
 <body>
@@ -319,6 +406,15 @@ footer{font-size:.88rem;color:var(--muted)}
  <div class="stats" id="stats"></div>
 </section>
 
+
+<section class="panel new">
+ <h2>What Lean pins down</h2>
+ <p>For some machines Lean proves more than a bounded run: the whole run is the orbit of an explicit map on a few
+ numbers, and the machine halts exactly when that orbit reaches the map's halting case. Others are proved to halt
+ together with another holdout, so one answer settles both. Click a number to filter the table.</p>
+ <div class="stats" id="lstats"></div>
+</section>
+
 <section class="panel">
  <h2>Growth exponents</h2>
  <p>Each dot is a machine: how fast the tape grows left of the start (across) and right of it (up), as an exponent of
@@ -336,9 +432,20 @@ footer{font-size:.88rem;color:var(--muted)}
   <input type="search" id="q" placeholder="Search a machine, id or name" aria-label="search">
  </div>
  <div class="controls" id="chips"></div>
- <div class="tblwrap"><table id="tbl"><thead><tr>
-  <th data-k="id">id</th><th data-k="m">machine</th><th data-k="c">growth</th><th data-k="al">left exp.</th>
-  <th data-k="ar">right exp.</th><th data-k="w">cells</th><th data-k="d">density</th><th data-k="so">standing</th><th data-k="tc">community class</th><th data-k="n">notes</th>
+ <div class="controls new" id="rchips"></div>
+ <div class="controls new"><label class="crumb" for="sortsel">Sort by</label>
+  <select id="sortsel">
+   <option value="id">bbchallenge id</option>
+   <option value="close">closest to a possible halt (smallest proved no-halt bound first)</option>
+   <option value="far">furthest from a halt (largest proved no-halt bound first)</option>
+   <option value="vars">smallest map (fewest variables first)</option>
+  </select>
+  <button class="chip" id="runtog" aria-pressed="false">show run statistics</button></div>
+ <div class="tblwrap hide-run" id="tw"><table id="tbl"><thead><tr>
+  <th data-k="id">id</th><th data-k="m">machine</th><th data-k="c">growth</th><th class="run" data-k="al">left exp.</th>
+  <th class="run" data-k="ar">right exp.</th><th class="run" data-k="w">cells</th><th class="run" data-k="d">density</th><th data-k="so">standing</th>
+  <th data-k="mt">proved map</th><th data-k="mt">halts when</th><th data-k="bl">no halt before</th><th data-k="htn">halts together with</th><th data-k="dmk">elsewhere in Lean</th><th>links</th>
+  <th data-k="tc">community class</th><th data-k="n">notes</th>
  </tr></thead><tbody></tbody></table></div>
  <p id="count" class="crumb"></p>
 </section>
@@ -346,7 +453,7 @@ footer{font-size:.88rem;color:var(--muted)}
 <footer>
  <p>Built by <code>holdouts/build_pages.py</code> from <code>holdouts/triage.json</code> (the triage run,
  <code>tools/c/triage.c</code> and <code>tools/py/bbtools/triage.py</code>), each machine's <code>status.json</code>,
- <code>holdouts/known.json</code> (community names from the bbchallenge wiki) and <code>holdouts/external.json</code>
+ <code>holdouts/known.json</code> (community names from the bbchallenge wiki), <code>holdouts/reductions.json</code> (the proved maps, halt-together groups and DeepMind's Lean results; the no-halt bounds are read from each ledger's Lean claims) and <code>holdouts/external.json</code>
  (outside proofs and the community tracker's labels, __ASOF__). The growth class is a heuristic read off one
  bounded run. Larger, outlined dots in the plot are the machines that are not simply open.</p>
 </footer>
@@ -373,10 +480,11 @@ const WORD = {nonhalting: "never halts", halts: "halts", open: "open"};
 const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 let active = new Set(), activeS = new Set(), colorBy = "c", q = "", sortK = "id", sortD = 1;
 function visible(r){
+  if (!rvisible(r)) return false;
   if (active.size && !active.has(r.c)) return false;
   if (activeS.size && !activeS.has(r.st)) return false;
   if (!q) return true;
-  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ")).toLowerCase();
+  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + (r.mp ? r.mp.v + " " + r.mp.h : "") + " " + r.ht.map(h => h.m).join(" ") + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ")).toLowerCase();
   return s.includes(q);
 }
 function standingText(r){
@@ -425,17 +533,52 @@ function plot(){
     c.onmouseleave = () => $("tip").style.display = "none";
   }
 }
+
+const GHL = "https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/";
+const XB = Object.fromEntries(rows.map(r => [r.m, r.x]));
+for (const r of rows) { r.htn = r.ht.length; r.dmk = r.dm ? r.dm.k : null; }
+const RF = [
+  ["iff", "proved map", r => r.mt === 1, "Lean proves: halts from blank tape iff the orbit of an explicit map on a fixed list of numbers reaches its halting case"],
+  ["cond", "map, with a condition", r => r.mt === 2, "a map is proved, but the iff needs an assumption Lean does not check, or only the no-halt direction is proved"],
+  ["ht", "halts together with another holdout", r => r.ht.length > 0, "one halting question shared with another machine on the list"],
+  ["dms", "solved in DeepMind's Lean (reported)", r => r.dm && r.dm.k !== "halts-iff map only", "google-deepmind/cryptids has a Lean proof that it halts or never halts; not compiled here"],
+  ["dmm", "map only in DeepMind's Lean (reported)", r => r.dm && r.dm.k === "halts-iff map only" && r.mt !== 1, "google-deepmind/cryptids proves a halts-iff map that this repository does not have; not compiled here"],
+  ["big", "Lean no-halt bound past 10<sup>100</sup>", r => (r.bl ?? 0) >= 100, "Lean proves no halt for at least 10^100 steps from blank tape"]];
+let activeR = new Set();
+function rvisible(r){ for (const [k, , f] of RF) if (activeR.has(k) && !f(r)) return false; return true; }
+function pow10(x){ if (x == null) return ""; if (x < 6) return Math.round(10 ** x).toLocaleString("en-US");
+  const e = Math.floor(x), a = 10 ** (x - e); return (a >= 1.05 ? a.toFixed(1) + "·" : "") + "10<sup>" + e.toLocaleString("en-US") + "</sup>"; }
+function rchips(){
+  $("rchips").innerHTML = '<span class="crumb">Lean results</span>' + RF.map(([k, t, f, g]) => `<button class="chip" data-r="${k}" aria-pressed="${activeR.has(k)}" title="${g}">${t} (${rows.filter(f).length})</button>`).join("");
+  for (const b of $("rchips").querySelectorAll("button")) b.onclick = () => { const k = b.dataset.r; activeR.has(k) ? activeR.delete(k) : activeR.add(k); render(); };
+  $("lstats").innerHTML = RF.map(([k, t, f, g]) => `<div class="stat"><button data-r="${k}"><b>${rows.filter(f).length}</b><span>${t}<br><small>${g}</small></span></button></div>`).join("");
+  for (const b of $("lstats").querySelectorAll("button")) b.onclick = () => { activeR = new Set([b.dataset.r]); render(); $("tbl").scrollIntoView({behavior: "smooth"}); };
+}
+const LV = {kernel: "kernel", native: "native_decide"};
+function mapCell(r){ const p = r.mp; if (!p) return "";
+  return `<code>${p.v}</code>${p.s ? " from <code>" + p.s + "</code>" : ""}<span class="lvl ${p.t === "iff" ? "k" : "c"}">${p.t === "iff" ? "iff, Lean" : "conditional"}</span>`; }
+function haltCell(r){ const p = r.mp; if (!p) return ""; return p.h.replace(/\^(\d+)/g, "<sup>$1</sup>"); }
+function boundCell(r){ if (r.bl == null) return ""; return pow10(r.bl) + `<span class="lvl k">${LV[r.bk] || r.bk}</span>`; }
+function htCell(r){ return r.ht.map(h => `<a href="${XB[h.m] || h.m + "/explainer.html"}">${h.m}</a> <span class="crumb">(${h.h.replace(/\^(\d+)/g, "<sup>$1</sup>")})</span>`).join("<br>"); }
+const DMW = {halts: "<b>halts</b>", nonhalting: "<b>never halts</b>", "halts-iff map only": "halts-iff map"};
+function dmCell(r){ return r.dm ? `<a href="${r.dm.u}">DeepMind cryptids</a>: ${DMW[r.dm.k]} <span class="lvl c">reported, not compiled here</span>` : ""; }
+function linkCell(r){ return `<a href="${r.x}">explainer</a><a href="${r.p}">ledger</a><a href="${r.lean}">Lean</a>` + (r.mp ? `<a href="${r.mp.f}">${r.mp.fn}</a>` : ""); }
+$("sortsel").onchange = e => { const v = e.target.value;
+  if (v === "id") { sortK = "id"; sortD = 1; } else if (v === "close") { sortK = "bl"; sortD = 1; } else if (v === "far") { sortK = "bl"; sortD = -1; } else { sortK = "mn"; sortD = 1; }
+  table(); };
+$("runtog").onclick = () => { const on = $("runtog").getAttribute("aria-pressed") !== "true"; $("runtog").setAttribute("aria-pressed", on); $("tw").classList.toggle("hide-run", !on); };
 const fmt = n => n == null ? "" : n.toLocaleString("en-US");
 function table(){
   const vs = rows.filter(visible).sort((a,b) => { const x=a[sortK], y=b[sortK]; return (x==null) - (y==null) || (x<y ? -sortD : x>y ? sortD : 0); });
   $("tbl").querySelector("tbody").innerHTML = vs.map(r => `<tr><td>${r.id}</td><td class="m"><a href="${r.x}">${r.m}</a></td>
-   <td><span class="dot" style="background:${color(r.c)}"></span>${r.c}</td><td>${r.al ?? ""}</td><td>${r.ar ?? ""}</td><td>${fmt(r.w)}</td><td>${r.d}</td>
-   <td class="st"><span class="dot" style="background:${cssv("--s-" + r.st)}"></span><a href="${r.p}">${standingText(r)}</a></td><td>${r.tc}</td><td class="n">${r.n ? "<b>" + r.n + "</b> " : ""}${r.sum || r.k}</td></tr>`).join("");
+   <td><span class="dot" style="background:${color(r.c)}"></span>${r.c}</td><td class="run">${r.al ?? ""}</td><td class="run">${r.ar ?? ""}</td><td class="run">${fmt(r.w)}</td><td class="run">${r.d}</td>
+   <td class="st"><span class="dot" style="background:${cssv("--s-" + r.st)}"></span><a href="${r.p}">${standingText(r)}</a></td>
+   <td class="mp">${mapCell(r)}</td><td class="hc">${haltCell(r)}</td><td class="bd">${boundCell(r)}</td><td class="tg">${htCell(r)}</td><td class="tg">${dmCell(r)}</td><td class="lk">${linkCell(r)}</td><td>${r.tc}</td><td class="n">${r.n ? "<b>" + r.n + "</b> " : ""}${r.sum || r.k}</td></tr>`).join("");
   $("count").textContent = `${vs.length} of ${rows.length} machines shown.`;
 }
 for (const th of document.querySelectorAll("th")) th.onclick = () => { const k = th.dataset.k; sortD = sortK === k ? -sortD : 1; sortK = k; table(); };
 $("q").oninput = e => { q = e.target.value.trim().toLowerCase(); render(); };
-function render(){ stats(); chips(); plot(); table(); }
+function render(){ stats(); chips(); rchips(); plot(); table(); }
 for (const [id, v] of [["byC", "c"], ["byS", "st"]]) $(id).onclick = () => { colorBy = v; $("byC").setAttribute("aria-pressed", v === "c"); $("byS").setAttribute("aria-pressed", v === "st"); plot(); };
 render();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
