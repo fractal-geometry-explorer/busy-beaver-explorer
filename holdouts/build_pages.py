@@ -50,7 +50,110 @@ def external():
     return _EXTERNAL
 
 
+_KNOWN = None
+
+
+def known():
+    """holdouts/known.json without its "_source": {machine: [name, description, {page, categories, edited, credit}]}."""
+    global _KNOWN
+    if _KNOWN is None:
+        with open(os.path.join(HERE, "known.json")) as f:
+            _KNOWN = {k: v for k, v in json.load(f).items() if not k.startswith("_")}
+    return _KNOWN
+
+
 CLAIM = {"nonhalting": "never halts", "halts": "halts"}
+WIKI = "https://wiki.bbchallenge.org/wiki/"
+CREDIT = {"Discord": "first reported on the bbchallenge Discord server",
+          "wiki": "reported on the wiki itself",
+          "Marco Dos Santos's Gemini paper (arXiv 2610.22603)":
+              "first reported in Marco Dos Santos's Gemini paper, <a href=\"https://arxiv.org/abs/2610.22603\">arXiv 2610.22603</a>",
+          "Discord and Marco Dos Santos's Gemini paper (arXiv 2610.22603)":
+              "first reported on the bbchallenge Discord server, then found again in Marco Dos Santos's Gemini paper, "
+              "<a href=\"https://arxiv.org/abs/2610.22603\">arXiv 2610.22603</a>"}
+DM_HOW = {"reduction": "a structural reduction of the run to a {how} machine, proved in Lean (halting itself left open)",
+          "acceleration": "a proved acceleration of the run (a {how} model), with halting left as an open problem",
+          "cryptid": "a Lean module that classes it as a hard cryptid (<code>{how}</code>)"}
+
+
+def wiki_link(page):
+    from urllib.parse import quote
+    url = WIKI + quote(page.replace(" ", "_"), safe="_(),'")
+    return f'<a href="{html.escape(url)}">{html.escape(page.replace("_", " "))}</a>'
+
+
+def deepmind_entry(M, e, decision):
+    """The "elsewhere" entry for a machine's Lean file in google-deepmind/cryptids."""
+    dm = external()["deepmind"]
+    link = (f"<a href=\"{dm['base']}{e['path']}\">{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
+            f"<a href=\"{dm['repo']}\">google-deepmind/cryptids</a> (commit <code>{dm['commit']}</code>, {dm['date']})")
+    k = e["kind"]
+    if k in CLAIM:
+        same = (" It agrees with the proof here." if decision == k else
+                " The verdict on this page does not rely on it." if decision == "open" else
+                " <b>It disagrees with the result here.</b>")
+        port = f", a Lean port of busycoq pull request {e['port_of']}" if e.get("port_of") else ""
+        note = f", {e['note']}" if e.get("note") else ""
+        c = e.get("compiled")
+        if c:
+            return {"kind": "proof", "title": f"Proved in DeepMind's Lean, compiled here: it {CLAIM[k]}",
+                    "text": f"{link} proves that this machine {CLAIM[k]}{note}{port}. We built it with Lean {c['lean']} on "
+                            f"{c['date']}: the theorem <code>{html.escape(c['theorem'])}</code> states "
+                            f"<code>{'IsNotHalt' if k == 'nonhalting' else 'IsHalt'} target</code> from the blank tape, it rests "
+                            f"only on the axioms {', '.join(c['axioms'])}, and its transition table was checked against this "
+                            "machine. It is stated on DeepMind's definitions, not this repository's, and the verdict on this "
+                            f"page has not been changed to rely on it.{same if decision != 'open' else ''}"}
+        return {"kind": "report", "title": f"Reported: proved in DeepMind's Lean that it {CLAIM[k]}",
+                "text": f"{link} proves that this machine {CLAIM[k]}{note}{port}. It was not compiled here, so the "
+                        f"ledger below, which holds only what this repository checked, still lists halting as open.{same}"}
+    if k == "map":
+        if e["here"] == "iff":
+            return {"kind": "report", "title": "Independently formalized here and in DeepMind cryptids",
+                    "text": "Both this repository and DeepMind's cryptids repository prove in Lean that the machine halts "
+                            "from blank tape if and only if an explicit map on a few numbers reaches its halting case. "
+                            f"The two proofs were written separately, with different variables and file layouts: theirs is "
+                            f"{link}, and it was not compiled here."}
+        gap = ("The map in this repository needs an assumption that Lean does not check, or proves only the no-halt "
+               "direction; theirs may close that gap." if e["here"] == "conditional" else
+               "This repository has no finished halts-iff map for this machine.")
+        c = e.get("compiled")
+        if c:
+            gap = ("The map in this repository needs an assumption that Lean does not check, or proves only the no-halt "
+                   "direction; theirs has no such condition." if e["here"] == "conditional" else
+                   "This repository has no finished halts-iff map for this machine.")
+            hl = (" The module also proves a coarser higher-level version of the map." if c.get("also_high_level") else "")
+            return {"kind": "proof", "title": "A halts-iff map in DeepMind's Lean, compiled here",
+                    "text": f"{link} proves <code>IsHalt target &harr; CollatzHalts next start</code>: the machine halts from "
+                            f"blank tape if and only if an explicit map reaches its halting case.{hl} We built it with Lean "
+                            f"{c['lean']} on {c['date']} (<code>{html.escape(c['theorem'])}</code>); it rests only on the "
+                            f"axioms {', '.join(c['axioms'])}, and its transition table was checked against this machine. "
+                            f"{gap} Halting itself stays open."}
+        return {"kind": "report", "title": "Reported: a halts-iff map in DeepMind's Lean",
+                "text": f"{link} proves that the machine halts from blank tape if and only if an explicit map reaches "
+                        f"its halting case. {gap} It was not compiled here."}
+    return {"kind": "report", "title": "Also formalized in DeepMind cryptids",
+            "text": f"{link} has {DM_HOW[k].format(how=html.escape(e['how']))}. It was not compiled here."}
+
+
+def wiki_entry(M):
+    """The "elsewhere" label from holdouts/known.json: the machine's wiki page, name and who first reported it."""
+    k = known().get(M)
+    if not k:
+        return None
+    name, desc, meta = (k + [{}])[:3]
+    if meta.get("page"):
+        where = f"The bbchallenge wiki's page {wiki_link(meta['page'])}"
+        if meta.get("edited"):
+            where += f" (last edited {meta['edited']})"
+        text = where + (f" lists it as <b>{html.escape(name)}</b>: " if name else ": ") + html.escape(desc) + "."
+    else:
+        on = meta.get("mentioned_on", [])
+        text = ("The bbchallenge wiki has no page for this machine; it is mentioned on the page"
+                + ("s " if len(on) > 1 else " ") + ", ".join(wiki_link(x) for x in on) + ".")
+    if meta.get("credit") and meta.get("page"):
+        text += f" The work on it was {CREDIT.get(meta['credit'], html.escape(meta['credit']))}."
+    text += " Read from an export of the wiki of 17 November 2026. These are the community's labels, not results."
+    return {"kind": "label", "title": "On the bbchallenge wiki", "text": text}
 
 
 def elsewhere(M, decision="open"):
@@ -95,6 +198,17 @@ def elsewhere(M, decision="open"):
                             f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). As of {ext['asof']} it "
                             "was open: not merged, not reviewed by the maintainer, and not compiled here unless the "
                             f"ledger below says so.{same}"})
+    w = e.get("wiki_solved")
+    if w:
+        out.append({"kind": "report", "title": f"Reported on the wiki: it {CLAIM[w['claim']]}",
+                    "text": f"The bbchallenge wiki lists this machine as proved to {'halt' if w['claim'] == 'halts' else 'never halt'} "
+                            f"by {html.escape(w['by'])} ({w['date']}). That proof is the one in busycoq pull request 60; "
+                            "it was not compiled here."})
+    if e.get("deepmind"):
+        out.append(deepmind_entry(M, e["deepmind"], decision))
+    k = wiki_entry(M)
+    if k:
+        out.append(k)
     t = e.get("tracker")
     if t:
         cls = f"the machine's class is <b>{html.escape(t['class'])}</b>" if t.get("class") else "the machine has no class"
@@ -155,9 +269,13 @@ def standing_line(M, decision, level="lean"):
                         "treats halting as open."}
     if kind == "pr":
         claims = sorted({CLAIM[p["claim"]] for p in e["prs"]})
+        dm = e.get("deepmind", {}).get("kind") in CLAIM
+        dmc = bool(e.get("deepmind", {}).get("compiled"))
         return {"kind": kind, "label": "Open here; an outside proof awaits review",
                 "text": f"A Rocq proof that it {' / '.join(claims)} is in an open busycoq pull request, not merged "
-                        "and not compiled here. This page's own ledger treats halting as open."}
+                        "and not compiled here" + (("; DeepMind's cryptids repository has a Lean proof of the same, " +
+                                                    ("compiled here" if dmc else "also not compiled here")) if dm else "") +
+                        ". This page's own ledger treats halting as open."}
     label, text = STANDING[kind]
     return {"kind": kind, "label": label, "text": text}
 
@@ -272,19 +390,19 @@ def reductions():
 
 def lean_results(M, folder, spec):
     """The index fields of a machine's Lean results: its map (mp), halt-together partners (ht), Lean no-halt bound
-    (bl, bk), DeepMind's result (dm) and the link to its Lean folder."""
+    (bl, bk), DeepMind's Lean file (dm, from external.json) and the link to its Lean folder."""
     red = reductions()
     mp = red["maps"].get(M)
     if mp:
         mp = {"t": "iff" if mp["kind"] == "iff" else "cond", "n": mp["vars"], "v": mp["state"], "s": mp["start"],
               "h": mp["halts_when"], "fn": mp["file"] or "lean/",
               "f": GITHUB + f"holdouts/{M}/lean/" + mp["file"]}
-    dm = red["deepmind"].get(M)
+    dm = external()["machines"].get(M, {}).get("deepmind")
     b = lean_bound(spec)
     lean = folder + "/lean" if os.path.isdir(os.path.join(REPO, folder, "lean")) else folder
     return {"mp": mp, "mt": 0 if not mp else (1 if mp["t"] == "iff" else 2), "mn": mp["n"] if mp else None,
             "ht": red["together_by"].get(M, []), "bl": round(b[0], 2) if b else None, "bk": b[1] if b else "",
-            "dm": {"k": dm["kind"], "u": red["deepmind_base"] + dm["path"]} if dm else None,
+            "dm": {"k": dm["kind"], "h": dm.get("here", ""), "c": 1 if dm.get("compiled") else 0, "u": external()["deepmind"]["base"] + dm["path"]} if dm else None,
             "lean": GITHUB.replace("/blob/", "/tree/") + lean}
 
 
@@ -314,6 +432,7 @@ def index_rows(triage, known, spec_by):
             "st": standing(M, rows[-1]["dec"], s.get("decision_level", "lean")), "tc": e.get("tracker", {}).get("class", ""),
             "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0,
             "pr": [[p["n"], p["claim"]] for p in e.get("prs", [])],
+            "ws": e["wiki_solved"]["claim"] if e.get("wiki_solved") else "",
         })
         rows[-1].update(lean_results(M, folder, s))
     return rows
@@ -444,7 +563,7 @@ select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background
  <div class="tblwrap hide-run" id="tw"><table id="tbl"><thead><tr>
   <th data-k="id">id</th><th data-k="m">machine</th><th data-k="c">growth</th><th class="run" data-k="al">left exp.</th>
   <th class="run" data-k="ar">right exp.</th><th class="run" data-k="w">cells</th><th class="run" data-k="d">density</th><th data-k="so">standing</th>
-  <th data-k="mt">proved map</th><th data-k="mt">halts when</th><th data-k="bl">no halt before</th><th data-k="htn">halts together with</th><th data-k="dmk">elsewhere in Lean</th><th>links</th>
+  <th data-k="mt">proved map</th><th data-k="mt">halts when</th><th data-k="bl">no halt before</th><th data-k="htn">halts together with</th><th data-k="exn">external</th><th>links</th>
   <th data-k="tc">community class</th><th data-k="n">notes</th>
  </tr></thead><tbody></tbody></table></div>
  <p id="count" class="crumb"></p>
@@ -453,8 +572,8 @@ select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background
 <footer>
  <p>Built by <code>holdouts/build_pages.py</code> from <code>holdouts/triage.json</code> (the triage run,
  <code>tools/c/triage.c</code> and <code>tools/py/bbtools/triage.py</code>), each machine's <code>status.json</code>,
- <code>holdouts/known.json</code> (community names from the bbchallenge wiki), <code>holdouts/reductions.json</code> (the proved maps, halt-together groups and DeepMind's Lean results; the no-halt bounds are read from each ledger's Lean claims) and <code>holdouts/external.json</code>
- (outside proofs and the community tracker's labels, __ASOF__). The growth class is a heuristic read off one
+ <code>holdouts/known.json</code> (community names from the bbchallenge wiki), <code>holdouts/reductions.json</code> (the proved maps and halt-together groups; the no-halt bounds are read from each ledger's Lean claims) and <code>holdouts/external.json</code>
+ (outside proofs: busycoq pull requests __ASOF__, DeepMind's cryptids at commit 3647718 of 12 November 2026, the wiki export of 17 November 2026; and the community tracker's labels). The growth class is a heuristic read off one
  bounded run. Larger, outlined dots in the plot are the machines that are not simply open.</p>
 </footer>
 </main>
@@ -484,7 +603,7 @@ function visible(r){
   if (active.size && !active.has(r.c)) return false;
   if (activeS.size && !activeS.has(r.st)) return false;
   if (!q) return true;
-  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + (r.mp ? r.mp.v + " " + r.mp.h : "") + " " + r.ht.map(h => h.m).join(" ") + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ")).toLowerCase();
+  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + (r.mp ? r.mp.v + " " + r.mp.h : "") + " " + r.ht.map(h => h.m).join(" ") + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ") + (r.dm ? " deepmind " + r.dm.k : "") + (r.ws ? " wiki solved" : "")).toLowerCase();
   return s.includes(q);
 }
 function standingText(r){
@@ -492,7 +611,7 @@ function standingText(r){
   if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
   if (r.st === "computed") return `<b>${WORD[r.dec]}</b>, computed here, not proved` + (prs ? `; also ${prs}` : "");
   if (r.st === "merged") return "open here; proved in busycoq (merged)";
-  if (r.st === "pr") return `open here; outside proof awaiting review (${prs})`;
+  if (r.st === "pr") return `open here; outside proof awaiting review (${prs}${DMS(r) ? "; DeepMind Lean: " + WORD[r.dm.k] + (r.dm.c ? ", compiled here" : "") : ""})`;
   if (r.st === "cryptid") return "open; cryptid";
   return "open";
 }
@@ -536,13 +655,17 @@ function plot(){
 
 const GHL = "https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/";
 const XB = Object.fromEntries(rows.map(r => [r.m, r.x]));
-for (const r of rows) { r.htn = r.ht.length; r.dmk = r.dm ? r.dm.k : null; }
+for (const r of rows) { r.htn = r.ht.length; r.exn = r.pr.length + (r.dm ? 1 : 0) + (r.ws ? 1 : 0) + r.coq || null; }
+const DMS = r => r.dm && (r.dm.k === "halts" || r.dm.k === "nonhalting");
 const RF = [
   ["iff", "proved map", r => r.mt === 1, "Lean proves: halts from blank tape iff the orbit of an explicit map on a fixed list of numbers reaches its halting case"],
   ["cond", "map, with a condition", r => r.mt === 2, "a map is proved, but the iff needs an assumption Lean does not check, or only the no-halt direction is proved"],
   ["ht", "halts together with another holdout", r => r.ht.length > 0, "one halting question shared with another machine on the list"],
-  ["dms", "solved in DeepMind's Lean (reported)", r => r.dm && r.dm.k !== "halts-iff map only", "google-deepmind/cryptids has a Lean proof that it halts or never halts; not compiled here"],
-  ["dmm", "map only in DeepMind's Lean (reported)", r => r.dm && r.dm.k === "halts-iff map only" && r.mt !== 1, "google-deepmind/cryptids proves a halts-iff map that this repository does not have; not compiled here"],
+  ["dma", "in DeepMind's Lean (reported)", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; not compiled here"],
+  ["dms", "solved in DeepMind's Lean", DMS, "google-deepmind/cryptids has a Lean proof that it halts or never halts; those built here are marked compiled"],
+  ["both", "map formalized here and in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h === "iff", "both repositories prove a halts-iff map, written independently"],
+  ["dmm", "map only in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h !== "iff", "google-deepmind/cryptids proves a halts-iff map that this repository has only with a condition, or not at all; all 15 compiled here"],
+  ["ws", "solved on the wiki (reported)", r => !!r.ws, "the bbchallenge wiki lists the machine as solved; not compiled here"],
   ["big", "Lean no-halt bound past 10<sup>100</sup>", r => (r.bl ?? 0) >= 100, "Lean proves no halt for at least 10^100 steps from blank tape"]];
 let activeR = new Set();
 function rvisible(r){ for (const [k, , f] of RF) if (activeR.has(k) && !f(r)) return false; return true; }
@@ -560,8 +683,16 @@ function mapCell(r){ const p = r.mp; if (!p) return "";
 function haltCell(r){ const p = r.mp; if (!p) return ""; return p.h.replace(/\^(\d+)/g, "<sup>$1</sup>"); }
 function boundCell(r){ if (r.bl == null) return ""; return pow10(r.bl) + `<span class="lvl k">${LV[r.bk] || r.bk}</span>`; }
 function htCell(r){ return r.ht.map(h => `<a href="${XB[h.m] || h.m + "/explainer.html"}">${h.m}</a> <span class="crumb">(${h.h.replace(/\^(\d+)/g, "<sup>$1</sup>")})</span>`).join("<br>"); }
-const DMW = {halts: "<b>halts</b>", nonhalting: "<b>never halts</b>", "halts-iff map only": "halts-iff map"};
-function dmCell(r){ return r.dm ? `<a href="${r.dm.u}">DeepMind cryptids</a>: ${DMW[r.dm.k]} <span class="lvl c">reported, not compiled here</span>` : ""; }
+const DMW = {halts: "<b>halts</b>", nonhalting: "<b>never halts</b>", map: "halts-iff map", reduction: "structural reduction",
+  acceleration: "acceleration (open)", cryptid: "hard cryptid"};
+const REP = '<span class="lvl c">reported, not compiled here</span>';
+function extCell(r){ const out = [];
+  for (const p of r.pr) out.push(`<a href="https://github.com/ccz181078/busycoq/pull/${p[0]}">busycoq PR ${p[0]}</a>: <b>${WORD[p[1]]}</b>`);
+  if (r.dm && !r.dm.c) out.push(`<a href="${r.dm.u}">DeepMind cryptids</a>: ${DMW[r.dm.k]}${r.dm.k === "map" && r.dm.h === "iff" ? " (also here)" : ""}`);
+  if (r.ws) out.push(`bbchallenge wiki: <b>${WORD[r.ws]}</b>`);
+  const dmc = r.dm && r.dm.c ? `<a href="${r.dm.u}">DeepMind cryptids</a>: ${DMW[r.dm.k]} <span class="lvl k">Lean, compiled here</span>` : "";
+  if (!out.length && !r.coq && !dmc) return "";
+  return out.join("<br>") + (out.length ? REP : "") + (dmc ? (out.length ? "<br>" : "") + dmc : "") + (r.coq ? (out.length || dmc ? "<br>" : "") + 'Coq proof in this repository <span class="lvl k">compiled here</span>' : ""); }
 function linkCell(r){ return `<a href="${r.x}">explainer</a><a href="${r.p}">ledger</a><a href="${r.lean}">Lean</a>` + (r.mp ? `<a href="${r.mp.f}">${r.mp.fn}</a>` : ""); }
 $("sortsel").onchange = e => { const v = e.target.value;
   if (v === "id") { sortK = "id"; sortD = 1; } else if (v === "close") { sortK = "bl"; sortD = 1; } else if (v === "far") { sortK = "bl"; sortD = -1; } else { sortK = "mn"; sortD = 1; }
@@ -573,7 +704,7 @@ function table(){
   $("tbl").querySelector("tbody").innerHTML = vs.map(r => `<tr><td>${r.id}</td><td class="m"><a href="${r.x}">${r.m}</a></td>
    <td><span class="dot" style="background:${color(r.c)}"></span>${r.c}</td><td class="run">${r.al ?? ""}</td><td class="run">${r.ar ?? ""}</td><td class="run">${fmt(r.w)}</td><td class="run">${r.d}</td>
    <td class="st"><span class="dot" style="background:${cssv("--s-" + r.st)}"></span><a href="${r.p}">${standingText(r)}</a></td>
-   <td class="mp">${mapCell(r)}</td><td class="hc">${haltCell(r)}</td><td class="bd">${boundCell(r)}</td><td class="tg">${htCell(r)}</td><td class="tg">${dmCell(r)}</td><td class="lk">${linkCell(r)}</td><td>${r.tc}</td><td class="n">${r.n ? "<b>" + r.n + "</b> " : ""}${r.sum || r.k}</td></tr>`).join("");
+   <td class="mp">${mapCell(r)}</td><td class="hc">${haltCell(r)}</td><td class="bd">${boundCell(r)}</td><td class="tg">${htCell(r)}</td><td class="tg">${extCell(r)}</td><td class="lk">${linkCell(r)}</td><td>${r.tc}</td><td class="n">${r.n ? "<b>" + r.n + "</b> " : ""}${r.sum || r.k}</td></tr>`).join("");
   $("count").textContent = `${vs.length} of ${rows.length} machines shown.`;
 }
 for (const th of document.querySelectorAll("th")) th.onclick = () => { const k = th.dataset.k; sortD = sortK === k ? -sortD : 1; sortK = k; table(); };

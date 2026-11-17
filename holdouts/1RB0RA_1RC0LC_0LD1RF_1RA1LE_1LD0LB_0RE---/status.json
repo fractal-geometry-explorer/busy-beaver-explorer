@@ -82,6 +82,12 @@
    "where": "<code>holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py</code> (<code>Hybrid.visits</code>), comparing the words at the first and last visit of each phase"
   },
   {
+   "level": "kernel",
+   "title": "Proved: it never halts (DeepMind's Lean proof, compiled here)",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 48. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (40 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "where": "<code>BusyBeaver.M_1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0REHHH.is_not_halt</code>, <code>BusyBeaver/BB6/NonHalt/M_1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0REHHH.lean</code> in google-deepmind/cryptids"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by C on a 1 followed by another 1 (<code>C&gt;1 1</code>). Open: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.",
