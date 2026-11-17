@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
@@ -54,7 +55,7 @@
   {
    "level": "kernel",
    "title": "Proved: it halts (DeepMind's Lean proof, compiled here)",
-   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 47. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (251 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 47. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (251 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
    "where": "<code>BusyBeaver.M_1RB0LC_1LC0RE_1RF1LD_1LA0LB_1RD1RA_1LBHHH.is_halt</code>, <code>BusyBeaver/BB6/Halt/M_1RB0LC_1LC0RE_1RF1LD_1LA0LB_1RD1RA_1LBHHH.lean</code> in google-deepmind/cryptids"
   },
   {
@@ -121,5 +122,6 @@
   ]
  },
  "summary": "Three counters: (11010)^x (110)^3 (10110101)^y ... 1^z; every two passes one 8-cell word of the middle block is used up and the outer blocks gain one word and two 1s; when the middle block is empty the tape is rebuilt with larger counts.",
- "decision": "open"
+ "decision": "halts",
+ "decision_level": "outside"
 }

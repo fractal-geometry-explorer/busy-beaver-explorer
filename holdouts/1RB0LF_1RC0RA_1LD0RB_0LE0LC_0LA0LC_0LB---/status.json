@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it never halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the shift rules of the sweeps over the <code>(10)</code> sea and the only halting shape (<code>1 1 E&gt; 0</code>). In 10<sup>9</sup> steps E read a 0 30,301 times, never with <code>1 1</code> to its left. The rounds follow a regular pattern, but the reshuffle at the end of a round is not worked out."
  ],
  "claims": [
@@ -72,7 +73,7 @@
   {
    "level": "kernel",
    "title": "Proved: it never halts (DeepMind's Lean proof, compiled here)",
-   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: DeepMind's own non-halting certificate for this machine (their A6, <code>BusyBeaver/BB6/A6/</code>). We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (206 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: DeepMind's own non-halting certificate for this machine (their A6, <code>BusyBeaver/BB6/A6/</code>). We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (206 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
    "where": "<code>BusyBeaver.M_1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LBHHH.is_not_halt</code>, <code>BusyBeaver/BB6/M_1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LBHHH.lean</code> in google-deepmind/cryptids"
   },
   {
@@ -157,5 +158,6 @@
  },
  "summary": "A bouncer over a tape of (10) runs separated by single 1000/100 markers: during a round one marker walks left two pairs a sweep while the last run grows by three; when the run in front of it is used up, the small runs on the left are reshuffled and a longer round starts.",
  "family": "bouncer with a moving marker in a (10) sea (rounds about 2.2 times longer each)",
- "decision": "open"
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

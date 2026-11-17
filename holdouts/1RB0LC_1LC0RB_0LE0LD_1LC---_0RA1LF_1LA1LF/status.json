@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it never halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the four passes over the regular parts of the tape and the halting situation (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
   "<b>What it does.</b> The head sweeps the whole tape back and forth. Seen at the left end, the tape is <code>0 0 1</code>, a left part made of blocks <code>a = 0011</code> separated by short pieces (<code>b</code>, <code>0 1<sup>3</sup></code>, <code>0 1<sup>2</sup></code>, <code>0 1 0 1<sup>2</sup></code>), then a long run <code>b<sup>n</sup></code> of the word <code>b = 010111</code>, then the fixed end <code>0 1<sup>4</sup> b<sup>2</sup> 0 1</code>. The run b<sup>n</sup> gets one more copy on most round trips, so the tape grows like the square root of the step count; the left part is rewritten like the low digits of a counter.",
   "<b>Where a halt would come from.</b> Only D reading a 1 halts, and D is entered only from C reading a 1; so <code>1 C&gt;1</code> halts (<code>halt_C</code>). In the run C reads a 1 only with a 0 to its left."
@@ -86,7 +87,7 @@
   {
    "level": "kernel",
    "title": "Proved: it never halts (DeepMind's Lean proof, compiled here)",
-   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 52. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (164 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 52. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (164 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
    "where": "<code>BusyBeaver.M_1RB0LC_1LC0RB_0LE0LD_1LCHHH_0RA1LF_1LA1LF.is_not_halt</code>, <code>BusyBeaver/BB6/NonHalt/M_1RB0LC_1LC0RB_0LE0LD_1LCHHH_0RA1LF_1LA1LF.lean</code> in google-deepmind/cryptids"
   },
   {
@@ -160,5 +161,6 @@
  },
  "family": "two-sided bouncer with a counter-like left part and a period-6 right part",
  "summary": "Full sweeps over a tape with two regular parts: on the left, blocks of 0011 with separators that change like a counter; on the right, the six-cell word 010111 repeated, one more copy on most round trips. Open.",
- "decision": "open"
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

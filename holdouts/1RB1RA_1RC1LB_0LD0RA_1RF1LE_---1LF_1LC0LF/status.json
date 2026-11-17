@@ -12,6 +12,7 @@
   ],
   "asof": "Status as of 9 November 2026.",
   "verdict": [
+    "<b>Decided by an outside Lean proof: it never halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
     "<b>The question is open.</b> The run is a nested counter on a list of blocks <code>[b<sub>1</sub>, …, b<sub>k</sub>]</code> (the tape <code>1^b<sub>1</sub> 0 … 0 1^b<sub>k</sub> C&gt;0</code>). The odd and even round laws are now proved in Lean for every size, by induction over the recursion that drives them. Built on those proved moves, an exact accelerated simulation follows the run through ten more overflows, past 10<sup>4300</sup> steps, without a halt. Whether an overflow cascade ever ends next to a block of length 1 (the only way to halt) is not known."
   ],
   "claims": [
@@ -84,7 +85,7 @@
     {
       "level": "kernel",
       "title": "Proved: it never halts (DeepMind's Lean proof, compiled here)",
-      "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 50. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (15 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+      "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 50. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (15 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
       "where": "<code>BusyBeaver.M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.is_not_halt</code>, <code>BusyBeaver/BB6/NonHalt/M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.lean</code> in google-deepmind/cryptids"
     },
     {
@@ -182,5 +183,7 @@
     ]
   },
   "family": "nested block counter (rounds on a list of 1-blocks, overflows climb one level)",
-  "summary": "A nested block counter: the last block grows by 2 per round in doubling time, rounds are proved in Lean for all sizes, and an exact accelerated run follows it through ten overflows to 10^4300 steps without a halt; open."
+  "summary": "A nested block counter: the last block grows by 2 per round in doubling time, rounds are proved in Lean for all sizes, and an exact accelerated run follows it through ten overflows to 10^4300 steps without a halt; open.",
+  "decision": "nonhalting",
+  "decision_level": "outside"
 }
