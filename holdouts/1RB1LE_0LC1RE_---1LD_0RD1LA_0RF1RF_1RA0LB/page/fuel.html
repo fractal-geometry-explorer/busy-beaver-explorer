@@ -1,0 +1,76 @@
+<div class="col">
+<p>A hit that reaches the blank left end of the tape comes back in an unusual state, and that flattens the ladder: one sweep turns every block <code>4</code> into <code>0 3</code>. It happened at visits 3, 11 and 25 and, with a ladder of six levels, at visit 3,006 (step 27,167,343). After a reset a new ladder grows at the right end, and the flattened blocks are <em>fuel</em> for its tail. In a cycle of 12 hits,</p>
+<pre>7 3 3 > 5 4 0 4 > 4 0 7 0 4 > 4 0 1 0 1 0 3 4 > 4 4 0 1 3 0 1 4 7 > 5 4 7 > 11 7 >
+4 0 1 0 1 0 10 > 4 5 3 0 1 0 1 0 1 0 3 3 > 5 0 1 0 1 0 3 3 > 7 1 0 1 0 3 3 > 4 0 1 3 0 3 3 3 > 7 3 3</pre>
+<p>the tail uses up two fuel blocks and leaves three new levels behind. But every new level makes the hits on the tail 8/3 times rarer. The fuel left by the reset of visit 3,006 is about 590 blocks, enough for 887 levels: the tail needs about (8/3)<sup>887</sup> ≈ 10<sup>378</sup> visits to eat its way to the left end, and a visit by then takes about 10<sup>379</sup> steps.</p>
+<p><span class="ev k">Kernel</span> The proof does not follow the tail by hand. <code>loop</code> in
+<code>lean/Ladder.lean</code> is <code>py/accel.py</code> again, as a Lean function: it reads levels off the cells
+behind the front and keeps them as numbers (<code>opPeel</code>), jumps to the next hit that reaches the cells
+(<code>opAdv</code>; how far is computed by <code>readyCount</code>, which needs no proof because a wrong count makes
+the step fail), makes that hit on the cells with a small simulator (<code>tailHit</code>), and when the calls do not
+come back as a level expects it writes the deepest level out as cells again and retries (<code>opUnpeel</code>).
+<code>loop_sound</code>: if <code>loop</code> returns N from a configuration of the run, the machine halts after
+exactly N steps. A wrong choice can make <code>loop</code> fail; it cannot make it return a wrong number.</p>
+<p>The stepper is the same algorithm in the browser. It starts from the tape of visit 3,040, reached by running the
+machine for 27,172,911 steps, and each click makes hits that reach the tail; everything above the tail is moved by
+the formulas. While the run is still short enough, each state is compared with the plain machine.</p>
+</div>
+<div class="panel" id="ld-fuel">
+ <div class="controls">
+  <button type="button" class="primary" id="ldf-1">Next hit on the tail</button>
+  <button type="button" id="ldf-12">12 hits on the tail</button>
+  <button type="button" id="ldf-100">100</button>
+  <button type="button" id="ldf-0">Back to visit 3,040</button>
+ </div>
+ <div class="readout"><span>hits on the tail <b id="ldf-h">0</b></span><span>visit <b id="ldf-v">3,040</b></span><span>step <b id="ldf-s"></b></span><span>levels <b id="ldf-l">0</b></span><span>put back <b id="ldf-u">0</b></span></div>
+ <div class="ld-word" id="ldf-w"></div>
+ <div id="ldf-chk" class="small" style="margin-top:6px"></div>
+ <div class="log" id="ldf-log" aria-live="polite"></div>
+ <div class="cap">The grey box is what the function simulates cell by cell: the front, then the tail (the word between the levels and the blank left end), in digits; the levels are kept as numbers. A level "put back" is the deepest level written out as cells after a hit on the tail came back in unusual states.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var a = null, log = [], direct = null, halted = false;
+  function start() {
+    var d = L.shared().to(L.START);
+    a = new L.Accel(d.w, L.START, d.k, 0); a.peel(); log = []; halted = false; direct = d;
+    show();
+  }
+  function show() {
+    var all = a.allLevels();
+    $("ldf-h").textContent = L.fmtN(a.hits); $("ldf-v").innerHTML = L.fmtBig(a.visits); $("ldf-s").innerHTML = L.fmtBig(a.steps);
+    $("ldf-l").textContent = all.levels.length; $("ldf-u").textContent = a.unpeels;
+    var f = L.ftype(a.R);
+    $("ldf-w").innerHTML = "<b>" + (f[0] === "H" ? "2 1" : f[0] === "V" ? "5" : "") + "</b> &nbsp;" + L.fmt(f[1] || a.R);
+    var chk = "";
+    if (a.visits <= BigInt(8000)) {
+      direct.to(Number(a.visits));
+      var p = L.parseWord(direct.w), ok = BigInt(direct.k) === a.steps && p.tail === all.tail && p.levels.length === all.levels.length &&
+        all.levels.every(function (l, j) { return l[0] === p.levels[j][0] && l[1] === p.levels[j][1]; });
+      chk = ok ? '<span class="ld-ok">&#10003; the plain machine at visit ' + L.fmtN(Number(a.visits)) + " has these levels, this tail and this step count</span>"
+               : '<span class="ld-bad">&#10007; the plain machine differs</span>';
+    } else chk = "Beyond visit 8,000 the browser no longer runs the plain machine alongside.";
+    if (halted) chk = "<b>The next hit does not come back: the machine halts.</b> The bottom line runs this to the end and checks the step.";
+    $("ldf-chk").innerHTML = chk;
+    $("ldf-log").innerHTML = log.slice(-80).reverse().map(function (l) { return "<div><span class=\"t\">" + l[0] + "</span><span>" + l[1] + "</span><span>" + l[2] + "</span><span>" + l[3] + "</span></div>"; }).join("");
+  }
+  function go(n) {
+    if (!a) start();
+    for (var i = 0; i < n && !halted; i++) {
+      try {
+        var u = a.step();
+        var f = L.ftype(a.R), t = L.fmt(f[1]);
+        log.push([L.fmtN(a.hits), u ? "+" + u : "", a.allLevels().levels.length, "visit " + L.fmtBig(a.visits) + ": " + (f[0] === "H" ? "2 1" : "5") + " | " + (t.length > 70 ? t.slice(0, 70) + " &hellip;" : t)]);
+      } catch (e) { if (e instanceof L.Halt) halted = true; else throw e; }
+    }
+    show();
+  }
+  $("ldf-1").addEventListener("click", function () { go(1); });
+  $("ldf-12").addEventListener("click", function () { go(12); });
+  $("ldf-100").addEventListener("click", function () { go(100); });
+  $("ldf-0").addEventListener("click", start);
+  start();
+})();
+</script>

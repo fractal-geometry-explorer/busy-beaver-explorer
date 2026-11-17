@@ -1,0 +1,91 @@
+<div class="panel" style="border-left:4px solid var(--kernel)">
+<p style="font-size:1.15rem;margin-top:0"><b>It never halts.</b> Started on a blank tape, the machine
+1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC runs for ever.</p>
+<p>The Lean theorem is <code>H36670.nonhalting : ¬ HaltsFromBlank</code> in <code>lean/Cert.lean</code>, where
+<code>HaltsFromBlank</code> is defined from the machine's transition table in <code>lean/Machine.lean</code>.</p>
+<p style="margin-bottom:0"><b>What it rests on.</b> Lean's kernel checks everything except two evaluations:
+<code>start_ok</code> (blank tape to the first template, about 148,000 symbolic moves) and <code>ends_ok</code> (the 62
+end cases, 2.5 million moves), which are run as compiled code with <code>native_decide</code> because the kernel
+runs out of memory (over 6 GB) on runs this long. <code>#print axioms H36670.nonhalting</code> lists
+<code>propext</code> and <code>Quot.sound</code>, two standard axioms of Lean's logic, and the two
+<code>native_decide</code> axioms, one for each of those evaluations. Nothing about the run is assumed: a wrong
+number in the tables would only make a check answer false. <span class="ev n">native_decide</span></p>
+</div>
+<div class="col">
+<h3>The argument in one picture</h3>
+<p>The proof is an <b>invariant</b>: a description of a set of tapes, called <em>good</em>, with three properties.</p>
+</div>
+<ol class="pw-steps col">
+<li><div><b>The run reaches a good tape.</b> From the blank tape, after 1,277,431 steps, the tape is good.</div></li>
+<li><div><b>A good tape always leads to another good tape.</b> From any good tape the machine makes at least one step, without halting, and arrives at a good tape again.</div></li>
+<li><div><b>So the machine never halts.</b> Repeating the second property forever gives runs of every length, and a machine that halts has runs of only bounded length.</div></li>
+</ol>
+<div class="col"><p>What makes a tape "good" is levels 3 to 5 above: it is one of the <b>62 templates</b>, a list of numbers written on the tape in a fixed pattern, with two of the numbers free (k and j) and the size condition Φ ≥ 215 on them. The second property then splits into finitely many checks, one per template and case.</p></div>
+<svg class="pw-flow" viewBox="0 0 980 300" role="img" aria-label="Diagram of the proof: blank tape reaches a good template; rounds and epoch ends lead from good templates to good templates; the potential keeps the size condition; so the run is endless.">
+<defs><marker id="pwar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--fg2)"/></marker></defs>
+<rect class="pw-box" x="10" y="110" width="150" height="70" rx="10"/><text class="t-b" x="85" y="140" text-anchor="middle">Blank tape</text><text class="t-s" x="85" y="160" text-anchor="middle">state A, all 0s</text>
+<rect class="pw-box pw-n" x="215" y="105" width="190" height="80" rx="10"/><text class="t-b" x="310" y="133" text-anchor="middle">Start run</text><text class="t-s" x="310" y="152" text-anchor="middle">1,277,431 steps to</text><text class="t-s" x="310" y="169" text-anchor="middle">template R1_16, k=38, j=163</text>
+<path class="pw-arrow" d="M160,145 L212,145" marker-end="url(#pwar)"/>
+<rect class="pw-box" x="460" y="95" width="200" height="100" rx="12" style="stroke-width:2"/><text class="t-b" x="560" y="128" text-anchor="middle">Good tape</text><text class="t-s" x="560" y="148" text-anchor="middle">one of 62 templates</text><text class="t-s" x="560" y="165" text-anchor="middle">with j + 2k + pot ≥ 215</text>
+<path class="pw-arrow" d="M405,145 L457,145" marker-end="url(#pwar)"/>
+<rect class="pw-box pw-k" x="470" y="10" width="180" height="58" rx="10"/><text class="t-b" x="560" y="35" text-anchor="middle">Round trip (k ≥ 1)</text><text class="t-s" x="560" y="54" text-anchor="middle">62 cases, kernel</text>
+<path class="pw-arrow" d="M650,40 C720,40 720,120 663,125" marker-end="url(#pwar)"/><path class="pw-arrow" d="M460,120 C400,110 410,40 467,40" marker-end="url(#pwar)"/>
+<rect class="pw-box pw-n" x="470" y="225" width="180" height="62" rx="10"/><text class="t-b" x="560" y="250" text-anchor="middle">Epoch end (k = 0)</text><text class="t-s" x="560" y="269" text-anchor="middle">62 cases, native_decide</text>
+<path class="pw-arrow" d="M650,256 C720,256 720,175 663,170" marker-end="url(#pwar)"/><path class="pw-arrow" d="M460,170 C400,180 410,256 467,256" marker-end="url(#pwar)"/>
+<rect class="pw-box pw-k" x="770" y="20" width="200" height="74" rx="10"/><text class="t-b" x="870" y="46" text-anchor="middle">Symbolic checker</text><text class="t-s" x="870" y="64" text-anchor="middle">proved to agree with</text><text class="t-s" x="870" y="80" text-anchor="middle">the machine (kernel)</text>
+<rect class="pw-box pw-k" x="770" y="112" width="200" height="74" rx="10"/><text class="t-b" x="870" y="138" text-anchor="middle">Potential tables</text><text class="t-s" x="870" y="156" text-anchor="middle">keep the size condition</text><text class="t-s" x="870" y="172" text-anchor="middle">(kernel)</text>
+<rect class="pw-box" x="770" y="206" width="200" height="74" rx="10"/><text class="t-b" x="870" y="234" text-anchor="middle">Never halts</text><text class="t-s" x="870" y="252" text-anchor="middle">runs of every length</text><text class="t-s" x="870" y="268" text-anchor="middle"><tspan font-family="var(--mono)">nonhalting</tspan></text>
+<path class="pw-arrow" d="M662,180 C720,200 730,240 767,243" marker-end="url(#pwar)"/>
+</svg>
+<div class="key"><div><span class="ev k">Kernel</span> green boxes</div><div><span class="ev n">native_decide</span> blue boxes</div></div>
+
+<div class="col">
+<h3>Who checks the computations</h3>
+<p>Each round trip and end case becomes a computation: "does <code>auto</code> answer true on this input?". Who runs
+that computation is the one place where the proof uses two levels of trust:</p>
+<dl class="pw-dl">
+<dt>decide +kernel</dt><dd>Lean's kernel evaluates the program itself, step by step. This is the most trusted way, and it is used for the 62 round trips and the potential tables.</dd>
+<dt>native_decide</dt><dd>Lean compiles the program to machine code and runs it. The kernel then accepts the answer as an axiom. Used for the start (about 148,000 symbolic moves) and the 62 end cases (2.5 million in all), because the kernel ran out of memory (over 6 GB) on runs that long.</dd>
+</dl>
+<h3>Every piece, and what it rests on</h3>
+</div>
+<div class="col">
+<p>Every piece of the proof, and what it rests on. A wrong number anywhere in the tables cannot make the proof pass: it would only make one of the checks answer false.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>Piece</th><th>What it says</th><th>Checked by</th></tr></thead>
+<tbody>
+<tr><td><code>Machine.lean</code></td><td>the machine's table and what a step is (generated from the machine's name)</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>sweep_right</code>, <code>sweep_left</code></td><td>the two shift rules, for any number of blocks</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>auto_reach</code></td><td>the symbolic checker agrees with the real machine</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>round_0</code> … <code>round_61</code></td><td>the 62 round trips, every k and j</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>tables_ok</code></td><td>the potential never lets j fall below 200 at an epoch end</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td><code>start_ok</code></td><td>blank tape reaches template R1_16 at (38, 163)</td><td><span class="ev n">native_decide</span></td></tr>
+<tr><td><code>ends_ok</code></td><td>the 62 epoch ends, every j</td><td><span class="ev n">native_decide</span></td></tr>
+<tr><td><code>nonhalting</code></td><td>glues the pieces together (the induction of the first picture)</td><td><span class="ev k">Kernel</span></td></tr>
+</tbody></table></div>
+<div class="col">
+<p><code>#print axioms H36670.nonhalting</code> lists <code>propext</code> and <code>Quot.sound</code> (two standard axioms of Lean's logic) and exactly two <code>native_decide</code> axioms, one for <code>start_ok</code> and one for <code>ends_ok</code>. Trusting them means trusting that Lean's compiler and runtime evaluated the checker correctly on those inputs. The checker's own logic is not trusted: <code>auto_reach</code> is a kernel proof.</p>
+</div>
+<div class="pw-note">
+<p><b>Independent checks of the two native_decide pieces</b> <span class="ev c">Computed</span>. These are separate from Lean and do not replace a kernel proof, but they test the same claims by a different route, plain simulation with a small C program:</p>
+<ul>
+<li><b>The start:</b> the plain simulation reaches exactly template R1_16 at (38, 163) at step 1,277,431. You can repeat it in the level 1 section; your browser does the same computation, and the one-moment panel at the top runs both the plain machine and the shift-rule simulator past it.</li>
+<li><b>The 62 end cases:</b> each one was run concretely at j = 0 (b with exactly 3·200 + β copies) and at j = 13, and each reached exactly the predicted template and numbers, taking up to 2.6 million steps. The level 4 section repeats this in your browser, at j = 200 on the plain machine and at any j on the shift-rule simulator.</li>
+<li><b>The whole chain:</b> the sequence of templates the tables predict was matched, in order, against the plain run from blank tape: 2,765 consecutive good tapes up to step 3·10<sup>8</sup>, including 4 epoch ends. The one-moment panel at the top of the page repeats this match in your browser, one moment at a time.</li>
+</ul>
+<p>A proof using only the kernel needs the long runs cut into pieces of a few thousand symbolic moves, with each intermediate tape written out (about 900 pieces). That work was started and is not finished.</p>
+</div>
+
+<details class="col" style="margin-top:14px"><summary><b>The last lines of the proof, in words</b></summary>
+<dl class="pw-dl col">
+<dt>Good c</dt><dd>c is template t with numbers k, j (t one of the 62), and j + 2k + pot(t) ≥ 215.</dd>
+<dt>start_good</dt><dd>some run from the blank tape ends at a good tape (from <code>start_ok</code>).</dd>
+<dt>good_step</dt><dd>from a good tape, at least one step leads to a good tape. If k ≥ 1 it uses that template's round trip, if k = 0 its end case, and the tables to show the new tape is good again.</dd>
+<dt>nonhalting_of</dt><dd>by induction on N: for every N there is a run from blank of length at least N ending at a good tape. So runs of every length exist (<code>not_halts_of_forall</code>, <code>forall_of_unbounded</code>), and the machine does not halt.</dd>
+<dt>nonhalting</dt><dd><code>¬ HaltsFromBlank</code>, from <code>nonhalting_of</code> and <code>ends_ok</code>.</dd>
+</dl>
+<p class="small">The full statements are in <code>lean/Cert.lean</code>; <code>lean/check.sh</code> checks everything in
+about 5 minutes on one core.</p>
+</details>
+

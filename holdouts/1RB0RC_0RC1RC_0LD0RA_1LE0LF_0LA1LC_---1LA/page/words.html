@@ -1,0 +1,61 @@
+<div class="col">
+<p>Look at the tape each time the head, in state E, reaches the left end of the visited tape: an <em>event</em>. The
+tape is then a block of seven-cell words <code>1011001</code>, a short irregular zone, and then blocks of the
+three-cell word <code>011</code> separated by a few zeros. The last block, <code>(011)^r</code>, ends the tape.</p>
+<p>Going right, the head shifts a block of three-cell words by one cell (3 steps a word). Going left, it crosses two
+words at a time (18 steps). So what happens at the end of a block depends only on whether its length is even or odd:
+every cycle rule the proof needed has the form "for all lengths of this parity".</p>
+<p>The Lean proof works at this level with a <em>symbolic executor</em>: a program whose tape is a list of cells and
+blocks <code>(w)^n</code>, where n may be <code>c + a x</code> with x unknown. One move of the executor either crosses
+a whole block with a <em>shift rule</em>, or makes one ordinary step (opening a block only when its count is surely
+at least 1). A shift rule says: in state q, with the word u just behind the head, the head crosses k copies of a word
+w and leaves the word v behind it, in s steps, without looking at anything else. Each of the 31 shift rules is a
+Lean statement about the machine for <em>every</em> tape around those cells, checked by the kernel
+(<code>shRTbl_ok</code>, <code>shLTbl_ok</code> in <code>lean/ExecData.lean</code>), and the soundness theorem
+<code>run_sound</code> (<code>lean/Exec.lean</code>, kernel) says that whatever the executor does in some number of
+moves, the machine does, for every value of the unknowns. That is the theorem that makes level 2 answer the same as
+level 1.</p>
+</div>
+<div class="panel" id="rc-shift">
+ <div class="controls">
+  <label class="small" for="rcs-r">Shift rule</label>
+  <select id="rcs-r" style="max-width:100%"></select>
+  <label class="small" for="rcs-n">crossings n</label>
+  <input type="text" class="rc-num" id="rcs-n" value="5" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcs-go">Run the machine</button>
+  <button type="button" id="rcs-all">Check all 31, n = 1 to 12</button>
+ </div>
+ <div class="rc-out" id="rcs-out"></div>
+ <div class="cap">The browser writes u, then n crossings' worth of copies of w, between twelve random cells on each side, puts the head in state q where the rule says, and runs the real machine for n&middot;s steps. The rule holds if the head never reads a random cell, ends in state q at the far side, and the cells read u v<sup>n</sup> as the rule says. Words are written nearest cell first, as in the Lean file, so on the left of the head they appear reversed.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sel = $("rcs-r"), seed = 1;
+  X.D.shift.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = "sh" + r.d + r.i + ": " + r.q + (r.d === "R" ? " going right" : " going left") + ", carrying " + (r.u || "nothing") + ", " + (r.k > 1 ? r.k + " copies of " : "") + r.w + " at a time, " + r.s + " steps";
+    sel.appendChild(o);
+  });
+  function one() {
+    var r = X.D.shift[+sel.value], n = Math.max(1, Math.min(200, parseInt($("rcs-n").value, 10) || 1));
+    $("rcs-n").value = n;
+    var c = X.checkShift(r, n, X.rng(seed++));
+    var hd = function (s, p) { return s.slice(0, p) + '<span style="background:var(--head);color:var(--surface);border-radius:2px">' + s[p] + "</span>" + s.slice(p + 1); };
+    $("rcs-out").innerHTML =
+      '<div class="small">before, head in state ' + r.q + ':</div><div class="rc-words">' + hd(c.tape, c.start) + "</div>" +
+      '<div class="small" style="margin-top:6px">after ' + X.fmt(c.steps) + " steps, head in state " + r.q + ":</div><div class=\"rc-words\">" + hd(c.got, Math.min(c.end, c.got.length - 1)) + "</div>" +
+      '<p>' + (c.ok ? '<span class="rc-ok">✓ the machine did what sh' + r.d + r.i + " says: " + n + " crossing" + (n > 1 ? "s" : "") + " in " + n + " &times; " + r.s + " = " + X.fmt(c.steps) + " steps, the twelve random cells on each side untouched and unread</span>"
+        : '<span class="rc-bad">✗ the machine did not do what the rule says</span>') + "</p>";
+  }
+  $("rcs-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rcs-all").addEventListener("click", function () {
+    var ok = 0, all = 0, bad = [];
+    X.D.shift.forEach(function (r) { for (var n = 1; n <= 12; n++) { all++; if (X.checkShift(r, n, X.rng(seed++)).ok) ok++; else bad.push("sh" + r.d + r.i); } });
+    $("rcs-out").innerHTML = ok === all ? '<span class="rc-ok">✓ all ' + all + " checks passed: 31 rules, n = 1 to 12 crossings, fresh random surroundings each time</span>"
+      : '<span class="rc-bad">✗ ' + (all - ok) + " of " + all + " checks failed: " + bad.join(", ") + "</span>";
+  });
+  one();
+})();
+</script>

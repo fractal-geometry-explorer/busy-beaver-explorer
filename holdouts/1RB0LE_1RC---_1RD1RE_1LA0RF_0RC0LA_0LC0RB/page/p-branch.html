@@ -1,0 +1,96 @@
+<div class="col">
+<p>Level 3 forgets the turns inside a phase and keeps only the form at the start of each phase. Put the rules
+together and every form leads to another form. The graph shows all of them. A loop on a form is a cycle rule, which
+runs as long as there are words left to use up. Each arrow out of a form is an exit, chosen by what is left over: how
+many 14-cell words remain (c = 0 or 1), how many <code>0010</code> remain in T3 (d = 0 to 4), or whether the run just
+built has even or odd length. The thicker an arrow, the more often the first 196 moves of the run use it. Click a form
+to see its rules and its cases.</p>
+</div>
+<div class="panel"><div style="overflow-x:auto"><svg class="pw-graph" id="pw-graph" viewBox="0 0 900 530" role="img" aria-label="Graph of the ten forms and the rules between them" style="width:100%;min-width:560px;height:auto;max-width:900px"></svg></div>
+<div class="key"><div><span style="color:var(--accent)">●</span> round-trip form (head at the left end)</div><div><span style="color:var(--head)">●</span> right-phase form (head at the right end)</div><div>×n: times the first 196 moves use it</div></div>
+<div class="small" style="margin-top:12px">Form <b id="pw-gname"></b>:</div><div class="pw-strip" id="pw-gstrip"></div>
+<div class="small" style="margin-top:8px"><b>Its cases at level 3</b> (<code>lean/Closed.lean</code>):</div><div class="tw"><table class="pw-tbl" id="pw-gcases"></table></div>
+<div class="small" style="margin-top:8px"><b>Its rules at level 2</b>:</div><div class="tw"><table class="pw-tbl" id="pw-grules"></table></div></div>
+<div class="col">
+<p>Each case runs one cycle to its end with its k-fold iterate (<code>cycle_iter</code>, <code>cycle2_iter</code>,
+<code>cycle3_iter</code>, <code>ucyc_iter</code>, <code>rcyc_iter</code>, <code>gcyc_iter</code>,
+<code>g3cyc_iter</code>) and then applies one exit rule. Which exit is decided by a residue: c mod 2 for S1, T2 and
+U3, d mod 5 for T3, and the parity of the run being built for RF, RG and RG3. Once the residue is fixed the new
+numbers are affine functions of the old ones, so the 20 cases <code>mv_*</code> are exact formulas, proved by
+chaining the rules of level 2 (for every value of the variables). <span class="ev k">Kernel</span></p>
+<p>Not every case is safe for every size. A case needs its numbers to be large enough (for <code>mv_oentry</code>,
+b ≥ 6 and c ≥ 2), and some combinations have no case at all, for example T3 running out of 14-cell words while 5 or
+more <code>0010</code> are left. Those are the gaps the invariant of level 4 closes.</p>
+<p>Below, the browser runs the 20-case map alone, on numbers, from <code>O 14 37 11</code>. Next to each move it
+shows the case used, whether the new entry satisfies <code>Good</code> (level 4), and whether the map lands on the
+same form as the 27 rules of level 2 replayed turn by turn (a separate computation, which also gives the step).</p>
+</div>
+<div class="panel">
+<div class="controls"><button type="button" id="pw-mapone" class="primary">Next move</button><button type="button" id="pw-mapten">25 more</button><button type="button" id="pw-mapall">All moves to 10<sup>300</sup> steps</button><button type="button" id="pw-mapreset">Reset</button><span class="small" id="pw-mapcap"></span></div>
+<div class="pw-scroll" style="margin-top:10px"><table class="pw-tbl" id="pw-maptbl"></table></div>
+</div>
+<script>
+(function(){const P=window.PW,$=P.$,el=P.el,D=P.D,FN=P.FN;
+const RP=D.replay;
+const gk=r=>r.f==='O'&&r.P[1]==='0'?'O0':r.f;
+const CASES=[
+ ['O','mv_oentry','O a (b+6) (c+2)','','S1 (a+1) (b+6) c','oentry'],
+ ['O0','mv_ozero','O a 0 (c+3)','','S1 (a+2) 7 c','ozero, t3_s1'],
+ ['S1','mv_s1even','S1 a (b+6) (2k)','c even','RF (a+3k+3) 4 (b+12k+13)','cycle_iter, sexit0'],
+ ['S1','mv_s1odd','S1 a (b+6) (2k+1)','c odd','RF (a+3k+3) 5 (b+12k+12)','cycle_iter, oexit'],
+ ['RF','mv_rfodd','RF a k (m+1)','k + m = 2q + 1','EF a q','rcyc_iter, rend'],
+ ['RF','mv_rfeven','RF a k (m+1)','k + m = 2q','O a 0 (q+1)','rcyc_iter, rende'],
+ ['EF','mv_eentry','EF (a+7) (q+5)','','T3 5 14 a 8 7 (q+2)','eentry'],
+ ['T3','mv_texit0','T3 a (x+6) (5k) (y+6) (z+6) (c+2k+1)','d mod 5 = 0','T2 (a+4k+1) (x+y+15k+11) (z+5k+10) (c+1)','cycle3_iter, texit0'],
+ ['T3','mv_texit1','T3 a (x+6) (5k+1) (y+6) (z+6) (c+2k+2)','d mod 5 = 1','U3 (a+4k+2) (x+8k+6) (y+7k+7) (z+5k+11) c','cycle3_iter, texit1'],
+ ['T3','mv_texit2','T3 a (x+6) (5k+2) (y+6) (z+6) (c+2k+2)','d mod 5 = 2','U3 (a+4k+2) (x+8k+8) (y+7k+7) (z+5k+11) c','cycle3_iter, texit2'],
+ ['T3','mv_texit3','T3 a (x+6) (5k+3) (y+6) (z+6) (c+2k+3)','d mod 5 = 3','T2 (a+4k+5) (x+y+15k+22) (z+5k+15) (c+1)','cycle3_iter, texit3'],
+ ['T3','mv_texit4','T3 a (x+6) (5k+4) (y+6) (z+6) (c+2k+3)','d mod 5 = 4','T2 (a+4k+5) (x+y+15k+24) (z+5k+15) (c+1)','cycle3_iter, texit4'],
+ ['T2','mv_t2even','T2 a (x+6) (y+10) (2k)','c even','RG (a+3k+3) (x+7k+5) 4 (y+5k+6)','cycle2_iter, t2exit0'],
+ ['T2','mv_t2odd','T2 a (x+6) (y+12) (2k+1)','c odd','RG (a+3k+3) (x+7k+5) 5 (y+5k+7)','cycle2_iter, t2exit1'],
+ ['U3','mv_u3even','U3 a (x+2) (y+6) (z+10) (2k)','c even','RG3 (a+3k+3) (x+7k+7) (y+4) 4 (z+5k+10)','ucyc_iter, uexit0'],
+ ['U3','mv_u3odd','U3 a (x+2) (y+6) (z+12) (2k+1)','c odd','RG3 (a+3k+3) (x+7k+7) (y+4) 5 (z+5k+11)','ucyc_iter, uexit1'],
+ ['RG','mv_rgeven','RG (a+2) x n (m+1)','n + m = 2q','O (a+1) (x+9) (q+1)','gcyc_iter, gend'],
+ ['RG','mv_rgodd','RG (a+3) (x+6) n (m+1)','n + m = 2q + 7','T3 1 6 a 11 (x+14) (q+1)','gcyc_iter, gendo'],
+ ['RG3','mv_rg3even','RG3 a x (y+4) n (m+1)','n + m = 2q + 4','T2 (a+3) (x+9) (y+10) (q+1)','g3cyc_iter, g3end'],
+ ['RG3','mv_rg3odd','RG3 (a+7) (x+10) (y+2) n (m+1)','n + m = 2q + 7','T3 5 14 a 15 (x+y+17) (q+1)','g3cyc_iter, g3endo']];
+// ---- the graph
+const svg=$('pw-graph');const pos={S1:[130,90],RF:[450,90],EF:[770,90],O0:[290,215],T3:[770,240],O:[130,340],RG:[350,340],T2:[580,340],RG3:[580,460],U3:[770,460]};const loopDir={S1:'u',RF:'u',EF:'u',T3:'r',T2:'u',RG:'d',RG3:'d',U3:'d',O:'d',O0:'d'};const bend={'RG>T3':-125,'RG3>T3':30,'RF>O0':20,'O0>S1':-20,'T3>T2':-18};
+const right={RF:1,RG:1,RG3:1};const cnt={};
+for(let i=0;i+1<RP.length;i++){let a=gk(RP[i]),b=gk(RP[i+1]);if(RP[i].r&&RP[i].r[0]==='t3_s1')continue;if(RP[i].f==='O'&&RP[i].P[1]==='0')b='S1';const k=a+'>'+b;cnt[k]=(cnt[k]||0)+1;}
+const E=[['O','S1','oentry'],['O0','S1','ozero'],['S1','S1','cycle'],['S1','RF','oexit, sexit0'],['RF','RF','rcyc'],['RF','EF','k odd'],['RF','O0','k even'],['EF','T3','eentry'],['T3','T3','cycle3'],['T3','T2','d = 0, 3, 4'],['T3','U3','d = 1, 2'],
+ ['T2','T2','cycle2'],['T2','RG','t2exit'],['U3','U3','ucyc'],['U3','RG3','uexit'],['RG','RG','gcyc'],['RG','O','n even'],['RG','T3','n odd'],['RG3','RG3','g3cyc'],['RG3','T2','n even'],['RG3','T3','n odd']];
+let sel='S1';
+function draw(){svg.textContent='';const defs=el('defs',{},svg);const mk=el('marker',{id:'pwga',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:6,markerHeight:6,orient:'auto'},defs);el('path',{d:'M0,0 L10,5 L0,10 z',fill:'var(--fg2)'},mk);
+ E.forEach(([a,b,lab])=>{const n=cnt[a+'>'+b]||0;const w=1+Math.log2(1+n)*1.1;const on=a===sel||b===sel;const st={stroke:on?'var(--fg)':'var(--fg2)','stroke-width':w,fill:'none',opacity:on?1:.55};
+  const [x1,y1]=pos[a],[x2,y2]=pos[b];
+  if(a===b){const dd=loopDir[a];if(dd==='r'){el('path',Object.assign({d:`M${x1+36},${y1-8} C${x1+100},${y1-50} ${x1+100},${y1+50} ${x1+36},${y1+8}`,'marker-end':'url(#pwga)'},st),svg);el('text',{x:x1+52,y:y1+52,'text-anchor':'start',fill:'var(--muted)'},svg,lab+' ×'+n);return;}
+   const up=dd==='u'?-1:1;el('path',Object.assign({d:`M${x1-14},${y1+up*18} C${x1-40},${y1+up*70} ${x1+40},${y1+up*70} ${x1+14},${y1+up*18}`,'marker-end':'url(#pwga)'},st),svg);el('text',{x:x1,y:y1+up*66+(up>0?14:-4),'text-anchor':'middle',fill:'var(--muted)'},svg,lab+' ×'+n);return;}
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;const bb=bend[a+'>'+b]!==undefined?bend[a+'>'+b]:14;const sx=x1+ux*38,sy=y1+uy*20,ex=x2-ux*40,ey=y2-uy*22;const mx=(sx+ex)/2-uy*bb,my=(sy+ey)/2+ux*bb;
+  el('path',Object.assign({d:`M${sx},${sy} Q${mx},${my} ${ex},${ey}`,'marker-end':'url(#pwga)'},st),svg);el('text',{x:mx-uy*10,y:my+ux*10+4,'text-anchor':Math.abs(uy)>0.8?(uy*bb>0?'end':'start'):'middle',fill:'var(--muted)'},svg,lab+(n?' ×'+n:''));});
+ Object.keys(pos).forEach(k=>{const [x,y]=pos[k];const g=el('g',{tabindex:0,role:'button','aria-label':'form '+k,style:'cursor:pointer'},svg);el('rect',{x:x-36,y:y-18,width:72,height:36,rx:18,fill:k===sel?(right[k]?'var(--head)':'var(--accent)'):'var(--surface)',stroke:right[k]?'var(--head)':'var(--accent)','stroke-width':2},g);
+  el('text',{x:x,y:y+5,'text-anchor':'middle',fill:k===sel?'var(--surface)':'var(--fg)',style:'font-weight:700'},g,k==='O0'?'O a 0 c':k);const f=()=>{sel=k;draw();show();};g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f();}});});}
+function show(){$('pw-gname').textContent=FN[sel];if(sel==='O0')P.fstrip($('pw-gstrip'),'O',['a','0','c']);else P.fstrip($('pw-gstrip'),sel,null);
+ let h='<thead><tr><th>case</th><th>from</th><th>when</th><th>to</th><th>chains</th></tr></thead><tbody>';CASES.filter(c=>c[0]===sel).forEach(c=>{h+='<tr><td>'+c[1]+'</td><td>'+c[2]+'</td><td>'+(c[3]||'always')+'</td><td>'+c[4]+'</td><td>'+c[5]+'</td></tr>';});$('pw-gcases').innerHTML=h+'</tbody>';
+ const AUX={RF2:'RF',RF2e:'RF',RG2:'RG',RG2o:'RG',RG3p:'RG3',RG3o:'RG3'};const rs=Object.entries(D.rules).filter(([k,R])=>{const f=AUX[R.from]||R.from;return (sel==='O0'?k==='ozero':(f===sel&&k!=='ozero'));});
+ h='<thead><tr><th>rule</th><th>from</th><th>to</th></tr></thead><tbody>';rs.forEach(([k,R])=>{h+='<tr><td>'+k+'</td><td>'+R.from+' '+R.fa.join(' ')+'</td><td>'+R.to+' '+R.ta.join(' ')+'</td></tr><tr><td></td><td colspan="2" style="font-family:var(--body);white-space:normal">'+(P.RDESC?P.RDESC[k]:'')+'</td></tr>';});$('pw-grules').innerHTML=h+'</tbody>';}
+draw();show();
+// ---- the map stepper
+let ENT=null;function ents(){if(!ENT)ENT=P.entries(P.replay(10n**300n));return ENT;}
+const tb=$('pw-maptbl');let cur,rowsHtml;
+function head(){return '<thead><tr><th>#</th><th>entry</th><th>rules agree</th><th>Good</th><th>step (from the rules)</th><th>case to the next</th></tr></thead>';}
+function reset(){cur={i:0,k:'O',f:'O',P:P.START.P,bad:0,good:0};rowsHtml=[];addRow(null);render();}
+function addRow(cs){const e=ents()[cur.i];const g=P.good(cur.k,cur.P);if(g.all)cur.good++;const agree=e&&e.k===cur.k&&P.sameP(e.P,cur.P);if(!agree)cur.bad++;
+ rowsHtml.push('<tr><td>'+cur.i+'</td><td title="'+cur.f+' '+cur.P.join(' ')+'">'+cur.f+' '+P.fP(cur.P)+'</td><td>'+(agree?'<span class="pw-ok">✓</span>':'<span class="pw-bad">✗</span>')+'</td><td>'+(g.all?'<span class="pw-ok">yes</span>':'no ('+g.ok+'/'+g.n+')')+'</td><td>'+(e?P.sciH(e.t):'')+'</td><td></td></tr>');}
+function one(){const cs=P.mvCase(cur.k,cur.P);if(cs.err||cur.i+1>=ents().length)return false;
+ rowsHtml[rowsHtml.length-1]=rowsHtml[rowsHtml.length-1].replace('<td></td>','<td>'+cs.name+' ('+cs.why+')</td>');
+ cur={i:cur.i+1,k:P.key(cs.f,cs.P),f:cs.f,P:cs.P,bad:cur.bad,good:cur.good};addRow(cs);return true;}
+function render(){tb.innerHTML=head()+'<tbody>'+rowsHtml.join('')+'</tbody>';const sc=tb.parentNode;sc.scrollTop=sc.scrollHeight;
+ const e=ents()[cur.i];$('pw-mapcap').innerHTML=(cur.i)+' moves; '+(cur.bad?'<span class="pw-bad">'+cur.bad+' entries differ from the rules</span>':'<span class="pw-ok">every entry equals the rule replay\'s</span>')+'; '+cur.good+' of '+(cur.i+1)+' entries are Good. Now at step '+P.sciH(e.t)+'.';}
+$('pw-mapone').onclick=()=>{one();render();};
+$('pw-mapten').onclick=()=>{for(let j=0;j<25;j++)if(!one())break;render();};
+$('pw-mapall').onclick=()=>{while(one());render();};
+$('pw-mapreset').onclick=reset;
+reset();for(let j=0;j<12;j++)one();render();
+})();
+</script>

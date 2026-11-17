@@ -1,0 +1,92 @@
+<div class="col">
+<p>The left part of the tape never needs more of the last block than the parity of its length, and a drain adds an
+even number of words. After the second drain the left part reaches a state that it meets again, exactly, two drains
+later:</p>
+<p style="text-align:center"><code>C(r) = E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code></p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>event</th><th>step</th><th>what happens</th></tr></thead><tbody>
+<tr><td>2,260,329</td><td>6.7&middot;10<sup>13</sup></td><td>first drain: p 1,505,827 &rarr; 115, r 4,001 &rarr; 11,991,785</td></tr>
+<tr><td>5,251,395</td><td>1.07&middot;10<sup>15</sup></td><td>second drain: p 603,155 &rarr; 111, r &rarr; 16,797,295</td></tr>
+<tr><td>6,086,451</td><td>1,818,198,163,340,705</td><td><b>C(16,797,709)</b>, the first time</td></tr>
+<tr><td>59,675,352</td><td>5.4&middot;10<sup>16</sup></td><td>drain after 11 phases: p 35,724,983 &rarr; 99, r &rarr; 301,226,589</td></tr>
+<tr><td>116,039,645</td><td>6.0&middot;10<sup>17</sup></td><td>drain after 10 phases: p 4,598,419 &rarr; 111, r &rarr; 337,840,223</td></tr>
+<tr><td>122,406,605</td><td>725,814,446,706,290,623</td><td><b>C(337,840,637)</b> = C(16,797,709 + 321,042,928)</td></tr>
+</tbody></table></div>
+<div class="col">
+<p class="small">Events and steps computed by the simulators (<code>py/closure/accel.py</code>, <code>py/replay/engine.py</code>, <code>verify/sim3.cpp</code>, which agree); the Lean statement does not count them.</p>
+<p>One period is two epochs, two drains. To prove that it goes on for ever, one period is run with r replaced by
+<code>65 + 2x</code>, x unknown. Whenever a step would depend on the value of x the executor stops; it never had to.
+It ends in the same configuration with <code>65 + 321,042,928 + 2x</code>, after 5,581,714 moves
+(<code>period_run</code>, <code>lean/Period.lean</code>, evaluated by <code>native_decide</code>). With
+<code>run_pos</code> this is the theorem <code>grow_cyc</code>: for every x, C(65 + 2x) reaches C(65 + 2(x +
+160,521,464)) in at least one step. The run from blank tape reaches C(16,797,709) = C(65 + 2&middot;8,398,822)
+(<code>reach_cyc</code>: 5,037,044 moves, <code>lean/Arrive.lean</code>). And the kernel proves the last step,
+<code>nonhalting_of_growth_cycle</code> in <code>lean/Cycle.lean</code>: if the run reaches some C(65 + 2x) and every
+C(65 + 2x) reaches a later one in at least one step, then the run from blank tape is at such a configuration at
+later and later steps, so it is still running at every step: the machine never halts.</p>
+<h3>Why only the parity of r matters</h3>
+<p>The claim behind the symbolic period can be watched on the real machine for small r: start from C(r) for two odd
+values of r and compare the two runs event by event. Up to the last block the two tapes are the same, and the last
+blocks keep their difference. Start one of them from an even r and the tapes part at once; C(r) with r even halts,
+at event 21,362,421 (computed, <code>py/closure/classes.py</code>).</p>
+</div>
+<div class="panel" id="rc-par">
+ <div class="controls">
+  <label class="small" for="rcp-a">r</label><input type="text" class="rc-num" id="rcp-a" value="65" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <label class="small" for="rcp-b">and r</label><input type="text" class="rc-num" id="rcp-b" value="101" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <label class="small" for="rcp-e">events</label>
+  <select id="rcp-e"><option value="200">200</option><option value="1000" selected>1,000</option><option value="3000">3,000</option></select>
+  <button type="button" class="primary" id="rcp-go">Run both</button>
+ </div>
+ <canvas id="rcp-cv" style="width:100%;height:150px;margin-top:12px" aria-label="Length of the left part and of the last block, event by event"></canvas>
+ <div class="rc-out" id="rcp-out"></div>
+ <div class="cap">The left part is the tape from the head to the start of the last block <code>(011)^r</code>; the plot shows its length (in cells) and the last block's count, event by event, for the first r. 3,000 events are about 1.5&middot;10<sup>8</sup> steps for each run.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); };
+  function C(r) { return "0" + X.rep("1011001", 59) + "1011" + "00000" + "1101100110110" + X.rep("011", 16) + "001101100110" + X.rep("011", r); }
+  function split(s) { var m = /^(.*?)((?:011)*)$/.exec(s); return [m[1], m[2].length / 3]; }
+  var last = null;
+  function draw() {
+    var cv = $("rcp-cv"); if (!last) return;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 150, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var A = last.left, B = last.blk, n = A.length, mA = Math.max.apply(null, A), mB = Math.max.apply(null, B);
+    g.font = "11px " + X.css("--mono").split(",")[0];
+    [[A, mA, "--rcA", "left part, cells (max " + X.fmt(mA) + ")"], [B, mB, "--rcB", "last block r (max " + X.fmt(mB) + ")"]].forEach(function (S, j) {
+      g.strokeStyle = X.css(S[2]); g.lineWidth = 1.5; g.beginPath();
+      for (var i = 0; i < n; i++) { var x = i / Math.max(1, n - 1) * (w - 2) + 1, y = h - 18 - S[0][i] / S[1] * (h - 48); if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.stroke(); g.fillStyle = X.css(S[2]); g.fillText(S[3], 4, 12 + 13 * j);
+    });
+    g.fillStyle = X.css("--muted"); g.fillText("event 1", 2, h - 4); var t = "event " + X.fmt(n); g.fillText(t, w - g.measureText(t).width - 2, h - 4);
+  }
+  function go() {
+    var a = parseInt($("rcp-a").value, 10), b = parseInt($("rcp-b").value, 10), N = +$("rcp-e").value, out = $("rcp-out");
+    if (!(a >= 1 && a <= 100000 && b >= 1 && b <= 100000)) { out.innerHTML = '<span class="rc-bad">Give two values of r between 1 and 100,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var ma = new X.M().load(C(a), 4), mb = new X.M().load(C(b), 4), part = 0, diffOk = true, left = [], blk = [], halt = "";
+      for (var e = 1; e <= N; e++) {
+        var ha = ma.toEvent(1e9), hb = mb.toEvent(1e9);
+        if (!ha || !hb) { halt = !ha ? "r = " + a : "r = " + b; break; }
+        var A = split(ma.right()), B = split(mb.right());
+        left.push(A[0].length); blk.push(A[1]);
+        if (!part && A[0] !== B[0]) part = e;
+        if (A[1] - B[1] !== a - b) diffOk = false;
+      }
+      last = { left: left, blk: blk }; draw();
+      var same = !part && !halt;
+      out.innerHTML = halt ? '<span class="rc-bad">The run from ' + halt + " stopped before event " + X.fmt(N) + ".</span>" :
+        same ? '<span class="rc-ok">✓ the two left parts are identical at all ' + X.fmt(N) + " events</span>" + (diffOk ? ' <span class="rc-ok">✓ and the last blocks differ by ' + (a - b) + " words at every event</span>" : "") +
+          ". After " + X.fmt(N) + " events the last block has " + X.fmt(left.length ? blk[blk.length - 1] : 0) + " words for r = " + a + " (" + X.fmt(ma.k) + " steps; " + X.fmt(mb.k) + " steps for r = " + b + ")."
+        : "The left parts first differ at event " + X.fmt(part) + ((a - b) % 2 ? ": the two values of r have different parity." : ".");
+    }, 20);
+  }
+  $("rcp-go").addEventListener("click", go);
+  X.onTheme(draw);
+  go();
+})();
+</script>

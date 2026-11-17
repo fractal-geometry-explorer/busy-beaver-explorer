@@ -1,0 +1,68 @@
+<div class="col">
+<p>A round ends when the left block is down to one pair: the tape is then</p>
+<p style="text-align:center"><code>node B T = A&gt; 01001000 (01)^B T</code></p>
+<p>and during the next two visits the big block (B pairs) becomes the new left block, of B + 3 pairs, with a new
+small big block. So each round is 2.06 to 2.2 times longer than the one before. Sizes B at the round ends: 586,
+1,291, 2,827, 6,280, 12,967, 28,531, &hellip;</p>
+<p>What the next round end looks like depends on two things only: the tail T, and <em>at which point of its
+cycle</em> the tail is when the left block runs out. The second is decided by the remainder of B when divided by the
+amount a period eats (45, 48, 66 or 27). The size of B beyond that plays no role, and that is what makes a finite
+analysis possible.</p>
+<p>The browser can find the round ends of the real run. The first button lists those of the first 1.2&middot;10<sup>8</sup>
+steps; the second runs on to the round end where the closed set takes over, which Lean reaches with 527,489 executor
+moves (<code>arrive_ok</code>, <code>lean/Arrive.lean</code>) and the simulators place at step 2,340,515,329.</p>
+</div>
+<div class="panel" id="rd-nodes">
+ <div class="controls">
+  <button type="button" class="primary" id="rdn-go">Round ends up to event 3,600</button>
+  <button type="button" id="rdn-far">Run on to B = 28,531 (2.3&middot;10<sup>9</sup> steps)</button>
+  <button type="button" id="rdn-stop" disabled>Stop</button>
+ </div>
+ <div class="rd-bar" aria-hidden="true"><i id="rdn-bar"></i></div>
+ <div class="rd-out" id="rdn-out"></div>
+ <div class="cap">The long run takes the browser some 10 to 30 seconds; it runs in slices, so the page stays usable. "Tail" gives the position of the round end's tail in the list of 62 tails of the closed set (<code>lean/ClassData.lean</code>), or "none".</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, out = $("rdn-out"), timer = null, rows = [];
+  var START = X.D.start, GOAL = 2340515329;
+  function row(d) { var i = X.tailIndex(d.T); return "<tr><td>" + X.fmt(d.ev) + "</td><td>" + X.fmt(d.k) + "</td><td>" + X.fmt(d.B) + "</td><td>" + (i >= 0 ? i + 1 : "none") + "</td></tr>"; }
+  function table(list, extra) {
+    return '<div style="overflow-x:auto"><table class="rd-tt"><thead><tr><th>event</th><th>step</th><th>B</th><th>tail</th></tr></thead><tbody>' + list.map(row).join("") + "</tbody></table></div>" + (extra || "");
+  }
+  $("rdn-go").addEventListener("click", function () {
+    out.textContent = "running the machine…";
+    setTimeout(function () { var R = X.events(3600); rows = R.nodes.filter(function (d) { return d.ev <= 3600; }); out.innerHTML = table(rows); $("rdn-bar").style.width = (R.k[Math.min(3600, R.k.length - 1)] / GOAL * 100) + "%"; }, 20);
+  });
+  $("rdn-far").addEventListener("click", function () {
+    var m = new X.M(), list = [], t0 = Date.now();
+    $("rdn-far").disabled = true; $("rdn-stop").disabled = false;
+    function slice() {
+      var end = Date.now() + 120;
+      while (Date.now() < end) {
+        if (!m.toEvent(2e7)) { if (m.halted) { finish('<span class="rd-bad">✗ the machine halted</span>'); return; } continue; }
+        if (m.get(m.p) === 0 && m.get(m.p + 1) === 1 && m.get(m.p + 2) === 0 && m.get(m.p + 3) === 0 && m.get(m.p + 4) === 1) {
+          var d = X.nodeOf(m.right());
+          if (d) {
+            d.ev = m.ev; d.k = m.k; list.push(d);
+            if (d.B >= 20000) {
+              var ok = d.B === 28531 && d.T === START;
+              finish((ok ? '<span class="rd-ok">✓ B = 28,531 and the tail is <code>startTail</code> of <code>lean/Arrive.lean</code></span>' : '<span class="rd-bad">✗ not the round end of Arrive.lean</span>') +
+                (d.k === GOAL ? ' <span class="rd-ok">✓ at step 2,340,515,329, as the simulators say</span>' : ' <span class="rd-bad">✗ the simulators say step 2,340,515,329</span>') +
+                ". From here on every round end is in a class (" + ((Date.now() - t0) / 1000).toFixed(1) + " s).");
+              return;
+            }
+          }
+        }
+      }
+      $("rdn-bar").style.width = Math.min(100, m.k / GOAL * 100) + "%";
+      out.innerHTML = table(list, "<p>step " + X.fmt(m.k) + "…</p>");
+      timer = setTimeout(slice, 0);
+    }
+    function finish(msg) { timer = null; $("rdn-bar").style.width = "100%"; out.innerHTML = table(list, "<p>" + msg + "</p>"); $("rdn-far").disabled = false; $("rdn-stop").disabled = true; }
+    out.textContent = "running the machine…"; timer = setTimeout(slice, 20);
+    $("rdn-stop").onclick = function () { if (timer) clearTimeout(timer); timer = null; $("rdn-far").disabled = false; $("rdn-stop").disabled = true; out.innerHTML = table(list, "<p>Stopped at step " + X.fmt(m.k) + ".</p>"); };
+  });
+})();
+</script>

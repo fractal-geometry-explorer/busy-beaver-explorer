@@ -1,0 +1,97 @@
+<div class="col">
+<p><b>The machine 1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE halts from a blank tape, at step</b></p>
+<p style="word-break:break-all;font-family:var(--mono);font-size:13px">853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589683</p>
+<p>(bbchallenge count, the halting transition F0 included; about 8.53&middot;10<sup>131</sup>), after
+9.6&middot;10<sup>65</sup> visits of the right end, at the left end of a tape of about 2.9&middot;10<sup>66</sup>
+cells.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>statement</th><th>where</th><th>what it rests on</th></tr></thead>
+<tbody>
+<tr><td><code>halts : HaltsFromBlank</code> (Lean)</td><td><code>lean/Halt.lean</code></td><td><span class="ev n">native_decide</span> the kernel for <code>visit</code>, <code>jump</code>, <code>mstep_sound</code> and <code>run_sound</code>; one compiled evaluation, <code>run_halts : run 100000000 start = true</code>, so Lean's compiler is trusted besides the kernel and the three standard axioms</td></tr>
+<tr><td><code>halts_172044 : halts tm c0</code> (Coq, busycoq's definitions)</td><td><code>coq/M_1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_HHH1LE.v</code></td><td><span class="ev k">Kernel</span> no axioms (<code>Print Assumptions</code>: closed under the global context); the run is evaluated by <code>vm_compute</code> and checked by Coq's kernel</td></tr>
+<tr><td><code>steps_172044 : halts_in tm c0 (N.to_nat K) /\ forall n, halts_in tm c0 n -&gt; n = N.to_nat K</code></td><td>the same file</td><td><span class="ev k">Kernel</span> K is the number above minus one: the machine reaches its halting configuration after exactly K steps and at no other time</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>The Lean proof shows that it halts, not after how many steps; the exact count is the Coq theorem, and three
+separately written Python simulators give the same number. Not known: a closed rule for the irregular visits, and so
+any reason for the halt shorter than the run itself.</p>
+<h3>The whole run, in your browser</h3>
+<p>The program of the proof, written again in JavaScript with exact big integers: the compressed tape of level 2,
+and at every visit the jump of level 4 when its conditions hold (the same choices as <code>lean/Run.lean</code>:
+counts of at least 7, a margin of 6, at least 8 visits). It counts steps as it goes, a jump with the closed form of
+the Coq proof. The second choice adds the two block rules of the Coq proof, which cross a whole counter level in one
+round. Either way it takes several seconds; the picture shows the odometer growing, one dot per jump.</p>
+</div>
+<div class="panel" id="od-halt">
+ <div class="controls">
+  <select id="odh-kind" aria-label="Which simulator"><option value="lean">Lean's program (Sim.lean, Run.lean)</option><option value="coq">Coq's program, with the block rules</option></select>
+  <button type="button" class="primary" id="odh-go">Run to the halt</button>
+  <button type="button" id="odh-stop">Pause</button>
+ </div>
+ <div class="readout">
+  <span>rounds <b id="odh-r">0</b></span><span>jumps <b id="odh-j">0</b></span><span>visits <b id="odh-v">0</b></span><span>steps <b id="odh-s">0</b></span><span>counters <b id="odh-k">0</b></span><span>time <b id="odh-t">0 s</b></span>
+ </div>
+ <canvas id="odh-c" style="width:100%;height:220px" aria-label="Counters in the odometer against the number of visits"></canvas>
+ <div id="odh-out" style="margin-top:8px"></div>
+ <div class="cap">Across: the number of visits, on a log scale up to 10<sup>66</sup>. Up: the number of counters in the zone the jump read; a zone is read only as far as its counts are at least 7, so many jumps see part of the odometer, and the upper edge is the whole of it. Every transition, run crossed, copy unpacked, block rule and jump counts as one round.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var O = window.OD, $ = function (id) { return document.getElementById(id); };
+  var sim = null, timer = null, pts = [], t0 = 0, spent = 0;
+  function lg(b) { var s = b.toString(); return s.length - 1 + Math.log10(+("0." + s.slice(0, 15)) * 10); }
+  function draw() {
+    var cv = $("odh-c"), w = cv.clientWidth || 600, h = cv.clientHeight || 220, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 34, B = h - 20, T = 8, R = w - 26, font = "10px " + O.css("--mono").split(",")[0];
+    g.strokeStyle = O.css("--line"); g.fillStyle = O.css("--muted"); g.font = font; g.lineWidth = 1;
+    for (var e = 0; e <= 66; e += 11) { var x = L + (R - L) * e / 66; g.beginPath(); g.moveTo(x, T); g.lineTo(x, B); g.stroke(); g.fillText("10^" + e, x - 10, h - 6); }
+    for (var k = 0; k <= 200; k += 50) { var y = B - (B - T) * k / 220; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); g.fillText(String(k), 4, y + 3); }
+    g.fillStyle = O.css("--accent");
+    pts.forEach(function (p) { g.fillRect(L + (R - L) * p[0] / 66 - 1, B - (B - T) * p[1] / 220 - 1, 2, 2); });
+  }
+  function readout() {
+    $("odh-r").textContent = O.fmt(sim.rounds); $("odh-j").textContent = O.fmt(sim.njump);
+    $("odh-v").innerHTML = O.fmtBig(sim.visits); $("odh-s").innerHTML = O.fmtBig(sim.steps);
+    $("odh-t").textContent = ((spent + (timer ? Date.now() - t0 : 0)) / 1000).toFixed(1) + " s";
+  }
+  function finish() {
+    var s = sim.steps.toString(), ok = s === O.K;
+    var c = sim.canon(), lead = c.slice(0, 6).map(function (x) { return O.isRun(x) ? "(011)^" + x.n : x; }).join(" ");
+    $("odh-out").innerHTML = "<b>Halted</b> in state F reading 0, after " + O.fmt(sim.rounds) + " rounds (" + O.fmt(sim.nbit) + " transitions, " + O.fmt(sim.ncross) + " runs crossed, " + O.fmt(sim.ndouble) + " runs crossed two copies at a time, " + O.fmt(sim.nunpack) + " copies unpacked, " + O.fmt(sim.nmacro) + " block rules, " + O.fmt(sim.njump) + " jumps), at step<br>" +
+      '<span style="word-break:break-all;font-family:var(--mono);font-size:12px">' + s + "</span><br>" +
+      (ok ? '<span class="od-ok">&#10003; the number proved in Coq (<code>steps_172044</code>), digit for digit</span>' : '<span class="od-bad">&#10007; differs from the number proved in Coq</span>') +
+      "<br>The tape then starts <span class=\"mono\">" + lead + " &hellip;</span> and has " + O.fmt(sim.back.length + sim.front.length) + " items.";
+  }
+  function chunk() {
+    var end = Date.now() + 40;
+    while (Date.now() < end && !sim.halted) {
+      for (var i = 0; i < 20000 && !sim.halted; i++) {
+        var j = sim.njump;
+        sim.round();
+        if (sim.njump !== j) {
+          var nk = sim.zk;
+          if (pts.length < 100000) pts.push([lg(sim.visits), nk]);
+          $("odh-k").textContent = nk;
+        }
+      }
+    }
+    readout();
+    if (sim.halted) { spent += Date.now() - t0; timer = null; readout(); draw(); finish(); $("odh-go").textContent = "Run again"; return; }
+    draw();
+    timer = setTimeout(chunk, 0);
+  }
+  $("odh-go").addEventListener("click", function () {
+    if (timer) return;
+    if (!sim || sim.halted) { sim = new O.Sim({ coq: $("odh-kind").value === "coq" }); pts = []; spent = 0; $("odh-out").innerHTML = ""; }
+    $("odh-go").textContent = "Running"; t0 = Date.now(); chunk();
+  });
+  $("odh-stop").addEventListener("click", function () { if (timer) { clearTimeout(timer); timer = null; spent += Date.now() - t0; $("odh-go").textContent = "Continue"; readout(); } });
+  $("odh-kind").addEventListener("change", function () { if (timer) { clearTimeout(timer); timer = null; } sim = null; $("odh-go").textContent = "Run to the halt"; });
+  O.onTheme(draw);
+  draw();
+})();
+</script>

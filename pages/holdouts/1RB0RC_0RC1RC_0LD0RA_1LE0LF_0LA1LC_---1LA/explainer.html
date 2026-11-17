@@ -210,7 +210,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Seven-cell words on the left, three-cell words on the right</a><a href="#phases">Collect, expand, drain</a><a href="#cycle">The left part comes back to the same state</a><a href="#try-cycle">Apply the growth cycle yourself</a><a href="#near">Almost the same tape halts</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">From six states to one number</a><a href="#shape">The shape of the run</a><a href="#words">Seven-cell words on the left, three-cell words on the right</a><a href="#phases">Collect, expand, drain</a><a href="#cycle">The left part comes back to the same state</a><a href="#try-cycle">Apply the growth cycle yourself</a><a href="#near">Almost the same tape halts</a><a href="#bottom">It never halts</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -289,8 +289,352 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="levels">
+  <span class="eyebrow">Four levels</span>
+  <h2>From six states to one number</h2>
+<style>
+:root{--rcA:#2a78d6;--rcB:#1baf7a;--rcC:#b0862a}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--rcA:#5b9cf0;--rcB:#2fc48d;--rcC:#d6a845} }
+:root[data-theme="dark"]{--rcA:#5b9cf0;--rcB:#2fc48d;--rcC:#d6a845}
+.rc-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.rc-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rc-lv:hover{border-color:var(--accent)}
+.rc-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rc-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.rc-lv code{font-size:.8em}
+.rc-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.rc-lv .ev{margin-top:4px}
+.rc-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.rc-row:first-child{border-top:0}
+.rc-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rc-row>div{min-width:0}
+@media (max-width:560px){.rc-row{grid-template-columns:minmax(0,1fr)}}
+.rc-tape{display:block;width:100%;height:46px;margin-top:6px}
+.rc-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:4px}
+.rc-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rc-words{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;max-height:8.5em;overflow-y:auto}
+.rc-ok{color:var(--kernel);font-weight:600}
+.rc-bad{color:var(--open);font-weight:600}
+.rc-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.rc-num{width:7.5em}
+.rc-out{margin-top:12px;font-size:.9rem}
+.rc-out .mono{overflow-wrap:anywhere}
+.rc-tt{width:100%;font-size:.86rem}
+.rc-tt td,.rc-tt th{padding:.3rem .55rem}
+.rc-tt td:first-child{font-family:var(--mono)}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level keeps less detail
+than the one above it, and each step down is a theorem saying that the answer is the same. The page walks down the
+ladder: the six-state machine on its tape; the tape read as blocks of repeated words at the moments state E reaches
+the left end; whole cycles of the long phases, each a rule that holds for every size of the blocks; and finally one
+number r, the length of the last block, which grows by 321,042,928 every period and never leads to a halt.</p>
+</div>
+<div class="rc-ladder">
+ <a class="rc-lv" href="#shape"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">no halt in 10,000 steps</span><br>
+  <span class="ev n">native_decide</span> <span class="small">no halt in 10<sup>7</sup> steps (<code>blank_runs_native</code>)</span></a>
+ <a class="rc-lv" href="#words"><span class="n">Level 2</span><b class="t">Blocks of words</b>
+  <div class="u">The tape as cells and blocks <code>(w)^n</code>, looked at when state E reaches the left end (an <b>event</b>). One unit is one <b>move</b> of the executor: a whole block crossed by a shift rule, or one step.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>run_sound</code>, the 31 shift rules <code>shRTbl_ok</code>, <code>shLTbl_ok</code></span></a>
+ <a class="rc-lv" href="#phases"><span class="n">Level 3</span><b class="t">Cycles of the phases</b>
+  <div class="u">A whole-tape template with counts <code>b + 2x</code> that comes back with counts <code>b' + 2x</code> after 2, 4 or 72 events. One unit is one <b>cycle</b>; N cycles are one move.</div>
+  <span class="ev n">native_decide</span> <span class="small">twelve cycle rules for all x: <code>rule0_ok</code> &hellip; <code>rule11_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">N cycles at once: <code>rule_instN</code></span></a>
+ <a class="rc-lv" href="#cycle"><span class="n">Level 4</span><b class="t">The growth cycle <code>C(r)</code></b>
+  <div class="u">One number r. C(65 + 2x) comes back as C(65 + 2(x + 160,521,464)). One unit is one <b>period</b>, 116,320,154 events.</div>
+  <span class="ev n">native_decide</span> <span class="small"><code>grow_cyc</code>, <code>reach_cyc</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">the cycle implies no halt: <code>nonhalting_of_growth_cycle</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick an event. The browser runs the real machine from blank tape up to that moment and reads its tape. The rows
+show the same instant at each level: the cells, the blocks of words, the cycle rule of the Lean proof whose template
+the tape fits (if any), and where the moment sits on the way to the growth cycle. Where a rule fits, the browser
+also runs the machine on to the end of the rule's cycle and checks that it arrives exactly where the rule says.</p>
+</div>
+<div class="panel" id="rc-moment">
+ <div class="controls">
+  <button type="button" id="rcm-prev" aria-label="Previous event">&#9664;</button>
+  <input type="range" class="rc-slider" id="rcm-n" min="1" max="2600" value="440" aria-label="Event number">
+  <button type="button" id="rcm-next" aria-label="Next event">&#9654;</button>
+  <span class="small">event <b id="rcm-lab">440</b> of the run</span>
+ </div>
+ <div class="controls" style="margin-top:8px"><span class="small">Jump to:</span>
+  <button type="button" data-rcm="100">100</button><button type="button" data-rcm="210">210</button>
+  <button type="button" data-rcm="438">438</button><button type="button" data-rcm="1108">1,108</button>
+  <button type="button" data-rcm="2477">2,477</button></div>
+ <div style="margin-top:12px">
+  <div class="rc-row"><span>1 · Machine</span><div><span id="rcm-step"></span>
+   <canvas class="rc-tape" id="rcm-tape" aria-label="The tape at this event, coloured by block"></canvas>
+   <div class="rc-key"><span><i style="background:var(--rcA)"></i>seven-cell words <code>1011001</code></span><span><i style="background:var(--rcB)"></i>three-cell words (<code>011</code>, <code>101</code>, <code>110</code>) and trains of them</span><span><i style="background:var(--rcC)"></i>other cells</span><span>dark = 1, pale = 0; the triangle is the head, state E</span></div></div></div>
+  <div class="rc-row"><span>2 · Blocks</span><div><div class="rc-words" id="rcm-w"></div><div class="small" id="rcm-wc"></div></div></div>
+  <div class="rc-row"><span>3 · Cycle rule</span><div id="rcm-r"></div></div>
+  <div class="rc-row"><span>4 · Growth cycle</span><div id="rcm-g"></div></div>
+ </div>
+ <div class="cap">The step counts are exact: the browser counts every step from blank tape. Event 2,600 is about 1.4&middot;10<sup>8</sup> steps in; the first jump that far takes a second.</div>
+</div>
+<script>
+window.RC = (function () {
+  "use strict";
+// The plain machine and the cycle-rule templates of the Lean files, shared by the panels of this page.
+function mkCore(TM, EVS) {
+  "use strict";
+  var W = [], MV = [], ST = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var s = 0; s < 2; s++) {
+      var t = g.substr(3 * s, 3), k = 2 * i + s;
+      if (t[0] === "-") { W[k] = 0; MV[k] = 0; ST[k] = -1; } else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; ST[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  // The machine on a tape that grows on demand; cell x lives at t[x + o].
+  function M() { this.n = 1 << 14; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0; this.k = 0; this.lo = 0; this.hi = 0; this.halted = false; this.ev = 0; }
+  M.prototype.grow = function () { var n = this.n * 2, t = new Uint8Array(n); t.set(this.t, this.n >> 1); this.t = t; this.o += this.n >> 1; this.n = n; };
+  M.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  M.prototype.set = function (x, v) { while (x + this.o < 4 || x + this.o >= this.n - 4) this.grow(); this.t[x + this.o] = v; };
+  // Writes a 0/1 string from cell 0 on, the head on its first cell, in state s.
+  M.prototype.load = function (str, s) { for (var i = 0; i < str.length; i++) this.set(i, +str[i]); this.p = 0; this.s = s; this.lo = 0; this.hi = Math.max(0, str.length - 1); return this; };
+  // Runs to the next event: a move to the left, in state EVS, onto the leftmost cell visited so far or beyond it.
+  // At most `limit` steps; true at an event, false at the limit or at a halt (then this.halted).
+  M.prototype.toEvent = function (limit) {
+    var t = this.t, o = this.o, p = this.p + o, s = this.s, k = this.k, end = k + limit, lo = this.lo + o, hi = this.hi + o, hit = false;
+    while (k < end) {
+      var kk = 2 * s + t[p], ns = ST[kk];
+      if (ns < 0) { this.halted = true; break; }
+      t[p] = W[kk]; p += MV[kk]; s = ns; k++;
+      if (p > hi) hi = p;
+      if (MV[kk] < 0 && p <= lo) { lo = p; if (s === EVS) { hit = true; break; } }
+      if (p < 4 || p >= this.n - 4) {
+        this.p = p - o; this.s = s; this.k = k; this.lo = lo - o; this.hi = hi - o; this.grow();
+        t = this.t; o = this.o; p = this.p + o; lo = this.lo + o; hi = this.hi + o;
+      }
+    }
+    this.p = p - o; this.s = s; this.k = k; this.lo = lo - o; this.hi = hi - o;
+    if (hit) this.ev++;
+    return hit;
+  };
+  // Runs `n` steps or to a halt; returns the number of steps done.
+  M.prototype.run = function (n) {
+    var k0 = this.k;
+    while (this.k - k0 < n && !this.halted) {
+      var kk = 2 * this.s + this.get(this.p), ns = ST[kk];
+      if (ns < 0) { this.halted = true; break; }
+      this.set(this.p, W[kk]); this.p += MV[kk]; this.s = ns; this.k++;
+      if (this.p < this.lo) this.lo = this.p; if (this.p > this.hi) this.hi = this.p;
+    }
+    return this.k - k0;
+  };
+  // The cells from the head to the last 1 right of it.
+  M.prototype.right = function () { var b = this.hi; while (b > this.p && !this.get(b)) b--; var a = []; for (var x = this.p; x <= b; x++) a.push(this.get(x)); return a.join(""); };
+  M.prototype.cells = function (a, b) { var r = []; for (var x = a; x <= b; x++) r.push(this.get(x)); return r.join(""); };
+
+  function rep(w, n) { return n > 0 ? new Array(n + 1).join(w) : ""; }
+  function trim(s) { return s.replace(/0+$/, ""); }
+  function nvars(rule) { return rule.t.filter(function (x) { return x[0] === "v"; }).length; }
+  // The counts of the variable blocks of a cycle rule: b0 + M x before, b1 + M x after.
+  function counts(rule, xs, after) { var j = 0, out = []; rule.t.forEach(function (x) { if (x[0] === "v") out.push((after ? x[3] : x[2]) + rule.mod * xs[j++]); }); return out; }
+  // The template as cells, the variable blocks having the given counts.
+  function inst(rule, cs) {
+    var o = "", j = 0;
+    rule.t.forEach(function (x) { o += x[0] === "c" ? x[1] : x[0] === "f" ? rep(x[1], x[2]) : rep(x[1], cs[j++]); });
+    return o;
+  }
+  // The x values for which the tape (head cell first) is the template before the rule, or null.
+  function match(rule, tape) {
+    var re = "^", vs = [];
+    rule.t.forEach(function (x) {
+      if (x[0] === "c") re += x[1]; else if (x[0] === "f") re += rep(x[1], x[2]); else { re += "((?:" + x[1] + ")*)"; vs.push(x); }
+    });
+    var m = new RegExp(re + "0*$").exec(tape + "0");
+    if (!m) return null;
+    var xs = [];
+    for (var i = 0; i < vs.length; i++) {
+      var c = m[i + 1].length / vs[i][1].length;
+      if (c < vs[i][2] || (c - vs[i][2]) % rule.mod) return null;
+      xs.push((c - vs[i][2]) / rule.mod);
+    }
+    return xs;
+  }
+  // A template as text: (w)^n for blocks, with "b0+Mx" for the variable ones (or the given counts).
+  function text(rule, cs) {
+    var o = [], j = 0, lit = "";
+    rule.t.forEach(function (x) {
+      if (x[0] === "c") { lit += x[1]; return; }
+      if (lit) { o.push(lit); lit = ""; }
+      if (x[0] === "f") o.push(x[2] === 1 ? x[1] : "(" + x[1] + ")^" + x[2]);
+      else { var c = cs ? cs[j] : x[2] + "+" + rule.mod + "x" + (j + 1); j++; o.push("(" + x[1] + ")^" + c); }
+    });
+    if (lit) o.push(lit);
+    return o.join(" ");
+  }
+  // Checks a cycle rule on the machine: the template with these x, run for the rule's number of events, must be the
+  // template after. Returns {ok, steps, before, after, got}.
+  function checkRule(rule, xs, limit) {
+    var b = inst(rule, counts(rule, xs, false)), a = inst(rule, counts(rule, xs, true));
+    var m = new M().load(b, EVS), ok = true;
+    for (var e = 0; e < rule.ev && ok; e++) ok = m.toEvent(limit || 4e8);
+    var got = m.right();
+    return { ok: ok && m.p === m.lo && trim(got) === trim(a), events: m.ev, steps: m.k, before: b, after: a, got: got, halted: m.halted };
+  }
+  // Checks a shift rule on the machine with n crossings and random cells around it. Right: the head in state q on
+  // the first cell of (w)^(k n), the carried word u left of it (u nearest cell first); it must end in q on the first
+  // cell after the copies, with u v^n behind it (nearest first), in n s steps, without leaving those cells.
+  // Left: the head on the first cell of u, (w)^(k n) left of it (w nearest cell first); it must end in q on the
+  // first cell of u, now where the copies began, with v^n right of u.
+  function rev(s) { return s.split("").reverse().join(""); }
+  function checkShift(r, n, rnd) {
+    var pad = 12, L = "", R = "", i;
+    for (i = 0; i < pad; i++) { L += rnd() < 0.5 ? "0" : "1"; R += rnd() < 0.5 ? "0" : "1"; }
+    var q = r.q.charCodeAt(0) - 65, wk = rep(r.w, r.k * n), m = new M(), tape, start, endPos, want;
+    if (r.d === "R") {
+      tape = L + rev(r.u) + wk + R; start = pad + r.u.length;
+      want = L + rev(rep(r.v, n)) + rev(r.u) + R; endPos = pad + r.u.length + r.v.length * n;
+    } else {
+      tape = L + rev(wk) + r.u + R; start = pad + wk.length;
+      want = L + r.u + rep(r.v, n) + R; endPos = pad;
+    }
+    m.load(tape, q); m.p = start;
+    var lo = pad - (r.d === "L" ? 1 : 0), hi = tape.length - pad - (r.d === "R" ? 0 : 1), inside = true, steps = 0;
+    while (steps < r.s * n) {
+      m.run(1); steps++;
+      if (m.halted) break;
+      if (steps < r.s * n && (m.p < pad || m.p > tape.length - pad - 1)) { inside = false; break; }
+    }
+    var got = m.cells(0, tape.length - 1);
+    return { ok: !m.halted && inside && m.s === q && m.p === endPos && got === want, steps: steps, tape: tape, start: start, got: got, want: want, end: m.p, endPos: endPos };
+  }
+  // A small seeded random generator, so that a check can be repeated.
+  function rng(seed) { var x = seed >>> 0 || 1; return function () { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+  // Draws a tape (string of 0/1) on a canvas, coloured by segments [[from, to, cssVar], ...] (cell indices, `to`
+  // excluded); a 1 is drawn in the segment's colour, a 0 pale. Long tapes are drawn one pixel column per several
+  // cells, shaded by the share of 1s. `head`: index of the head cell (marked below the strip).
+  function drawTape(cv, str, segs, head) {
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var n = Math.max(str.length, 1), cw = w / n, y0 = 4, ch = h - 16, col = {}, bg = css("--sunk");
+    function c(v) { return col[v] || (col[v] = css(v)); }
+    var segOf = new Array(n);
+    segs.forEach(function (S) { for (var i = S[0]; i < S[1] && i < n; i++) segOf[i] = S[2]; });
+    g.fillStyle = bg; g.fillRect(0, y0, w, ch);
+    if (cw >= 2) {
+      for (var i = 0; i < n; i++) {
+        g.globalAlpha = str[i] === "1" ? 1 : 0.22; g.fillStyle = c(segOf[i] || "--muted");
+        g.fillRect(i * cw, y0, Math.max(cw - (cw >= 5 ? 1 : 0), 1), ch);
+      }
+    } else {
+      for (var x = 0; x < w; x++) {
+        var a = Math.floor(x / cw), b = Math.max(a + 1, Math.floor((x + 1) / cw)), ones = 0;
+        for (var j = a; j < b && j < n; j++) ones += str[j] === "1" ? 1 : 0;
+        g.globalAlpha = 0.22 + 0.78 * ones / Math.max(1, Math.min(b, n) - a); g.fillStyle = c(segOf[a] || "--muted");
+        g.fillRect(x, y0, 1, ch);
+      }
+    }
+    g.globalAlpha = 1;
+    if (head != null) {
+      var hx = (head + 0.5) * cw; g.fillStyle = c("--head");
+      g.beginPath(); g.moveTo(hx, y0 + ch + 1); g.lineTo(hx - 5, y0 + ch + 10); g.lineTo(hx + 5, y0 + ch + 10); g.fill();
+    }
+  }
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    window.addEventListener("resize", f);
+  }
+  return { TM: TM, M: M, rep: rep, trim: trim, rev: rev, nvars: nvars, counts: counts, inst: inst, match: match, text: text,
+           checkRule: checkRule, checkShift: checkShift, rng: rng, fmt: fmt, drawTape: drawTape, css: css, onTheme: onTheme };
+}
+if (typeof module !== "undefined") module.exports = mkCore;
+  var X = mkCore("1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA", 4);
+  X.D = {"lean":[{"name":"collect2","level":"kernel","ev":2,"mod":1,"steps":[476,72,48,48],"t":[["c","0"],["v","1011001",1,3],["f","101101101101101100110110",1],["v","110110",1,0],["f","000",1],["v","110110",1,1],["f","110",1]]},{"name":"expand4","level":"kernel","ev":4,"mod":1,"steps":[2812,144,240,240],"t":[["c","0"],["v","1011001",3,1],["f","10110000011011001101010",1],["v","110110",1,8],["f","000",1],["v","110110",1,1],["f","110",1]]}],"rules":[{"n":0,"ev":2,"mod":2,"moves":762,"level":"native","t":[["c","0"],["v","1011001",44,46],["f","101",5],["c","1"],["c","0"],["f","011",6],["f","0110110110110",7],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",45,43],["c","0"],["v","011",41,41],["c","0"]]},{"n":1,"ev":4,"mod":2,"moves":2235,"level":"native","t":[["c","0"],["v","1011001",44,42],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",4],["f","0110110011011",18],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",69,83],["c","0"],["c","0"],["c","0"],["v","011",41,41],["c","0"]]},{"n":2,"ev":2,"mod":2,"moves":762,"level":"native","t":[["c","0"],["v","1011001",44,46],["f","101",5],["c","1"],["c","0"],["f","011",6],["f","0110110110110",49],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",45,43],["c","0"],["v","011",41,41],["c","0"]]},{"n":3,"ev":4,"mod":2,"moves":2055,"level":"native","t":[["c","0"],["v","1011001",44,42],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",5],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","0"],["v","101",68,82],["c","1"],["c","0"],["c","0"],["c","0"],["v","011",41,41],["c","0"]]},{"n":4,"ev":2,"mod":2,"moves":422,"level":"native","t":[["c","0"],["v","1011001",44,46],["f","101",5],["c","1"],["c","0"],["v","011",45,43],["c","0"],["v","011",41,41],["c","0"]]},{"n":5,"ev":4,"mod":2,"moves":2389,"level":"native","t":[["c","0"],["v","1011001",45,43],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",4],["f","0110110011011",58],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["c","0"],["v","101",68,82],["c","1"],["c","0"],["c","0"],["c","0"],["v","011",41,41],["c","0"]]},{"n":6,"ev":2,"mod":2,"moves":762,"level":"native","t":[["c","0"],["v","1011001",44,46],["f","101",5],["c","1"],["c","0"],["f","011",6],["v","0110110110110",41,41],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",45,43],["c","0"],["v","011",41,41],["c","0"]]},{"n":7,"ev":4,"mod":2,"moves":2235,"level":"native","t":[["c","0"],["v","1011001",44,42],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",4],["f","0110110011011",17],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",68,82],["c","0"],["v","011",41,41],["c","0"]]},{"n":8,"ev":72,"mod":2,"moves":201007,"level":"native","t":[["c","0"],["v","1011001",145,93],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",5],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["f","011",16],["c","0"],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",869,1283],["c","0"]]},{"n":9,"ev":4,"mod":2,"moves":2583,"level":"native","t":[["c","0"],["v","1011001",44,42],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",5],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["f","011",4],["c","0"],["f","011",4],["c","0"],["v","011",69,83],["c","0"],["c","0"],["c","0"],["v","011",41,41],["c","0"]]},{"n":10,"ev":2,"mod":2,"moves":570,"level":"native","t":[["c","0"],["v","1011001",44,46],["f","101",5],["c","1"],["c","0"],["f","011",10],["c","0"],["c","0"],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["v","011",45,43],["c","0"],["v","011",41,41],["c","0"]]},{"n":11,"ev":4,"mod":2,"moves":3255,"level":"native","t":[["c","0"],["v","1011001",45,43],["c","1"],["c","0"],["c","1"],["c","1"],["f","0",5],["f","1101100110110",4],["c","1"],["c","1"],["c","0"],["c","1"],["c","1"],["c","0"],["c","0"],["v","101",68,82],["c","1"],["c","0"],["c","0"],["c","0"],["v","011",41,41],["c","0"]]}],"shift":[{"d":"R","i":0,"q":"A","w":"011","k":1,"u":"","v":"011","s":3},{"d":"R","i":1,"q":"C","w":"101","k":1,"u":"","v":"110","s":3},{"d":"R","i":2,"q":"B","w":"110110","k":1,"u":"","v":"101101","s":6},{"d":"R","i":3,"q":"B","w":"110","k":1,"u":"","v":"101","s":3},{"d":"R","i":4,"q":"A","w":"1011001","k":1,"u":"00","v":"1011001","s":13},{"d":"R","i":5,"q":"A","w":"011011","k":1,"u":"","v":"011011","s":6},{"d":"R","i":6,"q":"C","w":"101101","k":1,"u":"","v":"110110","s":6},{"d":"R","i":7,"q":"C","w":"0110110110011","k":1,"u":"000","v":"1011011011001","s":19},{"d":"R","i":8,"q":"B","w":"0110110110110","k":1,"u":"","v":"1011011011001","s":19},{"d":"R","i":9,"q":"A","w":"0110110011011","k":1,"u":"","v":"0110011011011","s":19},{"d":"R","i":10,"q":"A","w":"1011011011001","k":1,"u":"00","v":"1011011011001","s":19},{"d":"R","i":11,"q":"A","w":"0110011011011","k":1,"u":"","v":"0110110011011","s":19},{"d":"R","i":12,"q":"B","w":"1101100110110","k":1,"u":"","v":"1011001101101","s":19},{"d":"L","i":0,"q":"F","w":"011","k":2,"u":"100","v":"110110","s":18},{"d":"L","i":1,"q":"E","w":"011","k":2,"u":"1","v":"101101","s":18},{"d":"L","i":2,"q":"C","w":"110","k":2,"u":"0","v":"110110","s":18},{"d":"L","i":3,"q":"A","w":"101101","k":1,"u":"11000","v":"110110","s":18},{"d":"L","i":4,"q":"D","w":"101","k":2,"u":"0","v":"011011","s":18},{"d":"L","i":5,"q":"A","w":"1011001","k":1,"u":"11000","v":"0110110","s":23},{"d":"L","i":6,"q":"E","w":"011011","k":1,"u":"1","v":"101101","s":18},{"d":"L","i":7,"q":"C","w":"110110","k":1,"u":"0","v":"110110","s":18},{"d":"L","i":8,"q":"D","w":"101101","k":1,"u":"10","v":"110110","s":18},{"d":"L","i":9,"q":"D","w":"101101","k":1,"u":"0","v":"011011","s":18},{"d":"L","i":10,"q":"F","w":"011011","k":1,"u":"100","v":"110110","s":18},{"d":"L","i":11,"q":"A","w":"110","k":2,"u":"0100","v":"110110","s":18},{"d":"L","i":12,"q":"A","w":"110110","k":1,"u":"0100","v":"110110","s":18},{"d":"L","i":13,"q":"A","w":"1011011011001","k":1,"u":"11000","v":"0110110110110","s":41},{"d":"L","i":14,"q":"E","w":"0110011011011","k":1,"u":"1","v":"1011011011001","s":41},{"d":"L","i":15,"q":"D","w":"1011011011001","k":1,"u":"0","v":"0110011011011","s":41},{"d":"L","i":16,"q":"F","w":"0110110011011","k":1,"u":"100","v":"1101100110110","s":41},{"d":"L","i":17,"q":"A","w":"1011001101101","k":1,"u":"11000","v":"1101100110110","s":41}]};
+  // The run from blank tape, event by event: steps and tape (from the head to the last 1).
+  var m = null, evK = [0], evT = [""];
+  X.events = function (n) {
+    if (!m) m = new X.M();
+    while (evK.length <= n) {
+      if (!m.toEvent(1e9)) break;
+      evK.push(m.k); evT.push(m.right());
+    }
+    return { k: evK, t: evT };
+  };
+  // Blocks of words, for display and colouring: [word, count] or a literal string.
+  var WORDS = ["1011001", "0110110110110", "1101100110110", "0110110011011", "011", "101", "110"];
+  X.blocks = function (s) {
+    var out = [], i = 0, lit = "";
+    while (i < s.length) {
+      var best = null;
+      for (var j = 0; j < WORDS.length; j++) {
+        var w = WORDS[j], n = 0;
+        while (s.substr(i + n * w.length, w.length) === w) n++;
+        if (n >= (w.length > 3 ? 2 : 3) && (!best || n * w.length > best[1] * best[0].length)) best = [w, n];
+      }
+      if (best) { if (lit) out.push(lit); lit = ""; out.push(best); i += best[1] * best[0].length; } else { lit += s[i]; i++; }
+    }
+    if (lit) out.push(lit);
+    return out;
+  };
+  X.blocksHTML = function (bl) {
+    return bl.map(function (b) { return typeof b === "string" ? b : "(" + b[0] + ")<sup>" + b[1] + "</sup>"; }).join(" ");
+  };
+  X.segs = function (bl) {
+    var out = [], i = 0;
+    bl.forEach(function (b) {
+      var len = typeof b === "string" ? b.length : b[0].length * b[1];
+      out.push([i, i + len, typeof b === "string" ? "--rcC" : b[0] === "1011001" ? "--rcA" : "--rcB"]); i += len;
+    });
+    return out;
+  };
+  // All rules of the Lean proof as templates: the twelve cycle rules of ExecData.lean (native_decide) and the two
+  // phases of Phases.lean (kernel; there counts are b + x, any x).
+  X.allRules = function () { return X.D.lean.concat(X.D.rules); };
+  X.ruleName = function (r) { return r.name || "cycle rule " + r.n; };
+  X.firstMatch = function (tape) {
+    var rs = X.allRules();
+    for (var i = 0; i < rs.length; i++) { var xs = X.match(rs[i], tape); if (xs) return { r: rs[i], xs: xs }; }
+    return null;
+  };
+  return X;
+})();
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sl = $("rcm-n");
+  function show() {
+    var n = +sl.value; $("rcm-lab").textContent = X.fmt(n);
+    var R = X.events(n + 72), k = R.k[n], t = R.t[n], bl = X.blocks(t);
+    $("rcm-step").innerHTML = "step " + X.fmt(k) + " of the run from blank tape; " + X.fmt(t.length) + " cells from the head to the last 1";
+    X.drawTape($("rcm-tape"), t, X.segs(bl), 0);
+    $("rcm-w").innerHTML = "E&gt; " + X.blocksHTML(bl);
+    var cells = bl.map(function (b) { return typeof b === "string" ? b : X.rep(b[0], b[1]); }).join("");
+    $("rcm-wc").innerHTML = (cells === t ? '<span class="rc-ok">✓ the blocks spell exactly the tape</span>' : '<span class="rc-bad">✗ the blocks differ from the tape</span>') +
+      "; " + bl.length + " tokens for " + X.fmt(t.length) + " cells";
+    var f = X.firstMatch(t), r3 = $("rcm-r");
+    if (!f) r3.innerHTML = "The tape fits none of the 14 templates: this event lies inside a cycle or in an irregular stretch between phases. Where no template fits, the executor works move by move, with shift rules across the blocks and single steps in between.";
+    else {
+      var e = f.r.ev, cs = X.counts(f.r, f.xs, true), pred = X.inst(f.r, cs), later = R.t[n + e];
+      var ok = later !== undefined && X.trim(later) === X.trim(pred);
+      r3.innerHTML = "It is the start of <b>" + X.ruleName(f.r) + "</b> (" + e + " events a cycle) with x = (" + f.xs.join(", ") + "): " +
+        "<span class=\"mono\">" + X.text(f.r, X.counts(f.r, f.xs, false)) + "</span>. The rule says that " + e + " events later the tape is the template with counts " +
+        X.counts(f.r, f.xs, true).join(", ") + ". " + (later === undefined ? "" : ok ? '<span class="rc-ok">✓ the machine is there at event ' + X.fmt(n + e) + ", step " + X.fmt(R.k[n + e]) + "</span>"
+        : '<span class="rc-bad">✗ the machine differs at event ' + X.fmt(n + e) + "</span>");
+    }
+    var p = (/^0((?:1011001)*)/.exec(t) || ["", ""])[1].length / 7;
+    $("rcm-g").innerHTML = "Not yet: the left block has " + p + " seven-cell words. The run first reaches C(r), with r = 16,797,709, at event 6,086,451 and step 1,818,198,163,340,705 (computed). This moment is " +
+      (n / 6086451 * 100).toFixed(3) + "% of the way in events. Lean replays that whole start-up in 5,037,044 executor moves (<code>arrive_run</code>).";
+  }
+  sl.addEventListener("input", show);
+  $("rcm-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  $("rcm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  document.querySelectorAll("[data-rcm]").forEach(function (b) { b.addEventListener("click", function () { sl.value = b.dataset.rcm; show(); }); });
+  X.onTheme(show);
+  show();
+})();
+</script>
+</section>
 <section id="shape">
-  <span class="eyebrow">First look</span>
+  <span class="eyebrow">Level 1 · First look</span>
   <h2>The shape of the run</h2>
 <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>
 <svg viewBox="0 0 560 240" role="img" aria-label="cells visited on each side against steps, log scales" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><line x1="40.0" x2="40.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="40.0" y="216" text-anchor="middle" fill="var(--muted)">2^4</text><line x1="116.8" x2="116.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="116.8" y="216" text-anchor="middle" fill="var(--muted)">2^8</text><line x1="193.6" x2="193.6" y1="20.0" y2="200" stroke="var(--line)"/><text x="193.6" y="216" text-anchor="middle" fill="var(--muted)">2^12</text><line x1="270.4" x2="270.4" y1="20.0" y2="200" stroke="var(--line)"/><text x="270.4" y="216" text-anchor="middle" fill="var(--muted)">2^16</text><line x1="347.2" x2="347.2" y1="20.0" y2="200" stroke="var(--line)"/><text x="347.2" y="216" text-anchor="middle" fill="var(--muted)">2^20</text><line x1="424.0" x2="424.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="424.0" y="216" text-anchor="middle" fill="var(--muted)">2^24</text><line x1="500.8" x2="500.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="500.8" y="216" text-anchor="middle" fill="var(--muted)">2^28</text><line x1="40" x2="520" y1="200.0" y2="200.0" stroke="var(--line)"/><text x="34" y="204.0" text-anchor="end" fill="var(--muted)">2^0</text><line x1="40" x2="520" y1="157.6" y2="157.6" stroke="var(--line)"/><text x="34" y="161.6" text-anchor="end" fill="var(--muted)">2^4</text><line x1="40" x2="520" y1="115.2" y2="115.2" stroke="var(--line)"/><text x="34" y="119.2" text-anchor="end" fill="var(--muted)">2^8</text><line x1="40" x2="520" y1="72.7" y2="72.7" stroke="var(--line)"/><text x="34" y="76.7" text-anchor="end" fill="var(--muted)">2^12</text><path d="M40.0,175.4 L59.2,175.4 L78.4,170.2 L97.6,163.3 L116.8,160.8 L136.0,156.7 L155.2,153.4 L174.4,147.5 L193.6,145.6 L212.8,141.8 L232.0,136.1 L251.2,131.3 L270.4,127.9 L289.6,121.9 L308.8,114.5 L328.0,108.9 L347.2,105.0 L366.4,101.2 L385.6,95.2 L404.8,88.0 L424.0,82.1 L443.2,77.9 L462.4,74.1 L481.6,69.8 L500.8,61.9 L520.0,55.6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M40.0,175.4 L59.2,175.4 L78.4,170.2 L97.6,166.4 L116.8,160.8 L136.0,156.7 L155.2,150.8 L174.4,146.5 L193.6,139.3 L212.8,133.5 L232.0,128.8 L251.2,123.4 L270.4,117.4 L289.6,112.5 L308.8,108.0 L328.0,102.1 L347.2,96.1 L366.4,91.0 L385.6,86.1 L404.8,81.7 L424.0,76.2 L443.2,69.7 L462.4,64.4 L481.6,59.4 L500.8,54.9 L520.0,50.6" fill="none" stroke="var(--head)" stroke-width="2"/><text x="520" y="24.0" text-anchor="end" fill="var(--fg2)"><tspan fill="var(--accent)">&#9632; left of start</tspan>  <tspan fill="var(--head)">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>
@@ -299,28 +643,273 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
 <section id="words">
-  <span class="eyebrow">Tape as words</span>
+  <span class="eyebrow">Level 1 to level 2</span>
   <h2>Seven-cell words on the left, three-cell words on the right</h2>
-<p>Look at the tape each time the head, in state E, reaches the left end. It is a block of seven-cell words <code>1011001</code>, a short irregular zone, and then blocks of the three-cell word <code>011</code> separated by a few zeros. The last block, <code>(011)^r</code>, ends the tape.</p>
-<p>Going right, the head shifts a block of three-cell words by one cell. Going left, it crosses two words at a time. So what happens at the end of a block depends only on whether its length is even or odd: every rule found has the form &ldquo;for all lengths of this parity&rdquo;.</p>
+<div class="col">
+<p>Look at the tape each time the head, in state E, reaches the left end of the visited tape: an <em>event</em>. The
+tape is then a block of seven-cell words <code>1011001</code>, a short irregular zone, and then blocks of the
+three-cell word <code>011</code> separated by a few zeros. The last block, <code>(011)^r</code>, ends the tape.</p>
+<p>Going right, the head shifts a block of three-cell words by one cell (3 steps a word). Going left, it crosses two
+words at a time (18 steps). So what happens at the end of a block depends only on whether its length is even or odd:
+every cycle rule the proof needed has the form "for all lengths of this parity".</p>
+<p>The Lean proof works at this level with a <em>symbolic executor</em>: a program whose tape is a list of cells and
+blocks <code>(w)^n</code>, where n may be <code>c + a x</code> with x unknown. One move of the executor either crosses
+a whole block with a <em>shift rule</em>, or makes one ordinary step (opening a block only when its count is surely
+at least 1). A shift rule says: in state q, with the word u just behind the head, the head crosses k copies of a word
+w and leaves the word v behind it, in s steps, without looking at anything else. Each of the 31 shift rules is a
+Lean statement about the machine for <em>every</em> tape around those cells, checked by the kernel
+(<code>shRTbl_ok</code>, <code>shLTbl_ok</code> in <code>lean/ExecData.lean</code>), and the soundness theorem
+<code>run_sound</code> (<code>lean/Exec.lean</code>, kernel) says that whatever the executor does in some number of
+moves, the machine does, for every value of the unknowns. That is the theorem that makes level 2 answer the same as
+level 1.</p>
+</div>
+<div class="panel" id="rc-shift">
+ <div class="controls">
+  <label class="small" for="rcs-r">Shift rule</label>
+  <select id="rcs-r" style="max-width:100%"></select>
+  <label class="small" for="rcs-n">crossings n</label>
+  <input type="text" class="rc-num" id="rcs-n" value="5" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcs-go">Run the machine</button>
+  <button type="button" id="rcs-all">Check all 31, n = 1 to 12</button>
+ </div>
+ <div class="rc-out" id="rcs-out"></div>
+ <div class="cap">The browser writes u, then n crossings' worth of copies of w, between twelve random cells on each side, puts the head in state q where the rule says, and runs the real machine for n&middot;s steps. The rule holds if the head never reads a random cell, ends in state q at the far side, and the cells read u v<sup>n</sup> as the rule says. Words are written nearest cell first, as in the Lean file, so on the left of the head they appear reversed.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sel = $("rcs-r"), seed = 1;
+  X.D.shift.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = "sh" + r.d + r.i + ": " + r.q + (r.d === "R" ? " going right" : " going left") + ", carrying " + (r.u || "nothing") + ", " + (r.k > 1 ? r.k + " copies of " : "") + r.w + " at a time, " + r.s + " steps";
+    sel.appendChild(o);
+  });
+  function one() {
+    var r = X.D.shift[+sel.value], n = Math.max(1, Math.min(200, parseInt($("rcs-n").value, 10) || 1));
+    $("rcs-n").value = n;
+    var c = X.checkShift(r, n, X.rng(seed++));
+    var hd = function (s, p) { return s.slice(0, p) + '<span style="background:var(--head);color:var(--surface);border-radius:2px">' + s[p] + "</span>" + s.slice(p + 1); };
+    $("rcs-out").innerHTML =
+      '<div class="small">before, head in state ' + r.q + ':</div><div class="rc-words">' + hd(c.tape, c.start) + "</div>" +
+      '<div class="small" style="margin-top:6px">after ' + X.fmt(c.steps) + " steps, head in state " + r.q + ":</div><div class=\"rc-words\">" + hd(c.got, Math.min(c.end, c.got.length - 1)) + "</div>" +
+      '<p>' + (c.ok ? '<span class="rc-ok">✓ the machine did what sh' + r.d + r.i + " says: " + n + " crossing" + (n > 1 ? "s" : "") + " in " + n + " &times; " + r.s + " = " + X.fmt(c.steps) + " steps, the twelve random cells on each side untouched and unread</span>"
+        : '<span class="rc-bad">✗ the machine did not do what the rule says</span>') + "</p>";
+  }
+  $("rcs-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rcs-all").addEventListener("click", function () {
+    var ok = 0, all = 0, bad = [];
+    X.D.shift.forEach(function (r) { for (var n = 1; n <= 12; n++) { all++; if (X.checkShift(r, n, X.rng(seed++)).ok) ok++; else bad.push("sh" + r.d + r.i); } });
+    $("rcs-out").innerHTML = ok === all ? '<span class="rc-ok">✓ all ' + all + " checks passed: 31 rules, n = 1 to 12 crossings, fresh random surroundings each time</span>"
+      : '<span class="rc-bad">✗ ' + (all - ok) + " of " + all + " checks failed: " + bad.join(", ") + "</span>";
+  });
+  one();
+})();
+</script>
 </section>
 <section id="phases">
-  <span class="eyebrow">Macro behaviour</span>
+  <span class="eyebrow">Level 2 to level 3</span>
   <h2>Collect, expand, drain</h2>
-<p>Three regular phases take almost all the time. p counts the seven-cell words, q or m the three-cell words of the middle block, r those of the last block.</p>
-<table><tr><th>phase</th><th>tape when state E reaches the left end</th><th>one cycle</th></tr><tr><td>collect</td><td><code>0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code></td><td>2 visits: p + 2, q &minus; 2</td></tr><tr><td>expand</td><td><code>0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code></td><td>4 visits: p &minus; 2, m + 14</td></tr><tr><td>drain</td><td><code>0 (1011001)^p 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code></td><td>72 visits: p &minus; 52, r + 414</td></tr></table>
-<p>Collecting turns three-cell words into seven-cell words one for one; expanding gives seven three-cell words back for each seven-cell word. So each round the blocks are about seven times longer: about 600, 4,370, 30,750, 215,000, 1,506,000 words. Collect and expand are proved in Lean for any number of cycles, by hand and again, with the drain, by the executor.</p>
-<p>Between the phases there are short irregular stretches where the separators collide. Usually the next round starts. Sometimes the stretch ends in the drain pattern: then the whole left block is poured into the last block (414 words for 52), and the left part starts again from a small state, in front of a much longer last block.</p>
+<div class="col">
+<p>Three regular phases take almost all the time. p counts the seven-cell words, q or m the three-cell words of the
+middle block, r those of the last block.</p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>phase</th><th>tape when state E reaches the left end</th><th>one cycle</th></tr></thead><tbody>
+<tr><td>collect</td><td><code>0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code>, q even, r odd</td><td>2 events: p + 2, q &minus; 2</td></tr>
+<tr><td>expand</td><td><code>0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code>, m even, r odd</td><td>4 events: p &minus; 2, m + 14</td></tr>
+<tr><td>drain</td><td><code>0 (1011001)^p 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code>, r odd</td><td>72 events: p &minus; 52, r + 414</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Collecting turns three-cell words into seven-cell words one for one; expanding gives seven three-cell words back
+for each seven-cell word. So each round the blocks are about seven times longer: about 600, 4,370, 30,750, 215,000,
+1,506,000 words. Between the phases there are short irregular stretches where the separators collide, and trains of
+cars <code>(011)^4 0</code> are built and taken apart. Usually the next round starts. Sometimes the stretch ends in
+the drain pattern: then the whole left block is poured into the last block (414 words of three for 52 words of
+seven), and the left part starts again from a small state, in front of a much longer last block.</p>
+<p>At level 3 a whole cycle of a phase is one statement. A <em>cycle rule</em> is a template of the whole tape whose
+counts are <code>b + 2x</code> before and <code>b' + 2x</code> after, one x for each block that changes. It is proved
+for all values of the x by one run of the executor itself, without cycle rules, from the template before to the
+template after (<code>ruleOK_of_run</code>, kernel; the run is evaluated by <code>native_decide</code>:
+<code>rule0_ok</code> &hellip; <code>rule11_ok</code> in <code>lean/ExecData.lean</code>). The executor then applies
+a rule N times in one move, N as large as the shrinking counts allow; the induction over N is in Lean
+(<code>rule_instN</code>, kernel), so the choice of N is not trusted. Twelve rules were enough: eleven are collect or
+expand, plain or with inert trains in between, and one, rule 8, is the drain. Separately, <code>lean/Phases.lean</code>
+proves the plain collect and expand cycles by hand for any number of cycles, with the kernel only
+(<code>collect2</code>, <code>collect_n</code>, <code>expand4</code>, <code>expand_n</code>); the replay does not need
+them.</p>
+</div>
+<div class="panel" id="rc-rules">
+ <div class="controls">
+  <label class="small" for="rcr-r">Rule</label>
+  <select id="rcr-r" style="max-width:100%"></select>
+  <label class="small" for="rcr-x">x</label>
+  <input type="text" class="rc-num" id="rcr-x" value="2" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcr-go">Run the machine</button>
+  <button type="button" id="rcr-all">Check all 14, x = 0 to 3</button>
+ </div>
+ <div class="rc-out" id="rcr-out"></div>
+ <div class="cap">Every block that has a variable gets the same x here. The browser writes the template on a blank tape, puts the head on its first cell in state E, runs the real machine until state E has reached the left end the rule's number of times, and compares the tape with the template after. The drain (rule 8) takes about five million steps. <code>lean/Phases.lean</code> writes the blocks of three-cell words with the six-cell word <code>110110</code> and allows any count b + x, not only b + 2x.</div>
+</div>
+<div class="col"><p>The same rules can be looked for in the run itself. The scan below runs the machine from blank tape through
+its first 2,600 events, tests every event against the 14 templates, and wherever one fits checks the rule's
+prediction against the event that many events later.</p></div>
+<div class="panel" id="rc-scan">
+ <div class="controls"><button type="button" class="primary" id="rcq-go">Scan the first 2,600 events</button></div>
+ <div class="rc-out" id="rcq-out"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sel = $("rcr-r"), RS = X.allRules();
+  var LV = { kernel: '<span class="ev k">Kernel</span>', native: '<span class="ev n">native_decide</span>' };
+  RS.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = (r.name ? r.name + " (Phases.lean)" : "rule " + r.n) + ", " + r.ev + " events a cycle";
+    sel.appendChild(o);
+  });
+  function stepsOf(r, xs) { if (!r.steps) return null; var s = r.steps[0]; for (var i = 0; i < xs.length; i++) s += r.steps[i + 1] * xs[i]; return s; }
+  function one() {
+    var r = RS[+sel.value], x = Math.max(0, Math.min(40, parseInt($("rcr-x").value, 10) || 0));
+    $("rcr-x").value = x;
+    var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x);
+    var c = X.checkRule(r, xs), st = stepsOf(r, xs);
+    $("rcr-out").innerHTML = "<p>" + LV[r.level || "native"] + " " + (r.name ? "<code>" + r.name + "</code>" : "<code>rule" + r.n + "_ok</code>, " + X.fmt(r.moves) + " executor moves in Lean") + "</p>" +
+      '<div class="small">before (x = ' + x + "):</div><div class=\"rc-words\">E&gt; " + X.text(r, X.counts(r, xs, false)) + "</div>" +
+      '<div class="small" style="margin-top:6px">after, as the rule says:</div><div class="rc-words">E&gt; ' + X.text(r, X.counts(r, xs, true)) + "</div>" +
+      "<p>" + (c.ok ? '<span class="rc-ok">✓ the machine arrives there: ' + c.events + " events, " + X.fmt(c.steps) + " steps</span>" : '<span class="rc-bad">✗ the machine ends elsewhere</span>') +
+      (st === null ? "" : st === c.steps ? ' <span class="rc-ok">✓ and the step count is the one in the Lean statement, ' + X.fmt(st) + "</span>" : ' <span class="rc-bad">✗ the Lean statement says ' + X.fmt(st) + " steps</span>") + "</p>";
+  }
+  $("rcr-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rcr-all").addEventListener("click", function () {
+    var out = $("rcr-out"); out.textContent = "running…";
+    setTimeout(function () {
+      var ok = 0, all = 0, bad = [];
+      RS.forEach(function (r) { for (var x = 0; x <= 3; x++) { var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x); var c = X.checkRule(r, xs), st = stepsOf(r, xs); all++; if (c.ok && (st === null || st === c.steps)) ok++; else bad.push(X.ruleName(r) + " x=" + x); } });
+      out.innerHTML = ok === all ? '<span class="rc-ok">✓ all ' + all + " checks passed: 14 rules, x = 0 to 3, the two Phases.lean rules with their step counts</span>" : '<span class="rc-bad">✗ ' + bad.join(", ") + "</span>";
+    }, 20);
+  });
+  $("rcq-go").addEventListener("click", function () {
+    var out = $("rcq-out"); out.textContent = "running the machine…";
+    setTimeout(function () {
+      var R = X.events(2672), N = Math.min(2600, R.t.length - 73), hit = {}, good = {}, none = 0, first = {};
+      for (var n = 1; n <= N; n++) {
+        var any = false;
+        RS.forEach(function (r) {
+          var xs = X.match(r, R.t[n]); if (!xs) return;
+          var key = X.ruleName(r); any = true; hit[key] = (hit[key] || 0) + 1; if (!first[key]) first[key] = n;
+          if (X.trim(R.t[n + r.ev]) === X.trim(X.inst(r, X.counts(r, xs, true)))) good[key] = (good[key] || 0) + 1;
+        });
+        if (!any) none++;
+      }
+      var rows = RS.map(function (r) { var key = X.ruleName(r); return hit[key] ? "<tr><td>" + key + "</td><td>" + X.fmt(hit[key]) + "</td><td>" + X.fmt(first[key]) + "</td><td>" + (good[key] === hit[key] ? '<span class="rc-ok">✓ ' + X.fmt(good[key]) + "</span>" : '<span class="rc-bad">✗ ' + X.fmt(good[key] || 0) + "</span>") + "</td></tr>" : ""; }).join("");
+      out.innerHTML = "<p>" + X.fmt(N) + " events, " + X.fmt(R.k[N]) + " steps. " + X.fmt(N - none) + " events fit a template; the others lie inside a cycle or in the irregular stretches.</p>" +
+        '<div style="overflow-x:auto"><table class="rc-tt"><thead><tr><th>rule</th><th>events where it fits</th><th>first at event</th><th>predictions confirmed by the machine</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+        '<p class="small">The other rules fit only later in the run; the first drain, for example, is at event 2,260,329 (computed).</p>';
+    }, 20);
+  });
+  one();
+})();
+</script>
 </section>
 <section id="cycle">
-  <span class="eyebrow">Why it never halts</span>
+  <span class="eyebrow">Level 3 to level 4</span>
   <h2>The left part comes back to the same state</h2>
-<p>The left part of the tape never needs more of the last block than the parity of its length, and a drain adds an even number of words. After the second drain the left part reaches a state that it meets again, exactly, two drains later:</p><p style='text-align:center'><code>E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code></p><p>first with r = 16,797,709 (step 1,818,198,163,340,705), then with r = 337,840,637 (step 725,814,446,706,290,623), then 658,883,565, and so on: 321,042,928 more each time, 116,320,154 visits of the left end apart.</p>
-<p>To prove that this goes on for ever, one period is run with r replaced by <code>65 + 2x</code>, x unknown. Whenever a step would depend on the value of x the run stops; it never had to. It ends in the same configuration with <code>65 + 321,042,928 + 2x</code>. So every odd r &ge; 65 leads to a larger odd r, and no halting step occurs on the way. A configuration that keeps coming back, larger, never halts.</p>
-<p>All of this is a Lean proof. The program that runs the period (a <em>symbolic executor</em>: it moves over whole blocks at once and applies a proved cycle many times in one go) is written in Lean and proved correct once: whatever it does, the machine does, for every x. Lean then runs it: 5.0 million moves from blank tape to the first C(r), 5.6 million moves for one period. Those two runs are done by compiled code (<code>native_decide</code>), which is the one thing trusted beyond Lean's kernel. The exact step counts quoted above come from separate simulators, which agree with each other and with a plain simulator on the first 10<sup>10</sup> steps.</p>
+<div class="col">
+<p>The left part of the tape never needs more of the last block than the parity of its length, and a drain adds an
+even number of words. After the second drain the left part reaches a state that it meets again, exactly, two drains
+later:</p>
+<p style="text-align:center"><code>C(r) = E&gt; 0 (1011001)^59 1011 00000 1101100110110 (011)^16 001101100110 (011)^r</code></p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>event</th><th>step</th><th>what happens</th></tr></thead><tbody>
+<tr><td>2,260,329</td><td>6.7&middot;10<sup>13</sup></td><td>first drain: p 1,505,827 &rarr; 115, r 4,001 &rarr; 11,991,785</td></tr>
+<tr><td>5,251,395</td><td>1.07&middot;10<sup>15</sup></td><td>second drain: p 603,155 &rarr; 111, r &rarr; 16,797,295</td></tr>
+<tr><td>6,086,451</td><td>1,818,198,163,340,705</td><td><b>C(16,797,709)</b>, the first time</td></tr>
+<tr><td>59,675,352</td><td>5.4&middot;10<sup>16</sup></td><td>drain after 11 phases: p 35,724,983 &rarr; 99, r &rarr; 301,226,589</td></tr>
+<tr><td>116,039,645</td><td>6.0&middot;10<sup>17</sup></td><td>drain after 10 phases: p 4,598,419 &rarr; 111, r &rarr; 337,840,223</td></tr>
+<tr><td>122,406,605</td><td>725,814,446,706,290,623</td><td><b>C(337,840,637)</b> = C(16,797,709 + 321,042,928)</td></tr>
+</tbody></table></div>
+<div class="col">
+<p class="small">Events and steps computed by the simulators (<code>py/closure/accel.py</code>, <code>py/replay/engine.py</code>, <code>verify/sim3.cpp</code>, which agree); the Lean statement does not count them.</p>
+<p>One period is two epochs, two drains. To prove that it goes on for ever, one period is run with r replaced by
+<code>65 + 2x</code>, x unknown. Whenever a step would depend on the value of x the executor stops; it never had to.
+It ends in the same configuration with <code>65 + 321,042,928 + 2x</code>, after 5,581,714 moves
+(<code>period_run</code>, <code>lean/Period.lean</code>, evaluated by <code>native_decide</code>). With
+<code>run_pos</code> this is the theorem <code>grow_cyc</code>: for every x, C(65 + 2x) reaches C(65 + 2(x +
+160,521,464)) in at least one step. The run from blank tape reaches C(16,797,709) = C(65 + 2&middot;8,398,822)
+(<code>reach_cyc</code>: 5,037,044 moves, <code>lean/Arrive.lean</code>). And the kernel proves the last step,
+<code>nonhalting_of_growth_cycle</code> in <code>lean/Cycle.lean</code>: if the run reaches some C(65 + 2x) and every
+C(65 + 2x) reaches a later one in at least one step, then the run from blank tape is at such a configuration at
+later and later steps, so it is still running at every step: the machine never halts.</p>
+<h3>Why only the parity of r matters</h3>
+<p>The claim behind the symbolic period can be watched on the real machine for small r: start from C(r) for two odd
+values of r and compare the two runs event by event. Up to the last block the two tapes are the same, and the last
+blocks keep their difference. Start one of them from an even r and the tapes part at once; C(r) with r even halts,
+at event 21,362,421 (computed, <code>py/closure/classes.py</code>).</p>
+</div>
+<div class="panel" id="rc-par">
+ <div class="controls">
+  <label class="small" for="rcp-a">r</label><input type="text" class="rc-num" id="rcp-a" value="65" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <label class="small" for="rcp-b">and r</label><input type="text" class="rc-num" id="rcp-b" value="101" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <label class="small" for="rcp-e">events</label>
+  <select id="rcp-e"><option value="200">200</option><option value="1000" selected>1,000</option><option value="3000">3,000</option></select>
+  <button type="button" class="primary" id="rcp-go">Run both</button>
+ </div>
+ <canvas id="rcp-cv" style="width:100%;height:150px;margin-top:12px" aria-label="Length of the left part and of the last block, event by event"></canvas>
+ <div class="rc-out" id="rcp-out"></div>
+ <div class="cap">The left part is the tape from the head to the start of the last block <code>(011)^r</code>; the plot shows its length (in cells) and the last block's count, event by event, for the first r. 3,000 events are about 1.5&middot;10<sup>8</sup> steps for each run.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); };
+  function C(r) { return "0" + X.rep("1011001", 59) + "1011" + "00000" + "1101100110110" + X.rep("011", 16) + "001101100110" + X.rep("011", r); }
+  function split(s) { var m = /^(.*?)((?:011)*)$/.exec(s); return [m[1], m[2].length / 3]; }
+  var last = null;
+  function draw() {
+    var cv = $("rcp-cv"); if (!last) return;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 150, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var A = last.left, B = last.blk, n = A.length, mA = Math.max.apply(null, A), mB = Math.max.apply(null, B);
+    g.font = "11px " + X.css("--mono").split(",")[0];
+    [[A, mA, "--rcA", "left part, cells (max " + X.fmt(mA) + ")"], [B, mB, "--rcB", "last block r (max " + X.fmt(mB) + ")"]].forEach(function (S, j) {
+      g.strokeStyle = X.css(S[2]); g.lineWidth = 1.5; g.beginPath();
+      for (var i = 0; i < n; i++) { var x = i / Math.max(1, n - 1) * (w - 2) + 1, y = h - 18 - S[0][i] / S[1] * (h - 48); if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.stroke(); g.fillStyle = X.css(S[2]); g.fillText(S[3], 4, 12 + 13 * j);
+    });
+    g.fillStyle = X.css("--muted"); g.fillText("event 1", 2, h - 4); var t = "event " + X.fmt(n); g.fillText(t, w - g.measureText(t).width - 2, h - 4);
+  }
+  function go() {
+    var a = parseInt($("rcp-a").value, 10), b = parseInt($("rcp-b").value, 10), N = +$("rcp-e").value, out = $("rcp-out");
+    if (!(a >= 1 && a <= 100000 && b >= 1 && b <= 100000)) { out.innerHTML = '<span class="rc-bad">Give two values of r between 1 and 100,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var ma = new X.M().load(C(a), 4), mb = new X.M().load(C(b), 4), part = 0, diffOk = true, left = [], blk = [], halt = "";
+      for (var e = 1; e <= N; e++) {
+        var ha = ma.toEvent(1e9), hb = mb.toEvent(1e9);
+        if (!ha || !hb) { halt = !ha ? "r = " + a : "r = " + b; break; }
+        var A = split(ma.right()), B = split(mb.right());
+        left.push(A[0].length); blk.push(A[1]);
+        if (!part && A[0] !== B[0]) part = e;
+        if (A[1] - B[1] !== a - b) diffOk = false;
+      }
+      last = { left: left, blk: blk }; draw();
+      var same = !part && !halt;
+      out.innerHTML = halt ? '<span class="rc-bad">The run from ' + halt + " stopped before event " + X.fmt(N) + ".</span>" :
+        same ? '<span class="rc-ok">✓ the two left parts are identical at all ' + X.fmt(N) + " events</span>" + (diffOk ? ' <span class="rc-ok">✓ and the last blocks differ by ' + (a - b) + " words at every event</span>" : "") +
+          ". After " + X.fmt(N) + " events the last block has " + X.fmt(left.length ? blk[blk.length - 1] : 0) + " words for r = " + a + " (" + X.fmt(ma.k) + " steps; " + X.fmt(mb.k) + " steps for r = " + b + ")."
+        : "The left parts first differ at event " + X.fmt(part) + ((a - b) % 2 ? ": the two values of r have different parity." : ".");
+    }, 20);
+  }
+  $("rcp-go").addEventListener("click", go);
+  X.onTheme(draw);
+  go();
+})();
+</script>
 </section>
 <section id="try-cycle">
-  <span class="eyebrow">Try it</span>
+  <span class="eyebrow">Level 4 · Try it</span>
   <h2>Apply the growth cycle yourself</h2>
 <div class="col"><p>Once the left part of the tape has reached its recurring state, the run is one rule repeated: the last block gains 321,042,928 words and everything left of it comes back exactly. Press the button to follow the orbit on the number r alone.</p></div>
   <div class="panel stp" data-stepper="try-cycle"></div>
@@ -328,8 +917,83 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="near">
   <span class="eyebrow">A narrow escape</span>
   <h2>Almost the same tape halts</h2>
-<p>With 61 words instead of 59 in the left block, the same pattern halts after about 1.8 million steps, for every odd r. With r even instead of odd, it halts too, much later. Tapes of the same general shape with other counts halt in a few percent of random trials.</p>
-<p>So there is no simple description of &ldquo;safe tapes&rdquo; that contains the run: it is safe because it sits on one exact orbit. That is why the automatic deciders, which look for such descriptions, left this machine open, and why the proof follows the orbit itself.</p>
+<div class="col">
+<p>The same node with other counts is not safe. With 61 words instead of 59 in the left block,</p>
+<p style="text-align:center"><code>E&gt; 0 (1011001)^61 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code>, r odd &ge; 65,</p>
+<p><b>halts</b> after 1,772,276 + 5,220 (r &minus; 65) steps (computed by <code>py/closure/classes.py</code>, confirmed by
+plain simulation for r = 65, 67, 71). C(r) itself with r even halts too, much later, at event 21,362,421. So there is
+no simple description of "safe tapes" that contains the run: it is safe because it sits on one exact orbit. That is
+why the automatic deciders, which look for such descriptions, left this machine open, and why the proof follows the
+orbit itself.</p>
+<p>The browser can run the halting neighbour: pick r and the number of seven-cell words, and the real machine runs
+from that tape.</p>
+</div>
+<div class="panel" id="rc-near">
+ <div class="controls">
+  <label class="small" for="rcn-p">left block</label>
+  <select id="rcn-p"><option value="61" selected>61 words (the neighbour)</option><option value="59">59 words, C(r) itself</option></select>
+  <label class="small" for="rcn-r">r</label><input type="text" class="rc-num" id="rcn-r" value="65" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcn-go">Run the machine</button>
+ </div>
+ <div class="rc-out" id="rcn-out"></div>
+ <div class="cap">With 59 words the browser stops after 2&middot;10<sup>7</sup> steps; that the run from C(r) never halts for odd r &ge; 65 is the Lean theorem <code>grow_cyc</code>, not something a bounded run can show.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); };
+  function go() {
+    var p = +$("rcn-p").value, r = parseInt($("rcn-r").value, 10), out = $("rcn-out");
+    if (!(r >= 1 && r <= 5000)) { out.innerHTML = '<span class="rc-bad">Give r between 1 and 5,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var t = "0" + X.rep("1011001", p) + "1011" + "00000" + "1101100110110" + X.rep("011", 16) + "001101100110" + X.rep("011", r);
+      var m = new X.M().load(t, 4), lim = p === 61 ? 4e7 : 2e7;
+      while (!m.halted && m.k < lim) m.toEvent(lim - m.k);
+      var f = 1772276 + 5220 * (r - 65), odd = r % 2 === 1 && r >= 65;
+      if (m.halted) out.innerHTML = "The machine halts after <b>" + X.fmt(m.k) + "</b> steps, after " + X.fmt(m.ev) + " events (state F reads a 0). " +
+        (p === 61 && odd ? (m.k === f ? '<span class="rc-ok">✓ 1,772,276 + 5,220 &times; ' + (r - 65) + " = " + X.fmt(f) + ", as computed in the repository</span>" : '<span class="rc-bad">✗ the formula gives ' + X.fmt(f) + "</span>") : "");
+      else out.innerHTML = "No halt in " + X.fmt(m.k) + " steps (" + X.fmt(m.ev) + " events)." + (p === 61 && odd ? ' <span class="rc-bad">✗ the formula says it halts at step ' + X.fmt(f) + "</span>" : "");
+    }, 20);
+  }
+  $("rcn-go").addEventListener("click", go);
+  go();
+})();
+</script>
+</section>
+<section id="bottom">
+  <span class="eyebrow">The bottom line</span>
+  <h2>It never halts</h2>
+<div class="col">
+<p style="font:700 1.3rem/1.3 var(--display);margin-top:0">It never halts.</p>
+<p>Started on a blank tape, 1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA runs for ever. From step
+1,818,198,163,340,705 on its run is the growth cycle: C(r) comes back as C(r + 321,042,928) after 116,320,154
+arrivals of state E at the left end, and so on without end.</p>
+<p>The Lean theorem is <code>nonhalt : ¬ HaltsFromBlank</code> in <code>lean/Replay.lean</code>, ledger level
+<span class="ev n">native_decide</span>. What it rests on, exactly:</p>
+<ul>
+<li><b>The Lean kernel</b> checks the definitions of the machine, the soundness of the symbolic executor
+(<code>run_sound</code>, <code>run_pos</code>, <code>rule_instN</code>, <code>ruleOK_of_run</code> in
+<code>lean/Exec.lean</code>), the 31 shift rules (<code>lean/ExecData.lean</code>, each by <code>rfl</code>) and the
+last implication, <code>nonhalting_of_growth_cycle</code> (<code>lean/Cycle.lean</code>).</li>
+<li><b>Fourteen evaluations by <code>native_decide</code></b>, which trust Lean's compiler as well as its kernel:
+the twelve cycle rules (<code>rule0_ok</code> &hellip; <code>rule11_ok</code>, from 422 to 201,007 executor moves
+each), the arrival from blank tape (<code>arrive_run</code>, 5,037,044 moves) and the period
+(<code>period_run</code>, 5,581,714 moves). <code>#print axioms nonhalt</code> lists <code>propext</code>,
+<code>Quot.sound</code> and these fourteen evaluations; there is no <code>sorry</code>.</li>
+<li><b>Not used</b>: any simulator outside Lean. The executor's strategy (which rule, how many times, how to
+re-bracket the tape) is not trusted; only its soundness is, and that is proved.</li>
+<li><b>Not stated in Lean</b>: the numbers of steps and events, such as the step 1,818,198,163,340,705 at which
+C(16,797,709) is first reached; Lean says only "reaches, in at least one step". Those counts come from
+<code>py/closure/accel.py</code>, <code>py/replay/engine.py</code> and <code>verify/sim3.cpp</code>, which agree
+(computed, not proved).</li>
+</ul>
+<p>The short cycle rules can be checked by the kernel alone (<code>decide +kernel</code> was tried on rule 4, 422
+moves, and rule 11, 3,255 moves); the drain rule and the two long runs have not been, so there is no kernel-only
+proof of <code>nonhalt</code> yet. A second proof of the same statement, in Coq on top of busycoq
+(<code>coq/H65826.v</code>, <code>nonhalt : ~ halts tm c0</code>), evaluates all its runs inside Coq's kernel with
+<code>vm_compute</code> and reports no axioms; the ledger lists it as kernel level.</p>
+</div>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>

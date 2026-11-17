@@ -72,6 +72,7 @@ moves with the intermediate configurations written out (about 900 pieces, roughl
 python3 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/py/rules.py     # rewrites lean/Rules.lean
 python3 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/py/cert.py      # rewrites lean/Tables.lean
 python3 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/py/turns.py 1e6 | grep ' L  B> '   # the list at each left turn
+python3 holdouts/1RB0LF_1LC0LA_1RA0RD_---1RE_1LA1RC_0LB0RC/py/page.py      # explainer sections from page/*.html into status.json
 ```
 
 <!-- related machines: written by holdouts/related.py -->

@@ -1,0 +1,101 @@
+<div class="col">
+<p>Three regular phases take almost all the time. p counts the seven-cell words, q or m the three-cell words of the
+middle block, r those of the last block.</p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>phase</th><th>tape when state E reaches the left end</th><th>one cycle</th></tr></thead><tbody>
+<tr><td>collect</td><td><code>0 (1011001)^p (101)^5 10 (011)^q 000 (011)^r</code>, q even, r odd</td><td>2 events: p + 2, q &minus; 2</td></tr>
+<tr><td>expand</td><td><code>0 (1011001)^p 1011 0^5 110110011010 (101)^m 1000 (011)^r</code>, m even, r odd</td><td>4 events: p &minus; 2, m + 14</td></tr>
+<tr><td>drain</td><td><code>0 (1011001)^p 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code>, r odd</td><td>72 events: p &minus; 52, r + 414</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Collecting turns three-cell words into seven-cell words one for one; expanding gives seven three-cell words back
+for each seven-cell word. So each round the blocks are about seven times longer: about 600, 4,370, 30,750, 215,000,
+1,506,000 words. Between the phases there are short irregular stretches where the separators collide, and trains of
+cars <code>(011)^4 0</code> are built and taken apart. Usually the next round starts. Sometimes the stretch ends in
+the drain pattern: then the whole left block is poured into the last block (414 words of three for 52 words of
+seven), and the left part starts again from a small state, in front of a much longer last block.</p>
+<p>At level 3 a whole cycle of a phase is one statement. A <em>cycle rule</em> is a template of the whole tape whose
+counts are <code>b + 2x</code> before and <code>b' + 2x</code> after, one x for each block that changes. It is proved
+for all values of the x by one run of the executor itself, without cycle rules, from the template before to the
+template after (<code>ruleOK_of_run</code>, kernel; the run is evaluated by <code>native_decide</code>:
+<code>rule0_ok</code> &hellip; <code>rule11_ok</code> in <code>lean/ExecData.lean</code>). The executor then applies
+a rule N times in one move, N as large as the shrinking counts allow; the induction over N is in Lean
+(<code>rule_instN</code>, kernel), so the choice of N is not trusted. Twelve rules were enough: eleven are collect or
+expand, plain or with inert trains in between, and one, rule 8, is the drain. Separately, <code>lean/Phases.lean</code>
+proves the plain collect and expand cycles by hand for any number of cycles, with the kernel only
+(<code>collect2</code>, <code>collect_n</code>, <code>expand4</code>, <code>expand_n</code>); the replay does not need
+them.</p>
+</div>
+<div class="panel" id="rc-rules">
+ <div class="controls">
+  <label class="small" for="rcr-r">Rule</label>
+  <select id="rcr-r" style="max-width:100%"></select>
+  <label class="small" for="rcr-x">x</label>
+  <input type="text" class="rc-num" id="rcr-x" value="2" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcr-go">Run the machine</button>
+  <button type="button" id="rcr-all">Check all 14, x = 0 to 3</button>
+ </div>
+ <div class="rc-out" id="rcr-out"></div>
+ <div class="cap">Every block that has a variable gets the same x here. The browser writes the template on a blank tape, puts the head on its first cell in state E, runs the real machine until state E has reached the left end the rule's number of times, and compares the tape with the template after. The drain (rule 8) takes about five million steps. <code>lean/Phases.lean</code> writes the blocks of three-cell words with the six-cell word <code>110110</code> and allows any count b + x, not only b + 2x.</div>
+</div>
+<div class="col"><p>The same rules can be looked for in the run itself. The scan below runs the machine from blank tape through
+its first 2,600 events, tests every event against the 14 templates, and wherever one fits checks the rule's
+prediction against the event that many events later.</p></div>
+<div class="panel" id="rc-scan">
+ <div class="controls"><button type="button" class="primary" id="rcq-go">Scan the first 2,600 events</button></div>
+ <div class="rc-out" id="rcq-out"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); }, sel = $("rcr-r"), RS = X.allRules();
+  var LV = { kernel: '<span class="ev k">Kernel</span>', native: '<span class="ev n">native_decide</span>' };
+  RS.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = (r.name ? r.name + " (Phases.lean)" : "rule " + r.n) + ", " + r.ev + " events a cycle";
+    sel.appendChild(o);
+  });
+  function stepsOf(r, xs) { if (!r.steps) return null; var s = r.steps[0]; for (var i = 0; i < xs.length; i++) s += r.steps[i + 1] * xs[i]; return s; }
+  function one() {
+    var r = RS[+sel.value], x = Math.max(0, Math.min(40, parseInt($("rcr-x").value, 10) || 0));
+    $("rcr-x").value = x;
+    var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x);
+    var c = X.checkRule(r, xs), st = stepsOf(r, xs);
+    $("rcr-out").innerHTML = "<p>" + LV[r.level || "native"] + " " + (r.name ? "<code>" + r.name + "</code>" : "<code>rule" + r.n + "_ok</code>, " + X.fmt(r.moves) + " executor moves in Lean") + "</p>" +
+      '<div class="small">before (x = ' + x + "):</div><div class=\"rc-words\">E&gt; " + X.text(r, X.counts(r, xs, false)) + "</div>" +
+      '<div class="small" style="margin-top:6px">after, as the rule says:</div><div class="rc-words">E&gt; ' + X.text(r, X.counts(r, xs, true)) + "</div>" +
+      "<p>" + (c.ok ? '<span class="rc-ok">✓ the machine arrives there: ' + c.events + " events, " + X.fmt(c.steps) + " steps</span>" : '<span class="rc-bad">✗ the machine ends elsewhere</span>') +
+      (st === null ? "" : st === c.steps ? ' <span class="rc-ok">✓ and the step count is the one in the Lean statement, ' + X.fmt(st) + "</span>" : ' <span class="rc-bad">✗ the Lean statement says ' + X.fmt(st) + " steps</span>") + "</p>";
+  }
+  $("rcr-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rcr-all").addEventListener("click", function () {
+    var out = $("rcr-out"); out.textContent = "running…";
+    setTimeout(function () {
+      var ok = 0, all = 0, bad = [];
+      RS.forEach(function (r) { for (var x = 0; x <= 3; x++) { var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x); var c = X.checkRule(r, xs), st = stepsOf(r, xs); all++; if (c.ok && (st === null || st === c.steps)) ok++; else bad.push(X.ruleName(r) + " x=" + x); } });
+      out.innerHTML = ok === all ? '<span class="rc-ok">✓ all ' + all + " checks passed: 14 rules, x = 0 to 3, the two Phases.lean rules with their step counts</span>" : '<span class="rc-bad">✗ ' + bad.join(", ") + "</span>";
+    }, 20);
+  });
+  $("rcq-go").addEventListener("click", function () {
+    var out = $("rcq-out"); out.textContent = "running the machine…";
+    setTimeout(function () {
+      var R = X.events(2672), N = Math.min(2600, R.t.length - 73), hit = {}, good = {}, none = 0, first = {};
+      for (var n = 1; n <= N; n++) {
+        var any = false;
+        RS.forEach(function (r) {
+          var xs = X.match(r, R.t[n]); if (!xs) return;
+          var key = X.ruleName(r); any = true; hit[key] = (hit[key] || 0) + 1; if (!first[key]) first[key] = n;
+          if (X.trim(R.t[n + r.ev]) === X.trim(X.inst(r, X.counts(r, xs, true)))) good[key] = (good[key] || 0) + 1;
+        });
+        if (!any) none++;
+      }
+      var rows = RS.map(function (r) { var key = X.ruleName(r); return hit[key] ? "<tr><td>" + key + "</td><td>" + X.fmt(hit[key]) + "</td><td>" + X.fmt(first[key]) + "</td><td>" + (good[key] === hit[key] ? '<span class="rc-ok">✓ ' + X.fmt(good[key]) + "</span>" : '<span class="rc-bad">✗ ' + X.fmt(good[key] || 0) + "</span>") + "</td></tr>" : ""; }).join("");
+      out.innerHTML = "<p>" + X.fmt(N) + " events, " + X.fmt(R.k[N]) + " steps. " + X.fmt(N - none) + " events fit a template; the others lie inside a cycle or in the irregular stretches.</p>" +
+        '<div style="overflow-x:auto"><table class="rc-tt"><thead><tr><th>rule</th><th>events where it fits</th><th>first at event</th><th>predictions confirmed by the machine</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+        '<p class="small">The other rules fit only later in the run; the first drain, for example, is at event 2,260,329 (computed).</p>';
+    }, 20);
+  });
+  one();
+})();
+</script>

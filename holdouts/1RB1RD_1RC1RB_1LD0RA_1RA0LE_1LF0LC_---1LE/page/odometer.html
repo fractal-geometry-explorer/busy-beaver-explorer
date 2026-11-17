@@ -1,0 +1,144 @@
+<div class="col">
+<p>Look at the tape each time the head, in state A, steps onto a fresh cell at the right end (a <em>visit</em>). Write <code>n</code> for the word <code>011</code> repeated n times. Then the tape is a list of counters with two-cell words between them, for example at visit 59 (step 10,094):</p>
+<pre>11 01 8 01 5 01 45 0 A&gt;        that is  (011)^11 01 (011)^8 01 (011)^5 01 (011)^45 0</pre>
+<p>The words between counters are <code>11</code> or <code>01</code>. Read <code>11</code> as the bit 0 and <code>01</code> as the bit 1: the tape carries a binary number, one bit between each pair of counters.</p>
+</div>
+<svg viewBox="0 0 600 170" role="img" aria-label="an odometer whose digits are fuel tanks" style="width:100%;max-width:600px;height:auto;font:12px var(--mono);">
+<g fill="var(--accent-soft)" stroke="var(--accent)">
+<rect x="10" y="50" width="90" height="34" rx="5"/><rect x="140" y="50" width="90" height="34" rx="5"/><rect x="270" y="50" width="90" height="34" rx="5"/><rect x="400" y="50" width="120" height="34" rx="5"/></g>
+<g fill="var(--fg)" text-anchor="middle">
+<text x="55" y="72">n3 = 12</text><text x="185" y="72">n2 = 9</text><text x="315" y="72">n1 = 7</text><text x="460" y="72">n0 = 34</text>
+<text x="120" y="72">11</text><text x="250" y="72">11</text><text x="380" y="72">11</text><text x="540" y="72">0  A&gt;</text>
+<text x="120" y="42" fill="var(--muted)">bit 0</text><text x="250" y="42" fill="var(--muted)">bit 0</text><text x="380" y="42" fill="var(--muted)">bit 0</text>
+<text x="55" y="104" fill="var(--muted)">&minus;1 per 8</text><text x="185" y="104" fill="var(--muted)">&minus;1 per 4</text><text x="315" y="104" fill="var(--muted)">&minus;1 per 2</text><text x="460" y="104" fill="var(--muted)">+2 per visit</text>
+<text x="300" y="140" fill="var(--fg2)">each visit adds 1 to the binary number written by the bits;</text>
+<text x="300" y="158" fill="var(--fg2)">tank j pays one unit every 2^j visits</text></g></svg>
+<div class="col">
+<p>One visit adds 1 to that binary number, exactly as a car's odometer ticks: the bits at the right end that are 1 turn to 0, and the first 0 bit turns to 1. The head walks left only as far as that bit and comes back, so most visits are short.</p>
+<p>The counters pay for it. The counter left of a bit loses one unit each time the bit is set (after the bookkeeping of the units that cleared bits pass along), and the last counter gains 2 at every visit. So the counter next to bit j is a tank that loses one unit every 2<sup>j</sup> visits: the last tanks drain fast, the first ones almost never. A visit that sets bit i takes 6(n<sub>0</sub> + &hellip; + n<sub>i&minus;1</sub>) + 4i + 11 steps.</p>
+<p>Because the rule is this regular, any number of visits can be applied at once with a formula, as long as no tank runs low and the number does not overflow. That is what lets a program follow the machine for 10<sup>131</sup> steps.</p>
+<p><span class="ev k">Kernel</span> <code>visit</code> in <code>lean/Zone.lean</code> states this for every number of
+counters, every count and every tape left of the zone: if <code>inc</code>, the increment with its bookkeeping,
+applies to the bits and counts, the machine goes from the zone to the incremented zone. The proof follows the head:
+it walks left through the counters behind the 1 bits (state D turns each <code>011</code> into <code>100</code>),
+turns at the 0 bit, and walks back (state C turns <code>100</code> into <code>011</code>). <code>inc</code> gives no
+answer when every bit is 1 (an overflow) or a count that must pay is 0; those visits are the irregular ones.</p>
+<p>Type a zone (counts and the two-cell words between them, ending with n<sub>0</sub> and the 0), choose what lies
+left of it, and make a visit. The browser builds the tape, runs the real machine until the head is back in A at the
+right end, and compares the result with the rule. The picture is the visit in space and time: one row per moment,
+the head's path in orange.</p>
+</div>
+<div class="panel" id="od-visit">
+ <div class="controls">
+  <label class="small" for="odv-z">zone</label>
+  <input type="text" id="odv-z" value="12 11 9 11 7 11 34 0" spellcheck="false" autocomplete="off" style="width:22em">
+  <label class="small" for="odv-pre">left of it</label>
+  <select id="odv-pre"><option value="">blank tape</option><option value="1" selected>1</option><option value="11101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101101111101111">111 (011)^72 11101111</option><option value="1101101101">1101101101</option></select>
+ </div>
+ <div class="controls" style="margin-top:8px">
+  <button type="button" class="primary" id="odv-one">One visit</button>
+  <button type="button" id="odv-8">8 visits</button>
+  <button type="button" id="odv-rnd">Random zone</button>
+  <button type="button" id="odv-59">The tape of visit 506</button>
+ </div>
+ <div id="odv-out" style="margin-top:10px"></div>
+ <canvas id="odv-st" style="width:100%;height:220px;margin-top:8px" aria-label="Space-time picture of the visit"></canvas>
+ <div class="log" id="odv-log" aria-live="polite"></div>
+ <div class="cap">The picture shows the tape of the zone, cell by cell, at the start of the visit (top) and the head's position as time goes down. Each click continues from the result; the log keeps the visits made, newest first.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var O = window.OD, $ = function (id) { return document.getElementById(id); };
+  var hist = [], trace = null;
+  // a zone written as counts and two-cell words in turn: n_k s_k ... n_1 s_1 n_0 0
+  function parseZone(s) {
+    var t = s.trim().split(/\s+/).filter(Boolean), out = [];
+    if (t.length < 4 || t.length % 2) return null;
+    for (var i = 0; i < t.length; i++) {
+      if (i % 2 === 0) { if (!/^[0-9]+$/.test(t[i])) return null; out.push(+t[i]); }
+      else if (i === t.length - 1) { if (t[i] !== "0") return null; out.push("0"); }
+      else { if (t[i] !== "11" && t[i] !== "01") return null; out.push(t[i]); }
+    }
+    return out;
+  }
+  function tokStr(t) { return t.map(function (x) { return typeof x === "number" ? "011".repeat(x) : x; }).join(""); }
+  function cur() {
+    var pre = $("odv-pre").value, tok = parseZone($("odv-z").value);
+    if (!tok) return null;
+    var z = O.zone(["x"].concat(tok));
+    if (!z || z.pre.length !== 1) return null;
+    z.pre = pre ? [pre] : [];
+    return z;
+  }
+  function zoneText(z) {
+    var s = []; for (var j = 0; j < z.bits.length; j++) { s.push(z.counts[j]); s.push(z.bits[j] ? "01" : "11"); }
+    s.push(z.counts[z.counts.length - 1]); s.push("0"); return s.join(" ");
+  }
+  function visit() {
+    var z = cur();
+    if (!z) { $("odv-out").innerHTML = '<span class="od-bad">Not a zone.</span> Write counts and the words 11 or 01 in turn, ending with a count and 0, for example <code>12 11 9 11 7 11 34 0</code>.'; return false; }
+    var str = O.zoneStr(z).replace(/^0+/, ""), cm = new O.Cells();
+    cm.load(str);
+    var path = [cm.p], st0 = str;
+    var ok = cm.nextVisit(5e6);
+    // re-run to record the path (cheap: one visit)
+    var c2 = new O.Cells(); c2.load(str);
+    while (c2.k < cm.k) { c2.step(); if (path.length < 20000) path.push(c2.p); }
+    var rule = O.visitRule(z), got = cm.halted ? null : cm.left();
+    var tok = got === null ? null : O.canon(got), nz = tok ? O.zone(tok) : null;
+    var out = "The machine: " + (cm.halted ? "it halts during this visit (" + O.fmt(cm.k) + " steps)" : "next visit after <b>" + O.fmt(cm.k) + "</b> steps, tape <span class=\"mono\">" + O.show(tok) + " A&gt;</span>");
+    if (rule) {
+      var pred = O.zoneStr(rule.z).replace(/^0+/, ""), same = got !== null && pred === got.replace(/^0+/, "") && rule.steps === cm.k;
+      var sum = []; for (var j = 1; j <= rule.i; j++) sum.push("n<sub>" + (j - 1) + "</sub>");
+      out += "<br>The rule: bit " + rule.i + " is the lowest 0 bit, so the visit takes 6(" + sum.join(" + ") + ") + 4&middot;" + rule.i + " + 11 = <b>" + O.fmt(rule.steps) + "</b> steps and gives <span class=\"mono\">" + zoneText(rule.z) + "</span>";
+      out += same ? '<br><span class="od-ok">&#10003; the machine and the rule agree, cell for cell and step for step</span>' : '<br><span class="od-bad">&#10007; the machine and the rule disagree</span>';
+      hist.push([O.fmt(cm.k), rule.i, zoneText(z) + " &#8594; " + zoneText(rule.z)]);
+      $("odv-z").value = zoneText(rule.z);
+    } else {
+      out += "<br>The rule: no answer. " + (z.bits.every(function (b) { return b; }) ? "Every bit is 1, so the carry runs past the last counter: an overflow." : "A count that must pay a unit is 0.") + " This is an irregular visit; the program would run it on the compressed tape.";
+      hist.push([O.fmt(cm.k), "&ndash;", zoneText(z) + " &#8594; irregular"]);
+      if (nz) $("odv-z").value = zoneText(nz);
+    }
+    $("odv-out").innerHTML = out;
+    trace = { str: st0, path: path, n: cm.k };
+    draw();
+    $("odv-log").innerHTML = hist.slice(-40).reverse().map(function (h) { return "<div><span class=\"t\">" + h[0] + "</span><span>" + h[1] + "</span><span></span><span>" + h[2] + "</span></div>"; }).join("");
+    return !!rule;
+  }
+  function draw() {
+    var cv = $("odv-st"); if (!trace) return;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 220, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var s = trace.str, n = s.length + 3, cw = w / n, top = 18;
+    var tok = O.canon(s), x = 0, ci = 0, z = O.zone(tok), zs = z ? z.pre.length : tok.length;
+    if (typeof tok[0] === "number") x = -1;
+    tok.forEach(function (t, idx) {
+      var str = typeof t === "number" ? "011".repeat(t) : t, c;
+      if (typeof t === "number") { c = ci % 2 ? ["--odc2", "--odc2p"] : ["--odc1", "--odc1p"]; ci++; }
+      else c = idx >= zs && (t === "11" || t === "01") ? ["--odsep", "--odsepp"] : ["--muted", "--sunk"];
+      var c0 = O.css(c[0]), c1 = O.css(c[1]);
+      for (var i = 0; i < str.length; i++, x++) { if (x < 0) continue; g.fillStyle = str[i] === "1" ? c0 : c1; g.fillRect(x * cw, 2, Math.max(cw - (cw > 4 ? 1 : 0), .5), top - 6); }
+    });
+    var p = trace.path, rows = h - top - 2;
+    g.strokeStyle = O.css("--head"); g.lineWidth = 1.5; g.beginPath();
+    for (var k = 0; k < p.length; k++) { var X = (p[k] + .5) * cw, Y = top + rows * k / Math.max(1, p.length - 1); if (k) g.lineTo(X, Y); else g.moveTo(X, Y); }
+    g.stroke();
+    g.fillStyle = O.css("--muted"); g.font = "11px " + O.css("--mono").split(",")[0];
+    g.fillText(O.fmt(trace.n) + " steps", 4, h - 4);
+  }
+  $("odv-one").addEventListener("click", visit);
+  $("odv-8").addEventListener("click", function () { for (var i = 0; i < 8; i++) if (!visit()) break; });
+  $("odv-rnd").addEventListener("click", function () {
+    var k = 2 + Math.floor(Math.random() * 4), s = [];
+    for (var j = 0; j < k; j++) { s.push(3 + Math.floor(Math.random() * 15)); s.push(Math.random() < .5 ? "11" : "01"); }
+    s.push(3 + Math.floor(Math.random() * 30)); s.push("0");
+    $("odv-z").value = s.join(" "); hist = []; visit();
+  });
+  $("odv-59").addEventListener("click", function () { $("odv-pre").value = ""; $("odv-z").value = "83 11 36 11 129 11 43 11 83 11 154 0"; hist = []; visit(); });
+  $("odv-pre").addEventListener("change", function () { hist = []; });
+  O.onTheme(draw);
+  visit();
+})();
+</script>

@@ -1,0 +1,49 @@
+<div class="col">
+<p style="font:700 1.5rem/1.25 var(--display);margin:.4rem 0 .8rem">It never halts.</p>
+<p>Started on a blank tape, <span class="q7-mono">1RB0RC_1LA0LD_1RB0RD_1LE0RF_0LB0RB_1RC---</span> runs for ever. Lean states it as</p>
+</div>
+<pre>theorem nonhalting : &not; HaltsFromBlank := nonhalt_of_reach (m := 6) reach_C7      -- lean/Reach.lean</pre>
+<div class="col">
+<p>where <code>HaltsFromBlank</code> is the machine's own halting from blank tape, defined from its transition table in
+<code>lean/Machine.lean</code>. In words: the run from blank tape is at C 7 after 16,730,681,219 steps, and from any
+C k with k &ge; 1 it reaches C (k+1), and so on without end.</p>
+<h3>Why a halt cannot come</h3>
+<p>The only halting transition is F reading 1. State F is entered only from D reading 1 (<code>D1 = 0RF</code>), so a
+halt needs the head in state D on <code>1 1</code>. In the bouncer phase this never happens: the period is proved for
+every number of blocks, and the run over X is the same every time. Before it, Lean checks the whole run of
+16,730,681,219 steps from blank tape, in eight chunks of about 2&times;10<sup>9</sup> steps: the C simulator proposes
+the configurations at the chunk boundaries, and a block simulator proved correct in Lean (blocks of 16 cells, one
+table lookup per block crossing) checks each chunk, with <code>native_decide</code>.</p>
+<h3>What it rests on</h3>
+<p><code>#print axioms nonhalting</code> (<code>lean/Axioms.lean</code>) shows the standard axioms and, besides them,
+the compiled evaluations of <code>native_decide</code> (<code>Lean.ofReduceBool</code>). So the result is
+<span class="ev n">native_decide</span>: it trusts Lean's compiler for these fixed computations, and the kernel for
+everything else.</p>
+</div>
+<div class="tw"><table>
+<thead><tr><th>rests on</th><th>what</th><th>where</th></tr></thead>
+<tbody>
+<tr><td><span class="ev n">native_decide</span></td><td>the two excursions into X and the closing equality: <code>w1_ok</code>, <code>w2_ok</code>, <code>close</code> (a few seconds)</td><td><code>lean/Period.lean</code></td></tr>
+<tr><td><span class="ev n">native_decide</span></td><td>the block table: <code>tblOk</code> (20 s)</td><td><code>lean/TblOk.lean</code></td></tr>
+<tr><td><span class="ev n">native_decide</span></td><td>the eight chunks of the run from blank tape: <code>chunk1</code> &hellip; <code>chunk8</code>, about 2.09&times;10<sup>9</sup> steps and about 3 minutes each</td><td><code>lean/Chunk1.lean</code> &hellip; <code>lean/Chunk8.lean</code></td></tr>
+<tr><td><span class="ev k">Kernel</span></td><td>the three passes over the blocks, for every n: <code>pass1</code>, <code>pass2</code>, <code>pass3</code></td><td><code>lean/Pass.lean</code></td></tr>
+<tr><td><span class="ev k">Kernel</span></td><td>runs on a window ignore the tape on their left: <code>wsteps_over</code>, <code>wsteps_over1</code>, <code>wsteps_over3</code></td><td><code>lean/Window.lean</code></td></tr>
+<tr><td><span class="ev k">Kernel</span></td><td>the block simulator is correct: <code>brun_ok</code>, <code>mstep_ok</code>, <code>msim_ok</code>, <code>toF_ok</code>, <code>chkF_ok</code>; the end of the last chunk is C 7: <code>finalF_ok</code></td><td><code>lean/Block.lean</code>, <code>lean/Final.lean</code></td></tr>
+<tr><td><span class="ev k">Kernel</span></td><td>the proofs that chain these facts: <code>period</code>, <code>runs_C</code>, <code>not_halts_C</code>, <code>nonhalt_of_reach</code>, <code>reach1</code> &hellip; <code>reach8</code>, <code>reach_C7</code>, <code>nonhalting</code> (the theorems themselves rest on the native facts they use)</td><td><code>lean/Period.lean</code>, <code>lean/Reach.lean</code></td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Not needed for the proof: <span class="ev k">Kernel</span> <code>step_none_iff</code> (where it can halt) and
+<code>blank_runs_kernel</code> (no halt in 10,000 steps), <span class="ev n">native_decide</span>
+<code>blank_runs_native</code> (10<sup>7</sup> steps), all in <code>lean/Blank.lean</code>;
+<span class="ev k">Kernel</span> <code>dsweep</code> and <code>blk_cross</code> (<code>lean/Sweep.lean</code>), the
+rightward sweep in state D as a block transducer on the "Q encoding", a building block for the earlier phase;
+<span class="ev c">Computed</span> no halt in 10<sup>11</sup> steps (<code>py/lturn.c</code>);
+<span class="ev h">Heuristic</span> the description of the five epochs before the bouncer.</p>
+<p>The chunk files depend only on <code>lean/Bound.lean</code> and <code>lean/Final.lean</code>, so they can be checked
+in parallel; <code>lean/check.sh</code> runs them one after another, about 25 minutes in all. The box near the top of
+the page says where a second, independent proof in Coq lives (<code>coq/</code> in this machine's folder); there the
+long computations run under <code>vm_compute</code> inside Coq's kernel.</p>
+<p>The panels of this page re-run the computations behind the native facts in your browser, with code written for
+the page: the block simulator through the eight chunks, the two window runs and the closing equality. That is a
+third, independent evaluation, not a proof: it trusts the browser's JavaScript.</p>
+</div>

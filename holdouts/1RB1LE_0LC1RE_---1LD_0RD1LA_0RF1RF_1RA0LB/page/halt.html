@@ -1,0 +1,57 @@
+<div class="col">
+<p>The machine can only halt in state C on a 0, and C is only entered when B reads a 0 and steps left. Inside the tape every 0 stands alone, so this needs B at the blank left end.</p>
+<p>When the fuel is gone, the tail is <code>0 3 1 0 3 1 0 5</code> with blank tape behind it, and an H-hit is due. Its first three calls come back as usual. In the fourth the head runs through the tail in state C, turns the last pairs over, and B arrives on the blank cell left of the tape: one step left, C reads a 0, and the machine halts. The halting step is given in <a href="#bottomline">the bottom line</a>.</p>
+<p>The earlier arrivals at the left end (visits 3, 11, 25, 3,006) came in other states and only reset the ladder.</p>
+<p><b>How many steps.</b> The halting step is known exactly (see the bottom line): about 1.2736·10<sup>758</sup>, so between 10<sup>758</sup> and 2·10<sup>758</sup>. The Lean proof states it (<code>halt_step</code>), and two independent programs give the same number. A rough estimate explains its size: the halt comes at visit 6.46·10<sup>378</sup>, which is about 9.3·(8/3)<sup>887</sup> because each of the 887 levels gets 3/8 of the hits of the one above it. The tape grows by about two cells per visit, and each visit runs over the whole tape, so the step is about 3·(visits)<sup>2</sup>. The Coq proof shows that the machine halts but does not count steps.</p>
+<p><span class="ev k">Kernel</span> <code>last_visit_halts</code> in <code>lean/Levels.lean</code>: the last visit on the
+word without its 887 levels, <code>2 1 0 3 1 0 3 1 0 5</code> with blank tape to the left, reaches a halting
+configuration after 278 steps. With the levels in between, the halt comes in the same call, later by the steps each
+level makes before it (<code>haltUp_sound</code>, <code>frontHalt_sound</code>, and the constants of
+<code>level_halt</code>). The picture is that visit, run in the browser: one row per step, time going down, the head
+in orange.</p>
+</div>
+<div class="panel" id="ld-last">
+ <div class="controls"><button type="button" class="primary" id="ldl-go">Run the last visit</button><span class="small" id="ldl-info"></span></div>
+ <canvas id="ldl-c" style="width:100%;max-width:640px;height:300px;margin-top:10px" aria-label="Space-time picture of the last visit"></canvas>
+ <div class="cap">Cells left to right with the head starting at the right end; dark cells are 1s. The dashed lines mark the two blank cells just left of the word.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var L = window.LD, $ = function (id) { return document.getElementById(id); };
+  var rows = null;
+  function run() {
+    var w = L.d2w([2, 1, 0, 3, 1, 0, 3, 1, 0, 5]), n = w.length, pad = 4, W = 2 * n + pad + 3, t = new Uint8Array(W), p, s = 0, i;
+    for (i = 0; i < n; i++) { var c = w[i]; t[pad + 2 * n - 1 - 2 * i] = (c === "X" || c === "Y") ? 1 : 0; t[pad + 2 * n - 2 - 2 * i] = (c === "Y" || c === "Z") ? 1 : 0; }
+    p = pad + 2 * n; rows = [];
+    var TM = L.TM.split("_");
+    for (var k = 0; ; k++) {
+      rows.push([t.slice(), p, s]);
+      var q = TM[s].substr(3 * t[p], 3);
+      if (q[0] === "-") break;
+      t[p] = +q[0]; p += q[1] === "R" ? 1 : -1; s = q.charCodeAt(2) - 65;
+    }
+    var edge = pad;
+    $("ldl-info").innerHTML = "the machine reaches a halting configuration after <b>" + (rows.length - 1) + "</b> steps: state " + "ABCDEF"[s] + " reading 0, " + (edge - p) + " cells left of the leftmost cell of the word" +
+      (rows.length - 1 === 278 ? ' <span class="ld-ok">&#10003; 278 steps, as in <code>last_visit_halts</code></span>' : ' <span class="ld-bad">&#10007;</span>');
+    draw();
+  }
+  function draw() {
+    if (!rows) return;
+    var cv = $("ldl-c"), w = cv.clientWidth || 600, h = cv.clientHeight || 300, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var W = rows[0][0].length, cw = w / W, rh = h / rows.length, one = L.css("--ink"), zero = L.css("--sunk"), hd = L.css("--head");
+    rows.forEach(function (r, k) {
+      for (var x = 0; x < W; x++) { g.fillStyle = r[0][x] ? one : zero; g.fillRect(x * cw, k * rh, Math.max(cw - .5, .5), Math.max(rh, .6)); }
+      g.fillStyle = hd; g.fillRect(r[1] * cw, k * rh, Math.max(cw - .5, .5), Math.max(rh, .6));
+    });
+    g.strokeStyle = L.css("--muted"); g.setLineDash([3, 3]);
+    [2, 3].forEach(function (x) { g.beginPath(); g.moveTo(x * cw + cw / 2, 0); g.lineTo(x * cw + cw / 2, h); g.stroke(); });
+    g.setLineDash([]);
+  }
+  $("ldl-go").addEventListener("click", run);
+  L.onTheme(draw);
+  run();
+})();
+</script>
