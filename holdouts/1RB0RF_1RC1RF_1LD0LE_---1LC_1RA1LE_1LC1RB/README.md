@@ -61,6 +61,14 @@ power of two. Probviously never.
 * Non-halting would need to control the low bits of the orbit forever (a Collatz-type statement); nothing suggests a
   residue invariant (the j counts look geometric). The j ∈ {2, 3} argument could go into Lean.
 
+## Doucette's form (`lean/Doucette.lean`)
+
+The closed form of the pass is now proved (it was checked numerically before). With D = n + 2 = 2^v (2a + 1):
+D' = D + a + v + 2 (`G_rule`), except D = 3·2^v with v even and positive, where D' = (3D + 3v + 10)/2 (`G_three`;
+never taken in the first 20,000 passes); a power of two halts (`G_pow2`). `halts_iff_doucette`: the machine halts
+from blank tape iff the sequence 6, 10, 15, 24, 30, 40, ... (`Dorb`) reaches a power of two. The five machines of
+this family are listed in [`tools/sweep/README.md`](../../tools/sweep/README.md).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html`](../../pages/holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html)

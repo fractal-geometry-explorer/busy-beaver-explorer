@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The reduction: halting is a question about one orbit</h3>
         <p>With F the map above (F(1, q) = (1, q)) and orbit n = F<sup>n</sup>(0, 2): blank tape reaches K(orbit n) after exactly time n steps for every n (<code>reach</code>), and <b>the machine halts from blank tape iff some orbit n has p = 1</b> (<code>halts_iff</code>), <b>iff some orbit n has q = 1 and p + 3 a power of two</b> (<code>halts_iff_pow2</code>).</p>
         <p class="where"><code>halts_iff</code>, <code>halts_iff_pow2</code>, <code>reach</code>, <code>lean/Reduction.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Doucette's form: halts iff 5, 7, 10, 13, … reaches a power of two</h3>
+        <p>At the samples K(p, 1) write D = p + 3 = 2<sup>v</sup>(2a + 1). The next such sample has D' = D + a + v (a ≥ 2), D' = D + v + 3 when D = 3·2<sup>v</sup>, and a power of two halts. So the machine halts from blank tape if and only if the sequence 5, 7, 10, 13, 19, 28, … reaches a power of two: the same form as Space Needle's D + 3a + v. Proved from the map of <code>Reduction.lean</code> for every D.</p>
+        <p class="where"><code>halts_iff_doucette</code>, <code>G_rule</code>, <code>G_three</code>, <code>G_pow2</code>, <code>lean/Doucette.lean</code></p>
       </div>
       <div class="card">
         <h3>If it halts, it takes more than 2<sup>2073</sup> steps</h3>

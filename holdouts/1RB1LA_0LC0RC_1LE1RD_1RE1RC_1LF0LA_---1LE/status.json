@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 17 November 2026.",
  "verdict": [
   "<b>The question is open, and now provably equivalent to a question about one number sequence.</b> The tape is always <code>A&gt;0 1^p 0 1^q</code> at the sample point. Lean proves the whole map, with exact step counts: odd p: (p, q) → ((p−3)/2, q + (p+5)/2); even p: (p, q) → (3p/2 + q, 1); p = 0: (0, q) → (2, q−1); p = 1 halts. Lean proves that the machine halts from blank tape iff the orbit of (0, 2) under this map reaches p = 1, iff some sample K(p, 1) has p + 3 a power of two, and that a halt, if any, comes after more than 2<sup>2073</sup> steps (kernel; 2<sup>80181</sup> by compiled evaluation). Heuristically it never halts."
  ],
@@ -80,6 +80,12 @@
    "title": "The reduction: halting is a question about one orbit",
    "text": "With F the map above (F(1, q) = (1, q)) and orbit n = F<sup>n</sup>(0, 2): blank tape reaches K(orbit n) after exactly time n steps for every n (<code>reach</code>), and <b>the machine halts from blank tape iff some orbit n has p = 1</b> (<code>halts_iff</code>), <b>iff some orbit n has q = 1 and p + 3 a power of two</b> (<code>halts_iff_pow2</code>).",
    "where": "<code>halts_iff</code>, <code>halts_iff_pow2</code>, <code>reach</code>, <code>lean/Reduction.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Doucette's form: halts iff 5, 7, 10, 13, … reaches a power of two",
+   "text": "At the samples K(p, 1) write D = p + 3 = 2<sup>v</sup>(2a + 1). The next such sample has D' = D + a + v (a ≥ 2), D' = D + v + 3 when D = 3·2<sup>v</sup>, and a power of two halts. So the machine halts from blank tape if and only if the sequence 5, 7, 10, 13, 19, 28, … reaches a power of two: the same form as Space Needle's D + 3a + v. Proved from the map of <code>Reduction.lean</code> for every D.",
+   "where": "<code>halts_iff_doucette</code>, <code>G_rule</code>, <code>G_three</code>, <code>G_pow2</code>, <code>lean/Doucette.lean</code>"
   },
   {
    "level": "kernel",
@@ -173,10 +179,21 @@
      "<p>Those p grow geometrically (200,000 samples reach 40,089 bits), and a random number near X is 3 below a power of two with probability about 1/X, so the expected number of hits is tiny: the machine is probably non-halting. A proof would need to rule out every hit, a Collatz-type statement.</p>",
      "<p>Since every sample of the orbit is proved to be reached at a known step, the orbit also bounds any halt from below: the kernel evaluates the step count of the first 5,000 samples, so if the machine ever halts it does so after more than 2<sup>2073</sup> steps (2<sup>80181</sup> with 200,000 samples by compiled code).</p>"
     ]
+   },
+   {
+    "id": "doucette-family",
+    "eyebrow": "Five machines, one sequence",
+    "heading": "The Doucette family",
+    "html": [
+     "<p>Five holdouts reduce to the same kind of one-number sequence, first written down by Katelyn Doucette for Space Needle: write D = b<sup>v</sup>&middot;(b&middot;a + &rho;) with b not dividing b&middot;a + &rho;, and the next term is D plus a small linear expression in a and v. The machine halts exactly when the sequence hits a power of b (with one extra condition in base 3). For all five this is proved in Lean, from each machine's own proved map, for every value: the table below lists theorems, not fits.</p>",
+     "<p>Here the samples are the configurations K(p, 1) = <code>0^inf A&gt; 0 1^p 0 1^1 0^inf</code>. Write D = p + 3 = 2<sup>v</sup>(2a + 1). The odd rule halves D (p becomes (p &minus; 3)/2) v times while the second block grows by D/2 + 1 each time; then the even rule turns everything into the next K(p&prime;, 1). Adding it up, <b>D&prime; = D + a + v</b> (<code>G_rule</code>), except at D = 3&middot;2<sup>v</sup>, where the run passes through p = 0 and gives D + v + 3 (<code>G_three</code>). A power of two halves down to p = 1, where the machine halts (<code>G_pow2</code>). Lean: <b>the machine halts from blank tape iff the sequence 5, 7, 10, 13, 19, 28, &hellip; reaches a power of two</b> (<code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code>).</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\" style=\"min-width:880px\"><thead><tr><th>machine and D</th><th>base</th><th>next D (r = 1)</th><th>exception</th><th>halts iff</th><th>sequence</th><th>Lean</th></tr></thead><tbody><tr><td><a href=\"../1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/explainer.html\">1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</a><br><span class=\"small\">Space Needle. D = b + 3 at the visits X(b, 1)</span></td><td>2</td><td><code>D + 3a + v</code></td><td>none (a = 1 fits the rule)</td><td>D a power of 2</td><td>6, 10, 17, 41, 101, 251, …</td><td><code>halts_iff_pow2</code>, <code>lean/Collatz.lean</code></td></tr><tr><td><b>1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</b> (this machine)<br><span class=\"small\">D = p + 3 at the samples K(p, 1)</span></td><td>2</td><td><code>D + a + v</code></td><td>D = 3·2<sup>v</sup> gives D + v + 3</td><td>D a power of 2</td><td>5, 7, 10, 13, 19, 28, 33, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/explainer.html\">1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</a><br><span class=\"small\">D = p + 3 at the samples S(p, 1) that start a run of halvings</span></td><td>2</td><td><code>D + a + v + 1</code></td><td>D = 3·2<sup>v</sup> (the run ends at p = 3) gives D + v + r + 1, with r = 1 or 2 next</td><td>D a power of 2</td><td>(5, r = 2), 9, 14, 19, 29, 44, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html\">1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</a><br><span class=\"small\">D = n + 2 at the end of each pass, P(n)</span></td><td>2</td><td><code>D + a + v + 2</code></td><td>D = 3·2<sup>v</sup> with v even, v ≥ 2, gives (3D + 3v + 10)/2</td><td>D a power of 2</td><td>6, 10, 15, 24, 30, 40, 47, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/explainer.html\">1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB</a><br><span class=\"small\">D = p + 1 = 3<sup>v</sup>(3a + ρ), ρ = 1 or 2, at the samples S(p, 1) that start a run of divisions by 3</span></td><td>3</td><td><code>D + a + v + 2 + ρ</code></td><td>D = 3<sup>v</sup> (the run ends at p = 2): goes on to D + v + 3 or D + v + 1, with r = 1 or 2 next</td><td>D = 3<sup>v</sup> with v + r ≡ 1 (mod 3); for r = 1, 3 divides v</td><td>4, 8, 14, 22, 32, 46, 64, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr></tbody></table></div>",
+     "<p>In every row, a is about D/(2&middot;2<sup>v</sup>) (base 3: D/(3&middot;3<sup>v</sup>)), so a term grows by a factor that depends only on v: about 3/2 when v = 0 and closer to 1 when v is larger (Space Needle: about 5/2 when v = 0; base 3: about 4/3). A power of b is hit only if all the low digits of D line up at once. The exceptions are values the sequences never take in their first 20,000 terms (checked in exact arithmetic); they are in the Lean statements so that the equivalences hold with no assumption. Proving that any of these sequences avoids the powers of b forever is open, and is a question of the same kind as the Collatz problem.</p>"
+    ]
    }
   ]
  },
- "summary": "Two blocks of ones K(p, q): an odd p is halved ((p−3)/2, the second block absorbing the rest), an even p becomes 3p/2 + q; proved in Lean: it halts iff some p reached with q = 1 has p + 3 a power of two, and not before 2^2073 steps.",
+ "summary": "Two blocks of ones K(p, q): an odd p is halved ((p−3)/2, the second block absorbing the rest), an even p becomes 3p/2 + q; proved in Lean: it halts iff some p reached with q = 1 has p + 3 a power of two, and not before 2^2073 steps. Doucette family (Lean): D -> D + a + v.",
  "family": "Collatz-like halving / 3n/2 map",
  "decision": "open"
 }

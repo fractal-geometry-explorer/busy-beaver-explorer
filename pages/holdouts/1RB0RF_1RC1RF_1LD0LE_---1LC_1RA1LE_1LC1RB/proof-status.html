@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Halts iff the orbit of 4 hits a halting value</h3>
         <p>The machine halts from blank tape if and only if the orbit of 4 under f reaches <code>none</code>; and f(n) is <code>none</code> exactly when n+2 is a power of two, at least 4.</p>
         <p class="where"><code>halts_iff</code>, <code>f_none_iff</code>, <code>lean/Macro.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The closed form of the pass, and Doucette's form</h3>
+        <p>With D = n + 2 = 2<sup>v</sup>(2a + 1), the pass from P(n) ends at D' = D + a + v + 2, except D = 3·2<sup>v</sup> with v even and positive (D' = (3D + 3v + 10)/2), and halts when D is a power of two. This proves the closed form that was only checked numerically. So the machine halts from blank tape if and only if the sequence 6, 10, 15, 24, 30, … reaches a power of two.</p>
+        <p class="where"><code>halts_iff_doucette</code>, <code>G_step</code>, <code>G_rule</code>, <code>G_three</code>, <code>G_pow2</code>, <code>lean/Doucette.lean</code></p>
       </div>
       <div class="card">
         <h3>The odd pass in closed form</h3>

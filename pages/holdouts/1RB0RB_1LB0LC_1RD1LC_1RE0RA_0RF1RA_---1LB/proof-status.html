@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -139,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The reduction</h3>
         <p>From blank tape the machine reaches S(3, 1) in 11 steps, and it halts if and only if the orbit of (3, 1) under the map reaches the halting case p = 2, 3 | r.</p>
         <p class="where"><code>halts_iff</code>, <code>lean/Map.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Doucette's form in base 3</h3>
+        <p>At the samples S(p, r) that start a run of divisions write D = p + 1 = 3<sup>v</sup>(3a + ρ), ρ = 1 or 2. The next start is (D + a + v + r + ρ + 1, 1); when D = 3<sup>v</sup> the run ends at p = 2, which halts iff v + r ≡ 1 (mod 3) and otherwise goes on. So the machine halts from blank tape if and only if the sequence (4, 1), (8, 1), (14, 1), (22, 1), … reaches a pair (3<sup>v</sup>, r) with v + r ≡ 1 (mod 3). Proved from the hole map of <code>Map.lean</code> for every value.</p>
+        <p class="where"><code>halts_iff_doucette</code>, <code>G_rule</code>, <code>G_pow3</code>, <code>lean/Doucette.lean</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 10<sup>3747</sup> steps</h3>

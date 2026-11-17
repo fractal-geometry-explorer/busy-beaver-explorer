@@ -71,6 +71,15 @@ iterated 30,000 times (1,835 digits) never reaches p = 1 or 3. Heuristic chance 
 - The remaining question is purely arithmetic. Pushing the orbit further is cheap (`python3 py/holemap.py run K`; in
   Lean, `check K B` in `lean/Bound.lean`).
 
+## Doucette's form (`lean/Doucette.lean`)
+
+At the samples S(p, r) that start a run of halvings write D = p + 3 = 2^v (2a + 1). Proved for every value: the next
+start is (D + a + v + r, 1) (`G_rule`, a >= 2), so D' = D + a + v + 1 when r = 1; D = 3·2^v ends the run at p = 3
+(`G_three`, next D = D + v + r + 1 with r = 1 or 2; never taken in the first 20,000 terms); a power of two halts
+(`G_pow2`). `halts_iff_doucette`: the machine halts from blank tape iff the sequence (5, 2), (9, 1), (14, 1),
+(19, 1), ... (`Dorb`) reaches a power of two. The five machines of this family are listed in
+[`tools/sweep/README.md`](../../tools/sweep/README.md).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/explainer.html`](../../pages/holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/explainer.html)
