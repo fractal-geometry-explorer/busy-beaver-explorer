@@ -89,7 +89,7 @@ def run(slug, steps, ckpt=None, blog2=20, check=False):
     spec = SPECS[slug]
     W = Walk(spec)
     K = max(W.L, (2 ** blog2 // W.L) * W.L)
-    AK, DK = W.apow(K)
+    maxdec = max(1, max(-d for d in W.DL))
     st = {"slug": slug, "n": 0, "state": engine.enc(m.START), "result": "running", "seconds": 0.0, "blocks": 0,
           "slow": 0}
     if ckpt and os.path.exists(ckpt):
@@ -111,20 +111,26 @@ def run(slug, steps, ckpt=None, blog2=20, check=False):
         g = spec["get"](s)
         if g is not None:
             x, p = g
-            C, ds, mn = W.block(x % DK, K)
+            # block length: K, or shorter while the counter is small (so the block can still be applied whole)
+            kk = K
+            while kk > W.L and (p - spec["LOW"]) <= kk * maxdec:
+                kk //= 2
+            kk = max(W.L, (kk // W.L) * W.L)
+            Ak, Dk = W.apow(kk)
+            C, ds, mn = W.block(x % Dk, kk)
             if p + mn > spec["LOW"]:
-                num = AK * x + C
-                q, r = gmpy2.f_divmod(num, DK)
+                num = Ak * x + C
+                q, r = gmpy2.f_divmod(num, Dk)
                 assert r == 0
                 s = spec["put"](q, p + ds, s)
-                n += K
+                n += kk
                 st["blocks"] += 1
                 if check:
                     return s
             else:
                 g = None
-        if g is None:  # slow path: K exact steps of the module
-            for _ in range(K):
+        if g is None:  # slow path: L exact steps of the module
+            for _ in range(W.L):
                 s2, lab = m.step(s)
                 n += 1
                 st["slow"] += 1
@@ -134,11 +140,8 @@ def run(slug, steps, ckpt=None, blog2=20, check=False):
                     print(f"{slug}: HALT at step {n}", flush=True)
                     return st
                 s = s2
-                g2 = spec["get"](s)
-                if g2 is not None and g2[1] > spec["LOW"] + K * 2:
-                    break
         now = time.time()
-        if now - tl > 1800:
+        if now - tl > 600:
             tl = now
             save()
             print(f"{slug}: n={n} bits={engine.bits(s)} blocks={st['blocks']} slow={st['slow']} "
