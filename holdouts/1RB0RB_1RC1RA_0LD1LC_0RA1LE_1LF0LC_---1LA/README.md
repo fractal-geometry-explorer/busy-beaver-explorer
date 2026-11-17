@@ -186,6 +186,33 @@ per period, fewer than the 80,763 that the remaining 403,815 cells of the block 
 steps with `n` the growing block count: **no halt in the first 5.5·10^27 steps** (`blank_runs_shield`). The bound counts only the events into the block; it
 does not use that most events die in cells already eaten, which is why the extrapolation above is so much larger.
 
+## Windows of the cascade (Lean and C, the whole word)
+
+The cascade can be run a whole period at a time. By `cell_bit` a cell is back to its bit after a list of events `W`
+or after `W ++ W`, so the events that enter cell `m` during the first `3 · 2^d` sweeps can be built cell by cell
+without running the sweeps: `W_0` is the block's three letters, `W_(m+1)` is cell `m` applied to `W_m`, twice when
+its bit is not back after once, and `d` counts the cells that needed two passes. `W_m` run once through the rest of
+the word is then, in order, every event that reaches each later cell in those `3 · 2^d` sweeps, and every event
+that leaves the word. Nothing is assumed about the zones or the stranded block. The window doubles at about two
+cells in five, while the work grows by about 7% per cell, so the reach in sweeps grows like the fourth power of the
+work.
+
+| result | level | where |
+|---|---|---|
+| the method: `m` cells fed `r · 2^d` copies of `W` are back where they started and let through `r` copies of what `wfold` computes; if that, run through the rest of the word, lets nothing out, nothing leaves the word in the first `3 · 2^d` sweeps | kernel | `wfold_run`, `window_quiet`, `window_of_check`, `lean/Window.lean` |
+| at zone step 3·10^7, cut after 138 cells: `d = 66` and nothing leaves the word, so no halt and no reset in the next `3 · 2^66` sweeps; every sweep takes at least `4n` steps, so **no halt in the first 1.4·10^40 steps from blank tape** | native | `window_runs`, `blank_runs_window`, `lean/WindowRun.lean` |
+| cut after 170 cells: `d = 81`, nothing leaves the word in the next `3 · 2^81` ≈ 7.3·10^24 sweeps (about 1·10^50 steps from blank tape) | trusted | `c/window.c` in the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA` |
+| the window run agrees with the sweep-by-sweep run of `c/window.c check` (the number of events reaching every cut, over `3 · 2^29` sweeps), and on random words with `c/xs.c` on the first event that leaves | trusted | `c/window.c` |
+
+**What the windows show.** Nothing has reached the old zone: in every window up to `3 · 2^81` sweeps the events
+that enter the stranded block all die in it (as `sb_stop` says they must on untouched block). The *front*, the
+deepest cell any event reaches in the window, moves steadily with the logarithm of the time: from cut 103 at
+`d = 30` to cut 267 at `d = 81`, about **3.3 cells per doubling of the window** (a least-squares fit over
+`d = 30 … 81`; the three other machines, whose stranded block lets the background through, show the same
+speed). At that speed the front reaches the old zone, 403,835 cells further on, at `d` ≈ 122,000. This is the
+quantitative form of the shield: the old zone is safe for about `3 · 2^122,000` sweeps if the speed holds, and
+the speed is measured, not proved.
+
 ## Status
 
 Open. Proved in Lean (kernel): the halting pattern, the pass over a block and its stop, the two crossings of the
@@ -195,7 +222,7 @@ reaches the left end (`mstep_ok`, `mstep_halt`); the length of the block of word
 first 1.7·10^15 steps. Proved in Lean, with one compiled evaluation: the zone orbit is a cascade of one-bit cells,
 periodic on every prefix of its word; the stranded block stops every event within five cells, so the old zone is
 frozen until the new zone has sent 80,767 events into it, which takes more than 5.3·10^13 sweeps: **no halt in the first
-5.5·10^27 steps**. Nothing is known that keeps the leftmost block from
+5.5·10^27 steps**. Compiled evaluation by windows of the cascade (`lean/WindowRun.lean`): **no halt in the first 1.4·10^40 steps**; trusted C windows reach `3 · 2^81` sweeps from zone step 3·10^7. Nothing is known that keeps the leftmost block from
 being a lone 1 when a pass arrives, and nothing that forces it.
 
 ## What is proved
@@ -221,6 +248,9 @@ being a lone 1 when a pass arrives, and nothing that forces it.
 | the stranded block stops every event within five cells; `5k` cells of it let nothing out for `k` events | kernel | `sb_stop`, `shield`, `lean/Shield.lean` |
 | at zone step 3·10^7 the first 96 cells have period `3 · 2^44` sweeps and send 42,405 events per period further into the block | native | `zone96`, `per_run`, `lean/Shield.lean` |
 | **no halt in the first 5.5·10^27 steps** | native | `blank_runs_shield`, `lean/Shield.lean` |
+| one period at a time: the window method (`wfold`) | kernel | `wfold_run`, `window_quiet`, `window_of_check`, `lean/Window.lean` |
+| nothing leaves the word for `3 · 2^66` sweeps from zone step 3·10^7; no halt in the first 1.4·10^40 steps | native | `window_runs`, `blank_runs_window`, `lean/WindowRun.lean` |
+| nothing leaves the word for `3 · 2^81` sweeps (cut after 170 cells); the front moves about 3.3 cells per doubling | trusted | `c/window.c`, `c/passtimes.c` in the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA` |
 
 ### Exact reduction (Lean)
 
@@ -234,8 +264,9 @@ Reading the tape in pairs (`11` = 1, `01` = 0), `lean/Sweep.lean` defines a macr
 
 ## For later
 
-* A law for how often the new zone lets a sweep through (about 7 per factor of 10 in the runs), and what happens
-  when the new zone reaches the old one.
+* Why the front moves about 3.3 cells per doubling and the background events about 1.35 per doubling (*Windows of
+  the cascade*): a proof of either speed, even as a bound, would turn the extrapolations into theorems. And what
+  happens when the front reaches the old zone.
 * Formalize the two-zone argument (the old zone moves as if alone while the stranded block lasts) as a theorem about
   the zone orbit; today it is a hand argument from `swr_append_ok`, `swr_split` and `xd_append`.
 * The zone as a counter: a law for the depth of the passes and for what an arrival at the left end does to the
@@ -253,6 +284,8 @@ gcc -O2 -o zone holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/zone.c && .
 (cd holdouts/1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA/lean && LEAN_PATH=$LEANLIB:../../../tools/lean/out:out lean DumpState.lean > /tmp/state.txt)    # after check.sh
 gcc -O2 -o xs holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/xs.c && ./xs /tmp/state.txt 3e10 1000    # the zone orbit, 3·10^10 more sweeps
 gcc -O2 -o z1 holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/z1.c && ./z1 /tmp/state.txt    # the old zone alone while the stranded block lasts
+gcc -O2 -o window holdouts/1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA/c/window.c && ./window /tmp/state.txt 170 timeline    # windows of the cascade, CAP=2.3e9 for this cut
+./window /tmp/state.txt 56 check 1610612736    # against the sweep-by-sweep run
 ```
 
 ## Pages
