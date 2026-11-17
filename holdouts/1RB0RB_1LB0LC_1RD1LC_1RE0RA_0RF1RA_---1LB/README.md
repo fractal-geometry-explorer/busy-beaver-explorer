@@ -47,6 +47,27 @@ Worked example: (18649, 18647) → (18650, 6215) → (18651, 2071) → (19345, 1
 `Map.lean` iterates the loop rules by induction (`iterate`), sums the step counts in closed form (`cost p r`,
 e.g. 8k+11 + (8k+5)(r+1) + 16k(k−1)+34k + 4k+r+17 for p = 3k+3), and proves `sample_step` for all p, r >= 1.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family:
+
+    S(p, r) := 0^∞ C> 1^p 0 1^r 0^∞          (p, r ≥ 1)
+
+    0^∞ A> 0^∞     --11-->                              S(3, 1)
+    S(1, r)        --6r + 15-->                         S(r + 4, 1)
+    S(2, 3m+1)     --8m + 24-->                         S(3m + 6, 1)
+    S(2, 3m+2)     --8m + 24-->                         S(3m + 5, 2)
+    S(2, 3m+3)     --5m + 22-->                         HALT              (F reads 0)
+    S(3k+3, r)     --16k² + 8kr + 38k + 6r + 33-->      S(4k + r + 6, 1)
+    S(3k+4, r)     --16k² + 8kr + 54k + 14r + 53-->     S(4k + r + 8, 1)
+    S(3k+5, r)     --4k² + 18k + 21-->                  S(k + 1, 2k + r + 5)
+
+Each target is the first S tape reached. Rules and step counts are both proved: `sample_step` (`lean/Map.lean`, the
+steps are `cost p r`, here multiplied out), `start_S`, `to_halt` (5m + 21 steps to F on a 0, plus the halting step),
+and `halts_iff`. `py/holemap.py rules` checks the polynomials against `cost` and the table against direct simulation
+(3,600 tapes including 20 halting ones, and every S tape of the first 10^8 steps of the run). Example: S(26, 1) ->
+S(8, 20) -> S(2, 27) -> halt takes 343 + 43 + 62 = 448 steps.
+
 ## Status
 
 Open, **reduced in Lean**: `halts_iff : HaltsFromBlank ↔ ∃ n, orb n = none`, where `orb` is the orbit of (3, 1)
@@ -91,4 +112,5 @@ r = 1 that needs 3 | v, so not every power of 3 halts. The five machines of this
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/lean/check.sh
+python3 holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/py/holemap.py rules    # the rule table and its step counts against direct simulation
 ```

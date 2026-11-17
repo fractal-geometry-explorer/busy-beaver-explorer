@@ -49,6 +49,26 @@ side).
 | 10 | 3,688 | 8 | 1,276 | 1,154 | 9,497,325 |
 | 11 | 6,016 | 9 | 2,556 | 924 | 21,564,642 |
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family (the X of
+`lean/Orbit.lean`), m even:
+
+    X(K, m) := 0^∞ D> (10)^K 1^m 0^∞
+
+    0^∞ A> 0^∞   --21-->                     X(1, 6)                  (then X(1, 22) at step 208)
+    X(K, m)      --4K² + 22K + 26-->         X(2K + 4, m − 2K − 6)    m ≥ 2K + 6        (doubling)
+    X(K, m)      --3m² + 4Km + 9m + 1-->     X(1, 2K + 3m + 2)        2 ≤ m < 2K + 6    (end of round)
+    X(K, 0)      --2K + 3-->                 HALT                     (F reads 0)
+
+Each target is the first X tape reached. The rules are `double`, `finish` and `halt_zero` of `lean/Orbit.lean`, chained
+in `phase_spec` and `halts_iff`; X(1, 22) at step 208 is `blank_to_X22`. The step counts are proved for the tape moves
+the rules are built from (`lean/Rules.lean`), but `lean/Orbit.lean` does not keep the totals; they are checked against
+direct simulation (`py/steps.py`: 2,440 tapes including 40 halting X(K, 0), and every X tape of the first 10^8 steps of
+the run), not stated in Lean. The bbchallenge wiki page of 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE (the same table
+started in state A) writes the recursion in pairs (a, b) = (K + 1, m/2 − 2). Example: X(1, 26) -> X(6, 18) -> X(16, 0)
+-> halt takes 52 + 302 + 35 = 389 steps.
+
 ## Does it halt?
 
 It halts exactly when some round has remainder m = 0, i.e. N = 10·2^j − 2j − 10 (N = 8, 26, 64, 142, 300, 618, …;
@@ -88,6 +108,7 @@ reduction `halts_iff` (`lean/Orbit.lean`). C (`tools/c/triage.c`): no halt in 10
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/lean/check.sh
 python3 holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/py/orbit.py 1000000
+python3 holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/py/steps.py     # the rule table and its step counts against direct simulation
 gcc -O2 -o check_map holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/c/check_map.c && ./check_map 8 3000 2
 ```
 

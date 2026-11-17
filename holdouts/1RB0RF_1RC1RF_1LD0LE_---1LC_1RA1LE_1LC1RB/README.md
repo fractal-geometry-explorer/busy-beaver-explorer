@@ -37,6 +37,31 @@ P(28), P(38), P(45), P(70), P(79), P(121), ... A pass from P(n) takes about 1.3 
 
 For odd n (j = 0) the last line is (3n+5)/2. A pass multiplies n by about 1 + 2^-(j+1).
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. A is the name the wiki page
+of this machine uses (it is X(0, b, c) above):
+
+    P(n)    := 0^∞ 1^n B> 0^∞
+    A(b, c) := 0^∞ E> 0 1^b 0 1^c 0^∞
+
+    0^∞ A> 0^∞      --1-->                            P(1)                 (then A(0, 2); P(4) at step 9)
+    P(n)            --n + 3-->                        A(n − 1, 2)          n ≥ 1
+    A(2i+3, c)      --2i² + 10i + 13-->               A(i, c + i + 4)
+    A(1, c)         --7-->                            HALT                 (D reads 0)
+    A(2i+2, c)      --6i² + 19i + 11 + c(4i + 7)-->   P(c + 3i + 5)
+    A(0, 2j)        --2j + 2-->                       P(2j + 2)
+    A(0, 2j+1)      --4j + 7-->                       A(2j + 2, 1)         (through 0^∞ 1^(2j+3) F> 0^∞)
+
+Each target is the first P or A tape the machine reaches. The rules are the recursion g of `lean/Macro.lean`, proved
+(`pstart`, `odd_run` + `odd_end`, `xhalt`, `even_full`, `zero_end_e`, `zero_end_o` + `qstart`, in `xrun`), with the
+halts-iff (`halts_iff`); P(4) at step 9 is `blank_P4` (`lean/Pass.lean`). The step counts are proved for the tape
+moves the rules are built from (`lean/Rules.lean`: odd round 4i + 11, even round 4i + 7, ...); the totals are their
+sums, checked against direct simulation (`py/steps.py`: 4,021 tapes including 61 halting A(1, c), and every P/A tape
+of the first 10^8 steps of the run), not stated in Lean. The wiki's A(2x, y) -> A(3x + y + 1, 2) is the even row
+followed by the open row. Example: P(14) -> A(13, 2) -> A(5, 11) -> A(1, 16) -> halt takes 17 + 113 + 25 + 7 = 162
+steps.
+
 ## Status
 
 Open, **reduced in Lean**: the machine halts iff the orbit 4, 8, 13, 22, 28, ... of f reaches an n with n+2 a
@@ -81,4 +106,5 @@ this family are listed in [`tools/sweep/README.md`](../../tools/sweep/README.md)
 gcc -O2 -o passmap holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/c/passmap.c
 ./passmap 1 3000 | python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/orbit.py --check
 python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py 200000
+python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/steps.py     # the rule table and its step counts against direct simulation
 ```

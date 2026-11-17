@@ -160,6 +160,16 @@
     ]
    },
    {
+    "id": "rules",
+    "eyebrow": "The recursion, rule by rule",
+    "heading": "Exact tapes, exact step counts",
+    "html": [
+     "<div class=\"col\"><p>The hole map written the way the bbchallenge wiki writes Antihydra's: name the tape exactly, then list the rules, each with the exact number of machine steps it takes. One family of tapes, the sample with the hole after p ones and r ones after it (the S of <code>lean/Map.lean</code>; N = p + r + 1):</p><p><code>S(p, r) := 0<sup>∞</sup> D&gt; 1<sup>p</sup> 0 1<sup>r</sup> 0<sup>∞</sup></code> (p, r ≥ 1)</p></div>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rule</th><th>from → to</th><th>steps</th><th>when</th></tr></thead><tbody><tr><td>start</td><td style=\"white-space:nowrap\">0<sup>∞</sup> A&gt; 0<sup>∞</sup> → S(2, 2)</td><td style=\"white-space:nowrap\">11</td><td></td></tr><tr><td><b>halt</b></td><td style=\"white-space:nowrap\">S(1, r) → <b>halt</b></td><td style=\"white-space:nowrap\">8</td><td>F reads 0</td></tr><tr><td>p = 3</td><td style=\"white-space:nowrap\">S(3, r) → S(r + 5, 2)</td><td style=\"white-space:nowrap\">2r + 28</td><td>r odd</td></tr><tr><td>p = 3</td><td style=\"white-space:nowrap\">S(3, r) → S(r + 5, 1)</td><td style=\"white-space:nowrap\">2r + 26</td><td>r even</td></tr><tr><td>p even</td><td style=\"white-space:nowrap\">S(2k + 2, r) → S(3k + r + 4, 1)</td><td style=\"white-space:nowrap\">6k<sup>2</sup> + 4kr + 22k + 8r + 17</td><td></td></tr><tr><td>p odd, halving</td><td style=\"white-space:nowrap\">S(2m + 1, r) → S(m − 1, m + r + 3)</td><td style=\"white-space:nowrap\">2m<sup>2</sup> + 6m + 5</td><td>m ≥ 2; the hole moves to (p − 3)/2</td></tr></tbody></table></div>",
+     "<div class=\"col\"><p>Each target is the first S tape the machine reaches. Here the step counts are in Lean too: <code>sample_step</code> (<code>lean/Map.lean</code>) proves, for all p, r ≥ 1, that S(p, r) reaches the next sample of the map <code>f</code> in exactly <code>cost p r</code> steps, or halts; the start is <code>start_S</code> (11 steps), and the halt row is <code>to_halt</code> (<code>lean/Rules.lean</code>: 7 steps to state F on a 0; the table adds the halting transition). On top of them <code>halts_iff</code> says <b>the machine halts iff these rules, started at S(2, 2), reach the halt row</b>. The polynomials in the table are <code>cost</code> multiplied out (Lean writes it with triangular numbers); <code>py/holemap.py rules</code> checks that they equal <code>cost</code> and checks the whole table against direct simulation: 3,600 tapes S(p, r) with p, r ≤ 60 (60 halting), and every S tape of the first 10<sup>8</sup> steps of the run, 36 of them. No failure.</p><p>The bbchallenge wiki page of the machine gives the same map with two families P(a) and Q(a, b) on other tapes; the rows here follow the Lean file.</p><p>For example S(13, 2): a halving (113 steps) to S(5, 11), a halving (25 steps) to S(1, 16), and the halt after 8 more: 146 steps in all, which is what direct simulation gives.</p></div>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Can it halt?",
     "heading": "Only through 2<sup>j</sup> &minus; 1",

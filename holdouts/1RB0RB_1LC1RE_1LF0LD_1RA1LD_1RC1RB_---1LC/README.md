@@ -46,6 +46,26 @@ Worked example: (24351, 24349) → (24352, 12173) → (24353, 6085) → (24354, 
 `Map.lean` iterates the loop rules by induction (`iterate`), sums the step counts in closed form (`cost p r`), and
 proves `sample_step` for all p, r >= 1. Same construction as `holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB`.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family:
+
+    S(p, r) := 0^∞ D> 1^p 0 1^r 0^∞          (p, r ≥ 1)
+
+    0^∞ A> 0^∞     --11-->                              S(2, 2)
+    S(1, r)        --8-->                               HALT                  (F reads 0)
+    S(3, r)        --2r + 28-->                         S(r + 5, 2)           r odd
+    S(3, r)        --2r + 26-->                         S(r + 5, 1)           r even
+    S(2k+2, r)     --6k² + 4kr + 22k + 8r + 17-->       S(3k + r + 4, 1)
+    S(2m+1, r)     --2m² + 6m + 5-->                    S(m − 1, m + r + 3)   m ≥ 2
+
+Each target is the first S tape reached. Rules and step counts are both proved: `sample_step` (`lean/Map.lean`, the
+steps are `cost p r`, here multiplied out), `start_S`, `to_halt` (7 steps to F on a 0, plus the halting step), and
+`halts_iff`. `py/holemap.py rules` checks the polynomials against `cost` and the table against direct simulation
+(3,600 tapes including 60 halting ones, and every S tape of the first 10^8 steps of the run). The bbchallenge wiki
+page writes the map with families P(a), Q(a, b) on other tapes. Example: S(13, 2) -> S(5, 11) -> S(1, 16) ->
+halt takes 113 + 25 + 8 = 146 steps.
+
 ## Status
 
 Open, **reduced in Lean**: `halts_iff : HaltsFromBlank ↔ ∃ n, orb n = none`, where `orb` is the orbit of (2, 2)
@@ -89,4 +109,5 @@ start is (D + a + v + r, 1) (`G_rule`, a >= 2), so D' = D + a + v + 1 when r = 1
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/lean/check.sh
+python3 holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/py/holemap.py rules    # the rule table and its step counts against direct simulation
 ```

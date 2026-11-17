@@ -49,6 +49,31 @@ probability 1/3, so each cycle ends in a halt with probability 1/5 (simulation o
 machine would halt with probability 1, after a tower of exponentials of steps; proving anything about the residues
 is a Collatz-type problem.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family (the P of
+`lean/Map.lean`), n = 3k + 3 + r:
+
+    P(m, n) := 0^∞ (1011)^m 1^n (10)^3 A> 1 0^∞
+
+    0^∞ A> 0^∞      --73-->                     P(0, 5)          (then P(0, 18); P(14, 5) at step 1,098)
+    P(m+1, 3k+3)    --12k² + 101k + 182-->      P(m, 8k + 19)
+    P(0, 3k+3)      --12k² + 77k + 158-->       P(2k + 4, 5)     (reset)
+    P(m+2, 3k+4)    --12k² + 125k + 305-->      P(m, 8k + 29)
+    P(1, 3k+4)      --12k² + 101k + 194-->      HALT             (F reads 0)
+    P(0, 3k+4)      --12k² + 101k + 184-->      P(0, 8k + 18)
+    P(m+2, 3k+5)    --12k² + 149k + 434-->      P(m, 8k + 35)
+    P(1, 3k+5)      --12k² + 125k + 362-->      P(2k + 8, 5)     (reset)
+    P(0, 3k+5)      --12k² + 101k + 182-->      P(0, 8k + 18)
+
+Each target is the first P tape reached. The rules are `phase_r0` ... `phase_r2_zero` and `halts_P1` of
+`lean/Map.lean` (the map `next`, `next_reach`), with `halts_iff`; P(14, 5) at step 1,098 is `init_P`. The step counts
+are proved for the pieces (`lean/Rules.lean`: `cycle` 6p + 37, `b1` 40k + 91, `reset` 16k + 109, ...), but `loop`
+does not keep the count; the totals are checked against direct simulation (`py/steps.py`: 1,848 tapes including 29
+halting ones, and every P tape of the first 10^8 steps of the run), not stated in Lean. The bbchallenge wiki page
+(Lucy's Moonlight) gives the same rules in Shawn Ligocki's C(a, b) = 0^∞ (1011)^a 1^b 10 C> 0^∞, with a = m,
+b = n + 3. Example: P(3, 7) -> P(1, 37) -> halt takes 442 + 2,757 = 3,199 steps.
+
 ## Status
 
 Open, reduced to the map (kernel). Lean files in `lean/`:
@@ -70,6 +95,7 @@ and estimates the halting chance per cycle.
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/lean/check.sh
 python3 holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/py/m6check.py
+python3 holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/py/steps.py     # the rule table and its step counts against direct simulation
 cd holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/lean && python3 rules.py | diff - Rules.lean
 ```
 
