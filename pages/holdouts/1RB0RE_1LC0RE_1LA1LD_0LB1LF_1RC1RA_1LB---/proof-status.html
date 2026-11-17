@@ -126,6 +126,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>f_left</code>: going left, each <code>1010</code> becomes <code>1111</code> (8 steps a word). <code>e_right</code>: going right, each <code>1111</code> becomes <code>1010</code> again (4 steps a word). <code>a_right</code>: A turns a block of 2n ones into <code>(01)^n</code>. All three hold for every n and every surrounding tape.</p>
         <p class="where"><code>lean/Rules.lean</code> (from <code>lean/rules.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>Halts together with 1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---, given one condition</h3>
+        <p>The two runs differ by one inserted word (<code>0101</code> near the right end). If the followed run of the shorter configuration never reaches a bad moment (<code>GoodPair</code>, not proved), this machine halts from blank tape if and only if 1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA--- does. <code>GoodPair</code> holds for the first 10<sup>10</sup> steps (<code>tools/c/inscheck.c</code>, trusted).</p>
+        <p class="where"><code>halt_together</code>, <code>holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/lean/Insert_1RB0RE1LC0RE1.lean</code>; <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/EQUIVALENCES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">

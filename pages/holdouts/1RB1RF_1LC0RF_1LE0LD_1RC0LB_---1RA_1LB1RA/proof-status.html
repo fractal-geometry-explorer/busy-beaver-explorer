@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The machine halts only when E reads a 0, and the only way there is B reading a 0 with <code>0 0</code> just left of it: three 0s in a row with B on the right one (B and C write 1s and step left, and E meets the last 0.</p>
         <p class="where"><code>halt_pred</code>, <code>halt_needs_pattern</code>, <code>lean/Halt.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halts together with 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE, given one condition</h3>
+        <p>The two runs differ by one inserted word (one copy of <code>1011011011</code> near the left end). If the followed run of the shorter configuration never reaches a bad moment (<code>GoodPair</code>, not proved), this machine halts from blank tape if and only if 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE does. <code>GoodPair</code> holds for the first 10<sup>10</sup> steps (<code>tools/c/inscheck.c</code>, trusted).</p>
+        <p class="where"><code>halt_together</code>, <code>holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/lean/Insert_1RB1RF1LC0RF1.lean</code>; <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/EQUIVALENCES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">

@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With block counts written last block first, a sweep from <code>B&gt;0</code> at the right end back to it changes them by: (E | O ?) &rarr; (+1, +1, &minus;1); (E | E E ?) &rarr; (+1, &minus;1, +2, &minus;1); (E | E O E ?) &rarr; (+1, &minus;1, 0, +2, &minus;1); (O | E E E ?) and (O | E O O E) &rarr; (+1, 0, 0, +1, &minus;1); (O | E E O E E) &rarr; (+1, 0, 0, &minus;1, +2, &minus;1), where E/O is the parity of a count (inner counts at least 4, the last at least 5), for every value of the counts and every tape further left; the step counts are linear (e.g. 8c + 16y<sub>1</sub> + 76 for the first). Written by <code>bbtools.symtm.prove</code>.</p>
         <p class="where"><code>sweep_E_OE</code> &hellip; <code>sweep_O_EEOEE</code>, <code>lean/Rules.lean</code> (<code>py/gen_rules.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>Halts together with 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE, given one condition</h3>
+        <p>The two runs differ by one inserted word (<code>01010101</code> in the background). If the followed run of the shorter configuration never reaches a bad moment (<code>GoodPair</code>, not proved), this machine halts from blank tape if and only if 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE does. <code>GoodPair</code> holds for the first 10<sup>10</sup> steps (<code>tools/c/inscheck.c</code>, trusted).</p>
+        <p class="where"><code>halt_together</code>, <code>holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE/lean/Insert_1RB0RA1LC0RA0.lean</code>; <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/EQUIVALENCES.md</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
