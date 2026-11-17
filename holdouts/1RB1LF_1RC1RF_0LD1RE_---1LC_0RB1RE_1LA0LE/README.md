@@ -1,6 +1,6 @@
 # 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE
 
-bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling map with a growing modulus (odd-pool events)**. Decision: **open** (proved in Lean: it halts iff its right-end map reaches T(none, 1, b); no halt in 10^11 operations of the exact map, about 5·10^10 right-end visits; heuristically a later halt has probability of order 10^-11).
+bbchallenge id 21883. A BB(6) holdout whose halting from blank tape is open. Family: **doubling map with a growing modulus (odd-pool events)**. Decision: **open** (proved in Lean: it halts iff its right-end map reaches T(none, 1, b), and iff the doubling map in (u, m) below, odd pools and brackets included, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket; no halt in 10^11 operations of the exact map, about 5·10^10 right-end visits; heuristically a later halt has probability of order 10^-11).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -18,7 +18,8 @@ At every visit of the right end in state B the tape is
     T(c, a, b) = 0^∞ [1^2 0 (10)^c] 1^a 0 (10)^b B>0 0^∞      (the bracket [...] present or not)
 
 a *pool* of a 1s, a block of b pairs, and sometimes a *bracket* to the left. The run reaches T(none, 2, 0) at step 7.
-The map from one visit to the next is now complete (`py/model.py`, function `step`); it has three parts.
+The map from one visit to the next is now complete (`py/model.py`, function `step`; proved in Lean as `F` in
+`lean/Map.lean`, and in the arithmetic form below as `op` in `lean/Doubling.lean`); it has three parts.
 
 **1. An even pool: a doubling map.** The bracket is not touched. With u = b + 2 and m = a/2 + b + 3:
 
@@ -79,6 +80,23 @@ orbit of the doubling map.
   4, 3, 2), the merge of a pool of three into the bracket (w ≥ 3, 2, 1), the pool of one at w = 1 and w = 0. Each
   move is a theorem for all parameters (`m_*`, from `lean/Rules.lean`, which `py/rules.py` now generates with 15
   more rules in these forms), and `F_sem` assembles them. The axioms are `propext`, `Classical.choice`, `Quot.sound`.
+* **Lean, kernel: the doubling map, a layer above `F` (`lean/Doubling.lean`).** `op` works on even states
+  `ev c u m` and odd pools `od c A b` (the visit T(c, A, b), A = 2i + 3; one operation is one whole odd sweep):
+
+      ev:  2u < m → ev c (2u) (m+1);   2u > m → ev c (2u−m) m;   2u = m → od c (2m−3) 0
+      od:  b < i → od c (A−2b−2) (2b+2);   b = i → od none 1 (2b+2) (halt next) or, with bracket c,
+           ev none (c+2b+5) (c+2b+7);   b = i + r, no bracket: r = 1 → od none (2A+5) 0, r = 2 → ev none (A+3) (A+5),
+           r ≥ 3 → ev (some (A+1)) (r−2) r;   with bracket c: r = 1 → od none (2c+2A+5) 0, r ≥ 2 → ev none (r−1) (c+i+b+6)
+
+  A visit with even a is `ev c (b+2) (a/2+b+3)`, inside a sweep `Cs c (2i+2) (2j+1) w` is `ev c (j+w+2) (i+2j+w+4)`
+  (a round does not move it, a carry is one operation). `F_op`: every move of `F` is one or more operations of `op`.
+  `halts_iff_op`: the machine halts from blank tape iff `op` from `ev none 2 4` (the visit at step 7) halts.
+  `halts_iff_pool`: iff the orbit reaches `od none A 0` with A = 2^(k+2) − 2k − 3 (`pool_run` does the odd pool's
+  doubling for every k, and `back` traces any halting visit back to the pool it started as). `pool_sources`: such a pool
+  comes from an event 2u = m without bracket (and `event_pool`: 2m − 3 is a halting pool iff m = 2^(k+1) − k), from an
+  odd pool that overflows by one (2A + 5), or from a merge that ends with the tail (2c + 2A + 5). The first 10^4
+  operations (kernel) and 10^7 (`native_decide`) do not halt. Axioms `propext`, `Classical.choice`, `Quot.sound`. This
+  makes the page's simple rule a proved halts-iff; `py/model.py` and the C runs remain the fast way to follow it.
 * Lean: the first 100 nodes of the orbit do not halt (kernel), and the first 10^4 (`native_decide`).
 * Lean, kernel: T(none, 1, n) halts for every n (`halt_T1`).
 * Trusted (now superseded for `step` itself by the Lean map): `step` against direct simulation on 13,728 configurations (c ∈ {none, 0, 1, 2, 3, 4, 7, 10}, a < 40,
@@ -103,10 +121,9 @@ orbit of the doubling map.
 
 ## Next steps
 
-* Prove in Lean the arithmetic layer that is still only checked: `F` on even pools is the doubling map
-  (u, m) and an odd pool T(none, A, 0) reaches T(none, 1, ·) iff A = 2^(k+2) − 2k − 3; then "halts iff an event
-  without bracket hits m = 2^(k+1) − k" becomes a kernel statement. (For 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC
-  this layer is done: its `lean/Doubling.lean`.)
+* Done (17 November 2026): the arithmetic layer, `lean/Doubling.lean` (see Status).
+* Prove in Lean that the pool 2A + 5 never halts (the README's argument: an odd pool that overflows by one is
+  2^(K+3) − 1), so that only events and merges remain as sources of halting pools.
 * A faster simulator: k doublings at once are one multiplication by 2^k and one division by m with a small
   correction (the modulus moves by at most k), valid when the remainder is not near 0; this would give about 10^13
   operations and, with exact step counts added, a halting step if one is ever found.
