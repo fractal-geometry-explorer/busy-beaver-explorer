@@ -81,7 +81,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1RC1LB_0LD0RA_1RF1LE_---1LF_1LC0LF</p>
     <h1>What is known about 1RB1RA_1RC1LB_0LD0RA_1RF1LE_---1LF_1LC0LF</h1>
     <p class="machine">1RB1RA_1RC1LB_0LD0RA_1RF1LE_---1LF_1LC0LF</p>
-    <p class="stand pr"><b>Open here; an outside proof awaits review</b><span>A Rocq proof that it never halts is in an open busycoq pull request, not merged and not compiled here. This page's own ledger treats halting as open.</span></p>
+    <p class="stand pr"><b>Open here; an outside proof awaits review</b><span>A Rocq proof that it never halts is in an open busycoq pull request, not merged and not compiled here; DeepMind's cryptids repository has a Lean proof of the same, compiled here. This page's own ledger treats halting as open.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a list of blocks of 1s separated by single 0s; it works as a nested counter. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 9 November 2026.</p>
   </header>
@@ -97,6 +97,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <div class="card report">
         <h3>An outside proof is waiting for review: it never halts</h3>
         <p><a href="https://github.com/ccz181078/busycoq/pull/50">busycoq pull request 50</a> (Alex Havrilla, 2026-11-03) contains a Rocq proof that this machine never halts (<code>verify/M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.v</code>). As of 12 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+      </div>
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it never halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/NonHalt/M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.lean">M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026) proves that this machine never halts, a Lean port of busycoq pull request 50. We built it with Lean v4.35.0-rc4 on 2026-11-17: the theorem <code>BusyBeaver.M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's, and the verdict on this page has not been changed to rely on it.</p>
       </div>
       <div class="card label">
         <h3>Community label</h3>
@@ -139,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Block configurations of the early run</h3>
         <p>From blank tape the machine is at <code>[4, 3, 9]</code> after 204 steps and <code>[9, 12]</code> after 420 (kernel); at <code>[4, 18, 28]</code> after 99,072 and <code>[4, 17, 27, 3]</code> after 197,318 steps (<code>native_decide</code>).</p>
         <p class="where"><code>blank_at_204</code>, <code>blank_at_420</code>, <code>blank_at_99072</code>, <code>blank_at_197318</code>, <code>lean/Blocks.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Proved: it never halts (DeepMind's Lean proof, compiled here)</h3>
+        <p>google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 50. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (15 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.</p>
+        <p class="where"><code>BusyBeaver.M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.is_not_halt</code>, <code>BusyBeaver/BB6/NonHalt/M_1RB1RA_1RC1LB_0LD0RA_1RF1LE_HHH1LF_1LC0LF.lean</code> in google-deepmind/cryptids</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
