@@ -67,4 +67,4 @@ budget pays for it, and a halt needs the budget to be used up exactly.
 
 ## Results
 
-See `RESULTS.md` (written as the runs finish).
+See `RESULTS.md`.

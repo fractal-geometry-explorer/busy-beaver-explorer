@@ -22,7 +22,7 @@ Numbers are Python ints converted to gmpy2.mpz by the engine when gmpy2 is avail
 
 usage:
     python3 tools/sweep/engine.py list
-    python3 tools/sweep/engine.py run SLUG [--seconds S] [--steps N] [--ckpt DIR] [--every SEC]
+    python3 tools/sweep/engine.py run SLUG [--seconds S (total over resumes)] [--steps N] [--ckpt DIR] [--every SEC]
     python3 tools/sweep/engine.py orbit SLUG N        # print the first N states with labels
 """
 import importlib
@@ -97,7 +97,7 @@ def run(slug, seconds=None, steps=None, ckpt=None, every=60.0, quiet=False):
     if path and os.path.exists(path):
         with open(path) as f:
             st = json.load(f)
-        if st["result"] != "running":
+        if st["result"] != "running" or (seconds is not None and st["seconds"] >= seconds):
             return st
     s = dec(st["state"]) if gmpy2 else tuple(int(x, 16) if k == "i" else x for k, x in st["state"])
     n = st["n"]
@@ -149,7 +149,7 @@ def run(slug, seconds=None, steps=None, ckpt=None, every=60.0, quiet=False):
             now = time.time()
             if steps is not None and n >= steps:
                 break
-            if seconds is not None and now - t0 >= seconds:
+            if seconds is not None and base_sec + now - t0 >= seconds:
                 break
             if now - tlast >= every:
                 tlast = now
