@@ -36,6 +36,9 @@ Main results:
 * `pool_sources` and `event_pool`: such a pool comes from an event `2u = v` without bracket, and then it halts iff
   `v = 2^(k+1) − k`, or from one of the two rarer odd pools `2A + 5` (an odd pool that overflows by one) and
   `2c + 2A + 5` (a merge that ends as the tail runs out);
+* `halts_iff_source`: **it halts iff the orbit meets an event `2u = v` without bracket at `v = 2^(k+1) − k`, or a
+  merge `O_c(2i + 3, i + 1)` with `2c + 4i + 11 = 2^(k+2) − 2k − 3`**; the overflow pool `2A + 5` is always
+  `2^(j+3) − 1` and never halts (`not_pool_mersenne`);
 * `op_kernel`, `op_native`: the first 10^4 (kernel) and 10^7 (compiled) operations do not halt.
 
 Nothing about the run is assumed beyond `Map.lean`; the axioms are `propext`, `Classical.choice`, `Quot.sound`.
@@ -729,6 +732,74 @@ theorem pool_sources {s : DS} {A : Nat} (h : op s = some (.od none A 0)) (hA : A
 theorem event_pool (k v : Nat) : 2 * v - 3 = 2 ^ (k + 2) - 2 * k - 3 ↔ v = 2 ^ (k + 1) - k := by
   have hP := two_pow_ge k
   rw [Nat.pow_succ 2 (k + 1)]; omega
+
+/-! ## The pool 2A + 5 never halts -/
+
+theorem pow3_ge (j : Nat) : 2 * j + 8 ≤ 2 ^ (j + 3) := by
+  induction j with
+  | zero => decide
+  | succ j ih => rw [show j + 1 + 3 = (j + 3) + 1 by omega, Nat.pow_succ]; omega
+
+theorem pow_ge_succ (d : Nat) : d + 2 ≤ 2 ^ (d + 1) := two_pow_ge d
+
+/-- `2^(j+3) − 1` is never a halting pool `2^(k+2) − 2k − 3`. -/
+theorem not_pool_mersenne (j k : Nat) : 2 ^ (j + 3) - 1 ≠ 2 ^ (k + 2) - 2 * k - 3 := by
+  have hk := two_pow_ge (k + 1)
+  have hj := pow3_ge j
+  rw [show k + 1 + 1 = k + 2 from rfl] at hk
+  rcases Nat.lt_or_ge (j + 3) (k + 2) with h | h
+  · obtain ⟨d, rfl⟩ : ∃ d, k = j + 2 + d := ⟨k - (j + 2), by omega⟩
+    rw [show j + 2 + d + 2 = (j + 3) + (d + 1) by omega, Nat.pow_add 2 (j + 3) (d + 1)]
+    have hY := pow_ge_succ d
+    have h1 : 2 ^ (j + 3) * (d + 2) ≤ 2 ^ (j + 3) * 2 ^ (d + 1) := Nat.mul_le_mul_left _ hY
+    have h2 : 2 ^ (j + 3) * (d + 2) = 2 ^ (j + 3) * d + 2 ^ (j + 3) * 2 := Nat.mul_add _ _ _
+    have h3 : 8 * d ≤ 2 ^ (j + 3) * d := Nat.mul_le_mul_right _ (by omega)
+    clear hk
+    generalize 2 ^ (j + 3) * 2 ^ (d + 1) = P at *
+    generalize 2 ^ (j + 3) * (d + 2) = Q at *
+    generalize 2 ^ (j + 3) * d = R at *
+    omega
+  · have := Nat.pow_le_pow_right (show 0 < 2 by decide) h
+    omega
+
+/-- **Halting, by its sources.** The machine halts from blank tape iff the orbit of `op` meets either an event
+`2u = v` without bracket at a modulus `v = 2^(k+1) − k`, or a merge that ends as the tail runs out,
+`O_c(2i + 3, i + 1)`, with `2c + 4i + 11 = 2^(k+2) − 2k − 3`.  The third source of odd pools without bracket, an odd
+pool that overflows by one (`2A + 5`), is always `2^(j+3) − 1` and never halts. -/
+theorem halts_iff_source : HaltsFromBlank ↔ ∃ n k,
+    (∃ u, opIter n s0 = some (.ev none u (2 * u)) ∧ 2 * u = 2 ^ (k + 1) - k) ∨
+    (∃ c i, opIter n s0 = some (.od (some c) (2 * i + 3) (i + 1)) ∧ 2 * c + 4 * i + 11 = 2 ^ (k + 2) - 2 * k - 3) := by
+  rw [halts_iff_pool]
+  constructor
+  · rintro ⟨n, k, hn⟩
+    have hP := two_pow_ge k
+    have hodd : (2 ^ (k + 2) - 2 * k - 3) % 2 = 1 := by
+      rw [Nat.pow_succ 2 (k + 1)]; omega
+    cases n with
+    | zero => simp [opIter, s0] at hn
+    | succ n =>
+      rw [opIter_succ'] at hn
+      cases hs : opIter n s0 with
+      | none => rw [hs] at hn; cases hn
+      | some s =>
+        rw [hs, Option.bind_some] at hn
+        rcases pool_sources hn hodd with ⟨u, v, rfl, huv, hA⟩ | ⟨i, rfl, hA⟩ | ⟨c, i, rfl, hA⟩
+        · subst huv
+          exact ⟨n, k, Or.inl ⟨u, hs, (event_pool k (2 * u)).1 hA.symm⟩⟩
+        · exfalso
+          obtain ⟨w, j, -, hb⟩ := back n _ _ hs (by omega)
+          have hj := two_pow_ge j
+          apply not_pool_mersenne j k
+          rw [hA, show j + 3 = (j + 1) + 1 + 1 by omega, Nat.pow_succ, Nat.pow_succ]
+          omega
+        · exact ⟨n, k, Or.inr ⟨c, i, hs, by omega⟩⟩
+  · rintro ⟨n, k, ⟨u, hn, hu⟩ | ⟨c, i, hn, hc⟩⟩
+    · refine ⟨n + 1, k, ?_⟩
+      rw [opIter_succ', hn, Option.bind_some, op_eq _ _ _ rfl]
+      have hP := two_pow_ge k
+      congr 3; rw [hu, Nat.pow_succ 2 (k + 1)]; omega
+    · refine ⟨n + 1, k, ?_⟩
+      rw [opIter_succ', hn, Option.bind_some, op_od, odStep_s1 rfl, hc]
 
 /-! ## The orbit, evaluated -/
 
