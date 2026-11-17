@@ -190,9 +190,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>An odometer that might stop on one exact number</h1>
   <p class="machine-id">1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</p>
   <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
-  <div class="col"><p class="lede">Nobody knows whether it halts. The tape is an odometer with three wheels: a fast one that doubles, a middle one that ticks down, and a slow one that resets. In numbers it doubles a counter u modulo a modulus m that grows by one each time. The machine can only halt at a reset, and only if the doubling lands exactly on m at that moment. In 54 resets that has never happened, and the target keeps getting smaller.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. The tape is an odometer with three wheels: a fast one that doubles, a middle one that ticks down, and a slow one that resets. In numbers it doubles a counter u modulo a modulus v that grows by one each time. The machine can only halt at a reset, and only if the doubling lands exactly on v at that moment. In 54 resets that has never happened, and the target keeps getting smaller. Below, each level of that description has its own interactive picture, and at the end the whole question is one five-line definition.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev c">Computed</span><b>u ↦ 2u mod m</b><span class="small">The odometer as a doubling map; m grows by one each operation.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>u ↦ 2u mod v</b><span class="small">The odometer as a doubling map; v grows by one each operation.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>54 resets</b><span class="small">No halt in 10<sup>11</sup> operations of the exact map.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>≈ 10<sup>−10</sup></b><span class="small">Chance of any later halt.</span></div>
   </div>
@@ -206,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#odometer">Three wheels</a><a href="#doublingmap">Doubling modulo a growing number</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">From six states to three numbers</a><a href="#visits">The tape at its visits</a><a href="#odometer">Three wheels</a><a href="#doublingmap">Doubling modulo a growing number</a><a href="#laps">Laps, and why they get rarer</a><a href="#definition">The whole question in one definition</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -285,22 +285,849 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="levels">
+  <span class="eyebrow">Four levels</span>
+  <h2>From six states to three numbers</h2>
+<style>
+:root{--h5c:#2a78d6;--h5a:#1baf7a;--h5b:#eda100;--h5c2:#cde2fb;--h5a2:#c9efe0;--h5b2:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--h5c:#3987e5;--h5a:#199e70;--h5b:#c98500;--h5c2:#1b3354;--h5a2:#123a2b;--h5b2:#3d2c08} }
+:root[data-theme="dark"]{--h5c:#3987e5;--h5a:#199e70;--h5b:#c98500;--h5c2:#1b3354;--h5a2:#123a2b;--h5b2:#3d2c08}
+.h5-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.h5-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative}
+.h5-lv:hover{border-color:var(--accent)}
+.h5-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.h5-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.h5-lv code{font-size:.8em}
+.h5-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.h5-lv .ev{margin-top:4px}
+.h5-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.h5-row:first-child{border-top:0}
+.h5-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.h5-row .mono{overflow-wrap:anywhere}
+@media (max-width:560px){.h5-row{grid-template-columns:minmax(0,1fr)}}
+.h5-tape{display:block;width:100%;height:64px;margin-top:6px}
+.h5-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.h5-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.h5-ok{color:var(--kernel);font-weight:600}
+.h5-bad{color:var(--open);font-weight:600}
+.h5-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.h5-num{width:7.5em}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level throws away detail
+the one above it keeps, and each step down is a theorem: the answer is the same at every level. The page walks down
+the ladder: the six-state machine on its tape, the tape at the moments it reaches new ground, the three numbers that
+describe those moments, and the long laps those numbers make. At the bottom the question fits in five lines of
+arithmetic (<a href="#definition">the definition</a>).</p>
+</div>
+<div class="h5-ladder">
+ <a class="h5-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">The run so far: far beyond 10<sup>30</sup> steps (an estimate).</div></a>
+ <a class="h5-lv" href="#visits"><span class="n">Level 2</span><b class="t">Visits <code>S(c, a, b)</code></b>
+  <div class="u">The tape each time the head reaches a new cell on the right in state B. One unit is one <b>visit</b>, about v<sup>2</sup> steps.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>halts_iff</code></span></a>
+ <a class="h5-lv" href="#doublingmap"><span class="n">Level 3</span><b class="t">The doubling map <code>(c, u, v)</code></b>
+  <div class="u">u is doubled modulo v and v grows by one. One unit is one <b>operation</b>: a visit or a carry.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 2: <code>halts_iff_op</code></span></a>
+ <a class="h5-lv" href="#laps"><span class="n">Level 4</span><b class="t">Laps</b>
+  <div class="u">The same operations cut at the resets. Every lap starts at u = v − 3. One unit is one <b>lap</b>.</div>
+  <span class="small">54 laps in 10<sup>11</sup> operations, none ending in a halt.</span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick a visit. The browser runs the real machine from blank tape up to that moment and reads its tape; it also runs
+the doubling map up to the same moment. The rows show the same instant at each level, and the check marks say that
+the two computations agree.</p>
+</div>
+<div class="panel" id="h5-moment">
+ <div class="controls">
+  <button type="button" id="h5m-prev" aria-label="Previous visit">&#9664;</button>
+  <input type="range" class="h5-slider" id="h5m-n" min="0" max="400" value="30" aria-label="Visit number">
+  <button type="button" id="h5m-next" aria-label="Next visit">&#9654;</button>
+  <span class="small">visit <b id="h5m-lab">30</b> of the run</span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="h5-row"><span>1 · Machine</span><div><span id="h5m-step"></span>
+   <canvas class="h5-tape" id="h5m-tape" aria-label="The tape at this visit, coloured by block"></canvas>
+   <div class="h5-key"><span><i style="background:var(--h5c)"></i>left block (10)<sup>c</sup></span><span><i style="background:var(--h5a)"></i>pool 1<sup>a</sup></span><span><i style="background:var(--h5b)"></i>right block (10)<sup>b</sup></span><span><i style="background:var(--head)"></i>head, state B</span><span>dark cell = 1, pale cell = 0</span></div></div></div>
+  <div class="h5-row"><span>2 · Visit</span><div id="h5m-s"></div></div>
+  <div class="h5-row"><span>3 · Doubling map</span><div id="h5m-d"></div></div>
+  <div class="h5-row"><span>4 · Lap</span><div id="h5m-l"></div></div>
+ </div>
+ <div class="cap">Visit 0 is S(0, 4, 1), reached at step 43; earlier visits are not of this form. The machine's steps are counted exactly; visit 400 is about ten million steps in, and takes the browser a fraction of a second.</div>
+</div>
+<script>
+window.H5 = (function () {
+  "use strict";
+  var TM = "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC";
+  var W = [], MV = [], ST = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var s = 0; s < 2; s++) {
+      var t = g.substr(3 * s, 3);
+      var k = 2 * i + s;
+      if (t[0] === "-") { W[k] = -1; MV[k] = 0; ST[k] = -1; }
+      else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; ST[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  var PAT = /^((?:10)*)(1*)0((?:10)*)1$/;
+  function word(c, a, b) { return "10".repeat(c) + "1".repeat(a) + "0" + "10".repeat(b) + "1"; }
+  function parse(str) {
+    var i = str.indexOf("1");
+    var m = PAT.exec(i < 0 ? "" : str.slice(i));
+    return m ? [m[1].length / 2, m[2].length, m[3].length / 2] : null;
+  }
+  // A machine: tape in a growable byte array.
+  function Machine() { this.n = 1 << 12; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0; this.k = 0; this.lo = 0; this.hi = 0; this.halted = false; }
+  Machine.prototype.grow = function () {
+    var n = this.n * 2, t = new Uint8Array(n), o = this.o + (this.n >> 1);
+    t.set(this.t, this.n >> 1); this.t = t; this.o = o; this.n = n;
+  };
+  Machine.prototype.load = function (str, state) {   // str written from cell 0, head just right of it
+    for (var i = 0; i < str.length; i++) this.set(i, +str[i]);
+    this.p = str.length; this.s = state; this.lo = 0; this.hi = str.length;
+  };
+  Machine.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  Machine.prototype.set = function (x, v) { while (x + this.o < 2 || x + this.o >= this.n - 2) this.grow(); this.t[x + this.o] = v; };
+  Machine.prototype.step = function () {
+    var k = 2 * this.s + this.get(this.p);
+    if (ST[k] < 0) { this.halted = true; return false; }
+    this.set(this.p, W[k]); this.p += MV[k]; this.s = ST[k]; this.k++;
+    if (this.p < this.lo) this.lo = this.p;
+    return true;
+  };
+  Machine.prototype.str = function (a, b) { var r = ""; for (var x = a; x < b; x++) r += this.get(x); return r; };
+  // Runs until the next right-end visit in state B that has the form S; returns [c, a, b], "halt" or null.
+  Machine.prototype.nextVisit = function (limit) {
+    var end = this.k + limit;
+    while (this.k < end) {
+      if (!this.step()) return "halt";
+      if (this.p > this.hi) {
+        this.hi = this.p;
+        if (this.s === 1) { var r = parse(this.str(this.lo, this.p)); if (r) return r; }
+      }
+    }
+    return null;
+  };
+  // The run from blank tape, visit by visit: [{k, s}] with k the step and s the parsed S(c, a, b).
+  var run = [], rm = null;
+  function visits(n) {
+    if (!rm) {
+      rm = new Machine();
+      for (var i = 0; i < 43; i++) { rm.step(); if (rm.p > rm.hi) rm.hi = rm.p; }
+      run.push({ k: rm.k, s: parse(rm.str(rm.lo, rm.p)) });
+    }
+    while (run.length <= n) {
+      var r = rm.nextVisit(1e8);
+      if (!Array.isArray(r)) break;
+      run.push({ k: rm.k, s: r });
+    }
+    return run;
+  }
+  // Level 2: the odometer rule. Returns {s: next visit or null for halt, sub: the moves}.
+  function odo(c, a, b) {
+    var sub = [];
+    for (;;) {
+      if (2 * b < a) { sub.push(["fast", c, a, b]); return { s: [c, a - 2 * b, 2 * b + 1], sub: sub }; }
+      if (c >= 1) { sub.push(["carry", c, a, b]); var nb = b - a / 2 - 1; c = c - 1; b = nb > 0 ? nb : 0; a = 2 * a + 4; continue; }
+      if (b === a / 2) { sub.push(["halt", c, a, b]); return { s: null, sub: sub }; }
+      sub.push(["reset", c, a, b]); var b2 = b - a / 2 - 1; c = a; a = 4; b = b2;
+    }
+  }
+  // Level 3: one operation of the doubling map. Returns [c, u, v, kind] or null (halt).
+  function op(c, u, v) {
+    var t = 2 * u;
+    if (t < v) return [c, t, v + 1, "visit"];
+    if (c > 0) return t > v ? [c - 1, t - v, v + 1, "carry"] : [c - 1, 1, v + 2, "empty"];
+    if (t > v) return [2 * (v - u - 1), t - v, t - v + 3, "reset"];
+    return null;
+  }
+  function toUV(s) { return [s[0], s[2] + 1, s[1] / 2 + s[2] + 2]; }
+  function fromUV(d) { return [d[0], 2 * (d[2] - d[1] - 1), d[1] - 1]; }
+  // The map's own run, visit by visit: [{d, ops, resets, empties}].
+  var mrun = [{ d: [0, 2, 5], ops: 0, resets: 0, empties: 0 }];
+  function mapVisits(n) {
+    var L = mrun[mrun.length - 1], d = L.d, ops = L.ops, rs = L.resets, em = L.empties;
+    while (mrun.length <= n) {
+      var r = op(d[0], d[1], d[2]); ops++;
+      if (!r) break;
+      d = [r[0], r[1], r[2]];
+      if (r[3] === "reset") rs++;
+      if (r[3] === "empty") em++;
+      if (r[3] === "visit") mrun.push({ d: d, ops: ops, resets: rs, empties: em });
+    }
+    return mrun;
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  // Draws the word of S(c, a, b) (or any 0/1 string with region marks) on a canvas.
+  function drawTape(cv, c, a, b, opt) {
+    opt = opt || {};
+    var str = word(c, a, b), n = str.length + 2;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 64, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var cw = Math.min(14, w / n), gap = cw >= 6 ? 1 : 0, y0 = 22, ch = Math.min(26, h - 30);
+    var regions = [[0, 2 * c, "--h5c", "(10)^" + c], [2 * c, 2 * c + a, "--h5a", "1^" + a], [2 * c + a, 2 * c + a + 1, "--muted", ""],
+                   [2 * c + a + 1, 2 * c + a + 1 + 2 * b, "--h5b", "(10)^" + b], [2 * c + a + 1 + 2 * b, str.length, "--fg2", ""]];
+    var col = {}, pale = { "--h5c": "--h5c2", "--h5a": "--h5a2", "--h5b": "--h5b2" };
+    regions.forEach(function (R) {
+      var full = css(R[2]), light = pale[R[2]] ? css(pale[R[2]]) : css("--sunk");
+      for (var i = R[0]; i < R[1]; i++) {
+        g.fillStyle = str[i] === "1" ? full : light;
+        g.fillRect(i * cw, y0, Math.max(cw - gap, 0.6), ch);
+      }
+      if (R[3] && R[1] > R[0]) {
+        g.fillStyle = css("--fg2"); g.font = "11px " + css("--mono").split(",")[0];
+        var mid = (R[0] + R[1]) / 2 * cw, tw = g.measureText(R[3]).width;
+        var x = Math.max(0, Math.min(w - tw, mid - tw / 2));
+        g.fillText(R[3], x, 14);
+        g.strokeStyle = css("--line-strong"); g.lineWidth = 1;
+        g.beginPath(); g.moveTo(R[0] * cw + 1, 18); g.lineTo(R[1] * cw - 1, 18); g.stroke();
+      }
+    });
+    // head
+    var hx = str.length * cw;
+    g.fillStyle = css("--head");
+    g.fillRect(hx, y0, Math.max(cw - gap, 2), ch);
+    g.beginPath(); g.moveTo(hx + cw / 2, y0 + ch + 3); g.lineTo(hx + cw / 2 - 4, y0 + ch + 9); g.lineTo(hx + cw / 2 + 4, y0 + ch + 9); g.fill();
+  }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    window.addEventListener("resize", f);
+  }
+  return { Machine: Machine, word: word, parse: parse, visits: visits, odo: odo, op: op, toUV: toUV, fromUV: fromUV,
+           mapVisits: mapVisits, drawTape: drawTape, css: css, fmt: fmt, onTheme: onTheme };
+})();
+
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var sl = $("h5m-n"), cv = $("h5m-tape");
+  function same(x, y) { return x && y && x[0] === y[0] && x[1] === y[1] && x[2] === y[2]; }
+  function show() {
+    var n = +sl.value;
+    $("h5m-lab").textContent = n;
+    var run = H.visits(n), mv = H.mapVisits(n);
+    var V = run[n], M = mv[n], s = V.s, d = M.d, fs = H.fromUV(d);
+    $("h5m-step").innerHTML = "step " + H.fmt(V.k) + " of the run from blank tape, " + H.word(s[0], s[1], s[2]).length + " cells from the leftmost 1 to the head";
+    H.drawTape(cv, s[0], s[1], s[2]);
+    var pred = n > 0 ? H.odo.apply(null, run[n - 1].s) : null;
+    var ok = n === 0 ? "" : same(pred.s, s) ? ' <span class="h5-ok">✓ the rule applied to visit ' + (n - 1) + " gives this</span>"
+                                           : ' <span class="h5-bad">✗ differs from the rule</span>';
+    $("h5m-s").innerHTML = "S(" + s.join(", ") + "): c = " + s[0] + " pairs left, a = " + s[1] + " ones in the pool, b = " + s[2] + " pairs right" + ok;
+    var agree = same(fs, s) ? ' <span class="h5-ok">✓ the map gives the same visit</span>' : ' <span class="h5-bad">✗ the map disagrees</span>';
+    $("h5m-d").innerHTML = "(c, u, v) = (" + d.join(", ") + "), with u = b + 1 and v = a/2 + b + 2, after " + H.fmt(M.ops) + " operations" + agree +
+      "<br>c + v = " + (d[0] + d[2]) + " = 5 + " + n + " visits + " + M.resets + (M.resets === 1 ? " reset + " : " resets + ") + M.empties + (M.empties === 1 ? " emptying carry" : " emptying carries");
+    var x = d[1] / d[2];
+    $("h5m-l").innerHTML = "lap " + (M.resets + 1) + " (" + M.resets + (M.resets === 1 ? " reset" : " resets") + " so far); " + d[0] + " wrap-arounds left before the next reset; u/v = " + x.toFixed(4) +
+      (2 * d[1] < d[2] ? " &lt; 1/2, so the next operation doubles u" : 2 * d[1] > d[2] ? " &gt; 1/2, so the next operation wraps around" : " = 1/2 exactly");
+  }
+  sl.addEventListener("input", show);
+  $("h5m-prev").addEventListener("click", function () { sl.value = Math.max(0, +sl.value - 1); show(); });
+  $("h5m-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  H.onTheme(show);
+  show();
+})();
+</script>
+</section>
+<section id="visits">
+  <span class="eyebrow">Level 1 to level 2</span>
+  <h2>The tape at its visits</h2>
+<div class="col">
+<p>Every time the head steps onto a cell no earlier step has reached, on the right and in state B, the tape is</p>
+<pre>S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞        (a even, a ≥ 2)</pre>
+<p>a <b>left block</b> of c pairs <code>10</code>, a <b>pool</b> of a ones, a single 0, a <b>right block</b> of b
+pairs, and a final 1 with the head just after it. Between two visits the head sweeps back to the left end of the
+right block and works its way out again. Inside a sweep the tape is</p>
+<pre>0^∞ (10)^c 1^(2p) A&gt; 1 0 1^(4k+1) 0 (10)^z 1111 0^∞</pre>
+<p>with a <b>middle block</b> of 4k + 1 ones growing between the pool and what is left of the right block. Every
+move of the sweep is a Lean theorem for all values of its counts (<code>lean/Rules.lean</code>):</p>
+<ul>
+<li><b>A round</b> (<code>round</code>): two 1s of the pool and one pair of the right block become four 1s of the
+middle block. It costs 8k + 8 steps, because the head crosses the middle block, so a whole sweep costs of the order
+of v<sup>2</sup> steps.</li>
+<li><b>The end of the sweep</b> (<code>final_g</code>): when the right block is used up, the middle block is
+rewritten as a right block twice as long, and the head reaches new ground: the next visit is
+S(c, a − 2b, 2b + 1).</li>
+<li><b>A carry</b> (<code>carry</code>, and <code>carry_z2</code>, <code>carry_z1</code>, <code>carry_z0</code> when
+two, one or no pairs of the right block are left): when the pool runs out first, one pair of the left block is
+used up and the middle block becomes the new pool, which is why the pool jumps from a to 2a + 4.</li>
+<li><b>A reset</b> (<code>reset</code>, <code>reset_z1</code>): when the pool runs out and the left block is
+already empty, the middle block is rewritten as a new left block and a fresh pool of four 1s starts.</li>
+<li><b>The halt</b> (<code>halt_R</code>): if pool, left block and right block all run out in the same round, the
+head walks into the blank left part in state F and finds the undefined transition.</li>
+</ul>
+<p>Pick a visit below to watch the real machine go from it to the next one. Each row of the picture is the tape at
+one moment, time running downwards; the coloured bands at the top and bottom are the blocks of the two visits.
+The zigzags are the rounds: the head runs back and forth across the middle block, which grows by four cells each
+time.</p>
+</div>
+<div class="panel" id="h5-sweep">
+ <div class="controls">
+  <button type="button" id="h5s-prev" aria-label="Previous visit">&#9664;</button>
+  <label class="small" for="h5s-n">From visit</label>
+  <input type="text" class="h5-num" id="h5s-n" inputmode="numeric" value="2" spellcheck="false" autocomplete="off">
+  <button type="button" id="h5s-next" aria-label="Next visit">&#9654;</button>
+  <span class="small">or jump to</span>
+  <button type="button" id="h5s-fast">a doubling</button>
+  <button type="button" id="h5s-carry">a carry</button>
+  <button type="button" id="h5s-reset">a reset</button>
+ </div>
+ <div class="stwrap" style="margin-top:12px"><canvas id="h5s-cv" style="display:block;width:100%" aria-label="Space-time diagram of one sweep"></canvas></div>
+ <div class="h5-key"><span><i style="background:var(--ink)"></i>1</span><span><i style="background:var(--cell0);border:1px solid var(--line)"></i>0</span><span><i style="background:var(--head)"></i>head</span><span><i style="background:var(--h5c)"></i>left block</span><span><i style="background:var(--h5a)"></i>pool</span><span><i style="background:var(--h5b)"></i>right block</span></div>
+ <div class="cap" id="h5s-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var inp = $("h5s-n"), cv = $("h5s-cv");
+  var MAXN = 120;
+  function band(g, c, a, b, x0, cw, y, h) {
+    var segs = [[2 * c, "--h5c"], [a, "--h5a"], [1, "--muted"], [2 * b, "--h5b"], [1, "--fg2"]], x = x0;
+    segs.forEach(function (s) { g.fillStyle = H.css(s[1]); g.fillRect(x * cw, y, s[0] * cw, h); x += s[0]; });
+  }
+  function names(sub) {
+    return sub.map(function (m) {
+      var k = m[0], s = "(" + m[1] + ", " + m[2] + ", " + m[3] + ")";
+      return k === "fast" ? "the right block doubles at " + s : k === "carry" ? "a carry at " + s : k === "reset" ? "a reset at " + s : "the halt at " + s;
+    }).join(", then ");
+  }
+  function draw() {
+    var n = Math.max(0, Math.min(MAXN, parseInt(inp.value, 10) || 0));
+    inp.value = n;
+    var run = H.visits(n + 1), s = run[n].s, t = run[n + 1].s;
+    var str = H.word(s[0], s[1], s[2]);
+    var M = new H.Machine(); M.load(str, 1);
+    var steps = run[n + 1].k - run[n].k;
+    var every = Math.max(1, Math.ceil(steps / 700));
+    var L = -16, R = 2 * str.length + 16, rows = [], heads = [];
+    function snap() { var r = new Uint8Array(R - L); for (var x = L; x < R; x++) r[x - L] = M.get(x); rows.push(r); heads.push(M.p); }
+    snap();
+    for (var i = 1; i <= steps; i++) { M.step(); if (i % every === 0 || i === steps) snap(); }
+    var lo = Math.min(M.lo, 0), hi = Math.max.apply(null, heads), cols = hi - lo + 1;
+    var w = cv.clientWidth || 700, dpr = window.devicePixelRatio || 1;
+    var cw = w / cols, rh = Math.max(1, Math.min(4, Math.floor(520 / rows.length))), bandH = 10, gap = 4;
+    var hgt = Math.ceil(rows.length * rh + 2 * (bandH + gap));
+    cv.style.height = hgt + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = H.css("--cell0"); g.fillRect(0, 0, w, hgt);
+    band(g, s[0], s[1], s[2], -lo, cw, 0, bandH);
+    var ink = H.css("--ink"), head = H.css("--head"), y0 = bandH + gap;
+    for (var r = 0; r < rows.length; r++) {
+      g.fillStyle = ink;
+      var row = rows[r];
+      for (var x = lo; x <= hi; x++) if (x - L >= 0 && x - L < row.length && row[x - L]) g.fillRect((x - lo) * cw, y0 + r * rh, Math.max(cw, 0.7), rh);
+      g.fillStyle = head; g.fillRect((heads[r] - lo) * cw, y0 + r * rh, Math.max(cw, 1.5), rh);
+    }
+    band(g, t[0], t[1], t[2], -lo, cw, y0 + rows.length * rh + gap, bandH);
+    var o = H.odo(s[0], s[1], s[2]);
+    $("h5s-cap").innerHTML = "From visit " + n + ", S(" + s.join(", ") + "), at step " + H.fmt(run[n].k) + " to visit " + (n + 1) + ", S(" + t.join(", ") +
+      "), at step " + H.fmt(run[n + 1].k) + ": " + H.fmt(steps) + " steps" + (every > 1 ? " (one row every " + every + " steps)" : " (one row per step)") +
+      ". What the rule says happens: " + names(o.sub) + ".";
+  }
+  function find(kind) {
+    var run = H.visits(MAXN), from = (parseInt(inp.value, 10) || 0) + 1;
+    for (var k = 0; k < 2; k++) for (var n = (k ? 0 : from); n < MAXN && n < run.length - 1; n++) {
+      var sub = H.odo.apply(null, run[n].s).sub;
+      var has = sub.some(function (m) { return m[0] === kind; });
+      if (kind === "fast" ? sub.length === 1 : has) { inp.value = n; draw(); return; }
+    }
+  }
+  inp.addEventListener("change", draw);
+  $("h5s-prev").addEventListener("click", function () { inp.value = Math.max(0, (parseInt(inp.value, 10) || 0) - 1); draw(); });
+  $("h5s-next").addEventListener("click", function () { inp.value = Math.min(MAXN, (parseInt(inp.value, 10) || 0) + 1); draw(); });
+  $("h5s-fast").addEventListener("click", function () { find("fast"); });
+  $("h5s-carry").addEventListener("click", function () { find("carry"); });
+  $("h5s-reset").addEventListener("click", function () { find("reset"); });
+  H.onTheme(draw);
+  draw();
+})();
+</script>
+</section>
 <section id="odometer">
-  <span class="eyebrow">What the machine does</span>
+  <span class="eyebrow">Level 2</span>
   <h2>Three wheels</h2>
-<div class="col"><p>Each time the head pushes the tape one cell further right in state B, the tape reads <code>(10)^c 1^a 0 (10)^b 1</code>: a left block of <i>c</i> pairs, a pool of <i>a</i> ones, and a right block of <i>b</i> pairs.</p>
-<ul><li><b>Fast wheel.</b> If the pool is big enough (2b &lt; a), one sweep doubles the right block, b ↦ 2b + 1, paying 2b ones from the pool.</li>
-<li><b>Middle wheel.</b> If the pool is too small and c ≥ 1, one 10 of the left block is turned into ones: the pool becomes 2a + 4 and b drops by a/2 + 1; then the fast wheel tries again.</li>
-<li><b>Slow wheel.</b> If the pool is too small and the left block is empty, the whole pool becomes the new left block (c = a), a new pool of 4 starts, and b drops by a/2 + 1 — unless b is exactly a/2, and then the machine <b>halts</b>.</li></ul>
-<p>So the run is a sequence of resets, each one creating a left block as long as the pool was. From blank tape the first left blocks are 2, 8, 4, 24, 52, 44, 120, …; after 10<sup>11</sup> operations there have been 54 resets and the latest left block is 34,047,591,832 pairs long.</p>
-<p>At a reset the fast wheel can be on any of roughly a/3 positions, and only one halts. The chances shrink as the blocks grow, so the total chance that the machine ever halts is tiny (around one in ten billion from here on), but nobody can rule it out.</p></div>
+<div class="col">
+<p>Forget the steps and keep only the three numbers c, a, b of each visit. The sweep moves of the previous section
+add up to one rule for the next visit (<code>F</code> in <code>lean/Map.lean</code>, proved for every visit):</p>
+<pre>2b &lt; a          next visit S(c, a − 2b, 2b + 1)
+2b ≥ a, c ≥ 1   carry: go on with (c − 1, 2a + 4, max(b − a/2 − 1, 0))
+2b ≥ a, c = 0   halt if b = a/2,
+                else reset: go on with (a, 4, b − a/2 − 1)</pre>
+<ul><li><b>Fast wheel.</b> If the pool is big enough (2b &lt; a), one sweep doubles the right block, b ↦ 2b + 1,
+paying 2b ones from the pool.</li>
+<li><b>Middle wheel.</b> If the pool is too small and c ≥ 1, one pair of the left block is used up: the pool becomes
+2a + 4 and b drops by a/2 + 1; then the fast wheel tries again.</li>
+<li><b>Slow wheel.</b> If the pool is too small and the left block is empty, the whole pool becomes the new left
+block (c = a), a new pool of 4 starts, and b drops by a/2 + 1, unless b is exactly a/2: then the machine
+<b>halts</b>.</li></ul>
+<p>So the run is a sequence of resets, each one making a left block as long as the pool was. From blank tape the
+first left blocks are 2, 8, 4, 24, 52, 44, 120, …; after 10<sup>11</sup> operations there have been 54 resets and the
+latest left block is 34,047,591,832 pairs long.</p>
+<p>The odometer below applies the rule to any start you type. It starts where the run from blank tape starts; the
+second button loads S(0, 4, 10), which differs from the start of the run only in b, and halts at visit 458 after
+six resets: the halting case is real. Halting starts are not rare among small numbers; the question is whether the run from blank tape ever meets
+one.</p>
+</div>
+<div class="panel" id="h5-odo">
+ <div class="controls">
+  <label class="small" for="h5o-c">c</label><input type="text" class="h5-num" id="h5o-c" inputmode="numeric" value="0" spellcheck="false" autocomplete="off" style="width:5em">
+  <label class="small" for="h5o-a">a</label><input type="text" class="h5-num" id="h5o-a" inputmode="numeric" value="4" spellcheck="false" autocomplete="off" style="width:5em">
+  <label class="small" for="h5o-b">b</label><input type="text" class="h5-num" id="h5o-b" inputmode="numeric" value="1" spellcheck="false" autocomplete="off" style="width:5em">
+  <button type="button" id="h5o-set">Start here</button>
+  <button type="button" id="h5o-blank">The run from blank tape</button>
+  <button type="button" id="h5o-halt">A start that halts</button>
+ </div>
+ <div class="controls" style="margin-top:8px">
+  <button type="button" class="primary" id="h5o-one">Next visit</button>
+  <button type="button" id="h5o-ten">10 visits</button>
+  <button type="button" id="h5o-res">To the next reset</button>
+  <span class="small" id="h5o-info"></span>
+ </div>
+ <canvas class="h5-tape" id="h5o-tape" aria-label="The tape of the current visit" style="margin-top:12px"></canvas>
+ <div id="h5o-wheels" style="margin-top:6px"></div>
+ <div class="log" id="h5o-log" aria-live="polite"></div>
+ <div class="cap">Each log line is one visit; a line with carries or a reset lists the moves the rule made on the way. The bars are scaled to the largest value seen since the start.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var cur, n, resets, halted, log, peak;
+  function start(c, a, b) {
+    cur = [c, a, b]; n = 0; resets = 0; halted = false; log = []; peak = Math.max(c, a, b, 1);
+    $("h5o-c").value = c; $("h5o-a").value = a; $("h5o-b").value = b;
+    log.push(["", "start", "S(" + cur.join(", ") + ")"]);
+    show();
+  }
+  function one() {
+    if (halted) return false;
+    var o = H.odo(cur[0], cur[1], cur[2]), moves = [];
+    o.sub.forEach(function (m) { if (m[0] === "carry") moves.push("carry"); if (m[0] === "reset") { moves.push("reset"); resets++; } });
+    n++;
+    if (!o.s) { halted = true; log.push([n, "HALT", "S(" + cur.join(", ") + "): " + (moves.length ? moves.join(", ") + ", then " : "") + "a reset with b = a/2"]); return false; }
+    var line = (moves.length ? moves.join(", ") + ", then " : "") + "the fast wheel: S(" + o.s.join(", ") + ")";
+    log.push([n, moves.indexOf("reset") >= 0 ? "reset" : moves.length ? "carry" : "fast", line]);
+    cur = o.s; peak = Math.max(peak, cur[0], cur[1], cur[2]);
+    return moves.indexOf("reset") < 0;
+  }
+  function bar(label, v, col, note) {
+    var pct = Math.max(0.5, 100 * v / peak);
+    return '<div style="display:grid;grid-template-columns:2.2em minmax(0,1fr) 9em;gap:10px;align-items:center;margin:4px 0">' +
+      '<span class="mono">' + label + '</span><div style="background:var(--sunk);border-radius:4px;height:12px"><div style="width:' + pct.toFixed(2) +
+      '%;height:12px;border-radius:4px;background:var(' + col + ')"></div></div><span class="mono small">' + H.fmt(v) + ' <span style="color:var(--muted)">' + note + '</span></span></div>';
+  }
+  function show() {
+    if (cur[1] + 2 * cur[0] + 2 * cur[2] < 4000) H.drawTape($("h5o-tape"), cur[0], cur[1], cur[2]);
+    $("h5o-wheels").innerHTML = bar("c", cur[0], "--h5c", "left") + bar("a", cur[1], "--h5a", "pool") + bar("b", cur[2], "--h5b", "right");
+    $("h5o-info").innerHTML = (halted ? '<b class="h5-bad">halted</b> after ' : "") + n + " visit" + (n === 1 ? "" : "s") + ", " + resets + " reset" + (resets === 1 ? "" : "s");
+    var L = log.slice(-200);
+    $("h5o-log").innerHTML = L.map(function (r) {
+      return '<div><span class="t">' + r[0] + "</span><span></span><span>" + r[1] + "</span><span>" + r[2] + "</span></div>";
+    }).join("");
+    var el = $("h5o-log"); el.scrollTop = el.scrollHeight;
+  }
+  function num(id) { var x = parseInt($(id).value, 10); return isFinite(x) && x >= 0 ? x : NaN; }
+  $("h5o-set").addEventListener("click", function () {
+    var c = num("h5o-c"), a = num("h5o-a"), b = num("h5o-b");
+    if (isNaN(c) || isNaN(a) || isNaN(b) || a < 2 || a % 2 || c > 1e6 || a > 1e6 || b > 1e6) { $("h5o-info").textContent = "c, a, b must be whole numbers, a even and at least 2, each at most 10^6"; return; }
+    start(c, a, b);
+  });
+  $("h5o-blank").addEventListener("click", function () { start(0, 4, 1); });
+  $("h5o-halt").addEventListener("click", function () { start(0, 4, 10); });
+  $("h5o-one").addEventListener("click", function () { one(); show(); });
+  $("h5o-ten").addEventListener("click", function () { for (var i = 0; i < 10; i++) one(); show(); });
+  $("h5o-res").addEventListener("click", function () { for (var i = 0; i < 100000 && one(); i++); show(); });
+  H.onTheme(show);
+  start(0, 4, 1);
+})();
+</script>
 </section>
 <section id="doublingmap">
-  <span class="eyebrow">The same thing in numbers</span>
+  <span class="eyebrow">Level 3</span>
   <h2>Doubling modulo a growing number</h2>
-<div class="col"><p>Write u = b + 1 and m = a/2 + b + 2. Then all three wheels become one line: <b>double u, and if it reaches m, subtract m; then add one to m.</b> A doubling that stays below m is a turn of the fast wheel; one that wraps around is a carry, and uses up one pair of the left block. When the left block is empty the next wrap-around is a reset: the left block is refilled with c = 2(m − u − 1) and the modulus drops to (2u − m) + 3.</p>
-<p><b>The machine halts exactly when a reset finds 2u = m</b>: pool, left block and right block all run out in the same sweep (Lean: <code>halt_R</code>). Any other remainder 2u − m, from 1 up to m, just starts the next lap.</p>
-<p>Doubling modulo a number that keeps moving scrambles u thoroughly; nobody knows a formula for where it will be after many operations. The exact map has been run for 10<sup>11</sup> operations: 54 resets, with 2u − m never smaller than 2.8% of m at a reset. The moduli at resets grow about 1.47-fold each time (reset 54 is at m = 35,143,437,691), so each further reset costs half as much again as everything before it, and the chance of an exact hit, about 2 in m, shrinks just as fast: about 10<sup>−10</sup> for all later resets together. Most likely the machine never halts; that is an estimate, not a proof.</p></div>
+<div class="col">
+<p>Change variables: put <b>u = b + 1</b> and <b>v = a/2 + b + 2</b> (so a = 2(v − u − 1) and b = u − 1). The
+odometer's condition 2b &lt; a becomes 2u &lt; v, and its three wheels become one operation on (c, u, v)
+(<code>op</code> in <code>lean/Doubling.lean</code>):</p>
+<pre>2u &lt; v          u ← 2u,  v ← v + 1                          a visit
+2u &gt; v, c ≥ 1   u ← 2u − v,  v ← v + 1,  c ← c − 1          a carry
+2u = v, c ≥ 1   u ← 1,  v ← v + 2,  c ← c − 1               an emptying carry
+2u &gt; v, c = 0   c ← 2(v − u − 1),  u ← 2u − v,  v ← u + 3   a reset
+2u = v, c = 0   halt</pre>
+<p>In words: <b>double u; if that reaches v, subtract v and use up one unit of c; add one to v.</b> So u is doubled
+modulo v, and the modulus creeps up by one at every operation. The left block c only counts the wrap-arounds: c of
+them are allowed, and the next one is a reset, which refills c with 2(v − u − 1) and drops the modulus to
+(2u − v) + 3. <b>The machine halts exactly when a reset finds 2u = v</b>, that is when u sits exactly at the middle
+of [0, v] at the moment the left block is empty.</p>
+<p>The quantity that matters is the fraction x = u/v. Doubling sends x to about 2x when x &lt; 1/2 and to about
+2x − 1 when x &gt; 1/2: the binary shift, the textbook example of chaos. The small corrections from v growing are
+what keep it exactly computable and unpredictable at once. One thing is conserved: c + v = 5 + visits + resets +
+emptying carries, so the modulus is essentially a clock that counts visits.</p>
+<p>The strip shows where u sits in [0, v], with the middle marked; the trail is the last few positions. Step through
+operations and watch u jump around, wrap past the middle, and use up the left block.</p>
+</div>
+<div class="panel" id="h5-dm">
+ <div class="controls">
+  <button type="button" class="primary" id="h5d-one">1 operation</button>
+  <button type="button" id="h5d-ten">10</button>
+  <button type="button" id="h5d-res">To the next reset</button>
+  <button type="button" id="h5d-back" aria-label="Back one operation">Back</button>
+  <button type="button" id="h5d-zero">Start over</button>
+  <span class="small" id="h5d-info"></span>
+ </div>
+ <svg id="h5d-svg" viewBox="0 0 700 120" style="width:100%;height:auto;display:block;margin-top:12px" role="img" aria-label="u on the interval from 0 to v"></svg>
+ <div class="mono small" id="h5d-state" style="margin-top:4px"></div>
+ <div class="log" id="h5d-log" style="max-height:180px"></div>
+</div>
+<div class="col"><h3>The fraction u/v over many operations</h3>
+<p>One dot per operation, at height u/v before it. Dots above the middle line are wrap-arounds; the rings are the
+resets, where the left block was empty. A halt would be a ring exactly on the middle line. Hover a dot for its
+numbers.</p></div>
+<div class="panel" id="h5-dmplot">
+ <div class="controls">
+  <label class="small" for="h5p-n">Operations</label>
+  <select id="h5p-n"><option value="300">300</option><option value="3000" selected>3,000</option><option value="30000">30,000</option></select>
+ </div>
+ <div style="position:relative;margin-top:10px">
+  <canvas id="h5p-cv" style="display:block;width:100%;height:260px" aria-label="u/v at each operation"></canvas>
+  <div id="h5p-tip" class="mono small" style="position:absolute;pointer-events:none;display:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:4px 8px;white-space:nowrap"></div>
+ </div>
+ <div class="cap" id="h5p-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var hist, log;
+  function reset0() { hist = [[0, 2, 5, "start"]]; log = []; show(); }
+  function one() {
+    var d = hist[hist.length - 1], r = H.op(d[0], d[1], d[2]);
+    if (!r) { log.push("halt: a reset with 2u = v"); return false; }
+    hist.push(r);
+    var what = r[3] === "visit" ? "2u = " + 2 * d[1] + " < v = " + d[2] + ": double, a visit"
+      : r[3] === "carry" ? "2u = " + 2 * d[1] + " > v = " + d[2] + ": wrap to " + r[1] + ", c drops to " + r[0]
+      : r[3] === "empty" ? "2u = v = " + d[2] + ": the fast wheel empties, u = 1"
+      : "2u = " + 2 * d[1] + " > v = " + d[2] + " with c = 0: RESET, new c = " + r[0] + ", u = " + r[1] + ", v = " + r[2];
+    log.push((hist.length - 1) + ": " + what);
+    if (hist.length > 5000) hist.splice(1, hist.length - 5000);
+    return r[3] !== "reset";
+  }
+  function show() {
+    var d = hist[hist.length - 1], u = d[1], v = d[2], X0 = 30, X1 = 670, Y = 62;
+    var sx = function (t) { return X0 + (X1 - X0) * t; };
+    var ink = "var(--fg)", mut = "var(--muted)";
+    var s = '<line x1="' + X0 + '" y1="' + Y + '" x2="' + X1 + '" y2="' + Y + '" stroke="var(--line-strong)" stroke-width="6" stroke-linecap="round"/>';
+    s += '<line x1="' + sx(0.5) + '" y1="' + (Y - 24) + '" x2="' + sx(0.5) + '" y2="' + (Y + 24) + '" stroke="var(--open)" stroke-width="1.5" stroke-dasharray="4 3"/>';
+    s += '<text x="' + sx(0.5) + '" y="' + (Y - 30) + '" text-anchor="middle" font-size="12" fill="var(--open)">v/2: an exact hit</text>';
+    s += '<text x="' + X0 + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">0</text>';
+    s += '<text x="' + X1 + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">v = ' + H.fmt(v) + '</text>';
+    s += '<text x="' + sx(0.25) + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">double: a visit</text>';
+    s += '<text x="' + sx(0.75) + '" y="' + (Y + 40) + '" text-anchor="middle" font-size="12" fill="' + mut + '">wrap: a carry or a reset</text>';
+    var tr = hist.slice(-8, -1);
+    tr.forEach(function (h, i) {
+      s += '<circle cx="' + sx(h[1] / h[2]).toFixed(1) + '" cy="' + Y + '" r="5" fill="var(--accent)" opacity="' + (0.12 + 0.1 * i).toFixed(2) + '"/>';
+    });
+    s += '<circle cx="' + sx(u / v).toFixed(1) + '" cy="' + Y + '" r="8" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>';
+    s += '<text x="' + sx(u / v).toFixed(1) + '" y="' + (Y - 14) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' + ink + '">u</text>';
+    $("h5d-svg").innerHTML = s;
+    var c = d[0], pips = c <= 40 ? " " + "●".repeat(c) : "";
+    $("h5d-state").innerHTML = "(c, u, v) = (" + c + ", " + H.fmt(u) + ", " + H.fmt(v) + ")   u/v = " + (u / v).toFixed(4) +
+      '   wrap-arounds left: <span style="color:var(--h5c)">' + c + pips + "</span>";
+    var ops = 0; for (var i = 0; i < log.length; i++) if (log[i][0] !== "h") ops++;
+    $("h5d-info").textContent = "operation " + (hist.length - 1);
+    $("h5d-log").innerHTML = log.slice(-60).map(function (l) { return "<div style=\"display:block\">" + l + "</div>"; }).join("");
+    var el = $("h5d-log"); el.scrollTop = el.scrollHeight;
+  }
+  $("h5d-one").addEventListener("click", function () { one(); show(); });
+  $("h5d-ten").addEventListener("click", function () { for (var i = 0; i < 10; i++) one(); show(); });
+  $("h5d-res").addEventListener("click", function () { for (var i = 0; i < 200000 && one(); i++); show(); });
+  $("h5d-back").addEventListener("click", function () { if (hist.length > 1) { hist.pop(); log.pop(); } show(); });
+  $("h5d-zero").addEventListener("click", reset0);
+  reset0();
+
+  // the scatter of u/v
+  var cv = $("h5p-cv"), tip = $("h5p-tip"), sel = $("h5p-n"), pts = [], geo = null;
+  function compute(N) {
+    pts = []; var d = [0, 2, 5];
+    for (var k = 0; k < N; k++) {
+      var r = H.op(d[0], d[1], d[2]);
+      pts.push([d[0], d[1], d[2], r ? r[3] : "halt"]);
+      if (!r) break;
+      d = r;
+    }
+  }
+  function plot() {
+    var N = +sel.value; if (pts.length !== N) compute(N);
+    var w = cv.clientWidth || 700, h = cv.clientHeight || 260, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 40, R = w - 10, T = 10, B = h - 26;
+    geo = { L: L, R: R, T: T, B: B, N: pts.length };
+    var X = function (k) { return L + (R - L) * (k + 0.5) / pts.length; }, Y = function (t) { return B - (B - T) * t; };
+    g.font = "11px " + H.css("--mono").split(",")[0]; g.fillStyle = H.css("--muted");
+    g.strokeStyle = H.css("--line"); g.lineWidth = 1;
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
+      g.beginPath(); g.moveTo(L, Y(t)); g.lineTo(R, Y(t)); g.stroke();
+      g.fillText(t === 0.5 ? "1/2" : String(t), 4, Y(t) + 4);
+    });
+    g.fillText("operation " + H.fmt(pts.length), R - 110, h - 6); g.fillText("0", L, h - 6);
+    g.strokeStyle = H.css("--open"); g.setLineDash([4, 3]); g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(L, Y(0.5)); g.lineTo(R, Y(0.5)); g.stroke(); g.setLineDash([]);
+    var rad = pts.length <= 300 ? 3 : pts.length <= 3000 ? 1.6 : 1;
+    g.fillStyle = H.css("--accent"); g.globalAlpha = pts.length > 3000 ? 0.5 : 0.85;
+    pts.forEach(function (p, k) { g.beginPath(); g.arc(X(k), Y(p[1] / p[2]), rad, 0, 7); g.fill(); });
+    g.globalAlpha = 1; g.strokeStyle = H.css("--fg"); g.lineWidth = 1.5;
+    var nr = 0;
+    pts.forEach(function (p, k) { if (p[3] === "reset" || p[3] === "halt") { nr++; g.beginPath(); g.arc(X(k), Y(p[1] / p[2]), 6, 0, 7); g.stroke(); } });
+    $("h5p-cap").textContent = H.fmt(pts.length) + " operations from (0, 2, 5): " + nr + " resets (rings). The modulus has grown to v = " + H.fmt(pts[pts.length - 1][2]) + ".";
+  }
+  cv.addEventListener("mousemove", function (e) {
+    if (!geo) return;
+    var rc = cv.getBoundingClientRect(), x = e.clientX - rc.left;
+    var k = Math.round((x - geo.L) / (geo.R - geo.L) * geo.N - 0.5);
+    if (k < 0 || k >= pts.length) { tip.style.display = "none"; return; }
+    var p = pts[k];
+    tip.innerHTML = "operation " + k + ": (c, u, v) = (" + p[0] + ", " + p[1] + ", " + p[2] + "), u/v = " + (p[1] / p[2]).toFixed(3) + ", then " + (p[3] === "empty" ? "an emptying carry" : "a " + p[3]);
+    tip.style.display = "block";
+    var left = Math.min(Math.max(0, x + 12), rc.width - tip.offsetWidth);
+    tip.style.left = left + "px"; tip.style.top = "4px";
+  });
+  cv.addEventListener("mouseleave", function () { tip.style.display = "none"; });
+  sel.addEventListener("change", plot);
+  H.onTheme(plot);
+  plot();
+})();
+</script>
+</section>
+<section id="laps">
+  <span class="eyebrow">Level 4</span>
+  <h2>Laps, and why they get rarer</h2>
+<div class="col">
+<p>Cut the operations at the resets and call each piece a <b>lap</b>. A reset sets u = 2u − v and then v = u + 3,
+so <b>every lap starts at u = v − 3</b>, just below the top of the interval, and its left block c and starting
+modulus v satisfy c + v = V + 1, where V is the modulus at the reset that began it. A lap is therefore fixed by two
+numbers, its starting modulus and its allowance of wrap-arounds, and it ends at its (c + 1)-th wrap-around, which
+is the next reset. <b>The machine halts iff some lap ends with an exact hit</b>, 2u = v at that last
+wrap-around.</p>
+<p>How long a lap lasts depends on how many wrap-arounds it is allowed, and that is set by where the previous reset
+landed: a reset that finds 2u − v small makes a long left block and a long next lap. Roughly, a lap starting at
+modulus v ends near v(3 − 2x) for a fraction x between 1/2 and 1, so the modulus at a reset grows by a factor
+between 1 and 2 from lap to lap: about 1.47 on average in theory, about 1.52 in the 54 laps of the run. This is why
+resets are logarithmically rare: reset k comes after about 1.5<sup>k</sup> operations, and 10<sup>11</sup>
+operations reach only 54 of them.</p>
+</div>
+<div class="panel" id="h5-laps">
+ <div class="grid2">
+  <div><h3 style="margin-top:0">The modulus v at each reset</h3>
+   <div style="position:relative"><canvas id="h5l-a" style="display:block;width:100%;height:240px" aria-label="Modulus at each reset, logarithmic scale"></canvas>
+   <div class="mono small h5l-tip" id="h5l-ta"></div></div>
+   <div class="cap">Logarithmic scale. The dashed line is the least-squares fit, ×1.52 per reset.</div></div>
+  <div><h3 style="margin-top:0">How close each reset came to a halt</h3>
+   <div style="position:relative"><canvas id="h5l-b" style="display:block;width:100%;height:240px" aria-label="Fraction (2u - v)/v at each reset"></canvas>
+   <div class="mono small h5l-tip" id="h5l-tb"></div></div>
+   <div class="cap">The fraction (2u − v)/v at the reset; a halt needs exactly 0. The closest call is reset 11, at 0.028.</div></div>
+ </div>
+ <details style="margin-top:12px"><summary class="small">All 54 resets as a table</summary>
+  <div style="overflow-x:auto;max-height:340px;overflow-y:auto"><table id="h5l-tab"><thead><tr><th>reset</th><th>operation</th><th>visit</th><th>v</th><th>2u − v</th><th>(2u − v)/v</th><th>new left block</th></tr></thead><tbody></tbody></table></div>
+ </details>
+ <div class="cap">From <code>c/odo.c</code>, the doubling map in C, run for 10<sup>11</sup> operations (checked against the Python model on the first 50,000 visits and the resets).</div>
+</div>
+<style>.h5l-tip{position:absolute;top:4px;pointer-events:none;display:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:4px 8px;white-space:nowrap}</style>
+<div class="col">
+<h3>The wrap-arounds of a lap are binary digits</h3>
+<p>Write a 1 for each wrap-around of a lap and a 0 for each plain doubling. Doubling modulo a fixed v would give
+exactly the binary digits of u/v; because v grows by one at every operation they are instead the digits of a nearby
+number x with |v<sub>0</sub>x − u<sub>0</sub>| ≤ 1 (between emptying carries). So the first log<sub>2</sub> v
+digits agree with those of u<sub>0</sub>/v<sub>0</sub> and then the two drift apart. The lap ends at its
+(c + 1)-th 1, and an exact hit at that point means the digits from there on start with a 1 followed by about
+log<sub>2</sub> v zeros, to the exact integer. Deciding the machine is deciding where an implicitly defined binary
+expansion has such a pattern: a question of the same kind as whether a given number is normal, for which there is no
+known method.</p>
+</div>
+<div class="panel" id="h5-bits">
+ <div class="controls">
+  <button type="button" id="h5b-prev" aria-label="Previous lap">&#9664;</button>
+  <span class="small">lap <b id="h5b-k">9</b></span>
+  <button type="button" id="h5b-next" aria-label="Next lap">&#9654;</button>
+  <span class="small" id="h5b-info"></span>
+ </div>
+ <div class="mono" style="margin-top:10px;font-size:.82rem;line-height:1.7;overflow-wrap:anywhere">
+  <div><span class="small" style="font-family:var(--body)">wrap-arounds:</span> <span id="h5b-e"></span></div>
+  <div><span class="small" style="font-family:var(--body)">digits of u<sub>0</sub>/v<sub>0</sub>:</span> <span id="h5b-x"></span></div>
+ </div>
+ <div class="cap" id="h5b-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var H = window.H5, $ = function (id) { return document.getElementById(id); };
+  var R = [[2,1,6,2,2],[10,6,13,3,8],[37,24,35,29,4],[45,27,39,13,24],[97,54,67,13,52],[200,104,118,72,44],[288,147,163,41,120],[558,296,314,294,18],[590,309,328,240,86],[749,381,401,131,268],[1293,656,677,19,656],[2596,1302,1325,379,944],[4530,2291,2316,1484,830],[6252,3182,3210,356,2852],[11921,5998,6027,4157,1868],[15647,7855,7886,938,6946],[29557,14818,14851,12021,2828],[35258,17690,17724,16262,1460],[38125,19096,19131,5169,13960],[66137,33147,33184,16736,16446],[99038,49601,49642,16190,33450],[165825,82937,82981,55547,27432],[220698,110377,110422,37818,72602],[366192,183268,183315,102185,81128],[528756,264703,264752,107408,157342],[844296,422900,422950,157330,265618],[1376086,689071,689123,430125,258996],[1893752,947740,947793,238195,709596],[3314503,1658894,1658949,151211,1507736],[6331447,3168101,3168158,2422168,745988],[7824393,3915058,3915116,2367596,1547518],[10918242,5461388,5461449,2782171,2679276],[16278706,8142575,8142638,4352506,3790130],[23856294,11930032,11930096,2079888,9850206],[43562566,21786097,21786163,15459101,6327060],[56220635,28117105,28117172,21649284,6467886],[69160195,34588778,34588846,6765002,27823842],[124815011,62419751,62419820,18278892,44140926],[213110186,106573999,106574070,14989434,91584634],[396278650,198157828,198157900,105248684,92909214],[582125716,291095679,291095752,195378338,95717412],[773567142,386819692,386819766,139388714,247431050],[1268434149,634255648,634255723,301078381,333177340],[1934789553,967433711,967433788,115591420,851842366],[3638390064,1819191855,1819191934,1465409746,353782186],[4345942600,2172962204,2172962284,1686718774,486243508],[5318386536,2659162631,2659162712,1425722664,1233440046],[7785199350,3892535398,3892535482,1483721052,2408814428],[12602929647,6301451266,6301451353,4624014567,1677436784],[15957761143,7978845977,7978846065,4575522867,3403323196],[22764428407,11382190044,11382190134,763144354,10619045778],[44002677680,22001393538,22001393633,20665750627,1335643004],[46674014607,23337087460,23337087556,11530783676,11806303878],[70286668620,35143437594,35143437691,1095845857,34047591832]];  // [operation, visit, v, 2u - v, new left block] for resets 1..54
+  var tb = $("h5l-tab").tBodies[0];
+  tb.innerHTML = R.map(function (r, i) {
+    return "<tr><td>" + (i + 1) + "</td><td>" + H.fmt(r[0]) + "</td><td>" + H.fmt(r[1]) + "</td><td>" + H.fmt(r[2]) + "</td><td>" + H.fmt(r[3]) +
+      "</td><td>" + (r[3] / r[2]).toFixed(3) + "</td><td>" + H.fmt(r[4]) + "</td></tr>";
+  }).join("");
+  var fitA = 8.267, fitR = 1.5191;
+  function chart(cv, tipEl, yOf, yTicks, extra, tipText) {
+    var w = cv.clientWidth || 400, h = cv.clientHeight || 240, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var L = 46, Rr = w - 10, T = 10, B = h - 26;
+    var X = function (k) { return L + (Rr - L) * (k - 0.5) / 54; }, Y = function (t) { return B - (B - T) * t; };
+    g.font = "11px " + H.css("--mono").split(",")[0]; g.lineWidth = 1;
+    yTicks.forEach(function (t) { g.strokeStyle = H.css("--line"); g.beginPath(); g.moveTo(L, Y(t[0])); g.lineTo(Rr, Y(t[0])); g.stroke(); g.fillStyle = H.css("--muted"); g.fillText(t[1], 2, Y(t[0]) + 4); });
+    [1, 10, 20, 30, 40, 50].forEach(function (k) { g.fillStyle = H.css("--muted"); g.fillText(String(k), X(k) - 4, h - 8); });
+    if (extra) extra(g, X, Y, L, Rr);
+    g.strokeStyle = H.css("--accent"); g.lineWidth = 1.2; g.globalAlpha = 0.5; g.beginPath();
+    R.forEach(function (r, i) { var x = X(i + 1), y = Y(yOf(r)); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke(); g.globalAlpha = 1;
+    R.forEach(function (r, i) { g.fillStyle = H.css("--accent"); g.beginPath(); g.arc(X(i + 1), Y(yOf(r)), 4, 0, 7); g.fill(); g.strokeStyle = H.css("--surface"); g.lineWidth = 1.5; g.stroke(); });
+    cv.onmousemove = function (e) {
+      var rc = cv.getBoundingClientRect(), x = e.clientX - rc.left, k = Math.round((x - L) / (Rr - L) * 54 + 0.5);
+      if (k < 1 || k > 54) { tipEl.style.display = "none"; return; }
+      tipEl.innerHTML = tipText(k, R[k - 1]); tipEl.style.display = "block";
+      tipEl.style.left = Math.min(Math.max(0, x + 10), rc.width - tipEl.offsetWidth) + "px";
+    };
+    cv.onmouseleave = function () { tipEl.style.display = "none"; };
+  }
+  var lmax = 11;
+  function draw() {
+    chart($("h5l-a"), $("h5l-ta"), function (r) { return Math.log10(r[2]) / lmax; },
+      [[0, "1"], [2 / lmax, "100"], [4 / lmax, "10^4"], [6 / lmax, "10^6"], [8 / lmax, "10^8"], [10 / lmax, "10^10"]],
+      function (g, X, Y) { g.strokeStyle = H.css("--fg2"); g.setLineDash([5, 4]); g.beginPath();
+        g.moveTo(X(1), Y(Math.log10(fitA * fitR) / lmax)); g.lineTo(X(54), Y(Math.log10(fitA * Math.pow(fitR, 54)) / lmax)); g.stroke(); g.setLineDash([]); },
+      function (k, r) { return "reset " + k + ": v = " + H.fmt(r[2]) + ", after " + H.fmt(r[0]) + " operations"; });
+    chart($("h5l-b"), $("h5l-tb"), function (r) { return r[3] / r[2]; },
+      [[0, "0"], [0.25, "0.25"], [0.5, "0.5"], [0.75, "0.75"], [1, "1"]],
+      function (g, X, Y, L, Rr) { g.strokeStyle = H.css("--open"); g.lineWidth = 2; g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(Rr, Y(0)); g.stroke();
+        g.fillStyle = H.css("--open"); g.fillText("halt", L + 4, Y(0) - 5);
+        g.fillStyle = H.css("--fg2"); if (Rr - L > 420) g.fillText("reset 11: 0.028", X(11) + 8, Y(0.028) - 12); },
+      function (k, r) { return "reset " + k + ": (2u − v)/v = " + H.fmt(r[3]) + " / " + H.fmt(r[2]) + " = " + (r[3] / r[2]).toFixed(4); });
+  }
+  H.onTheme(draw);
+  draw();
+
+  // laps of the run, computed live
+  var laps = null;
+  function getLaps() {
+    if (laps) return laps;
+    laps = []; var d = [0, 2, 5], st = d, e = [], em = 0;
+    for (var k = 0; k < 400000 && laps.length < 16; k++) {
+      var r = H.op(d[0], d[1], d[2]);
+      e.push(r[3] === "visit" ? 0 : 1); if (r[3] === "empty") em++;
+      if (r[3] === "reset") { laps.push({ s: st, e: e, empties: em, end: d }); e = []; em = 0; st = [r[0], r[1], r[2]]; }
+      d = [r[0], r[1], r[2]];
+    }
+    return laps;
+  }
+  var cur = 9;
+  function bits() {
+    var L = getLaps(), lap = L[cur - 1], u0 = lap.s[1], v0 = lap.s[2], e = lap.e, xs = [], x = u0;
+    for (var i = 0; i < e.length; i++) { x *= 2; var b = x >= v0 ? 1 : 0; xs.push(b); x -= b * v0; }
+    var agree = 0; while (agree < e.length && e[agree] === xs[agree]) agree++;
+    function paint(arr, last) {
+      return arr.map(function (b, i) {
+        var st = i < agree ? "color:var(--fg);font-weight:600" : "color:var(--muted)";
+        if (last && i === arr.length - 1) st = "color:var(--surface);background:var(--open);border-radius:3px;padding:0 1px";
+        return '<span style="' + st + '">' + b + "</span>" + ((i + 1) % 8 === 0 ? " " : "");
+      }).join("");
+    }
+    $("h5b-k").textContent = cur;
+    $("h5b-e").innerHTML = paint(e, true);
+    $("h5b-x").innerHTML = paint(xs, false);
+    var end = lap.end;
+    $("h5b-info").textContent = "starts at (c, u, v) = (" + lap.s.join(", ") + "), " + e.length + " operations, " + (lap.s[0] + 1) + " wrap-arounds";
+    $("h5b-cap").innerHTML = "The first " + agree + " digits agree (bold); log<sub>2</sub> v<sub>0</sub> = " + Math.log2(v0).toFixed(1) + ". The red 1 is the reset that ends the lap, at (c, u, v) = (0, " + end[1] + ", " + end[2] +
+      "): 2u − v = " + (2 * end[1] - end[2]) + ", where 0 would have been a halt." + (lap.empties ? " This lap has " + lap.empties + " emptying carr" + (lap.empties > 1 ? "ies" : "y") + ", where u restarts at 1 and the digit pattern starts afresh." : "") +
+      (cur === 1 ? " Lap 1 starts at the initial state, not after a reset." : "");
+  }
+  $("h5b-prev").addEventListener("click", function () { cur = Math.max(1, cur - 1); bits(); });
+  $("h5b-next").addEventListener("click", function () { cur = Math.min(getLaps().length, cur + 1); bits(); });
+  bits();
+})();
+</script>
+</section>
+<section id="definition">
+  <span class="eyebrow">The bottom line</span>
+  <h2>The whole question in one definition</h2>
+<div class="col">
+<p>Everything above comes down to the following. There is no tape and there are no states left, only three whole
+numbers and five cases.</p>
+</div>
+<div class="panel">
+<pre style="font-size:.9rem;margin:0">start with  c = 0,  u = 2,  v = 5
+
+repeat:
+    if 2u &lt; v:                          u ← 2u,  v ← v + 1
+    otherwise, if c &gt; 0:
+        if 2u &gt; v:                      c ← c − 1,  u ← 2u − v,  v ← v + 1
+        if 2u = v:                      c ← c − 1,  u ← 1,       v ← v + 2
+    otherwise (c = 0):
+        if 2u &gt; v:                      c ← 2(v − u − 1),  u ← 2u − v,  v ← u + 3
+        if 2u = v:                      stop</pre>
+<p style="margin-bottom:0"><span class="ev k">Kernel</span> <b>The machine 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC halts from a
+blank tape if and only if this loop stops.</b> (In the reset line the new v uses the new u, so v becomes
+2u − v + 3 in terms of the old values.)</p>
+</div>
+<div class="col">
+<h3>The same thing as a recursive definition</h3>
+<p>Write H(c, u, v) for "the loop stops when started from (c, u, v)". Then H is the predicate defined by</p>
+</div>
+<div class="panel">
+<pre style="font-size:.9rem;margin:0">H(c, u, v) = H(c, 2u, v + 1)                        if 2u &lt; v
+H(c, u, v) = H(c − 1, 2u − v, v + 1)                if 2u &gt; v and c ≥ 1
+H(c, u, v) = H(c − 1, 1, v + 2)                     if 2u = v and c ≥ 1
+H(c, u, v) = H(2(v − u − 1), 2u − v, 2u − v + 3)    if 2u &gt; v and c = 0
+H(c, u, v) = true                                   if 2u = v and c = 0
+
+The machine halts  ⟺  H(0, 2, 5).</pre>
+</div>
+<div class="col">
+<p>H is defined by unbounded recursion, so "H(0, 2, 5) is false" means "the recursion never terminates". Each case
+moves to a state with a larger v except the reset, which can lower it; that is why there is no measure that would
+make the recursion obviously finite or obviously infinite.</p>
+<h3>What the three numbers are on the tape</h3>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>number</th><th>on the tape S(c, a, b) = (10)<sup>c</sup> 1<sup>a</sup> 0 (10)<sup>b</sup> 1 B&gt;0</th><th>in the loop</th></tr></thead>
+<tbody>
+<tr><td><code>c</code></td><td>the pairs <code>10</code> of the left block</td><td>wrap-arounds left before the next reset</td></tr>
+<tr><td><code>u</code></td><td>b + 1: the pairs of the right block, plus one</td><td>the number that is doubled</td></tr>
+<tr><td><code>v</code></td><td>a/2 + b + 2: half the pool, plus the right block, plus two</td><td>the modulus; it grows by one at almost every operation</td></tr>
+<tr><td><code>(0, 2, 5)</code></td><td>S(0, 4, 1), the tape at step 43 from blank</td><td>the start</td></tr>
+<tr><td>stop</td><td>pool, left block and right block run out together</td><td>a reset with 2u = v</td></tr>
+</tbody></table></div>
+<h3>One lap at a time</h3>
+<p>Since every reset leaves u = v − 3, the loop can also be read as a recursion on laps. Lap(c, v) runs the loop
+from (c, v − 3, v) up to its (c + 1)-th wrap-around, the first one with c = 0; say that happens at (0, u, V). If
+2u = V the machine halts; otherwise the next lap is Lap(2(V − u − 1), 2u − V + 3). The run from blank tape is lap 1
+from (0, 2, 5) followed by Lap(2, 5), Lap(8, 6), Lap(4, 32), Lap(24, 16), …, and its 54th reset is at
+V = 35,143,437,691.</p>
+<h3>In Lean</h3>
+<p>This is the definition the theorem is about, copied from <code>lean/Doubling.lean</code>; <code>none</code> is the
+stop.</p>
+</div>
+<pre>def op : Nat × Nat × Nat → Option (Nat × Nat × Nat)
+  | (c, u, v) =>
+    if 2 * u &lt; v then some (c, 2 * u, v + 1)
+    else match c with
+      | c + 1 =&gt; if 2 * u = v then some (c, 1, v + 2) else some (c, 2 * u - v, v + 1)
+      | 0 =&gt; if 2 * u = v then none else some (2 * (v - u - 1), 2 * u - v, 2 * u - v + 3)
+
+def opIter : Nat → Nat × Nat × Nat → Option (Nat × Nat × Nat)
+  | 0, s => some s
+  | n + 1, s => (op s).bind (opIter n)
+
+theorem halts_iff_op : HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none</pre>
+<div class="col">
+<p><code>HaltsFromBlank</code> is the machine's own halting from blank tape, defined from its transition table in
+<code>lean/Machine.lean</code>. The proof (<code>lean/Map.lean</code> for the tape, <code>lean/Doubling.lean</code>
+for the arithmetic) is checked by Lean's kernel with only the standard axioms; nothing about the run is assumed.
+What is not known is the value of H(0, 2, 5): the loop has been run for 10<sup>11</sup> operations (10<sup>7</sup>
+of them inside Lean) without stopping.</p>
+</div>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
@@ -319,14 +1146,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></div></div><div><b>No halt in the first 10<sup>7</sup> steps</b><p>The same run, evaluated by compiled code.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/triage.json</code></div></div><div><b>No halt in the first 10<sup>9</sup> steps</b><p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,166 cells have been visited and 3,725 of them hold a 1.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/model.py check</code></div></div><div><b>The odometer rule</b><p>For S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞ with a even and a ≥ 2, the next right-end visit in state B is: if 2b &lt; a, S(c, a − 2b, 2b + 1) (the right block doubles, eating 1s); if 2b ≥ a and c ≥ 1, apply the rule to (c − 1, 2a + 4, max(b − a/2 − 1, 0)) (a carry: one 10 of the left block becomes 1s); if 2b ≥ a and c = 0, halt when b = a/2 and otherwise apply the rule to (a, 4, b − a/2 − 1) (a reset: the 1s become the new left block). Checked against direct simulation for all c &lt; 6, even 2 ≤ a &lt; 30, b &lt; 34 (2,856 configurations), and on every such visit in the first 3·10<sup>6</sup> steps of the run, which first reaches S(0, 4, 1) at step 43.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Map.lean</code>; <code>halts_iff_op</code>, <code>lean/Doubling.lean</code></div></div><div><b>It halts iff the doubling map halts</b><p><code>HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none</code>, where <code>op</code> is the doubling map on (c, u, m) below. Two layers: the machine halts iff the orbit of the visit S(0, 4, 1) (step 43) under the visit map <code>F</code> reaches <code>none</code> (every value of <code>F</code> proved on the tape, for every visit, from the rules of <code>Rules.lean</code>); and, by arithmetic, one step of <code>F</code> is one or more operations of <code>op</code>, with a halt exactly when <code>op</code> halts.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_iff</code>, <code>lean/Map.lean</code>; <code>halts_iff_op</code>, <code>lean/Doubling.lean</code></div></div><div><b>It halts iff the doubling map halts</b><p><code>HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none</code>, where <code>op</code> is the doubling map on (c, u, v) below. Two layers: the machine halts iff the orbit of the visit S(0, 4, 1) (step 43) under the visit map <code>F</code> reaches <code>none</code> (every value of <code>F</code> proved on the tape, for every visit, from the rules of <code>Rules.lean</code>); and, by arithmetic, one step of <code>F</code> is one or more operations of <code>op</code>, with a halt exactly when <code>op</code> halts.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>start_g</code>, <code>start0</code>, <code>round</code>, <code>final_g</code>, <code>carry</code>, <code>carry_z2</code>, <code>carry_z1</code>, <code>carry_z0</code>, <code>reset</code>, <code>reset_z1</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>The building blocks of the odometer, for all parameters</b><p>Each move between two visits is a Lean theorem about every value of its counts and every tape in its context: the start of a sweep, a round (two 1s of the pool and one pair of the right block become four 1s of the middle block), the end of a sweep (the doubled block), the carry (a pair of the left block and the middle block become the new pool), the reset (the middle block becomes the new left block), and the boundary cases: a pool of two, a carry with two, one or no pairs of the right block left (the last is the emptying carry), a reset with one pair left.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_R</code>, <code>halt_run</code>, <code>lean/Rules.lean</code></div></div><div><b>The exact-hit reset halts</b><p>With pool, left block and right block all empty (0^∞ A&gt; 1 0 1^(4n+1) 0 1^4 0^∞) the machine fills the tape with 1s and stops on the undefined transition (F reading 0), for every n.</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>F_op</code>, <code>orbit_op</code>, <code>op_kernel</code>, <code>op_native</code>, <code>lean/Doubling.lean</code></div></div><div><b>The odometer is a doubling map</b><p>With u = b + 1 and m = a/2 + b + 2: 2u &lt; m is a visit with (2u, m + 1); 2u &gt; m is a carry to (2u − m, m + 1) that uses one unit of c, or with c = 0 a reset to c = 2(m − u − 1), u = 2u − m, m = u + 3; 2u = m is a carry to (1, m + 2), or with c = 0 the halt. Proved for every visit (<code>F_op</code>), and evaluated: no halt in the first 10<sup>4</sup> operations (kernel) and 10<sup>7</sup> (<code>native_decide</code>). m + c = 5 + visits + resets + emptying carries.</p></div></div>
-    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/odo.c</code></div></div><div><b>54 resets, no halt</b><p>The doubling map in C (the same first 50,000 visits and the same resets as the Python model) runs 10<sup>11</sup> operations, 50,000,165,924 visits, 54 resets, without a halt. Reset 54 happens at m = 35,143,437,691 with 2u − m = 1,095,845,857 and makes a left block of 34,047,591,832. The smallest (2u − m)/m at a reset is 0.028 (reset 11).</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A later halt has probability about 10<sup>−10</sup></b><p>At a reset 2u − m is one of about m/2 values, one of which halts. The moduli at resets grow by a factor between 1 and 2 (about 1.47 on average), so the chances form a geometric series: about 6/m after a reset at m, 10<sup>−10</sup> after reset 54. The same growth is why resets are logarithmically rare: reset k needs about 1.47<sup>k</sup> operations.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README, Structure of the map</div></div><div><b>Why no invariant is in sight</b><p>Every lap starts at u = m − 3, so a lap is a function of its modulus; its pattern of wrap-arounds is the binary expansion of a real number within 1/m of u/m, and an exact hit is a long run of zeros in that expansion, to the exact integer. Backwards, a state has exactly one predecessor when m is even, and two or none (u even or odd) when m is odd: the backward tree of the halting states is a critical branching process, which is where the 1/m density comes from. Every class of (u, m, c) modulo 8 contains states that halt, so no invariant modulo a power of 2 can rule the halt out.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does a reset ever land on 2u = m (b = a/2)?</b><p>No congruence excludes it: the halting state has predecessors under the map for every even m. Deciding the machine means deciding a chaotic doubling map with a moving modulus.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>F_op</code>, <code>orbit_op</code>, <code>op_kernel</code>, <code>op_native</code>, <code>lean/Doubling.lean</code></div></div><div><b>The odometer is a doubling map</b><p>With u = b + 1 and v = a/2 + b + 2: 2u &lt; v is a visit with (2u, v + 1); 2u &gt; v is a carry to (2u − v, v + 1) that uses one unit of c, or with c = 0 a reset to c = 2(v − u − 1), u = 2u − v, v = u + 3; 2u = v is a carry to (1, v + 2), or with c = 0 the halt. Proved for every visit (<code>F_op</code>), and evaluated: no halt in the first 10<sup>4</sup> operations (kernel) and 10<sup>7</sup> (<code>native_decide</code>). v + c = 5 + visits + resets + emptying carries.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/odo.c</code></div></div><div><b>54 resets, no halt</b><p>The doubling map in C (the same first 50,000 visits and the same resets as the Python model) runs 10<sup>11</sup> operations, 50,000,165,924 visits, 54 resets, without a halt. Reset 54 happens at v = 35,143,437,691 with 2u − v = 1,095,845,857 and makes a left block of 34,047,591,832. The smallest (2u − v)/v at a reset is 0.028 (reset 11).</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A later halt has probability about 10<sup>−10</sup></b><p>At a reset 2u − v is one of about v/2 values, one of which halts. The moduli at resets grow by a factor between 1 and 2 (about 1.47 on average), so the chances form a geometric series: about 6/v after a reset at v, 10<sup>−10</sup> after reset 54. The same growth is why resets are logarithmically rare: reset k needs about 1.47<sup>k</sup> operations.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README, Structure of the map</div></div><div><b>Why no invariant is in sight</b><p>Every lap starts at u = v − 3, so a lap is a function of its modulus; its pattern of wrap-arounds is the binary expansion of a real number within 1/v of u/v, and an exact hit is a long run of zeros in that expansion, to the exact integer. Backwards, a state has exactly one predecessor when v is even, and two or none (u even or odd) when v is odd: the backward tree of the halting states is a critical branching process, which is where the 1/v density comes from. Every class of (u, v, c) modulo 8 contains states that halt, so no invariant modulo a power of 2 can rule the halt out.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does a reset ever land on 2u = v (b = a/2)?</b><p>No congruence excludes it: the halting state has predecessors under the map for every even v. Deciding the machine means deciding a chaotic doubling map with a moving modulus.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

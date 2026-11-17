@@ -13,7 +13,7 @@ bbchallenge id 104106. One of the six-state holdouts whose halting from blank ta
 
 **Family:** Nested ternary counter with an exact regime law (segments drained by 3^j per event).
 
-A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact run confirms the law up to there, passes that collapse without a halt and continues to 2.29x10^20 steps; the next collapse is forecast near 10^46 steps and is not understood.
+A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact model of the whole tape (16 November 2026) follows the run through that collapse and through the middle collapse at 2.06x10^35 steps, without a halt, to 8.2x10^51 steps; the next collapse (the oldest segment of the third regime) is due near 10^54 to 10^55 steps.
 
 ## Equivalence
 
@@ -211,7 +211,7 @@ Findings:
    0.4654*g^2 with g = 300,189,270,593,998,214, which is about 4x10^34 (heuristic fit). The 10^46 forecast assumed
    that the oldest segment runs out first, and is superseded. For b2 the end counter would run out near event 176,
    so the middle collapse also comes first there.
-4. **Middle collapse: unresolved.** `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py` runs a window around the dying segment exactly, keeping 3 or 7
+4. **Middle collapse: unresolved here; resolved by the whole-tape run below.** `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py` runs a window around the dying segment exactly, keeping 3 or 7
    neighbours on its left and 3 on its right, with a canonical generator in front. The 7-neighbour run went 3000 s,
    to 1.15x10^19 steps (`holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_midwin_l7q3.txt`). Neither run halted, and neither returned to the law. The
    generator becomes small and irregular, and the left neighbours carry over with coefficients one lower and a
@@ -223,6 +223,76 @@ Findings:
 
 Reproduce: `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 /tmp/b1track.log` (it stops at the middle collapse with a note);
 `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py 7 3 170 3000`.
+
+## The whole tape as one counter, and the middle collapse (16 November 2026)
+
+Goal: follow the exact run through the middle collapse forecast above, which needs the whole tape, not a window.
+Result: **the middle collapse comes at about 2.06x10^35 steps, and neither machine halts there.** Both runs were
+followed far past it: b1 to 8.2x10^51 steps, b2 to 2.6x10^54. No halt was found. Halting is still open.
+
+The model. Between two right-end records the head bounces at the left end, and each bounce sends a carry to the
+right through a ternary counter that spans the whole tape. A *sample* is the head on a new leftmost cell, in state
+A (b1) or C (b2). Read mirrored (the machine `1LB0RB_1LC0RA_1RB0LD_1LE1LD_1LB1LF_1RA---`, or its twin), a sample is
+a list of digits, each a run of r blocks `1000` followed by a wall: Z = `100000` (digit 0), O = `1010` (digit 1),
+T = `111000` (digit 2), plus a few walls of other shapes that turn up near collapses and births (`b1_1` = `10`,
+`b1_2`, `b1_6`, `b2_2`, `b2_3`, named automatically). The tools, in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/`:
+
+* `cdigits.py` is the digit model. One sweep (one bounce) is a symbolic run of the machine
+  (`tools/py/bbtools/symtm.py`) on a window that holds the carry chain and the digit where it stops, with long
+  runs as variables; each rule is cached by its window shape. Check: `python3 cdigits.py check 1e7` compares every
+  sample of the direct run with the model: 12,348 sweeps for b1 and (to 2x10^6 steps) 4,655 for b2, no mismatch.
+* `tacc.py` stacks sweeps into counter macros, Inc(L) for a place L counted from the far end (the macro algorithm
+  of `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py`; `caccel.py` is the same counted from the
+  head's end, which is not stable here). A macro is derived once per window shape and stands for exactly the
+  sweeps it replaces, step counts included; repeated rounds are skipped in bulk while every run stays in the class
+  it was derived for. Check: `python3 tacc.py test 1e6 5e6` (and `... b2`): every landing point of 5.07 million
+  sweeps equals the plain sweeps, states and step counts.
+* `farcheck.py` is an independent check of the long run: it converts the accelerated state just before
+  1.7x10^19 steps back to a tape and runs `c/msimev.c` (a block macro simulator that shares no code with the
+  model) from it; every later record of `data/b1_far.txt` (the earlier exact msim run, to 7.4x10^19) must come out
+  at the same step with the same tape. All three records agree: same tape (as runs of 1s, up to the end run the head is writing) and the step
+  count to within 10 (msim reports at the end of its macro step, 8 to 10 steps after the head reaches the new cell).
+* `digits_lean.py` proves the 8 most used sweep rules (of the direct run to 2x10^6 steps) in Lean for all lengths of
+  the long runs, `lean/Digits.lean` (and the same for b2 in its own folder); 1,210 of the 5,014 sweeps of b1 to
+  2x10^6 steps are instances of them.
+
+What the run shows (b1; b2 goes through the same events with different constants, at nearly the same step counts):
+
+1. The accelerated run reproduces every law event checked: the segment lists of the P_n events (for example
+   90, 351, 1188, 3861, 12366 with generator 39338 at P_4), P_14 and the first collapse, the end counter 204 after
+   it, and the three later msim records of `data/b1_far.txt`.
+2. The middle collapse. At 2.060x10^35 steps the segment of coefficient 2 (j = 15, born at the first collapse)
+   runs out, as the law said, but later than the 4x10^34 fit. A wall `10` appears in its place, and the two
+   neighbouring segments merge: 473,513,913 and 2,841,083,638 become one segment of 3,314,597,534. The counter
+   passes through a stretch of mixed O and T digits, then settles into a new all-Z regime. Nothing near a halt
+   happens (the halting transition needs state D on a 0 with `1 1` to its right).
+3. The new regime (third). From the far end: the end counter c, the segments, each about 3 times the last, the
+   newest and largest ones, then a small pair [a, b] with 54a + b = 7262 (a a multiple of 3 between 0 and 132),
+   then the fixed part. Each generation takes about 9 times as long as the one before, and c drops by 2 per
+   generation, as in the first regime: c = 155, 153, 151, ..., 133 at 8.2x10^51 steps for b1, and 32, 30, 28, ...
+   for b2.
+4. What comes next. The oldest segment (second from the far end) loses 9 per generation, as y(0) did in the
+   first regime: 123, 114, 105, ..., 26 at 8.2x10^51 steps for b1, so it runs out in about 3 more generations,
+   near 10^54 to 10^55 steps; that is a collapse of the first kind (the fuse at P_14), now in the third regime.
+   For b2 the constants are smaller: at 2.58x10^54 steps the end counter is 3, the oldest segment 3, and a
+   segment of 162 blocks has appeared in the middle of the list (another middle collapse under way). All three
+   come due within the next generation. The run stopped there because deriving the next macros took more than
+   the 14 GB of memory available; nothing in it was near a halt. Getting past this point needs a leaner macro
+   cache, not a new idea.
+
+Reproduce (each run checkpoints and can be resumed):
+
+    cd holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py
+    python3 cdigits.py check 1e7
+    BLAST=1000 python3 tacc.py test 1e6 5e6
+    BLAST=1000 MEMO_MAX=300000 SPEC_MEMO_MAX=300000 FULLLOG=/tmp/b1full.log python3 tacc.py run 1e6 28000 /tmp/b1.pkl
+    BLAST=1000 MEMO_MAX=300000 SPEC_MEMO_MAX=300000 FULLLOG=/tmp/b2full.log python3 tacc.py run 1e6 28000 /tmp/b2.pkl b2
+    python3 farcheck.py b1
+    python3 digits_lean.py b1 --check; python3 digits_lean.py b2 --check
+
+`FULLLOG` gets one line with the whole digit list each time the number of digits or the first digit changes;
+the main log prints the state every few minutes. BLAST=1000 keeps the last run exact (it is always small), and
+the memo bounds keep memory below about 5 GB.
 
 ## What is proved, and how firmly
 
@@ -238,8 +308,11 @@ Reproduce: `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.
 | trusted | **No halt in the first 2.29x10^20 steps, through the first collapse.** The macro simulator (blocks of 4 cells, crossing long runs of equal blocks in one go; exact, and it agrees with the direct simulator at 2x10^9 steps) ran 55 minutes from blank tape to step 229,416,990,524,183,704,810 without a halt. Every right-end event up to P_14 lies on the law, and P_14, at step 2,515,258,871,431,441,221, is exactly the predicted list: the oldest segment is down to 0 and the end counter is 133. The run then leaves the law, as predicted, passes the collapse without halting, and the next new cell on the right comes at step 16,989,897,072,297,977,885 with the end counter at 204; 3 such events are recorded after the collapse. | `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msim.c MACHINE 4 1e36 - 1 r 3300`; output in `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_far.txt`; `py/check_msim.py` |
 | heuristic | **After the collapse: the next one (forecast).** The law only looks at a segment's distance from the right end, so the right end of P_13 was simulated beforehand from a shortened tape with 3, 4 or 5 kept segments. That forecast said the run would pass the collapse at P_14 without halting and that the end counter would jump from 133 to 204; the full exact run has now done exactly that (previous claim). The same shortened runs say that in the second regime the oldest segment (321 blocks) loses about 9 per cycle, so the next collapse would be some 36 generations later, near 10^46 steps. The second regime has no law yet, and nothing is known about that second collapse. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/bcollapse.py b1 4` |
 | trusted | **The general event law and the first collapse, reproduced (16 November 2026).** Events cycle birth, drain, drain (formulas in the section above); the collapse at P_14, run exactly on reduced tapes with 4, 5, 6 kept segments and spliced in, gives exactly the real list at step 16,989,897,072,297,977,885, and all later records of the exact run match the law continued from it. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 LOG`, `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c` |
-| heuristic | **The next collapse is in the middle, near 4x10^34 steps.** At event 107 the segment with coefficient 2 (18th of 35) goes negative, before the oldest segment or the end counter (170 at event 105) runs out; the step count is a fit. Replaces the 10^46 forecast. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 LOG` |
+| heuristic | **The next collapse is in the middle, forecast near 4x10^34 steps** (it comes at 2.06x10^35, see above). At event 107 the segment with coefficient 2 (18th of 35) goes negative, before the oldest segment or the end counter (170 at event 105) runs out; the step count is a fit. Replaces the 10^46 forecast. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py b1 200 LOG` |
 | heuristic | **The middle collapse in a cut-down window: no halt, not resolved.** Window runs (to 1.15x10^19 steps) do not halt but never return to the law; the left part of the tape cannot be cut off. | `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/midwin.py 7 3 170 3000`, `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/b1_midwin_l7q3.txt` |
+| trusted | **The whole tape as one exact counter.** Read at the left end, the tape is one ternary counter (runs of `1000`, mirrored, between walls Z, O, T); every sample of the direct run to 10^7 steps equals the model, and the counter macros equal plain sweeps on 5.07 million sweeps. | `py/cdigits.py check 1e7`, `py/tacc.py test 1e6 5e6` |
+| trusted | **No halt in the first 8.2x10^51 steps, through the middle collapse.** The whole-tape run reproduces the law events, the first collapse and the msim records (`py/farcheck.py`); the middle collapse comes at 2.060x10^35 steps (two segments merge, then a third regime of the same kind). | `py/tacc.py run`, `py/farcheck.py b1` |
+| kernel | **8 sweeps of the digit model, for all run lengths.** The 8 most used sweeps of the direct run to 2x10^6 steps, proved for all lengths of the long runs. | `lean/Digits.lean`, generated by `py/digits_lean.py b1` |
 | open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts), which the law never produces. The first collapse did not produce it either (exact run). Whether a later collapse can needs a rule for the collapses, which is not known yet. |  |
 
 ## Lean
@@ -247,9 +320,13 @@ Reproduce: `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.
 `lean/Rules.lean` is generated by `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rules.py` (one script for all eight machines of this worker;
 `--check` compares the files instead of writing them) and is listed in `lean/check.sh` after `Blank.lean`:
 
+`lean/Digits.lean` (8 sweeps of the digit model) is generated by `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/digits_lean.py b1` (`b2` writes the twin's file) and
+listed after `Rules.lean`:
+
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/lean/check.sh
 python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rules.py --check
+python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/digits_lean.py b1 --check
 ```
 
 ## Pages

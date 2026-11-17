@@ -1,0 +1,109 @@
+<div class="col">
+<p>Leave out the states, the step counts and the two forms, and what remains is a rewriting system on words. In
+<code>VisitLaw.lean</code> it is two inductive relations on streams with no machine in them: <code>AV s s'</code>,
+"one visit rewrites s to s'", and <code>AH s</code>, "a visit to s halts".</p>
+</div>
+<div class="yv-tbl"><table class="tbl"><thead><tr><th>the stream begins</th><th>one visit makes</th><th>rule</th></tr></thead><tbody>
+<tr><td><code>0 s</code></td><td><code>1 s</code></td><td><code>AV.z</code></td></tr>
+<tr><td><code>100 r</code></td><td><code>000</code>, and one visit to r</td><td><code>AV.h</code></td></tr>
+<tr><td><code>110 r</code></td><td><code>000</code>, and one visit to r</td><td><code>AV.g</code></td></tr>
+<tr><td><code>1010 r</code></td><td><code>1010</code>, and two visits to r, if r does not start with <code>11</code></td><td><code>AV.l</code></td></tr>
+<tr><td><code>1011 r</code></td><td>the visit halts</td><td><code>AH.x</code></td></tr>
+</tbody></table></div>
+<div class="col">
+<p>A visit also halts if one of its nested visits halts (<code>AH.h</code>, <code>AH.g</code>, <code>AH.l1</code>,
+<code>AH.l2</code>). So a block <code>000</code> or <code>100</code> is a <b>binary digit</b>: it flips on every
+visit and passes every second visit on. A block <code>1010</code> is a <b>doubler</b>: it passes every visit on
+twice. A block <code>1011</code> is the <b>trap</b>.</p>
+<p><b>The guard.</b> The doubler rule carries the side condition "the stream behind does not start with
+<code>11</code>" (<code>Guard</code>), because the first of its two nested visits is made in form W. In this machine form W has no rule for <code>110</code>, so the doubler rule can only be turned into visits of the machine when the stream behind the doubler does not start with <code>11</code>. Lean
+proves that after two visits a stream never starts with <code>11</code> (<code>av2_guard</code>), and the checker
+below tests the condition every time it uses the rule.</p>
+<p><b>From the rules to the machine.</b> <code>Law</code> lists what a machine's two forms must satisfy, one field
+per rule, and <code>Law.av</code>, <code>Law.ah</code> turn every abstract visit into a visit of the machine in
+form V (and in form W when the guard holds). <code>lean/Law.lean</code> fills in the fields with the theorems of
+the table above (<code>law</code>); everything is checked by the kernel.</p>
+<p>Step through the first rounds of the rewriting system. Each round puts <code>1 0</code> in front of the word
+and makes one visit; the highlighted cells are the block the current visit is reading. At the end of every round
+the browser compares the word with the machine's tape at the start of the next round.</p>
+</div>
+<div class="panel" id="yv-rw">
+ <div class="controls">
+  <button type="button" id="yvr-reset">Reset</button>
+  <button type="button" id="yvr-prev" aria-label="Back one visit">&#9664;</button>
+  <button type="button" id="yvr-next" class="primary">Next visit &#9654;</button>
+  <button type="button" id="yvr-round">Next round</button>
+  <button type="button" id="yvr-play">Play</button>
+  <span class="small" id="yvr-info"></span>
+ </div>
+ <div id="yvr-tape" class="yv-word" style="font-size:.95rem;line-height:2;margin-top:12px;min-height:4em"></div>
+ <p id="yvr-note" class="small" style="margin:8px 0 0;min-height:2.6em"></p>
+ <div class="cap" id="yvr-chk"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Y = window.YV, $ = function (id) { return document.getElementById(id); };
+  var frames = [], cur = 0, timer = null, MAXR = 12;
+  (function build() {
+    var t = [1], halted = false;
+    function snap(round, i, len, note, depth, end) { frames.push({ round: round, t: t.slice(), i: i, len: len, note: note, depth: depth, end: end }); }
+    function grow(n) { while (t.length < n) t.push(0); }
+    function v(round, i, depth) {
+      grow(i + 6);
+      if (t[i] === 0) { t[i] = 1; snap(round, i, 1, "0 becomes 1. This visit ends here.", depth); return true; }
+      if (t[i + 2] === 0 && (t[i + 1] === 0 || t[i + 1] === 1)) {
+        var blk = "1" + t[i + 1] + "0";
+        snap(round, i, 3, blk + ": a digit. It becomes 000 and passes one visit on to the stream behind it.", depth);
+        if (!v(round, i + 3, depth + 1)) return false;
+        t[i] = 0; t[i + 1] = 0; return true;
+      }
+      if (t[i + 1] === 0 && t[i + 2] === 1 && t[i + 3] === 0) {
+        var g = !(t[i + 4] === 1 && t[i + 5] === 1);
+        snap(round, i, 4, "1010: a doubler. The stream behind it starts with " + t[i + 4] + t[i + 5] + (g ? ", not 11, so the guard holds" : ": the guard fails") + ". First nested visit ...", depth);
+        if (!g) { halted = true; return false; }
+        if (!v(round, i + 4, depth + 1)) return false;
+        snap(round, i, 4, "... and the second nested visit, from the same doubler.", depth);
+        return v(round, i + 4, depth + 1);
+      }
+      halted = true;
+      snap(round, i, 4, t[i + 1] === 0 && t[i + 2] === 1 ? "1011: the trap. The visit halts." : "No rule applies.", depth);
+      return false;
+    }
+    snap(0, -1, 0, "The word after the start: S = 1. Each round puts 1 0 in front of it and makes one visit.", 0, true);
+    for (var r = 1; r <= MAXR && !halted; r++) {
+      t = [1, 0].concat(t); while (t.length && t[t.length - 1] === 0) t.pop();
+      snap(r, 0, 2, "Round " + r + ": 1 0 is put in front of the word, and one visit is made to the whole stream.", 0);
+      if (!v(r, 0, 0)) break;
+      while (t.length && t[t.length - 1] === 0) t.pop();
+      snap(r, -1, 0, "End of round " + r + ".", 0, true);
+    }
+  })();
+  function show() {
+    var f = frames[cur], h = "", k, n = f.t.length;
+    while (n > 0 && f.t[n - 1] === 0 && n > f.i + f.len) n--;
+    for (k = 0; k < n; k++) {
+      if (k >= f.i && k < f.i + f.len) h += '<span style="background:var(--head);color:var(--surface);padding:1px 2px;border-radius:2px">' + f.t[k] + "</span>";
+      else h += '<span style="padding:1px 2px;color:' + (f.t[k] ? "var(--fg)" : "var(--muted)") + '">' + f.t[k] + "</span>";
+    }
+    $("yvr-tape").innerHTML = h + '<span style="color:var(--muted)"> 0 0 0 &hellip;</span>';
+    $("yvr-note").textContent = f.note;
+    $("yvr-info").textContent = "round " + f.round + " · " + (cur + 1) + " of " + frames.length + (f.depth ? " · nested " + f.depth + " deep" : "");
+    var chk = "";
+    if (f.end) {
+      var R = Y.machineRounds(f.round + 1), m = R[f.round + 1];
+      chk = m && Y.same(m.S, f.t) ? '<span class="yv-ok">✓ the machine\'s tape at step ' + Y.fmt(m.k) + ", the start of round " + (f.round + 1) + ", is 0<sup>&infin;</sup> A&gt; 1 0 0 followed by this word</span>"
+                                  : '<span class="yv-bad">✗ the machine\'s tape differs</span>';
+    }
+    $("yvr-chk").innerHTML = chk;
+  }
+  function go(d) { cur = Math.max(0, Math.min(frames.length - 1, cur + d)); show(); }
+  function stop() { if (timer) { clearInterval(timer); timer = null; $("yvr-play").textContent = "Play"; } }
+  $("yvr-next").addEventListener("click", function () { stop(); go(1); });
+  $("yvr-prev").addEventListener("click", function () { stop(); go(-1); });
+  $("yvr-reset").addEventListener("click", function () { stop(); cur = 0; show(); });
+  $("yvr-round").addEventListener("click", function () { stop(); var k = cur + 1; while (k < frames.length - 1 && !frames[k].end) k++; cur = Math.min(k, frames.length - 1); show(); });
+  $("yvr-play").addEventListener("click", function () { if (timer) { stop(); return; } $("yvr-play").textContent = "Pause"; timer = setInterval(function () { if (cur >= frames.length - 1) stop(); else go(1); }, 450); });
+  show();
+})();
+</script>

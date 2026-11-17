@@ -178,6 +178,22 @@ Reproduce (from the folder of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE, `holdou
     gcc -O2 -o good c/good.c && ./good 1e11        # the condition (about 8 minutes)
     gcc -O2 -o lockstep c/lockstep.c && ./lockstep 1e11   # the two runs at every left-end visit (about 17 minutes)
 
+### A second proof, in Coq (busycoq)
+
+[`../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v) proves the same equivalence on top of busycoq's definitions,
+`TailWord.eqv : halts tm c0 <-> halts tm' c0`, independently of the Lean files: a model configuration read as a
+configuration of either machine (the second with `10001101` after q), one model step = one step of both or the
+far-end crossing (5 and 49 steps), and a window invariant of 28 abstract configurations checked by one `vm_compute`.
+`Print Assumptions`: closed under the global context. It compiles in about 3 s with Coq 8.20.1, busycoq's version
+(`sh ../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq` on busycoq's BB6 branch; [`../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.log`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.log)), and
+with 8.18.0. It is ready for a pull request to busycoq, not yet submitted.
+
+The explainers of both machines now walk through the argument with interactive parts: the two tables cell by cell,
+the two runs drawn on one clock, the far-end crossing for k = 0..4 extra words, and the 28 window configurations
+(follow the real run through them, or flip one transition and watch the check fail). Their engine,
+[`../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/pair.js`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/pair.js), is tested by `node ../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/test_pair.js` against the numbers
+above; `python3 ../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair_page.py` writes the sections into both `status.json` files.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/explainer.html`](../../pages/holdouts/1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC/explainer.html)
@@ -200,7 +216,7 @@ The next step is to decode the counter. The plan:
 
 Other holdouts of the list of 608 that are tied to this one. The comparison of tables is exact; everything about runs was checked on the first 10^7 steps of each machine and is an observation, not a proof (`holdouts/related.py`, `holdouts/related.json`).
 
-**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. These are different runs: in the first 10^7 steps of each, no configuration of this machine's run occurs in the other, even up to a shift of the tape. So each of these holdouts is its own halting question, and settling one does not settle another.
+**Same table as the machine below, started in another state.** Renaming the states as shown turns this machine's table into the other one, the halting transition included. The other machine starts in its own state A, which is not this machine's A: its run from blank tape is the run of this table started in another state. In the first 10^7 steps of each, no configuration of this machine's run occurs in the other's at the same step, even up to a shift of the tape. Compared at matching visits instead, they are one run seen in a mirror, the second with one more word at the far end, and it is proved that the two halt together or not at all (Lean: `two_machines'`, Coq: `TailWord.eqv`; see the section "One halting question for two machines"). So these two are one halting question.
 
 - [`1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/README.md): rename A→C, B→D, C→E, D→A, E→B, F→F and exchange left and right; it is this table started in state D, in a mirror
 

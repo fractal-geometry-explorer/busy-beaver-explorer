@@ -1,0 +1,577 @@
+<style>
+:root{--odc1:#2a78d6;--odc2:#1baf7a;--odsep:#eda100;--odc1p:#cde2fb;--odc2p:#c9efe0;--odsepp:#fbe7bd}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--odc1:#3987e5;--odc2:#199e70;--odsep:#c98500;--odc1p:#1b3354;--odc2p:#123a2b;--odsepp:#3d2c08} }
+:root[data-theme="dark"]{--odc1:#3987e5;--odc2:#199e70;--odsep:#c98500;--odc1p:#1b3354;--odc2p:#123a2b;--odsepp:#3d2c08}
+.od-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.od-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.od-lv:hover{border-color:var(--accent)}
+.od-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.od-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.od-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.od-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.od-row:first-child{border-top:0}
+.od-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.od-row .mono{overflow-wrap:anywhere}
+@media (max-width:560px){.od-row{grid-template-columns:minmax(0,1fr)}}
+.od-tape{display:block;width:100%;height:46px;margin-top:6px}
+.od-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:6px}
+.od-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.od-ok{color:var(--kernel);font-weight:600}
+.od-bad{color:var(--open);font-weight:600}
+.od-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+.od-chips{display:flex;flex-wrap:wrap;gap:3px;font-family:var(--mono);font-size:.78rem;margin-top:6px;max-height:8.5em;overflow:auto}
+.od-chips span{border:1px solid var(--line-strong);border-radius:4px;padding:0 4px;background:var(--surface);white-space:nowrap}
+.od-chips span.r{background:var(--accent-soft);border-color:var(--accent)}
+.od-chips span.h{background:var(--head);border-color:var(--head);color:var(--surface);font-weight:700}
+.od-pre{white-space:pre-wrap;overflow-wrap:anywhere}
+.else>div{overflow-wrap:anywhere}
+</style>
+<div class="col">
+<p>The question "does this machine halt, and when?" can be asked at four levels of description. Each level keeps
+less detail than the one above it and has a coarser unit of time, and each step down is a theorem saying that the
+lower level follows the machine exactly. At the bottom a program built from levels 2 to 4 runs from blank tape to the
+halting transition; that run is the proof (<a href="#bottomline">the bottom line</a>).</p>
+</div>
+<div class="od-ladder">
+ <a class="od-lv" href="#run"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <div class="small">From blank tape to the halt: 8.53&middot;10<sup>131</sup> steps.</div></a>
+ <a class="od-lv" href="#rounds"><span class="n">Level 2</span><b class="t">The compressed tape</b>
+  <div class="u">The tape as runs of a short word, a run of a million copies being one item. One unit is one <b>round</b>: a transition, a whole run crossed, or one copy unpacked.</div>
+  <span class="ev k">Kernel</span> <span class="small">each round follows the machine: <code>mstep_sound</code></span></a>
+ <a class="od-lv" href="#odometer"><span class="n">Level 3</span><b class="t">Visits of a zone</b>
+  <div class="u">The tape each time the head reaches new ground on the right, as counters of <code>011</code> with bits between them. One unit is one <b>visit</b>: 6(n<sub>0</sub> + &hellip; + n<sub>i&minus;1</sub>) + 4i + 11 steps.</div>
+  <span class="ev k">Kernel</span> <span class="small">a visit is a binary increment: <code>visit</code></span></a>
+ <a class="od-lv" href="#jump"><span class="n">Level 4</span><b class="t">The odometer of tanks</b>
+  <div class="u">The same counters in the coordinates N<sub>j</sub>, where they are fuel tanks. One unit is one <b>jump</b> of V visits at once, up to 2<sup>214</sup> of them.</div>
+  <span class="ev k">Kernel</span> <span class="small">V visits in closed form: <code>jump</code></span></a>
+</div>
+<div class="col">
+<p>The visits that are not of the regular form (a tank nearly empty, or the binary number overflowing) have no rule
+at level 3 or 4; the program runs them at level 2. Lean proves that whatever mixture of rounds and jumps the program
+makes is a run of the machine (<code>run_sound</code>, kernel), and evaluates the program from blank tape with
+compiled code (<code>run_halts</code>, <code>native_decide</code>). Coq does the same with the exact step count, checked by its
+kernel.</p>
+<h3>One moment, four descriptions</h3>
+<p>Pick a visit. The browser runs the real machine cell by cell from blank tape to that moment, and separately runs
+the compressed-tape program to the same moment. The rows show the same instant at each level; the marks say whether
+the computations agree.</p>
+</div>
+<div class="panel" id="od-moment">
+ <div class="controls">
+  <button type="button" id="odm-prev" aria-label="Previous visit">&#9664;</button>
+  <input type="range" class="od-slider" id="odm-n" min="1" max="2500" value="59" aria-label="Visit number">
+  <button type="button" id="odm-next" aria-label="Next visit">&#9654;</button>
+  <span class="small">visit <b id="odm-lab">59</b></span>
+ </div>
+ <div style="margin-top:12px">
+  <div class="od-row"><span>1 &middot; Machine</span><div><span id="odm-step"></span>
+   <canvas class="od-tape" id="odm-tape" aria-label="The tape at this visit, coloured by counter"></canvas>
+   <div class="od-key"><span><i style="background:var(--odc1)"></i><i style="background:var(--odc2)"></i>counters (011)<sup>n</sup>, alternately</span><span><i style="background:var(--odsep)"></i>the bits 11 and 01 between them</span><span><i style="background:var(--muted)"></i>other words</span><span><i style="background:var(--head)"></i>head, state A</span><span>dark = 1, pale = 0</span></div></div></div>
+  <div class="od-row"><span>2 &middot; Compressed</span><div id="odm-rl"></div></div>
+  <div class="od-row"><span>3 &middot; Visit</span><div id="odm-z"></div></div>
+  <div class="od-row"><span>4 &middot; Tanks</span><div id="odm-t"></div></div>
+ </div>
+ <div class="cap">Visit 2,500 is 8.66 million steps in; the browser redoes the run from blank tape when you go back. Counts of fewer than three copies of 011 are written out as cells, so a nearly empty tank shows up as an irregular word.</div>
+</div>
+<script>
+window.OD = (function () {
+  "use strict";
+  var TM = "1RB1RD_1RC1RB_1LD0RA_1RA0LE_1LF0LC_---1LE";
+  var K = "853177647932005270554892218084645935472995035642746848454477793277027802995098762076895667304703808111420498351739937140047615589683";
+  // tab[2*state+read] = [write, move (+1 right, -1 left), next state] or null (halt)
+  var tab = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var r = 0; r < 2; r++) {
+      var t = g.substr(3 * r, 3);
+      tab[2 * i + r] = t[0] === "-" ? null : [+t[0], t[1] === "R" ? 1 : -1, t.charCodeAt(2) - 65];
+    }
+  });
+  var SN = "ABCDEF";
+
+  // ---------------------------------------------------------------- level 1: the machine, cell by cell
+  function Cells() { this.n = 1 << 12; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0;
+    this.k = 0; this.lo = 0; this.hi = 0; this.visits = 0; this.halted = false; }
+  Cells.prototype.grow = function () {
+    var n = this.n * 2, t = new Uint8Array(n);
+    t.set(this.t, this.n >> 1); this.o += this.n >> 1; this.t = t; this.n = n;
+  };
+  Cells.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  Cells.prototype.set = function (x, v) { while (x + this.o < 2 || x + this.o >= this.n - 2) this.grow(); this.t[x + this.o] = v; };
+  // one step; returns false on the halting transition (counted, as bbchallenge counts it)
+  Cells.prototype.step = function () {
+    var tr = tab[2 * this.s + this.get(this.p)];
+    this.k++;
+    if (!tr) { this.halted = true; return false; }
+    this.set(this.p, tr[0]); this.p += tr[1]; this.s = tr[2];
+    if (this.p < this.lo) this.lo = this.p;
+    if (this.p > this.hi) { this.hi = this.p; if (this.s === 0) this.visits++; }
+    return true;
+  };
+  // runs to the next visit: the head, in A, steps onto a never-visited cell at the right end
+  Cells.prototype.nextVisit = function (limit) {
+    var v = this.visits, end = this.k + (limit || 1e9);
+    while (this.visits === v) { if (!this.step() || this.k > end) return false; }
+    return true;
+  };
+  // the tape from its leftmost 1 to the cell left of the head
+  Cells.prototype.left = function () {
+    var a = this.lo; while (a < this.p && this.get(a) === 0) a++;
+    var s = ""; for (var x = a; x < this.p; x++) s += this.get(x); return s;
+  };
+  Cells.prototype.load = function (str) {      // str written left of the head, head on blank in A
+    for (var i = 0; i < str.length; i++) this.set(i, +str[i]);
+    this.p = str.length; this.s = 0; this.lo = 0; this.hi = str.length; this.k = 0; this.visits = 0;
+  };
+
+  // ---------------------------------------------------------------- canonical tokens (py/canon.py, for one string)
+  // a list of strings and numbers; a number n stands for (011)^n
+  function canon(str) {
+    str = "0" + str;                      // the blank cell left of the tape may begin a copy of 011
+    var out = [], rx = /(?:011){3,}/g, m, pos = 0;
+    while ((m = rx.exec(str))) {
+      if (m.index > pos) out.push(str.slice(pos, m.index));
+      out.push(m[0].length / 3); pos = m.index + m[0].length;
+    }
+    if (pos < str.length) out.push(str.slice(pos));
+    var changed = true;
+    while (changed) {
+      changed = false;
+      for (var i = 0; i < out.length; i++) {
+        if (typeof out[i] !== "number") continue;
+        while (i > 0 && typeof out[i - 1] === "string" && /011$/.test(out[i - 1])) { out[i - 1] = out[i - 1].slice(0, -3); out[i]++; changed = true; }
+        while (i + 1 < out.length && typeof out[i + 1] === "string" && /^011/.test(out[i + 1])) { out[i + 1] = out[i + 1].slice(3); out[i]++; changed = true; }
+      }
+      var o2 = [];
+      out.forEach(function (it) {
+        if (it === "" || it === 0) { changed = true; return; }
+        var L = o2[o2.length - 1];
+        if (o2.length && typeof it === "number" && typeof L === "number") { o2[o2.length - 1] += it; changed = true; }
+        else if (o2.length && typeof it === "string" && typeof L === "string") { o2[o2.length - 1] += it; changed = true; }
+        else o2.push(it);
+      });
+      out = o2;
+    }
+    if (out.length && typeof out[0] === "string") { out[0] = out[0].replace(/^0+/, ""); if (out[0] === "") out.shift(); }
+    return out;
+  }
+  function show(tok) { return tok.join(" "); }
+  // a zone: ... n_k s_k ... n_1 s_1 n_0 0, s = "11" (bit 0) or "01" (bit 1); counts from tokens (at least 3 by canon)
+  // returns {pre, counts [n_k..n_0], bits [b_k..b_1]} or null
+  function zone(tok) {
+    var c = tok, L = c.length;
+    if (L < 4 || c[L - 1] !== "0" || typeof c[L - 2] !== "number") return null;
+    var counts = [c[L - 2]], bits = [], i = L - 3;
+    while (i >= 1 && (c[i] === "11" || c[i] === "01") && typeof c[i - 1] === "number") {
+      bits.push(c[i] === "01" ? 1 : 0); counts.push(c[i - 1]); i -= 2;
+    }
+    if (!bits.length) return null;
+    counts.reverse(); bits.reverse();
+    return { pre: c.slice(0, i + 1), counts: counts, bits: bits };
+  }
+  function zoneStr(z) {
+    var s = z.pre.map(function (x) { return typeof x === "number" ? "011".repeat(x) : x; }).join("");
+    for (var j = 0; j < z.bits.length; j++) s += "011".repeat(z.counts[j]) + (z.bits[j] ? "01" : "11");
+    return s + "011".repeat(z.counts[z.counts.length - 1]) + "0";
+  }
+  // Zone.lean, inc: one visit of a zone. lv = [(bit, n)] lowest first = [(b_1, n_1), ..., (b_k, n_k)]
+  // returns {lv', i (the level whose bit is set, 1-based), d0 (what n_0 gains)} or null
+  function inc(lv) {
+    var out = [], i = 0;
+    for (;;) {
+      if (i >= lv.length) return null;
+      var b = lv[i][0], n = lv[i][1];
+      if (n === 0) return null;
+      if (!b) { out.push([1, n - 1]); for (var j = i + 1; j < lv.length; j++) out.push(lv[j]); return { lv: out, i: i + 1 }; }
+      var hdr = i + 1 < lv.length ? lv[i + 1][0] : 0;
+      out.push([0, hdr ? n : n + 1]); i++;
+    }
+  }
+  function toLv(z) { var k = z.bits.length, lv = []; for (var j = 1; j <= k; j++) lv.push([z.bits[k - j], z.counts[k - j]]); return lv; }
+  function fromLv(pre, lv, n0) { var counts = [], bits = []; for (var j = lv.length - 1; j >= 0; j--) { counts.push(lv[j][1]); bits.push(lv[j][0]); } counts.push(n0); return { pre: pre, counts: counts, bits: bits }; }
+  // the visit rule as a whole: zone -> next zone and the number of steps, 6(n_0 + ... + n_(i-1)) + 4i + 11
+  function visitRule(z) {
+    var lv = toLv(z), r = inc(lv);
+    if (!r) return null;
+    var n0 = z.counts[z.counts.length - 1], sum = n0;
+    for (var j = 1; j < r.i; j++) sum += lv[j - 1][1];
+    var nz = fromLv(z.pre, r.lv, n0 + (lv[0][0] ? 1 : 2));
+    return { z: nz, i: r.i, steps: 6 * sum + 4 * r.i + 11 };
+  }
+
+  // ---------------------------------------------------------------- level 4: Jump.lean in N coordinates (BigInt)
+  var B0 = BigInt(0), B1 = BigInt(1), B2 = BigInt(2);
+  function big(x) { return typeof x === "bigint" ? x : BigInt(x); }
+  // toN: lv [(b_j, n_j)] lowest first, n0 -> ps [(b_j, N_(j-1))], top = N_k
+  function toN(n0, lv) {
+    n0 = big(n0);
+    var ps = [[lv[0][0], n0 - big(lv[0][0])]], b = lv[0][0], n = big(lv[0][1]);
+    for (var j = 1; j < lv.length; j++) { var b2 = lv[j][0]; ps.push([b2, n + big(b) - big(b2)]); b = b2; n = big(lv[j][1]); }
+    return { ps: ps, top: n + big(b) };
+  }
+  function physP(ps, top) {
+    var out = [];
+    for (var j = 0; j < ps.length; j++) {
+      var b = ps[j][0];
+      out.push([b, j + 1 < ps.length ? ps[j + 1][1] + big(ps[j + 1][0]) - big(b) : top - big(b)]);
+    }
+    return out;
+  }
+  function n0of(ps) { return ps[0][1] + big(ps[0][0]); }
+  function addV(V, ps) {
+    V = big(V); var out = [];
+    for (var j = 0; j < ps.length; j++) {
+      var b = big(ps[j][0]), M = ps[j][1], d = (V + B1 - b) / B2;
+      out.push([(V + b) % B2 === B1 ? 1 : 0, M > d ? M - d : B0]); V = (V + b) / B2;
+    }
+    return out;
+  }
+  function ovf(V, ps) { V = big(V); for (var j = 0; j < ps.length; j++) V = (V + big(ps[j][0])) / B2; return V; }
+  function after(V, ps) { V = big(V); return addV(V, [[ps[0][0], ps[0][1] + B2 * V]].concat(ps.slice(1))); }
+  function goodN(ps, top) { for (var j = 1; j < ps.length; j++) if (ps[j][1] < B2) return false; return ps.length >= 1 && top >= B2; }
+  // incN: one increment in N coordinates (after N_0 += 2); null on overflow
+  function incN(ps) {
+    var out = ps.map(function (x) { return [x[0], x[1]]; });
+    for (var j = 0; j < out.length; j++) {
+      if (!out[j][0]) { out[j] = [1, out[j][1] > B0 ? out[j][1] - B1 : B0]; return out; }
+      out[j][0] = 0;
+    }
+    return null;
+  }
+  var MU = BigInt(6);
+  function chooseV(ps) {
+    var pow = B1, blow = B0, lim = null;
+    for (var j = 0; j < ps.length; j++) {
+      var b = big(ps[j][0]), M = ps[j][1];
+      if (j >= 1) {
+        if (M < MU) return B0;
+        var l = (B2 * (M - MU) + b + B1) * pow - B1 - blow;
+        if (lim === null || l < lim) lim = l;
+      }
+      blow += b * pow; pow *= B2;
+    }
+    var v0 = pow - B1 - blow;
+    return lim === null || v0 < lim ? v0 : lim;
+  }
+  // accel.jump_steps: the exact steps of V visits of the zone counts [n_k..n_0], bits [b_k..b_1]
+  function jumpSteps(counts, bits, V) {
+    V = big(V);
+    var k = bits.length, B = B0;
+    for (var q = 0; q < k; q++) B = B2 * B + big(bits[q]);
+    var n = function (j) { return big(counts[k - j]); }, b = function (j) { return big(bits[k - j]); };
+    var total = B0, C = n(0), D = B0, lo = B, hi = B + V - B1;
+    for (var z = 0; z < k; z++) {
+      var Z = BigInt(z);
+      if (z >= 1) C += n(z) - (B1 - b(z));
+      D += B >> (Z + B1);
+      var r = (B1 << Z) - B1, mod = B1 << (Z + B1);
+      var ylo = lo > r ? (lo - r + mod - B1) >> (Z + B1) : B0;
+      var yhi = hi >= r ? (hi - r) >> (Z + B1) : -B1;
+      if (yhi < ylo) continue;
+      var N = yhi - ylo + B1, sy = (ylo + yhi) * N / B2, sx = mod * sy + N * r;
+      total += N * (BigInt(4) * Z + BigInt(15) + BigInt(6) * (C + D + Z - B2 * B)) + BigInt(6) * (sx + sy);
+    }
+    return total;
+  }
+
+  // ---------------------------------------------------------------- level 2: the run-length simulator (py/leansim.py)
+  // Stacks of items, nearest the head last: a bit 0/1, or a run {w: word nearest-first as a string, n: BigInt}.
+  var W = "110";
+  var segCache = {};
+  function segrun(dirR, st, w) {
+    var key = (dirR ? "R" : "L") + st + w;
+    if (key in segCache) return segCache[key];
+    var l = [], rr = w.split("").map(Number), q = st, n = 0, res = null;
+    for (var fuel = 0; fuel < 200; fuel++) {
+      if (!rr.length) { res = [l.join(""), q, n]; break; }
+      var t = tab[2 * q + rr[0]];
+      if (!t) break;
+      var fwd = (t[1] === 1) === dirR;
+      if (fwd) { l.unshift(t[0]); rr.shift(); q = t[2]; }
+      else { if (!l.length) break; var y = l.shift(); rr.splice(0, 1, y, t[0]); q = t[2]; }
+      n++;
+    }
+    segCache[key] = res; return res;
+  }
+  function isRun(x) { return typeof x === "object"; }
+  function Sim(opt) {
+    opt = opt || {};
+    this.coq = !!opt.coq; this.jumps = opt.jumps !== false;
+    this.dirR = true; this.front = []; this.back = []; this.st = 0; this.steps = B0;
+    this.nbit = 0; this.ncross = 0; this.nunpack = 0; this.ndouble = 0; this.njump = 0; this.nvisit = 0; this.nmacro = 0;
+    this.rounds = 0; this.halted = false; this.jumped = B0; this.visits = B0; this.last = "";
+  }
+  Sim.prototype.pushBit = function (stk, b) {
+    stk.push(b);
+    if (this.coq) return;
+    var n = stk.length;
+    if (n >= 4 && isRun(stk[n - 4]) && !isRun(stk[n - 1]) && !isRun(stk[n - 2]) && !isRun(stk[n - 3])) {
+      if (stk[n - 4].w === "" + stk[n - 1] + stk[n - 2] + stk[n - 3]) { stk.length = n - 3; stk[n - 4].n += B1; return; }
+    }
+    if (n >= 6) {
+      for (var q = 1; q <= 6; q++) if (isRun(stk[n - q])) return;
+      var w = "" + stk[n - 1] + stk[n - 2] + stk[n - 3];
+      if (w === "" + stk[n - 4] + stk[n - 5] + stk[n - 6] && !(w === "000" || w === "111")) {
+        stk.length = n - 6;
+        var L = stk[stk.length - 1];
+        if (L && isRun(L) && L.w === w) L.n += B2; else stk.push({ w: w, n: B2 });
+      }
+    }
+  };
+  function pushRun(stk, w, n) { var L = stk[stk.length - 1]; if (L && isRun(L) && L.w === w) L.n += n; else stk.push({ w: w, n: n }); }
+  // one round: a transition, a run crossed, two copies crossed at a time, or a copy unpacked; returns its kind
+  Sim.prototype.step = function () {
+    var f = this.front, top = f[f.length - 1];
+    if (top !== undefined && isRun(top)) {
+      var w = top.w, n = top.n, r = segrun(this.dirR, this.st, w);
+      if (r && r[1] === this.st) { f.pop(); pushRun(this.back, r[0], n); this.steps += n * BigInt(r[2]); this.ncross++; return "cross"; }
+      if (n >= B2 && w.length === 3) {
+        r = segrun(this.dirR, this.st, w + w);
+        if (r && r[1] === this.st) {
+          var h = n / B2;
+          if (n % B2 === B1) top.n = B1; else f.pop();
+          var v = r[0];
+          if (v.slice(0, 3) === v.slice(3)) pushRun(this.back, v.slice(0, 3), B2 * h); else pushRun(this.back, v, h);
+          this.steps += h * BigInt(r[2]); this.ndouble++; return "double";
+        }
+      }
+      if (n === B1) f.pop(); else top.n = n - B1;
+      for (var i = w.length - 1; i >= 0; i--) f.push(+w[i]);
+      this.nunpack++; return "unpack";
+    }
+    var b = f.length ? f.pop() : 0, t = tab[2 * this.st + b];
+    this.steps += B1; this.nbit++;
+    if (!t) { this.halted = true; return "halt"; }
+    var fwd = (t[1] === 1) === this.dirR; this.st = t[2];
+    if (fwd) this.pushBit(this.back, t[0]);
+    else { this.pushBit(f, t[0]); this.front = this.back; this.back = f; this.dirR = !this.dirR; }
+    return "bit";
+  };
+  // the Coq simulator's block rules (py/coqsim.py)
+  Sim.prototype.macro = function () {
+    var f = this.front, L = f.length, m;
+    if (!this.dirR && this.st === 3) {
+      if (L >= 4 && f[L - 1] === 1 && f[L - 2] === 0 && isRun(f[L - 3]) && f[L - 3].w === W && f[L - 4] === 1) {
+        m = f[L - 3].n - B1; f.length = L - 3;
+        this.back.push(0, 1, 1, 0, 1); if (m > B0) this.back.push({ w: "100", n: m });
+        this.steps += BigInt(5) + BigInt(3) * m; this.nmacro++; return true;
+      }
+      return false;
+    }
+    if (this.dirR && this.st === 2) {
+      var i = L - 1; m = B0;
+      if (i >= 0 && isRun(f[i])) { if (f[i].w !== "100") return false; m = f[i].n; i--; }
+      if (i >= 4 && f[i] === 1 && f[i - 1] === 0 && f[i - 2] === 1 && f[i - 3] === 1 && f[i - 4] === 0) {
+        f.length = i - 4; this.back.push({ w: W, n: m + B1 }, 1, 1);
+        this.steps += BigInt(5) + BigInt(3) * m; this.nmacro++; return true;
+      }
+    }
+    return false;
+  };
+  // the canonical form of the left side (every run written with the word 011)
+  Sim.prototype.canon = function () {
+    var out = [];
+    function cbit(b) {
+      out.push(b); var n = out.length;
+      if (n >= 4 && isRun(out[n - 4]) && out[n - 4].w === W && out[n - 1] === 1 && out[n - 2] === 1 && out[n - 3] === 0) { out.length = n - 3; out[n - 4].n += B1; return; }
+      if (n >= 6 && out[n - 6] === 0 && out[n - 5] === 1 && out[n - 4] === 1 && out[n - 3] === 0 && out[n - 2] === 1 && out[n - 1] === 1) {
+        out.length = n - 6; var T = out[out.length - 1];
+        if (T && isRun(T) && T.w === W) T.n += B2; else out.push({ w: W, n: B2 });
+      }
+    }
+    function crun(n) {
+      if (n === B0) return;
+      var L;
+      while ((L = out.length) >= 3 && out[L - 1] === 1 && out[L - 2] === 1 && out[L - 3] === 0) { out.length = L - 3; n += B1; }
+      var T = out[out.length - 1];
+      if (T && isRun(T) && T.w === W) T.n += n; else out.push({ w: W, n: n });
+    }
+    this.back.forEach(function (it) {
+      if (isRun(it)) {
+        if (it.w === W) crun(it.n);
+        else if (it.w === "011") { cbit(1); cbit(1); crun(it.n - B1); cbit(0); }
+        else if (it.w === "101") { cbit(1); crun(it.n - B1); cbit(0); cbit(1); }
+        else out.push({ w: it.w, n: it.n });
+      } else cbit(it);
+    });
+    return out;
+  };
+  var PARSE_MIN = BigInt(7), V8 = BigInt(8);
+  // at a visit: read the zone at the right end and jump if Jump.lean's theorem applies (tryJump of Run.lean)
+  Sim.prototype.tryJump = function () {
+    var c = this.canon(), n = c.length;
+    if (n < 2 || c[n - 1] !== 0 || !isRun(c[n - 2]) || c[n - 2].w !== W) return false;
+    var n0 = c[n - 2].n, i = n - 3, lv = [];
+    while (i >= 2 && c[i] === 1 && !isRun(c[i - 1]) && isRun(c[i - 2]) && c[i - 2].w === W && c[i - 2].n >= PARSE_MIN) {
+      lv.push([c[i - 1] === 0 ? 1 : 0, c[i - 2].n]); i -= 3;
+    }
+    if (!lv.length) return false;
+    var rest = c.slice(0, i + 1), t = toN(n0, lv), V = chooseV(t.ps), ps2 = after(V, t.ps);
+    if (!(V >= V8 && ovf(V, t.ps) === B0 && goodN(ps2, t.top) && n0of(t.ps) === n0)) return false;
+    var chk = physP(t.ps, t.top);
+    for (var j = 0; j < lv.length; j++) if (chk[j][0] !== lv[j][0] || chk[j][1] !== lv[j][1]) return false;
+    var counts = [], bits = [];
+    for (j = lv.length - 1; j >= 0; j--) { counts.push(lv[j][1]); bits.push(lv[j][0]); }
+    counts.push(n0);
+    this.steps += jumpSteps(counts, bits, V);
+    var n0b = n0of(ps2), lv2 = physP(ps2, t.top);
+    for (j = lv2.length - 1; j >= 0; j--) { rest.push({ w: W, n: lv2[j][1] }, lv2[j][0] ? 0 : 1, 1); }
+    rest.push({ w: W, n: n0b }, 0);
+    this.back = rest; this.zk = lv.length + 1; this.njump++; this.jumped += V; this.visits += V;
+    return true;
+  };
+  // rounds until the next visit or the halt; with jumps, a visit may stand for V visits
+  Sim.prototype.round = function () {
+    this.rounds++;
+    if (this.dirR && !this.front.length && this.st === 0 && this.last !== "visit") {
+      this.nvisit++; this.visits += B1; this.last = "visit";
+      if (this.jumps && this.tryJump()) return "jump";
+      if (this.coq) this.back = this.canon();
+    }
+    if (this.coq && this.macro()) { this.last = "macro"; return "macro"; }
+    this.last = this.step();
+    return this.last;
+  };
+  Sim.prototype.atVisit = function () { return this.dirR && !this.front.length && this.st === 0; };
+  // the cells the stacks stand for (small counts only): the whole tape as a string, and the head position in it
+  function expand(stk, maxLen) {
+    var s = "";
+    for (var i = stk.length - 1; i >= 0; i--) {           // nearest first
+      var it = stk[i];
+      if (isRun(it)) { if (it.n > BigInt(maxLen)) return null; s += it.w.repeat(Number(it.n)); } else s += it;
+      if (s.length > maxLen) return null;
+    }
+    return s;
+  }
+  Sim.prototype.cells = function (maxLen) {
+    var b = expand(this.back, maxLen || 1e6), f = expand(this.front, maxLen || 1e6);
+    if (b === null || f === null) return null;
+    var rev = function (x) { return x.split("").reverse().join(""); };
+    var lft = this.dirR ? rev(b) : rev(f), rgt = this.dirR ? f : b;
+    // dirR: head on the first cell of front; otherwise the head is on the first cell of the left stack (front)
+    return this.dirR ? { left: lft, right: rgt } : { left: lft.slice(0, -1) || "", right: (lft.slice(-1) || "0") + rgt };
+  };
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  function fmtBig(x) {
+    var s = x.toString();
+    if (s.length <= 15) return Number(s).toLocaleString("en-US");
+    return s[0] + "." + s.slice(1, 4) + "·10<sup>" + (s.length - 1) + "</sup>";
+  }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    window.addEventListener("resize", f);
+  }
+  return { TM: TM, K: K, tab: tab, SN: SN, Cells: Cells, canon: canon, show: show, zone: zone, zoneStr: zoneStr,
+           inc: inc, toLv: toLv, fromLv: fromLv, visitRule: visitRule, toN: toN, physP: physP, n0of: n0of, addV: addV,
+           ovf: ovf, after: after, goodN: goodN, incN: incN, chooseV: chooseV, jumpSteps: jumpSteps, Sim: Sim,
+           isRun: isRun, fmt: fmt, fmtBig: fmtBig, css: css, onTheme: onTheme, big: big };
+})();
+
+(function () {
+  "use strict";
+  var O = window.OD, $ = function (id) { return document.getElementById(id); };
+  var sl = $("odm-n"), cv = $("odm-tape");
+  var cm = new O.Cells(), sim = new O.Sim({ jumps: false });
+  var H = [null];              // H[v] = {tok, k, ones, len, rl: {steps, ok, items, rounds, chips}}
+  function expandTok(tok) { return tok.map(function (x) { return typeof x === "number" ? "011".repeat(x) : x; }).join(""); }
+  function chips(stk, max) {
+    var out = [], from = Math.max(0, stk.length - max);
+    if (from > 0) out.push("<span>&hellip; " + from + " more</span>");
+    for (var i = from; i < stk.length; i++) {
+      var it = stk[i];
+      out.push(O.isRun(it) ? '<span class="r">(' + it.w.split("").reverse().join("") + ")<sup>" + it.n + "</sup></span>" : "<span>" + it + "</span>");
+    }
+    return out.join("");
+  }
+  function upTo(n) {
+    while (H.length <= n) {
+      cm.nextVisit();
+      var left = cm.left(), tok = O.canon(left), ones = 0;
+      for (var i = 0; i < left.length; i++) if (left[i] === "1") ones++;
+      var r0 = sim.rounds;
+      do { sim.round(); } while (!(sim.atVisit() && sim.last !== "visit"));
+      sim.last = "x";
+      var c = sim.cells(1e6), ok = c && c.right === "" && c.left.replace(/^0+/, "") === left && sim.steps === BigInt(cm.k);
+      H.push({ tok: tok, k: cm.k, ones: ones, len: left.length, rl: { steps: sim.steps, ok: ok, items: sim.back.length, rounds: sim.rounds, dr: sim.rounds - r0, chips: chips(sim.back, 40) } });
+    }
+  }
+  function draw(tok) {
+    var str = expandTok(tok), n = str.length + 1;
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var cw = w / n, y0 = 8, ch = h - 16, x = 0, ci = 0;
+    var col = { c1: [O.css("--odc1"), O.css("--odc1p")], c2: [O.css("--odc2"), O.css("--odc2p")], s: [O.css("--odsep"), O.css("--odsepp")], o: [O.css("--muted"), O.css("--sunk")] };
+    var z = O.zone(tok), zstart = z ? z.pre.length : tok.length;
+    tok.forEach(function (t, idx) {
+      var s = typeof t === "number" ? "011".repeat(t) : t, c;
+      if (typeof t === "number") { c = ci % 2 ? col.c2 : col.c1; ci++; }
+      else c = (idx >= zstart && (t === "11" || t === "01")) ? col.s : col.o;
+      for (var i = 0; i < s.length; i++) { g.fillStyle = s[i] === "1" ? c[0] : c[1]; g.fillRect(x * cw, y0, Math.max(cw - (cw > 4 ? 1 : 0), 0.5), ch); x++; }
+    });
+    g.fillStyle = O.css("--head"); g.fillRect(x * cw, y0 - 4, Math.max(cw, 2), ch + 8);
+  }
+  function zoneLine(z) {
+    var k = z.bits.length, parts = [];
+    for (var j = 0; j < k; j++) parts.push("n<sub>" + (k - j) + "</sub> = " + z.counts[j] + ", s<sub>" + (k - j) + "</sub> = " + (z.bits[j] ? "01 (bit 1)" : "11 (bit 0)"));
+    parts.push("n<sub>0</sub> = " + z.counts[k]);
+    return parts.join("; ");
+  }
+  function same(z, k, h) { return O.zoneStr(z).replace(/^0+/, "") === expandTok(h.tok).replace(/^0+/, ""); }
+  function show() {
+    var n = +sl.value;
+    $("odm-lab").textContent = O.fmt(n);
+    upTo(n);
+    var h = H[n], p = H[n - 1];
+    $("odm-step").innerHTML = "step " + O.fmt(h.k) + " of the run from blank tape; " + O.fmt(h.len) + " cells from the leftmost 1 to the head, " + O.fmt(h.ones) + " of them 1";
+    draw(h.tok);
+    var rl = h.rl;
+    $("odm-rl").innerHTML = O.fmt(rl.items) + " items on the left of the head after " + O.fmt(rl.rounds) + " rounds (" + O.fmt(rl.dr) + " since the last visit)" +
+      (rl.ok ? ' <span class="od-ok">&#10003; same step count and same cells as the machine</span>' : ' <span class="od-bad">&#10007; differs from the machine</span>') +
+      '<div class="od-chips" aria-label="The compressed tape, nearest item last">' + rl.chips + '<span class="h">A&gt;</span></div>';
+    var z = O.zone(h.tok), pz = p ? O.zone(p.tok) : null, line = '<span class="mono">' + O.show(h.tok) + " A&gt;</span><br>";
+    if (z) {
+      line += "a zone with " + z.bits.length + " bits: " + zoneLine(z);
+      if (pz) {
+        var r = O.visitRule(pz);
+        if (r) line += same(r.z, 0, h) && r.steps === h.k - p.k
+          ? '<br><span class="od-ok">&#10003; the visit rule applied to visit ' + O.fmt(n - 1) + " gives this tape, in " + O.fmt(r.steps) + " steps (bit " + r.i + " was set)</span>"
+          : '<br><span class="od-bad">&#10007; the visit rule predicts another tape</span>';
+        else line += "<br>Visit " + O.fmt(n - 1) + " was a zone, but its bits were all 1 or a count was 0: no rule, the visit is irregular.";
+      } else line += "<br>Visit " + O.fmt(n - 1) + " was not a zone: this visit came out of the irregular part.";
+    } else line += "Not a zone: an irregular visit. Levels 3 and 4 have nothing to say here; the program runs it at level 2.";
+    $("odm-z").innerHTML = line;
+    var t = "";
+    if (z) {
+      var tn = O.toN(z.counts[z.counts.length - 1], O.toLv(z)), k = z.bits.length, B = 0;
+      for (var j = 0; j < k; j++) B = 2 * B + z.bits[j];
+      t = "N<sub>0</sub> = " + tn.ps[0][1];
+      for (j = 1; j < k; j++) t += ", N<sub>" + j + "</sub> = " + tn.ps[j][1];
+      t += ", N<sub>" + k + "</sub> = " + tn.top + "; the bits read " + B + " in binary, " + ((1 << k) - 1 - B) + " visits before they overflow";
+      // the start of this regular stretch
+      var m = n;
+      while (m - 1 >= 1 && O.zone(H[m - 1].tok)) {
+        var zm = O.zone(H[m - 1].tok), rr = O.visitRule(zm);
+        if (!rr || !same(rr.z, 0, H[m]) || rr.steps !== H[m].k - H[m - 1].k || zm.bits.length !== k) break;
+        m--;
+      }
+      if (m < n) {
+        var z0 = O.zone(H[m].tok), t0 = O.toN(z0.counts[z0.counts.length - 1], O.toLv(z0)), V = n - m;
+        var ps2 = O.after(V, t0.ps), lv2 = O.physP(ps2, t0.top), nz = O.fromLv(z0.pre, lv2.map(function (x) { return [x[0], Number(x[1])]; }), Number(O.n0of(ps2)));
+        var st = O.jumpSteps(z0.counts, z0.bits, V);
+        t += (same(nz, 0, h) && st === BigInt(h.k - H[m].k) && O.ovf(V, t0.ps) === BigInt(0))
+          ? '<br><span class="od-ok">&#10003; one jump of V = ' + V + " visits from visit " + O.fmt(m) + ", in closed form, gives this zone and the same " + O.fmt(h.k - H[m].k) + " steps</span>"
+          : '<br><span class="od-bad">&#10007; the jump from visit ' + O.fmt(m) + " disagrees</span>";
+      } else t += "<br>The first visit of a regular stretch: a jump would start here.";
+    } else t = "Not a zone.";
+    $("odm-t").innerHTML = t;
+  }
+  sl.addEventListener("input", show);
+  $("odm-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  $("odm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  O.onTheme(function () { draw(H[+sl.value].tok); });
+  show();
+})();
+</script>

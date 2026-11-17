@@ -209,7 +209,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#shape">The shape of the run</a><a href="#words">Two blocks and a tail</a><a href="#cycles">The tail runs in a cycle</a><a href="#try-cycles">Drain the left block yourself</a><a href="#rounds">When the left block is empty</a><a href="#closed">A closed set of 1,144 classes</a><a href="#trust">What this rests on</a><a href="#neighbours">Nearby tapes do halt</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#levels">From six states to 1,144 classes</a><a href="#shape">The shape of the run</a><a href="#words">Two blocks and a tail</a><a href="#cycles">The tail runs in a cycle</a><a href="#try-cycles">Drain the left block yourself</a><a href="#rounds">When the left block is empty</a><a href="#closed">A closed set of 1,144 classes</a><a href="#trust">What this rests on</a><a href="#neighbours">Nearby tapes do halt</a><a href="#bottom">It never halts</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -288,8 +288,350 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="levels">
+  <span class="eyebrow">Four levels</span>
+  <h2>From six states to 1,144 classes</h2>
+<style>
+:root{--rdP:#8a8f9a;--rdA:#2a78d6;--rdB:#1baf7a;--rdT:#c0731f}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--rdP:#7d8492;--rdA:#5b9cf0;--rdB:#2fc48d;--rdT:#e09445} }
+:root[data-theme="dark"]{--rdP:#7d8492;--rdA:#5b9cf0;--rdB:#2fc48d;--rdT:#e09445}
+.rd-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:22px 0}
+.rd-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rd-lv:hover{border-color:var(--accent)}
+.rd-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rd-lv .t{display:block;font:700 1.12rem/1.2 var(--display);margin:.35rem 0 .3rem}
+.rd-lv code{font-size:.8em}
+.rd-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.rd-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.rd-row:first-child{border-top:0}
+.rd-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rd-row>div{min-width:0}
+@media (max-width:560px){.rd-row{grid-template-columns:minmax(0,1fr)}}
+.rd-tape{display:block;width:100%;height:46px;margin-top:6px}
+.rd-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:4px}
+.rd-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rd-words{font-family:var(--mono);font-size:.8rem;overflow-wrap:anywhere;background:var(--sunk);border-radius:6px;padding:6px 8px;max-height:8.5em;overflow-y:auto}
+.rd-ok{color:var(--kernel);font-weight:600}
+.rd-bad{color:var(--open);font-weight:600}
+.rd-slider{flex:1 1 220px;min-width:160px;accent-color:var(--accent)}
+input.rd-num{width:7.5em}
+.rd-out{margin-top:12px;font-size:.9rem}
+.rd-out .mono{overflow-wrap:anywhere}
+.rd-tt{width:100%;font-size:.86rem}
+.rd-tt td,.rd-tt th{padding:.3rem .55rem}
+.rd-bar{height:8px;border-radius:4px;background:var(--sunk);overflow:hidden;margin-top:8px}
+.rd-bar i{display:block;height:100%;width:0;background:var(--accent)}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" can be asked at four levels of description. Each level keeps less detail
+than the one above it, and each step down is a theorem saying that the answer is the same. The page walks down the
+ladder: the six-state machine on its tape; the tape read as two long blocks of pairs <code>01</code> and a short
+tail, at the moments state A reaches the left end; whole periods of the tail's cycles, each a rule that holds for
+every size of the two blocks; and finally the ends of rounds, sorted into 1,144 classes that lead only into each
+other and never to the halting transition.</p>
+</div>
+<div class="rd-ladder">
+ <a class="rd-lv" href="#shape"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">no halt in 10,000 steps</span><br>
+  <span class="ev n">native_decide</span> <span class="small">no halt in 10<sup>7</sup> steps (<code>blank_runs_native</code>)</span></a>
+ <a class="rd-lv" href="#words"><span class="n">Level 2</span><b class="t">Two blocks and a tail</b>
+  <div class="u">The tape <code>010 (01)^a 000 (01)^b T</code> as cells and blocks, looked at when state A reaches the left end (an <b>event</b>). One unit is one <b>move</b> of the executor: a whole block crossed by a shift rule, or one step.</div>
+  <span class="ev k">Kernel</span> <span class="small">same answer as level 1: <code>run_sound</code>, the 15 shift rules <code>shRTbl_ok</code>, <code>shLTbl_ok</code></span></a>
+ <a class="rd-lv" href="#cycles"><span class="n">Level 3</span><b class="t">The tail's cycles</b>
+  <div class="u">A whole-tape template with counts <code>b + 3x</code> that comes back after 18 to 44 events, a smaller by 27 to 66 pairs and b larger by 57 to 141. One unit is one <b>period</b>; N periods are one move.</div>
+  <span class="ev n">native_decide</span> <span class="small">six cycle rules for all x: <code>rule0_ok</code> &hellip; <code>rule5_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">N periods at once, N itself may depend on x: <code>rule_instN</code></span></a>
+ <a class="rd-lv" href="#closed"><span class="n">Level 4</span><b class="t">Round ends <code>node B T</code></b>
+  <div class="u">The tape <code>01001000 (01)^B T</code> when the left block is used up: a tail T and a number B. One unit is one <b>round</b>.</div>
+  <span class="ev n">native_decide</span> <span class="small">1,144 classes, one round each: <code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>; the run gets there: <code>arrive_ok</code>, <code>start_ok</code></span><br>
+  <span class="ev k">Kernel</span> <span class="small">a closed set implies no halt: <code>closed_of_checks</code>, <code>nonhalting_of_closed_set</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, four descriptions</h3>
+<p>Pick an event. The browser runs the real machine from blank tape up to that moment and reads its tape. The rows
+show the same instant at each level: the cells, the two blocks and the tail, the cycle rule of the Lean proof whose
+template the tape fits (if any), and the round the moment belongs to. Where a rule fits, the browser runs the
+machine on to the end of the rule's period and checks that it arrives exactly where the rule says.</p>
+</div>
+<div class="panel" id="rd-moment">
+ <div class="controls">
+  <button type="button" id="rdm-prev" aria-label="Previous event">&#9664;</button>
+  <input type="range" class="rd-slider" id="rdm-n" min="1" max="3600" value="1001" aria-label="Event number">
+  <button type="button" id="rdm-next" aria-label="Next event">&#9654;</button>
+  <span class="small">event <b id="rdm-lab">1,001</b> of the run</span>
+ </div>
+ <div class="controls" style="margin-top:8px"><span class="small">Round ends:</span>
+  <button type="button" data-rdm="367">367</button><button type="button" data-rdm="762">762</button>
+  <button type="button" data-rdm="1627">1,627</button><button type="button" data-rdm="3540">3,540</button></div>
+ <div style="margin-top:12px">
+  <div class="rd-row"><span>1 · Machine</span><div><span id="rdm-step"></span>
+   <canvas class="rd-tape" id="rdm-tape" aria-label="The tape at this event, coloured by part"></canvas>
+   <div class="rd-key"><span><i style="background:var(--rdP)"></i>first three cells</span><span><i style="background:var(--rdA)"></i>left block <code>(01)^a</code></span><span><i style="background:var(--rdB)"></i>big block <code>(01)^b</code></span><span><i style="background:var(--rdT)"></i>tail T</span><span>dark = 1, pale = 0; the triangle is the head, state A</span></div></div></div>
+  <div class="rd-row"><span>2 · Blocks</span><div><div class="rd-words" id="rdm-w"></div><div class="small" id="rdm-wc"></div></div></div>
+  <div class="rd-row"><span>3 · Cycle rule</span><div id="rdm-r"></div></div>
+  <div class="rd-row"><span>4 · Round</span><div id="rdm-g"></div></div>
+ </div>
+ <div class="cap">The step counts are exact: the browser counts every step from blank tape. Event 3,600 is about 1.2&middot;10<sup>8</sup> steps in; the first jump that far takes a second.</div>
+</div>
+<script>
+window.RD = (function () {
+  "use strict";
+// The plain machine and the cycle-rule templates of the Lean files, shared by the panels of this page.
+function mkCore(TM, EVS) {
+  "use strict";
+  var W = [], MV = [], ST = [];
+  TM.split("_").forEach(function (g, i) {
+    for (var s = 0; s < 2; s++) {
+      var t = g.substr(3 * s, 3), k = 2 * i + s;
+      if (t[0] === "-") { W[k] = 0; MV[k] = 0; ST[k] = -1; } else { W[k] = +t[0]; MV[k] = t[1] === "R" ? 1 : -1; ST[k] = t.charCodeAt(2) - 65; }
+    }
+  });
+  // The machine on a tape that grows on demand; cell x lives at t[x + o].
+  function M() { this.n = 1 << 14; this.t = new Uint8Array(this.n); this.o = this.n >> 1; this.p = 0; this.s = 0; this.k = 0; this.lo = 0; this.hi = 0; this.halted = false; this.ev = 0; }
+  M.prototype.grow = function () { var n = this.n * 2, t = new Uint8Array(n); t.set(this.t, this.n >> 1); this.t = t; this.o += this.n >> 1; this.n = n; };
+  M.prototype.get = function (x) { var i = x + this.o; return i >= 0 && i < this.n ? this.t[i] : 0; };
+  M.prototype.set = function (x, v) { while (x + this.o < 4 || x + this.o >= this.n - 4) this.grow(); this.t[x + this.o] = v; };
+  // Writes a 0/1 string from cell 0 on, the head on its first cell, in state s.
+  M.prototype.load = function (str, s) { for (var i = 0; i < str.length; i++) this.set(i, +str[i]); this.p = 0; this.s = s; this.lo = 0; this.hi = Math.max(0, str.length - 1); return this; };
+  // Runs to the next event: a move to the left, in state EVS, onto the leftmost cell visited so far or beyond it.
+  // At most `limit` steps; true at an event, false at the limit or at a halt (then this.halted).
+  M.prototype.toEvent = function (limit) {
+    var t = this.t, o = this.o, p = this.p + o, s = this.s, k = this.k, end = k + limit, lo = this.lo + o, hi = this.hi + o, hit = false;
+    while (k < end) {
+      var kk = 2 * s + t[p], ns = ST[kk];
+      if (ns < 0) { this.halted = true; break; }
+      t[p] = W[kk]; p += MV[kk]; s = ns; k++;
+      if (p > hi) hi = p;
+      if (MV[kk] < 0 && p <= lo) { lo = p; if (s === EVS) { hit = true; break; } }
+      if (p < 4 || p >= this.n - 4) {
+        this.p = p - o; this.s = s; this.k = k; this.lo = lo - o; this.hi = hi - o; this.grow();
+        t = this.t; o = this.o; p = this.p + o; lo = this.lo + o; hi = this.hi + o;
+      }
+    }
+    this.p = p - o; this.s = s; this.k = k; this.lo = lo - o; this.hi = hi - o;
+    if (hit) this.ev++;
+    return hit;
+  };
+  // Runs `n` steps or to a halt; returns the number of steps done.
+  M.prototype.run = function (n) {
+    var k0 = this.k;
+    while (this.k - k0 < n && !this.halted) {
+      var kk = 2 * this.s + this.get(this.p), ns = ST[kk];
+      if (ns < 0) { this.halted = true; break; }
+      this.set(this.p, W[kk]); this.p += MV[kk]; this.s = ns; this.k++;
+      if (this.p < this.lo) this.lo = this.p; if (this.p > this.hi) this.hi = this.p;
+    }
+    return this.k - k0;
+  };
+  // The cells from the head to the last 1 right of it.
+  M.prototype.right = function () { var b = this.hi; while (b > this.p && !this.get(b)) b--; var a = []; for (var x = this.p; x <= b; x++) a.push(this.get(x)); return a.join(""); };
+  M.prototype.cells = function (a, b) { var r = []; for (var x = a; x <= b; x++) r.push(this.get(x)); return r.join(""); };
+
+  function rep(w, n) { return n > 0 ? new Array(n + 1).join(w) : ""; }
+  function trim(s) { return s.replace(/0+$/, ""); }
+  function nvars(rule) { return rule.t.filter(function (x) { return x[0] === "v"; }).length; }
+  // The counts of the variable blocks of a cycle rule: b0 + M x before, b1 + M x after.
+  function counts(rule, xs, after) { var j = 0, out = []; rule.t.forEach(function (x) { if (x[0] === "v") out.push((after ? x[3] : x[2]) + rule.mod * xs[j++]); }); return out; }
+  // The template as cells, the variable blocks having the given counts.
+  function inst(rule, cs) {
+    var o = "", j = 0;
+    rule.t.forEach(function (x) { o += x[0] === "c" ? x[1] : x[0] === "f" ? rep(x[1], x[2]) : rep(x[1], cs[j++]); });
+    return o;
+  }
+  // The x values for which the tape (head cell first) is the template before the rule, or null.
+  function match(rule, tape) {
+    var re = "^", vs = [];
+    rule.t.forEach(function (x) {
+      if (x[0] === "c") re += x[1]; else if (x[0] === "f") re += rep(x[1], x[2]); else { re += "((?:" + x[1] + ")*)"; vs.push(x); }
+    });
+    var m = new RegExp(re + "0*$").exec(tape + "0");
+    if (!m) return null;
+    var xs = [];
+    for (var i = 0; i < vs.length; i++) {
+      var c = m[i + 1].length / vs[i][1].length;
+      if (c < vs[i][2] || (c - vs[i][2]) % rule.mod) return null;
+      xs.push((c - vs[i][2]) / rule.mod);
+    }
+    return xs;
+  }
+  // A template as text: (w)^n for blocks, with "b0+Mx" for the variable ones (or the given counts).
+  function text(rule, cs) {
+    var o = [], j = 0, lit = "";
+    rule.t.forEach(function (x) {
+      if (x[0] === "c") { lit += x[1]; return; }
+      if (lit) { o.push(lit); lit = ""; }
+      if (x[0] === "f") o.push(x[2] === 1 ? x[1] : "(" + x[1] + ")^" + x[2]);
+      else { var c = cs ? cs[j] : x[2] + "+" + rule.mod + "x" + (j + 1); j++; o.push("(" + x[1] + ")^" + c); }
+    });
+    if (lit) o.push(lit);
+    return o.join(" ");
+  }
+  // Checks a cycle rule on the machine: the template with these x, run for the rule's number of events, must be the
+  // template after. Returns {ok, steps, before, after, got}.
+  function checkRule(rule, xs, limit) {
+    var b = inst(rule, counts(rule, xs, false)), a = inst(rule, counts(rule, xs, true));
+    var m = new M().load(b, EVS), ok = true;
+    for (var e = 0; e < rule.ev && ok; e++) ok = m.toEvent(limit || 4e8);
+    var got = m.right();
+    return { ok: ok && m.p === m.lo && trim(got) === trim(a), events: m.ev, steps: m.k, before: b, after: a, got: got, halted: m.halted };
+  }
+  // Checks a shift rule on the machine with n crossings and random cells around it. Right: the head in state q on
+  // the first cell of (w)^(k n), the carried word u left of it (u nearest cell first); it must end in q on the first
+  // cell after the copies, with u v^n behind it (nearest first), in n s steps, without leaving those cells.
+  // Left: the head on the first cell of u, (w)^(k n) left of it (w nearest cell first); it must end in q on the
+  // first cell of u, now where the copies began, with v^n right of u.
+  function rev(s) { return s.split("").reverse().join(""); }
+  function checkShift(r, n, rnd) {
+    var pad = 12, L = "", R = "", i;
+    for (i = 0; i < pad; i++) { L += rnd() < 0.5 ? "0" : "1"; R += rnd() < 0.5 ? "0" : "1"; }
+    var q = r.q.charCodeAt(0) - 65, wk = rep(r.w, r.k * n), m = new M(), tape, start, endPos, want;
+    if (r.d === "R") {
+      tape = L + rev(r.u) + wk + R; start = pad + r.u.length;
+      want = L + rev(rep(r.v, n)) + rev(r.u) + R; endPos = pad + r.u.length + r.v.length * n;
+    } else {
+      tape = L + rev(wk) + r.u + R; start = pad + wk.length;
+      want = L + r.u + rep(r.v, n) + R; endPos = pad;
+    }
+    m.load(tape, q); m.p = start;
+    var lo = pad - (r.d === "L" ? 1 : 0), hi = tape.length - pad - (r.d === "R" ? 0 : 1), inside = true, steps = 0;
+    while (steps < r.s * n) {
+      m.run(1); steps++;
+      if (m.halted) break;
+      if (steps < r.s * n && (m.p < pad || m.p > tape.length - pad - 1)) { inside = false; break; }
+    }
+    var got = m.cells(0, tape.length - 1);
+    return { ok: !m.halted && inside && m.s === q && m.p === endPos && got === want, steps: steps, tape: tape, start: start, got: got, want: want, end: m.p, endPos: endPos };
+  }
+  // A small seeded random generator, so that a check can be repeated.
+  function rng(seed) { var x = seed >>> 0 || 1; return function () { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+  // Draws a tape (string of 0/1) on a canvas, coloured by segments [[from, to, cssVar], ...] (cell indices, `to`
+  // excluded); a 1 is drawn in the segment's colour, a 0 pale. Long tapes are drawn one pixel column per several
+  // cells, shaded by the share of 1s. `head`: index of the head cell (marked below the strip).
+  function drawTape(cv, str, segs, head) {
+    var w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var n = Math.max(str.length, 1), cw = w / n, y0 = 4, ch = h - 16, col = {}, bg = css("--sunk");
+    function c(v) { return col[v] || (col[v] = css(v)); }
+    var segOf = new Array(n);
+    segs.forEach(function (S) { for (var i = S[0]; i < S[1] && i < n; i++) segOf[i] = S[2]; });
+    g.fillStyle = bg; g.fillRect(0, y0, w, ch);
+    if (cw >= 2) {
+      for (var i = 0; i < n; i++) {
+        g.globalAlpha = str[i] === "1" ? 1 : 0.22; g.fillStyle = c(segOf[i] || "--muted");
+        g.fillRect(i * cw, y0, Math.max(cw - (cw >= 5 ? 1 : 0), 1), ch);
+      }
+    } else {
+      for (var x = 0; x < w; x++) {
+        var a = Math.floor(x / cw), b = Math.max(a + 1, Math.floor((x + 1) / cw)), ones = 0;
+        for (var j = a; j < b && j < n; j++) ones += str[j] === "1" ? 1 : 0;
+        g.globalAlpha = 0.22 + 0.78 * ones / Math.max(1, Math.min(b, n) - a); g.fillStyle = c(segOf[a] || "--muted");
+        g.fillRect(x, y0, 1, ch);
+      }
+    }
+    g.globalAlpha = 1;
+    if (head != null) {
+      var hx = (head + 0.5) * cw; g.fillStyle = c("--head");
+      g.beginPath(); g.moveTo(hx, y0 + ch + 1); g.lineTo(hx - 5, y0 + ch + 10); g.lineTo(hx + 5, y0 + ch + 10); g.fill();
+    }
+  }
+  function fmt(x) { return Number(x).toLocaleString("en-US"); }
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function onTheme(f) {
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", f); } catch (e) {}
+    try { new MutationObserver(f).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] }); } catch (e) {}
+    window.addEventListener("resize", f);
+  }
+  return { TM: TM, M: M, rep: rep, trim: trim, rev: rev, nvars: nvars, counts: counts, inst: inst, match: match, text: text,
+           checkRule: checkRule, checkShift: checkShift, rng: rng, fmt: fmt, drawTape: drawTape, css: css, onTheme: onTheme };
+}
+if (typeof module !== "undefined") module.exports = mkCore;
+  var X = mkCore("1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA", 0);
+  X.D = {"rules":[{"n":0,"ev":32,"mod":3,"moves":11785,"t":[["c","1"],["c","1"],["c","0"],["v","01",138,90],["c","0"],["c","0"],["c","0"],["v","01",238,337],["c","0"],["c","0"],["c","0"],["f","01",33],["c","1"],["f","10",7],["c","0"],["c","0"],["c","0"],["c","1"],["c","0"],["c","1"]]},{"n":1,"ev":30,"mod":3,"moves":15156,"t":[["c","1"],["c","1"],["c","0"],["v","01",132,87],["c","0"],["c","0"],["c","0"],["v","01",238,337],["f","0",4],["f","10",10],["c","0"],["c","0"],["f","01",4],["f","0",4],["f","10",11],["c","1"],["c","1"],["c","1"],["f","0",4],["c","1"],["c","0"],["c","1"]]},{"n":2,"ev":44,"mod":3,"moves":25749,"t":[["c","1"],["c","1"],["c","0"],["v","01",174,108],["c","0"],["c","0"],["c","0"],["v","01",322,463],["f","0",4],["f","10",20],["c","1"],["c","1"],["f","10",4],["c","0"],["c","0"],["f","01",4],["f","0",4],["f","10",7],["c","0"],["c","0"],["f","01",4],["f","0",4],["c","1"],["f","0",4],["c","1"],["f","0",4],["c","1"],["c","0"],["c","1"]]},{"n":3,"ev":30,"mod":3,"moves":15156,"t":[["c","1"],["c","1"],["c","0"],["v","01",132,87],["c","0"],["c","0"],["c","0"],["v","01",238,337],["f","0",4],["f","10",10],["c","0"],["c","0"],["f","01",4],["f","0",4],["f","10",4],["c","0"],["c","0"],["f","01",10],["f","0",4],["c","1"],["f","0",4],["c","1"],["c","0"],["c","1"]]},{"n":4,"ev":18,"mod":3,"moves":9143,"t":[["c","1"],["c","1"],["c","0"],["v","01",96,69],["c","0"],["c","0"],["c","0"],["v","01",154,211],["f","0",4],["f","10",4],["c","0"],["c","0"],["f","01",31],["c","0"],["c","0"],["c","0"],["f","01",22],["f","0",4],["f","10",4],["c","0"],["c","0"],["c","0"],["c","1"],["f","0",4],["c","1"],["c","0"],["c","1"]]},{"n":5,"ev":30,"mod":3,"moves":15156,"t":[["c","1"],["c","1"],["c","0"],["v","01",132,87],["c","0"],["c","0"],["c","0"],["v","01",240,339],["c","1"],["f","10",23],["c","1"],["c","1"],["f","10",7],["c","0"],["c","0"],["f","01",10],["f","0",4],["c","1"],["f","0",4],["c","1"],["c","0"],["c","1"]]}],"shift":[{"d":"R","i":0,"q":"C","w":"01","k":3,"u":"1","v":"100110","s":14},{"d":"R","i":1,"q":"C","w":"10","k":3,"u":"11","v":"011010","s":14},{"d":"R","i":2,"q":"E","w":"10","k":3,"u":"","v":"101001","s":14},{"d":"R","i":3,"q":"B","w":"10","k":3,"u":"1","v":"110100","s":14},{"d":"R","i":4,"q":"A","w":"010101","k":1,"u":"","v":"110100","s":14},{"d":"R","i":5,"q":"A","w":"01","k":3,"u":"","v":"110100","s":14},{"d":"R","i":6,"q":"B","w":"010101","k":1,"u":"1","v":"011010","s":14},{"d":"R","i":7,"q":"C","w":"010101","k":1,"u":"1","v":"100110","s":14},{"d":"L","i":0,"q":"B","w":"011010","k":1,"u":"000","v":"010101","s":22},{"d":"L","i":1,"q":"C","w":"110100","k":1,"u":"00","v":"010101","s":22},{"d":"L","i":2,"q":"F","w":"100110","k":1,"u":"0","v":"010101","s":22},{"d":"L","i":3,"q":"B","w":"100110","k":1,"u":"000","v":"010101","s":22},{"d":"L","i":4,"q":"A","w":"101001","k":1,"u":"110","v":"010101","s":22},{"d":"L","i":5,"q":"A","w":"100110","k":1,"u":"110","v":"010101","s":22},{"d":"L","i":6,"q":"A","w":"011010","k":1,"u":"110","v":"010101","s":22}],"tails":["0000100001010101010101010101010101000010101010101010000101010101010101010101011101","00001000010101010101010101010101010101010000101010101010101010101010100001010101010101010101010101010101010101010101000010101010101110000101","000010000101010101010101010101010101010101010101010101010101010100001010101010101000010101010101110000101","00001000010101010101010101010101010101010101010101010101010101010101010000101010100001010101010101010101010101000010101010101010101010101010101110101010101010000101","0000100001010101010101010101010101010101010101010101010101010101010101010101000010101010101010101010101010101010101010000101010101010101010101011101","000010000101010101010101010101010101010101010101010101010101010101010101010101010101010100001010101010101010101010101000010000101010100001010101000010101010101110000101","000010000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100001010101010101010101010101010101010101010101010101000010000101","000010000101010101010101010101010101010101010101010101011101010101010100001010101010101010101000010000101","00001010101000010101010101010101010000101010101010101010100001010101000010000101","0000101010100001010101010101010101010101000010101010101010101010101010101010000101010101010101010101010101010101010101011101","0000101010100001010101010101010101010101010101000010000101010101010100001010101010101010101000010000101","0000101010100001010101010101010101010101010101010101010101010101010101000010101010101010000101010101010101010101011101010101010100001010101010101000010000101","00001010101000010101010101010101010101010101010101010101010101010101010101010000101010101010101010101010101010101010101010100001010101000010000101","0000101010100001010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101000010101010101010101010101010101010101110101010101010000101","00001010101000010101010101010101010101010101010101010101010101010101010101010101010101110101010101010101010000101010101010101010100001010101000010000101","000010101010000101010101010101010101010101011101010101010101010101010101010101011101","0000101010101010100001010101010101000010000101010101010101010101010101010101011101","000010101010101010000101010101010100001010101010101010101010101000010000101","00001010101010101000010101010101010101010000101010101010101010101010101010101010100001010101010101010101010101000010000101","00001010101010101000010101010101010101010101010000101010100001010101000010101010101010101110000101","00001010101010101000010101010101010101010101010101010101010101010101010000101010101010101010100001010101000010000101010101010100001010101010101000010000101","000010101010101010000101010101010101010101010101010101010101010101010101010100001000010101010101010101010000101010101010101010100001010101000010000101","000010101010101010000101010101010101010101010101010101010101010101010101010100001010101010101010101010101010101010101010101010101000010000101","000010101010101010000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101011101010101010100001010101010101010101000010000101","00001010101010101010101000010101010000101010100001010101010101010101000010000101","0000101010101010101010100001010101000010101010101010101010101110000101","000010101010101010101010000101010101010101010100001010101010101000010101010101110000101","000010101010101010101010000101010101010101010101010101010101010101010100001010101010101010101010101000010000101010100001010101000010101010101110000101","0000101010101010101010100001010101010101010101010101010101010101010101010101000010101010000101010101010100001010101010101010101010101000010000101","0000101010101010101010100001010101010101010101010101010101010101010101010101000010101010101010101010101010101010101110101010101010000101","0000101010101010101010100001010101010101010101010101010101010101010101010101010101010101010101010101010101010101000010000101010101010100001010101010101010101000010000101","00001010101010101010101010101000010101010101010101010101010101010101010101010000101010101010100001010101000010101010101010101010101110000101","00001010101010101010101010101000010101010101010101010101010101010101010101010101010101010101010101010101010101010000101010100001010101000010101010101010101110000101","000010101010101010101010101010000101010101010101010101010101010101010101010101011101010101010100001010101010101010101000010000101","00001010101010101010101010101000010101010101010101010101010101010101110101010101010101010000101010101010101010100001010101000010000101","000010101010101010101010101010101010000101010101010101010100001000010101010101010101010000101010101010101010100001010101000010000101","0000101010101010101010101010101010100001010101010101010101010101010101000010000101010101010100001010101010101010101000010000101","000010101010101010101010101010101010000101010101010101010101010101010101010100001010101010101010101000010000101010101010101011101","000010101010101010101010101010101010000101010101010101010101010101010101010101010101010101010101010101010101010100001010101010101000010101010101110000101","0000101010101010101010101010101010101010100001010101010101000010101010000101010101010100001010101010101010101010101000010000101","00001010101010101010101010101010101010101000010101010101010101010101010000101010100001010101000010101010101010101110000101","000010101010101010101010101010101010101010000101010101010101010101010101010101010101010101010101010101011101010101010101010101011101","00001010101010101010101010101010101010101010101000010101010000101010101010100001010101000010101010101010101010101110000101","000010101010101010101010101010101010101010101010000101010101010101010100001010101010101000010101010101110000101","0000101010101010101010101010101010101010101010100001010101010101010101010101010101010101010101000010000101010101010101010101011101","000010101010101010101010101010101010101010101010101010000100001010101010101010101000010000101010101010101011101","00001010101010101010101010101010101010101010101010101000010101010101010101010101010101010101010000101010100001010101000010000101","000010101010101010101010101010101010101010101010101010101010000101010101010101010101010101010100001010101010101000010000101","0000101010101010101010101010101010101010101010101010101010101010100001010101010101010101010101000010101010101110000101","000010101010101010101010101010101010101010101010101010101010101010101010000101010101010101010101011101","0000101010101010101010101010101010101010101010101010101010101010101010101010100001010101000010000101","00001010101010101010101010101010101010101010101010101010101010101010101010101010101000010000101","000010101010101010101010101010101010101010101010101010101010101010101110101010101010000101","0000101010101010101010101010101010101010101011101010100001010101000010101010101010000101010100001000010000101","11010101010101010101010101000010101010101010000101010101010101010101011101","110101010101010101010101010101010000101010101010101010101010100001010101010101010101010101010101010101010101000010101010101110000101","1101010101010101010101010101010101010101010101010101010100001010101010101000010101010101110000101","110101010101010101010101010101010101010101010101010101010101010000101010100001010101010101010101010101000010101010101010101010101010101110101010101010000101","11010101010101010101010101010101010101010101010101010101010101010101000010101010101010101010101010101010101010000101010101010101010101011101","1101010101010101010101010101010101010101010101010101010101010101010101010101010100001010101010101010101010101000010000101010100001010101000010101010101110000101","1101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100001010101010101010101010101010101010101010101010101000010000101","1101010101010101010101010101010101010101010101011101010101010100001010101010101010101000010000101"],"classes":[[0,20017,48,67998,32,41281,99],[0,20020,48,68796,30,41284,99],[0,20023,48,69207,23,41287,99],[0,20026,48,70696,13,41290,99],[0,20029,48,59613,6,41293,99],[0,20032,48,59813,60,41301,99],[0,20035,48,60945,52,41350,99],[0,20038,48,61344,51,41353,99],[0,20041,48,61694,50,41356,99],[0,20044,48,62130,49,41359,99],[0,20047,48,62967,48,41362,99],[0,20002,48,63645,47,41266,99],[0,20005,48,64449,46,41269,99],[0,20008,48,65174,44,41272,99],[0,20011,48,65542,41,41275,99],[0,20014,48,67004,38,41278,99],[1,20065,66,150363,1,42886,141],[1,20002,66,124814,55,42753,141],[1,20005,66,127632,37,42763,141],[1,20008,66,128616,31,42766,141],[1,20011,66,129445,28,42769,141],[1,20014,66,130342,21,42772,141],[1,20017,66,130731,14,42775,141],[1,20020,66,132899,5,42778,141],[1,20023,66,133099,59,42786,141],[1,20026,66,135194,53,42820,141],[1,20029,66,136001,45,42823,141],[1,20032,66,136763,42,42826,141],[1,20035,66,137559,39,42829,141],[1,20038,66,138613,35,42832,141],[1,20041,66,139239,34,42835,141],[1,20044,66,141747,27,42838,141],[1,20047,66,142721,20,42841,141],[1,20050,66,143389,11,42844,141],[1,20053,66,145077,3,42847,141],[1,20056,66,145277,57,42855,141],[1,20059,66,148048,18,42880,141],[1,20062,66,149092,9,42883,141],[2,20026,45,72754,7,44107,99],[2,20029,45,72954,61,44115,99],[2,20032,45,75685,24,44134,99],[2,20035,45,76493,16,44137,99],[2,20038,45,76995,15,44140,99],[2,20041,45,78777,2,44143,99],[2,20044,45,78977,56,44151,99],[2,20002,45,80685,25,44074,99],[2,20005,45,81303,17,44077,99],[2,20008,45,81998,8,44080,99],[2,20011,45,82806,0,44083,99],[2,20014,45,83006,54,44091,99],[2,20017,45,85183,26,44098,99],[2,20020,45,86282,19,44101,99],[2,20023,45,87243,10,44104,99],[3,20065,66,130204,21,42910,141],[3,20002,66,130593,14,42772,141],[3,20005,66,132761,5,42775,141],[3,20008,66,132961,59,42783,141],[3,20011,66,135056,53,42817,141],[3,20014,66,135863,45,42820,141],[3,20017,66,136625,42,42823,141],[3,20020,66,137421,39,42826,141],[3,20023,66,138475,35,42829,141],[3,20026,66,139101,34,42832,141],[3,20029,66,141609,27,42835,141],[3,20032,66,142583,20,42838,141],[3,20035,66,143251,11,42841,141],[3,20038,66,144939,3,42844,141],[3,20041,66,145139,57,42852,141],[3,20044,66,147910,18,42877,141],[3,20047,66,148954,9,42880,141],[3,20050,66,150225,1,42883,141],[3,20053,66,124676,55,42891,141],[3,20056,66,127494,37,42901,141],[3,20059,66,128478,31,42904,141],[3,20062,66,129307,28,42907,141],[4,20017,48,60819,51,41365,99],[4,20020,48,61169,50,41368,99],[4,20023,48,61605,49,41371,99],[4,20026,48,62442,48,41374,99],[4,20029,48,63120,47,41377,99],[4,20032,48,63924,46,41380,99],[4,20035,48,64649,44,41383,99],[4,20038,48,65017,41,41386,99],[4,20041,48,66479,38,41389,99],[4,20044,48,67473,32,41392,99],[4,20047,48,68271,30,41395,99],[4,20002,48,68682,23,41299,99],[4,20005,48,70171,13,41302,99],[4,20008,48,59088,6,41305,99],[4,20011,48,59288,60,41313,99],[4,20014,48,60420,52,41362,99],[5,20017,48,61838,46,41359,99],[5,20020,48,62563,44,41362,99],[5,20023,48,62931,41,41365,99],[5,20026,48,64393,38,41368,99],[5,20029,48,65387,32,41371,99],[5,20032,48,66185,30,41374,99],[5,20035,48,66596,23,41377,99],[5,20038,48,68085,13,41380,99],[5,20041,48,57002,6,41383,99],[5,20044,48,57202,60,41391,99],[5,20047,48,58334,52,41440,99],[5,20002,48,58733,51,41344,99],[5,20005,48,59083,50,41347,99],[5,20008,48,59519,49,41350,99],[5,20011,48,60356,48,41353,99],[5,20014,48,61034,47,41356,99],[6,20026,45,77082,10,44173,99],[6,20029,45,77749,7,44176,99],[6,20032,45,62793,61,44184,99],[6,20035,45,65524,24,44203,99],[6,20038,45,66332,16,44206,99],[6,20041,45,66834,15,44209,99],[6,20044,45,68616,2,44212,99],[6,20002,45,68816,56,44121,99],[6,20005,45,70524,25,44143,99],[6,20008,45,71142,17,44146,99],[6,20011,45,71837,8,44149,99],[6,20014,45,72645,0,44152,99],[6,20017,45,72845,54,44160,99],[6,20020,45,75022,26,44167,99],[6,20023,45,76121,19,44170,99],[7,20026,45,63643,56,44091,99],[7,20029,45,65351,25,44113,99],[7,20032,45,65969,17,44116,99],[7,20035,45,66664,8,44119,99],[7,20038,45,67472,0,44122,99],[7,20041,45,67672,54,44130,99],[7,20044,45,69849,26,44137,99],[7,20002,45,70948,19,44041,99],[7,20005,45,71909,10,44044,99],[7,20008,45,72576,7,44047,99],[7,20011,45,72776,61,44055,99],[7,20014,45,75507,24,44074,99],[7,20017,45,76315,16,44077,99],[7,20020,45,76817,15,44080,99],[7,20023,45,78599,2,44083,99],[8,20026,45,76809,24,44059,99],[8,20029,45,77617,16,44062,99],[8,20032,45,78119,15,44065,99],[8,20035,45,79901,2,44068,99],[8,20038,45,64945,56,44076,99],[8,20041,45,66653,25,44098,99],[8,20044,45,67271,17,44101,99],[8,20002,45,67966,8,44005,99],[8,20005,45,68774,0,44008,99],[8,20008,45,68974,54,44016,99],[8,20011,45,71151,26,44023,99],[8,20014,45,72250,19,44026,99],[8,20017,45,73211,10,44029,99],[8,20020,45,73878,7,44032,99],[8,20023,45,74078,61,44040,99],[9,20065,66,120437,55,42861,141],[9,20002,66,123255,37,42730,141],[9,20005,66,124239,31,42733,141],[9,20008,66,125068,28,42736,141],[9,20011,66,125965,21,42739,141],[9,20014,66,126354,14,42742,141],[9,20017,66,128522,5,42745,141],[9,20020,66,128722,59,42753,141],[9,20023,66,130817,53,42787,141],[9,20026,66,131624,45,42790,141],[9,20029,66,132386,42,42793,141],[9,20032,66,133182,39,42796,141],[9,20035,66,134236,35,42799,141],[9,20038,66,134862,34,42802,141],[9,20041,66,137370,27,42805,141],[9,20044,66,138344,20,42808,141],[9,20047,66,139012,11,42811,141],[9,20050,66,140700,3,42814,141],[9,20053,66,140900,57,42822,141],[9,20056,66,143671,18,42847,141],[9,20059,66,144715,9,42850,141],[9,20062,66,145986,1,42853,141],[10,20065,66,127274,39,42856,141],[10,20002,66,128328,35,42718,141],[10,20005,66,128954,34,42721,141],[10,20008,66,131462,27,42724,141],[10,20011,66,132436,20,42727,141],[10,20014,66,133104,11,42730,141],[10,20017,66,134792,3,42733,141],[10,20020,66,134992,57,42741,141],[10,20023,66,137763,18,42766,141],[10,20026,66,138807,9,42769,141],[10,20029,66,140078,1,42772,141],[10,20032,66,114529,55,42780,141],[10,20035,66,117347,37,42790,141],[10,20038,66,118331,31,42793,141],[10,20041,66,119160,28,42796,141],[10,20044,66,120057,21,42799,141],[10,20047,66,120446,14,42802,141],[10,20050,66,122614,5,42805,141],[10,20053,66,122814,59,42813,141],[10,20056,66,124909,53,42847,141],[10,20059,66,125716,45,42850,141],[10,20062,66,126478,42,42853,141],[11,20065,66,135497,59,42867,141],[11,20002,66,137592,53,42760,141],[11,20005,66,138399,45,42763,141],[11,20008,66,139161,42,42766,141],[11,20011,66,139957,39,42769,141],[11,20014,66,141011,35,42772,141],[11,20017,66,141637,34,42775,141],[11,20020,66,144145,27,42778,141],[11,20023,66,145119,20,42781,141],[11,20026,66,145787,11,42784,141],[11,20029,66,147475,3,42787,141],[11,20032,66,147675,57,42795,141],[11,20035,66,150446,18,42820,141],[11,20038,66,151490,9,42823,141],[11,20041,66,152761,1,42826,141],[11,20044,66,127212,55,42834,141],[11,20047,66,130030,37,42844,141],[11,20050,66,131014,31,42847,141],[11,20053,66,131843,28,42850,141],[11,20056,66,132740,21,42853,141],[11,20059,66,133129,14,42856,141],[11,20062,66,135297,5,42859,141],[12,20065,66,228840,18,42877,141],[12,20002,66,229884,9,42739,141],[12,20005,66,231155,1,42742,141],[12,20008,66,205606,55,42750,141],[12,20011,66,208424,37,42760,141],[12,20014,66,209408,31,42763,141],[12,20017,66,210237,28,42766,141],[12,20020,66,211134,21,42769,141],[12,20023,66,211523,14,42772,141],[12,20026,66,213691,5,42775,141],[12,20029,66,213891,59,42783,141],[12,20032,66,215986,53,42817,141],[12,20035,66,216793,45,42820,141],[12,20038,66,217555,42,42823,141],[12,20041,66,218351,39,42826,141],[12,20044,66,219405,35,42829,141],[12,20047,66,220031,34,42832,141],[12,20050,66,222539,27,42835,141],[12,20053,66,223513,20,42838,141],[12,20056,66,224181,11,42841,141],[12,20059,66,225869,3,42844,141],[12,20062,66,226069,57,42852,141],[13,20065,66,175935,20,42880,141],[13,20002,66,176603,11,42742,141],[13,20005,66,178291,3,42745,141],[13,20008,66,178491,57,42753,141],[13,20011,66,181262,18,42778,141],[13,20014,66,182306,9,42781,141],[13,20017,66,183577,1,42784,141],[13,20020,66,158028,55,42792,141],[13,20023,66,160846,37,42802,141],[13,20026,66,161830,31,42805,141],[13,20029,66,162659,28,42808,141],[13,20032,66,163556,21,42811,141],[13,20035,66,163945,14,42814,141],[13,20038,66,166113,5,42817,141],[13,20041,66,166313,59,42825,141],[13,20044,66,168408,53,42859,141],[13,20047,66,169215,45,42862,141],[13,20050,66,169977,42,42865,141],[13,20053,66,170773,39,42868,141],[13,20056,66,171827,35,42871,141],[13,20059,66,172453,34,42874,141],[13,20062,66,174961,27,42877,141],[14,20065,66,122856,9,42871,141],[14,20002,66,124127,1,42733,141],[14,20005,66,98578,55,42741,141],[14,20008,66,101396,37,42751,141],[14,20011,66,102380,31,42754,141],[14,20014,66,103209,28,42757,141],[14,20017,66,104106,21,42760,141],[14,20020,66,104495,14,42763,141],[14,20023,66,106663,5,42766,141],[14,20026,66,106863,59,42774,141],[14,20029,66,108958,53,42808,141],[14,20032,66,109765,45,42811,141],[14,20035,66,110527,42,42814,141],[14,20038,66,111323,39,42817,141],[14,20041,66,112377,35,42820,141],[14,20044,66,113003,34,42823,141],[14,20047,66,115511,27,42826,141],[14,20050,66,116485,20,42829,141],[14,20053,66,117153,11,42832,141],[14,20056,66,118841,3,42835,141],[14,20059,66,119041,57,42843,141],[14,20062,66,121812,18,42868,141],[15,20026,45,76555,16,44065,99],[15,20029,45,77057,15,44068,99],[15,20032,45,78839,2,44071,99],[15,20035,45,63883,56,44079,99],[15,20038,45,65591,25,44101,99],[15,20041,45,66209,17,44104,99],[15,20044,45,66904,8,44107,99],[15,20002,45,67712,0,44011,99],[15,20005,45,67912,54,44019,99],[15,20008,45,70089,26,44026,99],[15,20011,45,71188,19,44029,99],[15,20014,45,72149,10,44032,99],[15,20017,45,72816,7,44035,99],[15,20020,45,73016,61,44043,99],[15,20023,45,75747,24,44062,99],[16,20065,66,118103,34,42835,141],[16,20002,66,120611,27,42697,141],[16,20005,66,121585,20,42700,141],[16,20008,66,122253,11,42703,141],[16,20011,66,123941,3,42706,141],[16,20014,66,124141,57,42714,141],[16,20017,66,126912,18,42739,141],[16,20020,66,127956,9,42742,141],[16,20023,66,129227,1,42745,141],[16,20026,66,103678,55,42753,141],[16,20029,66,106496,37,42763,141],[16,20032,66,107480,31,42766,141],[16,20035,66,108309,28,42769,141],[16,20038,66,109206,21,42772,141],[16,20041,66,109595,14,42775,141],[16,20044,66,111763,5,42778,141],[16,20047,66,111963,59,42786,141],[16,20050,66,114058,53,42820,141],[16,20053,66,114865,45,42823,141],[16,20056,66,115627,42,42826,141],[16,20059,66,116423,39,42829,141],[16,20062,66,117477,35,42832,141],[17,20065,66,197375,18,42826,141],[17,20002,66,198419,9,42688,141],[17,20005,66,199690,1,42691,141],[17,20008,66,174141,55,42699,141],[17,20011,66,176959,37,42709,141],[17,20014,66,177943,31,42712,141],[17,20017,66,178772,28,42715,141],[17,20020,66,179669,21,42718,141],[17,20023,66,180058,14,42721,141],[17,20026,66,182226,5,42724,141],[17,20029,66,182426,59,42732,141],[17,20032,66,184521,53,42766,141],[17,20035,66,185328,45,42769,141],[17,20038,66,186090,42,42772,141],[17,20041,66,186886,39,42775,141],[17,20044,66,187940,35,42778,141],[17,20047,66,188566,34,42781,141],[17,20050,66,191074,27,42784,141],[17,20053,66,192048,20,42787,141],[17,20056,66,192716,11,42790,141],[17,20059,66,194404,3,42793,141],[17,20062,66,194604,57,42801,141],[18,20008,27,57837,29,42238,57],[18,20011,27,58570,22,42241,57],[18,20014,27,59131,12,42244,57],[18,20017,27,59747,4,42247,57],[18,20020,27,59947,58,42255,57],[18,20023,27,62469,43,42283,57],[18,20026,27,63656,40,42286,57],[18,20002,27,55562,36,42232,57],[18,20005,27,56304,33,42235,57],[19,20065,66,107015,28,42853,141],[19,20002,66,107912,21,42715,141],[19,20005,66,108301,14,42718,141],[19,20008,66,110469,5,42721,141],[19,20011,66,110669,59,42729,141],[19,20014,66,112764,53,42763,141],[19,20017,66,113571,45,42766,141],[19,20020,66,114333,42,42769,141],[19,20023,66,115129,39,42772,141],[19,20026,66,116183,35,42775,141],[19,20029,66,116809,34,42778,141],[19,20032,66,119317,27,42781,141],[19,20035,66,120291,20,42784,141],[19,20038,66,120959,11,42787,141],[19,20041,66,122647,3,42790,141],[19,20044,66,122847,57,42798,141],[19,20047,66,125618,18,42823,141],[19,20050,66,126662,9,42826,141],[19,20053,66,127933,1,42829,141],[19,20056,66,102384,55,42837,141],[19,20059,66,105202,37,42847,141],[19,20062,66,106186,31,42850,141],[20,20065,66,105436,21,42868,141],[20,20002,66,105825,14,42730,141],[20,20005,66,107993,5,42733,141],[20,20008,66,108193,59,42741,141],[20,20011,66,110288,53,42775,141],[20,20014,66,111095,45,42778,141],[20,20017,66,111857,42,42781,141],[20,20020,66,112653,39,42784,141],[20,20023,66,113707,35,42787,141],[20,20026,66,114333,34,42790,141],[20,20029,66,116841,27,42793,141],[20,20032,66,117815,20,42796,141],[20,20035,66,118483,11,42799,141],[20,20038,66,120171,3,42802,141],[20,20041,66,120371,57,42810,141],[20,20044,66,123142,18,42835,141],[20,20047,66,124186,9,42838,141],[20,20050,66,125457,1,42841,141],[20,20053,66,99908,55,42849,141],[20,20056,66,102726,37,42859,141],[20,20059,66,103710,31,42862,141],[20,20062,66,104539,28,42865,141],[21,20026,45,111747,19,44077,99],[21,20029,45,112708,10,44080,99],[21,20032,45,113375,7,44083,99],[21,20035,45,113575,61,44091,99],[21,20038,45,116306,24,44110,99],[21,20041,45,117114,16,44113,99],[21,20044,45,117616,15,44116,99],[21,20002,45,119398,2,44020,99],[21,20005,45,104442,56,44028,99],[21,20008,45,106150,25,44050,99],[21,20011,45,106768,17,44053,99],[21,20014,45,107463,8,44056,99],[21,20017,45,108271,0,44059,99],[21,20020,45,108471,54,44067,99],[21,20023,45,110648,26,44074,99],[22,20065,66,126885,35,42874,141],[22,20002,66,127511,34,42736,141],[22,20005,66,130019,27,42739,141],[22,20008,66,130993,20,42742,141],[22,20011,66,131661,11,42745,141],[22,20014,66,133349,3,42748,141],[22,20017,66,133549,57,42756,141],[22,20020,66,136320,18,42781,141],[22,20023,66,137364,9,42784,141],[22,20026,66,138635,1,42787,141],[22,20029,66,113086,55,42795,141],[22,20032,66,115904,37,42805,141],[22,20035,66,116888,31,42808,141],[22,20038,66,117717,28,42811,141],[22,20041,66,118614,21,42814,141],[22,20044,66,119003,14,42817,141],[22,20047,66,121171,5,42820,141],[22,20050,66,121371,59,42828,141],[22,20053,66,123466,53,42862,141],[22,20056,66,124273,45,42865,141],[22,20059,66,125035,42,42868,141],[22,20062,66,125831,39,42871,141],[23,20026,45,74442,26,44098,99],[23,20029,45,75541,19,44101,99],[23,20032,45,76502,10,44104,99],[23,20035,45,77169,7,44107,99],[23,20038,45,77369,61,44115,99],[23,20041,45,80100,24,44134,99],[23,20044,45,80908,16,44137,99],[23,20002,45,81410,15,44041,99],[23,20005,45,83192,2,44044,99],[23,20008,45,68236,56,44052,99],[23,20011,45,69944,25,44074,99],[23,20014,45,70562,17,44077,99],[23,20017,45,71257,8,44080,99],[23,20020,45,72065,0,44083,99],[23,20023,45,72265,54,44091,99],[24,20026,45,71273,0,44050,99],[24,20029,45,71473,54,44058,99],[24,20032,45,73650,26,44065,99],[24,20035,45,74749,19,44068,99],[24,20038,45,75710,10,44071,99],[24,20041,45,76377,7,44074,99],[24,20044,45,61421,61,44082,99],[24,20002,45,64152,24,44002,99],[24,20005,45,64960,16,44005,99],[24,20008,45,65462,15,44008,99],[24,20011,45,67244,2,44011,99],[24,20014,45,67444,56,44019,99],[24,20017,45,69152,25,44041,99],[24,20020,45,69770,17,44044,99],[24,20023,45,70465,8,44047,99],[25,20026,45,70169,10,44038,99],[25,20029,45,70836,7,44041,99],[25,20032,45,71036,61,44049,99],[25,20035,45,73767,24,44068,99],[25,20038,45,74575,16,44071,99],[25,20041,45,75077,15,44074,99],[25,20044,45,76859,2,44077,99],[25,20002,45,61903,56,43986,99],[25,20005,45,63611,25,44008,99],[25,20008,45,64229,17,44011,99],[25,20011,45,64924,8,44014,99],[25,20014,45,65732,0,44017,99],[25,20017,45,65932,54,44025,99],[25,20020,45,68109,26,44032,99],[25,20023,45,69208,19,44035,99],[26,20017,48,73209,49,41290,99],[26,20020,48,74046,48,41293,99],[26,20023,48,74724,47,41296,99],[26,20026,48,75528,46,41299,99],[26,20029,48,76253,44,41302,99],[26,20032,48,76621,41,41305,99],[26,20035,48,78083,38,41308,99],[26,20038,48,79077,32,41311,99],[26,20041,48,79875,30,41314,99],[26,20044,48,80286,23,41317,99],[26,20047,48,81775,13,41320,99],[26,20002,48,70692,6,41224,99],[26,20005,48,70892,60,41232,99],[26,20008,48,72024,52,41281,99],[26,20011,48,72423,51,41284,99],[26,20014,48,72773,50,41287,99],[27,20065,66,196091,28,42853,141],[27,20002,66,196988,21,42715,141],[27,20005,66,197377,14,42718,141],[27,20008,66,199545,5,42721,141],[27,20011,66,199745,59,42729,141],[27,20014,66,201840,53,42763,141],[27,20017,66,202647,45,42766,141],[27,20020,66,203409,42,42769,141],[27,20023,66,204205,39,42772,141],[27,20026,66,205259,35,42775,141],[27,20029,66,205885,34,42778,141],[27,20032,66,208393,27,42781,141],[27,20035,66,209367,20,42784,141],[27,20038,66,210035,11,42787,141],[27,20041,66,211723,3,42790,141],[27,20044,66,211923,57,42798,141],[27,20047,66,214694,18,42823,141],[27,20050,66,215738,9,42826,141],[27,20053,66,217009,1,42829,141],[27,20056,66,191460,55,42837,141],[27,20059,66,194278,37,42847,141],[27,20062,66,195262,31,42850,141],[28,20065,66,201950,18,42862,141],[28,20002,66,202994,9,42724,141],[28,20005,66,204265,1,42727,141],[28,20008,66,178716,55,42735,141],[28,20011,66,181534,37,42745,141],[28,20014,66,182518,31,42748,141],[28,20017,66,183347,28,42751,141],[28,20020,66,184244,21,42754,141],[28,20023,66,184633,14,42757,141],[28,20026,66,186801,5,42760,141],[28,20029,66,187001,59,42768,141],[28,20032,66,189096,53,42802,141],[28,20035,66,189903,45,42805,141],[28,20038,66,190665,42,42808,141],[28,20041,66,191461,39,42811,141],[28,20044,66,192515,35,42814,141],[28,20047,66,193141,34,42817,141],[28,20050,66,195649,27,42820,141],[28,20053,66,196623,20,42823,141],[28,20056,66,197291,11,42826,141],[28,20059,66,198979,3,42829,141],[28,20062,66,199179,57,42837,141],[29,20017,48,60718,49,41305,99],[29,20020,48,61555,48,41308,99],[29,20023,48,62233,47,41311,99],[29,20026,48,63037,46,41314,99],[29,20029,48,63762,44,41317,99],[29,20032,48,64130,41,41320,99],[29,20035,48,65592,38,41323,99],[29,20038,48,66586,32,41326,99],[29,20041,48,67384,30,41329,99],[29,20044,48,67795,23,41332,99],[29,20047,48,69284,13,41335,99],[29,20002,48,58201,6,41239,99],[29,20005,48,58401,60,41247,99],[29,20008,48,59533,52,41296,99],[29,20011,48,59932,51,41299,99],[29,20014,48,60282,50,41302,99],[30,20065,66,129801,39,42886,141],[30,20002,66,130855,35,42748,141],[30,20005,66,131481,34,42751,141],[30,20008,66,133989,27,42754,141],[30,20011,66,134963,20,42757,141],[30,20014,66,135631,11,42760,141],[30,20017,66,137319,3,42763,141],[30,20020,66,137519,57,42771,141],[30,20023,66,140290,18,42796,141],[30,20026,66,141334,9,42799,141],[30,20029,66,142605,1,42802,141],[30,20032,66,117056,55,42810,141],[30,20035,66,119874,37,42820,141],[30,20038,66,120858,31,42823,141],[30,20041,66,121687,28,42826,141],[30,20044,66,122584,21,42829,141],[30,20047,66,122973,14,42832,141],[30,20050,66,125141,5,42835,141],[30,20053,66,125341,59,42843,141],[30,20056,66,127436,53,42877,141],[30,20059,66,128243,45,42880,141],[30,20062,66,129005,42,42883,141],[31,20026,45,109761,19,44077,99],[31,20029,45,110722,10,44080,99],[31,20032,45,111389,7,44083,99],[31,20035,45,111589,61,44091,99],[31,20038,45,114320,24,44110,99],[31,20041,45,115128,16,44113,99],[31,20044,45,115630,15,44116,99],[31,20002,45,117412,2,44020,99],[31,20005,45,102456,56,44028,99],[31,20008,45,104164,25,44050,99],[31,20011,45,104782,17,44053,99],[31,20014,45,105477,8,44056,99],[31,20017,45,106285,0,44059,99],[31,20020,45,106485,54,44067,99],[31,20023,45,108662,26,44074,99],[32,20065,66,200845,5,42856,141],[32,20002,66,201045,59,42723,141],[32,20005,66,203140,53,42757,141],[32,20008,66,203947,45,42760,141],[32,20011,66,204709,42,42763,141],[32,20014,66,205505,39,42766,141],[32,20017,66,206559,35,42769,141],[32,20020,66,207185,34,42772,141],[32,20023,66,209693,27,42775,141],[32,20026,66,210667,20,42778,141],[32,20029,66,211335,11,42781,141],[32,20032,66,213023,3,42784,141],[32,20035,66,213223,57,42792,141],[32,20038,66,215994,18,42817,141],[32,20041,66,217038,9,42820,141],[32,20044,66,218309,1,42823,141],[32,20047,66,192760,55,42831,141],[32,20050,66,195578,37,42841,141],[32,20053,66,196562,31,42844,141],[32,20056,66,197391,28,42847,141],[32,20059,66,198288,21,42850,141],[32,20062,66,198677,14,42853,141],[33,20065,66,196411,57,42837,141],[33,20002,66,199182,18,42721,141],[33,20005,66,200226,9,42724,141],[33,20008,66,201497,1,42727,141],[33,20011,66,175948,55,42735,141],[33,20014,66,178766,37,42745,141],[33,20017,66,179750,31,42748,141],[33,20020,66,180579,28,42751,141],[33,20023,66,181476,21,42754,141],[33,20026,66,181865,14,42757,141],[33,20029,66,184033,5,42760,141],[33,20032,66,184233,59,42768,141],[33,20035,66,186328,53,42802,141],[33,20038,66,187135,45,42805,141],[33,20041,66,187897,42,42808,141],[33,20044,66,188693,39,42811,141],[33,20047,66,189747,35,42814,141],[33,20050,66,190373,34,42817,141],[33,20053,66,192881,27,42820,141],[33,20056,66,193855,20,42823,141],[33,20059,66,194523,11,42826,141],[33,20062,66,196211,3,42829,141],[34,20065,66,123906,9,42862,141],[34,20002,66,125177,1,42724,141],[34,20005,66,99628,55,42732,141],[34,20008,66,102446,37,42742,141],[34,20011,66,103430,31,42745,141],[34,20014,66,104259,28,42748,141],[34,20017,66,105156,21,42751,141],[34,20020,66,105545,14,42754,141],[34,20023,66,107713,5,42757,141],[34,20026,66,107913,59,42765,141],[34,20029,66,110008,53,42799,141],[34,20032,66,110815,45,42802,141],[34,20035,66,111577,42,42805,141],[34,20038,66,112373,39,42808,141],[34,20041,66,113427,35,42811,141],[34,20044,66,114053,34,42814,141],[34,20047,66,116561,27,42817,141],[34,20050,66,117535,20,42820,141],[34,20053,66,118203,11,42823,141],[34,20056,66,119891,3,42826,141],[34,20059,66,120091,57,42834,141],[34,20062,66,122862,18,42859,141],[35,20065,66,119873,53,42868,141],[35,20002,66,120680,45,42730,141],[35,20005,66,121442,42,42733,141],[35,20008,66,122238,39,42736,141],[35,20011,66,123292,35,42739,141],[35,20014,66,123918,34,42742,141],[35,20017,66,126426,27,42745,141],[35,20020,66,127400,20,42748,141],[35,20023,66,128068,11,42751,141],[35,20026,66,129756,3,42754,141],[35,20029,66,129956,57,42762,141],[35,20032,66,132727,18,42787,141],[35,20035,66,133771,9,42790,141],[35,20038,66,135042,1,42793,141],[35,20041,66,109493,55,42801,141],[35,20044,66,112311,37,42811,141],[35,20047,66,113295,31,42814,141],[35,20050,66,114124,28,42817,141],[35,20053,66,115021,21,42820,141],[35,20056,66,115410,14,42823,141],[35,20059,66,117578,5,42826,141],[35,20062,66,117778,59,42834,141],[36,20065,66,127075,39,42868,141],[36,20002,66,128129,35,42730,141],[36,20005,66,128755,34,42733,141],[36,20008,66,131263,27,42736,141],[36,20011,66,132237,20,42739,141],[36,20014,66,132905,11,42742,141],[36,20017,66,134593,3,42745,141],[36,20020,66,134793,57,42753,141],[36,20023,66,137564,18,42778,141],[36,20026,66,138608,9,42781,141],[36,20029,66,139879,1,42784,141],[36,20032,66,114330,55,42792,141],[36,20035,66,117148,37,42802,141],[36,20038,66,118132,31,42805,141],[36,20041,66,118961,28,42808,141],[36,20044,66,119858,21,42811,141],[36,20047,66,120247,14,42814,141],[36,20050,66,122415,5,42817,141],[36,20053,66,122615,59,42825,141],[36,20056,66,124710,53,42859,141],[36,20059,66,125517,45,42862,141],[36,20062,66,126279,42,42865,141],[37,20026,45,95285,0,44077,99],[37,20029,45,95485,54,44085,99],[37,20032,45,97662,26,44092,99],[37,20035,45,98761,19,44095,99],[37,20038,45,99722,10,44098,99],[37,20041,45,100389,7,44101,99],[37,20044,45,100589,61,44109,99],[37,20002,45,103320,24,44029,99],[37,20005,45,104128,16,44032,99],[37,20008,45,104630,15,44035,99],[37,20011,45,106412,2,44038,99],[37,20014,45,91456,56,44046,99],[37,20017,45,93164,25,44068,99],[37,20020,45,93782,17,44071,99],[37,20023,45,94477,8,44074,99],[38,20065,66,131929,39,42886,141],[38,20002,66,132983,35,42748,141],[38,20005,66,133609,34,42751,141],[38,20008,66,136117,27,42754,141],[38,20011,66,137091,20,42757,141],[38,20014,66,137759,11,42760,141],[38,20017,66,139447,3,42763,141],[38,20020,66,139647,57,42771,141],[38,20023,66,142418,18,42796,141],[38,20026,66,143462,9,42799,141],[38,20029,66,144733,1,42802,141],[38,20032,66,119184,55,42810,141],[38,20035,66,122002,37,42820,141],[38,20038,66,122986,31,42823,141],[38,20041,66,123815,28,42826,141],[38,20044,66,124712,21,42829,141],[38,20047,66,125101,14,42832,141],[38,20050,66,127269,5,42835,141],[38,20053,66,127469,59,42843,141],[38,20056,66,129564,53,42877,141],[38,20059,66,130371,45,42880,141],[38,20062,66,131133,42,42883,141],[39,20017,48,101832,51,41311,99],[39,20020,48,102182,50,41314,99],[39,20023,48,102618,49,41317,99],[39,20026,48,103455,48,41320,99],[39,20029,48,104133,47,41323,99],[39,20032,48,104937,46,41326,99],[39,20035,48,105662,44,41329,99],[39,20038,48,106030,41,41332,99],[39,20041,48,107492,38,41335,99],[39,20044,48,108486,32,41338,99],[39,20047,48,109284,30,41341,99],[39,20002,48,109695,23,41245,99],[39,20005,48,111184,13,41248,99],[39,20008,48,100101,6,41251,99],[39,20011,48,100301,60,41259,99],[39,20014,48,101433,52,41308,99],[40,20065,66,106719,28,42865,141],[40,20002,66,107616,21,42727,141],[40,20005,66,108005,14,42730,141],[40,20008,66,110173,5,42733,141],[40,20011,66,110373,59,42741,141],[40,20014,66,112468,53,42775,141],[40,20017,66,113275,45,42778,141],[40,20020,66,114037,42,42781,141],[40,20023,66,114833,39,42784,141],[40,20026,66,115887,35,42787,141],[40,20029,66,116513,34,42790,141],[40,20032,66,119021,27,42793,141],[40,20035,66,119995,20,42796,141],[40,20038,66,120663,11,42799,141],[40,20041,66,122351,3,42802,141],[40,20044,66,122551,57,42810,141],[40,20047,66,125322,18,42835,141],[40,20050,66,126366,9,42838,141],[40,20053,66,127637,1,42841,141],[40,20056,66,102088,55,42849,141],[40,20059,66,104906,37,42859,141],[40,20062,66,105890,31,42862,141],[41,20008,27,56425,22,42247,57],[41,20011,27,56986,12,42250,57],[41,20014,27,57602,4,42253,57],[41,20017,27,57802,58,42261,57],[41,20020,27,60324,43,42289,57],[41,20023,27,61511,40,42292,57],[41,20026,27,53417,36,42295,57],[41,20002,27,54159,33,42241,57],[41,20005,27,55692,29,42244,57],[42,20065,66,106228,28,42865,141],[42,20002,66,107125,21,42727,141],[42,20005,66,107514,14,42730,141],[42,20008,66,109682,5,42733,141],[42,20011,66,109882,59,42741,141],[42,20014,66,111977,53,42775,141],[42,20017,66,112784,45,42778,141],[42,20020,66,113546,42,42781,141],[42,20023,66,114342,39,42784,141],[42,20026,66,115396,35,42787,141],[42,20029,66,116022,34,42790,141],[42,20032,66,118530,27,42793,141],[42,20035,66,119504,20,42796,141],[42,20038,66,120172,11,42799,141],[42,20041,66,121860,3,42802,141],[42,20044,66,122060,57,42810,141],[42,20047,66,124831,18,42835,141],[42,20050,66,125875,9,42838,141],[42,20053,66,127146,1,42841,141],[42,20056,66,101597,55,42849,141],[42,20059,66,104415,37,42859,141],[42,20062,66,105399,31,42862,141],[43,20017,48,72563,49,41302,99],[43,20020,48,73400,48,41305,99],[43,20023,48,74078,47,41308,99],[43,20026,48,74882,46,41311,99],[43,20029,48,75607,44,41314,99],[43,20032,48,75975,41,41317,99],[43,20035,48,77437,38,41320,99],[43,20038,48,78431,32,41323,99],[43,20041,48,79229,30,41326,99],[43,20044,48,79640,23,41329,99],[43,20047,48,81129,13,41332,99],[43,20002,48,70046,6,41236,99],[43,20005,48,70246,60,41244,99],[43,20008,48,71378,52,41293,99],[43,20011,48,71777,51,41296,99],[43,20014,48,72127,50,41299,99],[44,20065,66,116604,34,42859,141],[44,20002,66,119112,27,42721,141],[44,20005,66,120086,20,42724,141],[44,20008,66,120754,11,42727,141],[44,20011,66,122442,3,42730,141],[44,20014,66,122642,57,42738,141],[44,20017,66,125413,18,42763,141],[44,20020,66,126457,9,42766,141],[44,20023,66,127728,1,42769,141],[44,20026,66,102179,55,42777,141],[44,20029,66,104997,37,42787,141],[44,20032,66,105981,31,42790,141],[44,20035,66,106810,28,42793,141],[44,20038,66,107707,21,42796,141],[44,20041,66,108096,14,42799,141],[44,20044,66,110264,5,42802,141],[44,20047,66,110464,59,42810,141],[44,20050,66,112559,53,42844,141],[44,20053,66,113366,45,42847,141],[44,20056,66,114128,42,42850,141],[44,20059,66,114924,39,42853,141],[44,20062,66,115978,35,42856,141],[45,20017,48,71743,49,41302,99],[45,20020,48,72580,48,41305,99],[45,20023,48,73258,47,41308,99],[45,20026,48,74062,46,41311,99],[45,20029,48,74787,44,41314,99],[45,20032,48,75155,41,41317,99],[45,20035,48,76617,38,41320,99],[45,20038,48,77611,32,41323,99],[45,20041,48,78409,30,41326,99],[45,20044,48,78820,23,41329,99],[45,20047,48,80309,13,41332,99],[45,20002,48,69226,6,41236,99],[45,20005,48,69426,60,41244,99],[45,20008,48,70558,52,41293,99],[45,20011,48,70957,51,41296,99],[45,20014,48,71307,50,41299,99],[46,20026,45,77570,15,44071,99],[46,20029,45,79352,2,44074,99],[46,20032,45,64396,56,44082,99],[46,20035,45,66104,25,44104,99],[46,20038,45,66722,17,44107,99],[46,20041,45,67417,8,44110,99],[46,20044,45,68225,0,44113,99],[46,20002,45,68425,54,44022,99],[46,20005,45,70602,26,44029,99],[46,20008,45,71701,19,44032,99],[46,20011,45,72662,10,44035,99],[46,20014,45,73329,7,44038,99],[46,20017,45,73529,61,44046,99],[46,20020,45,76260,24,44065,99],[46,20023,45,77068,16,44068,99],[47,20026,45,75084,8,44080,99],[47,20029,45,75892,0,44083,99],[47,20032,45,76092,54,44091,99],[47,20035,45,78269,26,44098,99],[47,20038,45,79368,19,44101,99],[47,20041,45,80329,10,44104,99],[47,20044,45,65840,7,44107,99],[47,20002,45,66040,61,44016,99],[47,20005,45,68771,24,44035,99],[47,20008,45,69579,16,44038,99],[47,20011,45,70081,15,44041,99],[47,20014,45,71863,2,44044,99],[47,20017,45,72063,56,44052,99],[47,20020,45,73771,25,44074,99],[47,20023,45,74389,17,44077,99],[48,20065,66,141309,27,42847,141],[48,20002,66,142283,20,42709,141],[48,20005,66,142951,11,42712,141],[48,20008,66,144639,3,42715,141],[48,20011,66,144839,57,42723,141],[48,20014,66,147610,18,42748,141],[48,20017,66,148654,9,42751,141],[48,20020,66,149925,1,42754,141],[48,20023,66,124376,55,42762,141],[48,20026,66,127194,37,42772,141],[48,20029,66,128178,31,42775,141],[48,20032,66,129007,28,42778,141],[48,20035,66,129904,21,42781,141],[48,20038,66,130293,14,42784,141],[48,20041,66,132461,5,42787,141],[48,20044,66,132661,59,42795,141],[48,20047,66,134756,53,42829,141],[48,20050,66,135563,45,42832,141],[48,20053,66,136325,42,42835,141],[48,20056,66,137121,39,42838,141],[48,20059,66,138175,35,42841,141],[48,20062,66,138801,34,42844,141],[49,20017,48,61841,48,41290,99],[49,20020,48,62519,47,41293,99],[49,20023,48,63323,46,41296,99],[49,20026,48,64048,44,41299,99],[49,20029,48,64416,41,41302,99],[49,20032,48,65878,38,41305,99],[49,20035,48,66872,32,41308,99],[49,20038,48,67670,30,41311,99],[49,20041,48,68081,23,41314,99],[49,20044,48,69570,13,41317,99],[49,20047,48,58487,6,41320,99],[49,20002,48,58687,60,41229,99],[49,20005,48,59819,52,41278,99],[49,20008,48,60218,51,41281,99],[49,20011,48,60568,50,41284,99],[49,20014,48,61004,49,41287,99],[50,20026,45,74910,17,44074,99],[50,20029,45,75605,8,44077,99],[50,20032,45,76413,0,44080,99],[50,20035,45,76613,54,44088,99],[50,20038,45,78790,26,44095,99],[50,20041,45,79889,19,44098,99],[50,20044,45,80850,10,44101,99],[50,20002,45,66361,7,44005,99],[50,20005,45,66561,61,44013,99],[50,20008,45,69292,24,44032,99],[50,20011,45,70100,16,44035,99],[50,20014,45,70602,15,44038,99],[50,20017,45,72384,2,44041,99],[50,20020,45,72584,56,44049,99],[50,20023,45,74292,25,44071,99],[51,20026,45,71705,8,44065,99],[51,20029,45,72513,0,44068,99],[51,20032,45,72713,54,44076,99],[51,20035,45,74890,26,44083,99],[51,20038,45,75989,19,44086,99],[51,20041,45,76950,10,44089,99],[51,20044,45,62461,7,44092,99],[51,20002,45,62661,61,44001,99],[51,20005,45,65392,24,44020,99],[51,20008,45,66200,16,44023,99],[51,20011,45,66702,15,44026,99],[51,20014,45,68484,2,44029,99],[51,20017,45,68684,56,44037,99],[51,20020,45,70392,25,44059,99],[51,20023,45,71010,17,44062,99],[52,20026,45,67904,61,44052,99],[52,20029,45,70635,24,44071,99],[52,20032,45,71443,16,44074,99],[52,20035,45,71945,15,44077,99],[52,20038,45,73727,2,44080,99],[52,20041,45,58771,56,44088,99],[52,20044,45,60479,25,44110,99],[52,20002,45,61097,17,44014,99],[52,20005,45,61792,8,44017,99],[52,20008,45,62600,0,44020,99],[52,20011,45,62800,54,44028,99],[52,20014,45,64977,26,44035,99],[52,20017,45,66076,19,44038,99],[52,20020,45,67037,10,44041,99],[52,20023,45,67704,7,44044,99],[53,20065,66,143842,18,42853,141],[53,20002,66,144886,9,42715,141],[53,20005,66,146157,1,42718,141],[53,20008,66,120608,55,42726,141],[53,20011,66,123426,37,42736,141],[53,20014,66,124410,31,42739,141],[53,20017,66,125239,28,42742,141],[53,20020,66,126136,21,42745,141],[53,20023,66,126525,14,42748,141],[53,20026,66,128693,5,42751,141],[53,20029,66,128893,59,42759,141],[53,20032,66,130988,53,42793,141],[53,20035,66,131795,45,42796,141],[53,20038,66,132557,42,42799,141],[53,20041,66,133353,39,42802,141],[53,20044,66,134407,35,42805,141],[53,20047,66,135033,34,42808,141],[53,20050,66,137541,27,42811,141],[53,20053,66,138515,20,42814,141],[53,20056,66,139183,11,42817,141],[53,20059,66,140871,3,42820,141],[53,20062,66,141071,57,42828,141],[54,20064,66,145459,3,42823,141],[54,20001,66,145659,57,42690,141],[54,20004,66,148430,18,42715,141],[54,20007,66,149474,9,42718,141],[54,20010,66,150745,1,42721,141],[54,20013,66,125196,55,42729,141],[54,20016,66,128014,37,42739,141],[54,20019,66,128998,31,42742,141],[54,20022,66,129827,28,42745,141],[54,20025,66,130724,21,42748,141],[54,20028,66,131113,14,42751,141],[54,20031,66,133281,5,42754,141],[54,20034,66,133481,59,42762,141],[54,20037,66,135576,53,42796,141],[54,20040,66,136383,45,42799,141],[54,20043,66,137145,42,42802,141],[54,20046,66,137941,39,42805,141],[54,20049,66,138995,35,42808,141],[54,20052,66,139621,34,42811,141],[54,20055,66,142129,27,42814,141],[54,20058,66,143103,20,42817,141],[54,20061,66,143771,11,42820,141],[55,20025,45,64733,17,44101,99],[55,20028,45,65428,8,44104,99],[55,20031,45,66236,0,44107,99],[55,20034,45,66436,54,44115,99],[55,20037,45,68613,26,44122,99],[55,20040,45,69712,19,44125,99],[55,20043,45,70673,10,44128,99],[55,20001,45,71340,7,44032,99],[55,20004,45,71540,61,44040,99],[55,20007,45,74271,24,44059,99],[55,20010,45,75079,16,44062,99],[55,20013,45,75581,15,44065,99],[55,20016,45,77363,2,44068,99],[55,20019,45,62407,56,44076,99],[55,20022,45,64115,25,44098,99],[56,20025,45,83425,0,44092,99],[56,20028,45,83625,54,44100,99],[56,20031,45,85802,26,44107,99],[56,20034,45,86901,19,44110,99],[56,20037,45,87862,10,44113,99],[56,20040,45,73373,7,44116,99],[56,20043,45,73573,61,44124,99],[56,20001,45,76304,24,44044,99],[56,20004,45,77112,16,44047,99],[56,20007,45,77614,15,44050,99],[56,20010,45,79396,2,44053,99],[56,20013,45,79596,56,44061,99],[56,20016,45,81304,25,44083,99],[56,20019,45,81922,17,44086,99],[56,20022,45,82617,8,44089,99],[57,20064,66,182418,21,42880,141],[57,20001,66,182807,14,42742,141],[57,20004,66,184975,5,42745,141],[57,20007,66,185175,59,42753,141],[57,20010,66,187270,53,42787,141],[57,20013,66,188077,45,42790,141],[57,20016,66,188839,42,42793,141],[57,20019,66,189635,39,42796,141],[57,20022,66,190689,35,42799,141],[57,20025,66,191315,34,42802,141],[57,20028,66,193823,27,42805,141],[57,20031,66,194797,20,42808,141],[57,20034,66,195465,11,42811,141],[57,20037,66,197153,3,42814,141],[57,20040,66,197353,57,42822,141],[57,20043,66,200124,18,42847,141],[57,20046,66,201168,9,42850,141],[57,20049,66,202439,1,42853,141],[57,20052,66,176890,55,42861,141],[57,20055,66,179708,37,42871,141],[57,20058,66,180692,31,42874,141],[57,20061,66,181521,28,42877,141],[58,20064,66,128722,31,42895,141],[58,20001,66,129551,28,42757,141],[58,20004,66,130448,21,42760,141],[58,20007,66,130837,14,42763,141],[58,20010,66,133005,5,42766,141],[58,20013,66,133205,59,42774,141],[58,20016,66,135300,53,42808,141],[58,20019,66,136107,45,42811,141],[58,20022,66,136869,42,42814,141],[58,20025,66,137665,39,42817,141],[58,20028,66,138719,35,42820,141],[58,20031,66,139345,34,42823,141],[58,20034,66,141853,27,42826,141],[58,20037,66,142827,20,42829,141],[58,20040,66,143495,11,42832,141],[58,20043,66,145183,3,42835,141],[58,20046,66,145383,57,42843,141],[58,20049,66,148154,18,42868,141],[58,20052,66,149198,9,42871,141],[58,20055,66,150469,1,42874,141],[58,20058,66,124920,55,42882,141],[58,20061,66,127738,37,42892,141],[59,20064,66,118697,37,42922,141],[59,20001,66,119681,31,42784,141],[59,20004,66,120510,28,42787,141],[59,20007,66,121407,21,42790,141],[59,20010,66,121796,14,42793,141],[59,20013,66,123964,5,42796,141],[59,20016,66,124164,59,42804,141],[59,20019,66,126259,53,42838,141],[59,20022,66,127066,45,42841,141],[59,20025,66,127828,42,42844,141],[59,20028,66,128624,39,42847,141],[59,20031,66,129678,35,42850,141],[59,20034,66,130304,34,42853,141],[59,20037,66,132812,27,42856,141],[59,20040,66,133786,20,42859,141],[59,20043,66,134454,11,42862,141],[59,20046,66,136142,3,42865,141],[59,20049,66,136342,57,42873,141],[59,20052,66,139113,18,42898,141],[59,20055,66,140157,9,42901,141],[59,20058,66,141428,1,42904,141],[59,20061,66,115879,55,42912,141],[60,20025,45,69175,26,44152,99],[60,20028,45,70274,19,44155,99],[60,20031,45,71235,10,44158,99],[60,20034,45,71902,7,44161,99],[60,20037,45,72102,61,44169,99],[60,20040,45,74833,24,44188,99],[60,20043,45,75641,16,44191,99],[60,20001,45,76143,15,44095,99],[60,20004,45,77925,2,44098,99],[60,20007,45,62969,56,44106,99],[60,20010,45,64677,25,44128,99],[60,20013,45,65295,17,44131,99],[60,20016,45,65990,8,44134,99],[60,20019,45,66798,0,44137,99],[60,20022,45,66998,54,44145,99],[61,20025,45,82444,10,44080,99],[61,20028,45,83111,7,44083,99],[61,20031,45,68155,61,44091,99],[61,20034,45,70886,24,44110,99],[61,20037,45,71694,16,44113,99],[61,20040,45,72196,15,44116,99],[61,20043,45,73978,2,44119,99],[61,20001,45,74178,56,44028,99],[61,20004,45,75886,25,44050,99],[61,20007,45,76504,17,44053,99],[61,20010,45,77199,8,44056,99],[61,20013,45,78007,0,44059,99],[61,20016,45,78207,54,44067,99],[61,20019,45,80384,26,44074,99],[61,20022,45,81483,19,44077,99]],"start":"0000101010101010100001010101010101000010000101010101010101010101010101010101011101"};
+  X.D.byTail = X.D.tails.map(function () { return []; });
+  X.D.classes.forEach(function (c, i) { X.D.byTail[c[0]].push(i); });
+  // The run from blank tape, event by event: steps, tape (head cell to the last 1), and the round ends met.
+  var m = null, evK = [0], evT = [""], nodes = [];
+  X.nodeOf = function (t) { var r = /^01001000((?:01)*)(.*)$/.exec(t); return r ? { B: r[1].length / 2, T: X.trim(r[2]) } : null; };
+  X.events = function (n) {
+    if (!m) m = new X.M();
+    while (evK.length <= n) {
+      if (!m.toEvent(1e9)) break;
+      var t = m.right(); evK.push(m.k); evT.push(t);
+      var nd = X.nodeOf(t); if (nd) { nd.ev = evK.length - 1; nd.k = m.k; nodes.push(nd); }
+    }
+    return { k: evK, t: evT, nodes: nodes };
+  };
+  // The tape at an event as parts: [prefix, a, b, tail] or null.
+  X.parts = function (t) { var r = /^(010|110)((?:01)*)000((?:01)*)(.*)$/.exec(t); return r ? { p: r[1], a: r[2].length / 2, b: r[3].length / 2, T: X.trim(r[4]) } : null; };
+  // A short word as blocks of 10 or 01 (two copies or more), for reading.
+  X.tailText = function (s) {
+    var out = [], i = 0, lit = "";
+    while (i < s.length) {
+      var best = null;
+      ["10", "01"].forEach(function (w) { var n = 0; while (s.substr(i + 2 * n, 2) === w) n++; if (n >= 2 && (!best || n > best[1])) best = [w, n]; });
+      if (best) { if (lit) out.push(lit); lit = ""; out.push("(" + best[0] + ")<sup>" + best[1] + "</sup>"); i += 2 * best[1]; } else { lit += s[i]; i++; }
+    }
+    if (lit) out.push(lit);
+    return out.join(" ");
+  };
+  X.tailIndex = function (T) { return X.D.tails.indexOf(T); };
+  return X;
+})();
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sl = $("rdm-n");
+  function show() {
+    var n = +sl.value; $("rdm-lab").textContent = X.fmt(n);
+    var R = X.events(n + 44), k = R.k[n], t = R.t[n], P = X.parts(t), nd = X.nodeOf(t);
+    $("rdm-step").innerHTML = "step " + X.fmt(k) + " of the run from blank tape; " + X.fmt(t.length) + " cells from the head to the last 1";
+    var segs;
+    if (P) {
+      var i1 = 3 + 2 * P.a, i2 = i1 + 3, i3 = i2 + 2 * P.b;
+      segs = [[0, 3, "--rdP"], [3, i1, "--rdA"], [i1, i2, "--rdP"], [i2, i3, "--rdB"], [i3, t.length, "--rdT"]];
+      $("rdm-w").innerHTML = "A&gt; " + P.p + " (01)<sup>" + P.a + "</sup> 000 (01)<sup>" + P.b + "</sup> " + X.tailText(P.T);
+      var back = P.p + X.rep("01", P.a) + "000" + X.rep("01", P.b) + P.T;
+      $("rdm-wc").innerHTML = (X.trim(back) === X.trim(t) ? '<span class="rd-ok">✓ prefix, blocks and tail spell exactly the tape</span>' : '<span class="rd-bad">✗ the parts differ from the tape</span>') +
+        "; a = " + X.fmt(P.a) + " pairs in the left block, b = " + X.fmt(P.b) + " in the big block, a tail of " + P.T.length + " cells";
+    } else {
+      segs = [[0, t.length, "--rdT"]];
+      $("rdm-w").innerHTML = "A&gt; " + X.tailText(t);
+      $("rdm-wc").innerHTML = "Not of the form <code>010 (01)^a 000 (01)^b T</code>: early in the run, or while a round changes over.";
+    }
+    X.drawTape($("rdm-tape"), t, segs, 0);
+    var f = null;
+    X.D.rules.some(function (r) { var xs = X.match(r, t); if (xs) f = { r: r, xs: xs }; return !!xs; });
+    if (!f) $("rdm-r").innerHTML = "The tape fits none of the six templates: this event lies inside a period, in the start-up of a tail, or near the end of a round. Where no template fits, the executor works move by move.";
+    else {
+      var e = f.r.ev, later = R.t[n + e], ok = later !== undefined && X.trim(later) === X.trim(X.inst(f.r, X.counts(f.r, f.xs, true)));
+      $("rdm-r").innerHTML = "It is the start of a period of <b>cycle rule " + f.r.n + "</b> (" + e + " events) with x = (" + f.xs.join(", ") + "): the rule says that " + e +
+        " events later the two blocks have " + X.counts(f.r, f.xs, true).join(" and ") + " pairs instead of " + X.counts(f.r, f.xs, false).join(" and ") + ", the rest unchanged. " +
+        (later === undefined ? "" : ok ? '<span class="rd-ok">✓ the machine is there at event ' + X.fmt(n + e) + ", step " + X.fmt(R.k[n + e]) + "</span>" : '<span class="rd-bad">✗ the machine differs at event ' + X.fmt(n + e) + "</span>");
+    }
+    var last = null; R.nodes.forEach(function (d) { if (d.ev <= n) last = d; });
+    var g = "";
+    if (nd) g = "<b>This is a round end</b>: <code>01001000 (01)^" + nd.B + " T</code>. ";
+    else if (last) g = "Round " + (R.nodes.indexOf(last) + 1) + " so far; the last round end was at event " + X.fmt(last.ev) + ", B = " + X.fmt(last.B) + ". ";
+    var cur = nd || last;
+    if (cur) {
+      var ti = X.tailIndex(cur.T);
+      g += ti >= 0 ? "Its tail is tail " + (ti + 1) + " of the 62 tails of the closed set. " : "Its tail is not one of the 62 tails of the closed set (an early round). ";
+      g += "B = " + X.fmt(cur.B) + " is below 20,000, so it is in no class yet: the classes begin at B &ge; 20,000. The run first stands on a class at step 2,340,515,329, at the round end with B = 28,531 (<code>arrive_ok</code>, <code>start_ok</code>).";
+    }
+    $("rdm-g").innerHTML = g;
+  }
+  sl.addEventListener("input", show);
+  $("rdm-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); show(); });
+  $("rdm-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); show(); });
+  document.querySelectorAll("[data-rdm]").forEach(function (b) { b.addEventListener("click", function () { sl.value = b.dataset.rdm; show(); }); });
+  X.onTheme(show);
+  show();
+})();
+</script>
+</section>
 <section id="shape">
-  <span class="eyebrow">First look</span>
+  <span class="eyebrow">Level 1 · First look</span>
   <h2>The shape of the run</h2>
 <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.478).</p>
 <svg viewBox="0 0 560 240" role="img" aria-label="cells visited on each side against steps, log scales" style="width:100%;max-width:560px;height:auto;font:11px var(--mono);"><line x1="40.0" x2="40.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="40.0" y="216" text-anchor="middle" fill="var(--muted)">2^4</text><line x1="116.8" x2="116.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="116.8" y="216" text-anchor="middle" fill="var(--muted)">2^8</text><line x1="193.6" x2="193.6" y1="20.0" y2="200" stroke="var(--line)"/><text x="193.6" y="216" text-anchor="middle" fill="var(--muted)">2^12</text><line x1="270.4" x2="270.4" y1="20.0" y2="200" stroke="var(--line)"/><text x="270.4" y="216" text-anchor="middle" fill="var(--muted)">2^16</text><line x1="347.2" x2="347.2" y1="20.0" y2="200" stroke="var(--line)"/><text x="347.2" y="216" text-anchor="middle" fill="var(--muted)">2^20</text><line x1="424.0" x2="424.0" y1="20.0" y2="200" stroke="var(--line)"/><text x="424.0" y="216" text-anchor="middle" fill="var(--muted)">2^24</text><line x1="500.8" x2="500.8" y1="20.0" y2="200" stroke="var(--line)"/><text x="500.8" y="216" text-anchor="middle" fill="var(--muted)">2^28</text><line x1="40" x2="520" y1="200.0" y2="200.0" stroke="var(--line)"/><text x="34" y="204.0" text-anchor="end" fill="var(--muted)">2^0</text><line x1="40" x2="520" y1="157.9" y2="157.9" stroke="var(--line)"/><text x="34" y="161.9" text-anchor="end" fill="var(--muted)">2^4</text><line x1="40" x2="520" y1="115.8" y2="115.8" stroke="var(--line)"/><text x="34" y="119.8" text-anchor="end" fill="var(--muted)">2^8</text><line x1="40" x2="520" y1="73.7" y2="73.7" stroke="var(--line)"/><text x="34" y="77.7" text-anchor="end" fill="var(--muted)">2^12</text><path d="M40.0,183.3 L59.2,178.9 L78.4,172.8 L97.6,170.5 L116.8,170.5 L136.0,163.6 L155.2,158.9 L174.4,156.1 L193.6,151.7 L212.8,146.0 L232.0,141.2 L251.2,136.6 L270.4,131.8 L289.6,126.1 L308.8,121.3 L328.0,115.6 L347.2,110.9 L366.4,105.0 L385.6,100.4 L404.8,94.6 L424.0,89.9 L443.2,84.2 L462.4,79.2 L481.6,74.0 L500.8,68.5 L520.0,63.6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M40.0,178.9 L59.2,172.8 L78.4,170.5 L97.6,170.5 L116.8,157.9 L136.0,155.3 L155.2,153.1 L174.4,142.2 L193.6,140.3 L212.8,133.5 L232.0,129.3 L251.2,123.4 L270.4,117.6 L289.6,112.1 L308.8,107.8 L328.0,102.8 L347.2,97.6 L366.4,91.5 L385.6,86.6 L404.8,80.7 L424.0,75.8 L443.2,70.0 L462.4,64.9 L481.6,59.9 L500.8,55.0 L520.0,50.5" fill="none" stroke="var(--head)" stroke-width="2"/><text x="520" y="24.0" text-anchor="end" fill="var(--fg2)"><tspan fill="var(--accent)">&#9632; left of start</tspan>  <tspan fill="var(--head)">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>
@@ -298,36 +640,355 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
 <section id="words">
-  <span class="eyebrow">The tape</span>
+  <span class="eyebrow">Level 1 to level 2</span>
   <h2>Two blocks and a tail</h2>
-<p>Seen at the moments when the head (in state A) arrives at the left end, the tape is always</p><p><code>010 (01)^a 000 (01)^b T</code></p><p>Here <code>(01)^a</code> means the pair 01 written a times. The <em>left block</em> has a pairs, the <em>big block</em> has b pairs, and T, the <em>tail</em>, is a short word made of a few small blocks of pairs separated by <code>000</code> or <code>111</code>. Example, step 9,932,715,748: a = 2,110, b = 56,419, and the tail has blocks of 4, 13, 16 and 20 pairs.</p>
-<p>One visit: the head crosses the whole tape to the right and back, twice. On the way it takes exactly <b>3 pairs</b> from the left block, and the tail changes a little: its small blocks shrink by 3 pairs each, a block that is used up merges into its neighbour, and from time to time a block is absorbed into the big block. The five crossings of the two long blocks are proved in Lean for blocks of any length.</p>
+<div class="col">
+<p>Seen at the moments when the head, in state A, arrives at the left end (an <em>event</em>), the tape is, for most
+of the run,</p>
+<p style="text-align:center"><code>010 (01)^a 000 (01)^b T</code></p>
+<p>Here <code>(01)^a</code> means the pair 01 written a times. The <em>left block</em> has a pairs, the <em>big
+block</em> has b pairs, and T, the <em>tail</em>, is a short word made of a few small blocks of pairs separated by
+<code>000</code> or <code>111</code>. Example, step 9,932,715,748: a = 2,110, b = 56,419, and the tail has blocks of 4,
+13, 16 and 20 pairs.</p>
+<p>One visit of the left end: the head crosses the whole tape to the right and back, twice. On the way it takes
+exactly <b>3 pairs</b> from the left block, and the tail changes a little: its small blocks shrink by 3 pairs each, a
+block that is used up merges into its neighbour, and from time to time a block is absorbed into the big block. In the
+long stretches the events come in pairs six steps apart, first <code>110 &hellip;</code> and then
+<code>010 &hellip;</code>, so one visit is two events. The five crossings of the long blocks in a visit are proved in
+Lean for blocks of any length, three pairs at a time, by the kernel alone (<code>c_right6</code>,
+<code>a_left6</code>, <code>b_right6</code>, <code>b_left6</code>, <code>f_left6</code> in
+<code>lean/Rules.lean</code>).</p>
+<p>The Lean proof works at this level with a <em>symbolic executor</em> (adapted from the one of
+1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA): a program whose tape is a list of cells and blocks <code>(w)^n</code>,
+where n may be <code>c + a x</code> with x unknown. One move either crosses a whole block with a <em>shift rule</em>
+(in state q, with the word u just behind the head, k copies of w are crossed and the word v is left behind, in s
+steps), or makes one ordinary step. Each of the 15 shift rules is a statement about the machine for every tape around
+those cells, checked by the kernel (<code>shRTbl_ok</code>, <code>shLTbl_ok</code> in
+<code>lean/ExecData.lean</code>), and the soundness theorem <code>run_sound</code> (<code>lean/Exec.lean</code>,
+kernel) says that whatever the executor does, the machine does, for every value of the unknown. That is the theorem
+that makes level 2 answer the same as level 1.</p>
+</div>
+<div class="panel" id="rd-shift">
+ <div class="controls">
+  <label class="small" for="rds-r">Shift rule</label>
+  <select id="rds-r" style="max-width:100%"></select>
+  <label class="small" for="rds-n">crossings n</label>
+  <input type="text" class="rd-num" id="rds-n" value="5" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rds-go">Run the machine</button>
+  <button type="button" id="rds-all">Check all 15, n = 1 to 12</button>
+ </div>
+ <div class="rd-out" id="rds-out"></div>
+ <div class="cap">The browser writes u, then n crossings' worth of copies of w, between twelve random cells on each side, puts the head in state q where the rule says, and runs the real machine for n&middot;s steps. The rule holds if the head never reads a random cell, ends in state q at the far side, and the cells read u v<sup>n</sup> as the rule says. Words are written nearest cell first, as in the Lean file, so on the left of the head they appear reversed.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sel = $("rds-r"), seed = 1;
+  X.D.shift.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    o.textContent = "sh" + r.d + r.i + ": " + r.q + (r.d === "R" ? " going right" : " going left") + ", carrying " + (r.u || "nothing") + ", " + (r.k > 1 ? r.k + " copies of " : "") + r.w + " at a time, " + r.s + " steps";
+    sel.appendChild(o);
+  });
+  function one() {
+    var r = X.D.shift[+sel.value], n = Math.max(1, Math.min(200, parseInt($("rds-n").value, 10) || 1));
+    $("rds-n").value = n;
+    var c = X.checkShift(r, n, X.rng(seed++));
+    var hd = function (s, p) { return s.slice(0, p) + '<span style="background:var(--head);color:var(--surface);border-radius:2px">' + s[p] + "</span>" + s.slice(p + 1); };
+    $("rds-out").innerHTML =
+      '<div class="small">before, head in state ' + r.q + ':</div><div class="rd-words">' + hd(c.tape, c.start) + "</div>" +
+      '<div class="small" style="margin-top:6px">after ' + X.fmt(c.steps) + " steps, head in state " + r.q + ":</div><div class=\"rd-words\">" + hd(c.got, Math.min(c.end, c.got.length - 1)) + "</div>" +
+      '<p>' + (c.ok ? '<span class="rd-ok">✓ the machine did what sh' + r.d + r.i + " says: " + n + " crossing" + (n > 1 ? "s" : "") + " in " + n + " &times; " + r.s + " = " + X.fmt(c.steps) + " steps, the twelve random cells on each side untouched and unread</span>"
+        : '<span class="rd-bad">✗ the machine did not do what the rule says</span>') + "</p>";
+  }
+  $("rds-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rds-all").addEventListener("click", function () {
+    var ok = 0, all = 0, bad = [];
+    X.D.shift.forEach(function (r) { for (var n = 1; n <= 12; n++) { all++; if (X.checkShift(r, n, X.rng(seed++)).ok) ok++; else bad.push("sh" + r.d + r.i); } });
+    $("rds-out").innerHTML = ok === all ? '<span class="rd-ok">✓ all ' + all + " checks passed: 15 rules, n = 1 to 12 crossings, fresh random surroundings each time</span>"
+      : '<span class="rd-bad">✗ ' + (all - ok) + " of " + all + " checks failed: " + bad.join(", ") + "</span>";
+  });
+  one();
+})();
+</script>
 </section>
 <section id="cycles">
-  <span class="eyebrow">Within a round</span>
+  <span class="eyebrow">Level 2 to level 3</span>
   <h2>The tail runs in a cycle</h2>
-<p>The tail does not grow. After a start-up of some dozens of visits it repeats with a fixed period, and in one period fixed amounts leave the left block and enter the big block. Four such cycles occur:</p>
-<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>visits in a period</th><th>left block</th><th>big block</th><th>ratio</th></tr></thead><tbody><tr><td>15 (three variants)</td><td>&minus;45 pairs</td><td>+99 pairs</td><td>2.2</td></tr><tr><td>16</td><td>&minus;48</td><td>+99</td><td>2.06</td></tr><tr><td>22</td><td>&minus;66</td><td>+141</td><td>2.14</td></tr><tr><td>9</td><td>&minus;27</td><td>+57</td><td>2.11</td></tr></tbody></table></div>
-<p>Each line was established by running the machine symbolically: the two block sizes are left as unknowns, and the simulator stops if any step would depend on their values. A run that comes back to the same tail is therefore valid for all sizes at once.</p>
+<div class="col">
+<p>The tail does not grow. After a start-up of some dozens of visits it repeats with a fixed period, and in one
+period fixed amounts leave the left block and enter the big block. Four such cycles occur:</p>
+</div>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>visits in a period</th><th>events</th><th>left block</th><th>big block</th><th>ratio</th><th>Lean</th></tr></thead><tbody>
+<tr><td>15 (three variants)</td><td>30</td><td>&minus;45 pairs</td><td>+99 pairs</td><td>2.2</td><td><code>rule1_ok</code>, <code>rule3_ok</code>, <code>rule5_ok</code></td></tr>
+<tr><td>16</td><td>32</td><td>&minus;48</td><td>+99</td><td>2.06</td><td><code>rule0_ok</code></td></tr>
+<tr><td>22</td><td>44</td><td>&minus;66</td><td>+141</td><td>2.14</td><td><code>rule2_ok</code></td></tr>
+<tr><td>9</td><td>18</td><td>&minus;27</td><td>+57</td><td>2.11</td><td><code>rule4_ok</code></td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Each line is a <em>cycle rule</em> in <code>lean/ExecData.lean</code>: a template of the whole tape,
+<code>A&gt; 110 (01)^a 000 (01)^b T</code> with a = a<sub>0</sub> + 3x and b = b<sub>0</sub> + 3y, that comes back with
+a smaller and b larger by the amounts in the table, for all x and y. Each is proved by one run of the executor
+itself, without cycle rules, from the template before to the template after, 9,143 to 25,749 moves, evaluated by
+<code>native_decide</code> (<code>ruleOK_of_run</code> is the kernel theorem that turns such a run into the rule).
+Inside a round the executor applies a rule N times in one move, where N may itself be <code>N0 + q x</code>: the
+left block is <code>r0 + m x</code> and each period eats d = 27, 45, 48 or 66 pairs of it, so N = N0 + (m / d) x.
+The N-fold rule is proved by induction (<code>rule_instN</code>, kernel), and the subtraction is checked coefficient
+by coefficient (<code>appTok</code>, <code>app_inst</code>).</p>
+</div>
+<div class="panel" id="rd-rules">
+ <div class="controls">
+  <label class="small" for="rdr-r">Rule</label>
+  <select id="rdr-r" style="max-width:100%"></select>
+  <label class="small" for="rdr-x">x</label>
+  <input type="text" class="rd-num" id="rdr-x" value="2" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rdr-go">Run the machine</button>
+  <button type="button" id="rdr-all">Check all 6, x = 0 to 3</button>
+ </div>
+ <div class="rd-out" id="rdr-out"></div>
+ <div class="cap">Both blocks get the same x here. The browser writes the template on a blank tape, puts the head on its first cell in state A, runs the real machine until state A has reached the left end the rule's number of times, and compares the tape with the template after.</div>
+</div>
+<div class="col"><p>The same rules can be looked for in the run itself. The scan below runs the machine from blank tape through
+its first 3,600 events, tests every event against the six templates, and wherever one fits checks the rule's
+prediction against the event that many events later.</p></div>
+<div class="panel" id="rd-scan">
+ <div class="controls"><button type="button" class="primary" id="rdq-go">Scan the first 3,600 events</button></div>
+ <div class="rd-out" id="rdq-out"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, sel = $("rdr-r"), RS = X.D.rules;
+  RS.forEach(function (r, i) {
+    var o = document.createElement("option"); o.value = i;
+    var v = r.t.filter(function (x) { return x[0] === "v"; });
+    o.textContent = "rule " + r.n + ": " + r.ev + " events, a " + (v[0][3] - v[0][2]) + ", b +" + (v[1][3] - v[1][2]);
+    sel.appendChild(o);
+  });
+  function xsOf(r, x) { var xs = []; for (var i = 0; i < X.nvars(r); i++) xs.push(x); return xs; }
+  function one() {
+    var r = RS[+sel.value], x = Math.max(0, Math.min(40, parseInt($("rdr-x").value, 10) || 0));
+    $("rdr-x").value = x;
+    var xs = xsOf(r, x), c = X.checkRule(r, xs);
+    $("rdr-out").innerHTML = '<p><span class="ev n">native_decide</span> <code>rule' + r.n + "_ok</code>, " + X.fmt(r.moves) + " executor moves in Lean</p>" +
+      '<div class="small">before (x = ' + x + "):</div><div class=\"rd-words\">A&gt; " + X.text(r, X.counts(r, xs, false)) + "</div>" +
+      '<div class="small" style="margin-top:6px">after, as the rule says:</div><div class="rd-words">A&gt; ' + X.text(r, X.counts(r, xs, true)) + "</div>" +
+      "<p>" + (c.ok ? '<span class="rd-ok">✓ the machine arrives there: ' + c.events + " events, " + X.fmt(c.steps) + " steps</span>" : '<span class="rd-bad">✗ the machine ends elsewhere</span>') + "</p>";
+  }
+  $("rdr-go").addEventListener("click", one);
+  sel.addEventListener("change", one);
+  $("rdr-all").addEventListener("click", function () {
+    var out = $("rdr-out"); out.textContent = "running…";
+    setTimeout(function () {
+      var ok = 0, all = 0, bad = [];
+      RS.forEach(function (r) { for (var x = 0; x <= 3; x++) { all++; if (X.checkRule(r, xsOf(r, x)).ok) ok++; else bad.push("rule " + r.n + " x=" + x); } });
+      out.innerHTML = ok === all ? '<span class="rd-ok">✓ all ' + all + " checks passed: 6 rules, x = 0 to 3</span>" : '<span class="rd-bad">✗ ' + bad.join(", ") + "</span>";
+    }, 20);
+  });
+  $("rdq-go").addEventListener("click", function () {
+    var out = $("rdq-out"); out.textContent = "running the machine…";
+    setTimeout(function () {
+      var R = X.events(3644), N = Math.min(3600, R.t.length - 45), hit = {}, good = {}, first = {}, fit = 0;
+      for (var n = 1; n <= N; n++) {
+        RS.forEach(function (r) {
+          var xs = X.match(r, R.t[n]); if (!xs) return;
+          fit++; hit[r.n] = (hit[r.n] || 0) + 1; if (!first[r.n]) first[r.n] = n;
+          if (X.trim(R.t[n + r.ev]) === X.trim(X.inst(r, X.counts(r, xs, true)))) good[r.n] = (good[r.n] || 0) + 1;
+        });
+      }
+      var rows = RS.map(function (r) { return hit[r.n] ? "<tr><td>rule " + r.n + "</td><td>" + X.fmt(hit[r.n]) + "</td><td>" + X.fmt(first[r.n]) + "</td><td>" + (good[r.n] === hit[r.n] ? '<span class="rd-ok">✓ ' + X.fmt(good[r.n]) + "</span>" : '<span class="rd-bad">✗ ' + X.fmt(good[r.n] || 0) + "</span>") + "</td></tr>" : "<tr><td>rule " + r.n + "</td><td>0</td><td></td><td></td></tr>"; }).join("");
+      out.innerHTML = "<p>" + X.fmt(N) + " events, " + X.fmt(R.k[N]) + " steps; " + X.fmt(fit) + " of them fit a template.</p>" +
+        '<div style="overflow-x:auto"><table class="rd-tt"><thead><tr><th>rule</th><th>events where it fits</th><th>first at event</th><th>predictions confirmed by the machine</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    }, 20);
+  });
+  one();
+})();
+</script>
 </section>
 <section id="try-cycles">
-  <span class="eyebrow">Try it</span>
+  <span class="eyebrow">Level 3 · Try it</span>
   <h2>Drain the left block yourself</h2>
 <div class="col"><p>Within a round the tail runs in one of four cycles, and each period of a cycle moves a fixed number of pairs out of the left block and a larger number into the big block. Pick a cycle and apply it until the left block is nearly empty: the big block ends up 2.06 to 2.2 times as long as the left block was, which is why each round is that much longer than the last. In the real run the tail decides which cycle applies; here you choose, to see the arithmetic.</p></div>
   <div class="panel stp" data-stepper="try-cycles"></div>
 </section>
 <section id="rounds">
-  <span class="eyebrow">From round to round</span>
+  <span class="eyebrow">Level 3 to level 4</span>
   <h2>When the left block is empty</h2>
-<p>A round ends when the left block is down to one pair: the tape is then</p><p><code>01001000 (01)^B T</code></p><p>and during the next two visits the big block (B pairs) becomes the new left block, of B + 3 pairs, with a new small big block. So each round is 2.06 to 2.2 times longer than the one before. Sizes B at the round ends: 586, 1,291, 2,827, 6,280, 12,967, 28,531, &hellip;</p>
-<p>What the next round end looks like depends on two things only: the tail T, and <em>at which point of its cycle</em> the tail is when the left block runs out. The second is decided by the remainder of B when divided by the amount a period eats (45, 48, 66 or 27). The size of B beyond that plays no role, and that is what makes a finite analysis possible.</p>
+<div class="col">
+<p>A round ends when the left block is down to one pair: the tape is then</p>
+<p style="text-align:center"><code>node B T = A&gt; 01001000 (01)^B T</code></p>
+<p>and during the next two visits the big block (B pairs) becomes the new left block, of B + 3 pairs, with a new
+small big block. So each round is 2.06 to 2.2 times longer than the one before. Sizes B at the round ends: 586,
+1,291, 2,827, 6,280, 12,967, 28,531, &hellip;</p>
+<p>What the next round end looks like depends on two things only: the tail T, and <em>at which point of its
+cycle</em> the tail is when the left block runs out. The second is decided by the remainder of B when divided by the
+amount a period eats (45, 48, 66 or 27). The size of B beyond that plays no role, and that is what makes a finite
+analysis possible.</p>
+<p>The browser can find the round ends of the real run. The first button lists those of the first 1.2&middot;10<sup>8</sup>
+steps; the second runs on to the round end where the closed set takes over, which Lean reaches with 527,489 executor
+moves (<code>arrive_ok</code>, <code>lean/Arrive.lean</code>) and the simulators place at step 2,340,515,329.</p>
+</div>
+<div class="panel" id="rd-nodes">
+ <div class="controls">
+  <button type="button" class="primary" id="rdn-go">Round ends up to event 3,600</button>
+  <button type="button" id="rdn-far">Run on to B = 28,531 (2.3&middot;10<sup>9</sup> steps)</button>
+  <button type="button" id="rdn-stop" disabled>Stop</button>
+ </div>
+ <div class="rd-bar" aria-hidden="true"><i id="rdn-bar"></i></div>
+ <div class="rd-out" id="rdn-out"></div>
+ <div class="cap">The long run takes the browser some 10 to 30 seconds; it runs in slices, so the page stays usable. "Tail" gives the position of the round end's tail in the list of 62 tails of the closed set (<code>lean/ClassData.lean</code>), or "none".</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); }, out = $("rdn-out"), timer = null, rows = [];
+  var START = X.D.start, GOAL = 2340515329;
+  function row(d) { var i = X.tailIndex(d.T); return "<tr><td>" + X.fmt(d.ev) + "</td><td>" + X.fmt(d.k) + "</td><td>" + X.fmt(d.B) + "</td><td>" + (i >= 0 ? i + 1 : "none") + "</td></tr>"; }
+  function table(list, extra) {
+    return '<div style="overflow-x:auto"><table class="rd-tt"><thead><tr><th>event</th><th>step</th><th>B</th><th>tail</th></tr></thead><tbody>' + list.map(row).join("") + "</tbody></table></div>" + (extra || "");
+  }
+  $("rdn-go").addEventListener("click", function () {
+    out.textContent = "running the machine…";
+    setTimeout(function () { var R = X.events(3600); rows = R.nodes.filter(function (d) { return d.ev <= 3600; }); out.innerHTML = table(rows); $("rdn-bar").style.width = (R.k[Math.min(3600, R.k.length - 1)] / GOAL * 100) + "%"; }, 20);
+  });
+  $("rdn-far").addEventListener("click", function () {
+    var m = new X.M(), list = [], t0 = Date.now();
+    $("rdn-far").disabled = true; $("rdn-stop").disabled = false;
+    function slice() {
+      var end = Date.now() + 120;
+      while (Date.now() < end) {
+        if (!m.toEvent(2e7)) { if (m.halted) { finish('<span class="rd-bad">✗ the machine halted</span>'); return; } continue; }
+        if (m.get(m.p) === 0 && m.get(m.p + 1) === 1 && m.get(m.p + 2) === 0 && m.get(m.p + 3) === 0 && m.get(m.p + 4) === 1) {
+          var d = X.nodeOf(m.right());
+          if (d) {
+            d.ev = m.ev; d.k = m.k; list.push(d);
+            if (d.B >= 20000) {
+              var ok = d.B === 28531 && d.T === START;
+              finish((ok ? '<span class="rd-ok">✓ B = 28,531 and the tail is <code>startTail</code> of <code>lean/Arrive.lean</code></span>' : '<span class="rd-bad">✗ not the round end of Arrive.lean</span>') +
+                (d.k === GOAL ? ' <span class="rd-ok">✓ at step 2,340,515,329, as the simulators say</span>' : ' <span class="rd-bad">✗ the simulators say step 2,340,515,329</span>') +
+                ". From here on every round end is in a class (" + ((Date.now() - t0) / 1000).toFixed(1) + " s).");
+              return;
+            }
+          }
+        }
+      }
+      $("rdn-bar").style.width = Math.min(100, m.k / GOAL * 100) + "%";
+      out.innerHTML = table(list, "<p>step " + X.fmt(m.k) + "…</p>");
+      timer = setTimeout(slice, 0);
+    }
+    function finish(msg) { timer = null; $("rdn-bar").style.width = "100%"; out.innerHTML = table(list, "<p>" + msg + "</p>"); $("rdn-far").disabled = false; $("rdn-stop").disabled = true; }
+    out.textContent = "running the machine…"; timer = setTimeout(slice, 20);
+    $("rdn-stop").onclick = function () { if (timer) clearTimeout(timer); timer = null; $("rdn-far").disabled = false; $("rdn-stop").disabled = true; out.innerHTML = table(list, "<p>Stopped at step " + X.fmt(m.k) + ".</p>"); };
+  });
+})();
+</script>
 </section>
 <section id="closed">
-  <span class="eyebrow">The argument</span>
+  <span class="eyebrow">Level 4</span>
   <h2>A closed set of 1,144 classes</h2>
-<p>Call a <em>class</em> all round ends with a given tail T and a given remainder of B (and B at least 20,000). For one class the symbolic simulator runs one whole round with B = r + m&middot;x, where x is an unknown. The result is the next round end: a new tail T' and a new size B' = k + c&middot;x. Whatever x is, B' has one of a few remainders; all of them are put on the list of classes to examine. Nothing about x is remembered, so the list over-counts what the real run can do.</p>
-<p>Starting from the round end the real run reaches after 2,340,515,329 steps (B = 28,531), this search stops by itself: <b>62 tails, 1,144 classes</b>, and every class leads only to classes already on the list. In none of the 1,144 symbolic rounds does the machine reach its halting transition (state D reading 0). So the machine never halts.</p>
-<p>The remainders are not a hidden Collatz problem here: the search never asks which remainder comes next in the real run, it accepts all of them.</p>
+<div class="col">
+<p>Call a <em>class</em> all round ends with a given tail T and a given remainder of B (and B at least 20,000). For one
+class the symbolic executor runs one whole round with B = r0 + m&middot;x, where x is an unknown. The result is the
+next round end: a new tail T' and a new size B' = k + c&middot;x. Whatever x is, B' has one of a few remainders; all of
+them must be classes of the list. Nothing about x is remembered, so the list over-counts what the real run can do.</p>
+<p>Starting from the round end the real run reaches after 2,340,515,329 steps (B = 28,531), the search
+(<code>py/closure/closure.py bfs</code>) stops by itself: <b>62 tails, 1,144 classes</b>, and every class leads only to
+classes already on the list. In none of the 1,144 symbolic rounds does the machine reach its halting transition
+(state D reading 0). The remainders are not a hidden Collatz problem here: the search never asks which remainder
+comes next in the real run, it accepts all of them.</p>
+<p>In Lean (<code>lean/Classes.lean</code>, <code>lean/ClassData.lean</code>) each class is a record (tail, r0, m, K,
+next tail, k, c), and two tests are evaluated for every class by <code>native_decide</code>, 143 classes to a chunk
+(<code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>): <code>clsRun</code>, the executor's round of K + 1 moves from
+<code>node (r0 + m x) tail</code> with x free must end at <code>node (k + c x) next</code>; and <code>covers</code>,
+for every j below a common multiple P of the moduli of the next tail's classes, some class of that tail must contain
+B' = k + c&middot;j, with c&middot;P a multiple of its modulus, so that the same class serves j, j + P, j + 2P, and so
+on. The kernel proves what the two tests mean (<code>clsRun_sound</code>, <code>covers_sound</code>) and that a list
+passing both is closed (<code>closed_of_checks</code>); with the arrival, <code>nonhalting_of_closed_set</code>
+(<code>lean/Closed.lean</code>, kernel) gives the theorem.</p>
+<p>The panel below holds the 1,144 records as they are in <code>lean/ClassData.lean</code>. The browser runs the
+coverage test, as written in <code>Classes.lean</code>, and follows the run from B = 28,531 through the classes. The
+rounds themselves (<code>clsRun</code>) take about 4&middot;10<sup>9</sup> machine steps each, too many for the browser;
+they are what Lean evaluates.</p>
+</div>
+<div class="panel" id="rd-cls">
+ <div class="controls">
+  <label class="small" for="rdc-t">Tail</label><select id="rdc-t"></select>
+  <label class="small" for="rdc-c">class</label><select id="rdc-c" style="max-width:100%"></select>
+  <button type="button" id="rdc-all">Test all 1,144 classes</button>
+ </div>
+ <div class="rd-out" id="rdc-out"></div>
+</div>
+<div class="panel" id="rd-follow">
+ <div class="controls">
+  <span class="small">From B = 28,531 and its tail, follow</span>
+  <select id="rdf-n"><option value="10">10 rounds</option><option value="100">100 rounds</option><option value="1302" selected>1,302 rounds</option><option value="5000">5,000 rounds</option></select>
+  <button type="button" class="primary" id="rdf-go">Follow the classes</button>
+ </div>
+ <div class="rd-out" id="rdf-out"></div>
+ <div class="cap">Each round: find the class whose tail is T and whose r0 &le; B &equiv; r0 (mod m), set x = (B &minus; r0) / m, then B becomes k + c&middot;x and T the next tail. Exact integer arithmetic (BigInt). That such a class is always found is what the coverage test guarantees; that the machine really goes there is <code>clsRun</code>. <code>py/closure/validate.py real</code> compared 1,302 consecutive rounds of the real run with the classes, B up to 437 digits, all exact; 684 classes and all 62 tails occurred (computed).</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, D = X.D, $ = function (id) { return document.getElementById(id); }, st = $("rdc-t"), sc = $("rdc-c");
+  function gcd(a, b) { while (b) { var t = a % b; a = b; b = t; } return a; }
+  function lcm(a, b) { return a / gcd(a, b) * b; }
+  // covers, as in lean/Classes.lean: l = the classes of the next tail, P = lcm of their moduli; for every j < P some d
+  // in l has d.r0 <= k + c j, (k + c j) mod d.m = d.r0 mod d.m and d.m | c P. Returns {ok, P, uses} (uses: class per j).
+  function covers(c) {
+    var l = D.byTail[c[4]].map(function (i) { return D.classes[i]; }), P = l.reduce(function (a, d) { return lcm(a, d[2]); }, 1), uses = [];
+    if (!(P > 0) || !l.length) return { ok: false, P: P, uses: uses };
+    for (var j = 0; j < P; j++) {
+      var B = c[5] + c[6] * j, hit = -1;
+      for (var q = 0; q < l.length && hit < 0; q++) { var d = l[q]; if (d[1] <= B && B % d[2] === d[1] % d[2] && (c[6] * P) % d[2] === 0) hit = D.byTail[c[4]][q]; }
+      if (hit < 0) return { ok: false, P: P, uses: uses, j: j };
+      uses.push(hit);
+    }
+    return { ok: true, P: P, uses: uses };
+  }
+  D.tails.forEach(function (t, i) { var o = document.createElement("option"); o.value = i; o.textContent = (i + 1) + " (" + D.byTail[i].length + " classes)"; st.appendChild(o); });
+  function fillC() {
+    sc.innerHTML = "";
+    D.byTail[+st.value].forEach(function (ci) { var c = D.classes[ci], o = document.createElement("option"); o.value = ci; o.textContent = "B = " + X.fmt(c[1]) + " + " + c[2] + "x"; sc.appendChild(o); });
+  }
+  function show() {
+    var ci = +sc.value, c = D.classes[ci], v = covers(c), mods = {};
+    v.uses.forEach(function (u) { mods[u] = 1; });
+    var targets = Object.keys(mods).map(Number).sort(function (a, b) { return a - b; });
+    $("rdc-out").innerHTML = "<p>Class " + (ci + 1) + " of 1,144: tail " + (c[0] + 1) + ", B = " + X.fmt(c[1]) + " + " + c[2] + "x.</p>" +
+      '<div class="small">round end before:</div><div class="rd-words">A&gt; 01001000 (01)<sup>' + X.fmt(c[1]) + " + " + c[2] + "x</sup> " + X.tailText(D.tails[c[0]]) + "</div>" +
+      '<div class="small" style="margin-top:6px">one round later (' + X.fmt(c[3] + 1) + ' executor moves in Lean, any x):</div><div class="rd-words">A&gt; 01001000 (01)<sup>' + X.fmt(c[5]) + " + " + c[6] + "x</sup> " + X.tailText(D.tails[c[4]]) + "</div>" +
+      "<p>The next tail is tail " + (c[4] + 1) + ", which has " + D.byTail[c[4]].length + " classes; their moduli have common multiple P = " + v.P + ". " +
+      (v.ok ? '<span class="rd-ok">✓ covers: for each of the ' + v.P + " values of x mod " + v.P + " the new B lies in a class of the list</span> (classes " + targets.map(function (t) { return t + 1; }).join(", ") + ")."
+        : '<span class="rd-bad">✗ not covered at j = ' + v.j + "</span>") + "</p>";
+  }
+  st.addEventListener("change", function () { fillC(); show(); });
+  sc.addEventListener("change", show);
+  $("rdc-all").addEventListener("click", function () {
+    var ok = 0, bad = [], used = {};
+    D.classes.forEach(function (c, i) { var v = covers(c); if (v.ok) { ok++; v.uses.forEach(function (u) { used[u] = 1; }); } else bad.push(i + 1); });
+    var reached = Object.keys(used).length, low = D.classes.every(function (c) { return c[1] >= 20000; });
+    $("rdc-out").innerHTML = (bad.length ? '<span class="rd-bad">✗ classes ' + bad.slice(0, 20).join(", ") + " fail</span>" : '<span class="rd-ok">✓ all 1,144 classes pass the coverage test</span>') +
+      (low ? ' <span class="rd-ok">✓ every class starts at B &ge; 20,000</span>' : "") + ". " + X.fmt(reached) + " classes are the target of some class, over " + D.tails.length + " tails.";
+  });
+  $("rdf-go").addEventListener("click", function () {
+    var N = +$("rdf-n").value, out = $("rdf-out"), t = X.tailIndex(D.start), B = 28531n, seen = {}, cls = {}, i, log = [];
+    seen[t] = 1;
+    for (i = 1; i <= N; i++) {
+      var d = null, di = -1;
+      D.byTail[t].some(function (q) { var e = D.classes[q]; if (BigInt(e[1]) <= B && B % BigInt(e[2]) === BigInt(e[1] % e[2])) { d = e; di = q; return true; } return false; });
+      if (!d) break;
+      var x = (B - BigInt(d[1])) / BigInt(d[2]); B = BigInt(d[5]) + BigInt(d[6]) * x; t = d[4]; seen[t] = 1; cls[di] = 1;
+      if (i <= 6) log.push("round " + i + ": class " + (di + 1) + ", B = " + B.toString());
+    }
+    var s = B.toString();
+    out.innerHTML = (i > N ? '<span class="rd-ok">✓ every round end found its class</span>' : '<span class="rd-bad">✗ no class at round ' + i + "</span>") +
+      ". After " + X.fmt(N) + " rounds B has <b>" + s.length + " digits</b> (" + s.slice(0, 12) + "&hellip;" + s.slice(-6) + "); " + Object.keys(cls).length + " classes and " + Object.keys(seen).length + " tails were used." +
+      '<div class="rd-words" style="margin-top:8px">' + log.join("<br>") + "</div>";
+  });
+  fillC(); show();
+})();
+</script>
 </section>
 <section id="trust">
   <span class="eyebrow">How sure</span>
@@ -340,8 +1001,85 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="neighbours">
   <span class="eyebrow">A warning</span>
   <h2>Nearby tapes do halt</h2>
-<p>The shape <code>01001000 (01)^B T</code> alone does not keep the machine running. Take one of the 62 tails and make one of its small blocks one pair longer or shorter: of 1,141 such classes tried, 1,136 fall back into the closed set after one round, but <b>5 halt</b>, for every size B. One of them, checked cell by cell: with the tail <code>0000 (10)^10 000 (10)^4 000 (10)^12 111 0000 101</code> (the last block has 12 pairs; the real run has this tail with 11) and B = 20,002 the machine halts after 815,565 steps.</p>
-<p>So the argument really needs the exact list of 62 tails; a statement about all tails would be false. Other remainders of B for the 62 tails are harmless: all 1,722 classes tried fall into the closed set.</p>
+<div class="col">
+<p>The shape <code>01001000 (01)^B T</code> alone does not keep the machine running. Take one of the 62 tails and make
+one of its small blocks one pair longer or shorter: of 1,141 such classes tried, 1,136 fall back into the closed set
+after one round, but <b>5 halt</b>, for every size B. One of them, checked cell by cell: with the tail
+<code>0000 (10)^10 000 (10)^4 000 (10)^12 111 0000 101</code> (the last block has 12 pairs; the closed set has this
+tail with 11) and B = 20,002 + 3x, the machine halts after 815,565 + 122x steps (computed by
+<code>py/closure/validate.py tails</code>, confirmed bit by bit at x = 0, 1, 3).</p>
+<p>So the argument really needs the exact list of 62 tails; a statement about all tails would be false. Other
+remainders of B for the 62 tails are harmless: all 1,722 classes tried fall into the closed set.</p>
+<p>The browser can run the halting neighbour, and the tail of the closed set next to it.</p>
+</div>
+<div class="panel" id="rd-near">
+ <div class="controls">
+  <label class="small" for="rdh-k">last block of the tail</label>
+  <select id="rdh-k"><option value="12" selected>(10)^12, the neighbour</option><option value="11">(10)^11, a tail of the closed set</option></select>
+  <label class="small" for="rdh-x">x</label><input type="text" class="rd-num" id="rdh-x" value="0" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rdh-go">Run the machine</button>
+ </div>
+ <div class="rd-out" id="rdh-out"></div>
+ <div class="cap">The tape is <code>A&gt; 01001000 (01)^(20,002 + 3x) T</code>. With the tail of the closed set the browser stops after 2&middot;10<sup>7</sup> steps; a whole round from there takes about 4&middot;10<sup>9</sup> steps. These round ends lie in classes of the list, so that the run from them goes on from class to class for ever follows from the Lean theorem <code>closed_set</code>, not from a bounded run.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RD, $ = function (id) { return document.getElementById(id); };
+  function go() {
+    var k = +$("rdh-k").value, x = parseInt($("rdh-x").value, 10), out = $("rdh-out");
+    if (!(x >= 0 && x <= 100000)) { out.innerHTML = '<span class="rd-bad">Give x between 0 and 100,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var T = "0000" + X.rep("10", 10) + "000" + X.rep("10", 4) + "000" + X.rep("10", k) + "111" + "0000" + "101", ti = X.tailIndex(T);
+      var m = new X.M().load("01001000" + X.rep("01", 20002 + 3 * x) + T, 0), lim = 2e7, f = 815565 + 122 * x;
+      while (!m.halted && m.k < lim) m.toEvent(lim - m.k);
+      var B = 20002 + 3 * x, cl = ti < 0 ? -1 : X.D.byTail[ti].filter(function (q) { var d = X.D.classes[q]; return d[1] <= B && B % d[2] === d[1] % d[2]; })[0];
+      var tl = (ti >= 0 ? "Tail " + (ti + 1) + " of the 62 of the closed set" : "A tail that is not in the closed set") + ", B = " + X.fmt(B) +
+        (cl >= 0 ? ": class " + (cl + 1) + " of the list (B = " + X.fmt(X.D.classes[cl][1]) + " + " + X.D.classes[cl][2] + "x). " : ". ");
+      if (m.halted) out.innerHTML = tl + "The machine halts after <b>" + X.fmt(m.k) + "</b> steps (state D reads a 0). " +
+        (k === 12 ? (m.k === f ? '<span class="rd-ok">✓ 815,565 + 122 &times; ' + x + " = " + X.fmt(f) + ", as computed in the repository</span>" : '<span class="rd-bad">✗ the formula gives ' + X.fmt(f) + "</span>") : "");
+      else out.innerHTML = tl + "No halt in " + X.fmt(m.k) + " steps (" + X.fmt(m.ev) + " events)." + (k === 12 ? ' <span class="rd-bad">✗ the formula says it halts at step ' + X.fmt(f) + "</span>" : "");
+    }, 20);
+  }
+  $("rdh-go").addEventListener("click", go);
+  go();
+})();
+</script>
+</section>
+<section id="bottom">
+  <span class="eyebrow">The bottom line</span>
+  <h2>It never halts</h2>
+<div class="col">
+<p style="font:700 1.3rem/1.3 var(--display);margin-top:0">It never halts.</p>
+<p>Started on a blank tape, 1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA runs for ever. From step 2,340,515,329 on,
+every round end of its run lies in one of 1,144 classes, every class leads after one round only to classes of the same
+list, and no round of any class reaches the halting transition.</p>
+<p>The Lean theorem is <code>nonhalt : ¬ HaltsFromBlank</code> in <code>lean/Replay.lean</code>, ledger level
+<span class="ev n">native_decide</span>. What it rests on, exactly:</p>
+<ul>
+<li><b>The Lean kernel</b> checks the soundness of the symbolic executor (<code>run_sound</code>, <code>run_pos</code>,
+<code>rule_instN</code>, <code>ruleOK_of_run</code> in <code>lean/Exec.lean</code>), what the two class tests mean
+(<code>clsRun_sound</code>, <code>covers_sound</code>, <code>closed_of_checks</code>, <code>arrives_sound</code>,
+<code>inSetB_sound</code> in <code>lean/Classes.lean</code>), the 15 shift rules (each by <code>rfl</code>), and the
+last implication, <code>nonhalting_of_closed_set</code> (<code>lean/Closed.lean</code>).</li>
+<li><b>Sixteen evaluations by <code>native_decide</code></b>, which trust Lean's compiler as well as its kernel: the six
+cycle rules (<code>rule0_ok</code> &hellip; <code>rule5_ok</code>), the eight chunks of 143 classes
+(<code>chunk0_ok</code> &hellip; <code>chunk7_ok</code>, a round with x free and the coverage test for each class),
+the arrival from blank tape (<code>arrive_ok</code>, 527,489 moves) and its class (<code>start_ok</code>).
+<code>#print axioms nonhalt</code> lists <code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>
+and these sixteen evaluations; there is no <code>sorry</code>.</li>
+<li><b>Not used</b>: the Python search that found the classes, or any simulator outside Lean. The executor's
+choices (which rule, how many times, how to re-bracket) are not trusted; only its soundness is, and that is
+proved.</li>
+<li><b>Not stated in Lean</b>: step counts, such as the step 2,340,515,329 of the first round end in a class; Lean says
+only "reaches, in at least one step". Those come from the simulators (computed).</li>
+</ul>
+<p>There is no kernel-only proof yet: the long runs would have to be cut at checkpoints, which has not been done. A
+second proof of the same statement, in Coq on top of busycoq (<code>coq/H11019.v</code>,
+<code>nonhalt : ~ halts tm c0</code>), evaluates all its runs inside Coq's kernel with <code>vm_compute</code> and
+reports no axioms; the ledger lists it as kernel level.</p>
+</div>
 </section>
 <section id="related-machines">
   <span class="eyebrow">Family</span>

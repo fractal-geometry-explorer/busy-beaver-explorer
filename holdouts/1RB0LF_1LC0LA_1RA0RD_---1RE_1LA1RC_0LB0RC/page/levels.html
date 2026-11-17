@@ -1,0 +1,197 @@
+<style>
+.pw-flow{width:100%;height:auto;max-width:980px;display:block;margin:10px 0}
+.pw-flow text{font-family:var(--body);fill:var(--fg)}
+.pw-flow .t-s{font-size:12px;fill:var(--fg2)}
+.pw-flow .t-b{font-size:14px;font-weight:600}
+.pw-box{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.2}
+.pw-k{fill:var(--kernel-bg);stroke:var(--kernel)}
+.pw-n{fill:var(--native-bg);stroke:var(--native)}
+.pw-arrow{stroke:var(--fg2);stroke-width:1.5;fill:none}
+.pw-steps{counter-reset:pw;list-style:none;padding:0;margin:14px 0;display:grid;gap:10px}
+.pw-steps li{counter-increment:pw;display:grid;grid-template-columns:2.2em 1fr;gap:10px;align-items:start}
+.pw-steps li::before{content:counter(pw);font:700 1rem/2em var(--display);text-align:center;border-radius:50%;width:2em;height:2em;background:var(--accent-soft);color:var(--accent)}
+.pw-steps li>div{min-width:0}
+.pw-strip{display:flex;flex-wrap:wrap;gap:3px;align-items:stretch;font:600 .78rem/1 var(--mono);margin:10px 0}
+.pw-strip .lit{display:flex;gap:1px}
+.pw-strip .c{width:13px;height:22px;border:1px solid var(--line-strong);background:var(--cell0);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted)}
+.pw-strip .c.one{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.pw-strip .run{display:flex;align-items:center;gap:6px;padding:0 8px;height:22px;border-radius:5px;color:var(--surface);white-space:nowrap}
+.pw-strip .run.a{background:var(--accent)} .pw-strip .run.b{background:var(--kernel)} .pw-strip .run.o{background:var(--fg2)}
+.pw-strip .head{height:22px;display:flex;align-items:center;padding:0 6px;border-radius:5px;background:var(--head);color:var(--surface)}
+.pw-strip .run.v{background:transparent;color:var(--fg);border:1.5px dashed var(--fg2)}
+.pw-strip .run.v.a{border-color:var(--accent);color:var(--accent)} .pw-strip .run.v.b{border-color:var(--kernel);color:var(--kernel)}
+.pw-note{border-left:3px solid var(--native);background:var(--native-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.pw-note.k{border-color:var(--kernel);background:var(--kernel-bg)}
+.pw-ok{color:var(--kernel);font-weight:600} .pw-bad{color:var(--open);font-weight:600}
+.pw-cv{width:100%;max-width:100%;display:block;border:1px solid var(--line);border-radius:8px;background:var(--cell0);image-rendering:pixelated}
+.pw-mini{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;padding:22px 0 4px;position:relative}
+.pw-mini .c{flex:0 0 26px;height:26px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font:600 .8rem var(--mono);background:var(--cell0);position:relative}
+.pw-mini .c.one{background:var(--ink);color:var(--surface)}
+.pw-mini .c.h::after{content:attr(data-s);position:absolute;top:-21px;left:50%;transform:translateX(-50%);background:var(--head);color:var(--surface);font:700 .72rem/1 var(--mono);padding:3px 5px;border-radius:4px}
+.pw-mini .c.h{outline:2px solid var(--head);outline-offset:1px}
+.pw-tbl td,.pw-tbl th{font-family:var(--mono);font-size:.82rem;padding:.3rem .55rem;white-space:nowrap}
+.pw-tbl tr.on td{background:var(--accent-soft)}
+.pw-tbl td.a{color:var(--accent);font-weight:600} .pw-tbl td.b{color:var(--kernel);font-weight:600}
+.pw-chart{width:100%;height:auto;max-width:760px;display:block}
+.pw-chart text{font:11px var(--mono);fill:var(--muted)}
+.pw-rings text{font:11px var(--mono)}
+.pw-dl{display:grid;grid-template-columns:minmax(9em,auto) 1fr;gap:6px 16px;margin:12px 0}
+.pw-dl dt{font-family:var(--mono);font-size:.85rem;font-weight:600;overflow-wrap:anywhere}
+.pw-dl dd{margin:0;min-width:0}
+@media (max-width:560px){.pw-dl{grid-template-columns:1fr}.pw-dl dd{margin-bottom:8px}}
+.z6-ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:22px 0}
+.z6-lv{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.z6-lv:hover{border-color:var(--accent)}
+.z6-lv .n{font:700 .72rem/1 var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.z6-lv .t{display:block;font:700 1.08rem/1.25 var(--display);margin:.35rem 0 .3rem}
+.z6-lv code{font-size:.8em}
+.z6-lv .u{font-size:.84rem;color:var(--fg2);margin:.3rem 0 .5rem}
+.z6-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line);align-items:baseline}
+.z6-row:first-child{border-top:0}
+.z6-row>span:first-child{font:600 .78rem/1.3 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.z6-row>div{min-width:0;overflow-wrap:anywhere}
+@media (max-width:560px){.z6-row{grid-template-columns:minmax(0,1fr)}}
+.z6-tape{display:block;width:100%;height:46px;margin-top:6px}
+.z6-key{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--fg2);margin-top:4px}
+.z6-key i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.z6-slider{flex:1 1 220px;min-width:140px;accent-color:var(--accent)}
+.z6-log{font:.8rem/1.5 var(--mono);max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--sunk);margin-top:10px}
+.z6-log div{white-space:nowrap}
+.z6-log .x{color:var(--kernel);font-weight:600}
+.pw-strip{max-width:100%}
+.pw-strip .run{white-space:nowrap}
+</style>
+<div class="col">
+<p>The question "does this machine halt?" is answered here by walking down a ladder of five descriptions of the same
+run. Each level forgets detail that the level above keeps and has its own, longer unit of time. Each step down is a
+Lean theorem saying that one move at the lower level is a real run of the machine, at least one step long, from one
+configuration to the next. So a run that goes on forever at the bottom level is a run of the machine that goes on
+forever: the machine never halts. The badge on each card says what Lean used to check that step
+(<span class="ev k">Kernel</span>: Lean's small trusted core; <span class="ev n">native_decide</span>: a compiled
+program whose answer Lean takes on trust).</p>
+</div>
+<div class="z6-ladder">
+ <a class="z6-lv" href="#l1-machine"><span class="n">Level 1</span><b class="t">The machine</b>
+  <div class="u">A tape of cells and a head in one of six states. One unit of time is one <b>step</b>. It can halt only when D reads a 0.</div>
+  <span class="ev k">Kernel</span> <span class="small"><code>step_none_iff</code></span></a>
+ <a class="z6-lv" href="#l2-sweep"><span class="n">Level 2</span><b class="t">A list of numbers</b>
+  <div class="u">The tape as cells and stretches <code>(01)<sup>n</sup></code>. One unit is one <b>move</b>: a single step, or a whole stretch crossed at once.</div>
+  <span class="ev k">Kernel</span> <span class="small">every move is a real run: <code>sweep_right</code>, <code>sweep_left</code>, <code>auto_reach</code></span></a>
+ <a class="z6-lv" href="#l3-round"><span class="n">Level 3</span><b class="t">62 templates <code>(t, k, j)</code></b>
+  <div class="u">The list at the left end is template t with first count 3k + 4 and second 3j + β. One unit is one <b>round trip</b>.</div>
+  <span class="ev k">Kernel</span> <span class="small">(t, k + 1, j) to (nxt t, k, j + dj): <code>round_0</code> … <code>round_61</code></span></a>
+ <a class="z6-lv" href="#l4-epoch"><span class="n">Level 4</span><b class="t">Epochs</b>
+  <div class="u">k counts down to 0, then the second count takes the place of the first. One unit is one <b>epoch end</b>.</div>
+  <span class="ev n">native_decide</span> <span class="small">(t, 0, j + 200) to (endT t, j + endC1, endC2): <code>ends_ok</code>; the way in: <code>start_ok</code></span></a>
+ <a class="z6-lv" href="#l5-potential"><span class="n">Level 5</span><b class="t">One number Φ</b>
+  <div class="u">Φ = j + 2k + pot(t). It never drops in a round trip and is at least 215 after an epoch end, so the next epoch end always has j ≥ 200.</div>
+  <span class="ev k">Kernel</span> <span class="small"><code>tables_ok</code></span></a>
+</div>
+<div class="col">
+<h3>One moment, every level</h3>
+<p>Pick a moment of the run: the n-th time, counted from step 1,277,431, that the tape is one of the 62 templates.
+The browser runs the real machine from blank tape to that moment, cell by cell, and reads its tape. It also runs
+the shift-rule simulator of level 2 from blank tape, and the tables of the proof (levels 3 to 5) from the first
+template. The rows show the same instant at each level, and the check marks say that the computations agree.</p>
+</div>
+<div class="panel" id="z6m">
+ <div class="controls">
+  <button type="button" id="z6m-prev" aria-label="Previous moment">&#9664;</button>
+  <input type="range" class="z6-slider" id="z6m-n" min="0" max="2764" value="39" aria-label="Moment number">
+  <button type="button" id="z6m-next" aria-label="Next moment">&#9654;</button>
+  <span class="small">moment <b id="z6m-lab">39</b></span>
+ </div>
+ <div class="controls" style="margin-top:6px"><span class="small">Jump to:</span>
+  <button type="button" data-z6m="0">the first template</button>
+  <button type="button" data-z6m="38">first epoch end</button>
+  <button type="button" data-z6m="159">second</button>
+  <button type="button" data-z6m="670">third</button>
+  <button type="button" data-z6m="1757">fourth</button>
+  <button type="button" data-z6m="2764">moment 2,764</button>
+ </div>
+ <div class="small" id="z6m-busy" aria-live="polite" style="min-height:1.4em;margin-top:6px"></div>
+ <div style="margin-top:6px">
+  <div class="z6-row"><span>1 · Machine</span><div><span id="z6m-1"></span>
+   <canvas class="z6-tape" id="z6m-tape" aria-label="The whole written tape at this moment, coloured by stretch"></canvas>
+   <div class="z6-key"><span><i style="background:var(--accent)"></i>first stretch (01)<sup>a</sup></span><span><i style="background:var(--kernel)"></i>second stretch (01)<sup>b</sup></span><span><i style="background:var(--fg2)"></i>the tail</span><span><i style="background:var(--head)"></i>the head, at the left edge</span></div></div></div>
+  <div class="z6-row"><span>2 · List</span><div><div class="pw-strip" id="z6m-strip"></div><div id="z6m-2" class="small"></div></div></div>
+  <div class="z6-row"><span>3 · Template</span><div id="z6m-3"></div></div>
+  <div class="z6-row"><span>4 · Epoch</span><div id="z6m-4"></div></div>
+  <div class="z6-row"><span>5 · Potential</span><div id="z6m-5"></div></div>
+ </div>
+ <div class="cap">Moments 0 to 2,764 cover the first 3·10<sup>8</sup> steps and four epoch ends. The machine is simulated
+ step by step; going far forward takes the browser a few seconds (the work is kept, so going back is instant). Before
+ step 1,277,431 the tape is never one of the templates: that stretch is the setup, shown in its own section below.</div>
+</div>
+<script>
+window.Z6 = (__LIB__)(__DATA__);
+(function () {
+  "use strict";
+  var Z = window.Z6, D = Z.D, $ = function (i) { return document.getElementById(i); };
+  var MS = Z.macro(2765);                    // the tables' sequence of good tapes
+  var EP = [0]; for (var i = 1; i < MS.length; i++) EP.push(EP[i - 1] + (MS[i][3] === "end" ? 1 : 0));
+  var G = [];                                // the moments found so far: {n, list, tkj, fs, fm, fok}
+  var pm = new Z.Machine("", 0), fs = new Z.Fast([], 0), busy = false, want = 39;
+  function note(m) {
+    var l = Z.parse(m.fromHead()), w = Z.whichTpl(l);
+    if (!w) return;
+    while (fs.steps < m.n) if (fs.toLeftEnd(1e7) !== "left") break;
+    var ones = 0; for (var x = m.h; x < m.hi; x++) ones += m.t[x];
+    G.push({ n: m.n, list: l, tkj: w, ones: ones, width: m.fromHead().length, fsteps: fs.steps, fmoves: fs.moves,
+             fok: fs.steps === m.n && Z.listEq(fs.list(), l) });
+  }
+  function work() {
+    if (G.length > want) { busy = false; $("z6m-busy").textContent = ""; show(); return; }
+    busy = true;
+    var t0 = performance.now();
+    while (G.length <= want && performance.now() - t0 < 60) pm.run(pm.n + 400000, note);
+    $("z6m-busy").textContent = "running the machine… step " + Z.fmt(pm.n);
+    setTimeout(work, 0);
+  }
+  function go(n) { want = Math.max(0, Math.min(2764, n)); $("z6m-n").value = want; $("z6m-lab").textContent = Z.fmt(want); if (!busy) work(); }
+  function draw(list) {
+    var cv = $("z6m-tape"), w = cv.clientWidth || 600, h = cv.clientHeight || 46, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var segs = [], len = 0, r = 0;
+    list.forEach(function (x) {
+      if (typeof x === "number") { segs.push([len, 2 * x, r === 0 ? "--accent" : r === 1 ? "--kernel" : "--fg2"]); len += 2 * x; r++; }
+      else { segs.push([len, x.length, "--ink", x]); len += x.length; }
+    });
+    var sc = w / len;
+    g.fillStyle = Z.css("--sunk"); g.fillRect(0, 8, w, h - 16);
+    segs.forEach(function (S) {
+      if (S[3] === undefined) { g.fillStyle = Z.css(S[2]); g.globalAlpha = 0.85; g.fillRect(S[0] * sc, 8, Math.max(S[1] * sc, 0.8), h - 16); g.globalAlpha = 1; }
+      else { g.fillStyle = Z.css("--ink"); for (var q = 0; q < S[3].length; q++) if (S[3][q] === "1") g.fillRect((S[0] + q) * sc, 8, Math.max(sc, 1), h - 16); }
+    });
+    g.fillStyle = Z.css("--head"); g.fillRect(0, 0, 3, h);
+  }
+  function show() {
+    var r = want, m = G[r], p = MS[r], t = m.tkj, d = D.tpl[t[0]];
+    $("z6m-1").innerHTML = "Step <b>" + Z.fmt(m.n) + "</b>, state B, on the leftmost written cell; " + Z.fmt(m.width) +
+      " cells from the head to the last 1, " + Z.fmt(m.ones) + " of them 1. Nothing is written to its left.";
+    draw(m.list);
+    Z.strip($("z6m-strip"), m.list);
+    $("z6m-2").innerHTML = "The same cells read as a list: first count a = " + Z.fmt(m.list[1]) + ", second b = " + Z.fmt(m.list[3]) + ". " +
+      (m.fok ? '<span class="pw-ok">&#10003; The shift-rule simulator, also from blank tape, reaches this list at the same step</span> after ' + Z.fmt(m.fmoves) + " moves instead of " + Z.fmt(m.n) + " steps."
+             : '<span class="pw-bad">The shift-rule simulator disagrees.</span>');
+    var same = p[0] === t[0] && p[1] === t[1] && p[2] === t[2];
+    $("z6m-3").innerHTML = "Template <b>" + d.name + "</b> with k = " + Z.fmt(t[1]) + ", j = " + Z.fmt(t[2]) + " (a = 3k + 4, b = 3j + " + d.beta + "). " +
+      (same ? '<span class="pw-ok">&#10003; The tables give the same template and numbers</span> after ' + Z.fmt(r) + " round trips and end cases of the tables, starting from (" + Z.name(31) + ", 38, 163)."
+            : '<span class="pw-bad">The tables predict ' + Z.name(p[0]) + " (" + p[1] + ", " + p[2] + ").</span>");
+    var e = EP[r], since = 0; for (var q = r; q > 0 && MS[q][3] !== "end"; q--) since++;
+    $("z6m-4").innerHTML = (e === 0 ? "The epoch the run is in at step 1,277,431, " + Z.fmt(since) + " round trips after that step. "
+        : "Epoch " + e + " after the first template, " + Z.fmt(since) + " round trips after it began. ") + (t[1] > 0 ? Z.fmt(t[1]) + " more round trips (k = " + Z.fmt(t[1]) + ") before its end, the end case of whichever template is reached at k = 0."
+        : "<b>k = 0: this is an epoch end.</b> The end case of " + d.name + " leads to " + Z.name(D.endT[t[0]]) + " with k = (" + Z.fmt(t[2]) + " − 200) + " + D.endC1[t[0]] + " = " + Z.fmt(t[2] - 200 + D.endC1[t[0]]) + ", j = " + D.endC2[t[0]] + ".");
+    var f = Z.phi(t);
+    $("z6m-5").innerHTML = "Φ = j + 2k + pot = " + Z.fmt(t[2]) + " + " + Z.fmt(2 * t[1]) + " + " + D.potL[t[0]] + " = <b>" + Z.fmt(f) + "</b>. " +
+      (f >= 215 ? '<span class="pw-ok">&#10003; at least 215</span>' : '<span class="pw-bad">below 215</span>') + (t[1] === 0 ? ", so j = " + t[2] + " ≥ 200, as the end case needs." : ".");
+  }
+  $("z6m-n").addEventListener("input", function () { go(+this.value); });
+  $("z6m-prev").onclick = function () { go(want - 1); };
+  $("z6m-next").onclick = function () { go(want + 1); };
+  Array.prototype.forEach.call(document.querySelectorAll("[data-z6m]"), function (b) { b.onclick = function () { go(+b.getAttribute("data-z6m")); }; });
+  window.addEventListener("resize", function () { if (G[want]) draw(G[want].list); });
+  go(39);
+})();
+</script>

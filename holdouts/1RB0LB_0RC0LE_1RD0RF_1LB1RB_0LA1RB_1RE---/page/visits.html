@@ -1,0 +1,98 @@
+<div class="col">
+<p>Call everything from some cell to the right a <em>stream</em>. A <b>visit</b>: the head stands on a 0 (the lead
+cell) with a 0 on its left and a stream s on its right, in state C (form V) or in state F (form W); it comes back
+in state A two cells further left, both 0s restored and s rewritten. <code>lean/Visit.lean</code> proves, for every
+stream and every tape to the left, what a visit does to a stream according to how the stream begins. The theorems
+were produced by running the transition table symbolically on every short beginning of a stream
+(<code>py/visit2.py</code>), and each proof is an exact count of the machine's own steps between the nested
+visits:</p>
+</div>
+<div class="yv-tbl"><table class="tbl"><thead><tr><th>the stream begins</th><th>after the visit</th><th>form V (entered in state C)</th><th>form W (entered in state F)</th></tr></thead><tbody><tr><td><code>0 s</code></td><td><code>1 s</code></td><td><code>V_0</code>: 4 steps</td><td><code>W_0</code>: 8 steps</td></tr><tr><td><code>100 s</code></td><td><code>000 v(s)</code></td><td><code>V_100</code>: 3 steps, then V, 3 steps</td><td><code>W_100</code>: 3 steps, then V, 3 steps</td></tr><tr><td><code>110 s</code></td><td><code>000 v(s)</code></td><td><code>V_110</code>: 5 steps, then V, 3 steps</td><td><code>W_110</code>: 5 steps, then V, 3 steps</td></tr><tr><td><code>1010 s</code></td><td><code>1010 v(v(s))</code></td><td><code>V_1010</code>: 4 steps, then W, 2 steps, then V, 14 steps</td><td><code>W_1010</code>: 4 steps, then W, 2 steps, then V, 14 steps</td></tr><tr><td><code>1011 s</code></td><td>the machine halts</td><td><code>V_1011_halts</code>: after 4 steps, F reads a 1</td><td><code>W_1011_halts</code>: after 4 steps, F reads a 1</td></tr></tbody></table></div>
+<div class="col"><p class="small">v(s) is what one visit makes of s. The generator also proves <code>V_1110</code>, <code>W_1110</code> (<code>1110 s</code> becomes <code>1010 v(v(s))</code>), <code>V_1111_halts</code> and <code>W_1111_halts</code>; the law does not use them.</p></div>
+<div class="col">
+<p>"Then V" means: the machine makes a visit of its own, in form V, to the stream behind the block, whose lead
+cell is the last cell of the block. In this machine both forms obey the same rules (<code>W_0</code>, <code>W_100</code>, <code>W_110</code>, <code>W_1010</code>, <code>W_1011_halts</code>); they differ only in their step counts. A visit in form W is only ever made as the first of the two nested visits behind a doubler <code>1010</code>. If a nested visit halts, so does the visit around it
+(<code>V_100_halts_1</code>, <code>V_1010_halts_1</code>, <code>V_1010_halts_2</code>, ...).</p>
+<p><b>Rounds.</b> From blank tape the machine reaches <code>0<sup>&infin;</sup> A&gt; 1 0 0 1 0<sup>&infin;</sup></code>
+after 6 steps (<code>start</code>). From a tape <code>0<sup>&infin;</sup> A&gt; 1 0 0 S</code> it takes 8 steps to
+stand on the first of these cells in state C, with <code>1 0 S</code> as its stream, and a visit then brings it to
+<code>0<sup>&infin;</sup> A&gt; 1 0 0 S'</code>, two cells further left, where S' is what the visit made of
+<code>1 0 S</code> (<code>round</code>); if that visit halts, the machine halts (<code>round_halts</code>). So the
+whole run is a sequence of rounds, and each round is one visit with visits nested inside it.</p>
+<p>Below, the real machine runs through one round. Time runs downwards, one row per step (or per few steps in the
+long rounds). The dots are where the rules say each visit begins: the step is computed from the step counts in the
+table, the cell is the lead cell of its stream. The browser checks every one of them against the machine.</p>
+</div>
+<div class="panel" id="yv-sweep">
+ <div class="controls">
+  <button type="button" id="yvs-prev" aria-label="Previous round">&#9664;</button>
+  <input type="range" class="yv-slider" id="yvs-r" min="1" max="16" value="6" aria-label="Round">
+  <button type="button" id="yvs-next" aria-label="Next round">&#9654;</button>
+  <span class="small">round <b id="yvs-lab">6</b></span>
+ </div>
+ <div class="stwrap"><canvas id="yvs-cv" style="display:block;width:100%" aria-label="Space-time diagram of one round, with the visit starts marked"></canvas></div>
+ <div class="yv-key"><span><i style="background:var(--ink)"></i>1</span><span><i style="background:var(--head)"></i>head</span><span><i style="background:var(--accent);border-radius:50%"></i>a visit begins, state C (form V)</span><span><i style="background:var(--yvw);border-radius:50%"></i>a visit begins, state F (form W)</span></div>
+ <div class="cap" id="yvs-cap"></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var Y = window.YV, $ = function (id) { return document.getElementById(id); };
+  var sl = $("yvs-r"), cv = $("yvs-cv");
+  function draw() {
+    var r = +sl.value;
+    $("yvs-lab").textContent = r;
+    var R = Y.machineRounds(r + 1), a = R[r], b = R[r + 1];
+    var M = new Y.Machine(); M.run(a.k);
+    var starts = [];
+    var mr = Y.mround(a.S, a.k, function (f, j, step, d) { starts.push([step, f, a.p + j, d]); });
+    var steps = b.k - a.k, every = Math.max(1, Math.ceil(steps / 520));
+    var L = a.p - 3, hiCell = a.p + a.S.length + 8;
+    var rows = [], heads = [], q = 0, okv = 0, badv = 0, maxp = a.p;
+    function snap() { var row = new Uint8Array(hiCell - L + 1); for (var x = L; x <= hiCell; x++) row[x - L] = M.get(x); rows.push(row); heads.push(M.p); }
+    snap();
+    for (var i = 1; i <= steps; i++) {
+      M.step();
+      while (q < starts.length && starts[q][0] < M.k) q++;
+      while (q < starts.length && starts[q][0] === M.k) {
+        var s = starts[q], st = s[1] === "V" ? 2 : 5;
+        if (M.s === st && M.p === s[2] && M.get(M.p) === 0 && M.get(M.p - 1) === 0) okv++; else badv++;
+        q++;
+      }
+      if (M.p > maxp) maxp = M.p;
+      if (i % every === 0 || i === steps) snap();
+    }
+    var endOk = M.k === mr.k && M.s === 0 && M.p === b.p && Y.same(mr.S, b.S);
+    var cols = Math.min(hiCell, maxp + 2) - L + 1;
+    var w = cv.clientWidth || 700, dpr = window.devicePixelRatio || 1;
+    var cw = w / cols, rh = Math.max(1, Math.min(5, Math.floor(560 / rows.length)));
+    var hgt = rows.length * rh;
+    cv.style.height = hgt + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = Y.css("--cell0"); g.fillRect(0, 0, w, hgt);
+    var ink = Y.css("--ink"), hd = Y.css("--head");
+    rows.forEach(function (row, y) {
+      g.fillStyle = ink;
+      for (var x = 0; x < cols; x++) if (row[x]) g.fillRect(x * cw, y * rh, Math.max(cw - (cw > 4 ? 1 : 0), 0.6), rh);
+      g.fillStyle = hd; g.fillRect((heads[y] - L) * cw, y * rh, Math.max(cw, 1.5), rh);
+    });
+    var cV = Y.css("--accent"), cW = Y.css("--yvw"), rad = Math.max(2, Math.min(4.5, cw / 2));
+    starts.forEach(function (s) {
+      var y = (s[0] - a.k) / every * rh + rh / 2, x = (s[2] - L + 0.5) * cw;
+      g.fillStyle = s[1] === "V" ? cV : cW; g.beginPath(); g.arc(x, y, rad, 0, 2 * Math.PI); g.fill();
+    });
+    var nV = starts.filter(function (s) { return s[1] === "V"; }).length, depth = starts.reduce(function (m, s) { return Math.max(m, s[3]); }, 0);
+    $("yvs-cap").innerHTML = "Round " + r + ": steps " + Y.fmt(a.k) + " to " + Y.fmt(b.k) + (every > 1 ? " (one row every " + every + " steps)" : "") + ". " +
+      starts.length + " visits (" + nV + " in form V, " + (starts.length - nV) + " in form W), nested up to " + depth + " deep. " +
+      (badv === 0 ? '<span class="yv-ok">✓ all ' + okv + " visit starts are on the machine, at the predicted step and cell, in the predicted state</span>"
+                  : '<span class="yv-bad">✗ ' + badv + " predicted visit starts are not on the machine</span>") + "; " +
+      (endOk ? '<span class="yv-ok">✓ the round ends at step ' + Y.fmt(mr.k) + ", as the step counts say, on the word the rules give</span>"
+             : '<span class="yv-bad">✗ the round does not end where the rules say</span>') + ".";
+  }
+  sl.addEventListener("input", draw);
+  $("yvs-prev").addEventListener("click", function () { sl.value = Math.max(1, +sl.value - 1); draw(); });
+  $("yvs-next").addEventListener("click", function () { sl.value = Math.min(+sl.max, +sl.value + 1); draw(); });
+  Y.onTheme(draw);
+  draw();
+})();
+</script>

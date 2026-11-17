@@ -203,6 +203,8 @@ direct simulator after 2,000,002,519 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0
 - [`pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/explainer.html`](../../pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/explainer.html)
 - [`pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/proof-status.html`](../../pages/holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/proof-status.html)
 
+The explainer's hand-written sections (a ladder of levels with a panel per level, and the run to the halt in the browser) are in `page/*.html`; `python3 py/page.py` copies them into `status.json`, then `python3 holdouts/build_pages.py 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB` builds the page.
+
 ## Check
 
 ```sh

@@ -1,0 +1,43 @@
+<div class="col">
+<p>The same node with other counts is not safe. With 61 words instead of 59 in the left block,</p>
+<p style="text-align:center"><code>E&gt; 0 (1011001)^61 1011 0^5 1101100110110 (011)^16 001101100110 (011)^r</code>, r odd &ge; 65,</p>
+<p><b>halts</b> after 1,772,276 + 5,220 (r &minus; 65) steps (computed by <code>py/closure/classes.py</code>, confirmed by
+plain simulation for r = 65, 67, 71). C(r) itself with r even halts too, much later, at event 21,362,421. So there is
+no simple description of "safe tapes" that contains the run: it is safe because it sits on one exact orbit. That is
+why the automatic deciders, which look for such descriptions, left this machine open, and why the proof follows the
+orbit itself.</p>
+<p>The browser can run the halting neighbour: pick r and the number of seven-cell words, and the real machine runs
+from that tape.</p>
+</div>
+<div class="panel" id="rc-near">
+ <div class="controls">
+  <label class="small" for="rcn-p">left block</label>
+  <select id="rcn-p"><option value="61" selected>61 words (the neighbour)</option><option value="59">59 words, C(r) itself</option></select>
+  <label class="small" for="rcn-r">r</label><input type="text" class="rc-num" id="rcn-r" value="65" inputmode="numeric" spellcheck="false" autocomplete="off">
+  <button type="button" class="primary" id="rcn-go">Run the machine</button>
+ </div>
+ <div class="rc-out" id="rcn-out"></div>
+ <div class="cap">With 59 words the browser stops after 2&middot;10<sup>7</sup> steps; that the run from C(r) never halts for odd r &ge; 65 is the Lean theorem <code>grow_cyc</code>, not something a bounded run can show.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var X = window.RC, $ = function (id) { return document.getElementById(id); };
+  function go() {
+    var p = +$("rcn-p").value, r = parseInt($("rcn-r").value, 10), out = $("rcn-out");
+    if (!(r >= 1 && r <= 5000)) { out.innerHTML = '<span class="rc-bad">Give r between 1 and 5,000.</span>'; return; }
+    out.textContent = "running the machine…";
+    setTimeout(function () {
+      var t = "0" + X.rep("1011001", p) + "1011" + "00000" + "1101100110110" + X.rep("011", 16) + "001101100110" + X.rep("011", r);
+      var m = new X.M().load(t, 4), lim = p === 61 ? 4e7 : 2e7;
+      while (!m.halted && m.k < lim) m.toEvent(lim - m.k);
+      var f = 1772276 + 5220 * (r - 65), odd = r % 2 === 1 && r >= 65;
+      if (m.halted) out.innerHTML = "The machine halts after <b>" + X.fmt(m.k) + "</b> steps, after " + X.fmt(m.ev) + " events (state F reads a 0). " +
+        (p === 61 && odd ? (m.k === f ? '<span class="rc-ok">✓ 1,772,276 + 5,220 &times; ' + (r - 65) + " = " + X.fmt(f) + ", as computed in the repository</span>" : '<span class="rc-bad">✗ the formula gives ' + X.fmt(f) + "</span>") : "");
+      else out.innerHTML = "No halt in " + X.fmt(m.k) + " steps (" + X.fmt(m.ev) + " events)." + (p === 61 && odd ? ' <span class="rc-bad">✗ the formula says it halts at step ' + X.fmt(f) + "</span>" : "");
+    }, 20);
+  }
+  $("rcn-go").addEventListener("click", go);
+  go();
+})();
+</script>

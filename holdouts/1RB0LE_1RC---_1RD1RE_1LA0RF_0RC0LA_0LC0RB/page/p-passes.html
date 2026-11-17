@@ -1,0 +1,36 @@
+<div class="grid2"><div class="col">
+<p>Level 2 counts time in rules, and a rule may span millions of steps. What makes that possible is that the head
+crosses long runs in a simple way, and Lean proves each crossing once for every length:</p>
+<ul>
+<li><code>pass_10_right</code>: C crosses <code>(10)^n</code> to the right in 2n steps and leaves it unchanged.</li>
+<li><code>pass_10_left</code>: A crosses <code>(01)^n</code> to the left in 8n steps (it carries <code>10</code> along).</li>
+<li><code>fill_F</code>: F turns <code>(1000)^n</code> into <code>(1110)^n</code>, 10 steps a copy.</li>
+<li><code>fill_B</code>: B turns <code>(0001)^n</code> into <code>(0111)^n</code>, 10 steps a copy.</li>
+<li><code>clear_A</code>: A, going left, turns <code>(0111)^n</code> into <code>(0010)^n</code>, 10 steps a copy.</li>
+</ul>
+<p>Each is proved by running one copy for real (<code>rfl</code>: the kernel computes those few steps) and then a
+general lemma: if one copy takes the head through in the same state, n copies do too, in n times the steps
+(<code>lean/Rules.lean</code>). <span class="ev k">Kernel</span> Pick a pass and play it on the real machine with
+n = 3.</p>
+</div>
+<div class="panel" style="margin:0">
+<div class="controls"><label class="small" for="pw-pssel">Pass</label><select id="pw-pssel"></select><button type="button" id="pw-psstep">Step</button><button type="button" id="pw-psplay" class="primary">Play</button><button type="button" id="pw-psreset">Reset</button></div>
+<div class="pw-mini" id="pw-psmini"></div>
+<div class="small" id="pw-pscap"></div>
+</div></div>
+<script>
+(function(){const PW=window.PW,$=PW.$,SN=PW.SN,TR=PW.TR;const P=[
+ {n:'pass_10_right',t:'1010100',h:0,s:2,k:6,cap:'C at the left of (10)^3.',end:'After 6 steps C is past the run, which is unchanged.'},
+ {n:'pass_10_left',t:'01010110',h:6,s:0,k:24,cap:'A just right of (01)^3, reading 1 0.',end:'After 24 steps A is left of the run, still reading 1 0; the 10 it carried is now in front of the run.'},
+ {n:'fill_F',t:'1000100010000',h:0,s:5,k:30,cap:'F at the left of (1000)^3.',end:'After 30 steps every 1000 is 1110 and F is past them.'},
+ {n:'fill_B',t:'0000100010001',h:1,s:1,k:30,cap:'B with a 0 behind it, at the left of (0001)^3.',end:'After 30 steps every 0001 is 0111 and B is past them.'},
+ {n:'clear_A',t:'0111011101111',h:12,s:0,k:30,cap:'A on a 1, just right of (0111)^3.',end:'After 30 steps every 0111 is 0010 and A is at the left, on the 1.'}];
+ const sel=$('pw-pssel');P.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.n+' (n = 3)';sel.appendChild(o);});
+ let c,timer=null,cap;function cur(){return P[+sel.value];}
+ function reset(){stop();const p=cur();c={t:[...p.t].map(Number),h:p.h,s:p.s,n:0};cap=p.cap;draw();}
+ function draw(){const box=$('pw-psmini');box.textContent='';c.t.forEach((v,i)=>{const d=document.createElement('div');d.className='c'+(v?' one':'')+(i===c.h?' h':'');d.textContent=v;if(i===c.h)d.dataset.s=SN[c.s];box.appendChild(d);});$('pw-pscap').textContent='step '+c.n+'. '+cap;}
+ function one(){const p=cur();if(c.n>=p.k){stop();cap=p.end;draw();return false;}const a=TR[c.s][c.t[c.h]];c.t[c.h]=a.w;c.h+=a.m;c.s=a.s;c.n++;if(c.n>=p.k)cap=p.end;draw();return c.n<p.k;}
+ function stop(){if(timer){clearInterval(timer);timer=null;$('pw-psplay').textContent='Play';}}
+ $('pw-psstep').onclick=()=>{stop();one();};$('pw-psreset').onclick=reset;sel.onchange=reset;
+ $('pw-psplay').onclick=()=>{if(timer){stop();return;}$('pw-psplay').textContent='Pause';timer=setInterval(()=>{if(!one())stop();},140);};reset();})();
+</script>

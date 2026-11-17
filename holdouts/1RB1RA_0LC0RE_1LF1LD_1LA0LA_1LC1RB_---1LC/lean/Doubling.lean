@@ -1,34 +1,34 @@
 import Map
 
 /-!
-# 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC halts iff a doubling map with a growing modulus hits 2u = m at a reset
+# 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC halts iff a doubling map with a growing modulus hits 2u = v at a reset
 
 `Map.lean` proves that the machine halts iff the orbit of the visit `(0, 1, 1)` under the visit map `F` reaches
 `none`.  This file proves, by arithmetic alone, that `F` is the doubling map `op` of `py/model.py`:
 
-    2u < m           (c, u, m) ↦ (c, 2u, m + 1)                          a visit
-    2u > m, c ≥ 1    (c, u, m) ↦ (c − 1, 2u − m, m + 1)                  carry
-    2u = m, c ≥ 1    (c, u, m) ↦ (c − 1, 1, m + 2)                       carry that empties the fast wheel
-    2u > m, c = 0    (c, u, m) ↦ (2(m − u − 1), 2u − m, 2u − m + 3)      reset
-    2u = m, c = 0    halt
+    2u < v           (c, u, v) ↦ (c, 2u, v + 1)                          a visit
+    2u > v, c ≥ 1    (c, u, v) ↦ (c − 1, 2u − v, v + 1)                  carry
+    2u = v, c ≥ 1    (c, u, v) ↦ (c − 1, 1, v + 2)                       carry that empties the fast wheel
+    2u > v, c = 0    (c, u, v) ↦ (2(v − u − 1), 2u − v, 2u − v + 3)      reset
+    2u = v, c = 0    halt
 
-read on the visit `S(c, 2p+2, b)` as `(c, u, m) = (c, b + 1, p + b + 3)` (`phi`), and inside a sweep `Rc c p k z` as
+read on the visit `S(c, 2p+2, b)` as `(c, u, v) = (c, b + 1, p + b + 3)` (`phi`), and inside a sweep `Rc c p k z` as
 `(c, k + z + 2, p + 2k + z + 4)` (`psi`): a round does not move `psi`, a carry or a reset is one operation, and the
 end of a sweep is the doubling.
 
 Main result, `halts_iff_op`: **the machine halts from blank tape iff the doubling map, started at
-`(c, u, m) = (0, 2, 5)`, reaches the halt**, that is, a reset with 2u = m.  Nothing else about the run is assumed.
+`(c, u, v) = (0, 2, 5)`, reaches the halt**, that is, a reset with 2u = v.  Nothing else about the run is assumed.
 -/
 
 namespace H50923
 
 /-- One operation of the doubling map; `none` is the halt. -/
 def op : Nat × Nat × Nat → Option (Nat × Nat × Nat)
-  | (c, u, m) =>
-    if 2 * u < m then some (c, 2 * u, m + 1)
+  | (c, u, v) =>
+    if 2 * u < v then some (c, 2 * u, v + 1)
     else match c with
-      | c + 1 => if 2 * u = m then some (c, 1, m + 2) else some (c, 2 * u - m, m + 1)
-      | 0 => if 2 * u = m then none else some (2 * (m - u - 1), 2 * u - m, 2 * u - m + 3)
+      | c + 1 => if 2 * u = v then some (c, 1, v + 2) else some (c, 2 * u - v, v + 1)
+      | 0 => if 2 * u = v then none else some (2 * (v - u - 1), 2 * u - v, 2 * u - v + 3)
 
 /-- `n` operations. -/
 def opIter : Nat → Nat × Nat × Nat → Option (Nat × Nat × Nat)
@@ -72,16 +72,16 @@ theorem opsem_one {s t : Nat × Nat × Nat} {o : Option (Nat × Nat × Nat)} (h 
 /-- Close `some (..) = some (..)` between explicit states. -/
 macro "fin" : tactic => `(tactic| all_goals ((simp only [phi, psi, Option.some.injEq, Prod.mk.injEq, true_and, and_true]) <;> omega))
 
-theorem op_lt (c u m : Nat) (h : 2 * u < m) : op (c, u, m) = some (c, 2 * u, m + 1) := by
+theorem op_lt (c u v : Nat) (h : 2 * u < v) : op (c, u, v) = some (c, 2 * u, v + 1) := by
   simp [op, h]
-theorem op_carry (c u m : Nat) (h : m < 2 * u) : op (c + 1, u, m) = some (c, 2 * u - m, m + 1) := by
-  simp [op, show ¬ 2 * u < m by omega, show 2 * u ≠ m by omega]
-theorem op_empty (c u m : Nat) (h : 2 * u = m) : op (c + 1, u, m) = some (c, 1, m + 2) := by
+theorem op_carry (c u v : Nat) (h : v < 2 * u) : op (c + 1, u, v) = some (c, 2 * u - v, v + 1) := by
+  simp [op, show ¬ 2 * u < v by omega, show 2 * u ≠ v by omega]
+theorem op_empty (c u v : Nat) (h : 2 * u = v) : op (c + 1, u, v) = some (c, 1, v + 2) := by
   simp [op, h]
-theorem op_reset (u m : Nat) (h : m < 2 * u) :
-    op (0, u, m) = some (2 * (m - u - 1), 2 * u - m, 2 * u - m + 3) := by
-  simp [op, show ¬ 2 * u < m by omega, show 2 * u ≠ m by omega]
-theorem op_halt (u m : Nat) (h : 2 * u = m) : op (0, u, m) = none := by
+theorem op_reset (u v : Nat) (h : v < 2 * u) :
+    op (0, u, v) = some (2 * (v - u - 1), 2 * u - v, 2 * u - v + 3) := by
+  simp [op, show ¬ 2 * u < v by omega, show 2 * u ≠ v by omega]
+theorem op_halt (u v : Nat) (h : 2 * u = v) : op (0, u, v) = none := by
   simp [op, h]
 
 theorem opIter_two (s : Nat × Nat × Nat) : opIter 2 s = (op s).bind op := by
@@ -200,7 +200,7 @@ theorem orbit_op (v : Nat × Nat × Nat) : (∃ k, orbit v k = none) ↔ ∃ n, 
     exact key n v (fun k h => hne ⟨k, h⟩) hn
 
 /-- **Main theorem.** 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC halts from blank tape iff the doubling map `op`,
-started at `(c, u, m) = (0, 2, 5)`, reaches the halt: a reset (c = 0) with 2u = m. -/
+started at `(c, u, v) = (0, 2, 5)`, reaches the halt: a reset (c = 0) with 2u = v. -/
 theorem halts_iff_op : HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none := by
   rw [halts_iff, orbit_op]; rfl
 

@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Lean proofs of the most used sweeps of the digit model (py/cdigits.py) of 1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---
+(b1) and of its twin 1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC--- (b2), written to <folder>/lean/Digits.lean.
+
+cdigits.py runs the MIRRORED machine symbolically on a window (a carry chain and its stop digit, the rest of the
+tape an unknown context, long runs as variables) from one left-end sample to the next.  Here the direct run from
+blank tape to N steps is replayed through cdigits.py, the window rules are counted by use, and the NTOP most used
+ones are mirrored back to the machine's own orientation and proved by `bbtools.symtm.prove`: for all values of the
+variables and every tape in the context, the machine goes from the start to the end configuration in the stated
+number of steps.  Each theorem is one sweep of the counter, as the accelerated runs (py/tacc.py) use it.
+
+    python3 py/digits_lean.py b1|b2 [N] [NTOP]          write the Lean file (default N = 2e6, NTOP = 8)
+    python3 py/digits_lean.py b1|b2 [N] [NTOP] --check  compare with the file
+"""
+import os
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
+sys.path.insert(0, os.path.join(ROOT, 'tools', 'py'))
+if __name__ == '__main__' and len(sys.argv) > 1 and sys.argv[1] in ('b1', 'b2'):
+    os.environ['BMACH'] = sys.argv[1]
+WHICH = os.environ.get('BMACH', 'b1')
+os.environ['BMACH'] = WHICH
+sys.path.insert(0, HERE)
+import cdigits as D  # noqa: E402
+from bbtools import symtm  # noqa: E402
+from bbtools.symtm import Rep, Ctx, Blank, Config  # noqa: E402
+from bbtools.machine import STATES  # noqa: E402
+
+FOLDER = {'b1': '1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---', 'b2': '1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---'}
+NS = {'b1': 'H104106', 'b2': 'H44149'}
+SPEC = D.SPEC
+
+
+class CountMemo(dict):
+    def __init__(self):
+        super().__init__()
+        self.uses = {}
+
+    def __getitem__(self, k):
+        self.uses[k] = self.uses.get(k, 0) + 1
+        return dict.__getitem__(self, k)
+
+    def __setitem__(self, k, v):
+        self.uses[k] = self.uses.get(k, 0) + 1
+        dict.__setitem__(self, k, v)
+
+
+def mirror_tok(t):
+    return Rep(tuple(reversed(t.word)), t.n) if isinstance(t, Rep) else t
+
+
+def mirror(c):
+    """the configuration of the machine itself for a configuration of the mirror machine whose head reads blank tape
+    (right = [Blank]) or a literal cell"""
+    right = list(c.right)
+    if isinstance(right[0], Blank):
+        head, rest = 0, [Blank()]
+    else:
+        head, rest = right[0], right[1:]
+    left = [mirror_tok(t) for t in reversed(rest)]
+    newright = [head] + [mirror_tok(t) for t in reversed(c.left)]
+    return Config(left, c.state, newright, c.steps)
+
+
+def start_of(key):
+    usepre, rd, lbk, end = key
+    rd2 = []
+    for i, (sh, b) in enumerate(rd):
+        if isinstance(b, tuple):
+            rd2.append((sh, b[1], 'v%d' % i))
+        else:
+            rd2.append((sh, b, None))
+    last = (lbk[1], 'z') if isinstance(lbk, tuple) else (lbk, None)
+    return SPEC.build(not usepre, rd2, last, end)
+
+
+def describe(key):
+    usepre, rd, lbk, end = key
+    parts = []
+    for i, (sh, b) in enumerate(rd):
+        parts.append('[%s]%s' % ('v%d+%d' % (i, b[1]) if isinstance(b, tuple) else b, sh))
+    parts.append('[%s]' % ('z+%d' % lbk[1] if isinstance(lbk, tuple) else lbk))
+    return ('blank tape, ' if usepre else 'context L, ') + ' '.join(parts) + ' ' + end
+
+
+def main():
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    n = int(float(args[1])) if len(args) > 1 else 2 * 10 ** 6
+    ntop = int(args[2]) if len(args) > 2 else 8
+    SPEC.memo = CountMemo()
+    for step, cells in D.direct_samples(n):
+        a = D.parse(cells)
+        r = SPEC.sweep(a, carry=D.CARRY)
+        assert r[0] == 'ok', (step, r)
+    uses = SPEC.memo.uses
+    total = sum(uses.values())
+    keys = sorted((k for k in uses if dict.__getitem__(SPEC.memo, k)[0] == 'ok'), key=lambda k: -uses[k])[:ntop]
+    covered = sum(uses[k] for k in keys)
+    orig = D.M[WHICH]
+    thms = []
+    for i, key in enumerate(keys):
+        c0 = start_of(key)
+        c1 = symtm.run(SPEC.m, c0.copy(), SPEC.sample, max_moves=50000, rotate=True)
+        s0, s1 = mirror(c0), mirror(c1)
+        doc = ('Sweep %d of the digit model (%d of the %d sweeps to step %d): from %s, with the head of state %s on '
+               'the new leftmost cell, to the next such sample.  Mirrored start: `%r`.' % (
+                   i + 1, uses[key], total, n, describe(key), STATES[c0.state], c0))
+        text, fin = symtm.prove(orig, 'sweep%d' % (i + 1), s0, s1, doc=doc, rotate=True, count_first=True,
+                                max_seg=400)
+        thms.append(text)
+    head = ('Sweeps of the digit model of %s (py/cdigits.py), proved for all lengths of the long runs. '
+            'Generated by `py/digits_lean.py %s %d %d` in the folder of 1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---; '
+            'do not edit by hand.  The %d sweeps proved here are %d of the %d sweeps from blank tape to step %d.'
+            % (orig, WHICH, n, ntop, len(keys), covered, total, n))
+    out = symtm.rules_file('Machine', NS[WHICH], thms, head)
+    path = os.path.join(ROOT, 'holdouts', FOLDER[WHICH], 'lean', 'Digits.lean')
+    if '--check' in sys.argv:
+        same = os.path.exists(path) and open(path).read() == out
+        print('Digits.lean', 'current' if same else 'DIFFERS')
+        sys.exit(0 if same else 1)
+    open(path, 'w').write(out)
+    print('wrote', path, len(keys), 'theorems,', covered, 'of', total, 'sweeps')
+
+
+if __name__ == '__main__':
+    main()

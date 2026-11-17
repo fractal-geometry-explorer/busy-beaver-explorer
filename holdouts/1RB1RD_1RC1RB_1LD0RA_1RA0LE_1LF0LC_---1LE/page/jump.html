@@ -1,0 +1,123 @@
+<div class="col">
+<p>The bookkeeping of a visit (a count loses one, a cleared bit moves one unit up) looks fiddly in the counts
+n<sub>j</sub> of the tape. In the coordinates</p>
+<pre>N_0 = n_0 − s_1,    N_j = n_j + s_j − s_(j+1),    N_k = n_k + s_k          (s_j the bits)</pre>
+<p>it becomes plain: at every visit N<sub>0</sub> gains 2, and N<sub>j−1</sub> loses 1 each time bit j is set.
+Bit j is set once every 2<sup>j</sup> visits, so N<sub>j−1</sub> is a fuel tank that drains at that rate, and after V
+visits everything is known in closed form: bit j has seen about V/2<sup>j−1</sup> increments, half of which set it
+(<code>addV</code> in <code>lean/Jump.lean</code>).</p>
+<p><span class="ev k">Kernel</span> <code>jump</code>: if the bits do not overflow within V visits and every
+N<sub>j</sub> (j &ge; 1) is still at least 2 after them, the machine goes from the zone to the zone after V visits.
+The proof is an induction on V: <code>addV_succ</code> says that one more increment after <code>addV V</code> is
+<code>addV (V + 1)</code>, and <code>inc_physP</code> that the increment in these coordinates is the visit rule of
+the tape. The Coq proof adds the number of steps of V visits in closed form, a sum over the levels of the
+odometer.</p>
+<p>The panel starts from the zone of visit 94,957 of the run, where the program jumps 16,383 visits in one go. Move V.
+The bars are the tanks; the lamps are the bits. The browser computes the zone after V visits with the closed form,
+again by V single visits of the rule, and, when it is short enough, by running the machine itself.</p>
+</div>
+<div class="panel" id="od-jump">
+ <div class="controls">
+  <label class="small" for="odj-z">zone</label>
+  <input type="text" id="odj-z" value="454 11 258 11 301 11 1007 11 723 11 2331 11 2158 11 3648 11 4735 11 7208 11 23605 11 1879 11 20819 11 5531 11 20453 0" spellcheck="false" autocomplete="off" style="width:100%;max-width:46em">
+  <button type="button" id="odj-set">Use this zone</button>
+  <button type="button" id="odj-small">A small zone</button>
+ </div>
+ <div class="controls" style="margin-top:8px">
+  <label class="small" for="odj-v">V</label>
+  <input type="range" class="od-slider" id="odj-v" min="0" max="100" value="0" aria-label="Number of visits V">
+  <span class="small">V = <b id="odj-vl">0</b> of at most <b id="odj-vm">0</b></span>
+ </div>
+ <canvas id="odj-c" style="width:100%;height:260px;margin-top:10px" aria-label="Tanks and bits after V visits"></canvas>
+ <div id="odj-out" class="small" style="margin-top:8px"></div>
+ <div class="cap">The largest V is the one the theorem allows: no overflow, and every tank N<sub>1</sub>, &hellip;, N<sub>k</sub> at least 2 at the end. The Lean program keeps a margin of 6 (<code>chooseV</code>), so it stops a little earlier and handles the visits near an empty tank on the compressed tape. Bars are scaled per tank to its value at V = 0 (the last tank, N<sub>0</sub>, only grows).</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var O = window.OD, $ = function (id) { return document.getElementById(id); };
+  var z0, t0, vmax, B0;
+  function parse(s) {
+    var t = s.trim().split(/\s+/).filter(Boolean), tok = ["1"];
+    if (t.length < 4 || t.length % 2) return null;
+    for (var i = 0; i < t.length; i++) {
+      if (i % 2 === 0) { if (!/^[0-9]+$/.test(t[i])) return null; tok.push(+t[i]); }
+      else if (i === t.length - 1) { if (t[i] !== "0") return null; tok.push("0"); }
+      else { if (t[i] !== "11" && t[i] !== "01") return null; tok.push(t[i]); }
+    }
+    var z = O.zone(tok);
+    return z && z.pre.length === 1 ? z : null;
+  }
+  function set(s) {
+    var z = parse(s);
+    if (!z) { $("odj-out").innerHTML = '<span class="od-bad">Not a zone.</span>'; return; }
+    z0 = z; t0 = O.toN(z.counts[z.counts.length - 1], O.toLv(z));
+    var k = z.bits.length, B = 0; for (var j = 0; j < k; j++) B = 2 * B + z.bits[j]; B0 = B;
+    // the largest V the theorem allows
+    var lo = 0, hi = Math.pow(2, k) - 1 - B;
+    if (hi > 1e7) hi = 1e7;
+    function good(V) { return O.ovf(V, t0.ps) === BigInt(0) && O.goodN(O.after(V, t0.ps), t0.top); }
+    if (!good(0)) hi = 0;
+    while (lo < hi) { var mid = Math.ceil((lo + hi) / 2); if (good(mid)) lo = mid; else hi = mid - 1; }
+    vmax = lo;
+    var sl = $("odj-v"); sl.max = vmax; sl.value = Math.min(+sl.value, vmax);
+    $("odj-vm").textContent = O.fmt(vmax) + " (chooseV: " + O.fmt(Number(O.chooseV(t0.ps))) + ")";
+    show();
+  }
+  function show() {
+    if (!z0) return;
+    var V = +$("odj-v").value, k = z0.bits.length;
+    $("odj-vl").textContent = O.fmt(V);
+    var ps = O.after(V, t0.ps), lv = O.physP(ps, t0.top);
+    var nz = O.fromLv(z0.pre, lv.map(function (x) { return [x[0], Number(x[1])]; }), Number(O.n0of(ps)));
+    var cf = O.jumpSteps(z0.counts, z0.bits, V);
+    // V single visits of the rule (level 3)
+    var out = "After " + O.fmt(V) + " visits: <span class=\"mono\" style=\"overflow-wrap:anywhere\">" + zt(nz) + "</span>, " + O.fmt(Number(cf)) + " steps by the closed form.<br>", i;
+    if (V <= 200000) {
+      var z = z0, steps = 0, ok3 = true;
+      for (i = 0; i < V; i++) { var r = O.visitRule(z); if (!r) { ok3 = false; break; } z = r.z; steps += r.steps; }
+      ok3 = ok3 && O.zoneStr(z) === O.zoneStr(nz) && BigInt(steps) === cf;
+      out += ok3 ? '<span class="od-ok">&#10003; ' + O.fmt(V) + " single visits of the rule give the same zone and the same steps</span>" : '<span class="od-bad">&#10007; single visits disagree</span>';
+    } else out += "(More than 200,000 visits: the browser does not repeat them one by one.)";
+    if (cf <= BigInt(3e7)) {
+      var cm = new O.Cells(), s = O.zoneStr(z0).replace(/^0+/, "");
+      cm.load(s);
+      for (var q = 0; q < V; q++) cm.nextVisit(1e8);
+      var okm = cm.left() === O.zoneStr(nz).replace(/^0+/, "") && BigInt(cm.k) === cf;
+      out += "<br>" + (okm ? '<span class="od-ok">&#10003; the machine, run cell by cell for ' + O.fmt(cm.k) + " steps, agrees</span>" : '<span class="od-bad">&#10007; the machine disagrees</span>');
+    } else out += "<br>The machine itself would need " + O.fmt(Number(cf)) + " steps; the browser runs it cell by cell only up to 30 million.";
+    $("odj-out").innerHTML = out;
+    draw(ps);
+  }
+  function zt(z) { var s = []; for (var j = 0; j < z.bits.length; j++) { s.push(z.counts[j]); s.push(z.bits[j] ? "01" : "11"); } s.push(z.counts[z.counts.length - 1]); s.push("0"); return s.join(" "); }
+  function draw(ps) {
+    var cv = $("odj-c"), k = z0.bits.length, w = cv.clientWidth || 600, h = cv.clientHeight || 260, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    var g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var font = O.css("--mono").split(",")[0], n = k + 1, colW = w / n, top = 34, bh = h - top - 34;
+    g.font = "10px " + font; g.textAlign = "center";
+    // tanks, from N_k on the left to N_0 on the right, as on the tape
+    for (var c = 0; c < n; c++) {
+      var j = k - c, val = j === k ? t0.top : ps[j][1], init = j === k ? t0.top : t0.ps[j][1];
+      var frac = j === 0 ? 1 : Number(val) / Math.max(1, Number(init));
+      var x = c * colW + colW * .2, bw = colW * .6;
+      g.fillStyle = O.css("--sunk"); g.fillRect(x, top, bw, bh);
+      g.fillStyle = j === 0 ? O.css("--odc2") : (Number(val) < 8 ? O.css("--open") : O.css("--odc1"));
+      var fh = bh * Math.max(0, Math.min(1, frac)); g.fillRect(x, top + bh - fh, bw, fh);
+      g.fillStyle = O.css("--fg2"); g.fillText("N" + j, x + bw / 2, h - 20);
+      g.fillText(String(val), x + bw / 2, h - 6);
+      if (j >= 1) {   // the bit s_j sits right of tank N_j, left of N_(j-1); drawn above the tank N_(j-1)
+        var bx = (c + 1) * colW, on = ps[j - 1][0];
+        g.beginPath(); g.arc(bx, 14, 6, 0, 7); g.fillStyle = on ? O.css("--odsep") : O.css("--surface"); g.fill();
+        g.strokeStyle = O.css("--odsep"); g.stroke();
+      }
+    }
+    g.textAlign = "left"; g.fillStyle = O.css("--muted"); g.fillText("bits", 2, 18);
+  }
+  $("odj-v").addEventListener("input", show);
+  $("odj-set").addEventListener("click", function () { set($("odj-z").value); });
+  $("odj-small").addEventListener("click", function () { $("odj-z").value = "20 11 16 11 14 11 12 11 10 11 9 11 40 0"; $("odj-v").value = 0; set($("odj-z").value); });
+  O.onTheme(show);
+  set($("odj-z").value);
+})();
+</script>

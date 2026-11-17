@@ -1,0 +1,56 @@
+<div class="panel" style="border-color:var(--native)">
+<p style="font:700 1.5rem/1.25 var(--display);margin:0 0 .4rem">It halts.</p>
+<p style="margin:0 0 .8rem">Started on a blank tape, the machine 1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE--- stops: in round 161,211 a visit meets the block
+<code>1011</code>, and the head, in state F, reads a 1. That happens after between 5.9 &times; 10<sup>24,266</sup> and 9.2 &times; 10<sup>24,266</sup> steps (computed, not
+proved; see below).</p>
+<pre style="margin:0;font-size:.85rem;overflow-x:auto">theorem halts_from_blank : HaltsFromBlank :=
+  halts_of_check_blank 161210 VisitLaw.Run.check_run</pre>
+<p class="small" style="margin:.6rem 0 0"><span class="ev n">native_decide</span> <code>lean/Halt.lean</code>.
+<code>HaltsFromBlank</code> is the machine's own halting from blank tape, defined from its transition table in
+<code>lean/Machine.lean</code>.</p>
+</div>
+<div class="col">
+<h3>What it rests on</h3>
+</div>
+<div class="yv-tbl"><table class="tbl"><thead><tr><th>link</th><th>what it says</th><th>checked by</th></tr></thead><tbody>
+<tr><td>The machine obeys the rules</td><td>For every stream and every left tape, a visit in either form does what the table of rules says, a round is one visit, and the run starts with the word 1 (<code>lean/Visit.lean</code>, generated from the transition table).</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td>The rules, without the machine</td><td>The rewriting system and its count laws (<code>VisitLaw.lean</code>), and the fact that this machine satisfies it (<code>law</code>, <code>lean/Law.lean</code>).</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td>The program computes the rules</td><td><code>scan</code> and <code>hscan</code> return what the rewriting system gives, so if <code>check k [true] = true</code> the machine halts (<code>VisitCheck.lean</code>, <code>halts_of_check_blank</code>). Axioms: <code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>.</td><td><span class="ev k">Kernel</span></td></tr>
+<tr><td>The run itself</td><td><code>check 161210 [true] = true</code>: ten segments and the halting round, chained by <code>iter_add</code> (<code>VisitRun.lean</code>, <code>VisitSeg*.lean</code>).</td><td><span class="ev n">native_decide</span> eleven evaluations; the chaining by the kernel</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>So everything is checked by Lean's kernel except the evaluation of a checker that is itself proved correct.
+That evaluation is by <code>native_decide</code>, compiled code, and the theorem depends on eleven
+<code>native_decide</code> axioms, one per evaluation (trust in the Lean compiler; the comment in
+<code>Halt.lean</code> names it <code>Lean.ofReduceBool</code>), besides the three standard axioms. The halting
+theorem is checked by <code>lean/check_halt.sh</code>, about 3 hours of computing; the repository's automatic checks
+run <code>check.sh</code>, the kernel-only part, but not this evaluation.</p>
+<p><b>Elsewhere.</b> The same visit law, in a Coq proof on busycoq's definitions (<code>tools/coq/busycoq/VisitLaw2/</code>,
+<code>halts : halts tm c0</code>, Coq 8.20.1, no axioms): the checker of busycoq PR59 extended to two forms of
+visit, with the whole run as one <code>vm_compute</code> of about 15 minutes. And the three machines of busycoq PR59
+(<code>1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---</code> and two relatives) obey the same law with one form of visit,
+entered one cell further left; PR59 proves in Rocq that they halt in round 161,211. The Lean proof here does not use
+PR59, so that both land on the same round is a cross-check (as is the C simulator
+<code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/vis.c</code>, which halts in that round on the PR59
+machine). The twin <code>1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA0RE_1RE---</code> halts in the same round by the same checker run; that is a separate theorem
+about a different table, not a consequence of this one.</p>
+<h3>How many steps <span class="ev c">Computed</span></h3>
+<p>Between <b>5.9 &times; 10<sup>24,266</sup> and 9.2 &times; 10<sup>24,266</sup></b> steps from blank tape to the halt, that is 178.4&middot;2<sup>80605</sup> to 274.6&middot;2<sup>80605</sup>. A number with 24,267 digits (or
+24,268): large, but an ordinary power, not a power tower.</p>
+<p>Every visit costs a fixed number of the machine's own steps, apart from its nested visits: 4 or 8 steps for <code>0 &rarr; 1</code> (entered in C or F), 6 for <code>100</code>, 8 for <code>110</code>, 20 for <code>1010</code> (the step
+numbers in the proofs of <code>lean/Visit.lean</code>, the ones the panel on rounds and visits checks against the
+machine). So the step count is the number of visits of each kind times these costs. <code>c/steps.c</code> in
+<code>holdouts/1RB0LB_0RC0LE_1RD0RF_1LB1RB_0LA1RB_1RE---/</code> repeats the checker's pass for all 161,210 rounds and
+adds up the counts per rule: in the completed rounds there are 5.9519&middot;2<sup>80605</sup> visits each of the
+kinds <code>0 &rarr; 1</code>, <code>100</code> and <code>1010</code> (the largest single count is 2<sup>80605</sup>, in
+round 161,210: the count in round r peaks at 2<sup>r/2</sup>), and at most 2.1164&middot;2<sup>80605</sup> more of each
+in the halting round, which stops part of the way through. The lower bound takes the completed rounds at the
+cheaper cost, the upper bound adds the whole halting round at the dearer cost.</p>
+<p>The program's word after 161,210 rounds agrees cell for cell with the word in <code>VisitW161210.lean</code>, which
+the Lean segments check; the sums are kept as a mantissa and an exponent in floating point (the bounds are widened
+by 0.1% for that). Lean's theorems say "after some number of steps" and do not state the numbers. Nothing in these
+paragraphs is a Lean theorem.</p>
+<h3>Still open</h3>
+<p>Nothing for the halting question. Open ends: a Lean proof of the step bounds (they are computed), and a proof of
+the evaluation inside the kernel (it is about 10<sup>11</sup> list operations, too many for kernel reduction).</p>
+</div>

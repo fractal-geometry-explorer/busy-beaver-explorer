@@ -1,0 +1,68 @@
+<div class="col">
+<p>The 196 moves cover a finite stretch of the run. To go on forever the proof needs one argument that works for all
+later moves. That is level 4, the invariant <code>Good</code> in <code>lean/Closed.lean</code>: for each form, a list
+of 3 to 16 linear inequalities on its numbers. They say three kinds of things:</p>
+<dl class="pw-dl">
+<dt>shape</dt><dd>the growing numbers keep their <b>ratios</b> inside a fixed region (a polyhedral cone). For
+<code>O a b c</code>, b stays between about 1.7 and 4.2 times a, and c between about 0.3 and 2.3 times a, in the
+shaded region of the picture below.</dd>
+<dt>small parts</dt><dd>the bounded numbers stay in range (in <code>RF</code>, k is 4 or 5; in <code>RG</code> and
+<code>RG3</code>, n is 4 or 5; in <code>T3</code>, 8 ≤ y ≤ 15), and some numbers keep exact relations (in
+<code>T3</code>, x = 2a + 4; in <code>U3</code>, x − 2a is between 0 and 2; in <code>RG3</code>, 4y + 21x − 49a is between −63 and 19).</dd>
+<dt>size</dt><dd>one weighted sum is at least 50,000,000 or 100,000,000, such as 71·b ≥ 50,000,000 for <code>O</code>.</dd>
+</dl>
+<p>The picture shows, for the forms O and S1, the region that the ratio inequalities allow (shaded), and the ratios
+of every O or S1 state of the replay (dots). The ratios move around from phase to phase but stay in the region.
+Filled dots are good states. Hollow dots are early states, which are still too small for the size condition.</p>
+</div>
+<div class="grid2">
+<div class="panel" style="margin:0"><div class="controls"><label class="small" for="pw-conesel">Form</label><select id="pw-conesel"><option value="O">O a b c</option><option value="S1">S1 a b c</option></select></div><svg class="pw-chart" id="pw-cone" viewBox="0 0 420 340" role="img" aria-label="Allowed region of ratios and the replay states"></svg><div class="small" id="pw-conecap"></div></div>
+<div class="panel" style="margin:0"><div class="controls"><label class="small" for="pw-gqsel">Entry</label><select id="pw-gqsel" class="pw-sel"></select></div><div class="small" id="pw-gqhead"></div><div class="pw-ineq" id="pw-gqlist"></div><div class="small" id="pw-gqnext"></div></div>
+</div>
+<div class="col">
+<p>Why do the inequalities keep holding? Each of the 20 cases of level 3 is a fixed affine map on the numbers. So
+the step from <code>Good</code> to <code>Good</code> is a question about linear inequalities over the whole numbers,
+which Lean's <code>omega</code> procedure decides. <span class="ev k">Kernel</span> Each case works because:</p>
+<ul>
+<li>the map sends each form's region strictly inside the next form's region, with room to spare;</li>
+<li>the size grows by a factor of at least 1.1 per case, so the room to spare grows faster than the fixed offsets in
+the formulas (the "+6", "+13" and so on);</li>
+<li>the inequalities imply every condition a case needs (b ≥ 6 and so on), and that T3 has c ≥ 2⌊d/5⌋ + 3, enough
+14-cell words for all its turns. That rules out the gaps of level 3.</li>
+</ul>
+<p>That is <code>good_step</code>: from a good tape the machine makes at least one step and reaches a good tape. Its
+proof has one <code>step_*</code> lemma per form, each split by the residue into its cases, and each case is one
+<code>mv_*</code> lemma and one call of <code>omega</code>. The coefficients (up to 1,321) were found by linear
+programming on the replay's numbers, with scripts outside the proof. Lean does not trust them: if one were wrong,
+<code>omega</code> would fail.</p>
+<p>The last state of the replay is good: Lean evaluates its 16 inequalities with <code>decide</code>
+(<code>good_last</code>). <span class="ev k">Kernel</span> Along the replay every entry from the 39th on is good, and
+the panel above lets you check any of them, and the case that follows.</p>
+</div>
+<script>
+(function(){const P=window.PW,$=P.$,el=P.el,D=P.D;const RP=D.replay;
+const GOOD=RP.map(r=>{const Q=r.P.map(BigInt);return P.good(P.key(r.f,Q),Q).all;});
+function clip(poly,A,B,C){const out=[];for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length];const fp=A*p[0]+B*p[1]+C,fq=A*q[0]+B*q[1]+C;if(fp>=0)out.push(p);if((fp>=0)!==(fq>=0)){const t=fp/(fp-fq);out.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])]);}}return out;}
+function draw(){const f=$('pw-conesel').value;const G=D.good[f];const svg=$('pw-cone');svg.textContent='';let poly=[[0,0],[8,0],[8,4],[0,4]];
+ // variables a, b, c; with a = 1, u = b/a and v = c/a; an inequality lhs <= rhs is sum (rhs - lhs) >= 0
+ const hom=G.ineq.filter(([l,r])=>!('1' in l)&&!('1' in r)&&Object.keys(l).concat(Object.keys(r)).every(k=>'abc'.includes(k)));
+ hom.forEach(([l,r])=>{const co=k=>(r[k]||0)-(l[k]||0);poly=clip(poly,co('b'),co('c'),co('a'));});
+ const pts=RP.map((r,i)=>[r,i]).filter(([r])=>r.f===f&&r.P[1]!=='0').map(([r,i])=>{const a=Number(r.P[0]);return[Number(r.P[1])/a,Number(r.P[2])/a,GOOD[i],i];});
+ const near=pts.filter(p=>Math.abs(p[0]-poly[0][0])<1.5&&Math.abs(p[1]-poly[0][1])<1.5);const xs=poly.map(p=>p[0]).concat(near.map(p=>p[0])),ys=poly.map(p=>p[1]).concat(near.map(p=>p[1]));const cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;const span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))*1.35;
+ const X0=50,X1=405,Y0=10,Y1=290;const xl=cx-span/2*1.25,xh=cx+span/2*1.25,yl=cy-span/2,yh=cy+span/2;const X=u=>X0+(u-xl)/(xh-xl)*(X1-X0),Y=v=>Y1-(v-yl)/(yh-yl)*(Y1-Y0);
+ el('rect',{x:X0,y:Y0,width:X1-X0,height:Y1-Y0,fill:'none',stroke:'var(--line)'},svg);
+ el('path',{d:poly.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')+'Z',fill:'var(--kernel-bg)',stroke:'var(--kernel)','stroke-width':1.5},svg);
+ const inn=pts.filter(p=>p[0]>=xl&&p[0]<=xh&&p[1]>=yl&&p[1]<=yh);inn.forEach(([u,v,g])=>el('circle',{cx:X(u),cy:Y(v),r:3.2,fill:g?'var(--accent)':'var(--surface)',stroke:'var(--accent)','stroke-width':1.3},svg));
+ [xl,cx,xh].forEach(u=>el('text',{x:X(u),y:Y1+14,'text-anchor':'middle'},svg,u.toFixed(3)));[yl,cy,yh].forEach(v=>el('text',{x:X0-4,y:Y(v)+4,'text-anchor':'end'},svg,v.toFixed(3)));
+ el('text',{x:(X0+X1)/2,y:Y1+34,'text-anchor':'middle'},svg,'b / a');el('text',{x:12,y:(Y0+Y1)/2,'text-anchor':'middle',transform:'rotate(-90 12 '+(Y0+Y1)/2+')'},svg,'c / a');
+ $('pw-conecap').textContent=pts.length+' '+f+' states in the replay'+(inn.length<pts.length?'; '+inn.length+' fall in this window (the others are early states, far outside)':'')+'; '+pts.filter(([u,v])=>hom.every(([l,r])=>{const co=k=>(r[k]||0)-(l[k]||0);return co('b')*u+co('c')*v+co('a')>=0;})).length+' of them satisfy all '+hom.length+' ratio inequalities of '+G.name+' (shaded). '+pts.filter(p=>p[2]).length+' of the '+f+' states are good.';}
+$('pw-conesel').onchange=draw;draw();
+// the entries of level 3 (the 197 states of table_run, read as phase entries)
+const ENT=P.entries(P.replay(10n**31n,RP.length));
+const sel=$('pw-gqsel');ENT.forEach((e,i)=>{const o=document.createElement('option');o.value=i;o.textContent='#'+i+' '+e.f+(e.k==='O0'?' (b = 0)':'')+(P.good(e.k,e.P).all?'  good':'');sel.appendChild(o);});
+function show(){const i=+sel.value,e=ENT[i];const g=P.good(e.k,e.P);$('pw-gqhead').innerHTML='<code>'+g.name+' '+g.args.join(' ')+'</code> at step '+P.fmt(e.t)+':';let h='';
+ g.list.forEach(x=>{h+='<span>'+(x.ok?'<span class="pw-ok">✓</span>':'<span class="pw-bad">✗</span>')+'</span><span>'+x.txt+'</span><span class="num">'+x.a.toLocaleString('en-US')+' ≤ '+x.b.toLocaleString('en-US')+'</span>';});$('pw-gqlist').innerHTML=h;
+ const cs=P.mvCase(e.k,e.P);let n='';if(cs.err)n='No case applies: '+cs.err+'.';else{const k2=P.key(cs.f,cs.P);const g2=P.good(k2,cs.P);n='Next, case <code>'+cs.name+'</code> gives <code>'+cs.f+' '+cs.P.join(' ')+'</code>: '+g2.ok+' of '+g2.n+' inequalities of <code>'+g2.name+'</code> hold'+(g2.all?', <span class="pw-ok">Good again</span>.':'.')+(i+1<ENT.length?(P.sameP(ENT[i+1].P,cs.P)?' It is entry #'+(i+1)+'.':' <span class="pw-bad">✗ not entry #'+(i+1)+'</span>'):' (beyond the Lean table; <code>good_step</code> covers it).');}
+ $('pw-gqnext').innerHTML=n;}
+sel.onchange=show;sel.value=ENT.length-1;show();})();
+</script>
