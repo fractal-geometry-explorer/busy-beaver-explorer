@@ -122,7 +122,10 @@ orbit of the doubling map.
   `halts_iff_pool`: iff the orbit reaches `od none A 0` with A = 2^(k+2) − 2k − 3 (`pool_run` does the odd pool's
   doubling for every k, and `back` traces any halting visit back to the pool it started as). `pool_sources`: such a pool
   comes from an event 2u = v without bracket (and `event_pool`: 2v − 3 is a halting pool iff v = 2^(k+1) − k), from an
-  odd pool that overflows by one (2A + 5), or from a merge that ends with the tail (2c + 2A + 5). The first 10^4
+  odd pool that overflows by one (2A + 5), or from a merge that ends with the tail (2c + 2A + 5). `halts_iff_source`:
+  the machine halts iff the orbit meets an event 2u = v without bracket at v = 2^(k+1) − k, or a merge state
+  O_c(2i + 3, i + 1) with 2c + 4i + 11 = 2^(k+2) − 2k − 3; the overflow pool is always 2^(j+3) − 1 (its odd state is
+  O(2^(j+2) − 3, 2^(j+1) − 2) by `back`) and never a halting pool (`not_pool_mersenne`). The first 10^4
   operations (kernel) and 10^7 (`native_decide`) do not halt. Axioms `propext`, `Classical.choice`, `Quot.sound`. This
   makes the page's simple rule a proved halts-iff; `py/model.py` and the C runs remain the fast way to follow it.
 * Lean: the first 100 nodes of the orbit do not halt (kernel), and the first 10^4 (`native_decide`).
@@ -150,8 +153,7 @@ orbit of the doubling map.
 ## Next steps
 
 * Done (17 November 2026): the arithmetic layer, `lean/Doubling.lean` (see Status).
-* Prove in Lean that the pool 2A + 5 never halts (the README's argument: an odd pool that overflows by one is
-  2^(K+3) − 1), so that only events and merges remain as sources of halting pools.
+* Done (17 November 2026): the pool 2A + 5 never halts (`halts_iff_source`).
 * A faster simulator: k doublings at once are one multiplication by 2^k and one division by v with a small
   correction (the modulus moves by at most k), valid when the remainder is not near 0; this would give about 10^13
   operations and, with exact step counts added, a halting step if one is ever found.
