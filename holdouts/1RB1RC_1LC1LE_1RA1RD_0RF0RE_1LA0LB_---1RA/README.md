@@ -44,6 +44,38 @@ about `n²` steps (a sweep crosses the number, and there are `n/2` sweeps): the 
 square root of the step count. The counter on the right moves by +2 or −1 a round, about +1/2 on average: the right
 side grows like the logarithm of the step count. That is the exp/sqrt shape of the triage, mirrored.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. A subscript m is the
+counter block `0 11 (01)^m` on the right; no subscript, no counter.
+
+    R(n, m)   := 0^inf A> 0 11 (01)^n 0 11 (01)^m 0^inf
+    Z(k)      := 0^inf A> 0 11 (01)^k 0^inf
+    X_m(k, j) := 0^inf C> (01)^k 0 11 (01)^j 0 11 (01)^m 0^inf
+
+    0^inf A> 0^inf       --10-->                     Z(1)               blank_start
+    R(n, m), Z(k)        --4-->                      X_m(1, n), X(1, k) entry
+    X_m(k, j+2)          --4k + 22-->                X_m(k+3, j)        pass (also without the counter)
+    X_m(k, 0)            --4k + 4m + 30-->           R(k+1, m+2)        endEven
+    X_{m+1}(k, 1)        --8k + 46-->                R(k+4, m)          endOdd
+    X_0(k, 1)            --8k + 46-->                Z(k+5)             endOdd0
+    X(k, 1)              --4k + 26-->                R(k+1, 1)          zOdd
+    X(k, 0)              --2k + 5-->                 HALT               zEven (2k + 4 steps to F on a 0, + the halting step)
+
+    whole rounds (next):
+    R(2p, m)             --6p² + 32p + 4m + 38-->    R(3p+2, m+2)
+    R(2p+1, m+1)         --6p² + 44p + 58-->         R(3p+5, m)
+    R(2p+1, 0)           --6p² + 44p + 58-->         Z(3p+6)
+    Z(2p+1)              --6p² + 32p + 34-->         R(3p+2, 1)
+    Z(2p)                --6p² + 26p + 11-->         HALT
+
+The rule rows are `lean/Rules.lean` theorems with their exact step counts; the round theorems of `lean/Macro.lean`
+and `halts_iff'` state reachability without counts, so the round rows' counts are sums not stated in Lean.
+`py/exact.py` checks every row against direct simulation: 4,220 tapes, each run to its next configuration of the
+families or to the halt, and the run from blank tape up to step 10^7 (2,982 configurations, 16 round starts, all at
+the predicted steps). Example: R(9, 2) -> R(17, 1) -> R(29, 0) -> Z(48) -> halt in 330 + 794 + 1850 + 4091 = 7,065
+steps, as direct simulation gives.
+
 ## Does it halt?
 
 It halts iff the counter, which goes up by 2 for every even `n` and down by 1 for every odd `n`, ever gets below
@@ -72,6 +104,7 @@ zero, that is iff the odd values of the orbit ever outnumber twice the even ones
 - `lean/Macro.lean`: the sweeps by induction, `next`, `round`, `round_halt`.
 - `lean/Reduction.lean`: the orbit from blank tape, `halts_iff`, `halts_iff'`, `first_rounds`.
 - `py/orbit.py`: the map, its long iteration, and the check against direct simulation.
+- `py/exact.py`: the rule table with exact step counts against direct simulation.
 
 ## Status
 
@@ -88,4 +121,5 @@ Open (cryptid, Antihydra-like). The claims with what each rests on are in `statu
 . /etc/profile.d/lean.sh && holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/lean/check.sh   # about a minute
 python3 holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/lean/rules.py | diff - holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/lean/Rules.lean
 python3 holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/py/orbit.py 1e5          # about 30 s
+python3 holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/py/exact.py             # the rule table and its step counts against direct simulation
 ```

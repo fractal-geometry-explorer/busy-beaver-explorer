@@ -33,6 +33,24 @@ block is gone, the block is taken apart at the blank end (`end_loop`): each roun
 passes) moves two of its ones past the end and adds three ones on its left, so 2m ones become 3m; `end_fin` walks
 back to the left end.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts.
+
+    K(p, q) := 0^inf A> 0 1^p 0 1^q 0^inf
+
+    0^inf A> 0^inf    --7-->                              K(0, 2)            (blank_K)
+    K(2k+3, q)        --2k^2 + 10k + 13-->                K(k, q + k + 4)    (K_odd)
+    K(2k+2, q)        --q(4k + 8) + 6k^2 + 22k + 15-->    K(3k + 3 + q, 1)   (K_even)
+    K(0, q+1)         --7-->                              K(2, q)            (K_zero)
+    K(1, q)           --7-->                              HALT               (K_one_halts: 6 steps to F on a 0, + the halting step)
+
+Every row, with its step count, is a Lean theorem in `lean/Macro.lean`; `lean/Reduction.lean` combines them
+(`K_step`, `reach`, `halts_iff`). `py/exact.py` checks every row against direct simulation: 2,500 tapes (p <= 60,
+q <= 40) and the 49 samples of the run from blank tape up to step 10^8. The wiki page's rules on (m, n) are these
+with m = p, n = q + 1. Example: K(13, 0) -> K(5, 9) -> K(1, 14) -> halt in 113 + 25 + 7 = 145 steps, as direct
+simulation gives.
+
 ## Halting
 
 **Proved reduction** (`lean/Reduction.lean`). Let F be the map above (with F(1, q) = (1, q)), orbit n = F^n(0, 2)
@@ -81,4 +99,5 @@ machines of this family are listed in [`tools/sweep/README.md`](../../tools/swee
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/lean/check.sh
+python3 holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/py/exact.py     # the rule table and its step counts against direct simulation
 ```

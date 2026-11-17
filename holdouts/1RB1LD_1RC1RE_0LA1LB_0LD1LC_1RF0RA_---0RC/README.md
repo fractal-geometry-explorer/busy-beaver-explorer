@@ -43,6 +43,29 @@ orbit of (8, 1) reaches a pair (3t+2, 0).**
 The first round ends (step, m, k): (280, 8, 1), (611, 13, 2), (1274, 20, 3), (2413, 29, 4), (4470, 41, 5),
 (8169, 57, 6), (14566, 80, 5), (26897, 109, 6), (49312, 148, 7), ... each matching the map.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts.
+
+    E(m, k)    := 0^inf D> 110 (10)^m (110)^k 0^inf                        (end of a round)
+    S(u, y, k) := 0^inf B> 1110 (101010)^u 10 110 (10)^y (110)^k 0^inf     (in a round)
+
+    0^inf A> 0^inf     --280-->               E(8, 1)               blank_to_E
+    E(3t+1, k)         --30t + 6k + 57-->     S(t, 0, k+1)          start1'
+    E(3t+2, k+1)       --30t + 6k + 75-->     S(t, 1, k+2)          start2', start2_small' (t = 0)
+    E(3t+3, k+1)       --30t + 77-->          S(t, 4, k)            start0' (passes S(t+1, 0, k) at step 13)
+    E(3t+3, 0)         --60t + 143-->         S(t, 4, 0)            start0z', start0z_small' (passes S(t+1, 0, 0) at step 30t + 79)
+    S(u+1, y, k)       --30u + 64-->          S(u, y+4, k)          sweep'
+    S(0, y, k)         --38-->                E(y+4, k)             finish'
+    S(u, y, k)         --15u^2 + 49u + 38-->  E(y+4u+4, k)          u sweeps, then finish
+    E(3t+2, 0)         --10t + 38-->          HALT                  to_halt' (10t + 37 steps to F on a 0, + the halting step)
+
+All rows but the u-sweeps sum are Lean theorems with their exact step counts (`lean/Round.lean`); `round_some`,
+`round_none` and `halts_iff` keep the step count of a whole round as an existential. `py/exact.py` checks every row
+against direct simulation: 2,700 tapes, each run to its first E or S configuration or the halt, and the 2,079 E and S
+configurations of the run from blank tape up to step 10^7. Example: E(7, 0) -> S(2, 0, 1) -> ... -> E(12, 1) -> ...
+-> E(20, 0) -> halt in 117 + 196 + 167 + 320 + 98 = 898 steps, as direct simulation gives.
+
 ## Does it halt?
 
 Along the orbit k is 2, 3, 4, 5, 6, 5, 6, ..., never below 7 after round 10, and 331,763 after 1,000,000 rounds
@@ -77,4 +100,5 @@ Open, reduced to the map above. Lean, kernel only: `lean/Rules.lean` (symbolic r
 . /etc/profile.d/lean.sh && holdouts/1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/lean/check.sh
 PYTHONPATH=tools/py python3 holdouts/1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/py/gen_rules.py     # regenerates lean/Rules.lean
 python3 holdouts/1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/py/orbit.py 1e5 mins                    # iterate the map
+python3 holdouts/1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/py/exact.py                            # the rule table and its step counts against direct simulation
 ```
