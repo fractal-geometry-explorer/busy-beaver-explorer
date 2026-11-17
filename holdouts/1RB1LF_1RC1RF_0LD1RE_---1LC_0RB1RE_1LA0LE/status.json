@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its right end is a pool of 1s that pays for a doubling block of pairs. The complete map from one right-end visit to the next is now known: for an even pool it is a doubling map, u ↦ 2u modulo m, whose modulus m grows by one at every doubling that does not wrap. The machine can halt only when a doubling lands exactly on m at one of the special moduli 2<sup>k+1</sup> − k."
+  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Its right end is a pool of 1s that pays for a doubling block of pairs. The complete map from one right-end visit to the next is proved in Lean: for an even pool it is a doubling map, u ↦ 2u modulo m, whose modulus m grows by one at every doubling that does not wrap. The machine can halt only when a doubling lands exactly on m at one of the special moduli 2<sup>k+1</sup> − k."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 17 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At every right-end visit in state B the tape is <code>T(c, a, b) = [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. With an even pool a, and u = b + 2, m = a/2 + b + 3, the next visit is T(c, a − 2b − 2, 2b + 2) when 2u &lt; m (u doubles, m grows by one); when 2u &gt; m a carry replaces u by 2u − m; when 2u = m the pool becomes odd: T(c, 2m − 3, 0). An odd pool is doubled down until it cannot pay, then leaves a bracket behind or swallows the one that is there. The only halting visits are T(none, 1, b), reached exactly from odd pools A = 2<sup>k+2</sup> − 2k − 3 without a bracket. The machine halts iff this right-end map reaches T(none, 1, b): a theorem checked by Lean's kernel.",
+  "<b>The question is open.</b> At every right-end visit in state B the tape is <code>T(c, a, b) = [1^2 0 (10)^c] 1^a 0 (10)^b B&gt;0</code>. With an even pool a, and u = b + 2, m = a/2 + b + 3, the next visit is T(c, a − 2b − 2, 2b + 2) when 2u &lt; m (u doubles, m grows by one); when 2u &gt; m a carry replaces u by 2u − m; when 2u = m the pool becomes odd: T(c, 2m − 3, 0). An odd pool is doubled down until it cannot pay, then leaves a bracket behind or swallows the one that is there. The only halting visits are T(none, 1, b), reached exactly from odd pools A = 2<sup>k+2</sup> − 2k − 3 without a bracket. Both layers are theorems checked by Lean's kernel: the machine halts iff this right-end map reaches T(none, 1, b), and, one level up, iff the doubling map in (u, m), odd pools and brackets included, reaches an odd pool A = 2<sup>k+2</sup> − 2k − 3 without a bracket.",
   "<b>How far it has been followed.</b> The exact map (<code>c/fast.c</code>) was run for 10<sup>11</sup> operations: 50,000,005,600 right-end visits, of the order of 10<sup>31</sup> machine steps, 35 odd pools, 18 of them without a bracket, none of them a halting one (the closest: 989 against 1005). A later halt needs an exact hit at a modulus beyond 2<sup>37</sup>; heuristically that has probability about 10<sup>−11</sup>. Halting configurations of the same form exist (T(none, 12, 19) halts after five visits), so there is no parity or congruence argument; the map is a chaotic doubling map and no proof is in sight."
  ],
  "claims": [
@@ -48,8 +48,14 @@
   },
   {
    "level": "kernel",
+   "title": "It halts iff the doubling map reaches a halting pool",
+   "text": "A layer above <code>F</code>, by arithmetic alone. The map <code>op</code> works on even states (c, u, m) and odd pools (c, A, b). Even: 2u &lt; m gives (2u, m + 1), 2u &gt; m gives (2u − m, m), 2u = m gives the odd pool (c, 2m − 3, 0). Odd, A = 2i + 3: for b &lt; i the pair block doubles, (A − 2b − 2, 2b + 2); for b = i the pool comes down to 1, which halts without a bracket and merges with a bracket c into (c + 2b + 5, c + 2b + 7); for b = i + r a pool without bracket leaves the bracket A + 1 behind and restarts at (r − 2, r) (r ≥ 3), or goes to (A + 3, A + 5) (r = 2) or the odd pool 2A + 5 (r = 1); with a bracket c it merges into (r − 1, c + i + b + 6) (r ≥ 2) or the odd pool 2c + 2A + 5 (r = 1). Proved: every node of <code>F</code> is a state of <code>op</code>, every move of <code>F</code> is one or more operations, and the machine halts from blank tape iff <code>op</code> from (none, 2, 4) (the visit at step 7) halts, iff its orbit reaches an odd pool without bracket A = 2<sup>k+2</sup> − 2k − 3. Such a pool comes from an event 2u = m without bracket at m = 2<sup>k+1</sup> − k, or from one of the two rarer pools 2A + 5 and 2c + 2A + 5. The first 10<sup>4</sup> operations (kernel) and 10<sup>7</sup> (<code>native_decide</code>) do not halt.",
+   "where": "<code>halts_iff_op</code>, <code>halts_iff_pool</code>, <code>F_op</code>, <code>pool_run</code>, <code>pool_sources</code>, <code>event_pool</code>, <code>op_kernel</code>, <code>op_native</code>, <code>lean/Doubling.lean</code>"
+  },
+  {
+   "level": "kernel",
    "title": "The building blocks of the map, for all parameters",
-   "text": "Each move of the map between two visits is a Lean theorem about every value of its counts and every tape in its context: the start of a sweep, a round (two 1s of the pool and one pair of the tail become four 1s of the middle block), the end of a sweep (the middle block becomes the doubled pair block), the carry (the middle block becomes the pool), the two events where pool and tail run out together (one makes the pool odd), the birth of a bracket and its merge. They are not yet assembled into one statement of the whole map. Fifteen more rules in the forms the assembly uses (pools of one, two and three, the short tails, the bracket and merge cases) are generated the same way.",
+   "text": "Each move of the map between two visits is a Lean theorem about every value of its counts and every tape in its context: the start of a sweep, a round (two 1s of the pool and one pair of the tail become four 1s of the middle block), the end of a sweep (the middle block becomes the doubled pair block), the carry (the middle block becomes the pool), the two events where pool and tail run out together (one makes the pool odd), the birth of a bracket and its merge. <code>lean/Map.lean</code> assembles them into the map <code>F</code>. Fifteen more rules in the forms the assembly uses (pools of one, two and three, the short tails, the bracket and merge cases) are generated the same way.",
    "where": "<code>start</code>, <code>round</code>, <code>round_last</code>, <code>round_w1</code>, <code>final</code>, <code>carry</code>, <code>event_odd</code>, <code>event_even</code>, <code>bracket</code>, <code>merge</code>, <code>unwind</code>, <code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)"
   },
   {
@@ -65,16 +71,16 @@
    "where": "<code>py/model.py check</code>, <code>py/model.py checkrec</code> with <code>c/rec.c</code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "Even pools: doubling modulo a growing modulus",
-   "text": "For even a, with u = b + 2 and m = a/2 + b + 3: 2u &lt; m gives a visit with (2u, m + 1); 2u &gt; m is a carry to (2u − m, m); 2u = m gives T(c, 2m − 3, 0). Checked against <code>step</code> for 7,080 configurations.",
-   "where": "<code>py/model.py check</code>"
+   "text": "For even a, with u = b + 2 and m = a/2 + b + 3: 2u &lt; m gives a visit with (2u, m + 1); 2u &gt; m is a carry to (2u − m, m); 2u = m gives T(c, 2m − 3, 0). Inside a sweep the state is unchanged by a round and moved by one operation at a carry. Now a theorem (it was checked against <code>step</code> for 7,080 configurations).",
+   "where": "<code>ev_sweep</code>, <code>ev_end</code>, <code>lean/Doubling.lean</code>; <code>py/model.py check</code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "Which odd pools halt",
-   "text": "An odd pool without bracket always starts at T(none, A, 0), and the doubling steps bring it to exactly 1 iff A = 2<sup>k+2</sup> − 2k − 3 (1, 3, 9, 23, 53, 115, …), which for a pool born at 2u = m (A = 2m − 3) means m = 2<sup>k+1</sup> − k. (A merge that ends exactly as the tail runs out can also leave an odd pool without bracket, T(none, 2c + p + 9, 0); the model covers it.) Checked against <code>step</code> for all odd A &lt; 400.",
-   "where": "<code>halting_pool</code>, <code>py/model.py check</code>"
+   "text": "An odd pool without bracket T(none, A, 0) doubles its pair block (0, 2, 6, 14, …) and comes down to exactly 1 iff A = 2<sup>k+2</sup> − 2k − 3 (1, 3, 9, 23, 53, 115, …); for a pool born at 2u = m (A = 2m − 3) that means m = 2<sup>k+1</sup> − k. Now a theorem; it was checked against <code>step</code> for all odd A &lt; 400.",
+   "where": "<code>pool_run</code>, <code>halts_iff_pool</code>, <code>event_pool</code>, <code>lean/Doubling.lean</code>; <code>halting_pool</code> in <code>py/model.py</code>"
   },
   {
    "level": "trusted",
@@ -118,9 +124,9 @@
   "lede": "Nobody knows whether it halts. A pool of 1s pays for a block of pairs that doubles at every sweep; in numbers, the machine doubles a counter u modulo a slowly growing modulus m. It can halt only if a doubling lands exactly on m at one of the rare moduli 2^(k+1) − k.",
   "facts": [
    {
-    "level": "trusted",
+    "level": "kernel",
     "value": "u ↦ 2u mod m",
-    "text": "The map for even pools; m grows by one at each doubling that does not wrap."
+    "text": "The map for even pools, proved in Lean with the odd pools and brackets; m grows by one at each doubling that does not wrap."
    },
    {
     "level": "trusted",
@@ -129,8 +135,8 @@
    },
    {
     "level": "kernel",
-    "value": "15 theorems",
-    "text": "The building blocks of the map and the halting visit, proved in Lean for all parameters."
+    "value": "halts ⇔ exact hit",
+    "text": "Proved in Lean: it halts iff the map reaches an odd pool 2<sup>k+2</sup> − 2k − 3 without a bracket."
    }
   ],
   "presets": [
@@ -152,7 +158,7 @@
      "<p><b>Carry.</b> If the pool runs dry in the middle of a sweep, the middle block becomes the new pool and the sweep goes on with what is left of the old block. In numbers: put u = b + 2 and m = a/2 + b + 3. A sweep without carry doubles u and adds one to m. A carry replaces u by 2u − m. So the machine computes <b>u ↦ 2u modulo m</b>, over and over, with a modulus that creeps up by one each time the doubling does not wrap around.</p>",
      "<svg viewBox=\"0 0 560 118\" role=\"img\" aria-label=\"The doubling map\" style=\"max-width:560px;width:100%;height:auto;font:13px sans-serif\"><rect x=\"8\" y=\"12\" width=\"150\" height=\"40\" rx=\"6\" fill=\"none\" stroke=\"currentColor\"/><text x=\"83\" y=\"37\" text-anchor=\"middle\" fill=\"currentColor\">2u &lt; m: double</text><rect x=\"205\" y=\"12\" width=\"150\" height=\"40\" rx=\"6\" fill=\"none\" stroke=\"currentColor\"/><text x=\"280\" y=\"37\" text-anchor=\"middle\" fill=\"currentColor\">2u &gt; m: carry</text><rect x=\"402\" y=\"12\" width=\"150\" height=\"40\" rx=\"6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/><text x=\"477\" y=\"37\" text-anchor=\"middle\" fill=\"currentColor\">2u = m: odd pool</text><text x=\"83\" y=\"76\" text-anchor=\"middle\" fill=\"currentColor\">u → 2u, m → m + 1</text><text x=\"280\" y=\"76\" text-anchor=\"middle\" fill=\"currentColor\">u → 2u − m</text><text x=\"477\" y=\"76\" text-anchor=\"middle\" fill=\"currentColor\">pool = 2m − 3</text><text x=\"83\" y=\"100\" text-anchor=\"middle\" fill=\"currentColor\" opacity=\".7\">almost always</text><text x=\"280\" y=\"100\" text-anchor=\"middle\" fill=\"currentColor\" opacity=\".7\">almost always</text><text x=\"477\" y=\"100\" text-anchor=\"middle\" fill=\"currentColor\" opacity=\".7\">35 times in 10¹¹</text></svg>",
      "<p><b>The exact hit.</b> If the doubling lands exactly on the modulus (2u = m), pool and block run out at the same moment and the machine is left with an <b>odd</b> pool of 2m − 3 ones and an empty block. An odd pool is the only dangerous thing: the block doubles (0, 2, 6, 14, … pairs) and the pool pays 2, 6, 14, … until it cannot. If it comes down to exactly one 1, with no bracket to the left, the machine halts. Otherwise the leftovers are parked as a bracket (or an existing bracket is swallowed), the pool is even again, and the doubling map resumes.</p>",
-     "<p><b>So the machine halts exactly when</b> the pool turns odd, without a bracket, at a modulus of the form m = 2<sup>k+1</sup> − k (the pool is then 2<sup>k+2</sup> − 2k − 3: 3, 9, 23, 53, 115, …). Such moduli get rarer and rarer, and the map passes each of them only briefly.</p></div>"
+     "<p><b>So the machine halts exactly when</b> the pool turns odd, without a bracket, at a modulus of the form m = 2<sup>k+1</sup> − k (the pool is then 2<sup>k+2</sup> − 2k − 3: 3, 9, 23, 53, 115, …). Such moduli get rarer and rarer, and the map passes each of them only briefly.</p><p><b>This is a theorem, not a model.</b> The whole rule above, with the odd pools, the bracket that is left behind and the merge, is proved in Lean (<code>lean/Doubling.lean</code>), on top of the proved tape moves (<code>lean/Map.lean</code>): the machine halts from blank tape exactly when the map, started at u = 2, m = 4 (the tape at step 7), reaches an odd pool 2<sup>k+2</sup> − 2k − 3 with no bracket. What is not known is whether it ever does.</p></div>"
     ]
    },
    {
@@ -169,5 +175,5 @@
  },
  "family": "doubling map with a growing modulus (odd-pool events)",
  "decision": "open",
- "summary": "Its right-end map is proved in Lean (kernel: halts iff the map reaches T(none, 1, b)): a pool/pair-block pair that doubles u modulo a slowly growing m; when 2u = m the pool turns odd, and it halts iff that happens without a bracket at m = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open."
+ "summary": "Proved in Lean (kernel), above the tape-level map: it halts iff a doubling map u ↦ 2u mod m (m grows by one at each doubling that does not wrap), with its odd pools and brackets, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket, e.g. from 2u = m at m = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open."
 }
