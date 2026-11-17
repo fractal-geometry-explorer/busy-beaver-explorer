@@ -13,7 +13,7 @@ bbchallenge id 104106. One of the six-state holdouts whose halting from blank ta
 
 **Family:** Nested ternary counter with an exact regime law (segments drained by 3^j per event).
 
-A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact model of the whole tape (16 November 2026) follows the run through that collapse and through the middle collapse at 2.06x10^35 steps, without a halt, to 8.2x10^51 steps; the next collapse (the oldest segment of the third regime) is due near 10^54 to 10^55 steps.
+A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact model of the whole tape (16 November 2026) follows the run through that collapse and through the middle collapse at 2.06x10^35 steps, and a lean accelerator (17 November) on through a middle collapse at 2.58x10^54 and the collapse of the third regime's oldest segment at 2.8x10^54 to 3.0x10^54, without a halt, to 3.09x10^54 steps.
 
 ## Equivalence
 
@@ -294,6 +294,78 @@ Reproduce (each run checkpoints and can be resumed):
 the main log prints the state every few minutes. BLAST=1000 keeps the last run exact (it is always small), and
 the memo bounds keep memory below about 5 GB.
 
+## A lean accelerator, and the collapses at 2.58x10^54 and 3.0x10^54 (17 November 2026)
+
+Goal: get past the point where the counter-macro run stopped (8.2x10^51 steps for b1, 5.3x10^53 for b2; deriving
+its macros there needed more than the 14 GB of memory available) and reach the collapses that were due next. Result:
+**both machines pass the middle collapse at 2.58x10^54 steps and the oldest-segment collapse at 2.8x10^54 to
+3.0x10^54 steps without halting, and both runs are now at 3.09x10^54 steps.** Halting is still open.
+
+`py/lean.py` uses the digit model of `py/cdigits.py` and needs no macro cache. Two exact facts make it work:
+
+1. **The counter rule.** A sweep whose carry chain passes the T digits q..s+1 and stops at digit s turns the T digits
+   into Z, raises digit s by one, and takes 1 block (stop on Z) or 2 blocks (stop on O) from the run of digit s+1.
+   A run of r blocks in the chain costs 12r + 16 steps, and a stop on O costs 2 steps less than a stop on Z. This was
+   checked by symbolic sweeps for stop runs 0 to 9, top runs 1 to 9 and chains of every shape tried; it is what the
+   regime law of the right end looks like at the left end.
+2. **The low end is periodic.** Take N, a digit with a big run, and S, everything below it (in the third regime: the
+   pair a, b and the small gadget at the end of the tape). S sees nothing of the rest of the tape except N's wall,
+   so it repeats exactly. In the third regime one period is 14,976 sweeps: N sends 44 carries into the counter above
+   it and grows by 7,348 blocks.
+
+So `lean.py` finds the period of S by exact sweeps (Brent's cycle search). Each sweep whose window reaches N is run a
+second time with N's run larger by one, which checks that S does not depend on N's run and gives that sweep's step
+count as a function of it. Then it does T periods at once in closed form: ternary addition of T*E carries at the
+bottom of the counter, the block losses (each a sum over a period-3 pattern), and the step count (arithmetic
+series). T is the largest number of periods for which no carry leaves the counter and every run stays >= 1. The
+event that blocks the next period (a carry into the far end or into an odd wall) is run exactly. Then S is run on
+exactly to the start of its period, and the next jump follows.
+
+Checks (all exact equalities, states and step counts):
+
+* `python3 py/lean.py test CKPT` compares jumps of 1, 2, 3, 5 and 13 periods with plain sweeps: equal at 8.2x10^51
+  (b1), next to a small digit after the middle collapse (b2, up to the largest allowed jump of 26 periods), and for
+  the 4.26-million-sweep period of the fourth regime (1 and 2 periods, 8.5 million sweeps).
+* `python3 py/lean.py verify line0 FULLLOG` runs from the first state of the counter-macro run's full log to every
+  later line and compares. All 206 lines of b1 (2.25x10^35 to 8.16x10^51, through the middle collapse at
+  2.06x10^35) are equal, in 11 minutes. For b2, all 482 lines checked from line 100 on (3.8x10^14 to 1.3x10^53 steps) are equal. These
+  logs are in the project folder, not in the repository (295 MB in all).
+
+What the runs show (b1 and b2 go through the same events at nearly the same step counts; the right ends of their
+tapes agree, only the end counter differs):
+
+1. **To 2.58x10^54 steps, the third regime as forecast.** The oldest segment loses 9 per generation, 26 at 8.2x10^51
+   down to 3 at 2.58x10^54 (b1). The end counter drops by 2 per generation, 133 down to 126 for b1. For b2 it is at
+   3. From the earlier run's checkpoints this took about 10 minutes for each machine.
+2. **The middle collapse at 2.5824x10^54 steps.** A middle segment runs out (15 blocks, then 0). The digit it leaves
+   (wall `b1_6`) and its neighbours are resolved in a few carries, and the counter goes on. No halt.
+3. **A fourth regime.** After that, the low system is nested one level deeper. The pair a, b now sits inside a
+   second pair x, y: x counts down, y grows by about 7,300 blocks per 14,976 sweeps, and when x runs out y merges
+   into the big digit above. The start values of the x, y pairs repeat with period 4,257,468 sweeps, during which N
+   sends 1,383 carries up and grows by 2,072,117 blocks.
+4. **The oldest segment runs out.** It reaches 0 blocks at about 2.76x10^54 steps. Its wall then counts Z, O, T as
+   an empty digit. At 2.8214x10^54 the carry it passes reaches the far end: the end counter goes 126 -> 127 (b1) and
+   3 -> 4 (b2). At about 3.02x10^54 the empty digit is absorbed into the end counter. The tape loses that segment,
+   and the next one (293 blocks) becomes the oldest. No halt anywhere: the halting transition (state D on a 0 with
+   `1 1` to its right, at the right end of the tape) never comes up.
+5. **Where the runs stand.** At 3.093x10^54 steps (b1: 3,093,119,948,897,520,980,264,650,467,058,210,255,920,661,012,668,767,926;
+   b2: 3,093,119,948,897,520,980,264,579,279,963,217,281,792,578,051,434,039,981) the far end is `[125]b1_6 [293]Z ...`
+   for b1 and `[3]b1_2 [0]b2_3 [293]T ...` for b2. The odd walls at the far end change only when a carry reaches
+   them. The next events that could matter are b2's end counter, at 3 blocks and 2 fewer per generation, and the
+   next oldest segment, 293 blocks.
+
+Reproduce (each run checkpoints after every jump and can be resumed from its checkpoint or from a state line):
+
+    cd holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py
+    python3 lean.py test CKPT.pkl                    # a tacc.py checkpoint, e.g. the one at 8.2e51 steps
+    python3 lean.py verify line0 b1full.log          # FULLLOG of tacc.py run (b2: add b2)
+    python3 lean.py run ../data/b1_lean_last.txt 86000 /tmp/b1lean.pkl
+    python3 lean.py run ../data/b2_lean_last.txt 86000 /tmp/b2lean.pkl b2
+
+`data/b1_lean.log` and `data/b2_lean.log` are the logs of the runs (one line per jump: periods done, step count, the
+far end and the bottom of the tape). `data/b1_lean_last.txt` and `data/b2_lean_last.txt` hold the last state (sweeps,
+steps, digit list) of each run.
+
 ## What is proved, and how firmly
 
 | level | claim | where |
@@ -313,7 +385,8 @@ the memo bounds keep memory below about 5 GB.
 | trusted | **The whole tape as one exact counter.** Read at the left end, the tape is one ternary counter (runs of `1000`, mirrored, between walls Z, O, T); every sample of the direct run to 10^7 steps equals the model, and the counter macros equal plain sweeps on 5.07 million sweeps. | `py/cdigits.py check 1e7`, `py/tacc.py test 1e6 5e6` |
 | trusted | **No halt in the first 8.2x10^51 steps, through the middle collapse.** The whole-tape run reproduces the law events, the first collapse and the msim records (`py/farcheck.py`); the middle collapse comes at 2.060x10^35 steps (two segments merge, then a third regime of the same kind). | `py/tacc.py run`, `py/farcheck.py b1` |
 | kernel | **8 sweeps of the digit model, for all run lengths.** The 8 most used sweeps of the direct run to 2x10^6 steps, proved for all lengths of the long runs. | `lean/Digits.lean`, generated by `py/digits_lean.py b1` |
-| open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts), which the law never produces. The first collapse did not produce it either (exact run). Whether a later collapse can needs a rule for the collapses, which is not known yet. |  |
+| trusted | **No halt in the first 3.09x10^54 steps, through the middle collapse at 2.58x10^54 and the oldest-segment collapse at 2.8x10^54 to 3.0x10^54.** The lean accelerator (closed-form jumps over periods of the low system, every other sweep exact) reproduces all 206 logged states of the counter-macro run to 8.2x10^51 steps, step counts included, and its jumps equal plain sweeps wherever compared. | `py/lean.py run`, `py/lean.py verify`, `py/lean.py test`; `data/b1_lean.log` |
+| open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts). The law never produces it, and neither did the first collapse, the middle collapses at 2.06x10^35 and 2.58x10^54, or the oldest-segment collapse at 2.8x10^54 to 3.0x10^54 (exact runs). The next oldest segment holds 293 blocks; the run goes on from 3.09x10^54 steps. |  |
 
 ## Lean
 
