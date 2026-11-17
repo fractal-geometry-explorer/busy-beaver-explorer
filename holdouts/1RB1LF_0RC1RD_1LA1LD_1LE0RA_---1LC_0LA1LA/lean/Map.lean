@@ -1,4 +1,4 @@
-import Rounds
+import Small
 
 /-!
 # The machine halts iff the orbit of a two-variable map reaches its halting set
@@ -31,17 +31,16 @@ inductive Out where
   | small
   deriving DecidableEq, Repr
 
-/-- The map. -/
+/-- The map.  `.small` is outside the round starts the orbit can reach (`a` even, `a ≥ 4`, `c ≥ 6`): `orbit_dom`
+shows the orbit never meets it. -/
 def mapc (a c : Nat) : Out :=
-  if a % 2 = 1 ∨ a < 4 then .small
+  if a % 2 = 1 ∨ a < 4 ∨ c < 6 then .small
   else if c % 2 = 0 then
-    if c < 18 ∨ a < 6 then .small
-    else if c ≤ a + 8 then .ok (a + 12 - c) (3 * c - 6)
+    if c ≤ a + 8 then .ok (a + 12 - c) (3 * c - 6)
     else if c ≤ a + 12 then .halt
     else .ok (c - a - 10) (3 * a + 27)
   else
-    if c < 5 then .small
-    else if c + 5 ≤ a then .ok (a - c - 1) (3 * c + 6)
+    if c + 5 ≤ a then .ok (a - c - 1) (3 * c + 6)
     else if c < a then .halt
     else .ok (c - a + 3) (3 * a)
 
@@ -87,11 +86,19 @@ theorem round_ok {a c a' c' : Nat} (h : mapc a c = .ok a' c') : ∃ n, 0 < n ∧
   split at h
   next hc =>
     obtain ⟨Q, rfl⟩ : ∃ Q, c = 2 * Q := ⟨c / 2, by omega⟩
-    split at h
-    · cases h
-    next hs =>
-    obtain ⟨n₁, hn₁, h₁⟩ := start_even' P Q (by omega) (by omega)
     rw [K2_ev rfl rfl]
+    by_cases hQ : Q ≤ 7
+    · split at h
+      next h1 =>
+        cases h
+        obtain ⟨n, hn, h'⟩ := short_even P Q (by omega) (by omega) hQ (by omega)
+        rw [K2_ev (P := P + 6 - Q) (Q := 3 * Q - 3) (by omega) (by omega)]
+        exact ⟨n, hn, h'⟩
+      next h1 =>
+      split at h
+      · cases h
+      · cases h; omega
+    obtain ⟨n₁, hn₁, h₁⟩ := start_even_all P Q (by omega) (by omega)
     split at h
     next h1 =>
       cases h
@@ -108,9 +115,6 @@ theorem round_ok {a c a' c' : Nat} (h : mapc a c = .ok a' c') : ∃ n, 0 < n ∧
       exact ⟨n₁ + n₂, by omega, steps_seq trans h₁ h₂⟩
   next hc =>
     obtain ⟨Q, rfl⟩ : ∃ Q, c = 2 * Q + 1 := ⟨c / 2, by omega⟩
-    split at h
-    · cases h
-    next hs =>
     obtain ⟨n₁, hn₁, h₁⟩ := start_odd' P Q (by omega) (by omega)
     rw [K2_od rfl rfl]
     split at h
@@ -137,24 +141,22 @@ theorem round_halt {a c : Nat} (h : mapc a c = .halt) : ∃ n c', steps n (K2 a 
   split at h
   next hc =>
     obtain ⟨Q, rfl⟩ : ∃ Q, c = 2 * Q := ⟨c / 2, by omega⟩
-    split at h
-    · cases h
-    next hs =>
+    rw [K2_ev rfl rfl]
     split at h
     · cases h
     next h1 =>
     split at h
     next h2 =>
-      obtain ⟨n₁, -, h₁⟩ := start_even' P Q (by omega) (by omega)
+      by_cases hQ : Q ≤ 7
+      · obtain rfl : P = 2 := by omega
+        obtain rfl : Q = 7 := by omega
+        exact short_even_halt
+      obtain ⟨n₁, -, h₁⟩ := start_even_all P Q (by omega) (by omega)
       obtain ⟨n₂, c', h₂, hc'⟩ := phase_halt (P - 1) (Q - 8) (by omega) (by omega) (.od 16)
-      rw [K2_ev rfl rfl]
       exact ⟨n₁ + n₂, c', steps_seq trans h₁ h₂, hc'⟩
     · cases h
   next hc =>
     obtain ⟨Q, rfl⟩ : ∃ Q, c = 2 * Q + 1 := ⟨c / 2, by omega⟩
-    split at h
-    · cases h
-    next hs =>
     split at h
     · cases h
     next h1 =>
@@ -229,9 +231,53 @@ theorem orbit_cases (k : Nat) : (∃ a c, orbit k = .ok a c) ∨ orbit k = .halt
   | halt => exact Or.inr (Or.inl rfl)
   | small => exact Or.inr (Or.inr rfl)
 
+/-- The map keeps the round starts in its domain (`a` even, `a ≥ 4`, `c ≥ 6`). -/
+theorem mapc_dom {a c : Nat} (ha : a % 2 = 0) (h4 : 4 ≤ a) (h6 : 6 ≤ c) : mapc a c ≠ .small := by
+  unfold mapc
+  split
+  · omega
+  split
+  · split
+    · exact fun h => by cases h
+    split <;> exact fun h => by cases h
+  · split
+    · exact fun h => by cases h
+    split <;> exact fun h => by cases h
+
+theorem mapc_ok_dom {a c a' c' : Nat} (h : mapc a c = .ok a' c') : a' % 2 = 0 ∧ 4 ≤ a' ∧ 6 ≤ c' := by
+  unfold mapc at h
+  split at h
+  · cases h
+  split at h
+  · split at h
+    · cases h; omega
+    split at h
+    · cases h
+    · cases h; omega
+  · split at h
+    · cases h; omega
+    split at h
+    · cases h
+    · cases h; omega
+
+/-- **The orbit never meets a `.small` case.** -/
+theorem orbit_dom : ∀ k, orbit k ≠ .small ∧ ∀ a c, orbit k = .ok a c → a % 2 = 0 ∧ 4 ≤ a ∧ 6 ≤ c := by
+  intro k
+  induction k with
+  | zero => exact ⟨fun h => (by cases h), fun a c h => (by cases h; omega)⟩
+  | succ k ih =>
+    obtain ⟨hs, hd⟩ := ih
+    cases hk : orbit k with
+    | ok a c =>
+      obtain ⟨h1, h2, h3⟩ := hd a c hk
+      simp only [orbit, hk]
+      exact ⟨mapc_dom h1 h2 h3, fun a' c' h => mapc_ok_dom h⟩
+    | halt => simp only [orbit, hk]; exact ⟨fun h => (by cases h), fun a c h => (by cases h)⟩
+    | small => exact absurd hk hs
+
 /-- **The reduction.**  If the orbit never meets a case too small for the rules, the machine halts from blank tape
 exactly when the orbit reaches `.halt`. -/
-theorem halts_iff (hs : ∀ k, orbit k ≠ .small) : HaltsFromBlank ↔ ∃ k, orbit k = .halt := by
+theorem halts_iff_of_no_small (hs : ∀ k, orbit k ≠ .small) : HaltsFromBlank ↔ ∃ k, orbit k = .halt := by
   constructor
   · intro hb
     apply Classical.byContradiction
@@ -244,5 +290,10 @@ theorem halts_iff (hs : ∀ k, orbit k ≠ .small) : HaltsFromBlank ↔ ∃ k, o
     · exact absurd h (hs k)
   · rintro ⟨k, hk⟩
     exact halts_of_orbit k hk
+
+/-- **The reduction, with no condition.**  The machine halts from blank tape if and only if the orbit of `mapc` from
+`(74, 30)` reaches `.halt`. -/
+theorem halts_iff : HaltsFromBlank ↔ ∃ k, orbit k = .halt :=
+  halts_iff_of_no_small fun k => (orbit_dom k).1
 
 end H35366

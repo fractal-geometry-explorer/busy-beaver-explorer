@@ -107,6 +107,15 @@ def deepmind_entry(M, e, decision):
                 "text": f"{link} proves that this machine {CLAIM[k]}{note}{port}. It was not compiled here, so the "
                         f"ledger below, which holds only what this repository checked, still lists halting as open.{same}"}
     if k == "map":
+        if e["here"] == "iff" and e.get("compiled"):
+            c = e["compiled"]
+            return {"kind": "proof", "title": "Independently formalized here and in DeepMind cryptids",
+                    "text": "Both this repository and DeepMind's cryptids repository prove in Lean that the machine halts "
+                            "from blank tape if and only if an explicit map on a few numbers reaches its halting case. "
+                            f"The two proofs were written separately, with different variables and file layouts: theirs is "
+                            f"{link}. We built it with Lean {c['lean']} on {c['date']} "
+                            f"(<code>{html.escape(c['theorem'])}</code>); it rests only on the axioms "
+                            f"{', '.join(c['axioms'])}, and its transition table was checked against this machine."}
         if e["here"] == "iff":
             return {"kind": "report", "title": "Independently formalized here and in DeepMind cryptids",
                     "text": "Both this repository and DeepMind's cryptids repository prove in Lean that the machine halts "
