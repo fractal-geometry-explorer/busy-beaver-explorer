@@ -1,6 +1,7 @@
 import OrbitRun
 import ZoneRun
 import ZoneCascade
+import WindowRun
 
 /-! What the main theorems rest on: the kernel ones only on `propext`, `Classical.choice`, `Quot.sound`; the
 `native_decide` ones also on the auxiliary axiom that `native_decide` adds. -/
@@ -24,3 +25,7 @@ import ZoneCascade
 #print axioms XS.zone_period
 #print axioms XS.never_of_quiet
 #print axioms H50378.never_halts_of_quiet
+#print axioms XS.wfold_run
+#print axioms XS.window_of_check
+#print axioms H50378.window_runs
+#print axioms H50378.blank_runs_window
