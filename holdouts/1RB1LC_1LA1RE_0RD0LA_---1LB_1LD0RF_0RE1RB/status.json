@@ -11,11 +11,11 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "Its run is a binary counter on the left, whose overflows come at doubling times, and a word of binary digits on the right through which each overflow moves a marker one block; when the marker reaches the end of the tape the word is rebuilt longer and the counter starts again."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 17 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps, and an accelerated simulator, exact against it to 2&middot;10<sup>10</sup> steps, none in the first 1.6&middot;10<sup>45</sup>.",
+  "<b>The question is open.</b> Lean proves no halt in the first 1.2&middot;10<sup>70</sup> steps: a certificate written by the accelerated simulator is accepted by a checker whose soundness is checked by Lean's kernel (the check itself is one <code>native_decide</code> evaluation). The C simulator finds no halt in the first 10<sup>11</sup> steps.",
   "<b>What it does.</b> At each overflow of its left counter the tape is <code>C&gt;0 (1 0)^z W</code>. Every shuttle of the head adds one to the z-digit counter L on the left and one to a binary counter R whose bits sit in fixed slots of W; when L overflows (z grows by one) R has gained 2<sup>z</sup>, and W changes by exactly one binary carry starting at slot z. Late in an epoch that carry moves a marker bit one block right per overflow, with gaps obeying D' = 2D + 2 exactly. When R overflows the word is rebuilt (steps 17,682,600, 5,745,422,543, 49,800,461,566).",
-  "<b>Why it is hard.</b> The counter laws are seen in the run and checked on every directly simulated tick but not proved (one tick is a sweep of hundreds of steps). A halt needs F to read two 0s in a row, which on the right sweep means reaching the end of the tape in F: Lean proves a sweep entering the last block in E does that exactly when the block has length 1 mod 3. In 1.6&middot;10<sup>45</sup> steps the end is reached 83 times, never in F; why the rebuilt words keep it so is not proved."
+  "<b>Why it is hard.</b> The counter laws are checked by Lean only for the digit layouts the run actually meets, not for all words, and the rebuilds are not understood. A halt needs F to read two 0s in a row, which on the right sweep means reaching the end of the tape in F: Lean proves a sweep entering the last block in E does that exactly when the block has length 1 mod 3. In 1.6&middot;10<sup>45</sup> steps the end is reached 83 times, never in F; why the rebuilt words keep it so is not proved."
  ],
  "claims": [
   {
@@ -35,6 +35,18 @@
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A sound checker for long runs",
+   "text": "A certificate is a list of plain runs and batches of counter ticks. For a batch the checker cuts the tape into the two counters by a given layout (and confirms the cut by rebuilding the tape), runs the left and right parts of one tick on windows holding only the low digits, for every carry length, and requires each to end with its digits incremented. Proved for any certificate: if the checker accepts it with step count N, the machine runs N steps from blank tape. The window runs fail rather than look outside their window, so their results hold for any surrounding tape; the step count of d ticks is in closed form.",
+   "where": "<code>checkCert_sound</code>, <code>lean/Cert.lean</code>; <code>wrun_sound</code>, <code>side_sound</code>, <code>tick</code>, <code>batch</code>, <code>lean/Tick.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 1.2&middot;10<sup>70</sup> steps",
+   "text": "The certificate <code>lean/cert.txt</code> (60,256 operations, 20,226 of them batches, written by <code>py/accel.py cert 1e70</code>) is accepted: the machine runs 12,198,487,909,209,082,368,679,859,826,732,096,416,911,140,917,107,868,420,374,132,270,946,987 steps from blank tape without halting, and a halt, if any, comes later. The evaluation is compiled code (about 4 minutes).",
+   "where": "<code>runs_N</code>, <code>no_halt_within</code>, <code>halt_late</code>, <code>lean/Long.lean</code>"
   },
   {
    "level": "trusted",
@@ -91,15 +103,15 @@
    "where": "<code>py/test_accel.py 2e10</code>"
   },
   {
-   "level": "heuristic",
-   "title": "No halt in 1.6&middot;10<sup>45</sup> steps",
-   "text": "The accelerated run reaches 1.6&middot;10<sup>45</sup> steps in 85 seconds: 842 events, 23 rebuilds (the last at 1.47&middot;10<sup>42</sup>), W grown to 782 digits, no halt. The tick model (a tick changes only counter digits and costs G(k) + F(j)) held on all 8,416 directly simulated ticks; it is not proved. The head reaches blank tape at the right 83 times, in E (24) or B (59), never in F: three times an epoch, ending <code>...011011011</code>, <code>...110110101</code>, <code>...101101101</code>.",
+   "level": "trusted",
+   "title": "The right end of the tape in 1.6&middot;10<sup>45</sup> steps",
+   "text": "In the accelerated run to 1.6&middot;10<sup>45</sup> steps (842 events, 23 rebuilds, the last at 1.47&middot;10<sup>42</sup>, W grown to 782 digits) the head reaches blank tape at the right 83 times, in E (24) or B (59), never in F: three times an epoch, ending <code>...011011011</code>, <code>...110110101</code>, <code>...101101101</code>.",
    "where": "<code>py/accel.py run 1e45</code>"
   },
   {
    "level": "open",
    "title": "The restructures, and the question itself",
-   "text": "Not known: the tick of the two counters as proved shift rules (so the overflow law for all z is not a theorem), the rule of a rebuild as a function of (z, L, W), why the rebuilt words are never entered by the right sweep in a way that reaches the end of the tape in F, and whether the machine halts.",
+   "text": "Not known: the tick of the two counters for all words (Lean checks it only on the layouts of the run, so the overflow law for all z is not a theorem), the rule of a rebuild as a function of (z, L, W), why the rebuilt words are never entered by the right sweep in a way that reaches the end of the tape in F, and whether the machine halts.",
    "where": ""
   }
  ],
@@ -107,16 +119,16 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/lean/check.sh",
   "python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/test_accel.py 2e10",
-  "python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/accel.py run 1e45",
-  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB 100000000000 records 100000"
+  "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB 100000000000 records 100000",
+  "python3 holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/py/accel.py cert 1e70 cert.txt"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>11</sup> steps without stopping, and an accelerated simulator takes it to 1.6&middot;10<sup>45</sup>. Two binary counters tick together; each overflow of the left one adds a power of two to the right one, which shows up as a marker moving through a word, and when the right one overflows the word is rebuilt. This page runs the real machine in your browser and lists what is known.",
+  "lede": "Nobody knows. Started on a blank tape, this Turing machine runs for at least 1.2&middot;10<sup>70</sup> steps without stopping, a bound checked in Lean. Two binary counters tick together; each overflow of the left one adds a power of two to the right one, which shows up as a marker moving through a word, and when the right one overflows the word is rebuilt. This page runs the real machine in your browser and lists what is known.",
   "facts": [
    {
-    "level": "heuristic",
-    "value": "1.6&middot;10<sup>45</sup> steps",
-    "text": "No halt in the accelerated run (exact against the C simulator to 2&middot;10<sup>10</sup>)."
+    "level": "native",
+    "value": "1.2&middot;10<sup>70</sup> steps",
+    "text": "No halt, proved in Lean from a certificate of 20,226 batches of counter ticks."
    },
    {
     "level": "trusted",
@@ -219,6 +231,14 @@
     }
    },
    {
+    "id": "proof",
+    "eyebrow": "What Lean checks",
+    "heading": "Checking 10<sup>70</sup> steps",
+    "html": [
+     "<p>Lean cannot run 10<sup>70</sup> steps one at a time. The accelerated simulator writes a <b>certificate</b> instead: a list of 60,256 operations, either a few thousand plain steps or a <b>batch</b>, which says &ldquo;both counters go up by d&rdquo;. A checker in Lean replays it, and a theorem says that whatever the certificate, an accepted one is a real run of the machine.</p><p>The checker does not take the simulator's word for a batch. The head has to sit on the <b>base cell</b>, a 0, in state A. Left of it the tape is cut into the digits of L (pairs of equal cells) with the gaps between them; right of it into the digits of R (single cells) with their gaps; the cut is confirmed by putting the tape back together. One tick visits the right side, then the left, then the right again, coming back to the base cell in states A, E and A. For each carry length k the checker runs the left part on a window holding only the lowest k + 1 digits of L, and for each j the right part on a window with the lowest j + 1 digits of R. A window run stops with an error if the head would step outside, so what it shows is true whatever the rest of the tape holds.</p><table><tr><th>proved once, for any machine</th><th>what it gives</th></tr><tr><td><code>wrun_sound</code></td><td>a run inside a window is the same run on any tape around it</td></tr><tr><td><code>side_sound</code></td><td>the left and right parts of a tick, checked apart, make the whole tick</td></tr><tr><td><code>tick</code></td><td>from any counter values: +1 to both, in G(k) + F(j) steps</td></tr><tr><td><code>batch</code></td><td>d ticks, in a closed-form step count</td></tr></table><p>The step count of d ticks needs no tick-by-tick sum: among the values a, a + 1, &hellip;, a + d &minus; 1 exactly &lfloor;(a + d + 2<sup>k</sup>)/2<sup>k+1</sup>&rfloor; &minus; &lfloor;(a + 2<sup>k</sup>)/2<sup>k+1</sup>&rfloor; end in k ones, and each of those ticks costs G(k) on the left. Overflows, new digits and rebuilds fall between batches and are plain steps. The whole check takes about 4 minutes as compiled code (<code>native_decide</code>, which trusts Lean's compiler); the soundness theorems are checked by Lean's kernel.</p>"
+    ]
+   },
+   {
     "id": "restructure",
     "eyebrow": "Why it is open",
     "heading": "Restructures",
@@ -241,5 +261,5 @@
   ]
  },
  "family": "binary counter moving a marker through a word",
- "summary": "Two binary counters fed by one clock: L (the z zero digits at the left) and R (bits in fixed slots of the word W); each overflow of L adds 2^z to R, and when R overflows the word is rebuilt. A halt needs the right sweep to reach the end of the tape in F (Lean: last block of length 1 mod 3). Open; no halt in 1.6·10^45 steps (accelerated), the end never reached in F."
+ "summary": "Two binary counters fed by one clock: L (the z zero digits at the left) and R (bits in fixed slots of the word W); each overflow of L adds 2^z to R, and when R overflows the word is rebuilt. A halt needs the right sweep to reach the end of the tape in F (Lean: last block of length 1 mod 3). Open; Lean (certificate checker, native_decide): no halt in 1.2·10^70 steps; the end never reached in F in the run to 1.6·10^45."
 }

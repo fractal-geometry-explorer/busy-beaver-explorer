@@ -14,6 +14,7 @@ simulated steps.  `run` records every arrival of the head on a blank cell right 
 
 usage:
   python3 accel.py run TMAX [EVENTS_OUT]    run to TMAX steps, print a summary and the right-end arrivals
+  python3 accel.py cert TMAX CERT_OUT       run to TMAX steps and write the certificate for lean/Cert.lean
   python3 accel.py check EVENTS             compare with the events of `tmrun MACHINE N at C L` where C reads 0
                                             (exact steps, z and W)
 """
@@ -51,7 +52,7 @@ class Acc:
         s.T = table(m)
         s.c = {}; s.h = 0; s.q = 0; s.t = 0; s.lo = 0; s.hi = 0
         s.log = log; s.zmin = zmin; s.events = []; s.verbose = verbose
-        s.checks = 0; s.bad = 0; s.direct = 0; s.regimes = 0; s.left_steps = 0; s.base = None
+        s.batches = []; s.checks = 0; s.bad = 0; s.direct = 0; s.regimes = 0; s.left_steps = 0; s.base = None
     def get(s, p): return s.c.get(p, 0)
     def put(s, p, v):
         if v: s.c[p] = 1
@@ -143,6 +144,7 @@ class Acc:
                     L2, R2 = L + d, R + d
                     for i, p in enumerate(Ls): s.put(p, (L2 >> i) & 1); s.put(p + 1, (L2 >> i) & 1)
                     for i, p in enumerate(Rs): s.put(p, (R2 >> i) & 1)
+                    s.batches.append((s.t, b, list(Ls), list(Rs), d, cost))
                     s.t += cost; L, R = L2, R2
             k = tz1(L) if L != (1 << nl) - 1 else None
             j = tz1(R) if R != (1 << nr) - 1 else None
@@ -209,6 +211,37 @@ class Acc:
 
 
 
+def write_cert(batches, path):
+    """The certificate checked by lean/Cert.lean, from the batches of a run.
+
+    Lean's checker keeps the configuration as two lists, the cells left of the head (nearest first) and the head
+    cell with the cells right of it.  A tick start there is the head on the base cell b in A, one step before the
+    moment the batches are recorded at (the head on b + 1 in B).  Operations:
+      D n          n plain steps
+      L m g... ;   left layout: keep its first m entries, then g...; the layout is the length of the first gap
+                   (cells from the head outwards before the first digit pair) and of the gaps between digit pairs
+      R m g... ;   the same for the right side (cells after the base cell, single digits)
+      B d          d ticks
+    Returns the number of steps the certificate reaches."""
+    out = []; t = 0; cur = {'L': [], 'R': []}
+    for (tb, b, Ls, Rs, d, cost) in batches:
+        start = tb - 1
+        if start > t: out.append('D %d' % (start - t))
+        Lpos = [b - 2 - p for p in Ls]; Rpos = [x - b - 1 for x in Rs]
+        new = {'L': [Lpos[0]] + [y - x - 2 for x, y in zip(Lpos, Lpos[1:])],
+               'R': [Rpos[0]] + [y - x - 1 for x, y in zip(Rpos, Rpos[1:])]}
+        for tag in 'LR':
+            if cur[tag] != new[tag]:
+                m = 0
+                while m < min(len(cur[tag]), len(new[tag])) and cur[tag][m] == new[tag][m]: m += 1
+                out.append('%s %d %s ;' % (tag, m, ' '.join(map(str, new[tag][m:]))))
+        cur = new
+        out.append('B %d' % d)
+        t = start + cost
+    with open(path, 'w') as f: f.write('\n'.join(out) + '\n')
+    return t
+
+
 class Edges(Acc):
     """Acc that records each step onto a blank cell right of every 1: (step, state letter, last 24 cells)."""
     def __init__(s, *a, **k):
@@ -237,6 +270,12 @@ def main():
               ' last z', zs[-1][1] if zs else None, ' W digits', len(zs[-1][2]) if zs else None)
         print('right-end arrivals by state:', dict(Counter(e[1] for e in a.edges)))
         for e in a.edges[-9:]: print('  %.6g %s ...%s' % e)
+    elif len(sys.argv) == 4 and sys.argv[1] == 'cert':
+        a = Acc(log=print)
+        try: a.main(tmax=float(sys.argv[2]))
+        except Halt as h: print('HALT at step', h); sys.exit(1)
+        n = write_cert(a.batches, sys.argv[3])
+        print('certificate: %d batches, %d steps (%.4g)' % (len(a.batches), n, n))
     elif len(sys.argv) == 3 and sys.argv[1] == 'check':
         sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
         from overflows import read_events
