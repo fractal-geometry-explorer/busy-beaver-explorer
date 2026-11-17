@@ -146,6 +146,57 @@ cannot be uniform over tapes: it has to use the runs from blank tape themselves.
 to show that one of the machines halts. `py/partner.py local` lists many more such tapes (for example `PS 0 37`,
 `PS 0 42` and `PS 1 24`).
 
+## Pairs whose runs differ by one inserted word (17 November 2026)
+
+The F09 pair 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE / 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC was settled by a
+relation the re-sync search above cannot see: the two runs are not step-aligned, but one tape is the other with one
+word more. A new search looked for that kind of relation everywhere.
+
+**Screen.** `tools/c/extev.c` recorded the new-extreme events of all 608 holdouts to 10^9 steps; `tools/py/evfp.py`
+ranked pairs by shared k-grams of (side, change in the number of 1s), plain and mirrored; `tools/c/evdiff.c` compared
+the tapes of candidate pairs at matching tape-end events and kept those whose difference stays one short word. Then
+`tools/c/inslock.c` was run on all 287 pairs of open holdouts with one table (`related.json`): it finds a moment where
+one configuration is the other with a word inserted, then follows the shorter run step by step. When the head crosses
+the place of the word, the longer run must cross the word in the state it entered (a *transparent crossing*), or the
+word may move one cell along a matching cell (a *shift*). Every 10^8 steps the longer run is simulated to the matching
+step and compared cell by cell.
+
+**Result.** 10 pairs stay related in this way for 3·10^9 steps (with `NOEXC=1`, exactly the rules of the Lean file
+below). Four are the known T63 group of F09 (1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- and its three partners). The
+other four pairs are new, and each was checked from the exact starting relation of its Lean file to 10^10 steps
+(`tools/c/inscheck.c`):
+
+| pair | word, where | crossings in 10^10 steps | what it means |
+|---|---|---|---|
+| 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE / 1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA (F01) | one copy of the period-10 block `1011011011`, 5 cells from the left end | 94,671, all in state A going left or D going right | the regular left part has one copy more; the irregular region that decides halting is the same in both |
+| 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE / 1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE (F11) | `01010101` in the background, about 440 cells from the right end | 210,678 | one block of the second machine's sweep counter is 4 longer (same parity) |
+| 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA--- / 1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC--- (F08) | `0101`, about 250 cells from the left end | 377 | |
+| 1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA--- / 1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB--- (F06) | `0101` near the right end | 64 | the second item list is the first with one item 2 longer (all 2·10^7 sweeps checked on the item model of the first machine); that item drifts into the far-end items where a halt would be decided, so this coupling probably breaks before it matters |
+
+**Lean.** `tools/lean/TM/Insert.lean` proves the general statement `halts_iff_of_good`: if `c'` is `c` with a word
+inserted and the followed run of `c` never reaches a bad moment (`Good`), then `c` halts if and only if `c'` does.
+`holdouts/insert_pair.py` writes a file `lean/Insert_<partner>.lean` for each pair (state renaming or mirror, the two
+starting configurations by `decide`, the starting relation), with **`halt_together`: if `GoodPair` holds, the two
+machines halt from blank tape together.** `GoodPair` is not proved for any of the four. A local window argument like
+the one that settled the F09 pair (`RightEnd.lean`) does not close here: with the rest of the tape left free, the head
+can come back to the word in states that the real runs never use (a search over windows of 15 to 45 cells at the left
+end of the F01 pair, not kept in the repository, always reached bad configurations). Proving `GoodPair` needs a fact about the whole run, for example for
+the F01 pair that the head reaches the left part only in state A after a full pass.
+
+```sh
+gcc -O2 -o inslock tools/c/inslock.c && NOEXC=1 ./inslock 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE D 3000000000 100000000 q 44 4 3000
+gcc -O2 -o inscheck tools/c/inscheck.c && NOEXC=1 ./inscheck 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE D 1 A 85 r 1 1011011011 10000000000
+python3 holdouts/insert_pair.py 1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE 1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA Y 1 85
+. /etc/profile.d/lean.sh && holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/lean/check.sh
+```
+
+The other starting relations: `inscheck 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE E 3 A 26 r 1 01010101`,
+`inscheck 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA--- D 0 A 15 r 1 0101`,
+`inscheck 1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA--- A 11 C 18 r 1 0101`.
+
+No pair here is a proved equivalence, so the count of distinct open questions does not change, but four pairs of
+questions are now reduced to one condition each.
+
 ## Count
 
 Of the 552 open holdouts, none are newly proved equivalent here. The one-way implication
