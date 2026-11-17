@@ -87,6 +87,15 @@ fatal.
 
     gcc -O2 -o doubling_phases tools/c/doubling_phases.c && ./doubling_phases 3 100000000000 1000000000 ph.ck
 
+## The partner map (17 November 2026)
+
+1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE and 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE have phase maps that agree
+under phi: e(x, z) -> e(x, z), r(x, y) -> a(x, y - 1), q(m, k, t) -> q(m, k/2, t), except at the all-ones phases and
+q(0, k, 0) (`py/partner.py check` in the folder of 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE). Their runs travel
+together for long stretches and part only at all-ones tapes, which is exactly where each machine decides halting,
+and there the two tests never agree: by the two `fatal_list` theorems no all-ones length n < 10^5 is fatal for the
+first while n - 1 is fatal for the second. So they are two halting questions, not one (`holdouts/EQUIVALENCES.md`).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/explainer.html`](../../pages/holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/explainer.html)

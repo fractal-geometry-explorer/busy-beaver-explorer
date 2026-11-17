@@ -197,6 +197,64 @@ The other starting relations: `inscheck 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0L
 No pair here is a proved equivalence, so the count of distinct open questions does not change, but four pairs of
 questions are now reduced to one condition each.
 
+## Trying to prove GoodPair (17 November 2026)
+
+**Result: `GoodPair` is not proved for any of the four pairs, and for the first three it cannot be proved without
+understanding the irregular part of the machine.** For the fourth pair the coupling itself fails: `GoodPair` is
+false there (by the item model, not in Lean), at sweep 72,734,792,369, about 1.0·10^22 steps.
+
+**F01** (1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE / 1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA). At each pass the
+tape is `0 (011)^4 (1011011011)^k I`. To 10^10 steps (47,331 passes, `c/engine.c` in the first machine's folder):
+k grows by one block about every 7 passes and shrank only once (pass 255); the rest I, the *engine*, stays between
+126 and 520 cells and never repeats; its first 33 to 70 cells are a 7-periodic *emitter* that hands one block to the
+left part per period; 20 cells inside the blocks every pass crosses right once in D and left once in A. The engine
+never sees k, so the partner (one block more) runs the same engine, and `GoodPair` says exactly that the engine
+never eats back through all the blocks. A proof from the left part alone is impossible: with the boundary at the end
+of the blocks or 30 cells into the emitter, an adversary that may send the head across in any state reaches more
+than 3,000 contents, about 200 irregular visits to the left end and over 1,000 halts (`py/shield.py`). So
+`GoodPair` needs a description of the engine, the same thing the halting question needs.
+
+**F11 and F08.** The same test (`tools/py/shield.py`, any machine, any end) on the region holding the extra word
+(460 cells from the right end of 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE, 260 from the left end of
+1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---) also grows past 3,000 contents with over 900 halting visits. The word sits
+next to the defect region in the first and in the left counter in the second, both of which are not understood.
+
+**F06** (1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA--- / 1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---). The partner is the
+first table run from state C. In the item model of the first machine (its README) the partner's first item list is
+[(2,0),(5,1)] against [(2,0),(3,1)]: one item 2 longer. `c/items_pair.c` runs both item lists in step and checks
+after every sweep that the partner's tape is the first one with four cells more. The extra length always sits in
+one of the last three items, the far-end leftovers; at the rare sweeps that reach them it moves between them, and
+the item holding it shrinks (value 64 at sweep 395, 12 at 10^8, 9 at 2.2·10^9, 3 at 2.2·10^10, 1 at 4.5·10^10). Twice early on (sweeps 11 and 12)
+the item lists differ in shape but the tapes still differ by four cells only. At sweep 64,144,857,777 the lists part
+in shape again (a merge in the first run, a plain sweep in the partner) with the tapes still four cells apart. Then
+at sweep 72,734,792,369 (step 1.016·10^22 of the first run) the first run's sweep reaches the end of its list and
+does an end reset, which turns every separator into a 1 and puts a new item (2,0) in front, while in the partner the
+same sweep stops at an earlier item. Afterwards the lists are
+
+    first:    (2,0) (53885261825,1) (19134581049,1) ... (145,1) (55,1) (1,1)
+    partner:  (53885261828,0) (19134581049,0) ... (145,0) (53,0) (1,0) (0,1)
+
+The tapes already differ in the sixth cell and again near the right end, so the partner's tape is no longer the
+first one with a word inserted, and `GoodPair` fails (`Good` would keep `Rel` true at every sweep start). This
+rests on the item model, which is exact against the machine wherever it was compared (its README) but is not
+proved in Lean; checking the break cell by cell is out of reach at 10^22 steps. It does **not** show that the two
+machines differ on halting: after the break their halting questions are simply not tied by this coupling.
+
+**The map pair** 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE / 1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE, which the
+map sweep flagged as running in step. Both phase maps are proved in Lean (`lean/Phases.lean` in each folder). With
+phi: e(x, z) -> e(x, z), r(x, y) -> a(x, y - 1), q(m, k, t) -> q(m, k/2, t), the maps commute (up to a skipped
+phase) on every phase with parameters below 14 except the all-ones phases r(0, y) and the phases q(0, k, 0)
+(`py/partner.py check` and `orbits` in the second folder). The runs therefore travel together and part only at
+all-ones tapes: in the first 2·10^5 phases of the first machine they part 4 times, each time just after a shared
+all-ones tape (lengths 5, 279, 5882, 12114 in the first, 4, 278, 5881, 12113 in the second), and rejoin each time
+after a few hundred to a few thousand phases. The first machine's other all-ones tapes (10, 71, 466, 763, ...) fall
+in stretches where the runs are apart. But the all-ones tapes are exactly where both machines
+decide halting, and there the tests disagree. By the fatal lists proved in each folder's `lean/Phases.lean`
+(`fatal_list`, all n < 10^5), the first halts from the all-ones tape r(0, n) exactly for n = 0, 6 and
+32·2^k − 2k − 12, the second from a(0, n − 1) exactly for n − 1 = 3 and 28·2^j − 2j − 13. These never meet:
+32·2^k − 2k − 13 = 28·2^j − 2j − 13 would need 2^(j+2)·(2^(k−j+3) − 7) = 2(k − j), which has no solution. So at a shared all-ones moment (below 10^5, and at every length if the formulas hold beyond) at most one of them halts: the maps cannot show that the two
+machines halt together, and they are two questions, like the mirror pair above.
+
 ## Count
 
 Of the 552 open holdouts, none are newly proved equivalent here. The one-way implication
@@ -213,4 +271,9 @@ python3 tools/py/syncpair.py lean out.json Namespace > P.lean # a closed certifi
 python3 tools/py/syncpair.py resync X Y 3e5                   # the combined run and its breaks
 python3 holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/py/partner.py lag 40000   # the mirror pair, pass by pass
 gcc -O2 -o cfghash tools/c/cfghash.c && ./cfghash X 300000000 4096
+gcc -O2 -o engine holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/c/engine.c && ./engine 1e10 20
+python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/shield.py 30 3e7 3000
+python3 tools/py/shield.py 1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA--- L 260 2e7 3000
+gcc -O2 -o items_pair holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/c/items_pair.c && ./items_pair 1e11
+python3 holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/py/partner.py check 14
 ```
