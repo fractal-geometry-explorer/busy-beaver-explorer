@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 17 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced in Lean to a Collatz-like map.</b> Sampled with the head in D at the left end, the tape is a run of ones with one hole: p ones, the hole, r ones. Lean proves, for all p, r &ge; 1, that one sample leads to the next by an explicit map f (the hole's position roughly halved when it is odd, a jump of the hole to the right end when it is even) in an explicit number of steps, or halts (p = 1), and that the machine halts from blank tape <b>if and only if</b> the orbit of (2, 2) under f reaches p = 1. Following the proved map, the kernel shows no halt in the first 10<sup>3669</sup> steps. Whether the orbit ever reaches p = 1 is a Collatz-like question; heuristically the chance is a few in 10<sup>4</sup>."
  ],
@@ -50,6 +50,12 @@
    "title": "The reduction",
    "text": "From blank tape the machine reaches S(2, 2) in 11 steps, and it halts if and only if the orbit of (2, 2) under the map reaches p = 1.",
    "where": "<code>halts_iff</code>, <code>lean/Map.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Doucette's form: halts iff (5, 2), (9, 1), (14, 1), … reaches a power of two",
+   "text": "At the samples S(p, r) that start a run of halvings write D = p + 3 = 2<sup>v</sup>(2a + 1). The next start is (D + a + v + r, 1) (a ≥ 2), with an exception at D = 3·2<sup>v</sup> (the run ends at p = 3), and a power of two halts. So the machine halts from blank tape if and only if the sequence (5, 2), (9, 1), (14, 1), (19, 1), … reaches a power of two; with r = 1 the rule is D + a + v + 1, Doucette's form. Proved from the hole map of <code>Map.lean</code> for every value.",
+   "where": "<code>halts_iff_doucette</code>, <code>G_rule</code>, <code>G_three</code>, <code>G_pow2</code>, <code>lean/Doucette.lean</code>"
   },
   {
    "level": "kernel",
@@ -163,6 +169,17 @@
     ]
    },
    {
+    "id": "doucette-family",
+    "eyebrow": "Five machines, one sequence",
+    "heading": "The Doucette family",
+    "html": [
+     "<p>Five holdouts reduce to the same kind of one-number sequence, first written down by Katelyn Doucette for Space Needle: write D = b<sup>v</sup>&middot;(b&middot;a + &rho;) with b not dividing b&middot;a + &rho;, and the next term is D plus a small linear expression in a and v. The machine halts exactly when the sequence hits a power of b (with one extra condition in base 3). For all five this is proved in Lean, from each machine's own proved map, for every value: the table below lists theorems, not fits.</p>",
+     "<p>Here the samples are S(p, r) = <code>D&gt; 1^p 0 1^r</code>, taken where a run of halvings starts (r = 1 except at the very start). Write D = p + 3 = 2<sup>v</sup>(2a + 1). The odd case halves D (p becomes (p &minus; 3)/2) v times, and the even case ends the run. Adding it up, <b>(D, r) &#8614; (D + a + v + r, 1)</b> (<code>G_rule</code>), so D&prime; = D + a + v + 1 when r = 1. The exception is D = 3&middot;2<sup>v</sup>, where the run ends at the special case p = 3 (<code>G_three</code>). A power of two halves down to p = 1, where the machine halts (<code>G_pow2</code>). Lean: <b>the machine halts from blank tape iff the sequence (5, 2), (9, 1), (14, 1), (19, 1), &hellip; reaches a power of two</b> (<code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code>).</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\" style=\"min-width:880px\"><thead><tr><th>machine and D</th><th>base</th><th>next D (r = 1)</th><th>exception</th><th>halts iff</th><th>sequence</th><th>Lean</th></tr></thead><tbody><tr><td><a href=\"../1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/explainer.html\">1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</a><br><span class=\"small\">Space Needle. D = b + 3 at the visits X(b, 1)</span></td><td>2</td><td><code>D + 3a + v</code></td><td>none (a = 1 fits the rule)</td><td>D a power of 2</td><td>6, 10, 17, 41, 101, 251, …</td><td><code>halts_iff_pow2</code>, <code>lean/Collatz.lean</code></td></tr><tr><td><a href=\"../1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/explainer.html\">1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</a><br><span class=\"small\">D = p + 3 at the samples K(p, 1)</span></td><td>2</td><td><code>D + a + v</code></td><td>D = 3·2<sup>v</sup> gives D + v + 3</td><td>D a power of 2</td><td>5, 7, 10, 13, 19, 28, 33, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><b>1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</b> (this machine)<br><span class=\"small\">D = p + 3 at the samples S(p, 1) that start a run of halvings</span></td><td>2</td><td><code>D + a + v + 1</code></td><td>D = 3·2<sup>v</sup> (the run ends at p = 3) gives D + v + r + 1, with r = 1 or 2 next</td><td>D a power of 2</td><td>(5, r = 2), 9, 14, 19, 29, 44, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html\">1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</a><br><span class=\"small\">D = n + 2 at the end of each pass, P(n)</span></td><td>2</td><td><code>D + a + v + 2</code></td><td>D = 3·2<sup>v</sup> with v even, v ≥ 2, gives (3D + 3v + 10)/2</td><td>D a power of 2</td><td>6, 10, 15, 24, 30, 40, 47, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/explainer.html\">1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB</a><br><span class=\"small\">D = p + 1 = 3<sup>v</sup>(3a + ρ), ρ = 1 or 2, at the samples S(p, 1) that start a run of divisions by 3</span></td><td>3</td><td><code>D + a + v + 2 + ρ</code></td><td>D = 3<sup>v</sup> (the run ends at p = 2): goes on to D + v + 3 or D + v + 1, with r = 1 or 2 next</td><td>D = 3<sup>v</sup> with v + r ≡ 1 (mod 3); for r = 1, 3 divides v</td><td>4, 8, 14, 22, 32, 46, 64, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr></tbody></table></div>",
+     "<p>In every row, a is about D/(2&middot;2<sup>v</sup>) (base 3: D/(3&middot;3<sup>v</sup>)), so a term grows by a factor that depends only on v: about 3/2 when v = 0 and closer to 1 when v is larger (Space Needle: about 5/2 when v = 0; base 3: about 4/3). A power of b is hit only if all the low digits of D line up at once. The exceptions are values the sequences never take in their first 20,000 terms (checked in exact arithmetic); they are in the Lean statements so that the equivalences hold with no assumption. Proving that any of these sequences avoids the powers of b forever is open, and is a question of the same kind as the Collatz problem.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -176,7 +193,7 @@
    }
   ]
  },
- "summary": "Ones with a single hole (Space Needle-like): each time the head is back at the left end the hole jumps to (p-3)/2 if its position p is odd, else the tape grows by p/2 + 2; it halts exactly when a run of such halvings reaches position 1, i.e. when a tape length of the form 2^j - 1 turns up.",
+ "summary": "Ones with a single hole (Space Needle-like): each time the head is back at the left end the hole jumps to (p-3)/2 if its position p is odd, else the tape grows by p/2 + 2; it halts exactly when a run of such halvings reaches position 1, i.e. when a tape length of the form 2^j - 1 turns up. Doucette family (Lean): D -> D + a + v + 1.",
  "family": "Collatz-like hole map (halving) + bouncer",
  "decision": "open"
 }

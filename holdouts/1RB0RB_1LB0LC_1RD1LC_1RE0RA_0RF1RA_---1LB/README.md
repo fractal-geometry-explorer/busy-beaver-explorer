@@ -72,6 +72,16 @@ hitting 3^k + 1 from here is about Σ_{k>=11} 3/(3^k ln(4/3)) ≈ 10^-4: probabl
 - The remaining question is purely arithmetic (does the orbit of (3, 1) under f reach p = 2 with 3 | r?). Pushing
   the orbit further is cheap (`python3 py/holemap.py run K`; in Lean, `check K B` in `lean/Bound.lean`).
 
+## Doucette's form in base 3 (`lean/Doucette.lean`)
+
+At the samples S(p, r) that start a run of divisions write D = p + 1 = 3^v (3a + ρ), ρ ∈ {1, 2}. Proved for every
+value: the next start is (D + a + v + r + ρ + 1, 1) (`G_rule`), so D' = D + a + v + 2 + ρ when r = 1. When D = 3^v
+the run ends at p = 2, which halts iff v + r ≡ 1 (mod 3) and otherwise goes on to (D + v + r + 2, 1) or
+(D + v + r, 2) (`G_pow3`; never taken in the first 20,000 terms). `halts_iff_doucette`: the machine halts from blank
+tape iff the sequence (4, 1), (8, 1), (14, 1), (22, 1), ... (`Dorb`) reaches (3^v, r) with v + r ≡ 1 (mod 3); with
+r = 1 that needs 3 | v, so not every power of 3 halts. The five machines of this family are listed in
+[`tools/sweep/README.md`](../../tools/sweep/README.md).
+
 ## Pages
 
 - [`pages/holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/explainer.html`](../../pages/holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/explainer.html)

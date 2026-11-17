@@ -21,21 +21,24 @@ with plain steps; a 245,760-step run of each of its three maps ends in the same 
 
 ## Families found
 
-**Doucette family (5 machines).** Each is a sequence D → D + α·a + v + γ, where D = b^v·(b·a + r) with r ≠ 0 (v
-counts the factors b, a and r are the rest), and the machine halts iff some D is a pure power of b:
+**Doucette family (5 machines).** Each is a sequence D → D + α·a + v + γ, where D = b^v·(b·a + ρ) with ρ ≠ 0 (v
+counts the factors b), and the machine halts iff some D is a pure power of b (in base 3, with one more condition).
+All five are proved in Lean, for every value, from each machine's proved map (`halts_iff_pow2` in Space Needle's
+`lean/Collatz.lean`, `halts_iff_doucette` in the others' `lean/Doucette.lean`):
 
-| machine | base b | rule | D |
-|---|---|---|---|
-| 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD (Space Needle) | 2 | D + 3a + v | b + 3 at c = 1 visits |
-| 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE | 2 | D + a + v | p + 3 at q = 1 visits |
-| 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC | 2 | D + a + v + 1 | p + 3 at r = 1 visits |
-| 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB | 2 | D + a + v + 2 | n + 2 (every step) |
-| 1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB | 3 | D + a + v + 2 + r | p + 1 at r = 1 visits |
+| machine | base b | rule (r = 1) | exception | halts iff | D |
+|---|---|---|---|---|---|
+| 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD (Space Needle) | 2 | D + 3a + v | none | power of 2 | b + 3 at c = 1 visits |
+| 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE | 2 | D + a + v | D = 3·2^v: D + v + 3 | power of 2 | p + 3 at q = 1 visits |
+| 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC | 2 | D + a + v + 1 | D = 3·2^v: ends at p = 3 | power of 2 | p + 3 at r = 1 visits |
+| 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB | 2 | D + a + v + 2 | D = 3·2^v, v even > 0: (3D + 3v + 10)/2 | power of 2 | n + 2 (every pass) |
+| 1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB | 3 | D + a + v + 2 + ρ | D = 3^v: ends at p = 2 | 3^v with v + r ≡ 1 (mod 3) | p + 1 at r = 1 visits |
 
-The Space Needle rule is Doucette's sequence. The others are its ×3/2 relatives (the community calls three of them
-"Space Needle-like"), and the last is the base-3 version. The rules were fitted on the first 1,500 to 20,000 terms
-of each orbit with no exception; for 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB it follows from the closed form in
-`report_A.md`. A proof of the rule for the other four would follow the same route but has not been written.
+The Space Needle rule is Doucette's sequence; the others are its ×3/2 relatives (the community calls three of them
+"Space Needle-like"), and the last is the base-3 version. The fitted rules (first 1,500 to 20,000 terms) missed the
+exceptions because the orbits never take those values (none in the first 20,000 terms); the Lean statements include
+them, so the equivalences need no assumption. Correction to the fit: in base 3 a power of 3 halts only when
+v + r ≡ 1 (mod 3) (for r = 1, when 3 | v), and otherwise the sequence goes on.
 
 **Same map, different start.** 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE is the map of
 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE under N = 2n + 2 (checked for every n < 200,000), started at n = 10

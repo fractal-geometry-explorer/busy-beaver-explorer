@@ -63,6 +63,15 @@ X is 3 below a power of two with probability ~1/X, and p grows geometrically) it
   argument about the orbit of (0, 2).
 * The kernel evaluation of the step count is fast up to 5,000 samples and much slower at 10,000.
 
+## Doucette's form (`lean/Doucette.lean`)
+
+At the samples K(p, 1) write D = p + 3 = 2^v (2a + 1). Proved for every D: the next such sample has
+D' = D + a + v (`G_rule`, a >= 2), D' = D + v + 3 when D = 3·2^v (`G_three`; never taken in the first 20,000 terms),
+and a power of two halts (`G_pow2`). `halts_iff_doucette`: the machine halts from blank tape iff the sequence
+5, 7, 10, 13, 19, 28, 33, ... (`Dorb`) reaches a power of two. Same form as Space Needle's D + 3a + v
+([`1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD`](../1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/README.md)); the five
+machines of this family are listed in [`tools/sweep/README.md`](../../tools/sweep/README.md).
+
 ## Pages
 
 - [`pages/holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/explainer.html`](../../pages/holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/explainer.html)
