@@ -101,8 +101,8 @@ def deepmind_entry(M, e, decision):
                             f"{c['date']}: the theorem <code>{html.escape(c['theorem'])}</code> states "
                             f"<code>{'IsNotHalt' if k == 'nonhalting' else 'IsHalt'} target</code> from the blank tape, it rests "
                             f"only on the axioms {', '.join(c['axioms'])}, and its transition table was checked against this "
-                            "machine. It is stated on DeepMind's definitions, not this repository's, and the verdict on this "
-                            f"page has not been changed to rely on it.{same if decision != 'open' else ''}"}
+                            "machine. It is stated on DeepMind's definitions, not this repository's. " +
+                            ("The verdict on this page rests on this proof." if decision == k else same.strip())}
         return {"kind": "report", "title": f"Reported: proved in DeepMind's Lean that it {CLAIM[k]}",
                 "text": f"{link} proves that this machine {CLAIM[k]}{note}{port}. It was not compiled here, so the "
                         f"ledger below, which holds only what this repository checked, still lists halting as open.{same}"}
@@ -189,7 +189,9 @@ def elsewhere(M, decision="open"):
                             "lists halting as open."})
     for pr in e.get("prs", []):
         meta = ext["prs"][str(pr["n"])]
-        same = (" It agrees with the proof here." if decision == pr["claim"] else
+        dmc = e.get("deepmind", {}).get("compiled") and e["deepmind"]["kind"] == decision
+        same = (" It agrees with the verdict on this page, which rests on DeepMind's Lean proof." if dmc and decision == pr["claim"] else
+                " It agrees with the proof here." if decision == pr["claim"] else
                 " The verdict on this page does not rely on it." if decision == "open" else
                 " <b>It disagrees with the result here.</b>")
         out.append({"kind": "report", "title": f"An outside proof is waiting for review: it {CLAIM[pr['claim']]}",
@@ -259,6 +261,12 @@ def standing_line(M, decision, level="lean"):
         both = " and by Coq" if M in external()["coq_here"] else ""
         return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
                 "text": f"Proved in this repository, checked by Lean{both}. The ledger below says what each part rests on."}
+    if kind == "outside":
+        k = CLAIM[e["deepmind"]["kind"]]
+        return {"kind": "merged", "label": f"Decided by an outside Lean proof: it {k}",
+                "text": "DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the "
+                        "standard axioms. It is their proof, on their definitions, not one written in this repository; "
+                        "the ledger below says what this repository checked on its own."}
     if kind == "computed":
         return {"kind": kind, "label": f"Computed, not proved: it {CLAIM[decision]}",
                 "text": "An exact accelerated computation in this repository finds this. It is not a Lean proof of "
@@ -296,10 +304,11 @@ def page_spec(spec):
 
 def standing(M, decision, level="lean"):
     """One word for the index: here (decided in this repository by a Lean proof), computed (a verdict from a trusted
-    computation, "decision_level": "trusted" in status.json, not a Lean proof), merged, pr, cryptid or open."""
+    computation, "decision_level": "trusted" in status.json, not a Lean proof), outside (an outside Lean proof compiled
+    here, "decision_level": "outside"), merged, pr, cryptid or open."""
     e = external()["machines"].get(M, {})
     if decision != "open":
-        return "computed" if level == "trusted" else "here"
+        return {"trusted": "computed", "outside": "outside"}.get(level, "here")
     if e.get("merged"):
         return "merged"
     if e.get("prs"):
@@ -451,14 +460,14 @@ INDEX = r"""<!doctype html>
 <style>
 :root{--paper:#EEF1F5;--surface:#FFFFFF;--sunk:#E3E8EF;--ink:#142033;--muted:#5A6679;--rule:#D0D8E2;--link:#2B59CF;
  --c-exp:#B3363A;--c-sqrt:#2350A8;--c-power:#7A4FB5;--c-linear:#1C7A4D;--c-fixed:#9A6400;--c-mixed:#5A6679;
- --s-here:#1C7A4D;--s-computed:#B4541A;--s-merged:#2350A8;--s-pr:#9A6400;--s-cryptid:#7A4FB5;--s-open:#8A93A3;
+ --s-here:#1C7A4D;--s-computed:#B4541A;--s-merged:#2350A8;--s-outside:#0F7C86;--s-pr:#9A6400;--s-cryptid:#7A4FB5;--s-open:#8A93A3;
  --mono:"Martian Mono",ui-monospace,Menlo,Consolas,monospace;--body:"Atkinson Hyperlegible",system-ui,sans-serif;color-scheme:light}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#0E131A;--surface:#161E29;--sunk:#0B1016;--ink:#E5EBF3;--muted:#95A2B4;--rule:#2B3644;--link:#7C9DFF;
  --c-exp:#F08488;--c-sqrt:#8FB0F0;--c-power:#B99CF0;--c-linear:#5CC893;--c-fixed:#E7B453;--c-mixed:#95A2B4;
- --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}}
+ --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-outside:#5CC4CE;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}}
 :root[data-theme="dark"]{--paper:#0E131A;--surface:#161E29;--sunk:#0B1016;--ink:#E5EBF3;--muted:#95A2B4;--rule:#2B3644;--link:#7C9DFF;
  --c-exp:#F08488;--c-sqrt:#8FB0F0;--c-power:#B99CF0;--c-linear:#5CC893;--c-fixed:#E7B453;--c-mixed:#95A2B4;
- --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}
+ --s-here:#5CC893;--s-computed:#F0935C;--s-merged:#8FB0F0;--s-outside:#5CC4CE;--s-pr:#E7B453;--s-cryptid:#B99CF0;--s-open:#6C7686;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
 .wrap{max-width:1640px;margin:0 auto;padding:32px 16px 64px;display:grid;gap:24px}
@@ -589,6 +598,7 @@ const classes = [...new Set(rows.map(r => r.c))].sort((a,b) => rows.filter(r=>r.
 const ST = [
   ["here", "Decided here", "a proof in this repository, checked by Lean (and for some by Coq as well)"],
   ["computed", "Computed here, not proved", "a verdict from an exact accelerated computation in this repository; not a Lean proof of the whole run"],
+  ["outside", "Decided by an outside Lean proof", "a Lean proof in google-deepmind/cryptids, compiled here; not written in this repository"],
   ["merged", "Proved elsewhere, merged", "a Rocq proof merged in busycoq; not compiled here"],
   ["pr", "Outside proof awaiting review", "a Rocq proof in an open busycoq pull request; not merged, not compiled here"],
   ["cryptid", "Cryptid", "the community tracker's label: halting comes down to a Collatz-like question"],
@@ -610,6 +620,7 @@ function standingText(r){
   const prs = r.pr.map(p => `PR ${p[0]}: ${WORD[p[1]]}`).join(", ");
   if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
   if (r.st === "computed") return `<b>${WORD[r.dec]}</b>, computed here, not proved` + (prs ? `; also ${prs}` : "");
+  if (r.st === "outside") return `<b>${WORD[r.dm.k]}</b>, by DeepMind's Lean proof, compiled here` + (prs ? `; also ${prs}` : "");
   if (r.st === "merged") return "open here; proved in busycoq (merged)";
   if (r.st === "pr") return `open here; outside proof awaiting review (${prs}${DMS(r) ? "; DeepMind Lean: " + WORD[r.dm.k] + (r.dm.c ? ", compiled here" : "") : ""})`;
   if (r.st === "cryptid") return "open; cryptid";
@@ -661,7 +672,7 @@ const RF = [
   ["iff", "proved map", r => r.mt === 1, "Lean proves: halts from blank tape iff the orbit of an explicit map on a fixed list of numbers reaches its halting case"],
   ["cond", "map, with a condition", r => r.mt === 2, "a map is proved, but the iff needs an assumption Lean does not check, or only the no-halt direction is proved"],
   ["ht", "halts together with another holdout", r => r.ht.length > 0, "one halting question shared with another machine on the list"],
-  ["dma", "in DeepMind's Lean (reported)", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; not compiled here"],
+  ["dma", "in DeepMind's Lean", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; 26 of them compiled here"],
   ["dms", "solved in DeepMind's Lean", DMS, "google-deepmind/cryptids has a Lean proof that it halts or never halts; those built here are marked compiled"],
   ["both", "map formalized here and in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h === "iff", "both repositories prove a halts-iff map, written independently"],
   ["dmm", "map only in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h !== "iff", "google-deepmind/cryptids proves a halts-iff map that this repository has only with a condition, or not at all; all 15 compiled here"],

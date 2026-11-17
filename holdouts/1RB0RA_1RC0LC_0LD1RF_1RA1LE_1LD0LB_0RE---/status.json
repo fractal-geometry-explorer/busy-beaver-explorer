@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 9 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it never halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does to the word over many trips, and what happens when a trip does not come back (the end of a phase), is not proved. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2·10<sup>10</sup> steps, follows the run through 19 phases to 2.419·10<sup>242</sup> steps without a halt."
  ],
  "claims": [
@@ -84,7 +85,7 @@
   {
    "level": "kernel",
    "title": "Proved: it never halts (DeepMind's Lean proof, compiled here)",
-   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 48. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (40 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsNotHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 48. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (40 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
    "where": "<code>BusyBeaver.M_1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0REHHH.is_not_halt</code>, <code>BusyBeaver/BB6/NonHalt/M_1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0REHHH.lean</code> in google-deepmind/cryptids"
   },
   {
@@ -173,5 +174,7 @@
   ]
  },
  "family": "clock and word map (block grows by 2, the word is rewritten by 2^k excursions)",
- "summary": "A clock: at each visit of the left end in state E the block 1^(3+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 19 phases to 2.419·10<sup>242</sup> steps, no halt. Halting needs C on a 1 followed by another 1 (C>1 1)."
+ "summary": "A clock: at each visit of the left end in state E the block 1^(3+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 19 phases to 2.419·10<sup>242</sup> steps, no halt. Halting needs C on a 1 followed by another 1 (C>1 1).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

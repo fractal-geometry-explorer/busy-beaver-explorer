@@ -3,7 +3,7 @@
  "group": "G07",
  "family": "Collatz-like (4q/3) cycles of a counter machine on runs of 11010 and 110",
  "summary": "A counter machine on runs of 11010 and 110 that runs in cycles: the main counter q follows 3q' = 4q + c with a small correction c set by a short tail, so it grows by about 4/3 per cycle (q = 69, 95, 133, 178, 239, 323, 433, 579, 777, 1039); open.",
- "decision": "open",
+ "decision": "halts",
  "title": "What is known about 1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RC---_1LD0RA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RC---_1LD0RA.",
  "machine": "1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RC---_1LD0RA",
@@ -15,6 +15,7 @@
  ],
  "asof": "Status as of 8 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The tape is a few long runs of three words and a block of 1s, and the machine runs in cycles in which the main counter follows a Collatz-like map q' = (4q + c)/3, with a small correction c decided by a short tail at the right end. The tail's rule is not known."
  ],
  "claims": [
@@ -81,7 +82,7 @@
   {
    "level": "kernel",
    "title": "Proved: it halts (DeepMind's Lean proof, compiled here)",
-   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 47. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (114 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page has not been changed.",
+   "text": "google-deepmind/cryptids (commit 3647718) proves <code>IsHalt target</code> from the blank tape, where <code>target</code> is this machine's table: a Lean port of the Rocq proof in busycoq pull request 47. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (114 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.",
    "where": "<code>BusyBeaver.M_1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RCHHH_1LD0RA.is_halt</code>, <code>BusyBeaver/BB6/Halt/M_1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RCHHH_1LD0RA.lean</code> in google-deepmind/cryptids"
   },
   {
@@ -157,5 +158,6 @@
     ]
    }
   ]
- }
+ },
+ "decision_level": "outside"
 }
