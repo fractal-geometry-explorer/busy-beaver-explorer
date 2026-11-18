@@ -9,6 +9,7 @@ D = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 SECTIONS = [
     ("levels", "Four levels", "From six states to three numbers"),
     ("visits", "Level 1 to level 2", "The tape at its visits"),
+    ("rules", "The recursion, rule by rule", "Exact tapes, exact step counts"),
     ("odometer", "Level 2", "Three wheels"),
     ("doublingmap", "Level 3", "Doubling modulo a growing number"),
     ("laps", "Level 4", "Laps, and why they get rarer"),

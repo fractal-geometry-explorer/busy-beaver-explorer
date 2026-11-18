@@ -51,6 +51,43 @@ Examples: F(44) = 67; for t = 67, (a, d) = (1, 35), (5, 32), (13, 25), (29, 10),
 (1, 10), (5, 7), (13, 0): halt. In Lean: `F`, `chainF`, `sweepv` in `lean/Reset.lean`; `F_sem` proves it for every t.
 The explainer page has a calculator for F.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. The families are the
+configurations of `lean/Reset.lean` (0^∞ on both sides, the head reads the cell after S>):
+
+    Z(t)       := 0^∞ 1^t A> 0^∞                       (Z(0) is blank tape)
+    W(x, y)    := 0^∞ (10)^x 1^y A> 0^∞                (W(0, y) = Z(y))
+    R(a, c)    := 0^∞ C> 0 1 (01)^a 1^c 0^∞
+    I(m, i, c) := 0^∞ 1 (01)^m A> 0 1 (0101)^i 1^c 0^∞
+
+    start              Z(0)                --344-->        Z(19)              (then Z(19) -> Z(44) by the rows below)
+    small blocks       Z(1), Z(2), Z(4), Z(5)  --338, 28, 32, 291-->  Z(19), Z(6), Z(7), Z(20)
+    halt, small        Z(3)                --125-->        HALT
+    sweep              W(x+2, 2y+1)        --8y+18-->      W(x, 2y+7)
+    last sweep         W(1, 2y+1)          --8y+18-->      Z(2y+6)
+    even reset         Z(2k+6)             --4k+36-->      W(k+1, 7)
+    odd reset          Z(2k+7)             --12k+69-->     R(0, 2k+13)
+    first round        R(0, c+2)           --12-->         R(2, c)
+    round begins       R(a+1, c+2)         --2a+8-->       I(a, 0, c+2)
+    pair moves         I(m+1, i, c+2)      --8i+6-->       I(m, i+1, c)
+    round ends         I(0, i, c+4)        --16i+20-->     R(2i+4, c)
+    round ends, short  I(0, i, 3)          --16i+20-->     R(2i+3, 0)
+    restart            R(a+1, 0)           --6a+15-->      R(0, 2a+5)
+    halt               R(a+1, 1)           --2a+6-->       HALT               (D reads 0)
+    to the bouncer     I(m+1, i, 1)        --12i+10-->     W(m, 4i+5)
+    to a block         I(0, i, 1)          --12i+10-->     Z(4i+4)
+
+The halt rows count the halting transition. Every row is a Lean theorem with its step count (`steps n c = some c'`
+in `lean/Reset.lean`: `z0`..`z5`, `w_sweep`, `w_sweep1`, `z_even`, `z_odd`, `r_zero`, `r_int`, `i_step`, `i_fin`,
+`i_fin3`, `r_restart`, `r_halt`, `i_end1`, `i_fin1`, restating the leaf rules of `lean/Leaves.lean`). F is these rows
+chained (`w_to_z`, `i_iter`, `chain_sem`) and `halts_iff_H` is about F; the number of steps of one F step is not
+stated in Lean. `py/exact.py` checks every row against direct simulation: 11,660 configurations (31 halting) and the
+3,998 configurations the rows predict in the first 10^7 steps from blank tape. Example: Z(17) halts after
+129 + 12 + (10 + 6 + 36) + (18 + 6 + 14 + 22 + 30 + 38 + 100) + 32 = 453 steps, as direct simulation gives. The
+bbchallenge wiki page (from Marco Dos Santos's paper) uses `C(a, b) = 0^∞ E> (10)^a 1^b 0^∞`, which is R(a, b-1) one
+step later.
+
 ## What is proved (Lean, kernel unless said otherwise)
 
 - `lean/Leaves.lean` (written by `py/gen_reset.py` with `bbtools.symtm.prove`): the 13 leaf rules above, for all
@@ -87,6 +124,7 @@ is known that would exclude it.
 . /etc/profile.d/lean.sh && holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/lean/check.sh      # about 35 s
 cd holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/py && python3 lean_map.py 100000 300 && python3 m2map.py 44 30
 python3 py/gen_reset.py > lean/Leaves.lean        # regenerate the leaf rules (from the folder)
+python3 py/exact.py                               # the rule table and its step counts against direct simulation (from the folder)
 ```
 
 ## Pages

@@ -51,6 +51,35 @@ doubling. When r can no longer pay, the machine "resets": the remainder r become
 reservoir is refilled with 4r + 2 ones (or, if r was exactly p, with 4p + 1). The total p + r keeps growing, about
 0.22 bits per map step.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts.
+
+    W(p, q, r) := 0^inf (10)^p 0 (10)^q 1^r E> 0^inf
+    X(p, q)    := 0^inf (10)^p 0 (10)^q A> 0^inf
+
+    0^inf A> 0^inf       --27-->                              W(2, 0, 1)               blank_27
+    W(p+1, q, r+2)       --4q + 4r + 13-->                    W(p, q+2, r+1)           w1 (r >= 1), w1c (r = 0)
+    W(p+1, q, 1)         --4q + 9-->                          X(p, q+2)                w2
+    X(p+1, q+2)          --4q + 18-->                         W(p+1, 0, 2q+6)          w3
+    X(0, q+2)            --12q + 51-->                        W(2, 0, 2q+5)            w4 (passes W(0, 0, 2q+6) at step 4q + 18)
+    W(0, q, r+2)         --4q + 4r + 17-->                    W(q+2, 0, r+1)           w5 (r >= 1), w5c (r = 0)
+    W(0, q, 1)           --4q + 13-->                         HALT                     w6 (4q + 12 steps to D on a 0, + the halting step)
+
+    the map f on the samples W(p, 0, r):
+    W(p, 0, r)           --2p² + 4pr + 7p + 4r + 9-->         W(2p+2, 0, r-p-1)        r >= p + 2
+    W(p, 0, r)           --6r² + 11r + 10-->                  W(p-r, 0, 4r+2)          r < p
+    W(p, 0, p)           --6p² + 27p + 27-->                  W(2, 0, 4p+1)            (passes W(0, 0, 4p+2))
+    W(p, 0, p+1)         --6p² + 15p + 13-->                  HALT
+
+The rule rows are Lean theorems with their exact step counts (`lean/Map.lean`); `map_step` and `halts_iff_orbit`
+state the runs between samples without their length, so the f rows' counts (sums of the rule rows) are not in
+Lean. `py/exact.py` checks every row against direct simulation: 7,920 tapes, each run to its next W or X
+configuration or sample or to the halt, and the run from blank tape up to step 10^7 (all 2,897 W and X
+configurations at the predicted steps, no others, 33 of them samples). The wiki (BMO #1) writes the map on
+A(a, b) = W(a-1, 0, b) and counts W(0, 0, 4p+2) as a sample of its own. Example: W(1, 0, 4) -> W(4, 0, 2) ->
+W(2, 0, 10) -> W(6, 0, 7) -> halt in 50 + 56 + 151 + 319 = 576 steps, as direct simulation gives.
+
 ## Does it halt?
 
 `halts_iff_orbit` (`lean/Map.lean`, checked by the kernel, no `native_decide`): the machine halts from blank
@@ -95,5 +124,6 @@ run), about 50 minutes on one core: the orbit never reaches r = p + 1. At step 3
 . /etc/profile.d/lean.sh && holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/lean/check.sh
 PYTHONPATH=tools/py python3 holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/py/gen_rules.py | diff - holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/lean/Rules.lean
 gcc -O2 -o samples holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/c/samples.c && ./samples 1000000000 | python3 holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/py/check_map.py
+python3 holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/py/exact.py     # the rule table and its step counts against direct simulation
 python3 holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/py/orbit.py 3000000 500000     # about 25 minutes
 ```

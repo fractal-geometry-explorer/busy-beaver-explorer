@@ -81,6 +81,37 @@ that never come back to S: X = 41, 52, 63, 132, 273, 558, 1131, ...: from S(41) 
 Q(1,71) → P(11,62) → P(25,37) → P(12,70) → P(27,43) → Q(3,87) → ... → Q(5,103) → ..., a loop whose counts grow by
 fixed amounts for ever (so these points do not halt; not formalised).
 
+## The recursion in rule form
+
+Exact tapes, then the rules of `F` with the exact number of machine steps, as the bbchallenge wiki writes
+Antihydra's. The families are the nodes of `F` (S(x), x ≥ 6; P(k, m), k ≥ 3; Q(u, n), u ≥ 1, n odd; T(u, v),
+v ≥ 1; tapes as in the table above) and the overflow tape O(p, i, r), r < 2:
+
+    0^∞ A> 0^∞          --110-->                 S(13)                         blank_to_S13
+    S(x)                --x + 29-->              P(3, x)                       reset_start
+    P(k, m)             --4k² + 8k + 21-->       P(2k + 3, m − 2k − 3)         m ≥ 2k + 3 (sum)
+    P(k, 0)             --2k + 14-->             HALT                          p0 (2k + 13), then D reads 1
+    P(k, 1)             --9k + 41 | 5k + 47-->   S(2k + 7) | Q(k/2, 3)          k odd | even; p1_odd, p1_even
+    P(k, 2)             --5k + 50 | 9k + 44-->   T((k − 1)/2, 1) | S(2k + 9)    k odd | even; p2_odd, p2_even
+    P(k, 3 + 2i + r)    --4i² + 2i + 2k + 15-->  O(k − 1 − i, i, r)            2i + r < 2k (sum)
+    O(2q + 1, i, 0|1)   --12i + 18q + 55 | 12i + 6q + 48-->   P(2q + 6, 4i + 2) | T(q, 2i + 3)       o_odd0, o_odd1
+    O(2q + 2, i, 0|1)   --12i + 6q + 48 | 16i + 14q + 57-->   Q(q + 1, 4i + 7) | S(4q + 4i + 17)     o_even0, o_even1
+    O(0, i, 0|1)        --8i + 6 | 16i + 43-->   S(4i + 7) | S(4i + 13)        o_zero0, o_zero1
+    Q(u, n)             --28u + 81-->            P(2u + 9, n − 9)              n ≥ 9; q_big
+    Q(u, 1|3|5|7)       --16u + 68 | 12u + 69 | 20u + 94 | 24u + 63-->
+                                                 S(4u + 13) | Q(1, 4u + 7) | P(6, 4u + 6) | S(4u + 15)   q1, q3, q5, q7
+    T(u, v)             --12u + 4v + 73-->       Q(1, 4u + 2v + 9)             t_rule
+
+The rules are `F` of `lean/Map.lean` (`F_sem`), with the halts-iff (`halts_iff`, `halts_iff_H`). Rows with a theorem
+name have their step count stated in Lean (`lean/Overflow.lean`, `lean/Rules.lean`, `lean/Doubling.lean`, in
+shifted variables; `Map.lean` restates them with `Reach`, which drops the count). The two rows marked "sum" go
+through the zig-zag, proved by induction without a count (`zigs`), so their totals are checked against direct
+simulation only. `py/exact.py`: 4,045 tapes of the five families (28 halting), each run for the stated number of
+steps and then exactly at the stated target; all 395 family tapes of the first 10^7 steps from blank tape at the
+predicted step. Example: S(68) → P(3, 68) (97) → P(9, 59) (81) → P(21, 38) (417) → O(3, 17, 1) (1,247) →
+T(1, 37) (258) → Q(1, 87) (233) → P(11, 78) (109) → P(25, 53) (593) → P(53, 0) (2,721) → halt (120): 5,876 steps,
+as in direct simulation. (The wiki page cuts the run at other points, A(a, b) and J, S_E, without step counts.)
+
 ## What is proved
 
 - **Lean, kernel (`lean/Map.lean`): halts iff the orbit hits a round with no ones.** The nodes `s x` = S(x+6),
@@ -131,6 +162,7 @@ gcc -O2 -o reset_map holdouts/1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/c/reset_
 ./reset_map 13 13                     # 13 29 255: the first return of the run from blank tape
 ./tokrun 1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA 400000000 a=10,b=1110 LR   # the tape at extension events
 python3 holdouts/1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/py/rules.py > lean/Rules.lean
+python3 holdouts/1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/py/exact.py     # the rule table and its step counts against direct simulation
 . /etc/profile.d/lean.sh && holdouts/1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/lean/check.sh
 ```
 

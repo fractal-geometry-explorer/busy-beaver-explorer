@@ -38,6 +38,29 @@ Only a C step with s = 0 and x = (m+5)/2 leads to H. Along a chain of C steps wi
 R step with m = 1 that is `x = 2^(k+3) - k - 5` (3, 10, 25, 56, 119, ...). Whether the orbit ever meets this is a
 Collatz-like question.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family, the samples
+of `lean/MapThm.lean` (`Kc`), the head in state C reading s:
+
+    K(x, m, s) := 0^∞ 1^4 0 (10)^x 1^m C>s 0^∞
+
+    start   0^∞ A> 0^∞     --216-->                        K(7, 1, 0)
+    B       K(x+1, m, s)   --3m + 12 - 2s-->               K(x, m+4, 1-s)                 m even
+    R       K(0, m, s)     --6m + 55 + 4s-->               K((m+6)/2, 1+2s, 0)            m even
+    C       K(x, m, s)     --(3m^2 + 24m + 61)/2 - 7s-->   K(x-(m+5)/2, 2m+7-s, s)        m odd, x >= (m+5)/2
+    A       K(x, m, s)     --6x^2 + 12x + 3m + 43 - 2s-->  K(2x+1, m+4-2x, 1-s)           m odd, 1 <= x <= (m+3)/2, not A'
+    A'      K(x, 2x-3, 0)  --6x^2 + 30x + 75-->            K(2x+3, 1, 0)                  x >= 2
+    H       K(0, m, s)     --m + 11 - 2s-->                HALT                           m odd (A reads 1)
+
+The rows are the cases of `mstep`, all Lean theorems (`step_ok`, `halts_iff`). Step counts in Lean: the start
+(`start`), B and R (`ruleB0/1`, `ruleR0/1`) and H (`toHalt0/1`, then the halting transition, which the count
+includes). A, A' and C are proved as "reaches in at least one step" (`ruleA0`, `ruleA1`, `ruleA1z`, `ruleAp`,
+`ruleC0`, `ruleC1`); their pieces in `lean/Rules.lean` carry step counts, the totals above are checked against direct
+simulation only (`py/exact.py`: 3,772 samples with x <= 40, m <= 45, 46 of them halting, and the 1,140 samples of
+the first 10^7 steps from blank tape). Example: K(10, 1, 0) -> K(7, 9, 0) -> K(0, 25, 0) -> halt takes
+44 + 260 + 36 = 340 steps, as direct simulation gives.
+
 ## Status
 
 Open, and reduced in Lean to the map: `halts_iff` (lean/MapThm.lean) says the machine halts from blank tape iff
@@ -84,6 +107,7 @@ python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/gen_rules.py > hol
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py check 10000000000   # the map on the run, a few minutes
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py orbit 10000         # the map iterated, ~1 min
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py small               # the map from small samples, ~1 s
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/exact.py                       # the rule table and its step counts against direct simulation, ~2 s
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/heuristic.py 1000                # the chance-of-a-hit sum, ~1 min
 ```
 

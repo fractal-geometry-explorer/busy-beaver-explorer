@@ -38,6 +38,32 @@ started at `(2, 7)` after 62 steps (`blank_to_Q`): (2,7), (4,13), (6,22), (5,35)
 `x = a + 5` this is `x ↦ ⌊3x/2⌋` with a counter `p` that goes up 2 when `x` is even and down 1 when `x` is odd, and
 the machine halts iff the counter would go below 0.
 
+## The recursion in rule form
+
+The bbchallenge wiki's Antihydra page gives the recursion in its Analysis section with exact tapes and step counts.
+Here it is with the start and the halt, next to the rules the Lean proof uses:
+
+    A(a, b)    := 0^∞ 1^a 0 1^b E> 0^∞             (the wiki's family)
+    Q(p, a, b) := 0^∞ 1^p 0 1^a 0 1^b B> 0^∞       (lean/Macro.lean)
+
+    0^∞ A> 0^∞            --11-->                   A(0, 4)
+    A(a, 2b)              --2a + 3b² + 12b + 11-->  A(a + 2, 3b + 2)        b >= 1
+    A(a + 1, 2b + 1)      --3b² + 12b + 5-->        A(a, 3b + 3)            b >= 1
+    A(0, 2b + 1)          --3b² + 9b-->             HALT                    b >= 1 (3b² + 9b − 1 steps to 0^∞ <F 110 1^3b, + the halting step)
+
+    A(a, b + 1)           --4-->                    Q(a, b, 2)
+    Q(p, a + 3, b + 1)    --2b + 13-->              Q(p, a + 1, b + 4)      inner
+    Q(p, 1, c + 2)        --2c + 2p + 26-->         Q(p + 2, c + 4, 2)      odd_a + odd_b (p >= 1), odd0 (p = 0)
+    Q(p + 1, 2, c + 2)    --2c + 20-->              Q(p, c + 5, 2)          even
+    Q(0, 2, c + 2)        --c + 8-->                HALT                    halt0 (c + 7 steps to F on a 0, + the halting step)
+
+The Q rows are `lean/Rules.lean` theorems with their exact step counts; `lean/Macro.lean` restates them without
+counts and proves `halts_iff` on the walk they make. The wiki's rows chain them, so their step counts are sums that
+are not stated in Lean. `py/exact.py` checks every row against direct simulation: 9,840 tapes, each run to its next
+configuration of the same family or the halt, and the run from blank tape up to step 10^7, whose 16 configurations
+A(a, b) come exactly at the predicted steps (A(0, 4) at 11, A(2, 8) at 58, A(4, 14) at 169, ...) and no others.
+Example: A(2, 5) -> A(1, 9) -> A(0, 15) -> halt in 41 + 101 + 210 = 352 steps, as direct simulation gives.
+
 ## What is proved (Lean, kernel only)
 
 `lean/Macro.lean`, `halts_iff`: **the machine halts from blank tape if and only if the orbit of (2, 7) under `nxt`
@@ -70,5 +96,6 @@ would decide it; the walk could be pushed to more iterations with GMP and the di
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/check.sh
 python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/gen_rules.py | diff - holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/lean/Rules.lean
 python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py check 3e6
+python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/exact.py     # the rule table and its step counts against direct simulation
 python3 holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/py/walk.py run 1000000
 ```

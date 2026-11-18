@@ -52,6 +52,37 @@ order of the two blocks flips. From blank tape the first round starts at step 74
 
     (3,1,0) (1,5,0) (2,6,1) (2,11,0) (7,9,1) (24,3,1) (20,12,1) (7,39,1) (30,26,0) (3,80,0) (75,12,1) ...
 
+## The recursion in rule form
+
+Exact tapes, then one rule per case of `next` with the exact number of machine steps of the round, as the
+bbchallenge wiki writes Antihydra's (i ≥ 1, j ≥ 1, and j ≥ 2 for R2):
+
+    R1(i, j) := 0^∞ 1^(2i) 0 1^(2j) 0 11 B> 0^∞
+    R2(i, j) := 0^∞ 1^(2i) 0 1^(2j) 0 11 0 11 B> 0^∞
+
+    0^∞ A> 0^∞     --74-->                   R1(3, 1)
+    R1(i, j)       --12ij + 24j + 11-->      R1(i − j − 1, 3j + 2)       i ≥ j + 2
+    R2(i, j)       --12ij + 24j + 27-->      R2(i − j − 1, 3j + 3)       i ≥ j + 2
+    R1(j + 1, j)   --12j² + 72j + 50-->      R2(3j, 3)
+    R2(j + 1, j)   --12j² + 36j + 27-->      R1(3j + 3, 1)
+    R1(j, j)       --12j² − 6j + 5-->        HALT
+    R2(j, j)       --12j² − 6j + 8-->        HALT
+    R1(j − 1, j)   --12j² − 18j + 14-->      HALT
+    R2(j − 1, j)   --12j² − 18j + 17-->      HALT
+    R1(j − 2, j)   --12j² − 9-->             R1(3j − 3, 1)
+    R2(j − 2, j)   --12j² + 36j + 14-->      R2(3j − 3, 3)
+    R1(i, j)       --12ij + 12i + 12j + 15-->  R2(j − i − 2, 3i + 3)     i + 3 ≤ j
+    R2(i, j)       --12ij + 12i + 12j + 35-->  R1(j − i − 2, 3i + 5)     i + 3 ≤ j
+
+The rules are `next` of `lean/Round.lean`, proved (`round_ok`), with the halts-iff (`halts_iff`) and the start
+(`init_reach`, 74 steps). The step counts are proved for the pieces of a round (`lean/Pieces.lean`: start
+2i + 2j + 13 or + 16, inner pass 12p + 12q + 50 (`inner_e`), the ends and halts); `Round.lean` joins them with `Reach`, which
+drops the counts, so the totals are sums of proved counts, checked against direct simulation (`py/orbit.py rules`:
+all 3,160 rounds with i, j ≤ 40, 157 halting, target and steps; all 23 round starts of the first 10^7 steps from
+blank tape), not stated in Lean. Halt rows count the halting transition. Example: R1(4, 8) → R2(2, 15) (543)
+→ R1(11, 11) (599) → halt (1,391): 2,533 steps, as in direct simulation. (The wiki page cuts the round elsewhere,
+with a family C(a, c, f) and no step counts.)
+
 ## Emergent behaviour
 
 * **What is counted.** Two numbers, the lengths of the two blocks of 1s. A round subtracts the smaller from the
@@ -111,4 +142,7 @@ about 25 minutes on one core: the orbit never reaches i = j or i + 1 = j. After 
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/lean/check.sh
+cd holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE
+python3 py/orbit.py check 22            # the first rounds of the machine against the map
+python3 py/orbit.py rules               # the rule table and its step counts against direct simulation
 ```

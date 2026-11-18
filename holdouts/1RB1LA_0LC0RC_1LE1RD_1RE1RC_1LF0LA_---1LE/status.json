@@ -171,6 +171,16 @@
     ]
    },
    {
+    "id": "rules",
+    "eyebrow": "The recursion, rule by rule",
+    "heading": "Exact tapes, exact step counts",
+    "html": [
+     "<div class=\"col\"><p>The same map written the way the bbchallenge wiki writes Antihydra's: name the tape exactly, then list the rules, each with the exact number of machine steps it takes. One family of tapes, seen when state A stands on the blank cell at the left end:</p><p><code>K(p, q) := 0<sup>∞</sup> A&gt; 0 1<sup>p</sup> 0 1<sup>q</sup> 0<sup>∞</sup></code></p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rule</th><th>from → to</th><th>steps</th><th>when</th></tr></thead><tbody><tr><td>start</td><td style=\"white-space:nowrap\">0<sup>∞</sup> A&gt; 0<sup>∞</sup> → K(0, 2)</td><td style=\"white-space:nowrap\">7</td><td><code>blank_K</code></td></tr><tr><td>odd</td><td style=\"white-space:nowrap\">K(2k + 3, q) → K(k, q + k + 4)</td><td style=\"white-space:nowrap\">2k<sup>2</sup> + 10k + 13</td><td><code>K_odd</code></td></tr><tr><td>even</td><td style=\"white-space:nowrap\">K(2k + 2, q) → K(3k + 3 + q, 1)</td><td style=\"white-space:nowrap\">q(4k + 8) + 6k<sup>2</sup> + 22k + 15</td><td><code>K_even</code></td></tr><tr><td>zero</td><td style=\"white-space:nowrap\">K(0, q + 1) → K(2, q)</td><td style=\"white-space:nowrap\">7</td><td><code>K_zero</code></td></tr><tr><td><b>halt</b></td><td style=\"white-space:nowrap\">K(1, q) → <b>halt</b></td><td style=\"white-space:nowrap\">7</td><td><code>K_one_halts</code>: 6 steps to F on a 0, then the halting step</td></tr></tbody></table></div>",
+     "<p>Every row is a theorem in Lean with its step count (<code>lean/Macro.lean</code>, each stated as <code>steps N (K p q) = some (K p' q')</code>, built from the passes of <code>lean/Rules.lean</code>); for the halt row Lean proves 6 steps to state F reading a 0, and the table counts the halting step as the 7th. <code>lean/Reduction.lean</code> collects the rows into the map F with step count T (<code>K_step</code>), proves that the run from blank tape is at K(orbit n) at step time n (<code>reach</code>), and that <b>the machine halts from blank tape iff some orbit n has p = 1</b> (<code>halts_iff</code>). The rows are also checked against direct simulation (<code>py/exact.py</code>): 2,500 tapes K(p, q) with p ≤ 60, q ≤ 40, and the 49 samples of the run from blank tape up to step 10<sup>8</sup>, each at its predicted step. The bbchallenge wiki page for this machine gives the same rules on pairs (m, n) for its tape <code>1<sup>m</sup> E&gt; 1<sup>n</sup></code>, with m = p and n = q + 1.</p><p>For example K(13, 0): odd with k = 5 (113 steps) to K(5, 9), odd with k = 1 (25 steps) to K(1, 14), and the halt after 7 more: 145 steps in all, which is what direct simulation gives.</p></div>"
+    ]
+   },
+   {
     "id": "halt",
     "eyebrow": "Does it halt?",
     "heading": "Only if p + 3 is a power of two",

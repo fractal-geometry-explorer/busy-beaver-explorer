@@ -44,6 +44,29 @@ from (0, 1): K = 0, 2, 4, 7, 12, 20, 31, 48, 74, 112, …) and stops it at the i
 The left end of the tape moves by one cell per reset only (hence "fixed"); the right end grows by about one cell per
 sweep (hence "sqrt").
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family, the phase
+start `enc` of `lean/Macro.lean`:
+
+    P(a, K, j) := 0^∞ 1^a 0 0 (10)^K 1^(2j+1) C> 0^∞
+
+    start        0^∞ A> 0^∞      --18-->        P(3, 0, 1)
+    sweep        P(a, K+2, j)    --8j+14-->     P(a, K, j+3)
+    end, K even  P(a+1, 0, j)    --8j+13-->     P(a, j+1, 0)
+    end, K odd   P(a+1, 1, j)    --12j+33-->    P(a, j+3, 1)
+    reset        P(0, 1, j)      --12j+38-->    P(2j+7, 0, 1)
+    halt         P(0, 0, j)      --8j+14-->     HALT              (F reads 0)
+
+A whole phase (`mstep`): i = ⌊K/2⌋ sweeps take i(8j + 12i + 2) steps, then the end row from P(a, K mod 2, j + 3i).
+The halt row counts the halting transition. The rows are the theorems of `lean/Rules.lean` with these counts
+(`start`, `inner`, `end_even`, `end_odd`, `reset_a` 12j+31 then `reset_b` 7, `to_halt` 8j+13 then the halting
+transition); `mstep_sound` chains them into the phase map as "at least one step", so the phase total is not stated in
+Lean. `py/exact.py` checks the rows and the phase totals against direct simulation: 76,880 checks (651 halting) and
+the 2,208 tapes the rows predict in the first 10^7 steps from blank tape. Example: P(1, 2, 0) halts after
+14 + 37 + 14 + 38 + 62 = 165 steps, as direct simulation gives. The bbchallenge wiki page (mxdys) has the same five
+rules on another sample of the tape, `(a, b, c) := 0^∞ 1^a 0 (01)^b 0 (11)^(c+1) B> 0^∞`.
+
 ## Status
 
 Open. Halting is equivalent to: for some i, the wall A = `epochs i` has (seq A).1 even. Deciding epoch 4 would need
@@ -75,6 +98,7 @@ The general lemma `halts_iff_orbit` (a sound macro map whose stuck points halt d
 python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/gen_rules.py > holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/lean/Rules.lean
 python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py check 18
 python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/macro.py epochs
+python3 holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/py/exact.py      # the rule table and its step counts against direct simulation, ~20 s
 ```
 
 ## Pages

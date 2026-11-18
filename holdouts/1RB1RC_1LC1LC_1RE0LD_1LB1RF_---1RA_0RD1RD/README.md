@@ -46,6 +46,33 @@ length grows like the square root of the step count (the right side of the tape,
 round starts add a few cells at the left end once per round, which grows like the logarithm of the step count.
 That is the exp/sqrt shape the triage saw.
 
+## The recursion in rule form
+
+Exact tapes, then one rule per case of `next` with the exact number of machine steps of the round, as the
+bbchallenge wiki writes Antihydra's (u ≥ 3):
+
+    P(u, v) := 0^∞ C> 0 11 0 1^(2u) 0 1^(2v) 0^∞
+    Q(u, v) := 0^∞ C> 0 11 0 11 0 1^(2u) 0 1^(2v) 0^∞
+
+    0^∞ A> 0^∞     --42-->                      P(3, 0)
+    P(u, v)        --12uv + 24u + 11-->         P(3u + 2, v − u − 1)     u < v
+    Q(u, v)        --12uv + 24u + 27-->         Q(3u + 3, v − u − 1)     u < v
+    P(u, v)        --12uv + 12u + 12v + 15-->   Q(3v + 3, u − v − 2)     u ≥ v + 2
+    Q(u, v)        --12uv + 12u + 12v + 35-->   P(3v + 5, u − v − 2)     u ≥ v + 2
+    P(u, u)        --12u² − 6u + 5-->           HALT
+    Q(u, u)        --12u² − 6u + 8-->           HALT
+    P(u, u − 1)    --12u² − 18u + 14-->         HALT
+    Q(u, u − 1)    --12u² − 18u + 17-->         HALT
+
+The rules are `next` of `lean/Macro.lean`, proved (`round`, `round_halt`), with the halts-iff (`halts_iff'` in
+`lean/Reduction.lean`) and the start (`start_blank`, 42 steps). The pieces of a round have proved step counts
+(`lean/Rules.lean`), but `Macro.lean` joins them with `Reaches`, which drops the counts: the totals are checked
+against direct simulation (`py/orbit.py rules`: all 3,116 rounds with 3 ≤ u ≤ 40, v ≤ 40, 152 halting, target and
+steps; all 24 round starts of the first 10^7 steps from blank tape), not stated in Lean. Halt rows count the halting
+transition. Example: P(5, 9) → P(17, 3) (671) → Q(12, 12) (867) → halt (1,664): 3,202 steps, as in direct
+simulation. The formulas are those of 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE with the two blocks exchanged.
+(The wiki page cuts the run elsewhere, with a family C(a, b, c) and no step counts.)
+
 ## Does it halt?
 
 It halts iff some round has `u = v` or `u = v + 1`, that is iff the two counts come within one of each other.
@@ -113,4 +140,5 @@ about 25 minutes on one core: the orbit never reaches u = v or u = v + 1. After 
 . /etc/profile.d/lean.sh && holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/lean/check.sh   # about 75 s
 python3 holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/lean/rules.py | diff - holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/lean/Rules.lean
 python3 holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/py/orbit.py 1000000      # about 30 s
+python3 holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/py/orbit.py rules        # the rule table and its step counts against direct simulation
 ```

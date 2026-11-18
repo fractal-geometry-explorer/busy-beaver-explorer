@@ -45,6 +45,33 @@ From blank tape (`py/epochs.py`):
     epoch 3   P 459271258863231 3 5   ~10^28 steps   114,817,814,715,807 phases, r = 3: a new epoch for sure
     epoch 4   P c4 3 5                c4 = 2x+4+2u has about 2*10^13 digits, c4 mod 4 = 2(x+u) mod 4
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family (the P of
+`lean/Phase.lean`), u = 2 or 3; X = x + u + 4, h = floor(X/2):
+
+    P(c, u, x) := 0^∞ 1^c (01)^u 0 0 (10)^x F> 0^∞
+
+    0^∞ A> 0^∞     --139-->                         P(3, 3, 5)
+    P(c+4, u, x)   --12x + 8u + 6h² + 4h + 50-->    P(c, 2 + X mod 2, 3h − 1)    x ≥ 1   (phase)
+    P(0, 3, x)     --8x + 131-->                    P(2x + 5, 3, 5)             (same tape as P(1, 2, x))
+    P(3, 2, x)     --12x + 157-->                   P(2x + 8, 3, 5)
+    P(3, 3, x)     --12x + 165-->                   P(2x + 10, 3, 5)
+    P(0, 2, x)     --6x + 24-->                     HALT                        (C reads 0)
+    P(1, 3, x)     --10x + 56-->                    HALT                        (through P(0, 2, x + 3))
+    P(2, 2, x)     --10x + 52-->                    HALT
+    P(2, 3, x)     --10x + 58-->                    HALT
+
+Each target is the first P tape reached, except that P(1, 3, x) is the same tape as P(0, 4, x), the middle of a phase
+from P(4, u, x), and is not counted as a visit (one more bounce, 4x + 14 steps, leads to P(0, 2, x + 3)). The rules
+are `phase`, `end_some`, `end_none` (x ≥ 16) and `P_first` of `lean/Phase.lean`, with `halts_iff`. Step counts in
+Lean: the start (`P_start`), `P_first`, the end rows (`P_end03`, `P_end32`, `P_end33`; `end02`, `end13`, `end22`,
+`end23` of `lean/Rules.lean` count up to C on a 0, the table adds the halting step). The phase is built from counted
+moves (`glue2`, `glue3`, `bounce'`) but `bounce_iter` does not keep the count: its total is checked against direct
+simulation (`py/steps.py`: 2,560 tapes including 320 halting ones, the end rows also for x < 16, and every P tape of
+the first 10^8 steps of the run), not stated in Lean. The bbchallenge wiki page uses other coordinates; its epoch
+starts B(m) are P(m − 4, 3, 5). Example: P(6, 2, 16) -> P(2, 2, 32) -> halt takes 1,028 + 372 = 1,400 steps.
+
 ## Status
 
 Open, and very likely out of reach of computation (a Hydra-like cryptid that is expected to *halt*).
@@ -88,5 +115,6 @@ is known (as for Hydra/Antihydra).
 python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py            # the epochs
 python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py check 400  # model vs simulator
 python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/epochs.py ends       # the eight end cases
+python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/steps.py            # the rule table and its step counts against direct simulation
 python3 holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/py/rules.py > holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/lean/Rules.lean
 ```

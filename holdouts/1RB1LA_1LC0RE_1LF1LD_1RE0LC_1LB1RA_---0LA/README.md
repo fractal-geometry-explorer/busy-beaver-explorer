@@ -33,6 +33,34 @@ reaches `S_3(4, 4)` at step 388.
   One residue class in four halts in every case. Exact table in `py/model.py`; the exact map (`next` in
   `lean/Reset.lean`) is proved, and the table is read off it.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts. One family, `Ph` of
+`lean/Reset.lean`, and the rows of its map `next` (which resets from c = 0 or 1; the reset from c = 2 above is one
+step and then the c = 0 reset). b = 3⌊x/2⌋ + 7 + t and b' = 3⌊x/2⌋ + 7:
+
+    S_t(x, c) := 0^∞ A> 1^x (01)^2 1^6 (01)^c 1^t 0 1 1 0^∞          (t = 3 or 6)
+
+    start    0^∞ A> 0^∞   --388-->                         S_3(4, 4)
+    step     S_t(x, c+2)  --(3x^2 + 41x + 202)/2 (x even), (3x^2 + 41x + 174)/2 (x odd)-->  S_t(⌊3x/2⌋+7, c)
+    reset    S_t(x, 0)    --(3x^2 + 23x + 12t + 302)/2-->  S_3(4, (b-5)/2)        x even, b odd
+    reset    S_t(x, 0)    --(3x^2 + 23x + 12t + 296)/2-->  S_3(6, (b-8)/2)        x odd, b even
+    reset    S_t(x, 0)    --(3x^2 + 23x + 12t + 320)/2-->  S_3(5, (b-5)/2)        x odd, b odd
+    halt     S_t(x, 0)    --(3x^2 + 23x + 12t + 172)/2-->  HALT                   x even, b even (F reads 0)
+    reset    S_3(x, 1)    --(3x^2 + 23x + 354)/2-->        S_6(4, (b'-3)/2)       x even, b' odd
+    reset    S_3(x, 1)    --(3x^2 + 23x + 348)/2-->        S_6(6, (b'-6)/2)       x odd, b' even
+    reset    S_3(x, 1)    --(3x^2 + 23x + 372)/2-->        S_6(5, (b'-3)/2)       x odd, b' odd
+    halt     S_3(x, 1)    --(3x^2 + 23x + 224)/2-->        HALT                   x even, b' even (F reads 0)
+    reset    S_6(x, 1)    --(39x^2 + 662x + K)/8 (x even), (39x^2 + 644x + K)/8 (x odd)-->  S_3(⌊3y/2⌋+4, 1)
+             y = 3⌊x/2⌋ + 7 + (x mod 2); K = 3304, 3141, 3416, 3029 for x = 0, 1, 2, 3 (mod 4)
+
+The halt rows count the halting transition. Every row is a Lean theorem (`step_rule`, the cases of `next_spec`,
+`start`; `halts_iff`), but only the start with its step count: the others are stated as "reaches", and their pieces
+in `lean/Rules.lean` carry step counts. The totals above are checked against direct simulation (`py/exact.py`: 3,200
+tapes, 225 of them halting, and the 27 tapes the rows predict in the first 10^7 steps from blank tape). Example:
+S_3(6, 2) -> S_3(16, 0) -> halt in 278 + 672 = 950 steps, as direct simulation gives. The bbchallenge wiki page (from
+Marco Dos Santos's paper) uses a finer family C(a, b, c, d), one rule per round.
+
 ## The run from blank
 
 | phase | start | end | reset |
@@ -85,5 +113,6 @@ model, after a tower of exponentials of steps.
 python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/rules_check.py step 60
 python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py verify 200
 python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py next 3000
+python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/exact.py        # the rule table and its step counts against direct simulation, ~30 s
 python3 holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/py/model.py
 ```

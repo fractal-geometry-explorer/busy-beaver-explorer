@@ -52,6 +52,36 @@ and compares: all 7,000 states with n < 70 and k < 50, 300 random states with n 
 left-end states of the blank-tape run, and every epoch N = 1..150 to its end. The epoch values the map gives also
 agree with all 126 epochs of the independent accelerated run to 10^100 steps (`py/run.py`).
 
+## The recursion in rule form
+
+Exact tapes, then one rule per case of `emap` with the exact number of machine steps, as the bbchallenge wiki
+writes Antihydra's (for k = 0 the tape is 1^n alone):
+
+    A(n, k) := 0^∞ A> 0 0 1^n (01)^k 111 0^∞
+    D(n, k) := 0^∞ D> 0 0 0 1^n (01)^k 111 0^∞
+
+    0^∞ A> 0^∞   --11-->                      D(3, 0)                               blank_11
+    s(n, 0)      --3n + 11-->                 other(n + 3, 0)         n even        rA0, rD0
+    s(n, k)      --3n + 11-->                 other(n + 4, k − 1)     n even, k ≥ 2 rA2, rD2
+    s(n, 1)      --3n + 11-->                 other(n + 7, 0)         n even        rA1, rD1
+    A(n, 0)      --3n + 23-->                 D(1, (n + 1)/2)         n odd         rcA
+    D(n, 0)      --3n + 28-->                 D(3, (n + 1)/2)         n odd         rcD
+    A(n, k)      --(3n² + 24n + 47)/2-->      A(2n + 6, k − (n + 5)/2)   n odd, 2k > n + 5
+    D(n, k)      --(3n² + 24n + 61)/2-->      D(2n + 7, k − (n + 5)/2)   n odd, 2k > n + 5
+    A(n, k)      --(3n² + 24n + 47)/2-->      A(2n + 9, 0)               n odd, 2k = n + 5
+    D(n, k)      --(3n² + 24n + 61)/2-->      D(2n + 10, 0)              n odd, 2k = n + 5
+    s(n, k)      --6k² + 3n + 36-->           other(n − 2k + 6, 2k)      n odd, 2 ≤ k, 2k < n + 5
+    A(n, 1)      --n + 8-->                   HALT                    n odd         hA (2j + 8), then B reads 1
+    D(n, 1)      --n + 9-->                   HALT                    n odd         hD (2j + 9), then B reads 1
+
+The rules are `emap` of `lean/Map.lean`, proved (`map_step`), with the halts-iff (`halts_iff`). Rows with a theorem
+name have their step count stated in Lean (`lean/Map.lean`, n = 2j or 2j + 1; `hA`, `hD` in `lean/MapRules.lean`,
+plus the halting transition). The doubling rows go through the loop `qloop`, proved by induction without a count
+(its pieces have counts: entry 2a + 20, turn 6m + 10, exits `oA2`, `fA`, ...), so their totals are checked against
+direct simulation, not stated in Lean. `py/leftcheck.py rules`: all 9,600 states with n < 80, k < 60, both letters
+(80 halting), target and steps; all 1,678 left-end states of the first 10^7 steps from blank tape at the predicted
+step. Example: D(7, 20) → D(21, 14) (188) → D(49, 1) (944) → halt (58): 1,190 steps, as in direct simulation.
+
 ## Does it halt?
 
 The only halt is B reading 1. In terms of the map, the halting row is **A(n, 1) and D(n, 1) with n odd**: from
@@ -146,6 +176,7 @@ python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py check 3e8
 python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/run.py 1e100
 python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/epoch.py scan 1 3000
 python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/leftcheck.py
+python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/leftcheck.py rules    # the rule table and its step counts against direct simulation
 python3 holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/py/orbit.py 60
 ```
 

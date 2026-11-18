@@ -36,6 +36,25 @@ On the visits `X(b, 1)` put `D = b + 3`. The odd rule halves `D` exactly, so bet
 6, 10, 17, 41, 101, 251, 626, 1095, 2736, 2995, 7486, ... If some `D` is a power of two, the halvings run down to
 `D = 4`, i.e. `b = 1`, and the machine halts; otherwise they stop at an odd `D` and the even step follows.
 
+## The recursion in rule form
+
+As the bbchallenge wiki writes Antihydra's: exact tapes, then rules with exact step counts.
+
+    X(b, c) := 0^inf A> 0 1^b 0 0 1^c 0^inf
+
+    0^inf A> 0^inf    --45-->                                  X(3, 1)
+    X(0, c)           --2c + 33-->                             X(c + 2, 1)          c >= 1
+    X(2k+2, c)        --3k^3 + 29k^2 + 95k + 102 + 2c-->       X(5k + c + 7, 1)
+    X(2k+3, c)        --2k^2 + 12k + 19-->                     X(k, k + c + 4)
+    X(1, c)           --13-->                                  HALT                 (12 steps to F on a 0, + the halting step)
+
+The rules are Lean theorems (`init_X`, `zero_rule`, `even_rule`, `odd_rule`, `halt_rule`), but only the start and
+the halt are exact step counts in Lean; the others are proved as reachability (`Reach1`), so their step counts are
+checked against direct simulation only (`py/exact.py`: 1,270 tapes with b <= 40, c <= 30, each run to its first
+X(b', c') or halt, and the 11 configurations X(b, c) of the run from blank tape up to step 2*10^7). Summed from
+(3, 1) they also give the step numbers `c/verify.c` reports. Example: X(2, 6) -> X(13, 1) -> X(5, 10) -> X(1, 15)
+-> halt in 114 + 129 + 33 + 13 = 289 steps, as direct simulation gives.
+
 ## What is established
 
 **Proved in Lean, kernel only:**
@@ -87,6 +106,7 @@ sequence; no method for this is known.
 | `lean/Bound.lean` | the first 20,000 (kernel) and 300,000 (`native_decide`) terms |
 | `lean/Axioms.lean` | the axioms of the main theorems |
 | `py/gen_rules.py` | writes `lean/Rules.lean` |
+| `py/exact.py` | the rule table with step counts against direct simulation |
 | `c/verify.c` | the macro rules against a direct run |
 | `c/doucette.c` | Doucette's sequence in multi-precision C |
 
@@ -96,6 +116,7 @@ sequence; no method for this is known.
 . /etc/profile.d/lean.sh && holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh   # about 2 minutes
 cd holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD
 python3 py/gen_rules.py | diff - lean/Rules.lean
+python3 py/exact.py                     # the rule table and its step counts against direct simulation
 gcc -O2 -o /tmp/verify c/verify.c && /tmp/verify 30000000000 | tail -3
 gcc -O2 -o /tmp/doucette c/doucette.c && /tmp/doucette 3000000 500000
 ```
