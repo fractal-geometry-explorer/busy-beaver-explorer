@@ -64,6 +64,12 @@
    "where": "README, second round"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.72&times;10<sup>333</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 3 cells, from blank tape for 1201 seconds and reached step 1.72&times;10<sup>333</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 20 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA 3 1201 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A base-4 counter",
    "text": "Between two visits to the left end, block i loses about 4<sup>i</sup> words. A block that runs low is refilled, and new blocks appear at the right with lengths like 4095 = 4<sup>6</sup>&minus;1 and 16387 = 4<sup>7</sup>+3. So the blocks behave like the digits of a base-4 counter that is counting down. The irregular part is what a refill does, since the refill amounts depend on the other blocks.",

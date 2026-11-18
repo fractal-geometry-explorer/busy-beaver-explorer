@@ -157,6 +157,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Write the lists at visits to the left end with positions i = 0, 1, 2, ... Of the 13 pairs of consecutive visits up to step 1.86&middot;10<sup>10</sup> whose lists parse as plain block lists, 10 follow one of two exact rules. In the first (5 pairs), block i loses exactly 4<sup>i</sup> words, and a new last block of 4<sup>r</sup>&minus;1 words appears (15, 63, 1023, 4095, 16383). In the second (5 pairs), at the next visit that block has become 4<sup>r+1</sup>+3 (16387, 65539), and its left neighbour has lost 4<sup>r&minus;1</sup>+1 instead of 4<sup>r&minus;1</sup>. Example: [112,315,480,4642,15698,13634,8963,16383] at step 4,589,471,184 becomes [111,311,464,4578,15442,12610,4866,65539] at step 18,558,703,739.</p>
         <p class="where">README, second round</p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.72&times;10<sup>333</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 3 cells, from blank tape for 1201 seconds and reached step 1.72&times;10<sup>333</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 20 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC1LF_1RA1LD_0LB---_1RF1LE_0LB0RA 3 1201 mirror</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

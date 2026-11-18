@@ -112,6 +112,12 @@
    "where": "<code>py/digits.py check</code>, <code>py/accel.py test</code>, <code>py/accel.py run</code>; README, \"Long accelerated run (16 November 2026)\""
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.70&times;10<sup>195</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 1200 seconds and reached step 1.70&times;10<sup>195</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 73 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RF_1LC1RF_1RA0LD_0LC0RE_1LD---_0RC0RD 4 1200</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Open. By <code>halts_iff_hybrid</code> (nothing assumed) it is the question whether the hybrid model halts; by <code>halts_iff_model</code>, as long as the gap counter stays inside its rules, it is the question whether the counter ever reaches the gaps (0,0,0) or (4,0). The counter is Collatz-like, as for the other base-3 counters; no halt and no uncovered pattern in about 10<sup>89</sup> bounces.",

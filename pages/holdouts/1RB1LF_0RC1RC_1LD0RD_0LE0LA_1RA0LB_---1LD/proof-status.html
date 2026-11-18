@@ -162,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE started in state B on blank tape runs to step 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083 without halting (its accelerated counter model, trusted, checked against the direct simulator to 4&middot;10<sup>8</sup> steps). By <code>twin</code> and <code>sim_steps</code> (every run of that machine is matched by a run of this machine at least as long), this machine does not halt from blank tape within that many steps.</p>
         <p class="where"><code>holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/accel.py run 100000 2400 CKPT.pkl B</code>; <code>lean/Twin.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.18&times;10<sup>246</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 3 cells, from blank tape for 1200 seconds and reached step 1.18&times;10<sup>246</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 35 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD 3 1200</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
