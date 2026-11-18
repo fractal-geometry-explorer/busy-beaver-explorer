@@ -208,6 +208,22 @@ def elsewhere(M, decision="open"):
                 " It agrees with the proof here." if decision == pr["claim"] else
                 " The verdict on this page does not rely on it." if decision == "open" else
                 " <b>It disagrees with the result here.</b>")
+        c = pr.get("compiled")
+        if c:
+            ax = ("<code>Print Assumptions</code> reports no axioms" if not c.get("axioms") else
+                  "it rests only on " + ", ".join(html.escape(a) if " " in a else f"<code>{html.escape(a)}</code>" for a in c["axioms"]))
+            out.append({"kind": "proof", "title": f"An outside Rocq proof, compiled here: it {CLAIM[pr['claim']]}",
+                        "text": f"<a href=\"{ext['busycoq']}/pull/{pr['n']}\">busycoq pull request {pr['n']}</a> "
+                                f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
+                                f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). The pull request is open: "
+                                "not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch "
+                                f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in {c['seconds']} s: "
+                                f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
+                                f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
+                                "It is their proof, not one written in this repository. " +
+                                ("The verdict on this page rests on this proof." if decision == pr["claim"] and not dmc
+                                 else same.strip())})
+            continue
         out.append({"kind": "report", "title": f"An outside proof is waiting for review: it {CLAIM[pr['claim']]}",
                     "text": f"<a href=\"{ext['busycoq']}/pull/{pr['n']}\">busycoq pull request {pr['n']}</a> "
                             f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
@@ -275,6 +291,12 @@ def standing_line(M, decision, level="lean"):
         both = " and by Coq" if M in external()["coq_here"] else ""
         return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
                 "text": f"Proved in this repository, checked by Lean{both}. The ledger below says what each part rests on."}
+    if kind == "outside" and outside_by(M, decision) == "rocq":
+        n = [p["n"] for p in e.get("prs", []) if p.get("compiled") and p["claim"] == decision]
+        return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
+                "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "
+                        "compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, "
+                        "not one written in this repository; the ledger below says what this repository checked on its own."}
     if kind == "outside":
         k = CLAIM[e["deepmind"]["kind"]]
         return {"kind": "merged", "label": f"Decided by an outside Lean proof: it {k}",
@@ -314,6 +336,18 @@ def page_spec(spec):
     if c:
         out["compare"] = c
     return out
+
+
+def outside_by(M, decision):
+    """Which outside proof an "outside" verdict rests on: "lean" (DeepMind's Lean file, compiled here), "rocq" (a Rocq
+    proof in an open busycoq pull request, compiled here) or "" (none)."""
+    e = external()["machines"].get(M, {})
+    dm = e.get("deepmind", {})
+    if dm.get("compiled") and dm.get("kind") == decision:
+        return "lean"
+    if any(p.get("compiled") and p["claim"] == decision for p in e.get("prs", [])):
+        return "rocq"
+    return ""
 
 
 def standing(M, decision, level="lean"):
@@ -454,7 +488,8 @@ def index_rows(triage, known, spec_by):
         rows[-1].update({
             "st": standing(M, rows[-1]["dec"], s.get("decision_level", "lean")), "tc": e.get("tracker", {}).get("class", ""),
             "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0,
-            "pr": [[p["n"], p["claim"]] for p in e.get("prs", [])],
+            "pr": [[p["n"], p["claim"]] + ([1] if p.get("compiled") else []) for p in e.get("prs", [])],
+            "ob": outside_by(M, rows[-1]["dec"]),
             "ws": e["wiki_solved"]["claim"] if e.get("wiki_solved") else "",
         })
         rows[-1].update(lean_results(M, folder, s))
@@ -612,7 +647,7 @@ const classes = [...new Set(rows.map(r => r.c))].sort((a,b) => rows.filter(r=>r.
 const ST = [
   ["here", "Decided here", "a proof in this repository, checked by Lean (and for some by Coq as well)"],
   ["computed", "Computed here, not proved", "a verdict from an exact accelerated computation in this repository; not a Lean proof of the whole run"],
-  ["outside", "Decided by an outside Lean proof", "a Lean proof in google-deepmind/cryptids, compiled here; not written in this repository"],
+  ["outside", "Decided by an outside proof", "a Lean proof in google-deepmind/cryptids or a Rocq proof in an open busycoq pull request, compiled here; not written in this repository"],
   ["merged", "Proved elsewhere, merged", "a Rocq proof merged in busycoq; not compiled here"],
   ["pr", "Outside proof awaiting review", "a Rocq proof in an open busycoq pull request; not merged, not compiled here"],
   ["cryptid", "Cryptid", "the community tracker's label: halting comes down to a Collatz-like question"],
@@ -634,6 +669,8 @@ function standingText(r){
   const prs = r.pr.map(p => `PR ${p[0]}: ${WORD[p[1]]}`).join(", ");
   if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
   if (r.st === "computed") return `<b>${WORD[r.dec]}</b>, computed here, not proved` + (prs ? `; also ${prs}` : "");
+  if (r.st === "outside" && r.ob === "rocq") { const n = r.pr.filter(p => p[2] && p[1] === r.dec).map(p => p[0]);
+    return `<b>${WORD[r.dec]}</b>, by the Rocq proof of PR ${n[0]}, compiled here` + (r.dm ? `; DeepMind Lean: ${WORD[r.dm.k]}` : ""); }
   if (r.st === "outside") return `<b>${WORD[r.dm.k]}</b>, by DeepMind's Lean proof, compiled here` + (prs ? `; also ${prs}` : "");
   if (r.st === "merged") return "open here; proved in busycoq (merged)";
   if (r.st === "pr") return `open here; outside proof awaiting review (${prs}${DMS(r) ? "; DeepMind Lean: " + WORD[r.dm.k] + (r.dm.c ? ", compiled here" : "") : ""})`;

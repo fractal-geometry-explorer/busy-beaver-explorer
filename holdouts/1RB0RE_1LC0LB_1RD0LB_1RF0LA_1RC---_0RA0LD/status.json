@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 92 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>Proved by others, not yet independently rebuilt.</b> A complete non-halting proof by Hubert Chilczuk has been published outside this repository (Rocq 8.20 on busycoq, <code>Theorem nonhalt : ~ halts tm c0</code>, github.com/hubertchilczuk/BB6-1RB0RE_1LC0LB_1RD0LB_1RF0LA_1RC---_0RA0LD, head 830debc of 11 November 2026). It finds a finite closed set: 385 nodes of (engine pattern, remainder, parity) with the stack size left free, so the epoch map is <b>not</b> a Collatz-type problem as guessed here. Spot checks made in this project agree with it (the start node at step 226,258,281 and two engine cycles), but the Rocq build (about 225 CPU-hours) has not been rebuilt independently here. The decision recorded here stays open until the proof is rebuilt or replayed in Lean.",
   "<b>The question is open.</b> Each epoch is now understood exactly: the engine eats the stack of 20-cell half-units from the left in one of three exact cycles (1,744 round trips per 100 half-units, 704 per 40, 2,336 per 132), each round trip adds one word to the block, and the block becomes the next stack, 8.72, 8.80 or 8.85 times larger. Following the epochs with exact symbolic round trips (Python) gives 30 epochs and about 7·10<sup>61</sup> steps without a halt. Which cycle and which junction the next epoch gets depends on residues of the stack size, a Collatz-like map; the search for a finite closed set of epoch classes, which would prove non-halting, was started but did not close. Lean proves the sweep rules, the shift rules of the epoch transition, one engine lemma and the right part of a round trip."
  ],
@@ -223,7 +224,8 @@
    }
   ]
  },
- "summary": "Proved non-halting by others (Chilczuk, Rocq; not yet rebuilt here): an epoch counter whose stack grows about 8.8x per epoch; a finite closed set of 385 (pattern, remainder, parity) nodes covers every epoch.",
+ "summary": "Proved non-halting by others (Chilczuk, Rocq; not yet rebuilt here): an epoch counter whose stack grows about 8.8x per epoch; a finite closed set of 385 (pattern, remainder, parity) nodes covers every epoch. Decided outside: busycoq PR 92 proves in Rocq that it never halts (compiled here).",
  "family": "epoch counter: unit stack, growing block, small engine (Collatz-like epoch map)",
- "decision": "open"
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -11,8 +11,9 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "At the end of each <em>round</em> the tape is a leader <code>11100</code>, a list of digits of six cells each, a fixed stretch, and a tail of single 1s that grows by one per round. Within an <em>epoch</em> each round changes one or two digits next to a walker that moves left, and the round takes exactly twice as long as the one before plus a constant that depends only on the change. When the walker reaches the front the list is rebuilt longer; the rebuilds are not understood."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 86 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> No halt in direct simulation to 3.54&middot;10<sup>11</sup> steps. The rounds inside an epoch follow an exact law (checked on every round of two epochs, and two rounds predicted before the simulator got there); a halt could only come from a rebuild, whose rule is not known."
  ],
  "claims": [
@@ -303,5 +304,7 @@
   ]
  },
  "family": "two-level counter: a fast binary counter at the right end, one walker step per round in a list of 6-cell digits, rebuilds",
- "summary": "A two-level counter: each round the fast counter at the right end doubles its time and a walker makes one local change in a list of 6-cell digits, with round length T' = 2T + c(change) exactly; the law predicts every round of two epochs (40 rounds, up to 1.8e11 steps); the rebuilds between epochs are not modelled; open."
+ "summary": "A two-level counter: each round the fast counter at the right end doubles its time and a walker makes one local change in a list of 6-cell digits, with round length T' = 2T + c(change) exactly; the law predicts every round of two epochs (40 rounds, up to 1.8e11 steps); the rebuilds between epochs are not modelled; open. Decided outside: busycoq PR 86 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 93 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The right side is a sorted list of runs of 1s of lengths 13 + 6i, separated by <code>00</code>, with fewer runs of each larger length: a counter in some mixed base, measured, not proved. The machine runs step for step like 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- (another batch) on the tape. Halting needs F on a 1, entered only from E on a 1; never one step away in the first 3·10<sup>6</sup> steps."
  ],
  "claims": [
@@ -180,6 +181,7 @@
   ]
  },
  "family": "bouncer feeding a sorted list of runs 1^(13+6i)",
- "decision": "open",
- "summary": "A bouncer on the left; on the right a list of runs of 1s separated by 00 whose lengths are 13, 19, 25, 31, ... (13 + 6i), sorted, with multiplicities that fall off from one length to the next (616, 188, 121, 37, 22, 7, 4, 1 at 10^9 steps)."
+ "decision": "halts",
+ "summary": "A bouncer on the left; on the right a list of runs of 1s separated by 00 whose lengths are 13, 19, 25, 31, ... (13 + 6i), sorted, with multiplicities that fall off from one length to the next (616, 188, 121, 37, 22, 7, 4, 1 at 10^9 steps). Decided outside: busycoq PR 93 proves in Rocq that it halts (compiled here).",
+ "decision_level": "outside"
 }

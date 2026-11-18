@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 88 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The machine is now reduced exactly to a small one: a wall of n seven-cell words that only counts, and a data word at the fixed end of the tape. One <em>cycle</em> is a visit to the data followed by seven sweeps of the wall; the seven sweeps are proved in Lean for every n and never look at the data. What the visits do to the data is an odometer-like counter whose digits have periods 5, 3, 2, 2, 5, 3, 3, 5, 3, &hellip; with no rule yet for the periods of new digits, and that is what a proof would need.",
   "The reduced machine ran 750,000,000 cycles, which is 1.4&middot;10<sup>20</sup> steps of the real machine, without halting; the data word is then 423 cells long."
  ],
@@ -177,5 +178,7 @@
   ]
  },
  "family": "bouncer with a mixed-radix odometer at the fixed end",
- "summary": "Exact reduction: a wall of n words 1001111 plus a data word; the head leaves the data, sweeps the wall seven times in 168(n-1)+575 steps and comes back with n+3 (proved in Lean for every n), so only the data word matters. The data behaves like an odometer with digits of period 5, 3, 2, ...; no halt in 750,000,000 cycles (1.4e20 steps)."
+ "summary": "Exact reduction: a wall of n words 1001111 plus a data word; the head leaves the data, sweeps the wall seven times in 168(n-1)+575 steps and comes back with n+3 (proved in Lean for every n), so only the data word matters. The data behaves like an odometer with digits of period 5, 3, 2, ...; no halt in 750,000,000 cycles (1.4e20 steps). Decided outside: busycoq PR 88 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

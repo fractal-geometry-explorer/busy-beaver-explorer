@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 95 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The tape is a list of blocks of the word <code>110</code>. Its main move is an exact transfer cycle between three neighbouring blocks: <code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in 28y+111 steps, checked on all 8,397 cycles in the first 10<sup>8</sup> steps. Lean proves the shift rules inside blocks. What happens when a cycle runs out, and so the map on whole lists, is not known."
  ],
  "claims": [
@@ -144,6 +145,8 @@
    }
   ]
  },
- "summary": "A list of 110-blocks whose main move is an exact transfer cycle (x, y, z) -> (x-2, y+3, z-1) in 28y+111 steps between three neighbouring blocks, a 3-for-2 exchange; the rules at the end of a cycle are not known.",
- "family": "block list with a 3-for-2 transfer cycle (Collatz-like)"
+ "summary": "A list of 110-blocks whose main move is an exact transfer cycle (x, y, z) -> (x-2, y+3, z-1) in 28y+111 steps between three neighbouring blocks, a 3-for-2 exchange; the rules at the end of a cycle are not known. Decided outside: busycoq PR 95 proves in Rocq that it never halts (compiled here).",
+ "family": "block list with a 3-for-2 transfer cycle (Collatz-like)",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

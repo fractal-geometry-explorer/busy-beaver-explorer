@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape, which is written in four-cell words. Most of it is a long list of runs <code>(0100)^a (0111)^b</code>; the list survives from one sweep to the next, while a counter at the left end and an active zone change. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 87 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the exact way a halt would happen (<code>1 1 E&gt;1</code>), that the other way into A is harmless, and how the sweeps cross the four-cell words; the C simulator finds no halt in the first 10<sup>11</sup> steps. How the list of counters evolves is not worked out."
  ],
  "claims": [
@@ -204,6 +205,8 @@
    }
   ]
  },
- "summary": "Bouncer whose tape is a long list of counters written as alternating runs of the words 0100 and 0111, kept from sweep to sweep and changed only near the ends; it halts only if E reads 1 with 1 1 on its left.",
- "family": "two-sided bouncer, a list of counters in the words 0100 / 0111"
+ "summary": "Bouncer whose tape is a long list of counters written as alternating runs of the words 0100 and 0111, kept from sweep to sweep and changed only near the ends; it halts only if E reads 1 with 1 1 on its left. Decided outside: busycoq PR 87 proves in Rocq that it never halts (compiled here).",
+ "family": "two-sided bouncer, a list of counters in the words 0100 / 0111",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
