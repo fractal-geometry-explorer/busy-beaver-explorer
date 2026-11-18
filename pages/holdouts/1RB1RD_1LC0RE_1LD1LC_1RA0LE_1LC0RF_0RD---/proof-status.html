@@ -81,19 +81,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---</p>
     <h1>What is known about 1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---</h1>
     <p class="machine">1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RD---</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+    <p class="stand merged"><b>Decided by an outside Rocq proof: it halts</b><span>A Rocq proof in busycoq pull request 93 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 93 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
       <p><b>The question is open.</b> The right side is a sorted list of runs of 1s of lengths 13 + 6i, separated by <code>00</code>, with fewer runs of each larger length: a counter in some mixed base, measured, not proved. The machine runs step for step like 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- (another batch) on the tape. Halting needs F on a 1, entered only from E on a 1; never one step away in the first 3·10<sup>6</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>An outside Rocq proof, compiled here: it halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/93">busycoq pull request 93</a> (Alex Havrilla, 2026-11-17) contains a Rocq proof that this machine halts (<code>verify/M_1RB1RD_1LC0RE_1LD1LC_1RA0LE_1LC0RF_0RDHHH.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 18 November 2026, in 522 s: the theorem <code>halt : halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. The verdict on this page rests on this proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 1</b>. These are labels read off the run by others, not results.</p>

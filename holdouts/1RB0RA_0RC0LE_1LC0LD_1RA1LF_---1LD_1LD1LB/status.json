@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 94 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. By their count it halts after about 3.1&times;10<sup>957</sup> steps. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does to the word over many trips, and what happens when a trip does not come back (the end of a phase), is not proved. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2·10<sup>10</sup> steps, follows the run through 10 phases to 8.229·10<sup>69</sup> steps without a halt."
  ],
  "claims": [
@@ -162,5 +163,7 @@
   ]
  },
  "family": "clock and word map (block grows by 2, the word is rewritten by 2^k excursions)",
- "summary": "A clock: at each visit of the left end in state F the block 1^(2+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 10 phases to 8.229·10<sup>69</sup> steps, no halt. Halting needs F on a 1 with 0 1 to its left (0 1 F>1)."
+ "summary": "A clock: at each visit of the left end in state F the block 1^(2+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 10 phases to 8.229·10<sup>69</sup> steps, no halt. Halting needs F on a 1 with 0 1 to its left (0 1 F>1). Decided outside: busycoq PR 94 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

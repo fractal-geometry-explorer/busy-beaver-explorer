@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 89 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The machine runs a base-7 odometer whose step and carry are proved in Lean for all block lengths; a halt needs F on <code>1 0 1</code> (proved in Lean), a misaligned carry sweep. Perturbing the block lengths of a real configuration (even keeping them mod 7) makes it halt, so non-halting depends on the arithmetic of the lengths; what happens when a block runs out is described from simulation only."
  ],
  "claims": [
@@ -177,5 +178,7 @@
    }
   ]
  },
- "summary": "A base-7 odometer: markers between blocks of 010 cycle through seven shapes, each change paid by the next block; the step and carry are proved in Lean, the rule when a block runs out is not decoded, and non-halting depends on the block lengths."
+ "summary": "A base-7 odometer: markers between blocks of 010 cycle through seven shapes, each change paid by the next block; the step and carry are proved in Lean, the rule when a block runs out is not decoded, and non-halting depends on the block lengths. Decided outside: busycoq PR 89 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

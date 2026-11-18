@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 84 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The macro structure is identified by simulation (rounds that halve every run of equal blocks); Lean proves the shift rules the sweeps are made of and that a halt can only come from <code>1 1 1 D&gt; 0</code>. In 10<sup>9</sup> steps D read a 0 about 21,000 times and every time the left neighbours were <code>1 1 0</code> or blank, one cell short of a halt."
  ],
  "claims": [
@@ -199,7 +200,8 @@
    }
   ]
  },
- "summary": "A cascade of halving runs: the tape is runs of equal blocks 1^(6j+1) 00, and each round an expanding zig-zag sweep turns a run of n blocks of level j into about n/2 blocks of level j+1 and lays down a fresh run of level 0. Same tapes as 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC1LF_0RA---.",
+ "summary": "A cascade of halving runs: the tape is runs of equal blocks 1^(6j+1) 00, and each round an expanding zig-zag sweep turns a run of n blocks of level j into about n/2 blocks of level j+1 and lays down a fresh run of level 0. Same tapes as 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC1LF_0RA---. Decided outside: busycoq PR 84 proves in Rocq that it halts (compiled here).",
  "family": "halving runs + expanding bouncer (6j+1 blocks)",
- "decision": "open"
+ "decision": "halts",
+ "decision_level": "outside"
 }
