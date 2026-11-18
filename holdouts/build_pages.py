@@ -179,7 +179,7 @@ def elsewhere(M, decision="open"):
     c = ext["coq_here"].get(M)
     if c:
         stmt = c.get("statement", "~ halts tm c0")
-        text = (f"A second proof assistant checks the same result: <code>{c['theorem']} : {html.escape(stmt)}</code>, "
+        text = (f"{'The proof' if c.get('only') else 'A second proof assistant checks the same result'}: <code>{c['theorem']} : {html.escape(stmt)}</code>, "
                 f"stated on busycoq's own definitions of a Turing machine and of halting, in "
                 f"<code>{html.escape(c['dir'])}</code>. Coq {c.get('coq', '8.18')} compiles it and "
                 "<code>Print Assumptions</code> reports no axioms; the build log is next to the files.")
@@ -192,7 +192,7 @@ def elsewhere(M, decision="open"):
         elif c.get("branch"):
             text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
-        out.append({"kind": "proof", "title": "Also proved in Coq", "text": text})
+        out.append({"kind": "proof", "title": "Proved in Coq" if c.get("only") else "Also proved in Coq", "text": text})
     if e.get("merged"):
         g = e["merged"]
         out.append({"kind": "report", "title": f"Proved outside this repository: it {CLAIM[g['claim']]}",
@@ -287,6 +287,10 @@ def standing_line(M, decision, level="lean"):
     """{kind, label, text}: the one line under a page's title."""
     kind = standing(M, decision, level)
     e = external()["machines"].get(M, {})
+    if kind == "here" and level == "coq":
+        return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
+                "text": "Proved in this repository, checked by Coq on busycoq's own definitions of a machine and of "
+                        "halting (there is no Lean proof of the whole run). The ledger below says what each part rests on."}
     if kind == "here":
         both = " and by Coq" if M in external()["coq_here"] else ""
         return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
@@ -353,7 +357,7 @@ def outside_by(M, decision):
 def standing(M, decision, level="lean"):
     """One word for the index: here (decided in this repository by a Lean proof), computed (a verdict from a trusted
     computation, "decision_level": "trusted" in status.json, not a Lean proof), outside (an outside Lean proof compiled
-    here, "decision_level": "outside"), merged, pr, cryptid or open."""
+    here, "decision_level": "outside"; "coq" for a proof here in Coq only), merged, pr, cryptid or open."""
     e = external()["machines"].get(M, {})
     if decision != "open":
         return {"trusted": "computed", "outside": "outside"}.get(level, "here")
@@ -487,7 +491,7 @@ def index_rows(triage, known, spec_by):
         e = ext["machines"].get(M, {})
         rows[-1].update({
             "st": standing(M, rows[-1]["dec"], s.get("decision_level", "lean")), "tc": e.get("tracker", {}).get("class", ""),
-            "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0,
+            "cr": 1 if e.get("tracker", {}).get("cryptid") else 0, "coq": 1 if M in ext["coq_here"] else 0, "lv": s.get("decision_level", "lean"),
             "pr": [[p["n"], p["claim"]] + ([1] if p.get("compiled") else []) for p in e.get("prs", [])],
             "ob": outside_by(M, rows[-1]["dec"]),
             "ws": e["wiki_solved"]["claim"] if e.get("wiki_solved") else "",
@@ -645,7 +649,7 @@ function color(c){ const parts = c.split("/"); const key = parts.includes("exp")
   return getComputedStyle(document.documentElement).getPropertyValue(COL[key]).trim(); }
 const classes = [...new Set(rows.map(r => r.c))].sort((a,b) => rows.filter(r=>r.c===b).length - rows.filter(r=>r.c===a).length);
 const ST = [
-  ["here", "Decided here", "a proof in this repository, checked by Lean (and for some by Coq as well)"],
+  ["here", "Decided here", "a proof in this repository, checked by Lean, by Coq, or by both"],
   ["computed", "Computed here, not proved", "a verdict from an exact accelerated computation in this repository; not a Lean proof of the whole run"],
   ["outside", "Decided by an outside proof", "a Lean proof in google-deepmind/cryptids or a Rocq proof in an open busycoq pull request, compiled here; not written in this repository"],
   ["merged", "Proved elsewhere, merged", "a Rocq proof merged in busycoq; not compiled here"],
@@ -667,7 +671,7 @@ function visible(r){
 }
 function standingText(r){
   const prs = r.pr.map(p => `PR ${p[0]}: ${WORD[p[1]]}`).join(", ");
-  if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
+  if (r.st === "here") return `<b>${WORD[r.dec]}</b>, proved here` + (r.lv === "coq" ? " (Coq)" : r.coq ? " (Lean and Coq)" : " (Lean)") + (prs ? `; also ${prs}` : "");
   if (r.st === "computed") return `<b>${WORD[r.dec]}</b>, computed here, not proved` + (prs ? `; also ${prs}` : "");
   if (r.st === "outside" && r.ob === "rocq") { const n = r.pr.filter(p => p[2] && p[1] === r.dec).map(p => p[0]);
     return `<b>${WORD[r.dec]}</b>, by the Rocq proof of PR ${n[0]}, compiled here` + (r.dm ? `; DeepMind Lean: ${WORD[r.dm.k]}` : ""); }

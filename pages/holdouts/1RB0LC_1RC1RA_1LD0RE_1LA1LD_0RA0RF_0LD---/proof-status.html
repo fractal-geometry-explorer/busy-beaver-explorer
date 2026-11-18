@@ -81,19 +81,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</p>
     <h1>What is known about 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</h1>
     <p class="machine">1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Coq on busycoq's own definitions of a machine and of halting (there is no Lean proof of the whole run). The ledger below says what each part rests on.</span></p>
+    <p>This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape. The halt is a Coq theorem on busycoq's definitions: an engine over macro words, every step of it proved sound, runs from the blank tape to a halting configuration, and Coq's kernel checks that run. This page lists what has been established about the machine, sorted by what each result rests on.</p>
     <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 1 1 1</code> (B0 C1 E1 put F on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 7.9&times;10<sup>14</sup> steps. Its F-event differs from the one of the other three machines (it writes <code>1 1 1 1</code> and leaves B, they write <code>1 0 0 0</code> and leave A), so its tapes are not theirs, but the structure and the growth law are the same.</p>
+      <p><b>It halts</b>, proved in Coq (theorem <code>halt : halts tm c0</code> on busycoq's definitions, no axioms). The proof is DeepMind's fast engine of busycoq PR 93, built for the table one transition away, with the four rules that pass through that transition changed and every proof built on them redone. Run from blank tape, the proved engine reaches a halting configuration (F on a 1) after 261,156 of its steps, on a tape of about 2<sup>2410</sup> cells; no simulator could get there step by step.</p>
+      <p><b>What it does.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 1 1 1</code> (B0 C1 E1 put F on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 7.9&times;10<sup>14</sup> steps. Its F-event differs from the one of the other three machines (it writes <code>1 1 1 1</code> and leaves B, they write <code>1 0 0 0</code> and leave A), so its tapes are not theirs, but the structure and the growth law are the same.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>Proved in Coq</h3>
+        <p>The proof: <code>halt : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq</code>. Coq 8.18.0 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. It is DeepMind's proof of busycoq pull request 93 (the fast engine over macro words, built for the table one transition away), with the four rules that pass through F0 changed and every lemma built on them redone; the proved engine's run from blank tape, 261,156 engine steps, is one evaluation of about 33 minutes. The generator is tools/coq/t4engine/proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 1</b>. These are labels read off the run by others, not results.</p>
@@ -130,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The local paths and the halting path</h3>
         <p>Outside the sweeps, the machine does a handful of local things, each proved for every tape around it: A on a 1 bounces (<code>bounce_on_1</code>, <code>bounce_on_0_0</code>, <code>bounce_on_0_1</code>); B reading <code>0 1 1 0</code> gives <code>1 1 1 1</code> with B on the right (8 steps: B0 C1 E1 F0 D0 A0 B1 A0) (<code>fevent</code>, the <em>F-event</em>, twice per round trip in the second half of an epoch); and B reading <code>0 1 1 1</code> halts: B0 C1 E1 put F on a 1 (<code>fevent_halt</code>). By the table this is the only way to halt: F is entered only by E1, E only by C1, and C by B0 (moving right) or A1 (moving left; then C1 puts E on the 0 that A has just written, and E0 goes on).</p>
         <p class="where"><code>lean/Paths.lean</code>, generated by <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/gen_paths.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine halts (Coq, on busycoq's definitions)</h3>
+        <p><code>halt : halts tm c0</code>, with busycoq's <code>TM</code>, <code>halts</code> and <code>c0</code> and <code>tm</code> this machine's table. It is DeepMind's proof of busycoq PR 93 for the table one transition away, changed for this one: the four base rules that pass through F0 are restated and proved, and every lemma and engine case built on them is redone (the collision and defect calls, the returns, the immediate defects, the collisions and the fast right sweep, which gets one more guard). The run of the proved engine from blank tape, 261,156 engine steps to a configuration with the head in F on a 1 (a tape of about 2<sup>2410</sup> cells), is one evaluation checked by Coq's kernel (<code>run_ok</code>). <code>Print Assumptions halt</code>: closed under the global context. Coq 8.18.0, about 33 minutes.</p>
+        <p class="where"><code>halt</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq/H155900.v</code> (generated by <code>tools/coq/t4engine/proof</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -173,11 +183,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/c/neighbours.c</code></p>
       </div>
       <div class="card">
-        <h3>The four rules where it departs from DeepMind's halting sibling</h3>
-        <p>The four changed macro rules are proved in Lean for <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code>, the same table started in state C; they are statements about the table, so they hold here after the renaming of states, which is not itself checked in Lean.</p>
-        <p class="where"><code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean</code></p>
-      </div>
-      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -205,19 +210,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.28&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 11,073 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
         <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
       </div>
-      <div class="card">
-        <h3>DeepMind's engine, changed for this table, runs 200,638 steps without a halt</h3>
-        <p>The engine of busycoq PR 93, with the four rules changed and extracted to OCaml, agrees with direct simulation through 3&times;10<sup>10</sup> machine steps and then runs 200,638 engine steps from blank tape (to about 2<sup>2003</sup> written cells) without halting and without a gap. Observed, not proved.</p>
-        <p class="where"><code>tools/coq/t4engine</code> (<code>run D</code>, <code>validate D</code>)</p>
-      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
-    <div class="cards">
-      <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts exactly if B ever reads <code>0 1 1 1</code>. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10<sup>15</sup> steps because those runs pile up at the right end.</p>
-      </div>
-    </div>
+    <p class="empty">Nothing yet.</p>
   </section>
   <section aria-labelledby="h-check">
     <h2 id="h-check">Check it yourself</h2>
@@ -225,7 +220,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1000000000
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/gen_paths.py --check
-python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/bell_farrun.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1e12     # the accelerated run, about two minutes</code></pre>
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/bell_farrun.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1e12     # the accelerated run, about two minutes
+sh holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq/build.sh /path/to/busycoq      # the Coq proof; a checkout of busycoq&#x27;s BB6 branch; about 33 minutes
+sh tools/coq/t4engine/proof/build.sh /path/to/busycoq fast      # regenerate H155900.v from PR 93&#x27;s file (fast: final run admitted)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

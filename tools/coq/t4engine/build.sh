@@ -20,7 +20,7 @@ cd "$HERE/out"
 sed -i '1i module Uint63 = struct let of_int (x:int) = x end' t4ceng.ml
 sed -i '1i module Uint63 : sig val of_int : int -> int end' t4ceng.mli
 sed -i 's/^type int (\* AXIOM TO BE REALIZED \*)/type int = Stdlib.Int.t/' t4ceng.ml t4ceng.mli
-for d in run validate; do
+for d in run validate peek; do
   cp "$HERE/$d.ml" .
   ocamlfind ocamlopt -O3 -package unix -linkpkg t4ceng.mli t4ceng.ml $d.ml -o $d 2>/dev/null
 done

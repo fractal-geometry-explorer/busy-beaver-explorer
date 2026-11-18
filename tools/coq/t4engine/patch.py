@@ -15,6 +15,9 @@ rep('pushD 2 1 (pushD 3 (hd - 1)%N (pushD (j + 1)%N 1 db1))','pushD 3 hd (pushD 
 # defect call
 rep('pushD (m + 2)%N 1 (pushD (j + 1)%N 1 db1)','pushD (m + 3)%N 1 (pushD j 1 db1)')
 # trySweepMR_a0: T4 versions of rule_mr_a0_* (checked by simulation, mra1.py)
+rep("""  | (SW_DEF la lk, Npos pcl) :: lrest =>
+    if N.leb 3 lk then""", """  | (SW_DEF la lk, Npos pcl) :: lrest =>
+    if (if N.leb 1 la then N.leb 3 lk else false) then""")
 rep('Some (pushS1 (m + 2)%N (pushDEF1 (la + 1)%N (lk - 3)%N l0))','Some (pushS1 (m + 3)%N (pushDEF1 la (lk - 3)%N l0))')
 rep('Some (pushS1 (m + 2)%N (pushDEF1 (pln + 5)%N (2 * pln - 2)%N l0))','Some (pushS1 (m + 3)%N (pushDEF1 (pln + 4)%N (2 * pln - 2)%N l0))')
 rep('Some (pushS1 (m + 2)%N (pushS1 (sn + 1)%N (pushDEF1 la (lk - 3)%N l0)))','Some (pushS1 (m + 3)%N (pushS1 sn (pushDEF1 la (lk - 3)%N l0)))')
