@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 17 November 2026.</p>
+    <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -154,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>P(2k+3) reaches P(3k+7): n &#8614; (3n+5)/2 on odd n (the first, separate proof).</p>
         <p class="where"><code>odd_pass</code>, <code>lean/Pass.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Which values step onto a power of two</h3>
+        <p>A term steps onto 2<sup>n</sup> only if v = 2 and n &equiv; 3 (mod 6), or v = 3 and n &equiv; 6 (mod 8); the exception never does. So 17 of every 24 exponents can never be reached (the "j &isin; {2, 3}" argument, now proved).</p>
+        <p class="where"><code>last_step</code>, <code>halting_exponent</code>, <code>lean/Preimage.lean</code>, <code>lean/PowMod.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -185,6 +190,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Over the 200,000 passes the counts of j = v<sub>2</sub>(n+2) follow the geometric law 2<sup>&minus;(j+1)</sup> (99,772 / 100,000 for j = 0, 50,060 / 50,000 for j = 1, 25,207 / 25,000 for j = 2, &hellip;; largest j = 17), and n grows by e<sup>0.2780</sup> per pass against e<sup>0.2783</sup> predicted for random low bits.</p>
         <p class="where"><code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code></p>
       </div>
+      <div class="card">
+        <h3>No power of two in the first 10<sup>9</sup> terms</h3>
+        <p>The sequence followed for 1,000,000,000 terms by the fast 2-adic algorithm (the low digits run alone, by the shift identity of <code>tools/doucette/lean/Shift.lean</code>; every possible halt checked by the exact map). The last term has 401,524,403 bits; the largest valuation is 32, first at term 161,127,945. The counts of each valuation fit the geometric law of random digits.</p>
+        <p class="where"><code>tools/doucette/djump.py M14 1000000000</code>, <code>tools/doucette/results/run_M14.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -212,7 +222,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 1000000000
 gcc -O2 -o passmap holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/c/passmap.c &amp;&amp; ./passmap 1 3000 | python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/orbit.py --check
-python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py 200000</code></pre>
+python3 holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py 200000
+pip install gmpy2 &amp;&amp; python3 tools/doucette/djump.py M14 100000000 | head -5</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
