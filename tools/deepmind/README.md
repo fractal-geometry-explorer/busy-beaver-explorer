@@ -8,8 +8,8 @@
 
 | Machine | Result | Theorem | Module time |
 | :--- | :--- | :--- | ---: |
-| `1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---` (A6) | never halts | `is_not_halt` | 206 s |
-| `1RB1RA_0LC0RA_1RC1LD_0LB1LE_1LF0RC_---0LD` (busycoq PR 44) | never halts | `is_not_halt` | 144 s |
+| `1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---` (A6; also busycoq PR 51) | never halts | `is_not_halt` | 206 s |
+| `1RB1RA_0LC0RA_1RC1LD_0LB1LE_1LF0RC_---0LD` (busycoq PR 44, Alk) | never halts | `is_not_halt` | 144 s |
 | `1RB0RA_1RC0LC_0LD1RF_1RA1LE_1LD0LB_0RE---` (PR 48) | never halts | `is_not_halt` | 40 s |
 | `1RB0RA_0RC0LD_1LA1RF_1LE1LD_1LB1RE_---1RA` (PR 50) | never halts | `is_not_halt` | 3 s (+162 s shared) |
 | `1RB1RA_1RC1LB_0LD0RA_1RF1LE_---1LF_1LC0LF` (PR 50) | never halts | `is_not_halt` | 15 s |
@@ -19,6 +19,13 @@
 | `1RB1RC_1LC0LF_1RF0LD_0RE1LB_1RC---_1LD0RA` (PR 47) | halts | `is_halt` | 114 s |
 | `1RB0RE_1RC0RA_0LD0LB_0LA1LE_1LC1LF_0LA---` (PR 49) | halts | `is_halt` | 52 s |
 | `1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD---` (PR 49) | halts | `is_halt` | 75 s |
+
+**How these relate to the busycoq pull requests.** The PR numbers in the table are open busycoq pull requests with a Rocq proof of the same machine. None is merged: busycoq's BB6 branch has not moved since 3 November 2026 (checked with git on 17 November).
+
+- PRs 47 to 53 are by Alex Havrilla of DeepMind, opened on 3 November. They are Rocq versions of DeepMind's own Lean proofs, which appeared in cryptids on 6 November (cryptids PR #23). The Lean is the original, not a port of the Rocq.
+- PR 44 is by Alk, who is not with DeepMind. DeepMind's Lean proof of `1RB1RA_0LC0RA_1RC1LD_0LB1LE_1LF0RC_---0LD` came later (cryptids PR #28, 11 November), uses a different method (a symbolic certificate), and does not cite PR 44.
+- A6 (`1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---`) is cryptids PR #21 (31 October), with its own reflective RLE engine. Havrilla's busycoq PR 51 proves the same machine in Rocq.
+- DeepMind's earlier busycoq PRs 19 to 23 (15 October, Havrilla, 27 machines) were merged. None of those machines is on our list.
 
 **15 machines have a halts-iff map that only DeepMind has. All 15 compile.** Each one has `isHalt_iff_acceleration : IsHalt target ↔ CollatzHalts next start`, and 10 of them also have a `highLevel` version. They are listed in `maps.txt`, and the times are in `compiled_maps.json`. These maps are proved without conditions. Ours for `1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA` assumes the orbit never meets a `.small` case.
 

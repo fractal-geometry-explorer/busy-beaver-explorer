@@ -92,7 +92,12 @@ def deepmind_entry(M, e, decision):
         same = (" It agrees with the proof here." if decision == k else
                 " The verdict on this page does not rely on it." if decision == "open" else
                 " <b>It disagrees with the result here.</b>")
-        port = f", a Lean port of busycoq pull request {e['port_of']}" if e.get("port_of") else ""
+        port = ""
+        if e.get("rocq_pr"):
+            n = e["rocq_pr"]
+            port = (f". The Lean proof is DeepMind's own; Alex Havrilla of DeepMind also submitted a Rocq version of it as "
+                    f"busycoq pull request {n}" if e.get("rocq_relation") == "same" else
+                    f". Busycoq pull request {n} has a separate Rocq proof by another author, using a different method")
         note = f", {e['note']}" if e.get("note") else ""
         c = e.get("compiled")
         if c:
