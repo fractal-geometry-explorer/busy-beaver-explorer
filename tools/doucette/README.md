@@ -54,13 +54,14 @@ community's 10^8-term run (94,125,050 bits at term 10^8, first v = 25 at term 23
 
 | machine | terms | last term | largest v (first at term) | time |
 |---|---|---|---|---|
-| 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD (Space Needle) | 1,000,000,000 | 941,155,704 bits | 28 (788,473,436) | 14 min |
+| 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD (Space Needle) | 10,000,000,000 | 9,411,461,282 bits | 32 (1,567,575,299) | 3.3 h |
 | 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE | 1,000,000,000 | 401,523,017 bits | 31 (821,959,313) | 12 min |
 | 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC | 1,000,000,000 | 401,522,426 bits | 29 (312,120,542) | 12 min |
 | 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB | 1,000,000,000 | 401,524,403 bits | 32 (161,127,945) | 12 min |
 | 1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB | 1,000,000,000 | 198,650,412 base-3 digits | 18 (680,991,685) | 25 min |
 
-Results and SHA-256 checkpoints (every 10^8 terms) are in `results/run_*.json`.
+Results and SHA-256 checkpoints (every 10^8 terms; every 10^9 for the Space Needle run, which was done in three
+segments with `--save-dir`/`--resume` and `--maxm 400000000` to stay under about 5.5 GB) are in `results/run_*.json`.
 The valuation counts match the geometric law (`build_page.py` prints χ²; Space Needle: 20.1 on 26 degrees of
 freedom at 10^9 terms), the growth matches the prediction to five digits (0.94116 bits per term against 0.94115),
 and consecutive valuations look independent (`results/pairs_*.json`).

@@ -209,7 +209,7 @@ def digits(b, D):
     return D.bit_length() if b == 2 else gmpy2.num_digits(D, 3)
 
 
-def run(name, steps, base=600, log=None, every=None, checkpoints=(), start=None, pairs=False):
+def run(name, steps, base=600, log=None, every=None, checkpoints=(), start=None, pairs=False, save_dir='', maxm=0):
     R = Run(name, base)
     if pairs:
         R.pairs = {}
@@ -236,6 +236,8 @@ def run(name, steps, base=600, log=None, every=None, checkpoints=(), start=None,
             D, r = mpz(nxt[0]), nxt[1]
         else:
             m = n - 3
+            if maxm:
+                m = min(m, maxm)
             R.limit = min([c for c in cps if c > R.k] + [steps])
             H, L = R.split(D, m)
             k0 = R.k
@@ -260,6 +262,8 @@ def run(name, steps, base=600, log=None, every=None, checkpoints=(), start=None,
                     'sha256': sha(D),
                     'low64': int(D % (mpz(1) << 64)),
                 }
+                if save_dir:
+                    open('%s/%s_%d.bin' % (save_dir, name, c0), 'wb').write(gmpy2.to_binary(D))
         if every and R.k >= next_report:
             if log:
                 log.write('%s k=%d digits=%d vmax=%d t=%.1fs\n' % (name, R.k, digits(b, D), R.vmax,
@@ -299,6 +303,8 @@ if __name__ == '__main__':
     ap.add_argument('--cp', type=str, default='', help='comma-separated checkpoint step counts')
     ap.add_argument('--out', type=str, default='')
     ap.add_argument('--save', type=str, default='', help='write the final term (gmpy2 binary) here')
+    ap.add_argument('--save-dir', type=str, default='', help='also save the term at each checkpoint here (for --resume)')
+    ap.add_argument('--maxm', type=int, default=0, help='cap the low window of a top-level jump (digits), to bound memory')
     ap.add_argument('--pairs', action='store_true', help='count consecutive valuation pairs (capped at 9)')
     ap.add_argument('--resume', type=str, default='', help='FILE,K,R: start from the term saved in FILE, at step K, with r = R')
     a = ap.parse_args()
@@ -319,7 +325,7 @@ if __name__ == '__main__':
     if a.resume:
         f, k, r = a.resume.split(',')
         start = (gmpy2.from_binary(open(f, 'rb').read()), int(r), int(k))
-    o, D = run(a.machine, a.steps, base=a.base, log=sys.stderr, every=a.every, checkpoints=cps, start=start, pairs=a.pairs)
+    o, D = run(a.machine, a.steps, base=a.base, log=sys.stderr, every=a.every, checkpoints=cps, start=start, pairs=a.pairs, save_dir=a.save_dir, maxm=a.maxm)
     s = json.dumps(o, indent=1)
     if a.out:
         open(a.out, 'w').write(s)
