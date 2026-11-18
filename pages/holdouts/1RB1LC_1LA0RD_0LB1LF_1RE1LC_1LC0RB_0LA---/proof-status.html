@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 9.07&middot;10<sup>41,345</sup> steps (accelerated run, blocks of 3)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 6,560,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 9.07&middot;10<sup>41,345</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA--- 3 6560000</code></p>
+      </div>
+      <div class="card">
         <h3>The measured map</h3>
         <p>From K(pre, N, S) = <code>B&gt;0 0 pre 1^N S</code>, with pre empty and S empty: N = 4j → (empty, 3N/2 + 4, empty); N = 4j + 2 → (10, 3N/2 + 2, empty); N = 4j + 1 → (10, (3N + 1)/2, 011); N = 4j + 3 → (empty, (3N + 5)/2, 011). With pre = 10 the offsets are 7, 5, 7/2, 11/2. Measured for N = 20..31.</p>
         <p class="where"><code>py/kmap.py</code></p>

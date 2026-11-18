@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.88&middot;10<sup>14</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,224,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.88&middot;10<sup>14</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD--- 6 1224600000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.559). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -66,6 +72,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.88&middot;10<sup>14</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -114,6 +125,6 @@
    }
   ]
  },
- "summary": "Two counters in six-cell words, X = 011111 and Y = 111110, next to the left end: each pass moves one word from the X block to the Y block; when X is empty the Y block is rewritten as X and leftover blocks of 1^5 and 1^10 pile up behind it.",
+ "summary": "Two counters in six-cell words, X = 011111 and Y = 111110, next to the left end: each pass moves one word from the X block to the Y block; when X is empty the Y block is rewritten as X and leftover blocks of 1^5 and 1^10 pile up behind it. Accelerated run: no halt in 4.88e14 steps.",
  "decision": "open"
 }

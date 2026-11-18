@@ -76,6 +76,12 @@
    "where": "<code>orbit_585</code>, <code>lean/Reset.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.62&middot;10<sup>27,651</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,352,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 5.62&middot;10<sup>27,651</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2352000 1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Phase 3 is out of reach",
    "text": "Phase 3 ends at S<sub>3</sub>(y, 1) with y the result of (c&minus;1)/2 applications of x &#8614; &lfloor;3x/2&rfloor;+7 to 6, and halts iff y &#8801; 2 (mod 4). y has about 10<sup>101</sup> digits and cannot be computed; no shortcut for its residue is known.",
@@ -106,6 +112,11 @@
  "explainer": {
   "lede": "Probably yes, but nobody can say when or prove it. The machine runs countdowns, each set by the result of the last; when one runs out it halts for one residue class in four. All of this is proved in Lean; the first three countdowns do not halt, and the fourth ends after about 10<sup>203</sup> steps on a number with 10<sup>101</sup> digits.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.62&middot;10<sup>27,651</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -193,6 +204,6 @@
    }
   ]
  },
- "summary": "A countdown phase: x -> floor(3x/2)+7 while c counts down; at the end it halts for one residue class of x in four, else a new countdown of length about x. Step, resets and halts_iff proved in Lean; phases 0-2 do not halt (native); phase 3 is out of reach.",
+ "summary": "A countdown phase: x -> floor(3x/2)+7 while c counts down; at the end it halts for one residue class of x in four, else a new countdown of length about x. Step, resets and halts_iff proved in Lean; phases 0-2 do not halt (native); phase 3 is out of reach. Accelerated run: no halt in 5.62e27651 steps.",
  "family": "nested exponential counter with a residue-class halt (probviously halting)"
 }

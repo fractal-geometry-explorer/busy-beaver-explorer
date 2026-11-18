@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.67&middot;10<sup>15</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,184,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.67&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC 4 1184600000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.492). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.08).",
@@ -96,6 +102,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape is a list of long segments of one 4-cell word. A marker walks through one segment, carrying words across, then jumps back to the start, while a counter at the right grows by one cell every time the run gets 1.5 times older.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.67&middot;10<sup>15</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -175,7 +186,7 @@
    }
   ]
  },
- "summary": "Segments of the word 1110 with markers between them; a 00 marker walks through a segment, moving words from one side to the other, and restarts at the far left when done, while a counter right of the start gains a cell each time the run is 1.5 times older; macro rule not proved.",
+ "summary": "Segments of the word 1110 with markers between them; a 00 marker walks through a segment, moving words from one side to the other, and restarts at the far left when done, while a counter right of the start gains a cell each time the run is 1.5 times older; macro rule not proved. Accelerated run: no halt in 1.67e15 steps.",
  "family": "segment cascade with a walking marker + counter (unresolved)",
  "decision": "open"
 }

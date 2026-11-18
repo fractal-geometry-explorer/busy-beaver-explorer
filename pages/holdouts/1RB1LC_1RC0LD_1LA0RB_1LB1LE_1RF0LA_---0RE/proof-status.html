@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.65&middot;10<sup>1,516</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 95,840,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.65&middot;10<sup>1,516</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE 4 95840000</code></p>
+      </div>
+      <div class="card">
         <h3>The closed form of the map, checked against the machine</h3>
         <p>With j the number of doublings (the least j &ge; 1 with 20&middot;2<sup>j</sup> &gt; N + 12 + 2j), the remainder is m = N + 10 &minus; 10&middot;2<sup>j</sup> + 2j and N' = 3N + 24 + 6j &minus; 20&middot;2<sup>j</sup>. The C program runs the machine from every even N from 8 to 3000 and agrees with this formula every time, including the halts at N = 8, 26, 64, 142, 300, 618, 1256, 2534 (the values N = 10&middot;2<sup>j</sup> &minus; 2j &minus; 10).</p>
         <p class="where"><code>c/check_map.c</code>, <code>py/orbit.py</code></p>

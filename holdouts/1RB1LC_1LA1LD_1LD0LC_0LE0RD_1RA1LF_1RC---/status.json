@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.54&middot;10<sup>36</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 1,187,014 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 3.54&middot;10<sup>36</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=1187014 1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.488). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024).",
@@ -80,6 +86,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine keeps a stack of blocks on its tape. Round after round it eats the top block one word at a time, which is a Lean theorem for all sizes. When the top block is gone, an epoch ends and a new, larger top is built from the stack. That step follows a Collatz-like rule that is not worked out yet.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.54&middot;10<sup>36</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "1 round",
@@ -152,5 +163,5 @@
    }
   ]
  },
- "summary": "Words p = 10110, q = 10000, S = 1011, r = 1000. The tape is two blocks of p, then a stack of q-blocks separated by r (or S). Each round turns one q of the first q-block into a p and adds a p to the first p-block (proved in Lean); when the first q-block is used up an epoch ends, and a new, larger first block is built from the whole stack; the sizes follow a Collatz-like rule."
+ "summary": "Words p = 10110, q = 10000, S = 1011, r = 1000. The tape is two blocks of p, then a stack of q-blocks separated by r (or S). Each round turns one q of the first q-block into a p and adds a p to the first p-block (proved in Lean); when the first q-block is used up an epoch ends, and a new, larger first block is built from the whole stack; the sizes follow a Collatz-like rule. Accelerated run: no halt in 3.54e36 steps."
 }

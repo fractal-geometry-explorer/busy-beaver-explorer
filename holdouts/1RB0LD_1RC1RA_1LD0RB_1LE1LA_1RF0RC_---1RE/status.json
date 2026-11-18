@@ -64,6 +64,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.55&middot;10<sup>49,665</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,180,000 macro steps from blank tape without a halt, in 610 seconds. That is more than 2.55&middot;10<sup>49,665</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE 4 4180000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probably halts, unimaginably late",
    "text": "If the parity of K at the end of each epoch behaves like a fair coin, the machine halts at the end of epoch 4 with probability 1/2, of epoch 5 with probability 1/4, and so on: it halts with probability 1, but no one can compute when, nor prove it.",
@@ -85,6 +91,11 @@
  "explainer": {
   "lede": "Nobody knows, but we know exactly what the question is. The machine spends a <em>wall</em> of 1s one cell at a time while a counter K grows by half each time; when the wall is gone it halts if K is even, and otherwise turns the whole tape into a new, vastly longer wall. Lean proves that this is all it does. The first three walls (3, 25 and 227,097 cells) end with K odd; the fourth has 39,991 digits.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.55&middot;10<sup>49,665</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts ⇔ K even",
@@ -181,6 +192,6 @@
   ]
  },
  "family": "Collatz-like: 3K/2 map sampled at walls",
- "summary": "A wall of 1s is spent one cell per phase while K pairs grow like K → 3K/2; when the wall runs out the machine halts iff K is even, otherwise the whole tape becomes a new, much longer wall (walls 3, 25, 227097, then a 39,991-digit one): halting is proved equivalent to this parity question.",
+ "summary": "A wall of 1s is spent one cell per phase while K pairs grow like K → 3K/2; when the wall runs out the machine halts iff K is even, otherwise the whole tape becomes a new, much longer wall (walls 3, 25, 227097, then a 39,991-digit one): halting is proved equivalent to this parity question. Accelerated run: no halt in 2.55e49665 steps.",
  "decision": "open"
 }

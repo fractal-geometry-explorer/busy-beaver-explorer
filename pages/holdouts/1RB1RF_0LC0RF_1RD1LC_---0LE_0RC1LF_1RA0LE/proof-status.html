@@ -181,6 +181,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Run from blank tape next to the machine, the fitted map predicts the whole tape at each of the 28,350 frames in the first 5&middot;10<sup>6</sup> steps (<code>py/framemap.py real 5000000</code>).</p>
         <p class="where"><code>py/framemap.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 6.66&middot;10<sup>22</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,536,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 6.66&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1536000000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

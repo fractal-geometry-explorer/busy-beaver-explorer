@@ -96,6 +96,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 4.23&middot;10<sup>22</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,982,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.23&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA 4 1982800000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "f has halting and non-returning points",
    "text": "For 6 &le; X &le; 1,300 the map F (and the direct simulation) halts before the next return exactly for X = 9, 30, 68, 75, 168, 295, 357, 738 (also 3,010 and 3,036), and never returns (an excursion through P, Q, T nodes that grows for ever, e.g. from S(41): Q(1, 71) &rarr; P(11, 62) &rarr; &hellip; &rarr; Q(3, 87) &rarr; &hellip; &rarr; Q(5, 103), the counts climbing by fixed amounts) for X = 41, 52, 63, 132, 273, 558, 1131 (and a few later values with long excursions). The halting points roughly double: 9, 30, 75, 168, 357, 738.",
    "where": "<code>c/reset_map.c</code>, the map F"
@@ -135,6 +141,11 @@
  "explainer": {
   "lede": "Probably yes, after about 10<sup>55</sup> steps: an outside proof in Rocq says so, and we have not compiled it yet. Started on a blank tape this machine keeps coming back to a tape that is one block of 1s, and the length of that block is all that matters. It is a Lean theorem that the machine halts exactly when an explicit map, iterated from 13, reaches a doubling round with no 1s left; the outside proof follows the same map all the way to such a round. This page runs the real machine in your browser and explains the map.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.23&middot;10<sup>22</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -241,7 +252,7 @@
    }
   ]
  },
- "summary": "Reported to halt after about 10^55 steps by an external Rocq proof (busycoq PR 60, not compiled by us); our Lean theorem reduces halting to the same map (the orbit of S(13) reaching a doubling round with no 1s left), and the two maps agree where we could check.",
+ "summary": "Reported to halt after about 10^55 steps by an external Rocq proof (busycoq PR 60, not compiled by us); our Lean theorem reduces halting to the same map (the orbit of S(13) reaching a doubling round with no 1s left), and the two maps agree where we could check. Accelerated run: no halt in 4.23e22 steps.",
  "family": "doubling zig-zag, Collatz-like reset map",
  "decision": "open"
 }

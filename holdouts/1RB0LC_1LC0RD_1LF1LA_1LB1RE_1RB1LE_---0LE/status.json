@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.62&middot;10<sup>27,158</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,219,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 5.62&middot;10<sup>27,158</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2219000 1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.527). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -90,6 +96,11 @@
  "explainer": {
   "lede": "Nobody knows, and it is a Collatz-type problem. The machine runs a counter that grows by half each phase and pays two pairs of a budget per phase; when the budget runs out it either halts or refills it, depending on parities that behave like coin flips. Lean proves that this description is exact.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.62&middot;10<sup>27,158</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; map halts",
@@ -167,6 +178,6 @@
    }
   ]
  },
- "summary": "Antihydra-like: a 3/2 map on one counter, paid for from a budget of 01 pairs; it halts iff a budget ends at a = 1 with b even (survived 4 budget ends; the 5th budget holds a 399,947-bit number of pairs).",
+ "summary": "Antihydra-like: a 3/2 map on one counter, paid for from a budget of 01 pairs; it halts iff a budget ends at a = 1 with b even (survived 4 budget ends; the 5th budget holds a 399,947-bit number of pairs). Accelerated run: no halt in 5.62e27158 steps.",
  "decision": "open"
 }

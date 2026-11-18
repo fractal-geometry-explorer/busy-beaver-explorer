@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.77&middot;10<sup>30,400</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,540,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 1.77&middot;10<sup>30,400</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD 4 7540000</code></p>
+      </div>
+      <div class="card">
         <h3>35 phases, 3.9&middot;10<sup>13</sup> steps, no halt</h3>
         <p>The macro simulator (<code>tools/py/bbtools/macro.py</code>, blocks of 2 cells) follows the run to step 3.9&middot;10<sup>13</sup>; it passes through 35 phase starts <code>0^inf B&gt; 0 1 0^X T</code>, with gaps X = 4, 12, 24, 42, 60, 84, 120, 174, 258, 378, 564, &hellip;, 9,304,044.</p>
         <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py</code></p>

@@ -41,6 +41,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 3.16&middot;10<sup>23</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,047,200,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.16&middot;10<sup>23</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE 2 2047200000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Two parts",
    "text": "At each of the 1,139 moments after step 10<sup>4</sup> (up to 10<sup>9</sup>) at which the head extends the tape on the side opposite to its last extension, the tape is a solid block and an alternating stretch: at the right end <code>1^m</code> followed by <code>0 1 0 1 …</code>, at the left end <code>0 1 0 1 … 0 0 1^m</code>.",
    "where": "<code>py/phases.py</code> on a <code>tmrun … records</code> log"
@@ -91,6 +97,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape is a solid block of 1s next to an alternating stretch <code>1 0 1 0 …</code>, and the machine keeps carrying the block from one side of the stretch to the other, which costs about twice the product of their lengths. That is about the width squared per trip, for a few cells of growth: the width grows like the cube root of the time.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.16&middot;10<sup>23</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "trusted",
     "value": "569 / 569",
@@ -150,5 +161,5 @@
   ]
  },
  "family": "solid block and alternating stretch trading places",
- "summary": "The tape is one solid block of 1s and one stretch of alternating 1 0; every trip to the left end carries the solid block across the alternating stretch (about 2·m·r steps), and the trip back resizes the two in a seemingly random way."
+ "summary": "The tape is one solid block of 1s and one stretch of alternating 1 0; every trip to the left end carries the solid block across the alternating stretch (about 2·m·r steps), and the trip back resizes the two in a seemingly random way. Accelerated run: no halt in 3.16e23 steps."
 }

@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.84&middot;10<sup>103,694</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 4,000,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 1.84&middot;10<sup>103,694</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA--- 2 --macro 4000000</code></p>
+      </div>
+      <div class="card">
         <h3>8,000 epochs without a halt</h3>
         <p>An exact accelerated simulator (run-length tape with the shift rules of <code>bbtools.symtm</code>, and the proved cycle rule applied k times at once) runs 8,000 epochs from blank tape, about 10<sup>8021</sup> steps, without a halt. Its tape agrees cell for cell with the C simulator at the start of each of the first 8 epochs (to step 3,197,349,547).</p>
         <p class="where"><code>py/epochs.py</code>, <code>py/fastsim.py</code></p>

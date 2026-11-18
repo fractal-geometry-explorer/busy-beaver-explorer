@@ -148,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.17&middot;10<sup>15</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 409,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.17&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 6 409000000</code></p>
+      </div>
+      <div class="card">
         <h3>An exact map reproduces the run</h3>
         <p>The map of the twin (<code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/macro.py</code>), run with this machine's transitions for its events, reproduces all 22,198 tick boundaries of the first 6&middot;10<sup>9</sup> steps exactly. These boundaries are the same as the twin's.</p>
         <p class="where"><code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/check_macro.py 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC</code></p>

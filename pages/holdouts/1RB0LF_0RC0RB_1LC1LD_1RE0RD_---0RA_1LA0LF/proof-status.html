@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/deep.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.46&middot;10<sup>12</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 54,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 3.46&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 4 54200000</code></p>
+      </div>
+      <div class="card">
         <h3>Only four D-runs in 10<sup>9</sup> steps, all at the wall</h3>
         <p>At steps 130, 309, 2,306,898 and 2,380,763 D erased the wall block 1^6 at the right end; the block after it saved the machine each time.</p>
         <p class="where"><code>c/drun.c</code></p>

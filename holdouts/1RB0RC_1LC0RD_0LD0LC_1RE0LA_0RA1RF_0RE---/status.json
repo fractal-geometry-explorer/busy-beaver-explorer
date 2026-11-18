@@ -53,6 +53,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.21&middot;10<sup>16</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 989,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.21&middot;10<sup>16</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RE--- 4 989800000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Where F comes in",
    "text": "State F is reached only through E reading a 1, which an ordinary sweep never does: in 10<sup>10</sup> steps it happened 5 times, never in an ordinary sweep or carry (their Lean proofs never pass through F) but in the rare events, and each time F read a 0 (<code>F0 → 0RE</code>).",
    "where": "<code>py/walls.py</code>"
@@ -91,6 +97,11 @@
  "explainer": {
   "lede": "Nobody knows, but the machine has a clear structure: it is a <b>base-5 counter</b>. The tape is long runs of the block <code>1000</code> broken by short <em>walls</em>; each wall is one digit, and its shape is the digit's value. A head bouncing between the left end and the first wall counts the sweeps.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.21&middot;10<sup>16</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>10</sup> steps",
@@ -170,6 +181,6 @@
   ]
  },
  "family": "wall counter (base 5, drifting walls)",
- "summary": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows.",
+ "summary": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows. Accelerated run: no halt in 1.21e16 steps.",
  "decision": "open"
 }

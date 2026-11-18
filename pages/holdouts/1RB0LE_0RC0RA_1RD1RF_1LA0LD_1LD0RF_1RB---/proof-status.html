@@ -176,6 +176,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.26&middot;10<sup>17</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,688,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.26&middot;10<sup>17</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 4 2688400000</code></p>
+      </div>
+      <div class="card">
         <h3>The block form</h3>
         <p>At every right-end turn of the first 10<sup>10</sup> steps (30,932 turns) the tape is <code>(10)<sup>n<sub>0</sub></sup> s<sub>1</sub> (10)<sup>n<sub>1</sub></sup> &hellip; s<sub>k</sub> (10)<sup>n<sub>k</sub></sup> A&gt;1 1</code> with single separators s<sub>i</sub>; the program stops if not.</p>
         <p class="where"><code>c/blocks.c</code></p>

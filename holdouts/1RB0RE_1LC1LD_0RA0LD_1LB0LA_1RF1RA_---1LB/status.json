@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.45&middot;10<sup>41,498</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,840,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 3.45&middot;10<sup>41,498</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB 4 4840000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The rules of a round",
    "text": "Ten rules on symbolic tapes, each for all values of its variables: <code>start</code> (blank tape to D(0,0,5) in 136 steps), <code>d_step</code> (D(k+1,y,z) to D(k,y+3,z)), <code>d_zero</code> (D(0,y,z) to A(y+3,z)), <code>a_odd</code>, <code>a_odd_one</code>, <code>a_even</code>, <code>a_even_two</code> (A to D using fuel), <code>reset_odd</code>, <code>reset_even</code> (out of fuel: the block becomes the new fuel) and <code>halt_even</code> (out of fuel with an even block: halt).",
@@ -79,6 +85,11 @@
  "explainer": {
   "lede": "Probably yes, but nobody can check it. The machine runs a 3/2-Collatz-like map that burns a fuel counter; when the fuel runs out it either halts or turns its current number into new, enormously larger fuel. It has survived three rounds. The fourth has 22,205,951,667,644,132,025,548 units of fuel.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.45&middot;10<sup>41,498</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; orbit hits none",
@@ -169,6 +180,6 @@
    }
   ]
  },
- "summary": "A 3/2-Collatz-like map that burns a fuel counter: each round halts with chance about 1/3; it survived the rounds with fuel 5, 14 and 185, and the next has fuel 22,205,951,667,644,132,025,548.",
+ "summary": "A 3/2-Collatz-like map that burns a fuel counter: each round halts with chance about 1/3; it survived the rounds with fuel 5, 14 and 185, and the next has fuel 22,205,951,667,644,132,025,548. Accelerated run: no halt in 3.45e41498 steps.",
  "family": "Collatz-like map with fuel (Hydra-like)"
 }

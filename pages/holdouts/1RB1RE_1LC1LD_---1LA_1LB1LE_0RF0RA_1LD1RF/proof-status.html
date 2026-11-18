@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.61&middot;10<sup>49,522</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 3,940,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.61&middot;10<sup>49,522</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF 6 3940000</code></p>
+      </div>
+      <div class="card">
         <h3>The model agrees with simulation</h3>
         <p>An exact accelerated simulator (run-length tape, symbolic shift rules) matches the phase and epoch-end rules on the first 400 configurations of the form P, through epoch 3 (to about 10<sup>114</sup> steps), and on all eight epoch-end cases at x = 1000, 1001, 1002.</p>
         <p class="where"><code>py/epochs.py check 400</code>, <code>py/epochs.py ends</code></p>

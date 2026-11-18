@@ -64,6 +64,12 @@
    "where": "<code>tools/c/tmrun.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.28&middot;10<sup>12</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 24,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 3.28&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB 6 24200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Two regions, at most three defects",
    "text": "Tapes sampled every 10<sup>8</sup> steps up to 4&middot;10<sup>9</sup> consist of the two periodic regions (between 260 and 14,636 words of each) and one to three defect blocks.",
@@ -91,6 +97,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape of this machine is two repeating patterns side by side with at most three irregular spots, and the head keeps turning one pattern into the other. It has run 10<sup>11</sup> steps without stopping.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.28&middot;10<sup>12</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "D reads 0 0",
@@ -157,5 +168,5 @@
    }
   ]
  },
- "summary": "The tape is two periodic regions (111010 and 111110) with one to three defects; rightward sweeps in every state convert one into the other a word at a time (proved in Lean), the region sizes swing, the tape grows like sqrt(steps). Halts only if D reads 0 0. No halt in 10^11 steps."
+ "summary": "The tape is two periodic regions (111010 and 111110) with one to three defects; rightward sweeps in every state convert one into the other a word at a time (proved in Lean), the region sizes swing, the tape grows like sqrt(steps). Halts only if D reads 0 0. No halt in 10^11 steps. Accelerated run: no halt in 3.28e12 steps."
 }

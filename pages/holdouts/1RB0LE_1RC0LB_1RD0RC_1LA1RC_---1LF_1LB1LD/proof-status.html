@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB/c/longrun.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.81&middot;10<sup>12</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 40,800,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 3.81&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD 4 40800000</code></p>
+      </div>
+      <div class="card">
         <h3>The rest map, checked against the machine</h3>
         <p>With <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip; (always an integer on the orbit, and A+g always a multiple of 3): type 000 goes to (3A+g)/2 when A+g is even, otherwise pushes A+1 and goes to type 000 with (A+g&minus;5)/4 (A+g = 1 mod 4) or type 0 with (A+g+1)/4; type 0 goes to type 0 with (3A+g&minus;3)/2 (A+g odd) or type 000 with (3A+g&minus;6)/2. From type 0, A = 3, empty list (62 steps) it reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps, and the machine run from 350 random rests (A up to 600, lists of up to four blocks) reaches the predicted next rest every time.</p>
         <p class="where"><code>py/map.py events 1e10</code>, <code>py/map.py random</code></p>

@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.77&middot;10<sup>30,400</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,540,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 1.77&middot;10<sup>30,400</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD 4 7540000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The rounds of a phase",
    "text": "From <code>0^inf B&gt; 0 1 0^X T</code> with X = 4k+r+7 &#8805; 24 (a single 1 at the left end of the tape, a gap of X zeros, any tape T after it) the machine reaches <code>0^inf 1 C&gt; (11)^(3k+3) 000 1111 0^r T</code>: k+1 rounds, each growing the block of ones by six and moving the marker <code>000 1111</code> four cells into the gap.",
@@ -121,6 +127,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "1.77&middot;10<sup>30,400</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
+   {
+    "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 47,536 cells visited."
    },
@@ -197,6 +208,6 @@
    }
   ]
  },
- "summary": "A gap of X zeros is eaten in X/4 rounds; then the tail is edited and the next gap is (3X+d)/2. The map depends only on (X mod 4, tail); 2,009 phases without a halt, and no halting entry seen even for the other residues.",
+ "summary": "A gap of X zeros is eaten in X/4 rounds; then the tail is edited and the next gap is (3X+d)/2. The map depends only on (X mod 4, tail); 2,009 phases without a halt, and no halting entry seen even for the other residues. Accelerated run: no halt in 1.77e30400 steps.",
  "family": "Collatz-like gap map (x3/2) with a growing tail"
 }

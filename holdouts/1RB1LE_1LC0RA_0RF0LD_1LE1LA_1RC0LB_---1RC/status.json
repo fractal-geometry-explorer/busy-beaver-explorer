@@ -82,6 +82,12 @@
    "where": "<code>py/map.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.21&middot;10<sup>88</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 4 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 62,600,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 2.21&middot;10<sup>88</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC 4 --macro 62600000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "No residue pattern excludes a halt",
    "text": "In the orbit k is always odd and m changes parity at each doubling, so m = k is not excluded by parity; and k &minus; m &equiv; 0 occurs at the expected rate modulo each of 3, 4, 5, 7, 8, 9, 12, 16, 24, 32, 48 (3&middot;10<sup>6</sup> iterations). The chance of an exact hit shrinks as the blocks grow, so a halt looks very unlikely, but that is the usual heuristic for Collatz-like maps, not a proof.",
@@ -111,6 +117,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.21&middot;10<sup>88</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -181,7 +192,7 @@
    }
   ]
  },
- "summary": "A block of pairs 10 cut by markers 110. Each pass doubles the first block (k -> 2k+3) at the cost of the second; when the second is too short the marker runs off and the blocks are rebuilt. The whole run is the orbit of an explicit map on lists of two or three block sizes (fitted, checked against the machine, not proved), and it halts iff the orbit meets two equal blocks [k, k]: no hit in 3*10^8 iterations. Open, Collatz-like (a cryptid).",
+ "summary": "A block of pairs 10 cut by markers 110. Each pass doubles the first block (k -> 2k+3) at the cost of the second; when the second is too short the marker runs off and the blocks are rebuilt. The whole run is the orbit of an explicit map on lists of two or three block sizes (fitted, checked against the machine, not proved), and it halts iff the orbit meets two equal blocks [k, k]: no hit in 3*10^8 iterations. Open, Collatz-like (a cryptid). Accelerated run: no halt in 2.21e88 steps.",
  "family": "doubling marker in a growing block (Collatz-like map on block sizes)",
  "decision": "open"
 }

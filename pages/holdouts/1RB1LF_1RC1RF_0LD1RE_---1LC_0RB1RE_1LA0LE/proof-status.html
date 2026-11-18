@@ -187,6 +187,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The map in C (the same first 20,000 visits as the Python model) runs 10<sup>11</sup> operations, 50,000,005,600 visits, without a halt; a/2 + b reaches 5.0·10<sup>10</sup>, of the order of 10<sup>31</sup> machine steps by the growth law steps ≈ (a/2 + b)<sup>3</sup>/3 (the step count itself is not computed). 35 odd pools appear, 18 without bracket: 5, 13, 165, 989, 1853, 13309, 26333, 44669, 49909, 19855861, 169438117, 283866789, 1487681501, 1992437437, 3603147421, 10918121213, 46694013501, 51055443101; all are 5 mod 8.</p>
         <p class="where"><code>c/fast.c</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 4.44&middot;10<sup>10</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 78,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 4.44&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 2 78200000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

@@ -64,6 +64,12 @@
    "where": "<code>py/phases.py 30000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 9.88&middot;10<sup>89,217</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 5,940,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 9.88&middot;10<sup>89,217</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- 2 --macro 5940000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Halting needs a long, specific run of residues",
    "text": "With the residues M mod 3 chosen freely, a halting tail can be reached from [], so nothing about the tail alone rules halting out; but it takes 108 phases of the right residues, and with residues taken as random, 3&middot;10<sup>6</sup> phases had no halt.",
@@ -117,6 +123,11 @@
  "explainer": {
   "lede": "Nobody knows, and the question is a cousin of the Collatz problem. Each phase, the machine turns a block of M ones into a wall and back into about 8M/3 ones. What M is mod 3 decides what happens to a short stack of blocks at the right end of the tape, and the machine stops only if that stack ever takes one rare shape.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "9.88&middot;10<sup>89,217</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "M &rarr; 8M/3",
@@ -205,5 +216,5 @@
   ]
  },
  "family": "Collatz-like map with a stack",
- "summary": "A block of M ones is turned into a wall and back each phase, M -> about 8M/3; the residue M mod 3 pushes, pops and edits a small stack of blocks beside it, and the machine halts only if that stack ever holds two adjacent blocks of two ones in the right residue; such a stack is reachable through 108 prescribed residues (observed; a cryptid)."
+ "summary": "A block of M ones is turned into a wall and back each phase, M -> about 8M/3; the residue M mod 3 pushes, pops and edits a small stack of blocks beside it, and the machine halts only if that stack ever holds two adjacent blocks of two ones in the right residue; such a stack is reachable through 108 prescribed residues (observed; a cryptid). Accelerated run: no halt in 9.88e89217 steps."
 }

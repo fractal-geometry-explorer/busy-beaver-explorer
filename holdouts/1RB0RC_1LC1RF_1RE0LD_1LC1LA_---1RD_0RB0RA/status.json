@@ -59,6 +59,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 5.21&middot;10<sup>4,051</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 54,020,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 5.21&middot;10<sup>4,051</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA 6 54020000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "No closed tape language from windows up to 7",
    "text": "<code>bbtools.ctl</code> with K = 2 to 7 closes but allows a halt (7 to 579 abstract halting configurations); n-gram CPS (widths 3 to 7, -H, -U) fails.",
    "where": "<code>tools/py/bbtools/ctl.py</code>"
@@ -110,6 +116,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.21&middot;10<sup>4,051</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -195,7 +206,7 @@
    }
   ]
  },
- "summary": "One big block that alternates between (010)^Y and (10)^X: turning d's into a's doubles it, turning a's back into d's takes two thirds of it, so Y grows by about 4/3 per cycle (a Collatz-like 4/3 map), with the remainders kept in a small counter at the right end.",
+ "summary": "One big block that alternates between (010)^Y and (10)^X: turning d's into a's doubles it, turning a's back into d's takes two thirds of it, so Y grows by about 4/3 per cycle (a Collatz-like 4/3 map), with the remainders kept in a small counter at the right end. Accelerated run: no halt in 5.21e4051 steps.",
  "family": "Collatz-like 4/3 block map + bouncer",
  "decision": "open"
 }

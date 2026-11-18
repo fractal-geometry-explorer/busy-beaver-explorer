@@ -162,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.22&middot;10<sup>15</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,378,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.22&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF 2 1378000000</code></p>
+      </div>
+      <div class="card">
         <h3>One visit is one sweep and one refill</h3>
         <p>Up to 10<sup>9</sup> steps (36,752 visits of a new cell at the right end) the rightward pass never turns back before it reaches the end: C never reads a 1 straight after A, and B never reads a 0 straight after A inside the tape.</p>
         <p class="where"><code>c/visits.c</code></p>

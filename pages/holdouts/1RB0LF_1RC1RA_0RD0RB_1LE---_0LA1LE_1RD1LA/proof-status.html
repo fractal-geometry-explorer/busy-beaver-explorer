@@ -195,6 +195,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/orbit.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.23&middot;10<sup>22</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,982,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.23&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA 4 1982800000</code></p>
+      </div>
+      <div class="card">
         <h3>f has halting and non-returning points</h3>
         <p>For 6 &le; X &le; 1,300 the map F (and the direct simulation) halts before the next return exactly for X = 9, 30, 68, 75, 168, 295, 357, 738 (also 3,010 and 3,036), and never returns (an excursion through P, Q, T nodes that grows for ever, e.g. from S(41): Q(1, 71) &rarr; P(11, 62) &rarr; &hellip; &rarr; Q(3, 87) &rarr; &hellip; &rarr; Q(5, 103), the counts climbing by fixed amounts) for X = 41, 52, 63, 132, 273, 558, 1131 (and a few later values with long excursions). The halting points roughly double: 9, 30, 75, 168, 357, 738.</p>
         <p class="where"><code>c/reset_map.c</code>, the map F</p>

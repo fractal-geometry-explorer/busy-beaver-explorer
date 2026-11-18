@@ -152,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.45&middot;10<sup>30,862</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 12,460,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 3.45&middot;10<sup>30,862</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 6 12460000</code></p>
+      </div>
+      <div class="card">
         <h3>The round map matches the direct run</h3>
         <p>DL(m, T) = <code>D&gt; 1 00 (10)^m T</code> (head at the left end). Every one of the 31 DL events of the direct C run up to 5&middot;10<sup>9</sup> steps is the one the round map predicts, step count included.</p>
         <p class="where"><code>py/roundmap.py check 5e9</code></p>

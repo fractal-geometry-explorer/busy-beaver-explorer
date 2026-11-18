@@ -42,6 +42,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.90&middot;10<sup>11</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 39,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.90&middot;10<sup>11</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB 6 39200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: sqrt/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.47). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.472).",
@@ -109,6 +115,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "1.90&middot;10<sup>11</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
+   {
+    "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 36,366 cells visited."
    },
@@ -172,6 +183,6 @@
   ]
  },
  "family": "two-sided bouncer, list of 110-blocks with a counter at the left end",
- "summary": "Round trips over a tape of 110-blocks separated by short separators; the last block grows by two per trip while the blocks near the left end change like the digits of a counter. Open.",
+ "summary": "Round trips over a tape of 110-blocks separated by short separators; the last block grows by two per trip while the blocks near the left end change like the digits of a counter. Open. Accelerated run: no halt in 1.90e11 steps.",
  "decision": "open"
 }

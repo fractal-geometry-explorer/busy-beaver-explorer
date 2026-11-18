@@ -167,6 +167,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/c/tmrun.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.31&middot;10<sup>12</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 24,400,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 3.31&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 6 24400000</code></p>
+      </div>
+      <div class="card">
         <h3>Every block is a countdown timer</h3>
         <p>By the digit rules, when digit j goes 1&rarr;2 a pair moves from the block after it to the block before it, and when it wraps 3&rarr;0 the block before it gains a pair. So the block after digit j loses 2 pairs per cycle of digit j+1 (every 4<sup>j+1</sup> increments) and the first block gains 2 per cycle of the first digit; checked on the run from blank tape (e.g. the second block 13, 11, 9, 7, 5, 3 at consecutive cycles of the second digit, steps 131,121 to 176,267).</p>
         <p class="where">README, <code>lean/Rules.lean</code> (the rules for the lowest digits)</p>

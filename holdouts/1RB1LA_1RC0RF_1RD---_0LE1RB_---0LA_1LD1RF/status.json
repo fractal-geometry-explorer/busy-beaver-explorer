@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 9.33&middot;10<sup>20</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,390,200,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 9.33&middot;10<sup>20</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 2 1390200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.301). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.357).",
@@ -75,6 +81,11 @@
  "explainer": {
   "lede": "Nobody knows. This page runs the machine in your browser and describes the structure seen in its run.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "9.33&middot;10<sup>20</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -136,7 +147,7 @@
    }
   ]
  },
- "summary": "The tape is blocks of 1s separated by single 0s, with block lengths roughly doubling from left to right (97, 198, 397, 795, ...); sweeps merge neighbouring blocks and split them again in an irregular way.",
+ "summary": "The tape is blocks of 1s separated by single 0s, with block lengths roughly doubling from left to right (97, 198, 397, 795, ...); sweeps merge neighbouring blocks and split them again in an irregular way. Accelerated run: no halt in 9.33e20 steps.",
  "family": "merging and splitting blocks of 1s (chaotic, potential Cryptid)",
  "decision": "open"
 }

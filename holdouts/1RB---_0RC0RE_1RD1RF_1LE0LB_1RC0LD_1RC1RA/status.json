@@ -65,6 +65,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 9.66&middot;10<sup>72,809</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 6 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 10,440,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 9.66&middot;10<sup>72,809</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA 6 --macro 10440000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The real orbit",
    "text": "From the first phase start (step 110, P = <code>1111110</code>, n = 12), computed exactly: no halt in 2,000 phases (n then has 2,835 bits); 20 distinct words, the longest 17 cells, and the word keeps returning to empty.",
    "where": "<code>python3 py/phases.py orbit 2000</code>"
@@ -123,6 +129,11 @@
  "explainer": {
   "lede": "Nobody knows yet. A counter grows by a factor of about 8/3 each phase, and its residues mod 3 edit a word of blocks on the tape. A halting word exists, but the nearest one needs 108 particular residues in a row, so no simulation will see it; whether the real sequence ever produces one is the open question.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "9.66&middot;10<sup>72,809</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "&times; 8/3",
@@ -210,6 +221,6 @@
    }
   ]
  },
- "summary": "A counter n multiplied by about 8/3 per phase, whose residue mod 3 edits a word P of blocks on the tape; a halting word is reachable, but only through 108 prescribed residues in a row (observed; a cryptid).",
+ "summary": "A counter n multiplied by about 8/3 per phase, whose residue mod 3 edits a word P of blocks on the tape; a halting word is reachable, but only through 108 prescribed residues in a row (observed; a cryptid). Accelerated run: no halt in 9.66e72809 steps.",
  "decision": "open"
 }

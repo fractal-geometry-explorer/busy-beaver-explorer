@@ -161,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/phases.py bfs 600</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.88&middot;10<sup>69,794</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 6 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 9,940,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 1.88&middot;10<sup>69,794</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD--- 6 --macro 9940000</code></p>
+      </div>
+      <div class="card">
         <h3>The real orbit</h3>
         <p>From the first phase start (step 17, P empty, n = 6), computed exactly: no halt in 2,000 phases (n then has 2,833 bits); 32 distinct words, the longest 20 cells.</p>
         <p class="where"><code>python3 py/phases.py orbit 2000</code></p>

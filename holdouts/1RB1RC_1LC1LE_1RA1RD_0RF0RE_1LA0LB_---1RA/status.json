@@ -70,6 +70,12 @@
    "where": "<code>py/orbit.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.75&middot;10<sup>43,888</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 3,460,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.75&middot;10<sup>43,888</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA 4 3460000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Why it is expected never to halt",
    "text": "If the parities of <code>n</code> behave like coin flips, the counter is a random walk with steps +2 and −1 (drift +1/2), which falls from <code>m</code> to −2 with chance <code>φ<sup>−(m+2)</sup></code>, φ the golden ratio: about 10<sup>−11</sup> from the counter's value after 100 rounds.",
@@ -90,6 +96,11 @@
  "explainer": {
   "lede": "Nobody knows, and the reason is the same as for Antihydra: the machine multiplies a number by about 3/2 each round and keeps score of its parities. Even values push a counter up by two, odd values pull it down by one; it stops only if the counter ever falls below zero. Lean proves that this is exactly what the machine does.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.75&middot;10<sup>43,888</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts ⇔ counter &lt; 0",
@@ -170,5 +181,5 @@
    }
   ]
  },
- "summary": "Antihydra variant: halts iff a counter driven by the parities of n ↦ ~3n/2 (+2 even, −1 odd) falls below zero; reduction proved in Lean, counter at 50,008 after 10<sup>5</sup> rounds."
+ "summary": "Antihydra variant: halts iff a counter driven by the parities of n ↦ ~3n/2 (+2 even, −1 odd) falls below zero; reduction proved in Lean, counter at 50,008 after 10<sup>5</sup> rounds. Accelerated run: no halt in 4.75e43888 steps."
 }

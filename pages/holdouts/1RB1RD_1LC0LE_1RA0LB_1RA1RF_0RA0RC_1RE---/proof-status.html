@@ -151,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.27&middot;10<sup>91,400</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 6,160,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 1.27&middot;10<sup>91,400</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- 2 --macro 6160000</code></p>
+      </div>
+      <div class="card">
         <h3>The phase map, checked against the simulator</h3>
         <p>From the phase start <code>Q 0 1^m (01)^5 1 D&gt;0</code> with m = 3k + r, the next phase start is <code>Q' 0 1^(8k+c) (01)^5 1 D&gt;0</code> with Q' and c fixed by (Q, r), and a step count 12k&sup2; + Bk + C. Fitted on four block sizes per case; the predicted start steps of phases 1 to 9 (3,291 ... 16,707,143,908) equal those of the direct C simulation.</p>
         <p class="where"><code>py/phasemap.py</code></p>

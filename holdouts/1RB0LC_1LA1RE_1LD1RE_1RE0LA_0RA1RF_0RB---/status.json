@@ -66,6 +66,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 4.47&middot;10<sup>48,268</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 8,020,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.47&middot;10<sup>48,268</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- 6 8020000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "No pushdown certificate with a DFA of at most 6 states",
    "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- ./pds 6 L</code> and <code>R</code>.",
    "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
@@ -113,6 +119,11 @@
  "explainer": {
   "lede": "Not known yet. Most of the time the machine runs a simple Collatz-like map, multiplying a number n by about 3/2 at each pass. When a parity test comes out the wrong way, it opens a nested phase with a second number, which can nest again. How it could halt, if it ever does, is hidden in those nested phases.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.47&middot;10<sup>48,268</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>18</sup> steps",
@@ -191,6 +202,6 @@
    }
   ]
  },
- "summary": "A 3/2 Collatz-like map with nested phases; the nested phases are now exact for n = 4i+1 and 8i+7 (factors 9/4 and 27/8), and every nested phase from n < 400 returns without halting. Open.",
+ "summary": "A 3/2 Collatz-like map with nested phases; the nested phases are now exact for n = 4i+1 and 8i+7 (factors 9/4 and 27/8), and every nested phase from n < 400 returns without halting. Open. Accelerated run: no halt in 4.47e48268 steps.",
  "family": "3/2-Collatz with parity-triggered nested phases"
 }

@@ -46,6 +46,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.39&middot;10<sup>11</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 57,800,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.39&middot;10<sup>11</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_0LC1LB_0RD1LA_1RE0RA_---1RD_1RC1LF 6 57800000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: sqrt/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506).",
@@ -87,6 +93,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine sweeps back and forth over a tape that grows by about one cell per trip on each side. The left part is a neat stack of 6-cell blocks; the right end is a small region that comes out different every time the head visits it. That region is the open part.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.39&middot;10<sup>11</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "10<sup>4</sup> steps",
@@ -155,7 +166,7 @@
    }
   ]
  },
- "summary": "Bouncer whose left part grows by one 6-cell block 101110 every two round trips, in front of a fixed block (1011)^77 and a slowly changing middle counter; the right end is an irregular region that the head rewrites on every visit. No regime proved yet.",
+ "summary": "Bouncer whose left part grows by one 6-cell block 101110 every two round trips, in front of a fixed block (1011)^77 and a slowly changing middle counter; the right end is an irregular region that the head rewrites on every visit. No regime proved yet. Accelerated run: no halt in 1.39e11 steps.",
  "family": "bouncer with an irregular right end",
  "decision": "open"
 }

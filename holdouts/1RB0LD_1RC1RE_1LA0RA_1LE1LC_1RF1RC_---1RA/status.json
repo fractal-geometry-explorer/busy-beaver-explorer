@@ -52,6 +52,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.41&middot;10<sup>89</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 1,087,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.41&middot;10<sup>89</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=1087000 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Collatz-like",
    "text": "The tail length is multiplied by about 5/4 at each carry and by about 3 at each walker pass; which branch a carry takes depends on q mod 4 and on how much the item before can give. Halting configurations exist among the deep carries (for example the items (0,1) (3,3) (1,1) with a tail of 10 groups halt after 1,164 steps; <code>py/walker.py check</code> runs it), so whether the run ever reaches one is a question about this map.",
@@ -62,12 +68,6 @@
    "title": "Does it halt from blank tape?",
    "text": "Not known.",
    "where": ""
-  },
-  {
-   "level": "trusted",
-   "title": "No halt in the first 1.12·10<sup>18</sup> steps (accelerated run)",
-   "text": "<code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 6 cells, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 1.12·10<sup>18</sup> machine steps (exact count; tape spanning 1,383,458,352 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (16,200,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.",
-   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA 6 1000000000000000 run.ck 300</code>"
   }
  ],
  "check": [
@@ -80,6 +80,11 @@
  "explainer": {
   "lede": "Nobody knows. A marker walks left across the tape one group at a time, and every group it passes reappears three times at the right end; when the marker is used up it borrows from the group before it with a <em>carry</em> that multiplies the tail by about 5/4. Rules like these, a mix of multiplications and remainders, are how Collatz-like problems look, and this one is no easier.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.41&middot;10<sup>89</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "3.2·10<sup>12</sup> steps",
@@ -163,6 +168,6 @@
   ]
  },
  "family": "walker with ×3 steps and 5/4 carries (Collatz-like)",
- "summary": "A marker walks left through groups 110, turning each group it passes into three at the right end; when it is used up, a carry turns the tail of q groups into about 5q/4 (q = 4k + r: 5k or 5k + 3), a Collatz-like map; exact hybrid simulation to 3.2e12 steps without a halt.",
+ "summary": "A marker walks left through groups 110, turning each group it passes into three at the right end; when it is used up, a carry turns the tail of q groups into about 5q/4 (q = 4k + r: 5k or 5k + 3), a Collatz-like map; exact hybrid simulation to 3.2e12 steps without a halt. Accelerated run: no halt in 1.41e89 steps.",
  "decision": "open"
 }

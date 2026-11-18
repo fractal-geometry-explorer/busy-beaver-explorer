@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.24&middot;10<sup>48,365</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 8,200,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 1.24&middot;10<sup>48,365</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA 6 8200000</code>"
+  },
+  {
    "level": "kernel",
    "title": "One round, and a phase of rounds by induction",
    "text": "From <code>0^inf F&gt; 0 0 (110)^x 1^(y+5) R</code> the machine reaches <code>0^inf F&gt; 0 0 (110)^(x+2) 1^(y+1) R</code> in 12x+26 steps, for all x, y and every tape R; k rounds take <code>(110)^x 1^(y+4k+1)</code> to <code>(110)^(x+2k) 1^(y+1)</code>.",
@@ -119,6 +125,11 @@
  "explainer": {
   "lede": "Nobody knows. Each phase of this machine multiplies the length of a block of ones by about 3/2, and whether the length is even or odd decides what happens to a few cells at the end of the tape. Questions of that kind, about the parities of numbers growing by 3/2, are famously out of reach.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.24&middot;10<sup>48,365</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "47 phases",
@@ -205,5 +216,5 @@
   ]
  },
  "family": "3/2 Collatz-like map with a tail of digits",
- "summary": "Phases: a block of l cells becomes about 3l/2, the parity of l steering a tail of digits whose own block is processed like a small copy of the run; 47 phases (3.4·10^18 steps) without a halt. Open."
+ "summary": "Phases: a block of l cells becomes about 3l/2, the parity of l steering a tail of digits whose own block is processed like a small copy of the run; 47 phases (3.4·10^18 steps) without a halt. Open. Accelerated run: no halt in 1.24e48365 steps."
 }

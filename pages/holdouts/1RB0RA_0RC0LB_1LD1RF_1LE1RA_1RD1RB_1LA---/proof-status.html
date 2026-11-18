@@ -148,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/rounds.py</code>, <code>tools/py/bbtools/cycles.py</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.81&middot;10<sup>33</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 917,276 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.81&middot;10<sup>33</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=917276 1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---</code></p>
+      </div>
+      <div class="card">
         <h3>No closed tape language from windows up to 7</h3>
         <p><code>bbtools.ctl</code> with windows of K = 2 to 6 cells closes but allows F to read a 1 (6 to 192 abstract halting configurations); with K = 7 it finds no closed set within its round limit. The n-gram CPS decider (widths 3 to 7, with history and LRU augmentations) also fails.</p>
         <p class="where"><code>tools/py/bbtools/ctl.py</code></p>

@@ -158,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.60&middot;10<sup>28</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 44,360,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 2.60&middot;10<sup>28</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0RB_1LC0LF_1RD0LB_1RE1RC_0RA---_1LA1RE 2 --macro 44360000</code></p>
+      </div>
+      <div class="card">
         <h3>Halting resets</h3>
         <p>From Q(2, y) the machine halts for y = 1461 (2,574,053 steps), 3158 and 5834, and for no other y &lt; 3000 (full runs of <code>c/nq.c</code>). The resets from blank tape are y = 4, 38, 55, 144, 396, 451, 1190, 3388, 4980, 5776, 6174, 19656, 39352, &hellip;</p>
         <p class="where"><code>c/nq.c</code></p>

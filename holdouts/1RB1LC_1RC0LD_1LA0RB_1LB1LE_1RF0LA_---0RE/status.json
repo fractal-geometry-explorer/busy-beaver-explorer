@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.65&middot;10<sup>1,516</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 95,840,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.65&middot;10<sup>1,516</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE 4 95840000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.538). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.084).",
@@ -111,6 +117,11 @@
  "explainer": {
   "lede": "Nobody knows, but the question is now about numbers. Started on a blank tape, this machine runs in rounds; each round reads a number N off the tape and writes a bigger one, and Lean proves that the machine halts exactly when one round finds a remainder of 0. This page shows how a round works, the map it computes, and why a halt looks hopeless.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.65&middot;10<sup>1,516</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; m = 0",
@@ -198,6 +209,6 @@
    }
   ]
  },
- "summary": "Collatz-like doubling counter: halts iff the remainder m of a doubling phase is ever exactly 0; the reduction to a map on numbers is proved in Lean.",
+ "summary": "Collatz-like doubling counter: halts iff the remainder m of a doubling phase is ever exactly 0; the reduction to a map on numbers is proved in Lean. Accelerated run: no halt in 4.65e1516 steps.",
  "decision": "open"
 }

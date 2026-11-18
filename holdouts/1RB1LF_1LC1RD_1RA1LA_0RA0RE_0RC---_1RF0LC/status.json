@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.38&middot;10<sup>43,391</sup> steps (accelerated run, blocks of 3)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 3 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 19,960,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 6.38&middot;10<sup>43,391</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 3 --macro 19960000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.047). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.494).",
@@ -165,6 +171,11 @@
   "lede": "Nobody knows. This machine moves a block of N copies of 110 across a junction two in, three out, so N grows by 3/2 each step, while a wall on the left keeps a tower of smaller counters driven by the parity of N. No halting wall has been found.",
   "facts": [
    {
+    "level": "trusted",
+    "value": "6.38&middot;10<sup>43,391</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 3)."
+   },
+   {
     "level": "kernel",
     "value": "3/2 transfer",
     "text": "The sweep loop, for any wall and any length, proved in Lean."
@@ -271,6 +282,6 @@
    }
   ]
  },
- "summary": "A block of N copies of 110 is moved across a junction two copies in, three out (N -> (3N+c)/2); the parity of N rewrites a 'wall' on the left that holds a tower of smaller 3/2-counters. Lean proves the step map for every wall (computed by a simulator that never looks at N) and the reduction to its orbit; no step that halts has been found.",
+ "summary": "A block of N copies of 110 is moved across a junction two copies in, three out (N -> (3N+c)/2); the parity of N rewrites a 'wall' on the left that holds a tower of smaller 3/2-counters. Lean proves the step map for every wall (computed by a simulator that never looks at N) and the reduction to its orbit; no step that halts has been found. Accelerated run: no halt in 6.38e43391 steps.",
  "decision": "open"
 }

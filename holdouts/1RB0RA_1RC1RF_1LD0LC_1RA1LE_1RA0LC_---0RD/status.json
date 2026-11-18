@@ -46,6 +46,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.60&middot;10<sup>10</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 33,400,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 6.60&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD 4 33400000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/linear",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.073). Right of the start it grows in proportion to the step count (the head drifts steadily that way) (fitted exponent 0.863).",
@@ -109,6 +115,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "6.60&middot;10<sup>10</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "3 rules",
@@ -185,7 +196,7 @@
    }
   ]
  },
- "summary": "A bouncer whose right part is the word 1101 repeated, one more copy every sweep; it turns around at the left end on a short control word of blocks 110 and 100110 that keeps changing irregularly and grows very slowly; a block of 150 copies of 1101 stays frozen in between.",
+ "summary": "A bouncer whose right part is the word 1101 repeated, one more copy every sweep; it turns around at the left end on a short control word of blocks 110 and 100110 that keeps changing irregularly and grows very slowly; a block of 150 copies of 1101 stays frozen in between. Accelerated run: no halt in 6.60e10 steps.",
  "family": "bouncer with a chaotic control word",
  "decision": "open"
 }

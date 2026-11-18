@@ -88,6 +88,12 @@
    "where": "<code>c/xyz.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.13&middot;10<sup>1,709</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 114,620,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 6.13&middot;10<sup>1,709</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD 4 114620000</code>"
+  },
+  {
    "level": "open",
    "title": "Does the orbit ever reach Z(a,2)?",
    "text": "The endgame of a round (after the doubling stage) has no closed form yet; without one there is no handle on the coincidence.",
@@ -105,6 +111,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "6.13&middot;10<sup>1,709</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; map",
@@ -187,6 +198,6 @@
    }
   ]
  },
- "summary": "Three-counter machine: proved in Lean to halt if and only if the orbit of X(2,0,3) under a 20-rule counter map reaches Z(a,2); the map has been followed for 2,000 rounds (about 10^1511 steps) without halting.",
+ "summary": "Three-counter machine: proved in Lean to halt if and only if the orbit of X(2,0,3) under a 20-rule counter map reaches Z(a,2); the map has been followed for 2,000 rounds (about 10^1511 steps) without halting. Accelerated run: no halt in 6.13e1709 steps.",
  "decision": "open"
 }

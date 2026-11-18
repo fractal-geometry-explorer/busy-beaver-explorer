@@ -147,6 +147,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 5.82&middot;10<sup>48,017</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 5,520,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 5.82&middot;10<sup>48,017</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 6 5520000</code></p>
+      </div>
+      <div class="card">
         <h3>34 half-phases, 7.6&middot;10<sup>13</sup> steps, no halt</h3>
         <p>With the macro simulator the run reaches step 7.6&middot;10<sup>13</sup>. At the end of each half-phase the tape is a short word w followed by k copies of <code>10</code> or of <code>01</code>, with k = 4, 10, 19, 35, 55, 86, 133, 203, 307, 464, 700, 1055, 1585, 2381, 3578, &hellip;, 7,950,370; the two words alternate.</p>
         <p class="where"><code>holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/py/phases.py</code></p>

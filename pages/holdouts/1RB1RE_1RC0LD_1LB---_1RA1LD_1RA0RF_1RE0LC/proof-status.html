@@ -159,6 +159,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/psim.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.21&middot;10<sup>8</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 77,000,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 4.21&middot;10<sup>8</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RE_1RC0LD_1LB---_1RA1LD_1RA0RF_1RE0LC 6 77000000</code></p>
+      </div>
+      <div class="card">
         <h3>The work in the region is local</h3>
         <p>The number of pairs of the region read in a round has a geometric tail (most rounds 8 to 64 pairs, 5,389 of 3&middot;10<sup>7</sup> rounds more than 1,024, the deepest 2,731), while the region grows by 0.835 pairs a round: its left half is never read again.</p>
         <p class="where"><code>c/psim.c</code></p>

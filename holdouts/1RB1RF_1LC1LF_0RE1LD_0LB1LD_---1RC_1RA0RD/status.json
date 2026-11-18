@@ -97,6 +97,12 @@
    "where": "<code>c/psq.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.92&middot;10<sup>11</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 76,400,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.92&middot;10<sup>11</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD 2 76400000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. Halting is equivalent (proved in Lean) to the phase map reaching a pass start with c &le; 1, an arithmetic coincidence that the map avoids for 10<sup>8</sup> passes and that gets rarer as the tape grows, but nothing rules it out.",
@@ -114,6 +120,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine runs a Collatz-like map on two counters, and it would halt only if one pass of that map ended exactly at zero. This page runs the real machine in your browser, explains the map, and lists what is known.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.92&middot;10<sup>11</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; map hits c &le; 1",
@@ -210,5 +221,5 @@
   ]
  },
  "family": "Collatz-like pass map on two counters",
- "summary": "Two counters a and b, tape 0 0 (10)^a 1^b 10; each pass doubles a against b with Euclid-like rebounds, and it halts only if a pass ends with b = 0, which the map has avoided for 10^8 passes."
+ "summary": "Two counters a and b, tape 0 0 (10)^a 1^b 10; each pass doubles a against b with Euclid-like rebounds, and it halts only if a pass ends with b = 0, which the map has avoided for 10^8 passes. Accelerated run: no halt in 1.92e11 steps."
 }

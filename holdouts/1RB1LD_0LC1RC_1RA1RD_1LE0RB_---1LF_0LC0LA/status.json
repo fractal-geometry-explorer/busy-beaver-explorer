@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.77&middot;10<sup>1,713</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 5,337,593 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.77&middot;10<sup>1,713</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=5337593 1RB1LD_0LC1RC_1RA1RD_1LE0RB_---1LF_0LC0LA</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.526). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.086).",
@@ -86,6 +92,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine runs in phases: a run of long blocks 1^11 is eaten and turned into short blocks 1^5 at a fixed rate, 3 for 8; then the short blocks are folded back into long ones and a new phase starts, about 4/3 larger. Seven sweeps are proved in Lean; the phase map is not worked out yet.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.77&middot;10<sup>1,713</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "7 sweeps",
@@ -158,5 +169,5 @@
    }
   ]
  },
- "summary": "Three zones: a growing run of 1^5 blocks on the left, a small gadget, and a run of 1^11 blocks that is eaten 3 blocks for every 8 new 1^5 blocks; when the 1^11 run is used up the 1^5 run is folded into about half as many 1^11 blocks and a phase starts again, about 4/3 larger."
+ "summary": "Three zones: a growing run of 1^5 blocks on the left, a small gadget, and a run of 1^11 blocks that is eaten 3 blocks for every 8 new 1^5 blocks; when the 1^11 run is used up the 1^5 run is folded into about half as many 1^11 blocks and a phase starts again, about 4/3 larger. Accelerated run: no halt in 1.77e1713 steps."
 }

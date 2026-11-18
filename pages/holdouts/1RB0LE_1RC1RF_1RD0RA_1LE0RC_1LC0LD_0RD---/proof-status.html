@@ -148,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 5.74&middot;10<sup>10</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 100,000,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 5.74&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- 6 100000000</code></p>
+      </div>
+      <div class="card">
         <h3>Near misses</h3>
         <p>In 10<sup>9</sup> steps A reads a 0 5,815,845 times: 5,815,812 times followed by <code>1 0 1</code>, 16 times by <code>1 0 0</code>, 17 times at the blank end; never followed by <code>1 1</code> (which would halt).</p>
         <p class="where"><code>c/nbhd.c</code> (<code>./nbhd M 1000000000 A 0</code>)</p>

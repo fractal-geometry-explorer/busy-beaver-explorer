@@ -133,6 +133,12 @@
    "where": "<code>tools/c/doubling_phases.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.16&middot;10<sup>23</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,211,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 6.16&middot;10<sup>23</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE 2 2211600000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It would need an all-ones tape whose length is in a sparse list; nothing rules that out.",
@@ -148,6 +154,11 @@
  "explainer": {
   "lede": "Nobody knows, but the reason is now clear. The tape is an alternating block next to a solid block; the machine doubles one at the other's expense, back and forth. It can only halt right after the tape becomes all ones, and only if the number of ones is in a sparse list (3, 13, 35, 81, 175, &hellip;).",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "6.16&middot;10<sup>23</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "native",
     "value": "10<sup>8</sup> phases",
@@ -274,5 +285,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 12·2^k − 2k − 9, and that has not happened."
+ "summary": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 12·2^k − 2k − 9, and that has not happened. Accelerated run: no halt in 6.16e23 steps."
 }

@@ -78,6 +78,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 2.23&middot;10<sup>147</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 4,883,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>147</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=4883000 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA</code>"
+  },
+  {
+   "level": "trusted",
    "title": "No pushdown certificate with a DFA of at most 6 states",
    "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA ./pds 6 L</code> and <code>R</code>.",
    "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
@@ -103,6 +109,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine keeps two counters at the right end, a block of <code>10</code>s and a block of 1s; the 1s are pushed through an irregular growth map while the <code>10</code>s pay for it, and then the roles swap. It has run 10<sup>9</sup> steps without stopping.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.23&middot;10<sup>147</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>18</sup> steps",
@@ -169,5 +180,5 @@
   ]
  },
  "family": "two counters (10)<sup>a</sup> 1<sup>b</sup>: b follows an irregular map while a pays (not yet mapped)",
- "summary": "Two counters (10)^a 1^b: b follows a fixed irregular map f (about 3.4b, digit-driven in base 3) while a pays; X and Y events share one table (b < 400). Open."
+ "summary": "Two counters (10)^a 1^b: b follows a fixed irregular map f (about 3.4b, digit-driven in base 3) while a pays; X and Y events share one table (b < 400). Open. Accelerated run: no halt in 2.23e147 steps."
 }

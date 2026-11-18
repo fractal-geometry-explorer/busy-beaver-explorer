@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.17&middot;10<sup>15</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 989,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.17&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC--- 6 989800000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.1). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493).",
@@ -74,6 +80,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape is long runs of the word 110 with a few marks in between. The head shuttles between the marks and the right end, and each shuttle carries a mark a little further right. When a mark reaches the next one, the two merge and a new, longer phase starts. The crossings are proved in Lean; the merges are not worked out.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.17&middot;10<sup>15</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "4 crossings",
@@ -137,5 +148,5 @@
    }
   ]
  },
- "summary": "Long runs of the word d = 110 with a few marks between them (0 0 1 1, 1 0 1 1, 1^6, ...). The head shuttles between the marks and the right end, and each shuttle moves a mark a few words to the right; when a mark reaches the next one they merge and the runs are redistributed, a nested counter whose phases grow irregularly."
+ "summary": "Long runs of the word d = 110 with a few marks between them (0 0 1 1, 1 0 1 1, 1^6, ...). The head shuttles between the marks and the right end, and each shuttle moves a mark a few words to the right; when a mark reaches the next one they merge and the runs are redistributed, a nested counter whose phases grow irregularly. Accelerated run: no halt in 1.17e15 steps."
 }

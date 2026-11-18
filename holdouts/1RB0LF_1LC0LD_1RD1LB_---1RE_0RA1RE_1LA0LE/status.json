@@ -59,6 +59,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.92&middot;10<sup>1,788</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 52,900,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 1.92&middot;10<sup>1,788</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE 2 --macro 52900000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The block machine agrees with the machine",
    "text": "<code>py/macro.py check 1e8</code> compares the whole tape and the step count at each of the 15,261 macro configurations of the first 10<sup>8</sup> steps with the block machine: all agree.",
    "where": "<code>py/macro.py</code>"
@@ -104,6 +110,11 @@
  "explainer": {
   "lede": "Nobody knows yet, but the question has been boiled down. This machine is a doubly exponential counter: a block of 1s on the left and blocks on the right wear each other down two by two, units merge into blocks twice as big, and each epoch <code>1^N F&gt;0 0 1^3</code> leads to a new one with N about 2<sup>&radic;N/3</sup>. Lean proves it halts exactly when a left block of four meets nothing but single 1s, which happens when N is one of 6, 20, 50, 112, 238, ... = 2<sup>n+4</sup> &minus; 2n &minus; 10. The orbit 10, 27, 60, ..., 17220, 8534636888060 has missed them all.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.92&middot;10<sup>1,788</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; X = 4",
@@ -208,6 +219,6 @@
   ]
  },
  "family": "doubly exponential counter; halts iff the outer orbit hits 2^(n+4) - 2n - 10",
- "summary": "A left block of 1s and blocks on the right wear each other down two by two, and units merge into doubled blocks; epochs O(N) = 1^N F&gt;0 0 1^3 go to O(N') with N' about 2^(&radic;N/3). Proved in Lean: it halts iff the block machine reaches a left block of four with only units on its right, and O(N) halts for every N = 2^(n+4) - 2n - 10; the orbit 10, 27, 60, ..., 17220, 8534636888060 never hits that set.",
+ "summary": "A left block of 1s and blocks on the right wear each other down two by two, and units merge into doubled blocks; epochs O(N) = 1^N F&gt;0 0 1^3 go to O(N') with N' about 2^(&radic;N/3). Proved in Lean: it halts iff the block machine reaches a left block of four with only units on its right, and O(N) halts for every N = 2^(n+4) - 2n - 10; the orbit 10, 27, 60, ..., 17220, 8534636888060 never hits that set. Accelerated run: no halt in 1.92e1788 steps.",
  "decision": "open"
 }

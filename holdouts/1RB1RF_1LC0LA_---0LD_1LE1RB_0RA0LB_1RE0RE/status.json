@@ -40,12 +40,6 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
-   "level": "trusted",
-   "title": "No halt in the first 3.26·10<sup>18</sup> steps (accelerated run)",
-   "text": "<code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 6 cells, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 3.26·10<sup>18</sup> machine steps (exact count; tape spanning 2,845,790,988 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (17,705,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.",
-   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE 6 1000000000000000 run.ck 300</code>"
-  },
-  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.024). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.455).",
@@ -62,6 +56,12 @@
    "title": "No halt in 9&middot;10<sup>11</sup> steps",
    "text": "<code>bbtools.cycles</code> on 6-cell blocks, every jump k applications of a proved cycle rule, reaches 906,804,978,838 steps from blank tape without a halt.",
    "where": "<code>py/cycles_run.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 2.23&middot;10<sup>519</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 1,676,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>519</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=1676000 1RB1RF_1LC0LA_---0LD_1LE1RB_0RA0LB_1RE0RE</code>"
   },
   {
    "level": "heuristic",
@@ -86,6 +86,11 @@
  "explainer": {
   "lede": "Nobody knows. Read in blocks of six cells, this machine's tape is one repeating word with a few places where the pattern slips; the head moves those slips around, and the longest block grows by about a third each time. That is the signature of a Collatz-like map, which has not been pinned down.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.23&middot;10<sup>519</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "50 rules",
@@ -143,5 +148,5 @@
    }
   ]
  },
- "summary": "In 6-cell blocks the tape is the periodic word 110100 with a few phase defects; sweeps move them, and over each phase the largest block grows by about 4/3. 50 cycle rules proved in Lean; no halt in 9*10^11 steps. Large-scale map not found."
+ "summary": "In 6-cell blocks the tape is the periodic word 110100 with a few phase defects; sweeps move them, and over each phase the largest block grows by about 4/3. 50 cycle rules proved in Lean; no halt in 9*10^11 steps. Large-scale map not found. Accelerated run: no halt in 2.23e519 steps."
 }

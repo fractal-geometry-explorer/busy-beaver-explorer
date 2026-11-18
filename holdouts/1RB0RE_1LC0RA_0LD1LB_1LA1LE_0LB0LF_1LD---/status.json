@@ -94,6 +94,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.29&middot;10<sup>102,641</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 4,140,000 macro steps from blank tape without a halt, in 302 seconds. That is more than 5.29&middot;10<sup>102,641</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD--- 2 --macro 4140000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.487). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.032).",
@@ -121,6 +127,11 @@
  "explainer": {
   "lede": "Nobody knows. The machine runs a Collatz-like map on the number of 1s (about ×10/3 per phase), and when the count is 2 mod 3 it leaves a small remnant on the tape that later phases absorb. Lean proves the map, remnants included, through 61,963 phases from blank tape: if it ever halts, it takes more than 2^6953 steps.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.29&middot;10<sup>102,641</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "&gt; 2<sup>6953</sup> steps",
@@ -197,7 +208,7 @@
    }
   ]
  },
- "summary": "A Collatz-like map on the number of 1s with remnants left on the tape: S(3j) → S(10j+12), S(3j+1) → S(10j+14), S(3j+2) → S(10j−2) plus a remnant 0(10)^6 1111; the map on (m, remnants) is proved in Lean through 61,963 phases from blank tape (a halt would take over 2^6953 steps), then hits an unproved nested-remnant case.",
+ "summary": "A Collatz-like map on the number of 1s with remnants left on the tape: S(3j) → S(10j+12), S(3j+1) → S(10j+14), S(3j+2) → S(10j−2) plus a remnant 0(10)^6 1111; the map on (m, remnants) is proved in Lean through 61,963 phases from blank tape (a halt would take over 2^6953 steps), then hits an unproved nested-remnant case. Accelerated run: no halt in 5.29e102641 steps.",
  "family": "Collatz-like map m → 10m/3 (three residues)",
  "decision": "open"
 }

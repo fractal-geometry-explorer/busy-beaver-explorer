@@ -88,6 +88,12 @@
    "where": "<code>orbit_10000</code>, <code>lean/Orbit.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.33&middot;10<sup>1,615</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 94,140,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.33&middot;10<sup>1,615</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA 4 94140000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The orbit probably never hits H",
    "hand": true,
@@ -110,6 +116,11 @@
  "explainer": {
   "lede": "Probably not, but nobody can prove it: between rare resets this machine is a plain bouncer, and Lean now proves that it halts exactly when one explicit Collatz-like orbit hits a sparse set of numbers.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.33&middot;10<sup>1,615</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -199,7 +210,7 @@
    }
   ]
  },
- "summary": "Bouncer whose tape is (10)^x 1^y: each sweep trades two pairs for six 1s; when the pairs run out the block 1^t is recycled by an explicit map, and it is a Lean theorem that the machine halts iff the orbit of 44 hits t = 2^(j+1) - 2j - 7.",
+ "summary": "Bouncer whose tape is (10)^x 1^y: each sweep trades two pairs for six 1s; when the pairs run out the block 1^t is recycled by an explicit map, and it is a Lean theorem that the machine halts iff the orbit of 44 hits t = 2^(j+1) - 2j - 7. Accelerated run: no halt in 3.33e1615 steps.",
  "family": "two-region bouncer with a Collatz-like reset",
  "decision": "open"
 }

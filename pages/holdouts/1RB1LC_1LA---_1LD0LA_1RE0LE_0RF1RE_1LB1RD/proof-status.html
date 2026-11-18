@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.84&middot;10<sup>14</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,835,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.84&middot;10<sup>14</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD 4 1835800000</code></p>
+      </div>
+      <div class="card">
         <h3>156 phases without a halt</h3>
         <p><code>py/phases.py</code> runs the exact accelerated simulator <code>py/tsim.py</code> and skips the rounds of each phase by the Lean rule (only for even Q; the few phases with odd Q, where the rule does not apply and the run does something else, are simulated cell by cell). In 156 phases there is no halt; the largest phase has P = 3,145,717 and alone costs about 3.5&middot;10<sup>13</sup> steps.</p>
         <p class="where"><code>python3 py/phases.py 156</code> (about 10 minutes)</p>

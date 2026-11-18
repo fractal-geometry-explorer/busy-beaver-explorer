@@ -158,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.23&middot;10<sup>1,822</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 5,672,087 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>1,822</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=5672087 1RB1RD_1RC1LD_0LA1RA_1LE0RC_---1LF_0LA0LB</code></p>
+      </div>
+      <div class="card">
         <h3>Rounds, observed</h3>
         <p>At the left end the tape is <code>F&gt; 0 a^N [counter] c^M ...</code>; each round trip increments the counter, which consumes c's. The values of M when a round starts: 24, 36, 50, 72, 116, 170, 248, 342, 454, 613, 814, 1100, 1466, 1967, 2628, a ratio of about 4/3. Seen in simulation, not proved.</p>
         <p class="where"><code>c/events.c</code></p>

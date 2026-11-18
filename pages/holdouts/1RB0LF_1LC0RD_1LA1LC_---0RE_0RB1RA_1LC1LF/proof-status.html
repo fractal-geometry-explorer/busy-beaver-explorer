@@ -142,6 +142,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.15&middot;10<sup>10</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 30,000,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 2.15&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF 4 30000000</code></p>
+      </div>
+      <div class="card">
         <h3>Tape shape</h3>
         <p>At the last side switches before 10<sup>9</sup> steps the tape is, at the left end, <code>0 0 (110)^6 1110 (110)^4 (1110)^398 1 (1110)^319 110 (1110)^2 0 1110</code> (step 996,763,950); at the right end, <code>… (1100)^717 1110 0000 (1100)^2 110</code> after a disordered stretch of 37 cells (step 998,058,647). The two runs at the left (409 + 308, then 398 + 319) add up to the one run at the right (716, then 717), to within one word.</p>
         <p class="where"><code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log</p>

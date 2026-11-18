@@ -40,6 +40,12 @@
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.42&middot;10<sup>15</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,787,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.42&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB 4 1787400000</code>"
+  },
+  {
    "level": "kernel",
    "title": "A halt needs an E-run",
    "text": "Two steps before a halt the head is in state E reading a 1: F (halting on a 0) is entered only from E0, and E from D1 (then F reads the 1 that D wrote) or from E1.",
@@ -85,6 +91,11 @@
  "explainer": {
   "lede": "Nobody knows yet. The question is close to another holdout's, but separate: this machine is <a href=\"../1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF/explainer.html\">1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF</a> seen in a mirror and started one step later, and it runs the same tape with one extra 1 at the far end. Lean proves it can only halt during an <em>E-run</em>, which so far has only happened at the far wall.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.42&middot;10<sup>15</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halt &rArr; E-run",
@@ -144,6 +155,6 @@
   ]
  },
  "family": "particles in a 1010 sea, counter-like (fixed/sqrt); twin of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF",
- "summary": "The mirror image of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF, started one step later: its run is that machine's run with one extra 1 at the far wall; a halt needs an E-run, which has only happened at the wall.",
+ "summary": "The mirror image of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF, started one step later: its run is that machine's run with one extra 1 at the far wall; a halt needs an E-run, which has only happened at the wall. Accelerated run: no halt in 2.42e15 steps.",
  "decision": "open"
 }

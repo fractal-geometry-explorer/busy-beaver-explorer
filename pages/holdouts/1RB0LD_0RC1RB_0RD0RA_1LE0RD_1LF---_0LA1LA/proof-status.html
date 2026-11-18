@@ -160,6 +160,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.78&middot;10<sup>16</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 6 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 38,680,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 2.78&middot;10<sup>16</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0LD_0RC1RB_0RD0RA_1LE0RD_1LF---_0LA1LA 6 --macro 38680000</code></p>
+      </div>
+      <div class="card">
         <h3>Tape shape</h3>
         <p>At the left-end side switches near 10<sup>9</sup> steps the tape is <code>0 0 1^x 0 1^y 0 1 1</code> (x, y = 1428, 2925 at step 993,152,325; 3993, 327 at step 980,400,468; 1374, 2907 at step 958,686,998); at the right-end switches it is <code>1 1 1 1 0^u 1^v 0 0 1 1 1 0</code> (u, v = 3828, 493 at step 980,513,054; 4043, 244 at step 966,274,903).</p>
         <p class="where"><code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log</p>

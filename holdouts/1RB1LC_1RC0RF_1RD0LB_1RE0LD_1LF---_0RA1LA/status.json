@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.07&middot;10<sup>19,058</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 3,923,081 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 7.07&middot;10<sup>19,058</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=3923081 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA</code>"
+  },
+  {
    "level": "kernel",
    "title": "The turns at the left end, for every block length",
    "text": "<code>0^inf (1100)^(n+1) C&gt; 11 R</code> and <code>0^inf 1 (1001)^(n+1) A&gt; 1 R</code> both reach <code>0^inf 1 (1001)^(n+1) 1001 B&gt; R</code> (16n+32 and 16n+33 steps): the head crosses the c block leftwards, bounces and crosses it back. From <code>0^inf A&gt; 0 (1100)^(n+1) R</code> it reaches <code>0^inf (1100)^(n+1) 1 B&gt; R</code> in 6n+7 steps. For all n and every tape R.",
@@ -118,6 +124,11 @@
   "lede": "Nobody knows. This machine keeps two blocks of words side by side: one grows while the other shrinks, and when the second is used up the first is turned into it, about three times larger than last time.",
   "facts": [
    {
+    "level": "trusted",
+    "value": "7.07&middot;10<sup>19,058</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
+   {
     "level": "kernel",
     "value": "31 for 5",
     "text": "One period trades five d words for 31 c words; proved in Lean for every size."
@@ -184,5 +195,5 @@
   ]
  },
  "family": "two blocks trading words, with resets (nested; a halting class exists on the second level)",
- "summary": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases."
+ "summary": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases. Accelerated run: no halt in 7.07e19058 steps."
 }

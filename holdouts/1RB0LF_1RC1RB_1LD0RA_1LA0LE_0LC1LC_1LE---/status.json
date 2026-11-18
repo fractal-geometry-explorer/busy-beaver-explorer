@@ -46,6 +46,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.40&middot;10<sup>12</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 908,799 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.40&middot;10<sup>12</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=908799 1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.495). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.288).",
@@ -92,6 +98,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape is the four cells 0111 repeated, in long stretches separated by a few short defects. The head crosses the stretches by proved rules, but the defects change in a way nobody has pinned down.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.40&middot;10<sup>12</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -171,7 +182,7 @@
    }
   ]
  },
- "summary": "A bouncer over the background 0111, written (0111)^2 after a sweep to the right and 01001111 after a sweep to the left; the tape is a few long domains of it separated by short defects, which drift and change length from sweep to sweep with no known rule.",
+ "summary": "A bouncer over the background 0111, written (0111)^2 after a sweep to the right and 01001111 after a sweep to the left; the tape is a few long domains of it separated by short defects, which drift and change length from sweep to sweep with no known rule. Accelerated run: no halt in 1.40e12 steps.",
  "family": "period-4/8 bouncer with a few drifting defects",
  "decision": "open"
 }

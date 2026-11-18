@@ -163,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 6.38&middot;10<sup>43,391</sup> steps (accelerated run, blocks of 3)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 3 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 19,960,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 6.38&middot;10<sup>43,391</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 3 --macro 19960000</code></p>
+      </div>
+      <div class="card">
         <h3>The Lean step map agrees with plain simulation</h3>
         <p><code>py/zonemap.py</code> is the same simulator in Python. Along the orbit from <code>1 A&gt; 0 b^468 1</code> it gives the same (W', N') as the plain step map of <code>py/stepmap.py</code> (one step simulated in C, three values of N per case) for 4,000 steps, when N has 2,349 bits and walls have up to 563 cells.</p>
         <p class="where"><code>py/zonemap.py check 4000</code></p>

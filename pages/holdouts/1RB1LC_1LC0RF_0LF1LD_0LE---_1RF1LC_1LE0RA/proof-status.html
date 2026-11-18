@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.24&middot;10<sup>48,365</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 8,200,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 1.24&middot;10<sup>48,365</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1LC0RF_0LF1LD_0LE---_1RF1LC_1LE0RA 6 8200000</code></p>
+      </div>
+      <div class="card">
         <h3>The phase map with an empty tail</h3>
         <p>A phase starts with the head in C on a new cell at the left end and l cells (<code>1^l</code> or <code>10 1^(l-2)</code>) before the tail. On the run from blank tape and on constructed tapes: with an empty tail, an even l goes to 3l/2 + 4 with an empty tail and an odd l to (3l+5)/2 with the tail <code>011</code>; with the tail <code>(011)^c</code> an even l goes to 3l/2 + 4 + 3c with an empty tail.</p>
         <p class="where"><code>c/m6phase.c</code></p>

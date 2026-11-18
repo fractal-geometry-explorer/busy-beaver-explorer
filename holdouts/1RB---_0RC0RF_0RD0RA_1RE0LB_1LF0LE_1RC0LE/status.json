@@ -46,6 +46,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.14&middot;10<sup>10</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 38,600,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 4.14&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE 4 38600000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.528). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -91,6 +97,11 @@
  "explainer": {
   "lede": "Nobody knows. Each sweep of the head lengthens a block of the background 1010&hellip; at the left end by one cell; behind it, a slowly growing region of defects is rearranged a cell at a time, and nobody has found the rule it follows.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.14&middot;10<sup>10</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "28 defects",
@@ -148,6 +159,6 @@
    }
   ]
  },
- "summary": "A bouncer whose first block grows by one cell per sweep; behind it a region of defects in the 1010... background, moved one cell at a time by a zig-zagging head, grows about logarithmically and looks irregular.",
+ "summary": "A bouncer whose first block grows by one cell per sweep; behind it a region of defects in the 1010... background, moved one cell at a time by a zig-zagging head, grows about logarithmically and looks irregular. Accelerated run: no halt in 4.14e10 steps.",
  "decision": "open"
 }

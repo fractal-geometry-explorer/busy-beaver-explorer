@@ -95,6 +95,12 @@
    "where": "<code>lean/Phases.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.65&middot;10<sup>22</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,542,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.65&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 4 1542400000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known.",
@@ -111,6 +117,11 @@
  "explainer": {
   "lede": "Nobody knows. Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.65&middot;10<sup>22</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "native",
     "value": "10<sup>8</sup> frames",
@@ -207,5 +218,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts."
+ "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. Accelerated run: no halt in 2.65e22 steps."
 }

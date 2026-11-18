@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.96&middot;10<sup>29,100</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,220,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.96&middot;10<sup>29,100</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE 4 7220000</code></p>
+      </div>
+      <div class="card">
         <h3>The epoch map</h3>
         <p>From <code>E(g,R) = 0^inf A&gt; 0 1 0^g R</code> the next epoch is E(3g/2 + c, R'), where c (one of -9, -6, -3, +6) and R' depend only on g mod 4 and R. Checked for four values of g in each class for every R tried, and against direct simulation epoch by epoch up to 3&middot;10<sup>11</sup> steps.</p>
         <p class="where"><code>py/epochs.py direct</code>, <code>py/epochs.py uniform</code></p>

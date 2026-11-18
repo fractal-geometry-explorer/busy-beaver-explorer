@@ -82,6 +82,12 @@
    "where": "<code>tools/c/redmaps.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.12&middot;10<sup>2,004</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,140,878 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.12&middot;10<sup>2,004</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2140878 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE</code>"
+  },
+  {
    "level": "open",
    "title": "Does the orbit ever reach i = j or i + 1 = j?",
    "text": "Not known: a Collatz-type question about a piecewise affine map mixing subtraction and multiplication by 3.",
@@ -97,6 +103,11 @@
  "explainer": {
   "lede": "Nobody knows, but the question has been boiled down. This machine keeps two blocks of 1s on its tape and, round after round, takes the shorter one off the longer one and triples it, like Euclid's algorithm gone wrong. Lean proves that it halts exactly when the two blocks come out equal (or off by one) at the end of a round. This page runs the real machine, shows the rule, and lists what is known.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.12&middot;10<sup>2,004</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "halts &hArr; orbit hits",
@@ -171,6 +182,6 @@
    }
   ]
  },
- "summary": "Two blocks of 1s play a Euclid-like game with tripling, (i, j) to (i - j - 1, 3j + 2) and similar; Lean proves it halts iff the orbit reaches i = j or i + 1 = j, which no iterate up to 10<sup>6</sup> rounds does.",
+ "summary": "Two blocks of 1s play a Euclid-like game with tripling, (i, j) to (i - j - 1, 3j + 2) and similar; Lean proves it halts iff the orbit reaches i = j or i + 1 = j, which no iterate up to 10<sup>6</sup> rounds does. Accelerated run: no halt in 1.12e2004 steps.",
  "decision": "open"
 }

@@ -148,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.29&middot;10<sup>17</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,838,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.29&middot;10<sup>17</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_1RC0RB_1LD0RA_0LE0LC_1LB1LF_1LD--- 4 2838600000</code></p>
+      </div>
+      <div class="card">
         <h3>Halting needs 1 A&gt;1 or 1 E&gt;1</h3>
         <p>The only halting entry is F reading a 1. F is entered from <code>A&gt;1</code> (write 0, move left) and from <code>E&gt;1</code> (write 1, move left), so the machine halts exactly when A or E reads a 1 with a 1 to its left. In the first 10<sup>8</sup> steps F is entered 27,487 times, always onto a 0; the window around the head is <code>101[0]101</code> in 22,690 of them.</p>
         <p class="where"><code>c/haltwatch.c</code>, first 10<sup>8</sup> steps</p>

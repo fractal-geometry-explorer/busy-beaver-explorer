@@ -64,6 +64,12 @@
    "where": "<code>py/phases.py 1500</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.41&middot;10<sup>28,643</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,516,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.41&middot;10<sup>28,643</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2516000 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Halting words exist",
    "text": "With the residue Z mod 4 chosen freely at every phase, 23,305 words of at most 24 cells are reachable from the first phase start, and 7,145 of the (word, residue) pairs met halt, for example <code>0 1 0 0 1 1 1 0 1</code> with Z &equiv; 3. So halting is not excluded by the words alone; it depends on the residues along the real orbit.",
@@ -105,6 +111,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine runs a cousin of the Collatz map. Each phase it turns a run of Z zeros into a wall of <code>100</code> words and back into about 3Z/2 zeros. The remainder of Z mod 4 ticks a counter kept in a short word at the far end of the tape, and the counter runs through cycles that grow threefold.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.41&middot;10<sup>28,643</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "4 zeros, 2 words",
@@ -182,5 +193,5 @@
   ]
  },
  "family": "Collatz-like map with a stack",
- "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end, whose cycles grow threefold, and Z mod 8 at the end of a cycle decides whether the word grows a new level. Halting words are reachable with freely chosen residues, not so far along the real orbit."
+ "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end, whose cycles grow threefold, and Z mod 8 at the end of a cycle decides whether the word grows a new level. Halting words are reachable with freely chosen residues, not so far along the real orbit. Accelerated run: no halt in 1.41e28643 steps."
 }

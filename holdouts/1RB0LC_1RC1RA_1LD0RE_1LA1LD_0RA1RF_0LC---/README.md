@@ -114,6 +114,15 @@ each of the 53 machines of the family "chaotic bells over block lists": no halt 
 agreed. Machines that share a transition table with different start states are separate runs; nothing is claimed
 from one to another.
 
+**C++ port.** `c/rsim.cpp` is `py/rsim.py` in C++ with 128-bit counts (it stops with OVERFLOW near 2^120): the same algorithm, constants and decisions, so `py/rsim_cmp.py` (the Python program printing what the C++ one prints in its `dump` mode) and `c/rsim.cpp` agree line for line, steps, state, jumps, rules applied and the whole tape, on all 53 machines at 10^5 to 10^9 steps (18 November 2026). It is only about twice as fast: the time goes into the samples (a signature of the whole tape at every left turn) and the string work of the ropes, not into the interpreter.
+
+```sh
+g++ -O2 -std=c++17 -o rsim $P/c/rsim.cpp
+./rsim 1RB0LC_1LA0RD_0LD1LF_0RE0RA_1LB1RE_0LB--- dump 1e6,1e8,1e9 32 > c.out    # KEEP = 32 as in the screen
+python3 $P/py/rsim_cmp.py 1RB0LC_1LA0RD_0LD1LF_0RE0RA_1LB1RE_0LB--- 1e6,1e8,1e9 32 > p.out && cmp c.out p.out
+./rsim 1RB0LC_1LA0RD_0LD1LF_0RE0RA_1LB1RE_0LB--- decades 1200                             # decade by decade for 20 minutes
+```
+
 ```sh
 python3 $P/py/rsim_validate.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC--- 1e6,1e8,1e10      # compare with direct simulation
 python3 $P/py/rsim_screen.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC--- 400                # checkpoints, then run 400 s

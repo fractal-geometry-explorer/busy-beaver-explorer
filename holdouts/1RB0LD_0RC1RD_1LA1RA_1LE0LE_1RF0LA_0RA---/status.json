@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.45&middot;10<sup>30,862</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 12,460,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 3.45&middot;10<sup>30,862</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 6 12460000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.509). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.079).",
@@ -118,6 +124,11 @@
  "explainer": {
   "lede": "Nobody knows yet, but its map is now fully known. A block of <code>101</code>s grows by 4/3 each round, while a short word at the right end, the tail, gets rewritten; the machine could only stop inside such a rewrite, and none of the 90,000 rewrites tried stops.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.45&middot;10<sup>30,862</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "P-map",
@@ -205,5 +216,5 @@
   ]
  },
  "family": "4/3 map on (101)^n with a tail word transformed each round (finite-state rounds)",
- "summary": "Each round multiplies a block of (101)s by 4/3 and rewrites a short tail word; the round depends on n only mod 3, so the map is exact and iterated 100,000 rounds (past 10^24990 steps) without a halt; the P-map is proved in Lean for all n."
+ "summary": "Each round multiplies a block of (101)s by 4/3 and rewrites a short tail word; the round depends on n only mod 3, so the map is exact and iterated 100,000 rounds (past 10^24990 steps) without a halt; the P-map is proved in Lean for all n. Accelerated run: no halt in 3.45e30862 steps."
 }

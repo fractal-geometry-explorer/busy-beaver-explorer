@@ -59,6 +59,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 3.46&middot;10<sup>12</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 54,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 3.46&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF 4 54200000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Only four D-runs in 10<sup>9</sup> steps, all at the wall",
    "text": "At steps 130, 309, 2,306,898 and 2,380,763 D erased the wall block 1^6 at the right end; the block after it saved the machine each time.",
    "where": "<code>c/drun.c</code>"
@@ -106,6 +112,11 @@
  "explainer": {
   "lede": "Nobody knows yet. This machine keeps almost all of its tape as a plain <code>1010...</code> pattern that its head flips back and forth without changing anything; what matters are a dozen small defects, <em>particles</em>, that a little counter at the left end pushes around one at a time, like carries. Lean proves the machine can only halt in a rare event that, so far, has only happened at the far right wall of the tape, four times, early on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.46&middot;10<sup>12</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halt &rArr; D-run",
@@ -213,6 +224,6 @@
   ]
  },
  "family": "particles in a 1010 sea, counter-like (fixed/sqrt)",
- "summary": "The tape is a sea of 1010 carrying a dozen particles that a 2-bit gadget at the left end pushes around like a counter with carries; a halt needs a D-run, and D-runs have only happened when a rare trip reached the wall at the right end.",
+ "summary": "The tape is a sea of 1010 carrying a dozen particles that a 2-bit gadget at the left end pushes around like a counter with carries; a halt needs a D-run, and D-runs have only happened when a rare trip reached the wall at the right end. Accelerated run: no halt in 3.46e12 steps.",
  "decision": "open"
 }

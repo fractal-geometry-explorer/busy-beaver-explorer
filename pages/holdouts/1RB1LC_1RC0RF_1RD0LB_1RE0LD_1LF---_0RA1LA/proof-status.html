@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 7.07&middot;10<sup>19,058</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 3,923,081 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 7.07&middot;10<sup>19,058</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=3923081 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA</code></p>
+      </div>
+      <div class="card">
         <h3>An accelerated simulator, checked against the machine</h3>
         <p><code>c/m7fast.c</code> runs the machine and applies the period rule in one stroke wherever the tape has that form, with the exact step count. With <code>VAL=11</code> it runs the plain machine beside it and compares the whole tape and state at 1,164 checkpoints (every jump and every record on the left in between) up to 5.9&middot;10<sup>10</sup> steps: no difference.</p>
         <p class="where"><code>VAL=11 SZ=268435456 c/m7fast 12</code></p>

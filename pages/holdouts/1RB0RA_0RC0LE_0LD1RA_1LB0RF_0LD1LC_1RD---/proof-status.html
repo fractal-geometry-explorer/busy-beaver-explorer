@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where">README</p>
       </div>
       <div class="card">
+        <h3>No halt in the first 7.04&middot;10<sup>12</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 41,400,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 7.04&middot;10<sup>12</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- 4 41400000</code></p>
+      </div>
+      <div class="card">
         <h3>The increment rule, checked</h3>
         <p>Low 1-digits become 0, the next 0 becomes 1, its block and the lowest block gain two <code>10</code>s each, the reservoir loses two. A direct simulation of 3·10<sup>7</sup> steps finds 2,282 increments that match and none that disagree; 141 carries run into higher separators and 17 reservoir refills fall outside the rule.</p>
         <p class="where"><code>py/check_increments.py</code></p>
