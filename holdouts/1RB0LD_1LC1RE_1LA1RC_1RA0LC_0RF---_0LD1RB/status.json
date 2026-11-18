@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The pieces of a sweep are proved in Lean for every size (leftward recoding of even blocks into pairs, the turn at an odd block, the rightward regrouping of pairs by threes); the global dynamics, a few defects drifting through a background of <code>1^8</code> blocks, is described from simulation only. No halt in the first 10<sup>11</sup> steps (The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>11</sup> steps from blank tape without a halt (522,424 cells visited).)."
  ],
@@ -56,6 +56,12 @@
    "title": "Blocks of 3d+2, defects in a background of 1^8",
    "text": "At the right-end moments of the first 3&middot;10<sup>7</sup> steps every block right of the start cell but the first (cut at the start cell) and the last (3) has 3d+2 ones; 1^8 (d = 2) is the background: its 3 pairs plus segment end regroup to 1^5 plus 3 = 1^8 again. A handful of defects (digit groups such as <code>4 1</code>, <code>7</code>, <code>1 5</code>, <code>3 1</code>, <code>6</code>, <code>1 2 1</code>) sit between long runs of 8s; the runs to their left shrink and those to their right grow by one per pass, so the defects drift left, and the leftmost group of digits changes slowly, like the top digits of a counter.",
    "where": "<code>README.md</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halts if and only if DeepMind's table halts from state C",
+   "text": "Lean proves that this machine halts from blank tape exactly when <code>1RB0LD_1RC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB</code> does. That machine is <code>1RB1RE_1LC1RB_1RA0LD_1RC0LB_0RF---_0LD1RA</code> with its states renamed so that it starts in state C. Google DeepMind's cryptids repository proves that table never halts when it starts in state A (<code>BusyBeaver/BB6/NonHalt/M_1RB1RE_1LC1RB_1RA0LD_1RC0LB_0RFHHH_0LD1RA.lean</code>), so this holdout is the same table's other start, one transition away. The two machines differ only in B0 (<code>1LC</code> here, <code>1RC</code> there). B is entered only by <code>1RB</code>, so the cell left of the head is always 1 in B, and here B0 followed by C1 (<code>1RC</code>) does in two steps what B0 does in one there. The check is a re-sync certificate over a closed tape language (<code>TM.Sync.halts_iff</code>, 67 abstract configurations). It does not settle the holdout, because DeepMind's proof is for the other start. Their macro rules are facts about the table, so they hold here too; what is missing is a run certificate from state C.",
+   "where": "<code>halts_iff</code>, <code>lean/SyncDM.lean</code>"
   },
   {
    "level": "open",
