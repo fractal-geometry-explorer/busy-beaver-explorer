@@ -33,9 +33,9 @@ let step () =
     ones := !ones + nb - b; Bytes.set tape !p (Char.chr nb); p := !p + d; q := nq; incr steps; true end
 let () =
   let start = Sys.argv.(1) in
-  q := (match start with "B" -> 1 | "C" -> 2 | "D" -> 3 | _ -> failwith "START is B, C or D");
+  q := (match start with "A" -> 0 | "B" -> 1 | "C" -> 2 | "D" -> 3 | _ -> failwith "START is A, B, C or D");
   let lim = int_of_string Sys.argv.(2) and maxdirect = int_of_string Sys.argv.(3) in
-  let s = ref (match start with "B" -> T4C.initFastB | "C" -> T4C.initFastC | _ -> T4C.initFastD) in
+  let s = ref (match start with "A" -> T4C.initFastA | "B" -> T4C.initFastB | "C" -> T4C.initFastC | _ -> T4C.initFastD) in
   let i = ref 0 and stop = ref false in
   while not !stop && !i < lim do
     (match T4C.stepFast !s with

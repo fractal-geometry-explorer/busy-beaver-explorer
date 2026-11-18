@@ -22,6 +22,7 @@ Definition fs_list (s : FastState) : list Sym * Q * bool * list Sym :=
   | RAW q L => (l, q, true, r)
   end.
 Definition fs_size (s : FastState) : N := N.of_nat (List.length (fs_L s) + List.length (r_raw (fs_R s)) + List.length (d_front (fs_R s)) + List.length (d_back (fs_R s)) + List.length (r_tail (fs_R s))).
+Definition initFastA : FastState := MkFastState [] (MkRTape [] [] [] []) (RAW A R).
 Definition initFastB : FastState := MkFastState [] (MkRTape [] [] [] []) (RAW B R).
 Definition initFastD : FastState := MkFastState [] (MkRTape [] [] [] []) (RAW D R).
 Definition sw_cells (w : SymWord) : N :=
