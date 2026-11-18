@@ -90,6 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> The machine is a base-5 counter, incremented once per sweep, whose digits drift and collide; Lean proves the counting rule for all configurations, and an exact simulator of that structure finds no halt in the first 10<sup>16</sup> steps. Halting needs a crowded collision that the run has never produced, and nothing proves it never will.</p>
       <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 4.8&middot;10<sup>200</sup> steps without a halt.</p>
+      <p><b>Twin.</b> Proved in Lean to share one question with <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---</code>: both runs meet a bad F-entry together, and if they never do, the two machines halt together.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +137,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What a clean visit conserves</h3>
         <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
         <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One question with its twin 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---</h3>
+        <p>This machine and <code>1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---</code> are the same core in the same frame with the same start; they differ only in D1 and F0, and F is entered only by D1. <code>resync</code> proves, for every tape, that when D reads 1 the two either both halt (a 1 left of D), or meet again in the same configuration (1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---: 2 steps, 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC---: 4) when the tape around the head is <code>0 0 D&gt;1</code> (the two cells left of D are 0) (frame A), or the configuration is <em>bad</em> (<code>1 0 D&gt;1</code>). <code>halt_together</code>: the two runs from blank tape meet a bad configuration together, and if they never do, the two machines halt together. Every F-event observed in the family's runs (to 10<sup>200</sup> steps) is inside <code>1 0 0 0 D&gt;1 1</code>, so any proof that the F-events stay of the proved harmless kind settles both machines at once.</p>
+        <p class="where"><code>halt_together</code>, <code>resync</code>, <code>holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---/lean/Twin.lean</code>; <code>TM.halt_together</code>, <code>tools/lean/TM/Resync.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py</code></p>
       </div>
       <div class="card">
         <h3>The piece rules of a visit</h3>
@@ -215,7 +221,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---/lean/check.sh
 cd holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---/py &amp;&amp; python3 vsim.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA--- A 1e15 D     # about 3 minutes
-python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA--- 1e200          # the exact block-list map; writes data/f05_run.json</code></pre>
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA--- 1e200          # the exact block-list map; writes data/f05_run.json
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --check    # the ten twin pairs and their windows</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

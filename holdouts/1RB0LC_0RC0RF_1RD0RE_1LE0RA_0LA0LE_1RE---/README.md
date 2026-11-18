@@ -264,6 +264,14 @@ The (D1, F0) variants and their machines (runs marked with the same letter had t
 
 <!-- end F05 -->
 
+<!-- F05 twin -->
+
+## Twin: one question with 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---
+
+This machine and [`1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---`](../1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---/README.md) are the same core in the same frame with the same start; they differ only in D1 and F0. When D reads a 1 (frame A), both halt if the cell to its left is 1; with `0 0 D>1` (the two cells left of D are 0) around the head they meet again in the same configuration (`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---`: 3 steps, `1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---`: 3), for every tape; otherwise (`1 0 D>1`) the configuration is *bad*. `halt_together` in [`lean/Twin.lean`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/lean/Twin.lean) (kernel, using `TM.halt_together` from `tools/lean/TM/Resync.lean`): the two runs from blank tape meet a bad configuration together, and if they never do, the machines halt together. Every F-event observed in the family's runs (to 10^200 steps) has `1 0 0 0 D>1 1` around it, so a proof that the F-events stay harmless settles both. See also [EQUIVALENCES.md](../EQUIVALENCES.md).
+
+<!-- end F05 twin -->
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/explainer.html)
