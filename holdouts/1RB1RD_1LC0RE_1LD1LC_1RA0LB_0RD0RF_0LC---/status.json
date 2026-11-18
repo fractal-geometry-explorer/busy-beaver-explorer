@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>The question is open; the round rule is not found.</b> The machine runs a layered counter: a growing prefix <code>(110)^k</code> is turned, at each reset, into runs of groups of sizes 4, 7, 10, 13, … with large multiplicities, which the following sweeps use up. Nothing beyond the generated bounded runs is proved."
  ],
@@ -56,6 +56,18 @@
    "title": "No halt in the first 1.48&times;10<sup>14</sup> steps of an accelerated run",
    "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.48&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.00&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 12,476 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
    "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The four rules where it departs from DeepMind's halting sibling",
+   "text": "For every tape on either side and every count, the four macro rules of DeepMind's engine for <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code> that pass through F0 hold here in a changed form: each ends in state D with <code>11</code> more on the right instead of in state A (collision, collide, finish and defect: 10, 39, 2b+9 and 8m+39 steps).",
+   "where": "<code>t4_collision</code>, <code>t4_collide</code>, <code>t4_finishP</code>, <code>t4_defect0</code>, <code>lean/T4Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "DeepMind's engine, changed for this table, runs 184,291 steps without a halt",
+   "text": "The engine of busycoq PR 93, with the four rules changed and extracted to OCaml, agrees with direct simulation through 1.2&times;10<sup>10</sup> machine steps and then runs 184,291 engine steps from blank tape (to about 2<sup>1882</sup> written cells) without halting and without a gap. Observed, not proved.",
+   "where": "<code>tools/coq/t4engine</code> (<code>run C</code>, <code>validate C</code>)"
   },
   {
    "level": "open",
@@ -128,6 +140,15 @@
      "<p>When the list is used up far enough, the prefix is turned into about <code>k/2</code> groups of size 4 and a new round starts. Large and small resets alternate:</p>",
      "<pre>step          k     list after the reset\n136,979,965   1670  2 3 4^835 7^38 6 1 10^170 9 13^5 16^35 …\n143,004,220   220   2 3 4^110 7^108 5 1 5 1^2 …\n336,918,693   2591  1 1 4^1295 3 1 7^70 6 10^257 13^14 16^53 …\n354,166,720   397   1 1 4^198 3 1 7^197 5 1 5 1^2 …\n528,837,280   3185  2 3 4^1592 6 7^98 6 1 4 10^323 9 7 13^16 …</pre>",
      "<p>The multiplicities of the sizes 4, 7, 10, 13, … act like the digits of a counter with several levels; the rule by which they carry is not worked out.</p>"
+    ]
+   },
+   {
+    "id": "deepmind-engine",
+    "eyebrow": "DeepMind's engine",
+    "heading": "One transition away from a proved halt",
+    "html": [
+     "<p>This machine's table, mirrored and with its states renamed, is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state C; <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code> (state B), <code>1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</code> (state D) are the same table started in the other two states. It differs in the single transition F0 from the table of <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code>, which DeepMind proved halts (busycoq PR 93) with a fast engine: an evaluator over run-length tapes of macro words whose every step is proved sound in Coq. All of that engine's rules hold for this table except four, the ones that pass through F0. In those, where DeepMind's machine ends in the configuration <code>&lt;C 100</code>, this one ends in <code>&lt;B 1</code> with <code>11</code> more on the right; on the digit words <code>D n = 1 (11)^n 00</code> of the engine, this moves a carry from the digit on the left to the digit on the right.</p>",
+     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and ran it from blank tape. After each engine step a direct simulation must reach exactly the engine's configuration; it does for every step checked, through 1.2&times;10<sup>10</sup> machine steps. The engine then ran 184,291 of its steps, to a tape of about 2<sup>1882</sup> written cells, without halting and without meeting a configuration it has no rule for. The changed engine is not a proof: only the four basic rules are proved (in Lean), and the rest is DeepMind's design checked by simulation. A halt found this way would become a Coq proof by redoing PR 93's soundness lemmas for the four rules.</p>"
     ]
    },
    {

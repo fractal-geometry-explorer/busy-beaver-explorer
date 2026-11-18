@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The macro structure is identified by simulation (rounds that halve every run of equal blocks); Lean proves the shift rules the sweeps are made of and that a halt can only come from <code>1 1 1 D&gt; 0</code>. In 10<sup>9</sup> steps D read a 0 about 21,000 times and every time the left neighbours were <code>1 1 0</code> or blank, one cell short of a halt."
  ],
@@ -88,6 +88,18 @@
    "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "The four rules where it departs from DeepMind's halting sibling",
+   "text": "The four changed macro rules are proved in Lean for <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code>, the same table started in state C; they are statements about the table, so they hold here after the renaming of states, which is not itself checked in Lean.",
+   "where": "<code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "DeepMind's engine, changed for this table, runs 185,500 steps without a halt",
+   "text": "The engine of busycoq PR 93, with the four rules changed and extracted to OCaml, agrees with direct simulation through 3&times;10<sup>10</sup> machine steps and then runs 185,500 engine steps from blank tape (to about 2<sup>1877</sup> written cells) without halting and without a gap. Observed, not proved.",
+   "where": "<code>tools/coq/t4engine</code> (<code>run B</code>, <code>validate B</code>)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts exactly if D ever reads a 0 with three 1s on its left. That needs one of the odd blocks or a run boundary to line up badly during a round; the halving law looks like a binary counter on the run lengths with carries (the odd blocks), and nothing in the run so far approaches it. A proof would need the exact round map, including what happens to odd counts and to the junk between runs.",
@@ -158,6 +170,15 @@
      "<pre class=\"config\">... 43x9 37x11 31x46 7 1 23 25x56 7 1 17 19x228 7 1 11 13x284 11 7x1133 1x1500 1</pre>",
      "<p>Compare: the 2265 blocks of level 0 became 1133 blocks of level 1, the 570 of level 1 became 284 of level 2, 458 &rarr; 228, 113 &rarr; 56, 92 &rarr; 46, 23 &rarr; 11, 18 &rarr; 9. Every run halved and went up a level, and a fresh run of 1500 level-0 blocks appeared on the right. That is the law at every round we checked: n blocks of level j become between &lfloor;n/2&rfloor;&minus;1 and &lceil;n/2&rceil;+1 blocks of level j+1. So a run born with n blocks survives about log<sub>2</sub> n rounds, which is why the number of levels, and the left part of the tape, grows only logarithmically.</p>",
      "<p>How the halving is done: a round is an <em>expanding bouncer</em>. The head runs right into the tape and then zig-zags in a window that widens on both sides a few cells per trip. Going right, it rewrites pairs of ones <code>11</code> as <code>01</code>; going left it rewrites <code>01</code> back as <code>11</code> (these shift rules are proved in Lean). Doing so it eats one block of a pair and grows the other by six ones.</p>"
+    ]
+   },
+   {
+    "id": "deepmind-engine",
+    "eyebrow": "DeepMind's engine",
+    "heading": "One transition away from a proved halt",
+    "html": [
+     "<p>This machine's table, mirrored and with its states renamed, is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state B; <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code> (state C), <code>1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</code> (state D) are the same table started in the other two states. It differs in the single transition F0 from the table of <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code>, which DeepMind proved halts (busycoq PR 93) with a fast engine: an evaluator over run-length tapes of macro words whose every step is proved sound in Coq. All of that engine's rules hold for this table except four, the ones that pass through F0. In those, where DeepMind's machine ends in the configuration <code>&lt;C 100</code>, this one ends in <code>&lt;B 1</code> with <code>11</code> more on the right; on the digit words <code>D n = 1 (11)^n 00</code> of the engine, this moves a carry from the digit on the left to the digit on the right.</p>",
+     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and ran it from blank tape. After each engine step a direct simulation must reach exactly the engine's configuration; it does for every step checked, through 3&times;10<sup>10</sup> machine steps. The engine then ran 185,500 of its steps, to a tape of about 2<sup>1877</sup> written cells, without halting and without meeting a configuration it has no rule for. The changed engine is not a proof: only the four basic rules are proved (in Lean), and the rest is DeepMind's design checked by simulation. A halt found this way would become a Coq proof by redoing PR 93's soundness lemmas for the four rules.</p>"
     ]
    },
    {
