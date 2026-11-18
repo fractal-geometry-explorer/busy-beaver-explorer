@@ -23,4 +23,5 @@ src=src.replace('Module M598.','Module H155900.').replace('End M598.','End H1559
 src=src.replace('Definition initFastC : FastState := MkFastState [] (MkRTape [] [] [] []) (RAW C R).','Definition initFastB : FastState := MkFastState [] (MkRTape [] [] [] []) (RAW B R).')
 src=src.replace('initFastC','initFastB').replace('(C;; tape0)','(B;; tape0)').replace('run_pow 22','run_pow 19').replace('run_pow_spec 22','run_pow_spec 19')
 if len(sys.argv)>3 and sys.argv[3]=='fast': src=src.replace('Proof. vm_check_eq. Qed.','Admitted.')
+src=src.rstrip('\n')+'\n\nPrint Assumptions halt.\n'
 open(sys.argv[1],'w').write(src)

@@ -52,15 +52,16 @@ complete Coq proof for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (see Results).
 
 - `strip.py` keeps only the definitions of PR 93's file (`Definition`, `Fixpoint`, `Inductive`, `Record`).
 - `patch.py` replaces the two tables and makes the changes above; each change is one exact string replacement.
-- `extra.v` adds the finite denotation `fs_list` (for validation), the size `fs_cells` and the starts in states B and D.
+- `extra.v` adds the finite denotation `fs_list` (for validation), the size `fs_cells` and the starts in states A, B and D.
 - `ExtT4C.v` extracts the engine to OCaml; `run.ml` and `validate.ml` are the drivers, `peek.ml` prints the mode,
   the head and the first runs of a checkpoint.
-- `proof/`: `mk.py` and `lem.py` write the Coq proof of the halt; `proof/build.sh /path/to/busycoq [fast]`.
+- `proof/`: `mk.py` and `lem.py` write the Coq proof of the halt from B, `mkA.py` turns it into the proof for
+  1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE (start A); `proof/build.sh /path/to/busycoq [fast]`.
 - `build.sh /path/to/busycoq` does all of this (Coq 8.18, OCaml with `ocamlfind`).
 
 Run both with `ulimit -s unlimited`: the extracted list functions are not tail-recursive.
 
-`run START N [CHECKPOINT]` runs `N` fast steps from blank tape in source state `START` (B, C or D), printing the
+`run START N [CHECKPOINT]` runs `N` fast steps from blank tape in source state `START` (A, B, C or D), printing the
 size of the tape as a power of 2 every minute. With a checkpoint file it saves its state there every 10 minutes and
 resumes from it. When no engine rule applies it stops; `peek CHECKPOINT` then shows whether the head is in F on a 1
 (a halt) or the engine has a gap. `validate START N M` runs the
@@ -78,4 +79,9 @@ engine's configuration (state, head cell and every tape cell) within `M` steps i
 - `proof/` makes this a Coq theorem, `halt : halts tm c0` for that machine on busycoq's definitions, with no
   axioms (`Print Assumptions`: closed under the global context; Coq 8.18.0, 33 minutes). The file and its build
   script are in `holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq`.
+- Start A stops after 350,227 fast steps, on a tape of about 2^3562 cells, in a halting configuration (`validate A`
+  agrees with direct simulation through 2·10⁹ steps). T4 from A is not a holdout, but
+  1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE is T4 with E and F exchanged and D0 replaced by a three-step detour that
+  ends where T4's step ends or halts. So that machine halts too: `proof/mkA.py` writes its Coq proof (lemma `detour`
+  plus this run), in `holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq`.
 - Starts C and D have not stopped: see the status pages of those two holdouts for the current count.

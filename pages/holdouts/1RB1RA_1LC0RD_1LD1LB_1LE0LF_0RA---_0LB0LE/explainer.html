@@ -186,18 +186,20 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 18 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE</p>
-  <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows. This machine writes a list of blocks of 1s and, round after round, merges them: every round there are about half as many blocks of each size, each six cells longer, and a fresh supply of short blocks is fed in on the right. This page runs the real machine, shows the lists, and lists what is known.</p></div>
+  <p class="stand here"><b>Decided: it halts</b><span>Proved in this repository, checked by Coq on busycoq's own definitions of a machine and of halting (there is no Lean proof of the whole run). The ledger below says what each part rests on.</span></p>
+  <div class="col"><p class="lede">It halts. For a long time it writes a list of blocks of 1s and merges them round after round. Underneath, it is a slowed-down copy of a table one transition away from a machine DeepMind proved halting, and that table, started where this one starts, halts: a Coq proof shows it.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>halts</b><span class="small">A Coq theorem on busycoq's definitions; the engine needs 350,227 steps, on a tape of about 2<sup>3562</sup> cells.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>8 rules</b><span class="small">Sweep rules proved in Lean for all n.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>&frac12; per round</b><span class="small">The count of each block size halves from one round to the next (simulation).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>6.64&times;10<sup>14</sup> steps</b><span class="small">No halt in the accelerated simulator (observed, not proved; checked against direct simulation up to 1.02&times;10<sup>10</sup> steps).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
+    <div class="proof"><strong>Proved in Coq</strong>The proof: <code>halt : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq</code>. Coq 8.18.0 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. The lemma detour reduces it to the T4 table started in A; the rest is the proof of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (DeepMind's busycoq pull request 93 engine changed for T4) started in A, whose run of 350,227 engine steps is one evaluation. The generator is tools/coq/t4engine/proof/mkA.py.</div>
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Chaotic Bell Class 1</b>. These are labels read off the run by others, not results.</div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
@@ -207,7 +209,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A list of blocks</a><a href="#round">Halve and move up</a><a href="#halt">How it would halt</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A list of blocks</a><a href="#round">Halve and move up</a><a href="#halt">How it halts</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -300,14 +302,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 </section>
 <section id="halt">
   <span class="eyebrow">Halting</span>
-  <h2>How it would halt</h2>
+  <h2>How it halts</h2>
 <p>The only halting transition is E1. State E is entered by D0 (write 1, move left) and by F1 (write 0, move left), so the machine halts exactly when one of these moves lands on a 1. At the left end the head enters E on blank tape and goes on; inside the block list the irregular blocks at the run boundaries are where such a landing could happen. Nothing seen so far does it, and no invariant that rules it out is known.</p>
-<p>To decide the machine one would need the round map in closed form, including what the odd counts and the irregular blocks at the run boundaries do, and then an argument about where E can land. The halving pattern suggests a counter-like invariant may exist; none has been found.</p>
+<p class="t4halt">Exchange E and F. Then every transition is the one of the table <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> (T4) except D0. T4's D0 writes 1 and moves right into A. Here D0 writes 1 and moves left into E; on a 0, E0 writes 0 and moves back right into A, which reads the 1 just written and, with A1 <code>1RA</code>, moves right in A: three steps to T4's configuration. On a 1, E halts. So this machine follows T4's run from state A, three steps for each D0, unless it halts at a detour first.</p>
+<p class="t4halt">T4 is the table of three other holdouts, started in B, C and D; started in B it is proved halting, by DeepMind's fast engine of busycoq PR 93 changed for T4. Started in A, that engine reaches a halting configuration of T4 after 350,227 engine steps, on a tape of about 2<sup>3562</sup> cells. So this machine halts there, or earlier at a detour. Coq checks all of it (<code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq</code>).</p>
 </section>
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 18 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -326,14 +329,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/blocks.c</code></div></div><div><b>Counts halve each round</b><p>From one round end to the next, the number of blocks of length 6m + 1 becomes about half (within a few blocks) the number of blocks of length 6(m &minus; 1) + 1 before; a new run of blocks 1 appears on the right, alternately about 2,000 to 4,000 and about 200 to 450 long in the last rounds. A few irregular blocks sit at the boundaries of the runs.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span></div><div><b>A marker sweeping left</b><p>Between round ends the head goes back and forth across most of the tape; the point where it turns moves left a few cells per trip while each trip adds a few cells on the right. This is why the right side grows like the square root of the step count and the left side, which only grows at round ends, like its logarithm.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></div></div><div><b>No halt in the first 6.64&times;10<sup>14</sup> steps of an accelerated run</b><p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 6.64&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 13,093 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof would need the round map on block lists in closed form, including the irregular blocks at the run boundaries, and then an argument that the halting landing never happens.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt</code>, <code>detour</code>, <code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq/H181655.v</code> (generated by <code>tools/coq/t4engine/proof/mkA.py</code>)</div></div><div><b>The machine halts (Coq, on busycoq's definitions)</b><p><code>halt : halts tm c0</code>, with busycoq's <code>TM</code>, <code>halts</code> and <code>c0</code> and <code>tm</code> this machine's table. <code>detour</code>: for every configuration and every n, if T4 (<code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code>) halts from it in n steps, this machine halts from it with E and F exchanged. The rest is the proof of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (DeepMind's PR 93 engine with the four rules that pass through F0 changed), started in A instead of B: 350,227 engine steps to F on a 1, one evaluation checked by Coq's kernel (<code>run_ok</code>). <code>Print Assumptions halt</code>: closed under the global context. Coq 8.18.0.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/lean/check.sh
-gcc -O2 -I tools/c -o blocks holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/c/blocks.c &amp;&amp; ./blocks 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE 1000000000 L E 2 1000000</code></pre>
+gcc -O2 -I tools/c -o blocks holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/c/blocks.c &amp;&amp; ./blocks 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE 1000000000 L E 2 1000000
+sh holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq/build.sh /path/to/busycoq      # the Coq proof; a checkout of busycoq&#x27;s BB6 branch; 45 minutes or more
+sh tools/coq/t4engine/proof/build.sh /path/to/busycoq fast      # regenerate H155900.v and H181655.v from PR 93&#x27;s file (fast: final runs admitted)</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
