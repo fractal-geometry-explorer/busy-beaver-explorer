@@ -76,9 +76,9 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 
 ## DeepMind's engine, changed for this table (18 November 2026)
 
-This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state B, mirrored and renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---, the same table started in state C (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean`).
+This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state D, with its states renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---, the same table started in state C (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean`).
 
-`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. It then ran 185,500 engine steps from blank tape, to a tape of about 2^1877 written cells, with no halt and no configuration outside its rules. This is evidence, not a proof: only the four basic rules are proved, and the patched engine is checked by simulation.
+`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. It then ran 278,632 engine steps from blank tape, to a tape of about 2^2773 written cells, with no halt and no configuration outside its rules. This is evidence, not a proof: only the four basic rules are proved, and the patched engine is checked by simulation. The same table started in state B halts, proved in Coq this way (1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---).
 
 ## Pages
 

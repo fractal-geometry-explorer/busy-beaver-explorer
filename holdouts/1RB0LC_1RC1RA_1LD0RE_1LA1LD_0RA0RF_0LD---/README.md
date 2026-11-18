@@ -1,6 +1,7 @@
 # 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---
 
-bbchallenge id 155900 (a1 of the family). One of the six-state holdouts whose halting from blank tape is open.
+bbchallenge id 155900 (a1 of the family). One of the six-state holdouts; **it halts** from blank tape, proved in Coq
+(see [DeepMind's engine, changed for this table](#deepminds-engine-changed-for-this-table-18-november-2026) and [`coq/`](coq/README.md)).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -13,7 +14,7 @@ bbchallenge id 155900 (a1 of the family). One of the six-state holdouts whose ha
 
 **Family:** Chaotic Bell: a (100)^n counter and a list of 1-runs of lengths 6k+1, both growing by 5/4 every two epochs.
 
-A chaotic Bell machine: the head sweeps over a counter (100)^n and a list of runs of 1s of lengths 6k+1; every epoch halves the number of runs of each length while moving them one length up, turns the counter into new runs of 7 and rebuilds the counter, and the whole grows by 5/4 every two epochs. It halts only if state B ever reads 0 1 1 1; not seen in 7.9x10^14 steps of an exact accelerated simulation.
+Halts, proved in Coq (DeepMind's PR 93 engine changed for this table; 261,156 engine steps to a halt on a tape of about 2^2410 cells). A chaotic Bell machine: the head sweeps over a counter (100)^n and a list of runs of 1s of lengths 6k+1; every epoch halves the number of runs of each length while moving them one length up, turns the counter into new runs of 7 and rebuilds the counter, and the whole grows by 5/4 every two epochs. It halts when state B reads 0 1 1 1, which does not happen in the first 7.9x10^14 steps.
 
 ## Family
 
@@ -123,9 +124,9 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 
 ## DeepMind's engine, changed for this table (18 November 2026)
 
-This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state D, mirrored and renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---, the same table started in state C (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean`).
+This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state B, mirrored and renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---, the same table started in state C (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean`).
 
-`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. It then ran 200,638 engine steps from blank tape, to a tape of about 2^2003 written cells, with no halt and no configuration outside its rules. This is evidence, not a proof: only the four basic rules are proved, and the patched engine is checked by simulation.
+`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. From blank tape it stops after 261,156 engine steps, on a tape of about 2^2410 cells, with the head in state F on a 1: **the machine halts.** `tools/coq/t4engine/proof` redoes PR 93's soundness proofs for the changed rules, so this is a Coq theorem, `halt : halts tm c0` on busycoq's definitions with no axioms: see [`coq/`](coq/README.md) (Coq 8.18.0, about 33 minutes).
 
 ## Pages
 

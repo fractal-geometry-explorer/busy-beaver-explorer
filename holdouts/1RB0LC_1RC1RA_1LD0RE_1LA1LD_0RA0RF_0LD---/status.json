@@ -8,11 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape. The halt is a Coq theorem on busycoq's definitions: an engine over macro words, every step of it proved sound, runs from the blank tape to a halting configuration, and Coq's kernel checks that run. This page lists what has been established about the machine, sorted by what each result rests on."
  ],
  "asof": "Status as of 18 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 1 1 1</code> (B0 C1 E1 put F on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 7.9&times;10<sup>14</sup> steps. Its F-event differs from the one of the other three machines (it writes <code>1 1 1 1</code> and leaves B, they write <code>1 0 0 0</code> and leave A), so its tapes are not theirs, but the structure and the growth law are the same."
+  "<b>It halts</b>, proved in Coq (theorem <code>halt : halts tm c0</code> on busycoq's definitions, no axioms). The proof is DeepMind's fast engine of busycoq PR 93, built for the table one transition away, with the four rules that pass through that transition changed and every proof built on them redone. Run from blank tape, the proved engine reaches a halting configuration (F on a 1) after 261,156 of its steps, on a tape of about 2<sup>2410</sup> cells; no simulator could get there step by step.",
+  "<b>What it does.</b> The tape holds a counter <code>(100)^n</code> and a list of runs of 1s of lengths 7, 13, 19, &hellip; (6k+1). The run goes in epochs: in each, the number of runs of every length is halved and they move up one length, half the counter becomes new runs of 7, and the new counter is about 5/2 times the old number of runs of 7; so everything grows by 5/4 every two epochs, and the step count by 25/16. These rules hold only up to small corrections (a run more or less, odd runs between the groups), which is why the community calls this a <em>chaotic Bell</em>. The machine halts exactly when state B reads <code>0 1 1 1</code> (B0 C1 E1 put F on a 1; the path is proved in Lean). An exact accelerated simulator, validated against direct simulation, finds no halt in 7.9&times;10<sup>14</sup> steps. Its F-event differs from the one of the other three machines (it writes <code>1 1 1 1</code> and leaves B, they write <code>1 0 0 0</code> and leave A), so its tapes are not theirs, but the structure and the growth law are the same."
  ],
  "claims": [
   {
@@ -106,22 +107,10 @@
    "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
   },
   {
-   "level": "trusted",
-   "title": "The four rules where it departs from DeepMind's halting sibling",
-   "text": "The four changed macro rules are proved in Lean for <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code>, the same table started in state C; they are statements about the table, so they hold here after the renaming of states, which is not itself checked in Lean.",
-   "where": "<code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean</code>"
-  },
-  {
-   "level": "heuristic",
-   "title": "DeepMind's engine, changed for this table, runs 200,638 steps without a halt",
-   "text": "The engine of busycoq PR 93, with the four rules changed and extracted to OCaml, agrees with direct simulation through 3&times;10<sup>10</sup> machine steps and then runs 200,638 engine steps from blank tape (to about 2<sup>2003</sup> written cells) without halting and without a gap. Observed, not proved.",
-   "where": "<code>tools/coq/t4engine</code> (<code>run D</code>, <code>validate D</code>)"
-  },
-  {
-   "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly if B ever reads <code>0 1 1 1</code>. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10<sup>15</sup> steps because those runs pile up at the right end.",
-   "where": ""
+   "level": "kernel",
+   "title": "The machine halts (Coq, on busycoq's definitions)",
+   "text": "<code>halt : halts tm c0</code>, with busycoq's <code>TM</code>, <code>halts</code> and <code>c0</code> and <code>tm</code> this machine's table. It is DeepMind's proof of busycoq PR 93 for the table one transition away, changed for this one: the four base rules that pass through F0 are restated and proved, and every lemma and engine case built on them is redone (the collision and defect calls, the returns, the immediate defects, the collisions and the fast right sweep, which gets one more guard). The run of the proved engine from blank tape, 261,156 engine steps to a configuration with the head in F on a 1 (a tape of about 2<sup>2410</sup> cells), is one evaluation checked by Coq's kernel (<code>run_ok</code>). <code>Print Assumptions halt</code>: closed under the global context. Coq 8.18.0, about 33 minutes.",
+   "where": "<code>halt</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq/H155900.v</code> (generated by <code>tools/coq/t4engine/proof</code>)"
   },
   {
    "level": "trusted",
@@ -135,11 +124,18 @@
   "holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1000000000",
   "python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/gen_paths.py --check",
-  "python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/bell_farrun.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1e12     # the accelerated run, about two minutes"
+  "python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/bell_farrun.py 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- 1e12     # the accelerated run, about two minutes",
+  "sh holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq/build.sh /path/to/busycoq      # the Coq proof; a checkout of busycoq's BB6 branch; about 33 minutes",
+  "sh tools/coq/t4engine/proof/build.sh /path/to/busycoq fast      # regenerate H155900.v from PR 93's file (fast: final run admitted)"
  ],
  "explainer": {
-  "lede": "Nobody knows. The head sweeps over a counter and a list of runs of 1s; in every epoch each group of runs is halved and moved up one length, and the counter is rebuilt, so that everything grows by 5/4 every two epochs. It stops only if state B ever reads <code>0 1 1 1</code>, which has not happened in 7.9&times;10<sup>14</sup> steps.",
+  "lede": "It halts. The head sweeps over a counter and a list of runs of 1s; in every epoch each group of runs is halved and moved up one length, and the counter is rebuilt, so that everything grows by 5/4 every two epochs. Far beyond any direct simulation, state B reads <code>0 1 1 1</code> and the machine stops: a Coq proof built on DeepMind's engine for a neighbouring table shows it.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "halts",
+    "text": "A Coq theorem on busycoq's definitions; the engine needs 261,156 steps, the tape grows to about 2<sup>2410</sup> cells."
+   },
    {
     "level": "trusted",
     "value": "7.9&times;10<sup>14</sup> steps",
@@ -195,10 +191,10 @@
    {
     "id": "deepmind-engine",
     "eyebrow": "DeepMind's engine",
-    "heading": "One transition away from a proved halt",
+    "heading": "It halts: DeepMind's proof for the neighbouring table, changed for this one",
     "html": [
-     "<p>This machine's table, mirrored and with its states renamed, is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state D; <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code> (state B), <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code> (state C) are the same table started in the other two states. It differs in the single transition F0 from the table of <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code>, which DeepMind proved halts (busycoq PR 93) with a fast engine: an evaluator over run-length tapes of macro words whose every step is proved sound in Coq. All of that engine's rules hold for this table except four, the ones that pass through F0. In those, where DeepMind's machine ends in the configuration <code>&lt;C 100</code>, this one ends in <code>&lt;B 1</code> with <code>11</code> more on the right; on the digit words <code>D n = 1 (11)^n 00</code> of the engine, this moves a carry from the digit on the left to the digit on the right.</p>",
-     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and ran it from blank tape. After each engine step a direct simulation must reach exactly the engine's configuration; it does for every step checked, through 3&times;10<sup>10</sup> machine steps. The engine then ran 200,638 of its steps, to a tape of about 2<sup>2003</sup> written cells, without halting and without meeting a configuration it has no rule for. The changed engine is not a proof: only the four basic rules are proved (in Lean), and the rest is DeepMind's design checked by simulation. A halt found this way would become a Coq proof by redoing PR 93's soundness lemmas for the four rules.</p>"
+     "<p>This machine's table, mirrored and with its states renamed, is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state B; <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---</code> (state C), <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code> (state D) are the same table started in the other two states. It differs in the single transition F0 from the table of <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code>, which DeepMind proved halts (busycoq PR 93) with a fast engine: an evaluator over run-length tapes of macro words whose every step is proved sound in Coq. All of that engine's rules hold for this table except four, the ones that pass through F0. In those, where DeepMind's machine ends in the configuration <code>&lt;C 100</code>, this one ends in <code>&lt;B 1</code> with <code>11</code> more on the right; on the digit words <code>D n = 1 (11)^n 00</code> of the engine, this moves a carry from the digit on the left to the digit on the right.</p>",
+     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and ran it from blank tape; it agrees with direct simulation through 3&times;10<sup>10</sup> machine steps. After 261,156 engine steps, on a tape of about 2<sup>2410</sup> cells, it stops with the head in state F on a 1: the machine halts. We then redid PR 93's soundness proofs for the four changed rules and everything built on them, so the run is a Coq theorem: <code>halt : halts tm c0</code> on busycoq's definitions, with no axioms (<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq</code>; Coq 8.18.0 checks it in about 33 minutes). The machine's own step count is not computed.</p>"
     ]
    },
    {
@@ -207,7 +203,8 @@
     "heading": "What would make it stop",
     "html": [
      "<p>It halts exactly when state B reads <code>0 1 1 1</code>: B0 C1 E1 put F on a 1 (F1 is the missing transition). Lean checks this path; that there is no other follows from the table: F is entered only by E1, E only by C1, and C by B0 (moving right) or A1 (moving left; then C1 puts E on the 0 that A has just written, and E0 goes on).</p>",
-     "<p>In the run this has not happened in 7.9&times;10<sup>14</sup> steps. The community tracker calls it &ldquo;Chaotic Bell with a neighbour that halts&rdquo;. Indeed: a1 has E1 = 0RF, F0 = 0LD and a2 has E1 = 1RF, F0 = 0LC; the two mixed tables (E1 = 1RF with F0 = 0LD, and E1 = 0RF with F0 = 0LC) both halt at step 1,272 from blank tape.</p>"
+     "<p>In the run this has not happened in 7.9&times;10<sup>14</sup> steps. The community tracker calls it &ldquo;Chaotic Bell with a neighbour that halts&rdquo;. Indeed: a1 has E1 = 0RF, F0 = 0LD and a2 has E1 = 1RF, F0 = 0LC; the two mixed tables (E1 = 1RF with F0 = 0LD, and E1 = 0RF with F0 = 0LC) both halt at step 1,272 from blank tape.</p>",
+     "<p class=\"t4halt\">It does happen. The run of the proved engine reaches B reading <code>0 1 1 1</code> after 261,156 engine steps, when the tape holds about 2<sup>2410</sup> cells (see DeepMind's engine above).</p>"
     ]
    },
    {
@@ -233,6 +230,8 @@
    }
   ]
  },
- "summary": "A chaotic Bell machine: the head sweeps over a counter (100)^n and a list of runs of 1s of lengths 6k+1; every epoch halves the number of runs of each length while moving them one length up, turns the counter into new runs of 7 and rebuilds the counter, and the whole grows by 5/4 every two epochs. It halts only if state B ever reads 0 1 1 1; not seen in 7.9x10^14 steps of an exact accelerated simulation.",
- "family": "Chaotic Bell: a (100)^n counter and a list of 1-runs of lengths 6k+1, both growing by 5/4 every two epochs"
+ "summary": "Halts, proved in Coq (DeepMind's PR 93 engine changed for this table; 261,156 engine steps to a halt on a tape of about 2^2410 cells). A chaotic Bell machine: the head sweeps over a counter (100)^n and a list of runs of 1s of lengths 6k+1; every epoch halves the number of runs of each length while moving them one length up, turns the counter into new runs of 7 and rebuilds the counter, and the whole grows by 5/4 every two epochs. It halts when state B reads 0 1 1 1, which does not happen in the first 7.9x10^14 steps.",
+ "family": "Chaotic Bell: a (100)^n counter and a list of 1-runs of lengths 6k+1, both growing by 5/4 every two epochs",
+ "decision": "halts",
+ "decision_level": "coq"
 }
