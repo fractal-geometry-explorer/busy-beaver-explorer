@@ -90,6 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 0RB is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 2.1&middot;10<sup>100</sup> steps: every F-event so far is of the proved harmless kind.</p>
       <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 2.3&middot;10<sup>200</sup> steps without a halt.</p>
+      <p><b>Start twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---</code> (the same table from another start), under a condition on the block lists of one run.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -131,6 +132,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What a clean visit conserves</h3>
         <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
         <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One question with its start twin 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---</h3>
+        <p><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---</code> and <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE---</code> are one frame-A table started in A and in C. At their fourth left-end event (step 284 from A, 1241 from C) the block lists are [16] and [32]: the second tape is the first with the word (10)<sup>16</sup> inserted in the first block. <code>event_rel</code> proves that relation for every first block, every place in it and every tape after it. <code>halt_together</code>: if every round of the start-A run (from one left-end event to the next) keeps the word inside the first block, wherever it sits there (<code>RoundGood</code>, a condition on one run's left-end events), the two machines halt together. The condition fails only if a round uses up the start-A run's first block; the two runs' block lists agree at every left-end event to 10<sup>200</sup> steps, and the coupling holds cell by cell for 10<sup>10</sup> steps.</p>
+        <p class="where"><code>halt_together</code>, <code>event_rel</code>, <code>good_of_lists</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/lean/StartTwin.lean</code>; <code>TM.good_of_rounds</code>, <code>tools/lean/TM/Rounds.lean</code>; <code>TM.halts_iff_of_good</code>, <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py</code></p>
       </div>
       <div class="card">
         <h3>The visit rule for every depth</h3>
@@ -245,7 +251,8 @@ python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py 1RB0
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_lean.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB--- H26817 &gt; holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/lean/Rules.lean
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB--- 1e11 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/data/trajectory.json
 cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c &amp;&amp; ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---:A 1e8 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt
-python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB--- 1e200          # the exact block-list map; writes data/f05_run.json</code></pre>
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB--- 1e200          # the exact block-list map; writes data/f05_run.json
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py --check    # the start relation and the first rounds</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

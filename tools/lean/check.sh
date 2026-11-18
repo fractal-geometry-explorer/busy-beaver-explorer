@@ -12,7 +12,7 @@ LEAN=${LEAN:-lean}
 if [ -z "$LEANLIB" ]; then LEANLIB="$(dirname "$(command -v "$LEAN")")/../lib/lean"; fi
 mkdir -p "$HERE/out/TM"
 export LEAN_PATH="$LEANLIB:$HERE/out"
-for f in Basic Fin CTL ListFrame Sync Insert Resync; do
+for f in Basic Fin CTL ListFrame Sync Insert Resync Rounds; do
   echo "== tools/lean/TM/$f.lean"
   (cd "$HERE" && $LEAN TM/$f.lean -o out/TM/$f.olean)
 done
