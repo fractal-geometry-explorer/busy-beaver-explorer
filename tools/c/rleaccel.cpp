@@ -291,7 +291,8 @@ static bool load(const char *fn) {
 }
 int main(int argc, char **argv) {
     if (argc < 4) { fprintf(stderr, "usage: rleaccel MACHINE K MAX_MACRO [checkpoint [seconds]]\n"); return 2; }
-    parse(argv[1]); K = atoi(argv[2]); uint64_t mx = strtoull(argv[3], 0, 10);
+    parse(argv[1]); K = atoi(argv[2]);
+    if (K < 1 || K > 6) { fprintf(stderr, "K must be 1..6 (the transition memo is sized for 64 block symbols)\n"); return 2; } uint64_t mx = strtoull(argv[3], 0, 10);
     const char *ck = argc > 4 ? argv[4] : 0; long every = argc > 5 ? atol(argv[5]) : 900;
     L.push_back(Run{0, INF}); R.push_back(Run{0, INF});
     if (ck) load(ck);
