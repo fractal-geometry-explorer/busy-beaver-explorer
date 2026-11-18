@@ -255,11 +255,68 @@ decide halting, and there the tests disagree. By the fatal lists proved in each 
 32·2^k − 2k − 13 = 28·2^j − 2j − 13 would need 2^(j+2)·(2^(k−j+3) − 7) = 2(k − j), which has no solution. So at a shared all-ones moment (below 10^5, and at every length if the formulas hold beyond) at most one of them halts: the maps cannot show that the two
 machines halt together, and they are two questions, like the mirror pair above.
 
+## F05 twins: ten pairs with one question each (18 November 2026)
+
+Twenty F05 machines come in pairs whose exact block-list runs (`f05_run.py`) have the same block list at every
+recorded left-end event and the same number of F-events to 10^200 steps. The two machines of a pair are the core in
+the same frame with the same start state, and their frame-A tables differ only in D1 and F0. Since F is entered only by
+D1, the two runs are identical until D reads a 1. The re-sync search at the top of this page failed on these F-row
+variants because it needed a re-sync in every context a tape language allows. Here the contexts where the re-sync fails
+are allowed: they become the shared question. A symbolic simulation of both machines from D reading 1, with every
+other cell unknown, finds the window that makes them meet again (`holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py`):
+
+- if the cell left of D is 1, F reads it and both machines halt;
+- if the window holds (`0 0 D>1` for seven pairs, `1 0 0 0 D>1 1` for the three pairs where one machine has F0 = 0LE),
+  the machines meet again in the same configuration after the step counts shown, for every tape around;
+- otherwise the configuration is *bad*, and the two machines may part there.
+
+**Lean.** `tools/lean/TM/Resync.lean` proves the general statement `TM.halt_together`. If two machines agree at every
+synchronised configuration that is not a segment start, never halt there, and every segment start that is not bad
+either re-synchronises or makes both halt, then their runs from a common start meet a bad configuration together, and
+if they never do, the machines halt together. Each pair has a generated file `lean/Twin.lean` in the folder of its
+first machine. It checks the three hypotheses for every configuration (`resync`; the window cases by computation)
+and states **`halt_together`: the two frame-A runs from blank tape reach a bad configuration together, and if they
+never do, the two machines halt from blank tape together** (through each machine's `halts_iff`). All ten compile in
+the kernel with no `sorry`; the axioms are `propext`, `Classical.choice` and `Quot.sound`.
+
+| machine | twin | frame, start | frame A: D1 / F0 | window | steps to meet |
+|---|---|---|---|---|---|
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE--- | 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB--- | A, A | 0LF / 0RE vs 0LF / 1LB | `0 0 D>1` | 2 / 4 |
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE--- | 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LA--- | A, A | 0LF / 0LE vs 0LF / 1LA | `1 0 0 0 D>1 1` | 22 / 2 |
+| 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- | 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB--- | A, A | 1LF / 0RE vs 1LF / 1LB | `0 0 D>1` | 2 / 4 |
+| 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LB--- | 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD--- | A, A | 1LF / 0LB vs 1LF / 1LD | `0 0 D>1` | 4 / 2 |
+| 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE--- | 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD--- | B, C | 0LF / 1LB vs 1LF / 1RA | `0 0 D>1` | 3 / 3 |
+| 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC--- | 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0LA--- | B, C | 0LF / 0LE vs 1LF / 0RC | `1 0 0 0 D>1 1` | 16 / 2 |
+| 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RE--- | 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RB--- | B, C | 1LF / 0LB vs 1LF / 1LD | `0 0 D>1` | 4 / 2 |
+| 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RA--- | 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0LD--- | G, E | 0LF / 0LE vs 1LF / 0RC | `1 0 0 0 D>1 1` | 16 / 2 |
+| 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA--- | 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1RC--- | G, E | 0LF / 0RE vs 0LF / 1LB | `0 0 D>1` | 2 / 4 |
+| 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_0RC--- | 1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA1RF_1RE--- | G, E | 1LF / 0LB vs 1LF / 1LD | `0 0 D>1` | 4 / 2 |
+
+**What it means.** Every F-event in the family's runs (all 39 run machines, to 10^200 steps) has the tape
+`1 0 0 0 D>1 1` around the head, which is inside both windows. That is the context `fevent` in `Family.lean` proves
+harmless. So no observed run reaches a bad configuration, and any non-halting proof along the F05 plan (show that every
+F-entry is of the proved kind) covers both machines of a pair at once. These are not unconditional equivalences:
+`Halts X ↔ Halts Y` is proved only under the shared condition, which is itself open. In the strict count below the
+number of distinct open questions does not change, but for planning, these twenty machines are **ten questions**.
+
+The other near-identical F05 runs are pairs with the same frame-A table and a different start (start A and start C,
+for example 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- and 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---). From the
+fourth recorded left-end event on (all 80 recorded events, checked for three such pairs), their block lists agree
+except that the first block of the start-C run is 16 longer; the left end of the tape differs too.
+That is a relation between block lists, not a local re-sync, and it is not proved.
+
+```sh
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --check   # pairs, windows, step counts
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --records # writes lean/Twin.lean and records
+. /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/check.sh   # (or any pair's folder)
+```
+
 ## Count
 
 Of the 552 open holdouts, none are newly proved equivalent here. The one-way implication
 `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` ⇒ `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` was already known, and
-both machines are claimed halting upstream. **552 distinct open questions remain.** The relations in `related.json`
+both machines are claimed halting upstream. **552 distinct open questions remain.** Ten F05 pairs (above) now share
+one question each under a proved condition, so for planning purposes they count as ten questions, not twenty. The relations in `related.json`
 still say which questions are likely to have the same answer and should be attacked together, but none of them is a
 proved equivalence.
 
