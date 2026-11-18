@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.18&middot;10<sup>15</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 411,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.18&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 6 411400000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.514). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -118,6 +124,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine runs a countdown on a list of blocks of the word 101110. The short words between blocks act like the digits of a base-4 counter, passing borrows along, while a block at the near end of the tape keeps growing. This page runs the real machine in your browser and explains the countdown. Its moves are proved in Lean for every block length. It has a twin, 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC, which has written exactly the same tape for 10<sup>9</sup> steps (observed, not proved).",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.18&middot;10<sup>15</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "9 rules",
@@ -222,6 +233,6 @@
    }
   ]
  },
- "summary": "A base-4 countdown on a list of blocks of 101110, now an exact map on (n, word) that reproduces every tick boundary of the first 6e9 steps and runs on to 1.0·10^19 steps; it has written the same tape as 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC for 10^9 steps (observed, not proved).",
+ "summary": "A base-4 countdown on a list of blocks of 101110, now an exact map on (n, word) that reproduces every tick boundary of the first 6e9 steps and runs on to 1.0·10^19 steps; it has written the same tape as 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC for 10^9 steps (observed, not proved). Accelerated run: no halt in 1.18e15 steps.",
  "family": "block-list countdown with base-4 separators"
 }

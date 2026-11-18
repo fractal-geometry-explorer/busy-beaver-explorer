@@ -162,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.23&middot;10<sup>11</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 5,232,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>11</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=5232000 1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>

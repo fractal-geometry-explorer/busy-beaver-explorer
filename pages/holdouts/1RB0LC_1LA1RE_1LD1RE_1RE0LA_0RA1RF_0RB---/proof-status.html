@@ -159,6 +159,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)</p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.47&middot;10<sup>48,268</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 8,020,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.47&middot;10<sup>48,268</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- 6 8020000</code></p>
+      </div>
+      <div class="card">
         <h3>No pushdown certificate with a DFA of at most 6 states</h3>
         <p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB--- ./pds 6 L</code> and <code>R</code>.</p>
         <p class="where"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></p>

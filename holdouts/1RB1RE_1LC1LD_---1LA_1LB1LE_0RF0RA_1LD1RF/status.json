@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.61&middot;10<sup>49,522</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 3,940,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.61&middot;10<sup>49,522</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF 6 3940000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.496).",
@@ -106,6 +112,11 @@
  "explainer": {
   "lede": "Nobody knows, and the answer is hidden in a parity of a number with ten trillion digits. The machine eats a row of 1s four at a time while a block next to it grows by half each time, like the Hydra and Antihydra cryptids; when the row runs out, the remainder mod 4 decides whether it stops or starts again with a row whose length has trillions of digits.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.61&middot;10<sup>49,522</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "&times;3/2",
@@ -216,7 +227,7 @@
    }
   ]
  },
- "summary": "Hydra-like: each epoch eats a run of c ones 4 at a time while a block grows by X -> floor(3X/2)+5; c mod 4 and the last parity decide halt or a new, vastly longer epoch. Proved in Lean: halts iff this iteration reaches its halting case; epochs 0-3 computed, epoch 4 (c with ~2*10^13 digits) is out of reach and would halt at its end with heuristic chance 3/4.",
+ "summary": "Hydra-like: each epoch eats a run of c ones 4 at a time while a block grows by X -> floor(3X/2)+5; c mod 4 and the last parity decide halt or a new, vastly longer epoch. Proved in Lean: halts iff this iteration reaches its halting case; epochs 0-3 computed, epoch 4 (c with ~2*10^13 digits) is out of reach and would halt at its end with heuristic chance 3/4. Accelerated run: no halt in 2.61e49522 steps.",
  "family": "Hydra-like (3X/2 iteration, mod-4 epoch ends)",
  "decision": "open"
 }

@@ -181,6 +181,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.54&middot;10<sup>25,722</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,200,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 1.54&middot;10<sup>25,722</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 2 7200000</code></p>
+      </div>
+      <div class="card">
         <h3>Closed form, and 200,000 passes</h3>
         <p>Writing n+2 = 2<sup>j</sup>m with m odd, f(n) = 2<sup>j</sup>m + (m+2j&minus;1)/2, except m = 1 (halt) and m = 3 with j even and &#8805; 2 (f(n) = 9&middot;2<sup>j&minus;1</sup> + 3j/2 + 3); checked against g for every n &lt; 200,000 and against direct simulation of passes for n &#8804; 3000. Iterating f from 4 for 200,000 passes (exact integers) never halts; n then has 80,223 bits.</p>
         <p class="where"><code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code>, <code>c/passmap.c</code>, <code>py/orbit.py --check</code></p>

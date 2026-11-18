@@ -161,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>No halt in the first 1.92&middot;10<sup>1,788</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 52,900,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 1.92&middot;10<sup>1,788</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE 2 --macro 52900000</code></p>
+      </div>
+      <div class="card">
         <h3>The block machine agrees with the machine</h3>
         <p><code>py/macro.py check 1e8</code> compares the whole tape and the step count at each of the 15,261 macro configurations of the first 10<sup>8</sup> steps with the block machine: all agree.</p>
         <p class="where"><code>py/macro.py</code></p>

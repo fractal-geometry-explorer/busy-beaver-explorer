@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 8.81&middot;10<sup>4,679</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 53,500,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 8.81&middot;10<sup>4,679</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1LF_1LC0RD_---1LD_1RB1RE_1LA0LB_0LA0LE 6 53500000</code></p>
+      </div>
+      <div class="card">
         <h3>Round starts to 5·10<sup>9</sup> steps</h3>
         <p>A C run to 5·10<sup>9</sup> steps, sampled at each left-end extension: the tape is a list of counters <code>a^x 1^(6k)</code> (a = 10) followed by one long block of ones that grows by about 4/3 per round (8,750, 22,510, 29,966, 39,758, 52,630, 97,478 …).</p>
         <p class="where"><code>README.md</code></p>

@@ -150,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 4,620 cells have been visited and 4,612 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 9.33&middot;10<sup>20</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,390,200,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 9.33&middot;10<sup>20</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LA_1RC0RF_1RD---_0LE1RB_---0LA_1LD1RF 2 1390200000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

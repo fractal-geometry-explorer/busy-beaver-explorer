@@ -152,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.64&middot;10<sup>46,426</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 5,580,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 1.64&middot;10<sup>46,426</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA 6 5580000</code></p>
+      </div>
+      <div class="card">
         <h3>The sample map for the other prefixes</h3>
         <p>For every prefix P met (173 (P, parity) pairs), simulation of three representatives shows the next prefix depends only on P and m mod 2 and the next count is 3⌊m/2⌋ + 4 + δ with δ ∈ {0, 1, 3}. Extrapolated to all m, this is an observation, not a proof.</p>
         <p class="where"><code>py/kmap.py</code></p>

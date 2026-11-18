@@ -148,6 +148,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.46&middot;10<sup>20</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,794,189 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 4.46&middot;10<sup>20</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=2794189 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</code></p>
+      </div>
+      <div class="card">
         <h3>Size of the tape description (family screen)</h3>
         <p>At the 8 records between 2.7&middot;10<sup>8</sup> and 2.0&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 9,496 to 118,465 visited cells and compresses to 29 to 37 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
         <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</code>, saved in <code>screen.json</code> next to it</p>

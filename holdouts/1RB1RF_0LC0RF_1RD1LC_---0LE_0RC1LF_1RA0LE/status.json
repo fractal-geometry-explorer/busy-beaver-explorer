@@ -95,6 +95,12 @@
    "where": "<code>lean/Phases.lean</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.66&middot;10<sup>22</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,536,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 6.66&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1536000000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known.",
@@ -111,6 +117,11 @@
  "explainer": {
   "lede": "Nobody knows. Its tape switches between two solid blocks and an alternating-then-solid pair; at the left end the alternating block about doubles at the expense of the solid one.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "6.66&middot;10<sup>22</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "native",
     "value": "10<sup>8</sup> frames",
@@ -207,5 +218,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Its tape switches between two solid blocks and an alternating-then-solid pair; at the left end the alternating block about doubles at the expense of the solid one."
+ "summary": "Its tape switches between two solid blocks and an alternating-then-solid pair; at the left end the alternating block about doubles at the expense of the solid one. Accelerated run: no halt in 6.66e22 steps."
 }

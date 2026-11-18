@@ -94,6 +94,12 @@
    "where": "<code>tools/c/redmaps.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.26&middot;10<sup>1,492</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 94,460,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.26&middot;10<sup>1,492</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE 4 94460000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It is equivalent (in Lean) to whether the orbit of 1 under the map ever lands exactly on a threshold c<sub>i</sub>; that is a Collatz-like question with no known method of attack.",
@@ -117,6 +123,11 @@
  "explainer": {
   "lede": "Nobody knows, but the question is now about one number. Read at the moments the head is at the left end, the tape holds a single number n; Lean proves that the machine halts exactly when a simple map on n, started at 1, lands on one of the thresholds 3, 12, 31, 70, 149, ... The map has been iterated 1.25 million times without that happening.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.26&middot;10<sup>1,492</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts ⇔ n = c<sub>i</sub>",
@@ -211,5 +222,5 @@
    }
   ]
  },
- "summary": "A one-number map n → 3n − 2c_i + i + 3 between thresholds c_i = 10·2^i − i − 7; halts iff the orbit of 1 lands exactly on a threshold (reduction proved in Lean). Not hit in 1.25·10^6 map steps."
+ "summary": "A one-number map n → 3n − 2c_i + i + 3 between thresholds c_i = 10·2^i − i − 7; halts iff the orbit of 1 lands exactly on a threshold (reduction proved in Lean). Not hit in 1.25·10^6 map steps. Accelerated run: no halt in 3.26e1492 steps."
 }

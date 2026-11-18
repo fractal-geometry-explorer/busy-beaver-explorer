@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.91&middot;10<sup>78,053</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 12,700,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 2.91&middot;10<sup>78,053</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1LB_1LC1LA_1RD0LB_1RA1RE_1RF0RD_---1RD 2 --macro 12700000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The two halves of a round",
    "text": "From <code>0^inf 1 B&gt; 1 01 (1^10)^j 0101 1^5 (01)^Y R</code> the machine reaches the same tape with five more ones and the marker <code>01</code> (30j+19 steps), and from there, with two a's fewer and the marker <code>0101</code> again, <code>(1^10)^(j+1)</code> (30j+51 steps). For all j, Y and every tape R.",
@@ -97,6 +103,11 @@
  "explainer": {
   "lede": "Nobody knows, and the reason is a number-theory puzzle in disguise. The machine keeps a counter that grows by a factor of about 5/2 each epoch; whether the counter is odd or even decides how a carry ripples into a tail of digits. It halts only if one carry ever runs all the way through that tail.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.91&middot;10<sup>78,053</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "trusted",
     "value": "7.3&middot;10<sup>11</sup> steps",
@@ -182,5 +193,5 @@
   ]
  },
  "family": "5/2 Collatz-like counter feeding a carry chain",
- "summary": "Epochs: a counter Y of a's is turned into 5Y ones and back into about 5Y/2 a's; the parity of Y (a Mahler-like 5/2 sequence) drives a carry into a growing tail of digits. Halts only if the carry ever runs to the end of the tail; open."
+ "summary": "Epochs: a counter Y of a's is turned into 5Y ones and back into about 5Y/2 a's; the parity of Y (a Mahler-like 5/2 sequence) drives a carry into a growing tail of digits. Halts only if the carry ever runs to the end of the tail; open. Accelerated run: no halt in 2.91e78053 steps."
 }

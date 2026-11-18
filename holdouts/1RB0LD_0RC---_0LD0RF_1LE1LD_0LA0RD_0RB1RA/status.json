@@ -41,6 +41,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.99&middot;10<sup>10</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 30,800,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.99&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA 4 30800000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Tape shape",
    "text": "At the last side switches before 10<sup>9</sup> steps the tape is, at the left end, <code>0 0 0 (100)^6 1100 (100)^4 (1100)^398 1 (1100)^319 100 (1100)^2 0 1100</code> (step 998,319,040); at the right end, <code>… (1100)^717 1 1100 0 0 0 (1100)^3</code> after a disordered stretch of 37 cells (step 999,616,144). The two runs at the left (409 + 308, then 398 + 319) add up to the one run at the right (716, then 717), to within one word.",
    "where": "<code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log"
@@ -85,6 +91,11 @@
  "explainer": {
   "lede": "Nobody knows. The head shuttles between the ends, rewriting runs of <code>100 / 1100</code> into one run of <code>1100</code> and back; a trip costs about the width squared, for a few cells of growth, so the width grows like the cube root of the time.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.99&middot;10<sup>10</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "2,924",
@@ -144,5 +155,5 @@
   ]
  },
  "family": "runs of 1100 rewritten end to end",
- "summary": "Two long runs of the word 100 / 1100 at the left end turn into one run of 1100 at the right end, with about as many words, next to a short disordered stretch; the head shuttles between the ends and the width grows like t^(1/3)."
+ "summary": "Two long runs of the word 100 / 1100 at the left end turn into one run of 1100 at the right end, with about as many words, next to a short disordered stretch; the head shuttles between the ends and the width grows like t^(1/3). Accelerated run: no halt in 1.99e10 steps."
 }

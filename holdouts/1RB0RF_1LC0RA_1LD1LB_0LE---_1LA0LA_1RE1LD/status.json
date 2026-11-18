@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.41&middot;10<sup>25</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 3,668,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 1.41&middot;10<sup>25</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=3668000 1RB0RF_1LC0RA_1LD1LB_0LE---_1LA0LA_1RE1LD</code>"
+  },
+  {
    "level": "kernel",
    "title": "A block of ones turns into copies of 01",
    "text": "For every x: <code>0^inf C&gt; 1^(2x+2) 0^inf</code> reaches <code>0^inf D&gt; (01)^(2x+3) 1 0^inf</code>. After a start (<code>c_start</code>, <code>d_first</code>), each round of the sweep runs right over the copies of <code>01</code> and back, turns two ones into a copy of <code>01</code> and adds one more copy at the left end (<code>d_round</code>), by induction in <code>sweep</code>.",
@@ -105,6 +111,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape keeps coming back to a single block of ones, each time longer. This page shows the cycle between two such moments: the two outer parts are proved in Lean for every size, the middle part is a second counter that has not been decoded.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.41&middot;10<sup>25</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -189,6 +200,6 @@
    }
   ]
  },
- "summary": "Cycles from n ones to n' ones (14 cycles, n up to 7.1e7, no halt to 2.8e16 steps); the inner counter is proved in Lean, a recursive E-phase through zeros is not decoded.",
+ "summary": "Cycles from n ones to n' ones (14 cycles, n up to 7.1e7, no halt to 2.8e16 steps); the inner counter is proved in Lean, a recursive E-phase through zeros is not decoded. Accelerated run: no halt in 1.41e25 steps.",
  "family": "nested counter: block of ones <-> copies of 01, an inner tripling counter, recursive E-phase"
 }

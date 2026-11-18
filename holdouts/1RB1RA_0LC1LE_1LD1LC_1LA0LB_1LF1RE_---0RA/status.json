@@ -55,6 +55,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 2.05&middot;10<sup>41,681</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,860,000 macro steps from blank tape without a halt, in 604 seconds. That is more than 2.05&middot;10<sup>41,681</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA 4 4860000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The walk does not stop in its first 10<sup>6</sup> steps",
    "text": "Python big integers iterate <code>nxt</code> from (2, 7) a million times: p never falls below 2 and ends at 498,505 (a then has 584,967 bits). The first 12 points agree with a direct simulation of the machine, cell for cell, at the step counts the Lean rules give (step 62, 173, 423, …, 1,405,109).",
    "where": "<code>py/walk.py run 1000000</code>, <code>py/walk.py check 3e6</code>"
@@ -81,6 +87,11 @@
  "explainer": {
   "lede": "Nobody knows whether it halts. Lean proves that this machine halts exactly when a simple walk on numbers does: a number is multiplied by 3/2 again and again, and a counter goes up 2 for every even result and down 1 for every odd one. The machine halts only if the counter ever drops below zero. It has climbed past 500,000 and keeps climbing, but nobody can prove it never comes back.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.05&middot;10<sup>41,681</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "kernel",
     "value": "halts ⇔ walk stops",
@@ -140,5 +151,5 @@
  },
  "family": "Collatz-like walk (Antihydra)",
  "decision": "open",
- "summary": "Antihydra: halts iff the walk x → ⌊3x/2⌋, with a counter +2 for even x and −1 for odd x, ever drives the counter below 0 (proved equivalent in Lean); open, and heuristically never."
+ "summary": "Antihydra: halts iff the walk x → ⌊3x/2⌋, with a counter +2 for even x and −1 for odd x, ever drives the counter below 0 (proved equivalent in Lean); open, and heuristically never. Accelerated run: no halt in 2.05e41681 steps."
 }

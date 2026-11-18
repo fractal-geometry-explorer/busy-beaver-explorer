@@ -119,6 +119,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 2.37&middot;10<sup>28</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 46,620,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 2.37&middot;10<sup>28</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RE_0RC---_1RD0RD_1LE0LF_1RA0LD_1LC1RB 2 --macro 46620000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The macro run agrees with the machine",
    "text": "<code>py/drain.py</code> chains the rules (several sweeps at once, exact step counts; the few small cases no rule covers are run cell by cell). Its configurations agree cell for cell with a plain run at all 310 macro configurations up to step 5,265,516.",
    "where": "<code>py/drain.py check 5e6</code>"
@@ -156,6 +162,11 @@
  "explainer": {
   "lede": "Nobody knows, but the question is now sharp. Every move of this machine is one rule, proved in Lean for all sizes, and the run is a copy of itself nested in the gaps it makes. It halts only if one of those gaps has one of a few fatal sizes. This page runs the real machine in your browser and explains the mechanism.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.37&middot;10<sup>28</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "16 rules",
@@ -264,7 +275,7 @@
    }
   ]
  },
- "summary": "One drain mechanism at every scale: a block of 1s is drained into pairs, the same sweep runs a ternary counter, and a drain of the wrong parity wipes its block into a gap where a copy of the whole run restarts; it halts only if a gap has one of a sparse set of fatal sizes (3, 29, 75, 115, 289, ...), open and Collatz-like.",
+ "summary": "One drain mechanism at every scale: a block of 1s is drained into pairs, the same sweep runs a ternary counter, and a drain of the wrong parity wipes its block into a gap where a copy of the whole run restarts; it halts only if a gap has one of a sparse set of fatal sizes (3, 29, 75, 115, 289, ...), open and Collatz-like. Accelerated run: no halt in 2.37e28 steps.",
  "family": "self-similar drain (nested ternary counter)",
  "decision": "open"
 }

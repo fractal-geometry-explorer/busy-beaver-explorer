@@ -151,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 5.80&middot;10<sup>16</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 859,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 5.80&middot;10<sup>16</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB 6 859800000</code></p>
+      </div>
+      <div class="card">
         <h3>The left end is fixed and the counter eats the reserve</h3>
         <p>In the first 10<sup>9</sup> steps, the leftmost cell visited is last reached at step 1,072,561. From then on, the 1,621 cells left of the block of ones read: a fixed part, the reserve <code>(011)^k</code>, then the counter. The reserve has k = 481, 476, 474, 472, 470 at steps 7.4&middot;10<sup>6</sup>, 3.7&middot;10<sup>7</sup>, 9.1&middot;10<sup>7</sup>, 1.7&middot;10<sup>8</sup>, 4.0&middot;10<sup>8</sup>, and 468 at 10<sup>9</sup>. Over the same times the counter has 94, 109, 115, 121, 127 cells.</p>
         <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>

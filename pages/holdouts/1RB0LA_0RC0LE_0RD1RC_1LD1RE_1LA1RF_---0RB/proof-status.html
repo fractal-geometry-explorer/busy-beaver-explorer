@@ -155,6 +155,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.90&middot;10<sup>11</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 39,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.90&middot;10<sup>11</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB 6 39200000</code></p>
+      </div>
+      <div class="card">
         <h3>Size of the tape description (family screen)</h3>
         <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.6&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,358 to 157,898 visited cells and compresses to 41 to 71 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
         <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB</code>, saved in <code>screen.json</code> next to it</p>

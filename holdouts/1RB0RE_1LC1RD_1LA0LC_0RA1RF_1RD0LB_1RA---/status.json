@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.75&middot;10<sup>25,107</sup> steps (accelerated run, blocks of 3)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 14,800,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 1.75&middot;10<sup>25,107</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA--- 3 14800000</code>"
+  },
+  {
    "level": "kernel",
    "title": "Shift rules",
    "text": "<code>b_right</code>: going right, B turns each <code>100</code> into <code>101</code>. <code>b_left</code>: going left, B turns <code>101</code> words back into <code>100</code> words. <code>a_right</code>: going right, A shifts a block of <code>100</code> words by one cell. All three hold for every n and every surrounding tape.",
@@ -78,6 +84,11 @@
  "explainer": {
   "lede": "Nobody knows. The machine spends almost all its time inside the tape, working at the boundaries between regions made of the words 100 and 101. Sweeps across the whole tape get rarer and rarer: one at step 827,042, the next at step 1,021,956,316.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.75&middot;10<sup>25,107</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 3)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -136,6 +147,6 @@
    }
   ]
  },
- "summary": "Words 100 and 101 in nested regions, each counting off the one to its right; sweeps across the whole tape are rare (the last two at steps 827,042 and 1,021,956,316) and the structure is not yet decoded.",
+ "summary": "Words 100 and 101 in nested regions, each counting off the one to its right; sweeps across the whole tape are rare (the last two at steps 827,042 and 1,021,956,316) and the structure is not yet decoded. Accelerated run: no halt in 1.75e25107 steps.",
  "family": "nested counters in words 100/101 (irregular)"
 }

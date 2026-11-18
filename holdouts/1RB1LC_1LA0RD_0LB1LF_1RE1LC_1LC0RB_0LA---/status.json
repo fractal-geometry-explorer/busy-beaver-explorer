@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 9.07&middot;10<sup>41,345</sup> steps (accelerated run, blocks of 3)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 6,560,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 9.07&middot;10<sup>41,345</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA--- 3 6560000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.493). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.045).",
@@ -105,6 +111,11 @@
  "explainer": {
   "lede": "Nobody knows. A block of ones is converted, four cells at a time, into a run of the word 110 and rebuilt half as long again: a Collatz-like map n → about 3n/2, with a one-bit prefix and a small counter on the right that listen to the remainders.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "9.07&middot;10<sup>41,345</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 3)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -188,7 +199,7 @@
    }
   ]
  },
- "summary": "A block of N ones at the left is turned, 4 ones into two words 110 per round trip, and rebuilt about 3/2 as long: a Collatz-like map N → (3N + c)/2 with c set by N mod 4, a one-bit prefix and a word growing at the right end; halting not reduced yet.",
+ "summary": "A block of N ones at the left is turned, 4 ones into two words 110 per round trip, and rebuilt about 3/2 as long: a Collatz-like map N → (3N + c)/2 with c set by N mod 4, a one-bit prefix and a word growing at the right end; halting not reduced yet. Accelerated run: no halt in 9.07e41345 steps.",
  "family": "Collatz-like 3n/2 map + prefix",
  "decision": "open"
 }

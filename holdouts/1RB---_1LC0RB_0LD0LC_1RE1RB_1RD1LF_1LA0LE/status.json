@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.69&middot;10<sup>48,458</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,720,000 macro steps from blank tape without a halt, in 606 seconds. That is more than 3.69&middot;10<sup>48,458</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE 4 4720000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.484). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -125,6 +131,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "3.69&middot;10<sup>48,458</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
+   {
+    "level": "trusted",
     "value": "42 phases",
     "text": "the shortest parity sequence from the empty word to a halt."
    },
@@ -208,6 +219,6 @@
    }
   ]
  },
- "summary": "Antihydra-like 3/2 map with a word counter: each phase multiplies n by 3/2 and its parity edits a word P; a halt is reachable but only after a specific run of 42 parities (none in 20,000 phases).",
+ "summary": "Antihydra-like 3/2 map with a word counter: each phase multiplies n by 3/2 and its parity edits a word P; a halt is reachable but only after a specific run of 42 parities (none in 20,000 phases). Accelerated run: no halt in 3.69e48458 steps.",
  "decision": "open"
 }

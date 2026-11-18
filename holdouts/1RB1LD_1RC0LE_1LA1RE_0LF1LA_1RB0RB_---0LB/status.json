@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.80&middot;10<sup>16</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 859,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 5.80&middot;10<sup>16</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LD_1RC0LE_1LA1RE_0LF1LA_1RB0RB_---0LB 6 859800000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.454).",
@@ -84,6 +90,11 @@
  "explainer": {
   "lede": "Nobody knows. After about a million steps the left end of this machine's tape stops moving. Between it and a growing block of ones sits a counter, which grows like the logarithm of the time and eats into a reserve block of the word 011. This page runs the real machine in your browser and explains the pieces. The sweeps are proved in Lean.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.80&middot;10<sup>16</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "2 sweeps",
@@ -158,6 +169,6 @@
    }
   ]
  },
- "summary": "A counter that grows leftward into a reserve block of 011s, updated once per tick, while a block of ones at the right end grows; the reserve lasts for about 10^90 steps.",
+ "summary": "A counter that grows leftward into a reserve block of 011s, updated once per tick, while a block of ones at the right end grows; the reserve lasts for about 10^90 steps. Accelerated run: no halt in 5.80e16 steps.",
  "family": "counter beside a growing block"
 }

@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
       <div class="card">
+        <h3>No halt in the first 2.42&middot;10<sup>15</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,787,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.42&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB 4 1787400000</code></p>
+      </div>
+      <div class="card">
         <h3>The run of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF from a tape with one extra 1</h3>
         <p>Mirror this machine and rename A..F to F, A, B, C, D, E: the table is the other machine's, started in its state F, whose first step writes a 1 and enters its state A. Run from that tape side by side with the other machine from blank tape, at all 32,539 left-end records of the first 10<sup>9</sup> steps the tapes agree except for one extra 1 at the end of the far wall, and the step counts differ by 56 (57 with the first step), constant since step 4,194,242.</p>
         <p class="where"><code>c/twin.c</code></p>

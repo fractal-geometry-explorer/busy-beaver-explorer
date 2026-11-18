@@ -165,6 +165,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The C simulator runs 30,000,000,000 steps from blank tape without a halt; at the end cells -186 to 512 (699 cells), 302 ones.</p>
         <p class="where"><code>c/longrun.c</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 1.25&middot;10<sup>8</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 19,600,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.25&middot;10<sup>8</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LE_0RC0RB_1RD1RF_1LA0LE_0LD0LB_---0RD 6 19600000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <p class="empty">Nothing yet.</p>

@@ -165,6 +165,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The counter is never below 1 (lowest at rounds 1 and 4) and is 50,008 after 10<sup>5</sup> rounds (49,997 odd rounds, 50,003 even). The first round starts of a direct simulation agree with the map.</p>
         <p class="where"><code>py/orbit.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 4.75&middot;10<sup>43,888</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 3,460,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.75&middot;10<sup>43,888</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA 4 3460000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

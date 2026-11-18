@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 8.41&middot;10<sup>14</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 438,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 8.41&middot;10<sup>14</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC 4 438800000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The turns at the left end, for every block length",
    "text": "From <code>0^inf 0 0 (1110)^(n+1) A&gt; 1011 R</code> the machine crosses the whole block leftwards (rewriting each word as it passes), bounces off the blank tape and crosses it back, reaching <code>0^inf 111 (0111)^(n+1) 111 E&gt; R</code> in 20n+38 steps; and from the record in B, <code>0^inf B&gt; 0 10 (1011)^n R</code>, it reaches <code>0^inf 111 (0111)^n 0 B&gt; R</code> in 8n+11 steps. For all n and every tape R.",
@@ -124,6 +130,11 @@
   "lede": "Nobody knows yet. The machine builds a long block of identical words and, beside it, a binary counter that ticks once every two trips of the head. Each time the counter overflows it eats a little of the leftover cells beyond it; when they are gone, the whole block turns into new leftovers and everything starts again, each time on a vastly larger scale. Only at the end of such an epoch can the machine stop.",
   "facts": [
    {
+    "level": "trusted",
+    "value": "8.41&middot;10<sup>14</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
+   {
     "level": "kernel",
     "value": "4<sup>m</sup>&minus;1",
     "text": "Increments a counter of 2m digits makes from all zeros to all ones, proved in Lean for every m."
@@ -199,5 +210,5 @@
   ]
  },
  "family": "binary counter beside a growing block",
- "summary": "A block of 1011 words grows at the left end while a binary counter next to it is incremented every two rounds and eats into junk at its far end; when the junk is gone the block becomes the next epoch's junk. Epochs 1 to 3 end in restarts; open."
+ "summary": "A block of 1011 words grows at the left end while a binary counter next to it is incremented every two rounds and eats into junk at its far end; when the junk is gone the block becomes the next epoch's junk. Epochs 1 to 3 end in restarts; open. Accelerated run: no halt in 8.41e14 steps."
 }

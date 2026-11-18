@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.84&middot;10<sup>14</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,835,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.84&middot;10<sup>14</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD 4 1835800000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The round, and a phase of rounds by induction",
    "text": "From <code>L 1 0 1^(p+7) 0 (1010)^(q+1) 1^5 E&gt; 0^inf</code> the machine reaches <code>L 1 0 1^(p+5) 0 (1010)^(q+2) 1^5 E&gt; 0^inf</code> in 28q+64 steps, for all p, q and every tape L; k rounds take (P + 2k, Q) to (P, Q + 2k) for P &ge; 5 and even Q &ge; 2.",
@@ -91,6 +97,11 @@
  "explainer": {
   "lede": "Nobody knows. At the right end of the tape this machine runs a simple, provable loop that trades a block of ones for pairs <code>10</code>; how the next block starts, small again or twice as large, depends on a jumble of cells further left that the machine keeps rewriting.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.84&middot;10<sup>14</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
    {
     "level": "trusted",
     "value": "156 phases",
@@ -167,5 +178,5 @@
   ]
  },
  "family": "doubling phases on a growing junk tape",
- "summary": "Phases at the right end: a block of P ones is traded two at a time for words 10, then the phase end either doubles P (P' = 2P + 11, up to 16 times in a row so far) or resets it, depending on the irregular tape it meets on its way left. Open."
+ "summary": "Phases at the right end: a block of P ones is traded two at a time for words 10, then the phase end either doubles P (P' = 2P + 11, up to 16 times in a row so far) or resets it, depending on the irregular tape it meets on its way left. Open. Accelerated run: no halt in 1.84e14 steps."
 }

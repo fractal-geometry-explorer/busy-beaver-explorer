@@ -162,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.84&middot;10<sup>772</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 60,620,000 macro steps from blank tape without a halt, in 300 seconds. That is more than 4.84&middot;10<sup>772</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD 2 --macro 60620000</code></p>
+      </div>
+      <div class="card">
         <h3>The whole map holds for the first 10<sup>10</sup> steps</h3>
         <p>Every sample from step 216 on (the head in C at the right end) has the form K(x, m, s), except one sample inside each R step where the tape is solid, and each sample follows from the previous one by the map: <code>py/samplemap.py check</code>, using <code>tools/c/tmrun.c</code>. See the README for the counts.</p>
         <p class="where"><code>py/samplemap.py</code></p>

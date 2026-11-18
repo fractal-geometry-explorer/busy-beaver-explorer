@@ -73,6 +73,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 3.30&middot;10<sup>22</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,092,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.30&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD 2 2092400000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The macro rules against the machine",
    "text": "A direct run of 3&middot;10<sup>10</sup> steps (<code>c/verify.c</code>) meets the shape X(b, c) exactly at the configurations the orbit of g predicts, in order, and at no others: 19 of them, from X(3, 1) at step 45 to X(7483, 1) at step 10,608,569,291 and X(3740, 3745) at step 10,636,589,390.",
    "where": "<code>c/verify.c</code>"
@@ -119,6 +125,11 @@
  "explainer": {
   "lede": "Space Needle is one of the community's cryptids: whether it halts is equivalent to whether a simple sequence of numbers, 6, 10, 17, 41, 101, 251, 626, ..., ever reaches a power of two. This page shows how the machine computes that sequence, and what is proved about it.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "3.30&middot;10<sup>22</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "Halts &hArr; 2<sup>n</sup>",
@@ -240,6 +251,6 @@
   ]
  },
  "family": "Collatz-like map on block lengths (2-adic valuation map)",
- "summary": "Space Needle: halts iff Doucette's sequence 6, 10, 17, 41, 101, ... (D -> D + v + 3a for D = 2^v(2a+1)) hits a power of two; proved equivalent in Lean, probviously non-halting.",
+ "summary": "Space Needle: halts iff Doucette's sequence 6, 10, 17, 41, 101, ... (D -> D + v + 3a for D = 2^v(2a+1)) hits a power of two; proved equivalent in Lean, probviously non-halting. Accelerated run: no halt in 3.30e22 steps.",
  "decision": "open"
 }

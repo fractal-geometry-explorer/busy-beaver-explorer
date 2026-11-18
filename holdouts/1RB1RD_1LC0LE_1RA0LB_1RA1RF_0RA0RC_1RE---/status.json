@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.27&middot;10<sup>91,400</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 6,160,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 1.27&middot;10<sup>91,400</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- 2 --macro 6160000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The cycle of a phase",
    "text": "For all x, y and any tape L to the left, <code>L 1^(x+3) (01)^y 1 D&gt;0</code> reaches <code>L 1^x (01)^(y+4) 1 D&gt;0</code> in 6y + 39 steps.",
@@ -113,6 +119,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine plays a game much like the 3n+1 problem: a block of m ones is ground down three at a time, and then rebuilt as a block of about 8m/3 ones, with the details set by the remainder of m divided by 3. This page runs the real machine in your browser and explains the game.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.27&middot;10<sup>91,400</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "1<sup>x+3</sup>(01)<sup>y</sup> &rarr; 1<sup>x</sup>(01)<sup>y+4</sup>",
@@ -209,6 +220,6 @@
   ]
  },
  "family": "Collatz-like (8/3), nested prefix counter",
- "summary": "A block of ones is turned into 01 pairs three at a time; phase to phase the block grows like m -> 8m/3 + c, with c and a nested prefix counter set by m mod 3 (Collatz-like; a halting case is 107 prescribed remainders away, observed; a cryptid).",
+ "summary": "A block of ones is turned into 01 pairs three at a time; phase to phase the block grows like m -> 8m/3 + c, with c and a nested prefix counter set by m mod 3 (Collatz-like; a halting case is 107 prescribed remainders away, observed; a cryptid). Accelerated run: no halt in 1.27e91400 steps.",
  "decision": "open"
 }

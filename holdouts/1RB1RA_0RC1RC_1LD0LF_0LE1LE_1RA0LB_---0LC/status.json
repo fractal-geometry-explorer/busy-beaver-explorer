@@ -42,6 +42,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 2.42&middot;10<sup>65,295</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 10,520,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 2.42&middot;10<sup>65,295</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 2 --macro 10520000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "The macro rules",
    "text": "For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.",
    "where": "<code>py/macro.py check</code>"
@@ -83,6 +89,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "2.42&middot;10<sup>65,295</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
+   {
+    "level": "trusted",
     "value": "m = 5, 57, 210,273,201",
     "text": "Countdowns of the first three epochs, computed exactly."
    },
@@ -121,5 +132,5 @@
  },
  "family": "Collatz-like epochs (y ↦ ⌈3y/2⌉ countdown)",
  "decision": "open",
- "summary": "Epochs of y ↦ ⌈3y/2⌉ with a countdown m (−1 even, −2 odd); an epoch ends in a halt or a new epoch with m ≈ 3y. Computed exactly: epochs start at m = 5, 57, 210,273,201 and then a 24.7-million-digit m; probviously halting, but open."
+ "summary": "Epochs of y ↦ ⌈3y/2⌉ with a countdown m (−1 even, −2 odd); an epoch ends in a halt or a new epoch with m ≈ 3y. Computed exactly: epochs start at m = 5, 57, 210,273,201 and then a 24.7-million-digit m; probviously halting, but open. Accelerated run: no halt in 2.42e65295 steps."
 }

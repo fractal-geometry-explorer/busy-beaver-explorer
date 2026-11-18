@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.82&middot;10<sup>48,017</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 5,520,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 5.82&middot;10<sup>48,017</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA 6 5520000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The zigzag that turns (10)<sup>k</sup> into ones",
    "text": "For every j, x, y and every tape L on the left: <code>L (10)^(x+2j) 1 1 E&gt; 0 1 1^(2y+1) 0^inf</code> reaches <code>L (10)^x 1 1 E&gt; 0 1 1^(2y+6j+1) 0^inf</code>. Each round uses up two copies of <code>10</code> at the junction and adds six ones at the right end of the tape, the head sweeping over the whole block of ones and back.",
@@ -121,6 +127,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape is a short word followed by k copies of <code>10</code> or <code>01</code>; every half-phase multiplies k by about 3/2, and the parity of k edits the short word at the left end. This page shows the two sweeps (one proved in Lean), the half-phases, and what the question comes down to.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "5.82&middot;10<sup>48,017</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -213,6 +224,6 @@
    }
   ]
  },
- "summary": "k copies of 10 -> (3k+c)/2 per half-phase, with a memory word w edited by the parity of k; halts when w gets 1111 with the wrong parity: probviously halting after ~2^40 half-phases.",
+ "summary": "k copies of 10 -> (3k+c)/2 per half-phase, with a memory word w edited by the parity of k; halts when w gets 1111 with the wrong parity: probviously halting after ~2^40 half-phases. Accelerated run: no halt in 5.82e48017 steps.",
  "family": "Collatz-like x3/2 map with a memory word (probviously halting)"
 }

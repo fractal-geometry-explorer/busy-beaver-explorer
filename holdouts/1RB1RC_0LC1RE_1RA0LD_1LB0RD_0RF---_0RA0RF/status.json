@@ -2,7 +2,7 @@
  "generated": false,
  "group": "G07",
  "family": "binary down-counter in the gaps (00 = 0, 000 = 1), nested reloads",
- "summary": "Blocks of 1s whose gaps (00 = 0, 000 = 1, single 0) are the digits of a binary counter; every visit of the right end is one leftward sweep and one rightward refill, and the ordinary visit (the counter goes down by one) is proved in Lean for any number of blocks; 36,604 of the 36,790 visits up to 10^9 steps are such instances, the rare others reload the counter; open.",
+ "summary": "Blocks of 1s whose gaps (00 = 0, 000 = 1, single 0) are the digits of a binary counter; every visit of the right end is one leftward sweep and one rightward refill, and the ordinary visit (the counter goes down by one) is proved in Lean for any number of blocks; 36,604 of the 36,790 visits up to 10^9 steps are such instances, the rare others reload the counter; open. Accelerated run: no halt in 4.22e15 steps.",
  "decision": "open",
  "title": "What is known about 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF.",
@@ -41,6 +41,12 @@
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 73,592 cells have been visited and 73,306 of them hold a 1.",
    "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 4.22&middot;10<sup>15</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,378,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 4.22&middot;10<sup>15</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF 2 1378000000</code>"
   },
   {
    "level": "heuristic",
@@ -107,6 +113,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine keeps a binary counter in the gaps between its blocks of 1s, two 0s for a 0 digit and three for a 1, and counts it down by one every time the head comes back to the right end. Lean now proves that ordinary step for any number of blocks; the open part is what happens in the rare visits where the counter runs out and reloads itself.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.22&middot;10<sup>15</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "dec_general",

@@ -43,6 +43,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.26&middot;10<sup>17</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,688,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.26&middot;10<sup>17</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 4 2688400000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: sqrt/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.389). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.554).",
@@ -162,6 +168,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "1.26&middot;10<sup>17</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
+   {
+    "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 76,681 cells visited."
    },
@@ -268,6 +279,6 @@
   ]
  },
  "family": "odometer on separators of (10)-blocks, recurring on growing scales",
- "summary": "An alternating tape cut into blocks by single separator cells. Each round trip from the right end is a tick that flips separators by a few rules depending on the parities of the blocks, like an odometer; now and then a tick reaches the left end and rebuilds the front of the list, and the whole pattern recurs on larger scales. Open.",
+ "summary": "An alternating tape cut into blocks by single separator cells. Each round trip from the right end is a tick that flips separators by a few rules depending on the parities of the blocks, like an odometer; now and then a tick reaches the left end and rebuilds the front of the list, and the whole pattern recurs on larger scales. Open. Accelerated run: no halt in 1.26e17 steps.",
  "decision": "open"
 }

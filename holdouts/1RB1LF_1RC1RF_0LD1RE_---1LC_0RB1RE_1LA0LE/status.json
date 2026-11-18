@@ -89,6 +89,12 @@
    "where": "<code>c/fast.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.44&middot;10<sup>10</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 78,200,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 4.44&middot;10<sup>10</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE 2 78200000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A later halt is very unlikely",
    "text": "The map spends about two operations at each modulus v and each hits 2u = v with chance about 1/v, so the target v = 2<sup>k+1</sup> − k is hit with chance about 2<sup>−k</sup>; the targets still ahead start at k = 36, about 10<sup>−11</sup> in total. The modulus is not monotone (merges and new brackets move it), so this is an estimate.",
@@ -123,6 +129,11 @@
  "explainer": {
   "lede": "Nobody knows whether it halts. A pool of 1s pays for a block of pairs that doubles at every sweep; in numbers, the machine doubles a counter u modulo a slowly growing modulus v. It can halt only if a doubling lands exactly on v at one of the rare moduli 2^(k+1) − k.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.44&middot;10<sup>10</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "kernel",
     "value": "u ↦ 2u mod v",
@@ -185,5 +196,5 @@
  },
  "family": "doubling map with a growing modulus (odd-pool events)",
  "decision": "open",
- "summary": "Proved in Lean (kernel), above the tape-level map: it halts iff a doubling map u ↦ 2u mod v (v grows by one at each doubling that does not wrap), with its odd pools and brackets, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket, e.g. from 2u = v at v = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open."
+ "summary": "Proved in Lean (kernel), above the tape-level map: it halts iff a doubling map u ↦ 2u mod v (v grows by one at each doubling that does not wrap), with its odd pools and brackets, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket, e.g. from 2u = v at v = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open. Accelerated run: no halt in 4.44e10 steps."
 }

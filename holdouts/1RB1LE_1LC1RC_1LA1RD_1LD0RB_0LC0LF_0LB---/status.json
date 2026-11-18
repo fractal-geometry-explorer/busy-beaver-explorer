@@ -64,6 +64,12 @@
    "where": "<code>tools/py/bbtools/cycles.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.23&middot;10<sup>24,513</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 3,075,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>24,513</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=3075000 1RB1LE_1LC1RC_1LA1RD_1LD0RB_0LC0LF_0LB---</code>"
+  },
+  {
    "level": "heuristic",
    "title": "How it could halt",
    "text": "The machine halts exactly in state C on a 0 with three 1s to its left. None of the S-states tried (all X mod 6, all tails of at most three blocks of at most 9 ones) halts before the next S-state, so halting would need a tail not seen yet.",
@@ -112,6 +118,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine keeps one long block of ones and multiplies its length by about 3/2 per cycle, like a Collatz map, writing what is left over into a short tail. This page runs the real machine and explains the cycle.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2.23&middot;10<sup>24,513</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "2 rules",
@@ -190,6 +201,6 @@
    }
   ]
  },
- "summary": "One block of ones X grows by about 3/2 per cycle (converted to X/3 pairs 110, absorbed two at a time for +9 each), X' = (3X + c)/2 with c set by X mod 6 and a slowly growing tail; halting condition not understood.",
+ "summary": "One block of ones X grows by about 3/2 per cycle (converted to X/3 pairs 110, absorbed two at a time for +9 each), X' = (3X + c)/2 with c set by X mod 6 and a slowly growing tail; halting condition not understood. Accelerated run: no halt in 2.23e24513 steps.",
  "decision": "open"
 }

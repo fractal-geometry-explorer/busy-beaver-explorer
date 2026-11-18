@@ -177,6 +177,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA/py/check_msim.py run 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA 1e18</code> (macro simulator <code>c/msim.c</code> there, checked against the direct simulator at 10<sup>9</sup> steps by <code>check_msim.py check</code>)</p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.23&middot;10<sup>147</sup> steps (accelerated run, Quick_Sim)</h3>
+        <p>Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 4,883,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 2.23&middot;10<sup>147</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 Code/Quick_Sim.py -r --max-loops=4883000 1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA</code></p>
+      </div>
+      <div class="card">
         <h3>No pushdown certificate with a DFA of at most 6 states</h3>
         <p>The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_0RC1RC_0RD1LA_1LD0LA_1LF1LC_---0LA ./pds 6 L</code> and <code>R</code>.</p>
         <p class="where"><code>bb6-1RB0LF_1RC0LB/c/pds.c</code></p>

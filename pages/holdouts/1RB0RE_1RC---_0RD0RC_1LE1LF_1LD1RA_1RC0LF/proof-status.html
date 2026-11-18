@@ -167,6 +167,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.81&middot;10<sup>46,707</sup> steps (accelerated run, blocks of 6)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 5,400,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 1.81&middot;10<sup>46,707</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF 6 5400000</code></p>
+      </div>
+      <div class="card">
         <h3>Rounds between end events, by remainder class</h3>
         <p>Sample the run whenever the head is in state A reading 0 with only 0s to its right. Read leftwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m mod 2) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (21 events) the class map predicts the next event in all 15 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p>
         <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF R A 0 check 3e9</code></p>

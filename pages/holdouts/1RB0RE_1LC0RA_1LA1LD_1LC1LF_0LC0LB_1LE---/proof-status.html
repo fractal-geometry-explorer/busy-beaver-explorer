@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/phases.py 30000</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 9.88&middot;10<sup>89,217</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 5,940,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 9.88&middot;10<sup>89,217</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- 2 --macro 5940000</code></p>
+      </div>
+      <div class="card">
         <h3>Rounds between end events, by remainder class</h3>
         <p>Sample the run whenever the head is in state D reading 1 with only 0s to its left. Read rightwards from the head, the tape is then <code>A U^m B</code>: one long periodic block between two short context words. For each class (A, U, B, m mod 3) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3&middot;10<sup>9</sup> steps (10 events) the class map predicts the next event in all 7 rounds it applies to. This is an extrapolation checked by computation, not a proof.</p>
         <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- L D 1 check 3e9</code></p>

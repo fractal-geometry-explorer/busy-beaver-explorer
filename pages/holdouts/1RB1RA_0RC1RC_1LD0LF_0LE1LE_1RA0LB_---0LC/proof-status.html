@@ -161,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.42&middot;10<sup>65,295</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel_rec.py</code> (blocks of 2 cells, runs crossed in one step, cycle jumps used only after a symbolic proof of the one-cycle rule, and proofs that may themselves apply earlier rules to symbolic lengths, with exact polynomial step counts; tested cell for cell against direct runs) runs 10,520,000 macro steps from blank tape without a halt, in 301 seconds. That is more than 2.42&middot;10<sup>65,295</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel_rec.py 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 2 --macro 10520000</code></p>
+      </div>
+      <div class="card">
         <h3>The macro rules</h3>
         <p>For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.</p>
         <p class="where"><code>py/macro.py check</code></p>

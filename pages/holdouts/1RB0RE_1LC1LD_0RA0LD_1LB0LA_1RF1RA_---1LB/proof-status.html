@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.45&middot;10<sup>41,498</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,840,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 3.45&middot;10<sup>41,498</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB 4 4840000</code></p>
+      </div>
+      <div class="card">
         <h3>Three rounds survive</h3>
         <p>The orbit from (0, 5) resets with fuel 14, then 185, then 22,205,951,667,644,132,025,548 (138 applications of <code>next</code>), without halting. In the real run the tape shows fuel 14 at step 653 and fuel 185 at step 59,197.</p>
         <p class="where"><code>py/orbit.py</code></p>

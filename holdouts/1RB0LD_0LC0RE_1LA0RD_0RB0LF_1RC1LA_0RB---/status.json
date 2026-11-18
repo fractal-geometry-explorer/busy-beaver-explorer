@@ -73,6 +73,12 @@
    "where": "<code>c/longrun.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.31&middot;10<sup>8</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 22,600,000 macro steps from blank tape without a halt, in 10 seconds. That is more than 1.31&middot;10<sup>8</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB--- 6 22600000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The mirror of a relative",
    "text": "Mirrored and renamed, the table is 1RB0LE_1LC0RE_0RA0LD_1LA1RB_0LC0RF_0LC---, which shares the prefix 1RB0LE_1LC0RE_0RA0LD_1LA with 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---; most of its configurations in the first 10<sup>7</sup> steps occur, mirrored, in that machine's run (holdouts/related.json).",
@@ -101,6 +107,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine runs a base-3 counter at its right end and binary counters at its left, both proved in Lean, with a middle part between them that nobody has decoded yet. This page runs the real machine in your browser and lists what is known.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.31&middot;10<sup>8</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "30,000,000,000 steps",
@@ -197,5 +208,5 @@
   ]
  },
  "family": "F02 engine with a different D1/F path: counters behind a growing middle",
- "summary": "The mirror image of a relative of 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---: a base-3 counter at the right end and binary counters at the left (both proved in Lean for every size), with an undecoded middle."
+ "summary": "The mirror image of a relative of 1RB0LE_1LC0RE_0RA0LD_1LA0LF_0LC0RA_0RE---: a base-3 counter at the right end and binary counters at the left (both proved in Lean for every size), with an undecoded middle. Accelerated run: no halt in 1.31e8 steps."
 }

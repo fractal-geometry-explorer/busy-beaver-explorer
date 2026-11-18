@@ -77,6 +77,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.54&middot;10<sup>25,722</sup> steps (accelerated run, blocks of 2)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,200,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 1.54&middot;10<sup>25,722</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 2 7200000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Closed form, and 200,000 passes",
    "text": "Writing n+2 = 2<sup>j</sup>m with m odd, f(n) = 2<sup>j</sup>m + (m+2j&minus;1)/2, except m = 1 (halt) and m = 3 with j even and &#8805; 2 (f(n) = 9&middot;2<sup>j&minus;1</sup> + 3j/2 + 3); checked against g for every n &lt; 200,000 and against direct simulation of passes for n &#8804; 3000. Iterating f from 4 for 200,000 passes (exact integers) never halts; n then has 80,223 bits.",
    "where": "<code>holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/py/study.py</code>, <code>c/passmap.c</code>, <code>py/orbit.py --check</code>"
@@ -129,6 +135,11 @@
  "explainer": {
   "lede": "Nobody knows, but the question is now a clean one about numbers. At the end of every pass the tape is one block of n ones; the next pass turns n into f(n), and the machine stops exactly when n+2 is a power of two. This page shows the passes, the map and why it is hard.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.54&middot;10<sup>25,722</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 2)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -238,6 +249,6 @@
    }
   ]
  },
- "summary": "One block of n ones; each pass maps n to about n(1+2^-(j+1)), j the 2-adic valuation of n+2, and it halts iff n+2 is ever a power of two. Doucette family (Lean): D -> D + a + v + 2.",
+ "summary": "One block of n ones; each pass maps n to about n(1+2^-(j+1)), j the 2-adic valuation of n+2, and it halts iff n+2 is ever a power of two. Doucette family (Lean): D -> D + a + v + 2. Accelerated run: no halt in 1.54e25722 steps.",
  "family": "Collatz-like map on one block length (2-adic halving bouncer)"
 }

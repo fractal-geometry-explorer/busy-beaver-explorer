@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.75&middot;10<sup>25,107</sup> steps (accelerated run, blocks of 3)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 3 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 14,800,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 1.75&middot;10<sup>25,107</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA--- 3 14800000</code></p>
+      </div>
+      <div class="card">
         <h3>Rare full sweeps</h3>
         <p>The head reaches the left end after having been at the right end at steps 38, 110, 416, 660, 1,070, 1,904, 3,712, 8,212, 25,912, 827,042 and 1,021,956,316. At those times the tape is 12, 19, 37, 44, 55, 71, 102, 149, 238, 1,499 and 37,210 cells wide. No halt in 3&middot;10<sup>9</sup> steps.</p>
         <p class="where"><code>edges</code></p>

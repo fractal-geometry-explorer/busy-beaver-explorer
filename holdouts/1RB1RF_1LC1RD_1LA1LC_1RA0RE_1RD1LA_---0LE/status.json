@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.96&middot;10<sup>29,100</sup> steps (accelerated run, blocks of 4)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 7,220,000 macro steps from blank tape without a halt, in 602 seconds. That is more than 4.96&middot;10<sup>29,100</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE 4 7220000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.52). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -119,6 +125,11 @@
   "facts": [
    {
     "level": "trusted",
+    "value": "4.96&middot;10<sup>29,100</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 4)."
+   },
+   {
+    "level": "trusted",
     "value": "10<sup>9</sup> steps",
     "text": "No halt in the C simulator; 47,556 cells visited."
    },
@@ -182,7 +193,7 @@
    }
   ]
  },
- "summary": "A Collatz-like 3/2 map g -> 3g/2 + c on a gap of zeros at the left end, whose residues mod 4 are written into a slowly growing stack on the right; the sweep rule is proved in Lean, the epoch map is checked; open.",
+ "summary": "A Collatz-like 3/2 map g -> 3g/2 + c on a gap of zeros at the left end, whose residues mod 4 are written into a slowly growing stack on the right; the sweep rule is proved in Lean, the epoch map is checked; open. Accelerated run: no halt in 4.96e29100 steps.",
  "family": "Collatz-like 3g/2 map driving a stack",
  "decision": "open"
 }

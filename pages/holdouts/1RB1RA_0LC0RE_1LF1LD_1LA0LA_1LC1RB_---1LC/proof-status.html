@@ -163,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.89&middot;10<sup>22</sup> steps (accelerated run, blocks of 2)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,476,200,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.89&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC 2 2476200000</code></p>
+      </div>
+      <div class="card">
         <h3>The odometer rule</h3>
         <p>For S(c, a, b) = 0^∞ (10)^c 1^a 0 (10)^b 1 B&gt;0 0^∞ with a even and a ≥ 2, the next right-end visit in state B is: if 2b &lt; a, S(c, a − 2b, 2b + 1) (the right block doubles, eating 1s); if 2b ≥ a and c ≥ 1, apply the rule to (c − 1, 2a + 4, max(b − a/2 − 1, 0)) (a carry: one 10 of the left block becomes 1s); if 2b ≥ a and c = 0, halt when b = a/2 and otherwise apply the rule to (a, 4, b − a/2 − 1) (a reset: the 1s become the new left block). Checked against direct simulation for all c &lt; 6, even 2 ≤ a &lt; 30, b &lt; 34 (2,856 configurations), and on every such visit in the first 3·10<sup>6</sup> steps of the run, which first reaches S(0, 4, 1) at step 43.</p>
         <p class="where"><code>py/model.py check</code></p>

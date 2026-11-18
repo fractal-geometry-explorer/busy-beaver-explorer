@@ -90,6 +90,12 @@
   },
   {
    "level": "trusted",
+   "title": "No halt in the first 1.21&middot;10<sup>38,782</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 12,660,000 macro steps from blank tape without a halt, in 601 seconds. That is more than 1.21&middot;10<sup>38,782</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA 6 12660000</code>"
+  },
+  {
+   "level": "trusted",
    "title": "No pushdown certificate with a DFA of at most 6 states",
    "text": "The pushdown reduction of <code>bb6-1RB0LF_1RC0LB/c/pds.c</code> (one side of the tape kept exactly, the other abstracted by a DFA, reachability by post* saturation) reaches a halt for every DFA with at most 6 states, on either side: <code>TM=1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA ./pds 6 L</code> and <code>R</code>.",
    "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
@@ -137,6 +143,11 @@
  "explainer": {
   "lede": "Nobody knows yet, but its map is now fully known: a run of 1s grows by 4/3 every round while a short list after it is rewritten. In 100,000 rounds, far beyond any computer's reach of direct simulation, it never stops.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.21&middot;10<sup>38,782</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "a &ge; 4m",
@@ -228,5 +239,5 @@
   ]
  },
  "family": "4/3 Bell with a draining second counter (lottery)",
- "summary": "A 4/3 map on a run of 1s whose tail list holds a second counter that drains the main one: it halts exactly if that counter reaches four times the main run, which needs an astronomically long streak of m mod 3 ≠ 1; probviously non-halting, and no regular invariant can prove it."
+ "summary": "A 4/3 map on a run of 1s whose tail list holds a second counter that drains the main one: it halts exactly if that counter reaches four times the main run, which needs an astronomically long streak of m mod 3 ≠ 1; probviously non-halting, and no regular invariant can prove it. Accelerated run: no halt in 1.21e38782 steps."
 }

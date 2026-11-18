@@ -157,6 +157,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 1.28&middot;10<sup>16</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,661,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.28&middot;10<sup>16</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_1RC1RE_0RD1RC_1LA0LB_1LF0RB_---1LD 4 1661400000</code></p>
+      </div>
+      <div class="card">
         <h3>The map f on all-ones tapes</h3>
         <p>For every N from 1 to 6,000, the machine started in F on the leftmost cell of 1<sup>N</sup> returns to an all-ones tape 1<sup>f(N)</sup> with F on its leftmost cell, without halting. The orbit from 8 is 8, 22, 42, 58, 90, 148, 218, 298, 410, 554, 746, 1002, 1344, 1558, 2090, 2794, 3738, 4992, 6674, 8906, 11882, 15850, 21146, 28202, 37610, 50154 (to step 1.8&middot;10<sup>9</sup>) , then 89188, 132216, 146976, 348442 (3.5&middot;10<sup>11</sup> steps in all, by the same program).</p>
         <p class="where"><code>c/phasemap.c</code></p>

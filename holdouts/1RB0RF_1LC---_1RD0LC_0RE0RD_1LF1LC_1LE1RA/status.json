@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.64&middot;10<sup>46,426</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 5,580,000 macro steps from blank tape without a halt, in 603 seconds. That is more than 1.64&middot;10<sup>46,426</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA 6 5580000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.053). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.497).",
@@ -117,6 +123,11 @@
  "explainer": {
   "lede": "Nobody knows, and the honest guess is: yes, but unimaginably late. The machine runs a Collatz-like map m → about 3m/2, and a tiny counter at the left end of the tape listens to the parity of m. Only a very long lucky streak of parities pushes the counter over the edge into the halting state.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.64&middot;10<sup>46,426</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "kernel",
     "value": "3m/2",
@@ -205,7 +216,7 @@
    }
   ]
  },
- "summary": "A Collatz-like map m → 3⌊m/2⌋ + 4 + (0, 1 or 3) on a run of m words 10, sampled once per pass; a short word at the left end acts like a counter fed by the parities of m, and the machine halts only if that counter climbs about 41 rungs in a row (heuristically certain, but after roughly 10^(10^12) steps).",
+ "summary": "A Collatz-like map m → 3⌊m/2⌋ + 4 + (0, 1 or 3) on a run of m words 10, sampled once per pass; a short word at the left end acts like a counter fed by the parities of m, and the machine halts only if that counter climbs about 41 rungs in a row (heuristically certain, but after roughly 10^(10^12) steps). Accelerated run: no halt in 1.64e46426 steps.",
  "family": "Collatz-like 3n/2 map + parity-driven prefix counter",
  "decision": "open"
 }

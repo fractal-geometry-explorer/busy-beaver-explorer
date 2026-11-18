@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 8.41&middot;10<sup>14</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 438,800,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 8.41&middot;10<sup>14</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC 4 438800000</code></p>
+      </div>
+      <div class="card">
         <h3>The block grows by one word every two rounds</h3>
         <p>At the records in B the tape is <code>0^inf B&gt; 0 10 (1011)^N J T</code> with the junction J alternately <code>1010 1011</code> and <code>11 1011</code>; N goes up by one every two rounds and the left end moves out by two cells a round. Checked for the first 24,522 rounds (3&middot;10<sup>9</sup> steps).</p>
         <p class="where"><code>c/m3red.c</code>, records of the full machine</p>

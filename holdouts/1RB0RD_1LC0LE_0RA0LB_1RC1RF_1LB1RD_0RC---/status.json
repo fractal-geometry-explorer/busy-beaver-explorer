@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.46&middot;10<sup>20</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,794,189 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 4.46&middot;10<sup>20</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2794189 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: power/sqrt",
    "text": "Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.131). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.387).",
@@ -110,6 +116,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine builds a row of blocks of <code>001</code>, freezes them one after another, and keeps working on the last one with a smaller bouncer that lives inside it. This page shows the pieces, the rule that the measurements follow, and what is proved.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.46&middot;10<sup>20</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -193,5 +204,5 @@
  },
  "family": "frozen blocks with a self-feeding growing tail",
  "decision": "open",
- "summary": "A row of frozen blocks of 001 on the left and one live block on the right that a sub-bouncer keeps refilling: at each full return the live block (001)^a (011)^b becomes (001)^(a+b+7) (011)^b', and now and then it splits off a new frozen block."
+ "summary": "A row of frozen blocks of 001 on the left and one live block on the right that a sub-bouncer keeps refilling: at each full return the live block (001)^a (011)^b becomes (001)^(a+b+7) (011)^b', and now and then it splits off a new frozen block. Accelerated run: no halt in 4.46e20 steps."
 }

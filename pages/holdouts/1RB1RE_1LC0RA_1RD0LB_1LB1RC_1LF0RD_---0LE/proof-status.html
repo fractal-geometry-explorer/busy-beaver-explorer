@@ -181,6 +181,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/c/redmaps.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.26&middot;10<sup>1,492</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 94,460,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.26&middot;10<sup>1,492</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE 4 94460000</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>

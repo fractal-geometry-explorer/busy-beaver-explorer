@@ -58,6 +58,12 @@
    "where": "<code>c/passes.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.23&middot;10<sup>35,914</sup> steps (accelerated run, blocks of 6)",
+   "text": "The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 6 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 14,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.23&middot;10<sup>35,914</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- 6 14600000</code>"
+  },
+  {
    "level": "kernel",
    "title": "The marker zig-zag",
    "text": "Between passes the head bounces between the marker (a single 0 in a run of 1s) and the right end. Two bounces take <code>L 0 (111)^(m+2) B&gt;1 0^&infin;</code> to <code>L 1^8 0 (111)^m B&gt;1 0^&infin;</code>; by induction <code>2j</code> bounces take gap <code>3(m+2j)</code> to <code>3m</code>, leaving <code>1^(8j)</code> behind the marker, for every m, j and every tape L. With the first bounce after a launch at gap &equiv; 1 (mod 3), and the launches from the left end with no marker (width &equiv; 0 or 2), a pass from gap <code>3(e+2j+1)+1</code> reaches gap <code>3e</code> with the tape <code>2j</code> cells wider.",
@@ -93,6 +99,11 @@
  "explainer": {
   "lede": "Nobody knows. This machine keeps a run of 1s with a few 0s in it. One 0, the marker, creeps to the right end of the tape while the head bounces between it and the end; each time it arrives the tape is about a third wider, and a few cells at the left end decide where the next marker starts. That is a Collatz-like map, and whether it ever leads to the one halting pattern is open.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "1.23&middot;10<sup>35,914</sup> steps",
+    "text": "No halt in the run-length accelerator (proved cycle jumps, blocks of 6)."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -192,7 +203,7 @@
    }
   ]
  },
- "summary": "A single 0 (a marker) zig-zags between itself and the right end of a run of 1s until it catches the end; each such pass makes the tape about 4/3 times wider, and a short prefix at the left end records the residues: a Collatz-like 4/3 map.",
+ "summary": "A single 0 (a marker) zig-zags between itself and the right end of a run of 1s until it catches the end; each such pass makes the tape about 4/3 times wider, and a short prefix at the left end records the residues: a Collatz-like 4/3 map. Accelerated run: no halt in 1.23e35914 steps.",
  "family": "zig-zag marker, 4/3 Collatz-like growth",
  "decision": "open"
 }

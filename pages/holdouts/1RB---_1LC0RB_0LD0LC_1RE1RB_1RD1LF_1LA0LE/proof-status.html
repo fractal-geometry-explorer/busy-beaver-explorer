@@ -147,6 +147,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.69&middot;10<sup>48,458</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 4,720,000 macro steps from blank tape without a halt, in 606 seconds. That is more than 3.69&middot;10<sup>48,458</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE 4 4720000</code></p>
+      </div>
+      <div class="card">
         <h3>The phase map agrees with the machine</h3>
         <p>At all 17 transitions between the 19 phase starts of the first 4&middot;10<sup>8</sup> steps (the last at step 293,598,006, n = 15,633) the measured word map predicts the next phase start.</p>
         <p class="where"><code>python3 py/phases.py check 4e8</code></p>

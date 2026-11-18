@@ -40,6 +40,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.07&middot;10<sup>11</sup> steps (accelerated run, Quick_Sim)",
+   "text": "Shawn Ligocki's <code>Quick_Sim.py</code> (github.com/sligocki/busy-beaver, commit cc35611) with recursive rules (<code>-r</code>: a macro machine with a block size it picks itself and a back symbol, rules proved symbolically from repeated tape shapes, and rules whose proofs use earlier rules) runs 2,236,000 loops from blank tape without a halt, in 121 seconds of a 2-minute screen. That is more than 7.07&middot;10<sup>11</sup> machine steps. It is an outside program, run here without changes; it reported no rule that repeats forever, so it does not decide the machine.",
+   "where": "<code>python3 Code/Quick_Sim.py -r --max-loops=2236000 1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF</code>"
+  },
+  {
    "level": "kernel",
    "title": "The two sweeps over the background",
    "text": "Going right, A crosses <code>(000100110011)^n</code> in 28n steps and leaves <code>(101011111010)^n</code>, a rotation of <code>(01)^4 1^4</code>; going left, D crosses <code>((01)^4 1^4)^n</code> in 60n steps and leaves a rotation of the background.",
@@ -88,6 +94,11 @@
  "explainer": {
   "lede": "Nobody knows. The tape of this machine is one 12-cell word repeated, with a handful of defects that move like particles: a gun at the left end shoots gliders that slow down, merge and pile up near the right end, which grows only in rare bursts.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "7.07&middot;10<sup>11</sup> steps",
+    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+   },
    {
     "level": "kernel",
     "value": "2 sweeps",
@@ -150,6 +161,6 @@
   ]
  },
  "family": "Glider collider: a bouncer over a period-12 background, gun at the left end, counter at the right",
- "summary": "A bouncer over the period-12 background 100110001001 / (01)^4 1^4 carrying gliders: every second burst at the slow right end makes the left end emit a glider, which drifts right and merges into the pile near the right end.",
+ "summary": "A bouncer over the period-12 background 100110001001 / (01)^4 1^4 carrying gliders: every second burst at the slow right end makes the left end emit a glider, which drifts right and merges into the pile near the right end. Accelerated run: no halt in 7.07e11 steps.",
  "decision": "open"
 }

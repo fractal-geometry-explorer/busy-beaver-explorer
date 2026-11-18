@@ -195,6 +195,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 3.50&middot;10<sup>154</sup> steps (accelerated run, blocks of 4)</h3>
+        <p>The run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 101,240,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.50&middot;10<sup>154</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
+        <p class="where"><code>python3 tools/py/bbtools/rleaccel.py 1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC 4 101240000</code></p>
+      </div>
+      <div class="card">
         <h3>Which resets halt</h3>
         <p>Started on otherwise blank tape from <code>(10)<sup>y</sup> 11</code> (head in B on the last cell), the machine halts for y = 2<sup>j</sup> &minus; j &minus; 5 (j = 4..11: 7, 22, 53, 116, 243, 498, 1009, 2032) and y = 12, and for no other y &lt; 2500 within 3y&sup2; + 10<sup>5</sup> steps. (That the whole family 2<sup>j</sup> &minus; j &minus; 5 halts is now a Lean theorem, below.)</p>
         <p class="where"><code>c/hscan.c</code></p>
