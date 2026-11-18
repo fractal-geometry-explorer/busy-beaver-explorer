@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 17 November 2026.",
+ "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced in Lean to a Collatz-like map.</b> Sampled with the head at the left end, the tape is a run of ones with one hole: p ones, the hole, r ones. Lean proves, for all p, r &ge; 1, that one sample leads to the next by an explicit map f (division of p by 3 when p &equiv; 2 mod 3, a jump of the hole to the right end otherwise) in an explicit number of steps, or halts (p = 2 with r divisible by 3), and that the machine halts from blank tape <b>if and only if</b> the orbit of (3, 1) under f reaches that halting case. Following the proved map, the kernel shows no halt in the first 10<sup>3747</sup> steps. Whether the orbit ever hits the halting case is a Collatz-like question; heuristically the chance is about 10<sup>-4</sup>."
  ],
@@ -100,6 +100,18 @@
    "where": "<code>README.md</code>"
   },
   {
+   "level": "kernel",
+   "title": "Which values step onto a power of three",
+   "text": "From r = 1 a term steps onto 3<sup>n</sup> only if it has exactly one factor 3, with n &equiv; 3 (mod 4) if &rho; = 1 and n &equiv; 0 (mod 4) if &rho; = 2; from r = 2 only if v = 0, or v = 2, &rho; = 2 and n &equiv; 4 (mod 6). A pure power of 3 never steps onto another. So a halt reached from r = 1 has n &equiv; 0 or 3 (mod 12).",
+   "where": "<code>last_step</code>, <code>halt_from_r1</code>, <code>lean/Preimage.lean</code>, <code>lean/PowMod.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No power of three in the first 10<sup>9</sup> terms",
+   "text": "The sequence followed for 1,000,000,000 terms by the fast 2-adic algorithm (the low digits run alone, by the shift identity of <code>tools/doucette/lean/Shift.lean</code>; every possible halt checked by the exact map). The last term has 198,650,412 base-3 digits; the largest valuation is 18, first at term 680,991,685. The counts of each valuation fit the geometric law of random digits.",
+   "where": "<code>tools/doucette/djump.py M86 1000000000</code>, <code>tools/doucette/results/run_M86.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt?",
    "text": "Not proved either way. By the kernel claims above, the question is exactly whether the orbit of (3, 1) under the hole map ever reaches p = 2 with r divisible by 3 (equivalently, a sample of length 3<sup>k</sup> + 1 with 3 | k followed by its division chain), a Collatz-like question with no visible invariant that rules it out.",
@@ -109,7 +121,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB 1000000000",
+  "pip install gmpy2 && python3 tools/doucette/djump.py M86 100000000 | head -5"
  ],
  "explainer": {
   "lede": "Nobody knows, but the question is now a clean number puzzle. Lean proves that this Turing machine halts exactly when a simple Collatz-like map, started from (3, 1), hits one particular case, and that it does not halt in its first 10<sup>3747</sup> steps. This page runs the real machine in your browser, shows the shape of its run, and explains the map.",
@@ -188,7 +201,8 @@
      "<p>Five holdouts reduce to the same kind of one-number sequence, first written down by Katelyn Doucette for Space Needle: write D = b<sup>v</sup>&middot;(b&middot;a + &rho;) with b not dividing b&middot;a + &rho;, and the next term is D plus a small linear expression in a and v. The machine halts exactly when the sequence hits a power of b (with one extra condition in base 3). For all five this is proved in Lean, from each machine's own proved map, for every value: the table below lists theorems, not fits.</p>",
      "<p>Here the samples are S(p, r) = <code>C&gt; 1^p 0 1^r</code>, taken where a run of divisions starts. Write D = p + 1 = 3<sup>v</sup>(3a + &rho;) with &rho; = 1 or 2. The division case takes D to D/3 (p becomes (p &minus; 2)/3) v times, and the other cases end the run. Adding it up, <b>(D, r) &#8614; (D + a + v + r + &rho; + 1, 1)</b> (<code>G_rule</code>), so D&prime; = D + a + v + 2 + &rho; when r = 1: the base-3 version of Doucette's form. When D = 3<sup>v</sup> the run ends at the special case p = 2, which <b>halts only if v + r &equiv; 1 (mod 3)</b> and otherwise goes on (<code>G_pow3</code>). So, unlike in base 2, not every power of 3 halts: with r = 1 the machine needs D = 3<sup>v</sup> with 3 dividing v. Lean: <b>the machine halts from blank tape iff the sequence (4, 1), (8, 1), (14, 1), (22, 1), &hellip; reaches a pair (3<sup>v</sup>, r) with v + r &equiv; 1 (mod 3)</b> (<code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code>).</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\" style=\"min-width:880px\"><thead><tr><th>machine and D</th><th>base</th><th>next D (r = 1)</th><th>exception</th><th>halts iff</th><th>sequence</th><th>Lean</th></tr></thead><tbody><tr><td><a href=\"../1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/explainer.html\">1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</a><br><span class=\"small\">Space Needle. D = b + 3 at the visits X(b, 1)</span></td><td>2</td><td><code>D + 3a + v</code></td><td>none (a = 1 fits the rule)</td><td>D a power of 2</td><td>6, 10, 17, 41, 101, 251, …</td><td><code>halts_iff_pow2</code>, <code>lean/Collatz.lean</code></td></tr><tr><td><a href=\"../1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/explainer.html\">1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</a><br><span class=\"small\">D = p + 3 at the samples K(p, 1)</span></td><td>2</td><td><code>D + a + v</code></td><td>D = 3·2<sup>v</sup> gives D + v + 3</td><td>D a power of 2</td><td>5, 7, 10, 13, 19, 28, 33, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/explainer.html\">1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</a><br><span class=\"small\">D = p + 3 at the samples S(p, 1) that start a run of halvings</span></td><td>2</td><td><code>D + a + v + 1</code></td><td>D = 3·2<sup>v</sup> (the run ends at p = 3) gives D + v + r + 1, with r = 1 or 2 next</td><td>D a power of 2</td><td>(5, r = 2), 9, 14, 19, 29, 44, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><a href=\"../1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html\">1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</a><br><span class=\"small\">D = n + 2 at the end of each pass, P(n)</span></td><td>2</td><td><code>D + a + v + 2</code></td><td>D = 3·2<sup>v</sup> with v even, v ≥ 2, gives (3D + 3v + 10)/2</td><td>D a power of 2</td><td>6, 10, 15, 24, 30, 40, 47, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr><tr><td><b>1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB</b> (this machine)<br><span class=\"small\">D = p + 1 = 3<sup>v</sup>(3a + ρ), ρ = 1 or 2, at the samples S(p, 1) that start a run of divisions by 3</span></td><td>3</td><td><code>D + a + v + 2 + ρ</code></td><td>D = 3<sup>v</sup> (the run ends at p = 2): goes on to D + v + 3 or D + v + 1, with r = 1 or 2 next</td><td>D = 3<sup>v</sup> with v + r ≡ 1 (mod 3); for r = 1, 3 divides v</td><td>4, 8, 14, 22, 32, 46, 64, …</td><td><code>halts_iff_doucette</code>, <code>lean/Doucette.lean</code></td></tr></tbody></table></div>",
-     "<p>In every row, a is about D/(2&middot;2<sup>v</sup>) (base 3: D/(3&middot;3<sup>v</sup>)), so a term grows by a factor that depends only on v: about 3/2 when v = 0 and closer to 1 when v is larger (Space Needle: about 5/2 when v = 0; base 3: about 4/3). A power of b is hit only if all the low digits of D line up at once. The exceptions are values the sequences never take in their first 20,000 terms (checked in exact arithmetic); they are in the Lean statements so that the equivalences hold with no assumption. Proving that any of these sequences avoids the powers of b forever is open, and is a question of the same kind as the Collatz problem.</p>"
+     "<p>In every row, a is about D/(2&middot;2<sup>v</sup>) (base 3: D/(3&middot;3<sup>v</sup>)), so a term grows by a factor that depends only on v: about 3/2 when v = 0 and closer to 1 when v is larger (Space Needle: about 5/2 when v = 0; base 3: about 4/3). A power of b is hit only if all the low digits of D line up at once. The exceptions are values the sequences never take in their first 20,000 terms (checked in exact arithmetic); they are in the Lean statements so that the equivalences hold with no assumption. Proving that any of these sequences avoids the powers of b forever is open, and is a question of the same kind as the Collatz problem.</p>",
+     "<p><b>More on the sequences:</b> <a href=\"../doucette-family.html\">the Doucette family page</a> has what can be proved about the last step before a halt, the backward trees of the powers, runs of 10<sup>9</sup> terms of every sequence and an in-browser runner.</p>"
     ]
    },
    {

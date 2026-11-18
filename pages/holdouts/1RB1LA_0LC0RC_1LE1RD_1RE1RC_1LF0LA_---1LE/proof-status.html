@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 17 November 2026.</p>
+    <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -154,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Any halting run is longer than time n for every n (<code>time_lt_of_halts</code>); Lean's kernel evaluates time 5000 ≥ 2<sup>2073</sup>.</p>
         <p class="where"><code>halt_time_kernel</code>, <code>lean/LowerBound.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Which values step onto a power of two</h3>
+        <p>A term steps onto 2<sup>n</sup> only if v = 0 and n is even, or v = 1 and n &equiv; 3 (mod 4); the exception D = 3&middot;2<sup>v</sup> never does. So the sequence never reaches 2<sup>n</sup> with n &equiv; 1 (mod 4). The exact form of the wiki's two "dangerous families".</p>
+        <p class="where"><code>last_step</code>, <code>no_pow2_one_mod_four</code>, <code>lean/Preimage.lean</code>, <code>lean/PowMod.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -185,6 +190,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Iterating the map from K(0, 2): no halt in 200,000 samples; p then has 40,089 bits.</p>
         <p class="where"><code>py/kmap.py 200000</code></p>
       </div>
+      <div class="card">
+        <h3>No power of two in the first 10<sup>9</sup> terms</h3>
+        <p>The sequence followed for 1,000,000,000 terms by the fast 2-adic algorithm (the low digits run alone, by the shift identity of <code>tools/doucette/lean/Shift.lean</code>; every possible halt checked by the exact map). The last term has 401,523,017 bits; the largest valuation is 31, first at term 821,959,313. The counts of each valuation fit the geometric law of random digits.</p>
+        <p class="where"><code>tools/doucette/djump.py M31 1000000000</code>, <code>tools/doucette/results/run_M31.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -210,7 +220,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE 1000000000
+pip install gmpy2 &amp;&amp; python3 tools/doucette/djump.py M31 100000000 | head -5</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

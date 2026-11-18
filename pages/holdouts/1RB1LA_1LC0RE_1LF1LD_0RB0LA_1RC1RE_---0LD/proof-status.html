@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>This is <b>Space Needle</b>, a six-state machine found by mxdys in January 2025 and listed by the bbchallenge community as a <em>cryptid</em>: its halting from blank tape is equivalent to an open number-theory question. This page records what is established here, sorted by what each result rests on.</p>
     <p>The tape is a few long blocks of 1s. From one visit of the left edge to the next, the machine applies mxdys's map to the lengths (b, c) of the two blocks of <code>0^&infin; A&gt;0 1^b 0 0 1^c 0^&infin;</code>. Lean proves the map, for all b and c, and proves that the machine halts exactly when Katelyn Doucette's one-variable sequence 6, 10, 17, 41, 101, 251, ... reaches a power of two.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Direct run of the list simulator from blank tape.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Which values step onto a power of two</h3>
+        <p>If F(D) = 2<sup>n</sup> with v = v2(D), then 2<sup>n+1</sup> &equiv; 2v &minus; 3 (mod 2<sup>v+1</sup> + 3). Worked out for v &le; 8: v = 1, 4, 7 are impossible; v = 0 needs n &equiv; 0 (mod 4), v = 2 needs n &equiv; 9 (mod 10), v = 3 needs n &equiv; 12 (mod 18), v = 5, 6, 8 one class modulo 66, 130, 204. Unlike the other four machines of the family, this does not bound v.</p>
+        <p class="where"><code>last_step_congr</code>, <code>last_step_small</code>, <code>lean/Preimage.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -182,6 +187,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Multi-precision C (<code>c/doucette.c</code>, checked against Python for the first 10<sup>5</sup> terms: bit length and largest v agree). The 3&middot;10<sup>6</sup>th term has about 2.8&middot;10<sup>6</sup> bits; the largest v seen is 24, the mean v is 0.998. The community reports 10<sup>8</sup> terms with at most 25 factors of 2.</p>
         <p class="where"><code>c/doucette.c</code></p>
       </div>
+      <div class="card">
+        <h3>No power of two in the first 10<sup>9</sup> terms</h3>
+        <p>The sequence followed for 1,000,000,000 terms by the fast 2-adic algorithm (the low digits run alone, by the shift identity of <code>tools/doucette/lean/Shift.lean</code>; every possible halt checked by the exact map). The last term has 941,155,704 bits; the largest valuation is 28, first at term 788,473,436. The counts of each valuation fit the geometric law of random digits.</p>
+        <p class="where"><code>tools/doucette/djump.py SN 1000000000</code>, <code>tools/doucette/results/run_SN.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -205,7 +215,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/lean/check.sh      # about 2 minutes
 cd holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD &amp;&amp; python3 py/gen_rules.py | diff - lean/Rules.lean
 gcc -O2 -o verify c/verify.c &amp;&amp; ./verify 30000000000 | tail -3
-gcc -O2 -o doucette c/doucette.c &amp;&amp; ./doucette 3000000 500000</code></pre>
+gcc -O2 -o doucette c/doucette.c &amp;&amp; ./doucette 3000000 500000
+pip install gmpy2 &amp;&amp; python3 tools/doucette/djump.py SN 100000000 | head -5</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

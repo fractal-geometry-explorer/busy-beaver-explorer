@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Doucette family</title>
+<meta name="description" content="Five BB(6) holdouts whose halting is one question: does a Doucette-type sequence ever reach a power of 2 (or 3)? What is proved, what was computed, and an interactive look at the sequences and the backward trees of the halting values.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --c1: #2B59CF; --c2: #1F7A4D; --c3: #B3261E; --c4: #8A5A00; --c5: #5B3FB8; --grid: #DDE3EA;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+.top { display: grid; gap: 12px; max-width: 72ch; }
+.crumb { font-size: 0.9rem; }
+.eyebrow { font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 72ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.card .big { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
+.card p { font-size: 0.92rem; }
+.small { font-size: 0.85rem; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.tbl { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+.tbl th, .tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.tbl th { font-family: var(--font-display); font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+.tbl td.num { font-family: var(--font-display); font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.controls label { font-size: 0.88rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+select, input[type=number], button { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 5px 9px; }
+button { cursor: pointer; background: var(--surface); }
+button:hover { border-color: var(--link); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed=true] { background: var(--link); color: var(--surface); border-color: var(--link); }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--font-display); font-size: 10px; fill: var(--muted); }
+.mono { font-family: var(--font-display); font-size: 0.76rem; overflow-wrap: anywhere; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 2px; }
+.strip span { height: 14px; border-radius: 2px; background: var(--grid); }
+.strip span.on { background: var(--c1); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.out { font-family: var(--font-display); font-size: 0.74rem; line-height: 1.55; max-height: 220px; overflow: auto; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / <a href="index.html">holdouts</a> / the Doucette family</p>
+  <p class="eyebrow">Five machines, one question</p>
+  <h1>Does a Doucette sequence ever hit a power of two?</h1>
+  <p>Five of the six-state holdouts, Space Needle among them, halt exactly when a simple one-number sequence lands on a
+  power of 2 (one of them: a power of 3). Lean proves those equivalences. This page collects what has been learned about
+  the sequences themselves: which values could step onto a power (proved), how far the sequences have been followed
+  (computed, now <span class="hdN2"></span> terms of each), and why every piece of
+  evidence points the same way while a proof stays out of reach.</p>
+</header>
+
+<section class="verdict">
+  <p><b>Still open, for all five.</b> Nothing found here decides any of them. What is new:</p>
+  <ul>
+    <li><span class="tag t-kernel">kernel</span> For each machine, the exact set of values that can step onto a power,
+    and so a list of exponents that can never be hit (for example, the 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE sequence never reaches 2<sup>n</sup>
+    with n &equiv; 1 mod 4, and 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB's misses 17 exponents in every 24).</li>
+    <li><span class="tag t-kernel">kernel</span> The shift identity that makes the sequences computable a hundred times faster: the next
+    valuations depend only on the low digits, so the low digits can be run alone.</li>
+    <li><span class="tag t-comp">computed</span> No power reached in the first <span id="hdN"></span> terms of each sequence.</li>
+    <li><span class="tag t-heur">evidence</span> The valuations are independent and geometric to within sampling noise, the backward tree of every
+    power is tiny, and a halt would need a backward chain hundreds of millions of steps long.</li>
+  </ul>
+</section>
+
+<section>
+  <p class="eyebrow">The five maps</p>
+  <h2>One rule, five sets of constants</h2>
+  <div class="prose">
+    <p>Write D = b<sup>v</sup>(b&middot;a + &rho;) with &rho; &ne; 0, so v counts the factors b of D. Then each sequence goes
+    D &rarr; D + &alpha;&middot;a + v + (a constant), except at a few exceptional values that the orbits never visit; the machine
+    halts when D is a pure power of b. Each D stands for a configuration of the machine; the Lean theorem named in the last
+    column proves that the machine halts from blank tape exactly when its sequence reaches a power.</p>
+  </div>
+  <div class="scroll"><table class="tbl" id="mapTable" style="min-width:760px"></table></div>
+</section>
+
+<section>
+  <p class="eyebrow">Run it</p>
+  <h2>The sequences, in your browser</h2>
+  <div class="panel">
+    <div class="controls">
+      <span class="seg" id="segRun"></span>
+      <label>terms <input type="number" id="runN" value="3000" min="10" max="50000" step="100" style="width:7em"></label>
+      <button id="runGo">Run</button>
+    </div>
+    <p class="small" id="runInfo"></p>
+    <div id="runStrip"></div>
+    <div class="out" id="runOut"></div>
+  </div>
+  <div class="prose"><p class="small">Each bar is one term's valuation v (the number of factors b). A power of b would show
+  as a bar as tall as the whole number: v equal to its length in digits.</p></div>
+</section>
+
+<section>
+  <p class="eyebrow">Proved in Lean</p>
+  <h2>The last step before a halt</h2>
+  <div class="prose">
+    <p>Which values step onto a power? For the four maps with &alpha; = 1, the equation D' = b<sup>n</sup> becomes
+    (b&middot;a + &rho;)(b<sup>v+1</sup> + 1) + w = b<sup>n+1</sup> + &hellip; with w small, and modulo q = b<sup>v+1</sup> + 1 the powers of b are
+    only &plusmn;b<sup>i</sup> (because b<sup>v+1</sup> &equiv; &minus;1). So w must be one of a handful of numbers, which pins v to
+    one or two values and n to one class. This is the "dangerous families" argument of the bbchallenge wiki
+    (credited to Aristotle), made exact for all five machines and checked by Lean's kernel. Space Needle (&alpha; = 3,
+    q = 2<sup>v+1</sup> + 3) has no such symmetry: there the condition only puts n in one class modulo the order of 2, for each
+    possible v, and some v are impossible outright.</p>
+  </div>
+  <div class="scroll"><table class="tbl" id="lastTable" style="min-width:760px"></table></div>
+  <div class="panel">
+    <div class="controls">
+      <span class="seg" id="segPre"></span>
+      <label>exponents up to <input type="number" id="preN" value="240" min="20" max="600" step="20" style="width:6em"></label>
+    </div>
+    <p class="small" id="preInfo"></p>
+    <div class="strip" id="preStrip"></div>
+    <div class="legend"><span><span class="sw" style="background:var(--c1)"></span>b<sup>n</sup> has a predecessor</span><span><span class="sw" style="background:var(--grid)"></span>no value steps onto b<sup>n</sup>: the sequence can never reach it</span></div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Backward trees</p>
+  <h2>Everything that leads to a power is a tiny tree</h2>
+  <div class="prose">
+    <p>Run the map backwards from b<sup>n</sup>: find every D that steps onto it, then everything that steps onto those, and so on.
+    A random number has on average fewer than one predecessor (about 0.7 for Space Needle), so these trees die out
+    quickly. Below n = 400 the deepest tree is 9 levels for Space Needle and 33 for the deepest of the others; a halt at
+    b<sup>n</sup> needs a chain from the start that is hundreds of levels deep already at n = 400 (the sequence gains only about
+    one bit per step), and hundreds of millions deep for the n that are still possible after the computations.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <span class="seg" id="segTree"></span>
+      <label>n <input type="number" id="treeN" value="40" min="2" max="400" style="width:5.5em"></label>
+      <button id="treeGo">Draw</button>
+    </div>
+    <p class="small" id="treeInfo"></p>
+    <div id="treeSvg"></div>
+  </div>
+  <div class="panel">
+    <h3>Depth of the tree of b<sup>n</sup>, and the depth a halt would need (log scale)</h3>
+    <div id="depthSvg"></div>
+    <div class="legend" id="depthLegend"></div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Computed</p>
+  <h2 id="runHead">A billion terms of each sequence</h2>
+  <div class="prose">
+    <p>The shift identity (<code>tools/doucette/lean/Shift.lean</code>): if D = b<sup>m</sup>X + L and the valuation v of L
+    satisfies v + 2 &le; m, then D has the same v as L and F(D) = b<sup>m&minus;v&minus;1</sup>(b<sup>v+1</sup> + &alpha;)X + F(L). So the
+    next valuations depend only on the low digits, and many steps can be taken on the low half of the number alone,
+    with the high half folded back in by one multiplication. Applied recursively (as for fast Collatz trajectories),
+    N terms cost about as much as a few multiplications of the final number. In Python with GMP, 10<sup>8</sup> terms of
+    Space Needle take about a minute on one core, and the run reproduces the community's 10<sup>8</sup>-term
+    computation exactly: 94,125,050 bits at term 10<sup>8</sup>, the first v = 25 at term 23,145,881. No exceptional value can occur
+    inside a jump (its odd part is at least b<sup>2</sup>), so every possible halt is checked by the exact rule.</p>
+  </div>
+  <div class="scroll"><table class="tbl" id="runTable" style="min-width:760px"></table></div>
+  <p class="small">Records: the step at which each new largest valuation first appears. Hashes are SHA-256 of the final term's big-endian bytes;
+  <code>tools/doucette/results/</code> has them at every checkpoint.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Evidence</p>
+  <h2>The valuations behave like coin flips</h2>
+  <div class="prose">
+    <p>If the low digits were random, v would be geometric: P(v = k) = (b&minus;1)/b<sup>k+1</sup>. This is exact for a
+    uniformly random b-adic starting value: the valuations depend only on the low digits (the shift identity), and each run
+    of valuations v<sub>1</sub>, &hellip;, v<sub>k</sub> is taken by exactly one residue class modulo b<sup>&Sigma;(v<sub>i</sub>+1)</sup>, because the
+    multiplier b<sup>v+1</sup> + &alpha; is prime to b (the standard argument for the Collatz map; not in Lean here). So the question
+    is whether the one orbit from the machine's start behaves like a typical one. Over 10<sup>9</sup> terms it does:</p>
+  </div>
+  <div class="panel">
+    <div class="controls"><span class="seg" id="segHist"></span></div>
+    <div id="histSvg"></div>
+    <p class="small" id="histInfo"></p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">What a proof would need</p>
+  <h2>Why this is hard</h2>
+  <div class="prose">
+    <p>A non-halting proof has to show that one specific orbit never has v equal to its own length, that is, it must
+    control the low digits of every term forever. Every known technique stops short:</p>
+    <ul>
+      <li><b>Residues.</b> Each condition found here (a class of n, a set of v) leaves infinitely many exponents open, and
+      the 2-adic picture is exactly uniform: no congruence on D can be invariant, because every finite run of valuations is
+      taken by some residue class.</li>
+      <li><b>Backward trees.</b> They are finite for each n, but proving a bound on their depth for every n is the same
+      problem again.</li>
+      <li><b>Baker-type bounds</b> (used for 1RB1LA_1RC1RE_1LD0RB_1LA0LC_0RF0RD_0RB---) need the orbit in closed form, like 2&middot;3<sup>i</sup> close to a
+      power of 2. Here the orbit has no closed form; its growth factor changes every step with v.</li>
+    </ul>
+    <p>So these five stay probviously non-halting: the heuristic chance that any of them ever halts is below
+    2<sup>&minus;10<sup>8</sup></sup>.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">Files</p>
+  <h2>Where it is</h2>
+  <div class="scroll"><table class="tbl" id="fileTable" style="min-width:700px"></table></div>
+</section>
+
+<footer>
+  <p>Built by <code>tools/doucette/build_page.py</code> from <code>tools/doucette/results/</code>. Machine names are the bbchallenge TNF strings.</p>
+</footer>
+</main>
+
+<script>
+const DATA = /*DATA*/null;
+
+const M = {
+  SN: { b: 2n, alpha: 3n, beta: (v, r) => v, start: [6n, 1n], col: "--c1",
+        step(D, r) { const v = val(2n, D), E = D >> v; if (E === 1n) return null; return [D + v + 3n * (E >> 1n), 1n]; } },
+  M31: { b: 2n, alpha: 1n, beta: (v, r) => v, start: [5n, 1n], col: "--c2",
+        step(D, r) { const v = val(2n, D), E = D >> v; if (E === 1n) return null; if (E === 3n) return [D + v + 3n, 1n]; return [D + (E >> 1n) + v, 1n]; } },
+  M53: { b: 2n, alpha: 1n, beta: (v, r) => v + 1n, start: [5n, 2n], col: "--c3",
+        step(D, r) { const v = val(2n, D), E = D >> v; if (E === 1n) return null;
+          if (E === 3n) { const t = D + v + r; return [t + 1n, t % 2n === 0n ? 2n : 1n]; } return [D + (E >> 1n) + v + r, 1n]; } },
+  M14: { b: 2n, alpha: 1n, beta: (v, r) => v + 2n, start: [6n, 1n], col: "--c4",
+        step(D, r) { const v = val(2n, D), E = D >> v; if (E === 1n) return null;
+          if (E === 3n && v % 2n === 0n && v !== 0n) return [(3n * D + 3n * v + 10n) / 2n, 1n]; return [D + (E >> 1n) + v + 2n, 1n]; } },
+  M86: { b: 3n, alpha: 1n, beta: (v, r) => v + r + 2n, start: [4n, 1n], col: "--c5",
+        step(D, r) { const v = val(3n, D), E = D / 3n ** v;
+          if (E === 1n) { const t = (v + r) % 3n; if (t === 1n) return null; if (t === 2n) return [D + v + r + 2n, 1n]; return [D + v + r, 2n]; }
+          return [D + E / 3n + v + r + E % 3n + 1n, 1n]; } },
+};
+const ORDER = ["SN", "M31", "M53", "M14", "M86"];
+
+function val(b, D) { let v = 0n; if (D === 0n) return 0n; while (D % b === 0n) { D /= b; v++; } return v; }
+function ndig(b, D) { return b === 2n ? D.toString(2).length : D.toString(3).length; }
+function cssv(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function el(id) { return document.getElementById(id); }
+function fmt(x) { return Number(x).toLocaleString("en-US"); }
+function short(name) { return DATA.machines[name].tnf; }
+
+/* predecessors of E (states with r = 1, plus the exceptional sources) */
+function preimages(name, E) {
+  const m = M[name], b = m.b, out = new Set();
+  for (let v = 0n; b ** v <= E; v++) {
+    const q = b ** (v + 1n) + m.alpha;
+    for (const rho of (b === 2n ? [1n] : [1n, 2n])) {
+      const num = E - b ** v * rho - m.beta(v, rho);
+      if (num >= 0n && num % q === 0n) {
+        const D = b ** v * (b * (num / q) + rho);
+        const s = m.step(D, 1n);
+        if (s && s[0] === E && s[1] === 1n) out.add(D);
+      }
+    }
+    const X = b === 2n ? 3n * 2n ** v : 3n ** v;
+    const s = m.step(X, 1n);
+    if (s && s[0] === E) out.add(X);
+  }
+  return [...out].filter(D => D >= 4n).sort((x, y) => (x < y ? -1 : 1));
+}
+
+function segment(id, onPick, init) {
+  const s = el(id);
+  ORDER.forEach(k => {
+    const bt = document.createElement("button");
+    bt.textContent = DATA.machines[k].short; bt.title = DATA.machines[k].tnf;
+    bt.setAttribute("aria-pressed", k === init ? "true" : "false");
+    bt.onclick = () => { [...s.children].forEach(c => c.setAttribute("aria-pressed", "false")); bt.setAttribute("aria-pressed", "true"); onPick(k); };
+    s.appendChild(bt);
+  });
+}
+
+/* --- tables --- */
+function tables() {
+  let h = "<thead><tr><th>machine</th><th>D stands for</th><th>base</th><th>next D</th><th>exceptions</th><th>halts iff</th><th>start</th><th>Lean</th></tr></thead><tbody>";
+  ORDER.forEach(k => { const d = DATA.machines[k];
+    h += `<tr><td><a href="${d.tnf}/explainer.html"><b>${d.tnf}</b></a>${d.nick ? "<br><span class='small'>" + d.nick + "</span>" : ""}</td><td class="small">${d.stands}</td><td>${d.base}</td><td><code>${d.rule}</code></td><td class="small">${d.exc}</td><td class="small">${d.halts}</td><td class="small">${d.seq}</td><td class="small"><code>${d.lean}</code></td></tr>`; });
+  el("mapTable").innerHTML = h + "</tbody>";
+  h = "<thead><tr><th>machine</th><th>a value steps onto b<sup>n</sup> only if</th><th>exponents never reached</th><th>Lean</th></tr></thead><tbody>";
+  ORDER.forEach(k => { const d = DATA.machines[k];
+    h += `<tr><td><b>${d.tnf}</b></td><td class="small">${d.last}</td><td class="small">${d.never}</td><td class="small"><code>${d.lastLean}</code></td></tr>`; });
+  el("lastTable").innerHTML = h + "</tbody>";
+  h = "<thead><tr><th>machine</th><th>terms</th><th>size of the last term</th><th>largest v (first at term)</th><th>time</th><th>last term, SHA-256</th></tr></thead><tbody>";
+  ORDER.forEach(k => { const r = DATA.runs[k]; if (!r) return; const d = DATA.machines[k];
+    const rec = r.vrecords[r.vrecords.length - 1];
+    h += `<tr><td><b>${d.tnf}</b></td><td class="num">${fmt(r.steps)}</td><td class="num">${fmt(r.digits)} ${d.base === 2 ? "bits" : "base-3 digits"}</td><td class="num">${rec[1]} (${fmt(rec[0] + 1)})</td><td class="num">${Math.round(r.seconds / 60)} min</td><td class="mono" style="font-size:.66rem">${r.final_sha256.slice(0, 16)}&hellip;</td></tr>`; });
+  el("runTable").innerHTML = h + "</tbody>";
+  el("hdN").textContent = DATA.headline; document.querySelectorAll(".hdN2").forEach(x => x.textContent = DATA.headline);
+  if (DATA.runs.SN && DATA.runs.SN.steps >= 1e10) el("runHead").textContent = "Ten billion terms of Space Needle";
+  h = "<thead><tr><th>what</th><th>where</th></tr></thead><tbody>";
+  DATA.files.forEach(f => { h += `<tr><td class="small">${f[0]}</td><td class="mono">${f[1]}</td></tr>`; });
+  el("fileTable").innerHTML = h + "</tbody>";
+}
+
+/* --- sequence runner --- */
+let runPick = "SN";
+function runSeq() {
+  const m = M[runPick], N = Math.max(10, Math.min(50000, +el("runN").value || 3000));
+  let [D, r] = m.start, vs = [], halted = -1, first = [];
+  for (let k = 0; k < N; k++) {
+    if (k < 40) first.push(D);
+    const v = val(m.b, D); vs.push(Number(v));
+    const s = m.step(D, r);
+    if (!s) { halted = k; break; }
+    [D, r] = s;
+  }
+  const dg = ndig(m.b, D);
+  el("runInfo").textContent = (halted >= 0 ? `Halted at term ${halted}. ` : `No power of ${m.b} in ${fmt(N)} terms. `) +
+    `Term ${fmt(N)} has ${fmt(dg)} ${m.b === 2n ? "bits" : "base-3 digits"}; largest v ${Math.max(...vs)}; mean v ${(vs.reduce((a, c) => a + c, 0) / vs.length).toFixed(3)} (random digits: ${m.b === 2n ? "1" : "0.5"}).`;
+  el("runOut").textContent = first.map((x, i) => `${i}: ${x}${first.length - 1 === i ? "" : ""}`).join("\n");
+  // strip of v values
+  const W = 880, H = 90, n = vs.length, vm = Math.max(4, ...vs);
+  let s = `<svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="valuations of the first terms">`;
+  const bw = W / n;
+  for (let i = 0; i < n; i++) { if (!vs[i]) continue; const h = vs[i] / vm * H;
+    s += `<rect x="${(i * bw).toFixed(2)}" y="${(H - h).toFixed(2)}" width="${Math.max(bw, 0.6).toFixed(2)}" height="${h.toFixed(2)}" fill="var(${m.col})"/>`; }
+  s += `<line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--rule)"/><text x="0" y="${H + 14}">term 0</text><text x="${W}" y="${H + 14}" text-anchor="end">term ${fmt(n - 1)}</text><text x="4" y="10">v = ${vm}</text></svg>`;
+  el("runStrip").innerHTML = s;
+}
+
+/* --- exponents with a predecessor --- */
+let prePick = "M31";
+function preStrip() {
+  const m = M[prePick], N = Math.max(20, Math.min(600, +el("preN").value || 240));
+  let cells = "", on = 0;
+  for (let n = 2; n <= N; n++) { const p = preimages(prePick, m.b ** BigInt(n)).length > 0; if (p) on++;
+    cells += `<span class="${p ? "on" : ""}" title="n = ${n}${p ? ": has a predecessor" : ": unreachable"}"></span>`; }
+  el("preStrip").innerHTML = cells;
+  el("preInfo").textContent = `${short(prePick)}: ${on} of ${N - 1} exponents n = 2..${N} have a predecessor; the other ${N - 1 - on} powers of ${m.b} can never appear in the sequence. ` + DATA.machines[prePick].preNote;
+}
+
+/* --- backward tree --- */
+let treePick = "SN";
+function drawTree() {
+  const m = M[treePick], n = Math.max(2, Math.min(400, +el("treeN").value || 40));
+  const root = m.b ** BigInt(n);
+  const levels = [[{ D: root, parent: -1 }]];
+  let total = 0;
+  while (levels.length < 60) {
+    const nxt = [];
+    levels[levels.length - 1].forEach((nd, i) => preimages(treePick, nd.D).forEach(p => nxt.push({ D: p, parent: i })));
+    if (!nxt.length || total + nxt.length > 400) break;
+    total += nxt.length; levels.push(nxt);
+  }
+  const depth = levels.length - 1;
+  el("treeInfo").textContent = `${short(treePick)}: the tree of ${m.b}^${n} has ${total} value${total === 1 ? "" : "s"} below the root and depth ${depth}. ` +
+    (depth ? `Its leaves are values nothing steps onto; the smallest value in the tree has ${Math.min(...levels.flat().map(x => ndig(m.b, x.D)))} ${m.b === 2n ? "bits" : "base-3 digits"}.` : `Nothing steps onto ${m.b}^${n}.`);
+  const W = 880, rowH = 46, H = Math.max(1, levels.length) * rowH + 10;
+  const pos = levels.map(L => L.map((_, i) => (i + 0.5) * W / L.length));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="backward tree">`;
+  levels.forEach((L, d) => L.forEach((nd, i) => { if (d > 0) s += `<line x1="${pos[d - 1][nd.parent]}" y1="${(d - 1) * rowH + 18}" x2="${pos[d][i]}" y2="${d * rowH + 18}" stroke="var(--rule)"/>`; }));
+  levels.forEach((L, d) => L.forEach((nd, i) => {
+    const v = val(m.b, nd.D), lab = d === 0 ? `${m.b}^${n}` : `v=${v}`;
+    s += `<circle cx="${pos[d][i]}" cy="${d * rowH + 18}" r="5" fill="var(${d === 0 ? "--c3" : m.col})"><title>${nd.D} (v = ${v})</title></circle>`;
+    if (L.length <= 24) s += `<text x="${pos[d][i]}" y="${d * rowH + 34}" text-anchor="middle">${lab}</text>`;
+  }));
+  el("treeSvg").innerHTML = s + "</svg>";
+}
+
+/* --- depth chart --- */
+function depthChart() {
+  const W = 880, H = 300, pl = 44, pb = 26, nmax = 400, lmax = Math.log10(3000);
+  const X = n => pl + (n / nmax) * (W - pl - 8), Y = d => H - pb - (Math.log10(d + 1) / lmax) * (H - pb - 8);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="tree depth by exponent, log scale">`;
+  [0, 1, 3, 10, 30, 100, 300, 1000, 3000].forEach(d => s += `<line x1="${pl}" x2="${W - 8}" y1="${Y(d)}" y2="${Y(d)}" stroke="var(--grid)"/><text x="${pl - 6}" y="${Y(d) + 3}" text-anchor="end">${d}</text>`);
+  for (let n = 0; n <= nmax; n += 50) s += `<text x="${X(n)}" y="${H - 8}" text-anchor="middle">${n}</text>`;
+  s += `<text x="${W - 8}" y="${H - pb - 4}" text-anchor="end">exponent n</text>`;
+  ORDER.forEach(k => {
+    const g = DATA.machines[k].growth; let p = "";
+    for (let n = 1; n <= nmax; n += 3) p += `${n === 1 ? "M" : "L"}${X(n).toFixed(1)},${Y(n / g).toFixed(1)}`;
+    s += `<path d="${p}" fill="none" stroke="var(${M[k].col})" stroke-width="1.5" stroke-dasharray="5 3"><title>${short(k)}: the sequence gains about ${g.toFixed(3)} digits per term</title></path>`;
+    (DATA.trees[k] || []).forEach(([n, d]) => { if (d) s += `<circle cx="${X(n)}" cy="${Y(d)}" r="2.3" fill="var(${M[k].col})"><title>${short(k)}: n = ${n}, depth ${d}</title></circle>`; });
+  });
+  el("depthSvg").innerHTML = s + "</svg>";
+  el("depthLegend").innerHTML = ORDER.map(k => `<span><span class="sw" style="background:var(${M[k].col})"></span>${short(k)}</span>`).join("") +
+    `<span>dots: depth of the tree of b<sup>n</sup>; dashed: terms the sequence needs to grow to b<sup>n</sup></span>`;
+}
+
+/* --- histogram --- */
+let histPick = "SN";
+function hist() {
+  const r = DATA.runs[histPick], m = M[histPick], b = Number(m.b);
+  if (!r) { el("histSvg").innerHTML = ""; el("histInfo").textContent = "Run still in progress."; return; }
+  const byv = {}; Object.entries(r.hist).forEach(([key, c]) => { const v = +key.split(",")[0]; byv[v] = (byv[v] || 0) + c; });
+  const vmax = Math.max(...Object.keys(byv).map(Number)), N = r.steps;
+  const W = 880, H = 240, pl = 46, pb = 24, lmax = Math.log10(N), bw = (W - pl - 8) / (vmax + 1);
+  const Y = c => H - pb - (Math.log10(Math.max(c, 0.5)) / lmax) * (H - pb - 8);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="valuation histogram">`;
+  for (let e = 0; e <= Math.floor(lmax); e += 2) s += `<line x1="${pl}" x2="${W - 8}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}" stroke="var(--grid)"/><text x="${pl - 6}" y="${Y(10 ** e) + 3}" text-anchor="end">1e${e}</text>`;
+  let chi = 0, path = "";
+  for (let v = 0; v <= vmax; v++) {
+    const c = byv[v] || 0, e = N * (b - 1) / b ** (v + 1);
+    if (e > 5) chi += (c - e) ** 2 / e;
+    s += `<rect x="${pl + v * bw + 2}" y="${Y(c)}" width="${bw - 4}" height="${H - pb - Y(c)}" fill="var(${m.col})" opacity="0.85"><title>v = ${v}: ${fmt(c)} (expected ${fmt(Math.round(e))})</title></rect>`;
+    path += `${v ? "L" : "M"}${pl + (v + 0.5) * bw},${Y(e)}`;
+    if (vmax < 40 || v % 2 === 0) s += `<text x="${pl + (v + 0.5) * bw}" y="${H - 8}" text-anchor="middle">${v}</text>`;
+  }
+  s += `<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+  el("histSvg").innerHTML = s + "</svg>";
+  const dof = Object.keys(byv).filter(v => N * (b - 1) / b ** (+v + 1) > 5).length - 1;
+  el("histInfo").innerHTML = `${short(histPick)}, ${fmt(N)} terms: bars are the counts of each v (log scale), the dashed line the geometric law. ` +
+    `&chi;&sup2; = ${chi.toFixed(1)} on ${dof} degrees of freedom (a fit as good as random digits gives about ${dof} &plusmn; ${Math.sqrt(2 * dof).toFixed(0)}). ` +
+    `Growth: ${(r.digits / r.steps).toFixed(5)} digits per term, predicted ${DATA.machines[histPick].growth.toFixed(5)} from the geometric law.` +
+    (DATA.machines[histPick].pairs ? ` ${DATA.machines[histPick].pairs}` : "");
+}
+
+tables();
+segment("segRun", k => { runPick = k; runSeq(); }, "SN");
+segment("segPre", k => { prePick = k; preStrip(); }, "M31");
+segment("segTree", k => { treePick = k; drawTree(); }, "SN");
+segment("segHist", k => { histPick = k; hist(); }, "SN");
+el("runGo").onclick = runSeq; el("treeGo").onclick = drawTree; el("preN").onchange = preStrip;
+runSeq(); preStrip(); drawTree(); depthChart(); hist();
+</script>
+</body>
+</html>
