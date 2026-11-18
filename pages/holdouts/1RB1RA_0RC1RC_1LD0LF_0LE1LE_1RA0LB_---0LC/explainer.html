@@ -180,6 +180,12 @@ pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius
 footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
 @media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
 @media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+
+:root{--cited:#0e6e78;--cited-bg:#dff2f4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--cited:#6fd0d8;--cited-bg:#11302f} }
+:root[data-theme="dark"]{--cited:#6fd0d8;--cited-bg:#11302f}
+.ev.x{color:var(--cited);background:var(--cited-bg)} .ev.x::before{content:"\2261"}
+.claim.x{border-color:var(--cited)}
 </style>
 </head>
 <body>
@@ -204,6 +210,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
     <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev x">Cited axiom</span> a Lean axiom here: an outside Lean proof, compiled here, on its own definitions</div>
     <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
@@ -307,6 +314,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
     <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="cited" aria-pressed="false">Cited axiom</button>
     <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
@@ -318,6 +326,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/macro.py check</code></div></div><div><b>The macro rules</b><p>For X(n, m) = 0^∞ C&gt;0 0^n 1^m 0 1 0^∞ with n ≥ 2 even: for m ≥ 2, n ≡ 0 (mod 4) goes to X(3n/2 + 4, m − 1) and n ≡ 2 to X((3n + 10)/2, m − 2); for m = 1, n ≡ 0 gives X(3n/2 + 4, 0) and n ≡ 2 a new epoch X(4, 3n/2 + 6); for m = 0, n ≡ 0 gives X(4, 3n/2 + 5) and n ≡ 2 halts. Checked against direct simulation for every even 2 ≤ n &lt; 60 and m &lt; 12. Inside a step the head fills the run of 0s with 1s from the left, two cells per round trip while the tape grows by one at the left; then a 1 is taken off the countdown block.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/macro.py epochs</code>, <code>py/epoch.py 210273201 22</code>, <code>py/fastwalk.py</code></div></div><div><b>The first three epochs, exactly</b><p>From blank tape the run reaches X(4, 5) after 50 steps; epochs start with m = 5, 57 (step 2,619) and 210,273,201. The third epoch was run exactly with a divide-and-conquer parity iteration (the parities of t steps of y ↦ ⌈3y/2⌉ depend only on y mod 2<sup>t</sup>; blocks are combined with powers of 3, GMP through gmpy2): it ends after 140,180,848 macro steps at m = 1 with n ≡ 2 (mod 4), so a fourth epoch starts with m = 3n/2 + 6, a number of 82,000,544 bits (about 24,684,623 digits; m mod 2<sup>64</sup> = 15369781771884450229). Two runs with different block sizes agree; the fast iteration agrees with plain big-integer iteration on epochs with m up to 10<sup>5</sup>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/known.json</code></div></div><div><b>Halts with probability 1, but not soon</b><p>With y = n/2 + 4 the rule is y ↦ ⌈3y/2⌉, with m −1 for y even and −2 for y odd. With fair-coin parities the countdown lands on m = 1 with probability 2/3 and on 0 with probability 1/3; m = 1 continues to 0 or starts a new epoch, and m = 0 halts or starts a new epoch, each with probability 1/2. So an epoch halts with probability 1/3 and the machine halts with probability 1, the community's reading. The fourth epoch alone lasts about 10<sup>24,684,623</sup> macro steps.</p></div></div>
+    <div class="litem" data-level="cited"><div><span class="ev x">Cited axiom</span><div class="w"><code>deepmind_halts_iff</code>, <code>DM.next</code>, <code>lean/DeepMindMap.lean</code> (from <code>tools/deepmind/axioms.py</code>)</div></div><div><b>Available in Lean here as a cited axiom: DeepMind's halts-iff map</b><p><code>deepmind_halts_iff</code> states on this repository's definitions what DeepMind's compiled theorem proves: the machine halts from blank tape if and only if the orbit of their map <code>next</code> from <code>start</code> reaches <code>none</code>. The map is copied from their file unchanged, and running the copy and theirs for 120 steps gives the same states. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>How does the fourth epoch end?</b><p>It needs the parities of about 1.6 · 10<sup>24,684,622</sup> iterates of ⌈3y/2⌉ from y = 6: no method computes them.</p></div></div>
 </section>
 <section id="check">
