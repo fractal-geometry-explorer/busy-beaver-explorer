@@ -6,6 +6,8 @@ The page sorts every claim by what it rests on, so that a reader never mistakes 
 
   kernel     proved in Lean, checked by Lean's kernel alone (standard axioms; `decide`, `rfl`, ordinary proofs)
   native     proved in Lean with `native_decide` (also trusts Lean's compiler)
+  cited      a Lean axiom here, stating what an outside Lean proof (compiled here) proves on its own definitions;
+             shown only on pages that have one
   trusted    computed outside Lean by a program in the repository (C or Python), exhaustive, and checked as the
              entry says, but not proved
   heuristic  evidence only: sampling, extrapolation, a pattern seen so far
@@ -23,9 +25,19 @@ import html
 import json
 import sys
 
+# added only to pages that have a "cited" claim, so that other pages stay as they are
+CSS_CITED = """
+:root { --cited: #0E6E78; --cited-bg: #DFF2F4; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cited: #6FD0D8; --cited-bg: #11302F; } }
+:root[data-theme="dark"] { --cited: #6FD0D8; --cited-bg: #11302F; }
+.t-cited { color: var(--cited); background: var(--cited-bg); }
+"""
+
 LEVELS = [
     ("kernel", "t-kernel", "Proved in Lean, kernel-checked", "checked by Lean's kernel alone"),
     ("native", "t-native", "Proved in Lean with native_decide", "evaluated by compiled code"),
+    ("cited", "t-cited", "Cited axiom: an outside Lean proof, assumed here",
+     "an axiom here; proved in DeepMind's Lean, compiled here"),
     ("trusted", "t-comp", "Computed, not proved", "C or Python in the repository, exhaustive"),
     ("heuristic", "t-heur", "Evidence only", "sampling, extrapolation, patterns"),
     ("open", "t-open", "Open", "not known"),
@@ -117,7 +129,7 @@ def build(spec, home="../index.html"):
            '<meta name="viewport" content="width=device-width,initial-scale=1">',
            f"<title>{html.escape(spec['title'])}</title>",
            f'<meta name="description" content="{html.escape(spec.get("description", spec["title"]))}">',
-           FONTS, f"<style>{CSS}{CSS_ELSE if spec.get('elsewhere') or spec.get('standing') else ''}</style>", "</head>", "<body>",
+           FONTS, f"<style>{CSS}{CSS_ELSE if spec.get('elsewhere') or spec.get('standing') else ''}{CSS_CITED if any(c['level'] == 'cited' for c in spec.get('claims', [])) else ''}</style>", "</head>", "<body>",
            '<main class="wrap">', '  <header class="top">',
            f'    <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {spec.get("crumb", "")}</p>',
            f"    <h1>{spec['title']}</h1>", f'    <p class="machine">{html.escape(spec["machine"])}</p>']
@@ -145,10 +157,11 @@ def build(spec, home="../index.html"):
         out += ["    </div>", "  </section>"]
     out += ['  <section aria-labelledby="h-claims">', '    <h2 id="h-claims">What each result rests on</h2>',
             '    <div class="legend" aria-label="Legend">']
-    for key, cls, _, gloss in LEVELS:
+    shown = [lv for lv in LEVELS if lv[0] != "cited" or any(c["level"] == "cited" for c in claims)]
+    for key, cls, _, gloss in shown:
         out.append(f'      <span><span class="tag {cls}">{key}</span> {gloss}</span>')
     out.append("    </div>")
-    for key, cls, heading, _ in LEVELS:
+    for key, cls, heading, _ in shown:
         items = [c for c in claims if c["level"] == key]
         out += [f'    <h3><span class="tag {cls}">{key}</span> {heading}</h3>']
         if not items:

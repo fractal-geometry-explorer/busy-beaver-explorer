@@ -73,6 +73,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .stand b { font-family: var(--font-display); font-size: 0.9rem; }
 .stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
 .stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
+
+:root { --cited: #0E6E78; --cited-bg: #DFF2F4; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cited: #6FD0D8; --cited-bg: #11302F; } }
+:root[data-theme="dark"] { --cited: #6FD0D8; --cited-bg: #11302F; }
+.t-cited { color: var(--cited); background: var(--cited-bg); }
 </style>
 </head>
 <body>
@@ -114,6 +119,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="legend" aria-label="Legend">
       <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
       <span><span class="tag t-native">native</span> evaluated by compiled code</span>
+      <span><span class="tag t-cited">cited</span> an axiom here; proved in DeepMind's Lean, compiled here</span>
       <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
       <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
       <span><span class="tag t-open">open</span> not known</span>
@@ -157,6 +163,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+    </div>
+    <h3><span class="tag t-cited">cited</span> Cited axiom: an outside Lean proof, assumed here</h3>
+    <div class="cards">
+      <div class="card">
+        <h3>Available in Lean here as a cited axiom: it halts</h3>
+        <p><code>deepmind_halts</code> states on this repository's definitions what DeepMind's compiled theorem proves (<code>HaltsFromBlank</code>), so proofs here can build on it. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.</p>
+        <p class="where"><code>deepmind_halts</code>, <code>lean/DeepMind.lean</code> (from <code>tools/deepmind/axioms.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>

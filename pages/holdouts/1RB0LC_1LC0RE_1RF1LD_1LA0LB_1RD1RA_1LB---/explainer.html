@@ -180,6 +180,12 @@ pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius
 footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
 @media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
 @media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+
+:root{--cited:#0e6e78;--cited-bg:#dff2f4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--cited:#6fd0d8;--cited-bg:#11302f} }
+:root[data-theme="dark"]{--cited:#6fd0d8;--cited-bg:#11302f}
+.ev.x{color:var(--cited);background:var(--cited-bg)} .ev.x::before{content:"\2261"}
+.claim.x{border-color:var(--cited)}
 </style>
 </head>
 <body>
@@ -204,6 +210,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
     <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev x">Cited axiom</span> a Lean axiom here: an outside Lean proof, compiled here, on its own definitions</div>
     <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
@@ -310,6 +317,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
     <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="cited" aria-pressed="false">Cited axiom</button>
     <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
@@ -321,6 +329,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: fixed/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.506). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README</div></div><div><b>Macro structure (observed)</b><p>Three counters: (11010)^x (110)^3 (10110101)^y ... 1^z; every two passes one 8-cell word of the middle block is used up and the outer blocks gain one word and two 1s; when the middle block is empty the tape is rebuilt with larger counts.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>BusyBeaver.M_1RB0LC_1LC0RE_1RF1LD_1LA0LB_1RD1RA_1LBHHH.is_halt</code>, <code>BusyBeaver/BB6/Halt/M_1RB0LC_1LC0RE_1RF1LD_1LA0LB_1RD1RA_1LBHHH.lean</code> in google-deepmind/cryptids</div></div><div><b>Proved: it halts (DeepMind's Lean proof, compiled here)</b><p>google-deepmind/cryptids (commit 3647718) proves <code>IsHalt target</code> from the blank tape, where <code>target</code> is this machine's table. The Lean proof is DeepMind's own; Alex Havrilla of DeepMind also submitted a Rocq version of it as busycoq pull request 47. We built it here with Lean v4.35.0-rc4 and Mathlib on 2026-11-17 (251 s for the module); <code>#print axioms</code> lists only propext, Classical.choice, Quot.sound (no <code>sorryAx</code>, no <code>native_decide</code>), and the compiled transition table was checked against this machine's name. The proof is stated on DeepMind's definitions of a machine and of halting, not on this repository's; the verdict at the top of this page rests on it.</p></div></div>
+    <div class="litem" data-level="cited"><div><span class="ev x">Cited axiom</span><div class="w"><code>deepmind_halts</code>, <code>lean/DeepMind.lean</code> (from <code>tools/deepmind/axioms.py</code>)</div></div><div><b>Available in Lean here as a cited axiom: it halts</b><p><code>deepmind_halts</code> states on this repository's definitions what DeepMind's compiled theorem proves (<code>HaltsFromBlank</code>), so proofs here can build on it. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
 </section>
 <section id="check">
