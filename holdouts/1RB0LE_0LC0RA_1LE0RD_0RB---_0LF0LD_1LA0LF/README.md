@@ -159,6 +159,51 @@ therefore needs a statement about the average of irregular digits (2.2 against 4
 the induction through the regular tail loses log2 k at every step. The halting question of this machine and its twin
 stays open, with this as the precise obstacle.
 
+## Fourth pass (18 November 2026): what the missing lemma really asks
+
+**The digits of Z behave like random digits; the margin comes from elsewhere.** `py/reach.py 7500` follows the
+defect of every round from 100 to 7,500. Z is the digit-only end of the round's starting tape, and e the word where
+the defect disappears minus the first word of Z (e >= 0: it got into Z and ate e words; Z then starts e + 2 words
+further on).
+
+- The defect gets into Z in only 32% of the rounds. Whether it does looks like an independent coin: the share is
+  31% right after a round in which it did, 32% right after one in which it did not, 32% after three in which it
+  did not.
+- When it gets into Z it eats 4.8 words on average (largest 37), with a tail that falls by a factor of 0.82
+  per word. That is what random digits give: the defect crosses `O` (chance 1/2) and `I I` (chance 1/4) and stops
+  at `I O` (chance 1/4), so it survives n words with chance about 0.809^n (0.809 = (1 + sqrt 5)/4), mean 4.
+- Z loses 2.15 words per round on average and gains 4, so |Z| is about 1.85 k (smallest |Z|/k after round 100:
+  1.24).
+
+So the statement to prove is not that the digits at the bottom of Z are biased: by this statistic they are not. It is that
+the defect gets through the far end of the part rich in doublers in fewer than about half of the rounds: the lemma
+|Z_k| >= k + 2 log2 k + 20 holds as long as the loss averages below 3 words per round over every stretch of rounds
+from the start, against 2.15 measured. In the worst case one round's loss is unbounded (a bottom of Z made of `O`s
+and pairs `I I` lets the defect run on), so the lemma cannot come from the token rules alone; it is a statement about
+pseudo-random digits of the same kind as for Antihydra. No proof here, and no counterexample: in every round from 13
+to 7,500 the defect disappeared by `1 I O -> O L`, never at the blank end (and `c/zvis.cpp` saw no halt in 100,000
+rounds).
+
+**Odds, under the random-digit model.** A defect alive at the end of a round would have to be among the last
+log2(length) words of the tape (the conserved value), so it would have crossed all of Z first, about 1.3 k words of
+irregular digits: chance about 0.809^(1.3 k) = 2^(-0.4 k), below 2^(-40,000) for every round after 100,000. A halt
+needs that and then a second defect catching up with the first. For Z to shrink below k the loss would have to
+average 3 instead of 2.15 over a stretch of about k rounds, which for independent rounds has a chance falling
+exponentially in k. Heuristically the machine and its twin do not halt.
+
+**Lean (kernel), `lean/Tokens.lean`.** It takes the four visit functions A, E, F, P as the definition (half tapes are
+infinite 0/1 sequences, `BV`) and proves:
+
+- `sound`: every token rule of "The defect" above (the counter rules for `L`, `O`, `I`, the rules of the defect
+  `x`, `1`, `z`, and the re-readings at the blank end; `TV`) is a computation of the four functions. None of them uses
+  the halting case `E(1 1 T)`.
+- `conserve`: every visit of A derived by the token rules adds exactly 1 to the value v, on any token tape; the
+  visits Ê and E0 have values (G(W) + 1)/2 and (G(I W) + 1)/2. This replaces the hand proof and the numerical check
+  of the second pass.
+
+Not in Lean: that the machine's visits are these four functions (found and checked by `c/zvis.cpp`), and that the
+token rules apply to every tape with one defect (the hand argument that such a tape cannot halt).
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -169,7 +214,9 @@ stays open, with this as the precise obstacle.
   simulation); no halt in 100,000 rounds; the token rules agree with the exact evaluation and every round from 13 to
   4,500 ends with a single defect (`py/tokz.py`).
 - By hand, not in Lean: the token rules, and that a tape with one defect cannot halt.
-- By hand and checked numerically (`py/tokv.py`): the conserved value. Open: a lower bound on b in the part rich in
+- Lean (kernel), 18 November 2026: `Tokens.lean`, the token rules follow from the four visit functions, and every
+  visit of A they derive adds 1 to the conserved value. Measured (`py/reach.py`): the defect reaches the digit end Z in
+  about a third of the rounds, independently from round to round, and eats there what random digits give. Open: a lower bound on b in the part rich in
   L's, which would give that every round's defect disappears; halting.
 
 ## Scripts
@@ -178,6 +225,7 @@ stays open, with this as the precise obstacle.
 - `py/track.py STEPS`: follows the events of the run.
 - `c/zvis.cpp`: visit engine for machines with several visit forms (`zvis MACHINE auto NSTEPS run MAXTOP MAXSEC`
   finds the forms itself; `m:` in front of the machine mirrors it); counts are sums of powers of two.
+- `py/reach.py ROUNDS`: how often the defect reaches the digit end Z, and how far it gets there.
 - `py/zeval.py ROUNDS`: the round words S_k from the seven window rules. `py/tokz.py ROUNDS [FILE]`: the token rules.
   `py/twinchk.py STEPS FILE`: the same words on the twin's tape. `py/tokv.py ROUNDS`: the conserved value.
 

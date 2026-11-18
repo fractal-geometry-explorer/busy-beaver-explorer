@@ -91,6 +91,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 1LB is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 1.4&middot;10<sup>100</sup> steps: every F-event so far is of the proved harmless kind.</p>
       <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 5.4&middot;10<sup>200</sup> steps without a halt.</p>
       <p><b>Twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---</code>: both runs meet a bad F-entry together, and if they never do, the two machines halt together.</p>
+      <p><b>Start twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---</code> (the same table from another start), under a condition on the block lists of one run.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -137,6 +138,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>One question with its twin 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---</h3>
         <p>This machine and <code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---</code> are the same core in the same frame with the same start; they differ only in D1 and F0, and F is entered only by D1. <code>resync</code> proves, for every tape, that when D reads 1 the two either both halt (a 1 left of D), or meet again in the same configuration (1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---: 2 steps, 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---: 4) when the tape around the head is <code>0 0 D&gt;1</code> (the two cells left of D are 0) (frame A), or the configuration is <em>bad</em> (<code>1 0 D&gt;1</code>). <code>halt_together</code>: the two runs from blank tape meet a bad configuration together, and if they never do, the two machines halt together. Every F-event observed in the family's runs (to 10<sup>200</sup> steps) is inside <code>1 0 0 0 D&gt;1 1</code>, so any proof that the F-events stay of the proved harmless kind settles both machines at once.</p>
         <p class="where"><code>halt_together</code>, <code>resync</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---/lean/Twin.lean</code>; <code>TM.halt_together</code>, <code>tools/lean/TM/Resync.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py</code></p>
+      </div>
+      <div class="card">
+        <h3>One question with its start twin 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---</h3>
+        <p><code>1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---</code> and <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---</code> are one frame-A table started in A and in C. At their fourth left-end event (step 284 from A, 1241 from C) the block lists are [16] and [32]: the second tape is the first with the word (10)<sup>16</sup> inserted in the first block. <code>event_rel</code> proves that relation for every first block, every place in it and every tape after it. <code>halt_together</code>: if every round of the start-A run (from one left-end event to the next) keeps the word inside the first block, wherever it sits there (<code>RoundGood</code>, a condition on one run's left-end events), the two machines halt together. The condition fails only if a round uses up the start-A run's first block; the two runs' block lists agree at every left-end event to 10<sup>200</sup> steps, and the coupling holds cell by cell for 10<sup>10</sup> steps.</p>
+        <p class="where"><code>halt_together</code>, <code>event_rel</code>, <code>good_of_lists</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/lean/StartTwin.lean</code>; <code>TM.good_of_rounds</code>, <code>tools/lean/TM/Rounds.lean</code>; <code>TM.halts_iff_of_good</code>, <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py</code></p>
       </div>
       <div class="card">
         <h3>The visit rule for every depth</h3>
@@ -257,7 +263,8 @@ python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_lean.py 1RB0LC
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB--- 1e11 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/data/trajectory.json
 cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c &amp;&amp; ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---:A 1e8 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB--- 1e200          # the exact block-list map; writes data/f05_run.json
-python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --check    # the ten twin pairs and their windows</code></pre>
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --check    # the ten twin pairs and their windows
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py --check    # the start relation and the first rounds</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

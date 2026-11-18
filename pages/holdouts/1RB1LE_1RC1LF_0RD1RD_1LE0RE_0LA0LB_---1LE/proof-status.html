@@ -182,6 +182,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same model from blank tape in state B (the twin's question) reached step 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083 (5.54&middot;10<sup>44</sup> rounds) without a halt. Checked: the rounds agree exactly with the direct simulator for all 19,307 rounds up to 4&middot;10<sup>8</sup> steps.</p>
         <p class="where"><code>py/accel.py run 100000 2400 CKPT.pkl B</code>; README</p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 8.56&times;10<sup>262</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 3 cells, from blank tape for 1201 seconds and reached step 8.56&times;10<sup>262</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 38 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE 3 1201</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

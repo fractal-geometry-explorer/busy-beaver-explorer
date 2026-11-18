@@ -299,11 +299,8 @@ F-entry is of the proved kind) covers both machines of a pair at once. These are
 `Halts X ↔ Halts Y` is proved only under the shared condition, which is itself open. In the strict count below the
 number of distinct open questions does not change, but for planning, these twenty machines are **ten questions**.
 
-The other near-identical F05 runs are pairs with the same frame-A table and a different start (start A and start C,
-for example 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- and 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---). From the
-fourth recorded left-end event on (all 80 recorded events, checked for three such pairs), their block lists agree
-except that the first block of the start-C run is 16 longer; the left end of the tape differs too.
-That is a relation between block lists, not a local re-sync, and it is not proved.
+The other near-identical F05 runs are pairs with the same frame-A table and a different start; they are the next
+section.
 
 ```sh
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --check   # pairs, windows, step counts
@@ -311,12 +308,102 @@ python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_twins.py --rec
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/check.sh   # (or any pair's folder)
 ```
 
+## F05 start twins: one table, two starts (18 November 2026)
+
+Fourteen F05 machines come in seven pairs that are one frame-A table started in state A and in state C. From the
+fourth left-end event on, the two block lists agree except that the first block of the start-C run is 16 longer:
+
+| left-end event | step from A | block list | step from C | block list |
+|---|---|---|---|---|
+| 4 | 284 | [16] | 1,241 | [32] |
+| 5 | 537 | [16, 8] | 1,574 | [32, 8] |
+| 6 | 4,658 | [12, 16, 44] | 5,775 | [28, 16, 44] |
+| 7 | 221,839 | [8, 114, 368, 104] | 223,036 | [24, 114, 368, 104] |
+
+(the pair 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- / 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---; the first rounds are
+the same for all seven). At a left-end event nothing is written left of the head, so the start-C tape is the start-A
+tape with 32 more alternating cells, the word `(10)^16`, inside the first block. That is the inserted-word relation of
+`TM/Insert.lean`, and here it can be followed: each round crosses the word twice in the state it entered, once when
+the first block is spread into `(1000)^q` and once when it is folded back, and in between the head stays further right
+(it only touches the last cells of the spread block). The start-C run is exactly 80 steps slower per round.
+
+**Lean.** `tools/lean/TM/Rounds.lean` proves `TM.good_of_rounds`: the condition `Good` of `TM.halts_iff_of_good`
+(the followed run never reaches a bad moment) splits into one statement per round, if each round ends with the word in
+one of a set of allowed places. Each pair has a generated file `lean/StartTwin.lean` in the folder of its start-A
+machine (`holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py`). A left-end event `E m X` is the
+head in state A at the left end, nothing on its left, `m` alternating cells `0 1 0 1 ...` and then any tape `X` (for
+the block list [b1, ..., bk], m = 2 b1 + 2). The file proves:
+
+- **`event_rel`, the lemma about block lists:** for every m, every place n inside the run and every tape X,
+  `E (m + 32) X` is `E m X` with the word inserted after n cells;
+- the two runs reach `E 34 blank` (the list [16], step 284 from A) and `E 66 blank` (the list [32], step 1,241 from
+  C), by `decide`;
+- **`halt_together`:** if `RoundGood m X` holds at every left-end event `E m X` of the start-A run, the two machines
+  halt from blank tape together. `RoundGood m X` says that one round from `E m X`, with the word anywhere inside the
+  alternating run, never reaches a bad moment, or reaches the next left-end event with the word inside its alternating
+  run again.
+
+All seven compile in the kernel with no `sorry` (Lean 4.34.0); the axioms are `propext`, `Classical.choice` and
+`Quot.sound`.
+
+**The condition.** `RoundGood` fails when a round uses up the first block of the start-A run: then the head of that
+run reaches the place of the word in a state that does not cross it, and the start-C run, with 16 more, goes on
+differently. On 3,000 random block lists (first block 0 to 30, up to five more blocks of 1 to 120;
+`period.c`-style runs of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- from `E l` and from `E l` with the first block 16
+longer, to the next left-end event) the two rounds ended differently in 496 cases. In 307 of them the start-A first
+block had run down to 3 or less, in 187 it had merged with the next block, and in the other two (first blocks 1 and 2)
+the start-C round was still running at 10^8 steps. With a first block of 6 or more, only 18 of 2,379 rounds ended
+differently. In the real runs:
+
+| start A | start C | left-end events to 10^200 steps | F-events | lists agree |
+|---|---|---|---|---|
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- | 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD--- | 505 | 278 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB--- | 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LE--- | 524 | 200 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB--- | 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE--- | 520 | 292 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC--- | 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RA--- | 577 | 192 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1RA--- | 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1LD--- | 566 | 240 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB--- | 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE--- | 546 | 193 | all |
+| 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD--- | 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB--- | 58 (to 10^22 steps, `hybrid2.py`) | 21 | all |
+
+(`py/start_twins_check.py`; both runs have the same numbers, and the first block of the start-A run stays at 6 or
+more.)
+
+The coupling itself (`tools/c/inscheck.c`, the rules of `TM.tnext` exactly) holds cell by cell for 10^10 steps for all
+seven pairs, and `gen_starttwins.py --check` checks `RoundGood` for every place of the word on the first three rounds.
+Four more A/C pairs of the family have the same first rounds but part later, each time when the start-A run's first
+block runs out:
+1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC--- / 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RA--- at the seventh left-end
+event (step 90,636; the start-A list goes [12, 16, 44] → [3, 116, 50, 176]),
+1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LE--- / 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0RC--- at event 23 (step
+1.1·10^11; [4, 8, 4078, ...] → [4042, 121952, ...], the first block merges), and
+1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LB--- / 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RE--- and
+1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LD--- / 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RB--- at event 168 (step
+2.1·10^69; [4, 18, 10822, ...] → [3, 10728, ...]). For these the condition is false and `StartTwin.lean` is not
+generated.
+
+**What it means.** Like the ten twins above, these are conditional: `Halts X ↔ Halts Y` is proved under a condition on
+one run that is itself open. But the condition says only that the start-A run's first block never runs out during a
+round, a fact any non-halting proof along the F05 plan has to establish anyway. Two of the pairs join twin classes
+of the previous section: 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB--- links the twins 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---
+and 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE--- into one class of four (with 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1LD---),
+and 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_1RE--- joins the twins 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- /
+1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---. Together the twins and start twins put **31 machines into 14 questions**.
+
+```sh
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py --check    # start relation, first rounds
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py --records  # writes lean/StartTwin.lean and records
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/start_twins_check.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---
+gcc -O2 -o inscheck tools/c/inscheck.c && NOEXC=1 ./inscheck 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- A 284 C 1241 r 1 10101010101010101010101010101010 10000000000
+. /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/check.sh
+```
+
 ## Count
 
 Of the 552 open holdouts, none are newly proved equivalent here. The one-way implication
 `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` ⇒ `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` was already known, and
-both machines are claimed halting upstream. **552 distinct open questions remain.** Ten F05 pairs (above) now share
-one question each under a proved condition, so for planning purposes they count as ten questions, not twenty. The relations in `related.json`
+both machines are claimed halting upstream. **552 distinct open questions remain.** Ten F05 twin pairs and seven F05
+start-twin pairs (above) now share questions under proved conditions: 31 machines in 14 classes, so for planning
+purposes they count as 14 questions, not 31. The relations in `related.json`
 still say which questions are likely to have the same answer and should be attacked together, but none of them is a
 proved equivalence.
 

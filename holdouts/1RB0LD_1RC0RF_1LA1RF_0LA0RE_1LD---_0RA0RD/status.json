@@ -76,6 +76,12 @@
    "where": "<code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/c/msimev.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.88&times;10<sup>196</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 1200 seconds and reached step 3.88&times;10<sup>196</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 47 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD 4 1200</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. Halting needs the head in state D on a 1 with a 1 to its right (D1 &rarr; 0RE, E1 halts); inside the draining regime this does not occur, and what a collapse does in general is not known.",

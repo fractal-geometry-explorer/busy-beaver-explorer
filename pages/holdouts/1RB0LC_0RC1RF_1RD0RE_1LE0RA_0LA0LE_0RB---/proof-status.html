@@ -90,6 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> The machine runs a base-5 counter written as markers between blocks; Lean proves its regular sweeps for all block lengths, and an exact fast simulator finds no halt in 10<sup>16</sup> steps. It can only halt if two of the rare <i>merges</i> of drifting markers happen close together, which nothing here decides.</p>
       <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 7.7&middot;10<sup>22</sup> steps without a halt.</p>
+      <p><b>Start twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---</code> (the same table from another start), under a condition on the block lists of one run.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +137,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What a clean visit conserves</h3>
         <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
         <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One question with its start twin 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---</h3>
+        <p><code>1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---</code> and <code>1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---</code> are one frame-A table started in A and in C. At their fourth left-end event (step 284 from A, 1241 from C) the block lists are [16] and [32]: the second tape is the first with the word (10)<sup>16</sup> inserted in the first block. <code>event_rel</code> proves that relation for every first block, every place in it and every tape after it. <code>halt_together</code>: if every round of the start-A run (from one left-end event to the next) keeps the word inside the first block, wherever it sits there (<code>RoundGood</code>, a condition on one run's left-end events), the two machines halt together. The condition fails only if a round uses up the start-A run's first block; the two runs' block lists agree at every left-end event to 10<sup>22</sup> steps, and the coupling holds cell by cell for 10<sup>10</sup> steps.</p>
+        <p class="where"><code>halt_together</code>, <code>event_rel</code>, <code>good_of_lists</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0LD---/lean/StartTwin.lean</code>; <code>TM.good_of_rounds</code>, <code>tools/lean/TM/Rounds.lean</code>; <code>TM.halts_iff_of_good</code>, <code>tools/lean/TM/Insert.lean</code>; <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py</code></p>
       </div>
       <div class="card">
         <h3>The sweeps, for all block lengths</h3>
@@ -226,7 +232,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---/lean/check.sh
 python3 holdouts/1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---/py/check.py
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---/py/far.py 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB--- 1e16
-python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB--- 1e22          # the exact block-list map; writes data/f05_run.json</code></pre>
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB--- 1e22          # the exact block-list map; writes data/f05_run.json
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_starttwins.py --check    # the start relation and the first rounds</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

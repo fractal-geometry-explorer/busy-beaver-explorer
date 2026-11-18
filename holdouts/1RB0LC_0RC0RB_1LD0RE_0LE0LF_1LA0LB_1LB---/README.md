@@ -272,6 +272,14 @@ This machine and [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_
 
 <!-- end F05 twin -->
 
+<!-- F05 start twin -->
+
+## Start twin: one question with 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---
+
+[`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/README.md) and [`1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---`](../1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_1RE---/README.md) are one frame-A table started in A and in C. From the fourth left-end event on (step 284 from A, 1241 from C), the start-C run's block list is the start-A run's with the first block 16 longer, so its tape is the other with the word `(10)^16` inserted in the first block. Each round crosses the word twice in the state it entered (spreading the first block and folding it back), so the start-C run is exactly 80 steps slower per round. `halt_together` in [`lean/StartTwin.lean`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/lean/StartTwin.lean) (kernel; `event_rel` is the lemma about block lists, `TM.good_of_rounds` in `tools/lean/TM/Rounds.lean` joins the rounds): if every round of the start-A run keeps the word inside the first block (`RoundGood`), the two machines halt together. That fails only if a round uses up the first block; the two runs' block lists agree at every left-end event to 10^200 steps. See also [EQUIVALENCES.md](../EQUIVALENCES.md).
+
+<!-- end F05 start twin -->
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LB---/explainer.html)

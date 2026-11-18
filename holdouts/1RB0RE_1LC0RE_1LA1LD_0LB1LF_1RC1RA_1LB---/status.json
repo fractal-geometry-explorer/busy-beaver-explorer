@@ -64,6 +64,12 @@
    "where": "README, second round"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.42&times;10<sup>176</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 1200 seconds and reached step 7.42&times;10<sup>176</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 19 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB--- 4 1200 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A binary counter with refills",
    "text": "The halving and doubling between ones and copies of <code>10</code> make the blocks lose amounts in powers of 2, like the digits of a binary counter counting down. When a block runs low, it is refilled by an amount that depends on its neighbours. This refill is the irregular step.",
