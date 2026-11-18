@@ -79,6 +79,17 @@ No halt in the first 2.12x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 21,232,769,995,818,091,144. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,014,160 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## The partner coupling breaks (17 November 2026)
+
+`lean/Insert_1RB0RE1LC0RE1.lean` ties this machine to 1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB--- (this table from
+state C, mirrored) if `GoodPair` holds. `c/items_pair.c` runs the item model on both runs in step: the partner's list
+starts as this one's with the last item 2 longer, and the extra length stays in the far-end leftovers, the item
+holding it shrinking from 64 to 1 by sweep 4.5·10^10. At sweep 72,734,792,369 (step 1.016·10^22) this run does an
+end reset and the partner a plain sweep; the tapes then differ by far more than one inserted word, so `GoodPair` is
+false (on the item model; not proved in Lean). Details in `holdouts/EQUIVALENCES.md`.
+
+    gcc -O2 -o items_pair holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/c/items_pair.c && ./items_pair 1e11   # about an hour
+
 ## Pages
 
 - [`pages/holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/explainer.html`](../../pages/holdouts/1RB0LD_1RC1RE_1LA0LD_1LB1LC_0RA1RF_1RA---/explainer.html)

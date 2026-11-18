@@ -36,11 +36,36 @@ reads a 0 only with a 1 to its left.
   halt is `0 0 F> 0`.
 - `py/shape.py`, `py/near_halt.py` (heuristic): compressed tapes at the end visits; neighbourhoods of B and C.
 
+## The engine (17 November 2026)
+
+`c/engine.c` follows the run pass by pass (one pass per new leftmost cell). To 10^10 steps (47,331 passes):
+
+- the tape at the left end is always `0 (011)^4 (1011011011)^k I`; k grew 6,777 times and shrank once (pass 255,
+  52 to 51), and is 6,776 at the end: one block about every 7 passes;
+- the rest I (the *engine*) stays between 126 and 520 cells after pass 100, and no engine, taken with its offset mod
+  10 against the blocks, occurs twice;
+- the first 33 to 70 cells of I are a 7-periodic *emitter*: from pass 300 on, I agrees with I seven passes earlier on
+  at least its first 33 cells (usually 53 to 70); each period it hands one block to the left part. Right of it the
+  engine looks random;
+- 20 cells inside the block region the pass is always the same: the head crosses right once in D and left once in A
+  (47,031 passes).
+
+So the engine does not see k, and the run with one block more (the partner, `lean/Insert_1RB1RF1LC0RF1.lean`) has
+the same engine forever unless the engine eats back through the blocks. `GoodPair` is exactly the claim that it never
+does.
+
+**No argument about the left part alone can prove that** (`py/shield.py`). Put a boundary at the end of the blocks,
+or 30 cells into the emitter, take the contents the real run has there, and let an adversary send the head across
+the boundary in any state a left move can enter (A, B, C, F). The set of reachable contents keeps growing (over
+3,000), about 200 visits reach the left end in irregular ways, and over 1,000 halt. So a proof of `GoodPair` needs a
+description of the engine, which is the open part of this machine: whatever settles `GoodPair` very likely also
+settles halting.
+
 ## What is open, next steps
 
-A description of the irregular region: how it keeps its size and hands copies of `1011011011` to the left part.
-Either an exact rule for that, or a closed set of patterns for the region (a CTL whose left part is the regular
-language `0 (011)^4 (1011011011)^*`).
+A description of the engine: how it keeps its size and why the emitter sends one block every 7 passes. Either an
+exact rule for that, or a closed set of patterns for the engine (a CTL whose left part is the regular language
+`0 (011)^4 (1011011011)^*`).
 
 ## Check
 
@@ -50,6 +75,8 @@ python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/route.py        # 
 python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/rules.py              # rewrites lean/Rules.lean
 python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/shape.py 2.5e7 L 100 200
 python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/near_halt.py 1e6
+gcc -O2 -o engine holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/c/engine.c && ./engine 1e10 20
+python3 holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE/py/shield.py 30 3e7 3000
 ```
 
 <!-- related machines: written by holdouts/related.py -->
