@@ -24,7 +24,14 @@ on S.  Every sweep whose window reaches N is run twice, the second time with N's
 same tape apart from N's run, which also gives the coefficient of N's run in that sweep's step count.  T periods are then done at once in closed form: ternary addition of T*E at the bottom of
 U, the f-losses in closed form, and the step sums as arithmetic series.  T is the largest number of periods for which
 no carry leaves U, every run of U stays >= RMIN and N's run stays big; the event that blocks the next period is then
-run exactly, and S is run on exactly to the start of its period, where the next jump starts.
+run exactly.
+
+Cycle reuse (18 November 2026): a learned period keeps, for every phase, the hash of S's state and the base step
+count so far, and at each recorded sweep a copy of S and N's wall.  When the next period is blocked, the part of it
+before the blocking sweep is jumped in closed form too (`max_prefix`), the blocking sweep and the far-zone sweeps
+after it run exactly, and S goes on with the same period rotated to its new phase (`rotate`), checked by the hash.
+Learned periods are cached (`CACHE`, LCACHE entries), and while S settles after a collapse each sweep looks its state
+up in the cache, so no cycle is learned twice.
 
     python3 py/lean.py test CKPT.pkl [b2]                      jumps of 1, 2, 3, 5, 13 periods against exact sweeps
     python3 py/lean.py verify CKPT.pkl|lineK FULLLOG [b2]      every line of a tacc.py FULLLOG, states and steps
@@ -34,6 +41,7 @@ import os
 import pickle
 import sys
 import time
+from array import array
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -175,6 +183,29 @@ def window_key_of(spec, st, w):
             end)
 
 
+CACHE = []          # periods learned so far (canonical frame), with an index hash of S's key -> phase
+CACHE_MAX = int(os.environ.get('LCACHE', 8))
+
+
+def cache_add(P):
+    P.index = {x: i for i, x in enumerate(P.hs)}
+    CACHE.append(P)
+    del CACHE[:-CACHE_MAX]
+
+
+def cache_find(st, s, hk=None):
+    """a cached period that S is on now (rotated to the current phase), or None"""
+    if hk is None:
+        hk = hash(skey(st, s[1]))
+    for P in reversed(CACHE):
+        i = P.index.get(hk)
+        if i is not None:
+            Q = rotate(P, (i - P.off) % P.len)
+            Q.h, Q.N = s
+            return Q
+    return None
+
+
 def learn(st, T, maxsw=None, log=None):
     """Exact sweeps (the state advances) until the low system S repeats (Brent's cycle search on S).
     Returns (st, T, nsweeps, Period or None)."""
@@ -190,8 +221,10 @@ def learn(st, T, maxsw=None, log=None):
     h, N = s0
     saved = skey(st, N)
     power = lam = 1
-    rec = []                    # (emit, alpha, intr) of the sweeps since `saved`, for sweeps where one is nonzero
+    rec = []                    # (emit, alpha, intr, i) of the sweeps since `saved`, for sweeps where one is nonzero
     base = 0
+    hs = array('q', [hash(saved)])   # hash of S's key before each sweep of the period
+    cb = [0]                         # base before each sweep of the period (can exceed 64 bits)
     for n in range(maxsw):
         dig = st[1]
         nd = len(dig)
@@ -222,20 +255,29 @@ def learn(st, T, maxsw=None, log=None):
         intr = d_after + (dN_f if emit else 0)
         base += s - alpha * rN - (uc if emit else 0)
         if emit or alpha or intr:
-            rec.append((emit, alpha, intr))
+            rec.append((emit, alpha, intr, lam - 1, (st[0], dig[N][0], tuple(dig[N + 1:]), st[2], st[3])))
+        cb.append(base)
         st, T = st2, T + s
         s1 = structure(st)
         if s1 is None or s1[1] != N:
             return st, T, n + 1, None
         k = skey(st, N)
+        if CACHE:
+            Q = cache_find(st, s1, hash(k))
+            if Q is not None:
+                return st, T, n + 1, Q
         if k == saved:
             P = Period()
             P.ev, P.base, P.len = rec, base, lam
             P.h, P.N = s1[0], N
             P.key = k
+            P.hs, P.cb, P.off = hs, cb, 0
+            cache_add(P)
             return st, T, n + 1, P
         if lam == power:            # Brent: move the saved point
             saved, power, lam, rec, base = k, power * 2, 0, [], 0
+            hs, cb = array('q'), [0]
+        hs.append(hash(k))
         lam += 1
     return st, T, maxsw, None
 
@@ -246,7 +288,8 @@ def summarize(P):
     rows = []          # (alpha, e_k, g_k) for sweeps with alpha != 0
     ek = gk = 0
     gmin = 0
-    for emit, alpha, intr in P.ev:
+    for e in P.ev:
+        emit, alpha, intr = e[:3]
         if alpha:
             rows.append((alpha, ek, gk))
         if emit:
@@ -331,71 +374,148 @@ def far_view(st, k=4):
     return C.DG.show((st[0], st[1][:k], 0, ''))
 
 
-def resync(st, T, P, limit):
-    """Exact sweeps until S is back at the start of its learned period (S is autonomous, so this takes less than one
-    period unless the structure changed).  Returns (st, T, n, ok)."""
-    n = 0
-    while n < limit:
-        s = structure(st)
-        if s is None or s[1] != P.N:
-            return st, T, n, False
-        if skey(st, P.N) == P.key:
-            P.h = s[0]
-            return st, T, n, True
-        st, s1 = sweep(st)
-        T += s1
-        n += 1
-    return st, T, n, False
+def cb_rot(P, x):
+    """base of the first x sweeps of P (in its rotated frame)"""
+    L = P.len
+
+    def cc(y):
+        return P.cb[y] if y <= L else P.cb[L] + P.cb[y - L]
+    return cc(P.off + x) - cc(P.off)
 
 
-def run(st, T, nsw, seconds, out=None, log=sys.stdout, every=120, stop_T=None):
+def rotate(P, j):
+    """P started j sweeps later (S is autonomous, so the same cycle from another phase)."""
+    L = P.len
+    j %= L
+    Q = Period()
+    Q.len, Q.base, Q.hs, Q.cb = L, P.base, P.hs, P.cb
+    Q.off = (P.off + j) % L
+    ev = [(e, a, g, (i - j) % L, sn) for e, a, g, i, sn in P.ev]
+    ev.sort(key=lambda r: r[3])
+    Q.ev = ev
+    Q.h, Q.N = P.h, P.N
+    return summarize(Q)
+
+
+def prefix(P, m):
+    """the first sweeps of P, up to (not including) its m-th record, as a Period; and their number"""
+    r = P.ev[m][3] if m < len(P.ev) else P.len
+    Q = Period()
+    Q.ev, Q.len, Q.base, Q.h, Q.N = P.ev[:m], r, cb_rot(P, r), P.h, P.N
+    Q.snap = P.ev[m][4] if m < len(P.ev) else None
+    return summarize(Q), r
+
+
+def prefix_eval(st, Q):
+    """jump_eval of a prefix: U and N as for a period, S as it is at the end of the prefix"""
+    res = jump_eval(st, Q, 1)
+    if res is None or Q.snap is None:
+        return res
+    ctx, wall, sdig, last, end = Q.snap
+    dig = res[0][1][:Q.N + 1] + list(sdig)
+    dig[Q.N] = (wall, dig[Q.N][1])
+    return (ctx, dig, last, end), res[1]
+
+
+def max_prefix(st, P, cap=None):
+    """the longest prefix of P that can be jumped (validity is monotone in its length): (m, r, result)"""
+    lo, hi = 0, len(P.ev)            # prefix(lo) allowed; m = len(ev) is a whole period, not tried here
+    best = prefix_eval(st, prefix(P, 0)[0])
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        Q, r = prefix(P, mid)
+        res = prefix_eval(st, Q) if cap is None or r <= cap else None
+        if res is not None:
+            lo, best = mid, res
+        else:
+            hi = mid
+    Q, r = prefix(P, lo)
+    if best is None or (cap is not None and r > cap):
+        return 0, 0, None
+    return lo, r, best
+
+
+def advance(st, T, nsw, P=None, seconds=None, target=None, out=None, log=sys.stdout, every=120):
+    """Run, jumping whole periods of S and, when the next period is blocked (a carry leaving U, mostly), the part of
+    it up to the blocking sweep; that sweep and the far-zone sweeps after it run exactly, and S continues on its
+    cycle from the new phase (checked by the hash of S's key at that phase), so the period is not learned again."""
     t0 = last = time.time()
     njump = 0
-    P = None
-    while time.time() - t0 < seconds:
-        if stop_T is not None and T >= stop_T:
-            break
-        if P is not None:
-            st, T, n, ok = resync(st, T, P, 2 * P.len + 10)
-            nsw += n
-            if not ok:
-                P = None
+    nx = 1
+    while (seconds is None or time.time() - t0 < seconds) and (target is None or nsw < target):
+        if P is None and CACHE:
+            s = structure(st)
+            if s is not None:
+                P = cache_find(st, s)
+                if P is not None:
+                    continue
         if P is None:
-            st, T, n, P = learn(st, T)
+            st, T, n, P = learn(st, T, maxsw=None if target is None else max(1, target - nsw))
             nsw += n
             if P is None:
                 if n >= 100000:
                     s = structure(st)
-                    print('no period in %d sweeps at step %.6e, structure %s: %s' % (
-                        n, float(T), s, C.DG.show((False, st[1][s[1] - 2 if s else -6:], st[2], st[3]))[:300]),
-                        file=log, flush=True)
+                    print('no period in %d sweeps at step %.6e, structure %s' % (n, float(T), s), file=log,
+                          flush=True)
                 continue
             summarize(P)
             print('period: %d sweeps, N=%d emits %d carries, gains %d blocks; S = %s' % (
-                P.len, P.N, P.E, P.G, C.DG.show((False, st[1][P.N + 1:], st[2], st[3]))[:200]), file=log, flush=True)
+                P.len, P.N, P.E, P.G, C.DG.show((False, st[1][P.N + 1:], st[2], st[3]))[:200]), file=log,
+                flush=True)
+            continue
+        rem = None if target is None else target - nsw
         K = max_jump(st, P)
+        if rem is not None:
+            K = min(K, rem // P.len)
         if K >= 1:
             r = jump_eval(st, P, K)
             st, T, nsw = r[0], T + r[1], nsw + K * P.len
             njump += 1
-            print('jump %d: %d periods of %d sweeps (E=%d, G=%d, h=%d, N=%d): step %d (%.6e)  %s ... %s' % (
-                njump, K, P.len, P.E, P.G, P.h, P.N, T, float(T), far_view(st, 6),
-                C.DG.show((False, st[1][P.N - 1:], st[2], st[3]))[:200]), file=log, flush=True)
-            if out:
-                save(out, st, T, nsw)
-            if os.environ.get('STATELOG'):
-                with open(os.environ['STATELOG'], 'a') as f:
-                    f.write('%d %d %s\n' % (nsw, T, C.DG.show(st)))
-        else:                   # the next period is blocked: run it exactly
-            for _ in range(P.len):
-                st, s1 = sweep(st)
-                T += s1
-                nsw += 1
+            if K > 1000 or DEBUG:
+                print('jump %d: %d periods of %d sweeps (E=%d, G=%d, h=%d, N=%d): step %d (%.6e)  %s ... %s' % (
+                    njump, K, P.len, P.E, P.G, P.h, P.N, T, float(T), far_view(st, 6),
+                    C.DG.show((False, st[1][P.N - 1:], st[2], st[3]))[:200]), file=log, flush=True)
+                if out:
+                    save(out, st, T, nsw)
+                if os.environ.get('STATELOG'):
+                    with open(os.environ['STATELOG'], 'a') as f:
+                        f.write('%d %d %s\n' % (nsw, T, C.DG.show(st)))
+        rem = None if target is None else target - nsw
+        m, r, res = max_prefix(st, P, rem)
+        if r > 0:
+            st, T, nsw = res[0], T + res[1], nsw + r
+        if K < 1 and r == 0:
+            nx = min(2 * nx, 4096)
+        else:
+            nx = 1
+        n = 0
+        while n < nx and (target is None or nsw < target):
+            st, s1 = sweep(st)
+            T += s1
+            nsw += 1
+            n += 1
+        s = structure(st)
+        if s is None:
+            P = None
+            continue
+        Q = rotate(P, r + n)
+        if Q.hs[Q.off] != hash(skey(st, s[1])):
+            if DEBUG:
+                print('  S left its cycle at step %.6e' % float(T), file=log, flush=True)
+            P = None
+            continue
+        Q.h, Q.N = s
+        P = Q
         if time.time() - last > every and out:
             last = time.time()
             save(out, st, T, nsw)
     if out:
         save(out, st, T, nsw)
+    return st, T, nsw, P
+
+
+def run(st, T, nsw, seconds, out=None, log=sys.stdout, every=120):
+    st, T, nsw, P = advance(st, T, nsw, None, seconds=seconds, out=out, log=log, every=every)
     return st, T, nsw
 
 
@@ -442,26 +562,8 @@ def test(st, T, Ts=(1, 2, 3, 5, 13)):
 
 
 def run_to(st, T, nsw, target, P=None):
-    """Advance to exactly `target` sweeps.  P: a period learned earlier, reused while it still applies."""
-    while nsw < target:
-        if P is not None and structure(st) == (P.h, P.N) and skey(st, P.N) == P.key:
-            K = min(max_jump(st, P), (target - nsw) // P.len)
-            if K >= 1:
-                r = jump_eval(st, P, K)
-                st, T, nsw = r[0], T + r[1], nsw + K * P.len
-                if DEBUG:
-                    print('  jump %d x %d sweeps (E=%d h=%d N=%d) -> sweep %d step %.4e' % (
-                        K, P.len, P.E, P.h, P.N, nsw, float(T)), flush=True)
-                continue
-        st, T, n, P2 = learn(st, T, maxsw=target - nsw)
-        nsw += n
-        if DEBUG:
-            print('  learn: %d exact sweeps, period %s, structure %s' % (
-                n, P2.len if P2 else None, structure(st)), flush=True)
-        if P2 is not None:
-            P = summarize(P2)
-            P.key = skey(st, P.N)
-    return st, T, nsw, P
+    """Advance to exactly `target` sweeps.  P: a period learned earlier, valid at the current phase."""
+    return advance(st, T, nsw, P, target=target, log=sys.stderr if DEBUG else open(os.devnull, 'w'))
 
 
 def parse_shown(line):
