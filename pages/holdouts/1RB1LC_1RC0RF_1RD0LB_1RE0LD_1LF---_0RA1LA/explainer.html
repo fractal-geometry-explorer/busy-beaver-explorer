@@ -180,6 +180,12 @@ pre{font-family:var(--mono);font-size:.8rem;background:var(--sunk);border-radius
 footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;font-size:.9rem;color:var(--fg2)}
 @media (max-width:560px){ .litem{grid-template-columns:1fr;gap:4px} .log div{grid-template-columns:6em 1.2em 3em minmax(0,1fr)} }
 @media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto!important;transition:none!important} }
+
+:root{--cited:#0e6e78;--cited-bg:#dff2f4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--cited:#6fd0d8;--cited-bg:#11302f} }
+:root[data-theme="dark"]{--cited:#6fd0d8;--cited-bg:#11302f}
+.ev.x{color:var(--cited);background:var(--cited-bg)} .ev.x::before{content:"\2261"}
+.claim.x{border-color:var(--cited)}
 </style>
 </head>
 <body>
@@ -203,6 +209,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="key" aria-label="Evidence levels used on this page">
     <div><span class="ev k">Kernel</span> proved in Lean, checked by the kernel only</div>
     <div><span class="ev n">native_decide</span> proved in Lean, one evaluation trusts the compiler</div>
+    <div><span class="ev x">Cited axiom</span> a Lean axiom here: an outside Lean proof, compiled here, on its own definitions</div>
     <div><span class="ev c">Computed</span> C or Python in the repository, tested but not proved</div>
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
@@ -321,6 +328,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
     <button type="button" data-f="native" aria-pressed="false">native_decide</button>
+    <button type="button" data-f="cited" aria-pressed="false">Cited axiom</button>
     <button type="button" data-f="trusted" aria-pressed="false">Computed</button>
     <button type="button" data-f="heuristic" aria-pressed="false">Heuristic</button>
     <button type="button" data-f="open" aria-pressed="false">Open</button>
@@ -338,6 +346,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/reset.c</code>, <code>py/classes.py</code>, <code>runs/classes_tail2.txt</code></div></div><div><b>With a nearly empty second-level tail, one remainder class halts</b><p>From <code>0^inf B&gt; 0 0 1 (1100)^n (10110110)^2 10 (1110)^2 1001101011001</code> the machine halts, for every n tried (60 to 69, 80, 101; 31,436 steps at n = 60). The class is reachable from larger tails: with six words <code>1110</code> left, r = 0 and n &equiv; 0 or 9 (mod 10), the next phase ends in it and halts (n = 60, 69, 160, 1009 checked by direct simulation). With the first-level tail (ending in a single 1) no class with 0 to 7 words left halts.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>runs/classes_tail1.txt</code>, <code>runs/classes_tail2.txt</code></div></div><div><b>Other classes loop forever or rebuild the tail</b><p>With an empty or nearly empty tail the other classes either enter a loop that adds five words <code>1100</code> per round without end (seen for 3,000 rounds; for example r = 1 with the tail <code>101</code>), or rebuild a tail of about 3.1 n words <code>1110</code> with the suffix <code>1001101011001</code>, or reach a short tail (<code>1</code>, <code>1001</code>, <code>1011101</code>). The tables list every class with 0 to 7 words left for both tails, n = 60 to 69.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/m7map.py</code>, README</div></div><div><b>Where the real run stands</b><p>Iterating the reset table (measured, not proved, for all n) the first level ends after 2,176 more phases at r = 3 with three words left and n &equiv; 11 (mod 100), a number of 771 digits. For n &equiv; 1 (mod 10) that reset builds the second-level tail with 31(n&minus;1)/10 + 92 words (checked for n = 61 to 211). The second level then lasts about 10<sup>770</sup> phases, n roughly tripling in each, and how it ends (halt, loop or a third level) depends on n mod 10 and r at that moment, which nobody can compute. So the closed-set method does not apply: a halting class is reachable, and this is a Collatz-like question.</p></div></div>
+    <div class="litem" data-level="cited"><div><span class="ev x">Cited axiom</span><div class="w"><code>deepmind_halts_iff</code>, <code>DM.next</code>, <code>lean/DeepMindMap.lean</code> (from <code>tools/deepmind/axioms.py</code>)</div></div><div><b>Available in Lean here as a cited axiom: DeepMind's halts-iff map</b><p><code>deepmind_halts_iff</code> states on this repository's definitions what DeepMind's compiled theorem proves: the machine halts from blank tape if and only if the orbit of their map <code>next</code> from <code>start</code> reaches <code>none</code>. The map is copied from their file unchanged, and running the copy and theirs for 120 steps gives the same states. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The only halting transition is E reading 1. The first level (periods and the reset table) is decoded with exact step counts and never halts while the tail lasts; the question moves to the resets at a nearly empty tail, which start a next level whose numbers have hundreds of digits.</p></div></div>
 </section>
 <section id="check">

@@ -419,7 +419,7 @@ theorem tphase_sound : ∀ f m c, 1 ≤ c → (tphase f c m).Sound (T c m) := by
 def pstep (n : Nat) : Out := (tphase (2 * n + 2) 1 (2 * n + 2)).addT (2 * n + 8)
 
 /-- **The macro step is proved for every `n`**: from `P n` the machine reaches `P n'` after the steps `pstep n`
-gives, or halts (the fuel never runs out: `pstep` is never `unknown`, see `Orbit.lean`). -/
+gives, or halts (the fuel never runs out: `pstep` is never `unknown`, see `pstep_never_unknown` in `Iff.lean`). -/
 theorem pstep_sound (n : Nat) : (pstep n).Sound (P n) :=
   Out.sound_addT (sweep_start n) (tphase_sound _ _ 1 (by decide))
 

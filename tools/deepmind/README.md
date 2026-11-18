@@ -27,7 +27,32 @@
 - A6 (`1RB0LF_1RC0RA_1LD0RB_0LE0LC_0LA0LC_0LB---`) is cryptids PR #21 (31 October), with its own reflective RLE engine. Havrilla's busycoq PR 51 proves the same machine in Rocq.
 - DeepMind's earlier busycoq PRs 19 to 23 (15 October, Havrilla, 27 machines) were merged. None of those machines is on our list.
 
-**15 machines have a halts-iff map that only DeepMind has. All 15 compile.** Each one has `isHalt_iff_acceleration : IsHalt target ↔ CollatzHalts next start`, and 10 of them also have a `highLevel` version. They are listed in `maps.txt`, and the times are in `compiled_maps.json`. These maps are proved without conditions. Ours for `1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA` assumes the orbit never meets a `.small` case.
+**15 machines have a halts-iff map that only DeepMind has. All 15 compile.** Each one has `isHalt_iff_acceleration : IsHalt target ↔ CollatzHalts next start`, and 10 of them also have a `highLevel` version. They are listed in `maps.txt`, and the times are in `compiled_maps.json`. These maps are proved without conditions. Ours for `1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA` used to assume the orbit never meets a `.small` case; it is now unconditional.
+
+## Using them in our Lean: cited axioms
+
+Our library cannot import these proofs: they are stated on Mathlib's Turing machines and our library is core Lean.
+So `axioms.py` states each result on our definitions as a Lean `axiom`, one file per machine, listed in the machine's
+`lean/check.sh`:
+
+- **The 11 settled machines**: `holdouts/<M>/lean/DeepMind.lean` has `deepmind_halts : HaltsFromBlank` or
+  `deepmind_not_halts : ¬ HaltsFromBlank`.
+- **12 of the 15 maps** (the 3 others are proved here: `Map.lean`, `Iff.lean`, `DMMap.lean`):
+  `holdouts/<M>/lean/DeepMindMap.lean` copies DeepMind's `State`, `start`, `next` and the definitions `next` uses,
+  unchanged but for `ℕ` → `Nat`, into a namespace `DM`, and has `deepmind_halts_iff : HaltsFromBlank ↔ ∃ n,
+  (DM.orbit n).isNone = true`. `orbits.sh` runs the copies and DeepMind's own maps from `start` and compares the
+  states: 120 steps for each, 7 for `1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA`, whose `next` gets slow in the
+  interpreter as its numbers grow.
+
+What an axiom rests on: DeepMind's proof (compiled here, standard axioms only), the check that their table is the
+machine's, and the reading of their halting (Mathlib's semantics, blank tape, state A) as our `TM.Halts trans
+(TM.blankCfg .A)`, which no proof checks. Nothing proves the axioms here. `#print axioms` names them in every theorem
+that uses them, and the ledgers list them at their own level, *cited*. A proof here (as in
+`holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/lean/DMMap.lean`), or one bridge theorem between the two
+semantics, turns an axiom into a theorem with the same statement.
+
+    python3 tools/deepmind/axioms.py tools/deepmind/compiled.json tools/deepmind/compiled_maps.json CRYPTIDS_DIR
+    tools/deepmind/orbits.sh CRYPTIDS_DIR
 
 ## Checks
 

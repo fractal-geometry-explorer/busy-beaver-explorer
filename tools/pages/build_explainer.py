@@ -68,9 +68,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from bbtools.machine import STATES, Machine  # noqa: E402
 from xs_widgets import XS_CSS, XS_ENGINE, XS_UI  # noqa: E402
 
+# added only to pages that have a "cited" claim, so that other pages stay as they are
+CSS_CITED = """
+:root{--cited:#0e6e78;--cited-bg:#dff2f4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--cited:#6fd0d8;--cited-bg:#11302f} }
+:root[data-theme="dark"]{--cited:#6fd0d8;--cited-bg:#11302f}
+.ev.x{color:var(--cited);background:var(--cited-bg)} .ev.x::before{content:"\\2261"}
+.claim.x{border-color:var(--cited)}
+"""
+
 LEVELS = [
     ("kernel", "k", "Kernel", "proved in Lean, checked by the kernel only"),
     ("native", "n", "native_decide", "proved in Lean, one evaluation trusts the compiler"),
+    ("cited", "x", "Cited axiom", "a Lean axiom here: an outside Lean proof, compiled here, on its own definitions"),
     ("trusted", "c", "Computed", "C or Python in the repository, tested but not proved"),
     ("heuristic", "h", "Heuristic", "evidence and estimates"),
     ("open", "o", "Open", "not known"),
@@ -787,7 +797,7 @@ def build(spec, home="../index.html"):
          f'<meta name="description" content="An interactive explainer of the {m.n}-state machine '
          f'{html.escape(m.text)}: the table, where it can halt, the machine running in the browser, a space-time '
          f'diagram, and what is known about it, each result marked by what it rests on.">',
-         FONTS, f"<style>{CSS}{XS_CSS if widgets else ''}</style>", "</head>", "<body>", '<div class="wrap">', '<header class="hero">',
+         FONTS, f"<style>{CSS}{XS_CSS if widgets else ''}{CSS_CITED if any(c['level'] == 'cited' for c in spec.get('claims', [])) else ''}</style>", "</head>", "<body>", '<div class="wrap">', '<header class="hero">',
          f'  <p class="crumb"><a href="{home}">Busy Beaver Explorer</a> / {html.escape(short)} / explained</p>',
          f'  <span class="eyebrow">A {m.n}-state Busy Beaver machine · {spec.get("asof", "")}</span>',
          f"  <h1>{title}</h1>", f'  <p class="machine-id">{html.escape(m.text)}</p>']
@@ -809,7 +819,9 @@ def build(spec, home="../index.html"):
             o.append(f'    <div class="{html.escape(e["kind"])}"><strong>{e["title"]}</strong>{e["text"]}</div>')
         o.append("  </div>")
     o.append('  <div class="key" aria-label="Evidence levels used on this page">')
-    for _, cls, name, gloss in LEVELS:
+    used = {c["level"] for c in spec.get("claims", []) + ex.get("facts", [])}
+    shown = [lv for lv in LEVELS if lv[0] != "cited" or "cited" in used]
+    for _, cls, name, gloss in shown:
         o.append(f'    <div><span class="ev {cls}">{name}</span> {gloss}</div>')
     o.append("  </div>")
     o.append('  <nav class="toc" aria-label="Sections">' + "".join(f'<a href="#{i}">{html.escape(t)}</a>' for i, t in toc)
@@ -935,7 +947,7 @@ def build(spec, home="../index.html"):
           "page</a>, built from the same file.</p></div>",
           '  <div class="lfilter" role="group" aria-label="Filter by evidence level">',
           '    <button type="button" data-f="all" aria-pressed="true">All</button>']
-    for key, _, name, _ in LEVELS:
+    for key, _, name, _ in shown:
         o.append(f'    <button type="button" data-f="{key}" aria-pressed="false">{name}</button>')
     o.append("  </div>")
     o += [_claim_html(c) for c in spec.get("claims", [])]
@@ -949,7 +961,7 @@ def build(spec, home="../index.html"):
           "github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>", "</footer>", "</div>"]
     data = json.dumps({"machine": m.text, **({"compare": cmp_} if cmp_ else {}), **({"xs": ex["xs"]} if widgets else {}),
                        **({"steppers": steppers} if steppers else {}), **({"rewriters": rewriters} if rewriters else {}),
-                       **({"levels": {k: list(v) for k, v in LEVEL.items()}} if steppers or rewriters else {})},
+                       **({"levels": {k: list(v) for k, v in LEVEL.items() if k != "cited" or "cited" in used}} if steppers or rewriters else {})},
                       ensure_ascii=False).replace("</", "<\\/")
     o += [f'<script type="application/json" id="spec">{data}</script>',
           f'<script id="engine">{ENGINE}</script>', f"<script>{UI}</script>"] + ([f'<script id="xs-engine">{XS_ENGINE}</script>', f"<script>{XS_UI}</script>"] if widgets else [])

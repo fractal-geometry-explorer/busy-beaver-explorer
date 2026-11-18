@@ -83,20 +83,20 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>.</p>
+      <p><b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules, and proves that the machine halts from blank tape if and only if the orbit of this macro step from P(4) stops. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
       <div class="card proof">
-        <h3>A halts-iff map in DeepMind's Lean, compiled here</h3>
-        <p><a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.lean">M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026) proves <code>IsHalt target &harr; CollatzHalts next start</code>: the machine halts from blank tape if and only if an explicit map reaches its halting case. We built it with Lean v4.35.0-rc4 on 2026-11-17 (<code>BusyBeaver.M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.isHalt_iff_acceleration</code>); it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. The map in this repository needs an assumption that Lean does not check, or proves only the no-halt direction; theirs has no such condition. Halting itself stays open.</p>
+        <h3>Independently formalized here and in DeepMind cryptids</h3>
+        <p>Both this repository and DeepMind's cryptids repository prove in Lean that the machine halts from blank tape if and only if an explicit map on a few numbers reaches its halting case. The two proofs were written separately, with different variables and file layouts: theirs is <a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.lean">M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026). We built it with Lean v4.35.0-rc4 on 2026-11-17 (<code>BusyBeaver.M_1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_HHH0RE.isHalt_iff_acceleration</code>); it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine.</p>
       </div>
       <div class="card label">
         <h3>On the bbchallenge wiki</h3>
@@ -135,9 +135,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>pstep_sound</code>, <code>tend_sound</code>, <code>tphase_sound</code>, <code>lean/Macro.lean</code>; rules in <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
       </div>
       <div class="card">
-        <h3>The run from blank tape follows the macro step</h3>
-        <p>The machine is at P(4) after 31 steps; <code>orbit k 4</code> applies the macro step k times, and <code>orbit_sound</code> turns any value of it into a statement about the machine.</p>
-        <p class="where"><code>init_P4</code>, <code>orbit_sound</code>, <code>no_halt_of_orbit</code>, <code>lean/Orbit.lean</code></p>
+        <h3>The run from blank tape follows the macro step, and halts exactly when the orbit stops</h3>
+        <p>The machine is at P(4) after 31 steps; <code>orbit k 4</code> applies the macro step k times, and <code>orbit_sound</code> turns any value of it into a statement about the machine. <code>halts_iff</code> joins both directions in one theorem: the machine halts from blank tape if and only if <code>orbit k 4 = none</code> for some k, that is, some macro step from P(4) on halts. It rests only on the axioms propext, Classical.choice and Quot.sound.</p>
+        <p class="where"><code>init_P4</code>, <code>orbit_sound</code>, <code>no_halt_of_orbit</code>, <code>lean/Orbit.lean</code>; <code>halts_iff</code>, <code>pstep_never_unknown</code>, <code>lean/Iff.lean</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 200 macro steps (more than 10<sup>86</sup> machine steps)</h3>

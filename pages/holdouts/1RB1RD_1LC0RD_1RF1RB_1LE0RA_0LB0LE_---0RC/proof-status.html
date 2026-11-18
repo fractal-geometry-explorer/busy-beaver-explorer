@@ -83,20 +83,20 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 17 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open; it is now a question about one explicit map.</b> The complete round map on lists of blocks is written down (<code>py/roundmap.py</code>) and agrees with direct simulation on more than 15,000 random block lists; it is computed, not yet a Lean theorem as a whole. Lean's kernel proves the even rounds (<code>E n → E (5n/2 + 1)</code>), the odd sweep (six 1s off the block, one onto the next), the top-level ends, and that the machine reaches <code>E 26041</code>. Iterating the map from blank tape gives no halt in 1,000,000 rounds (the block then has about 205,000 digits); a halt needs a number on the orbit to be a base-6 repunit or the like, which is astronomically unlikely but not excluded.</p>
+      <p><b>The question is open; it is now, provably, a question about one explicit map.</b> Lean's kernel proves that the machine halts from blank tape if and only if the orbit of an explicit map on C(k, a, b) = <code>0^&infin; (10101)^k C&gt; 0 1 0 1^a 0 1^b 0^&infin;</code> from C(0, 2, 0) reaches a halting case (<code>halts_iff</code>, <code>lean/DMMap.lean</code>). The map is the one DeepMind's cryptids repository proves with Mathlib; the proof here is a separate one, on this repository's machine semantics, with core Lean only. Iterating the equivalent round map from blank tape gives no halt in 1,000,000 rounds (the block then has about 205,000 digits); a halt needs a number on the orbit to be a base-6 repunit or the like, which is astronomically unlikely but not excluded.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
       <div class="card proof">
-        <h3>A halts-iff map in DeepMind's Lean, compiled here</h3>
-        <p><a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.lean">M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026) proves <code>IsHalt target &harr; CollatzHalts next start</code>: the machine halts from blank tape if and only if an explicit map reaches its halting case. We built it with Lean v4.35.0-rc4 on 2026-11-17 (<code>BusyBeaver.M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.isHalt_iff_acceleration</code>); it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. This repository has no finished halts-iff map for this machine. Halting itself stays open.</p>
+        <h3>Independently formalized here and in DeepMind cryptids</h3>
+        <p>Both this repository and DeepMind's cryptids repository prove in Lean that the machine halts from blank tape if and only if an explicit map on a few numbers reaches its halting case. The two proofs were written separately, with different variables and file layouts: theirs is <a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.lean">M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026). We built it with Lean v4.35.0-rc4 on 2026-11-17 (<code>BusyBeaver.M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.isHalt_iff_acceleration</code>); it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine.</p>
       </div>
       <div class="card label">
         <h3>Community label</h3>
@@ -139,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The odd sweep and the top-level ends</h3>
         <p>With the phase state <code>P(i, x, R) = w^i C&gt; 0 1 0 1^x 0 R</code>, <code>w = 10101</code>: for odd <code>x ≥ 7</code> one sweep takes six 1s off the block, writes a <code>w</code> and adds one to the next block (or makes a new block), for any tape on both sides. At top level, <code>x = 2</code> with nothing after ends the round in <code>5i + 6</code> ones, <code>x = 3</code> in one block <code>5i + 6 + y</code>, <code>x = 5</code> in blocks <code>5i + 6</code> and <code>y + 1</code>, and <code>x = 1</code> with nothing after reaches the halting transition.</p>
         <p class="where"><code>odd_sweep</code>, <code>odd_sweep_new</code>, <code>end2</code>, <code>end3</code>, <code>end3_new</code>, <code>end5</code>, <code>end5_new</code>, <code>halt1</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The machine halts if and only if an explicit map halts</h3>
+        <p>C(k, a, b) is the configuration <code>0^&infin; (10101)^k C&gt; 0 1 0 1^a 0 1^b 0^&infin;</code>. The machine reaches C(0, 2, 0) after 10 steps, and from every C(k, a, b) it either halts or reaches the C(k&prime;, a&prime;, b&prime;) that the function <code>next</code> gives (<code>step_state</code>, for all k, a and b). So the machine halts from blank tape if and only if the orbit of <code>next</code> from C(0, 2, 0) reaches <code>none</code> (<code>halts_iff</code>). Inside a step, a run of ones in state B is drained by a recursion (<code>drainB</code>, proved by strong induction on the run) over a stack of blocks <code>1</code>, <code>01</code> and <code>10101</code> on the left. The map is DeepMind's (<code>M_1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_HHH0RC.lean</code> in google-deepmind/cryptids); the proof here is separate, on this repository's definitions, from 24 symbolic rules and induction, with core Lean only. Axioms: propext, Classical.choice, Quot.sound.</p>
+        <p class="where"><code>halts_iff</code>, <code>step_state</code>, <code>B_drain</code>, <code>lean/DMMap.lean</code>; rules in <code>lean/DMRules.lean</code> (from <code>py/dmrules.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
