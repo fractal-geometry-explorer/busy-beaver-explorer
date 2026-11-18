@@ -57,6 +57,11 @@ Whether any of these relations can be *proved*, so that one proof settles severa
 [`EQUIVALENCES.md`](EQUIVALENCES.md): a re-sync bisimulation checked in Lean (`tools/lean/TM/Sync.lean`) closes for none
 of the open pairs, nor for 23 new candidates from a hash screen, so the 552 open holdouts remain 552 distinct questions.
 
+Holdouts one transition away from a table that DeepMind proved never halts are in
+[`DEEPMIND_NEIGHBOURS.md`](DEEPMIND_NEIGHBOURS.md): 10 open holdouts in 4 tables, none settled by DeepMind's proofs
+as they stand; for `1RB0LD_1LC1RE_1LA1RC_1RA0LC_0RF---_0LD1RB` Lean proves that it halts if and only if DeepMind's
+table `1RB1RE_1LC1RB_1RA0LD_1RC0LB_0RF---_0LD1RA`, started in state C, halts.
+
 ## Proofs and labels from outside
 
 `external.json` holds, for every machine, what is known from outside its own ledger: Rocq proofs in open pull requests
