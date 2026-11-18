@@ -6,7 +6,7 @@ let rec bits = function N0 -> 0 | Npos p -> let rec pb = function XH -> 1 | XO q
 let qs = function A->"A"|B->"B"|C->"C"|D->"D"|E->"E"|F->"F"
 let mode s = match T4C.fs_mode s with T4C.MR -> "MR" | T4C.ML -> "ML" | T4C.MJ -> "MJ"
   | T4C.RAW (q, d) -> "RAW " ^ qs q ^ (if d = L then "L" else "R")
-let init = function "B" -> T4C.initFastB | "C" -> T4C.initFastC | "D" -> T4C.initFastD | _ -> failwith "START is B, C or D"
+let init = function "A" -> T4C.initFastA | "B" -> T4C.initFastB | "C" -> T4C.initFastC | "D" -> T4C.initFastD | _ -> failwith "START is A, B, C or D"
 let () =
   let ck = if Array.length Sys.argv > 3 then Some Sys.argv.(3) else None in
   let s = ref (init Sys.argv.(1)) and i = ref 0 and fin = ref false in
