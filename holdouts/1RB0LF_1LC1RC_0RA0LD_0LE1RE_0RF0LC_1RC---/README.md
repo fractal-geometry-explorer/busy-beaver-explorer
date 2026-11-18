@@ -29,6 +29,14 @@ tapes) while 4, 5, 7, 8, 10, 11 are common, a hint of a residue mod 3 that a pro
 Automata tried: `../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c` (finite automata reduction) finds no
 certificate with a DFA of at most 7 states on either side.
 
+## Update, 18 November 2026
+
+The twin's README now has a fourth pass on the missing lemma
+([section](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#fourth-pass-18-november-2026-what-the-missing-lemma-really-asks)):
+its token rules and conserved value are proved in Lean from the four visit functions, and the lemma turns out not to
+be about biased digits but about how often the round's defect reaches the digit end of the tape (about one round in
+three, independently from round to round). Still open for both machines.
+
 ## The rule of the middle (14 November 2026)
 
 The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
