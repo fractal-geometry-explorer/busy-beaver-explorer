@@ -88,6 +88,12 @@
    "where": "<code>holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/paccel.py</code> with <code>BBM</code> set to this machine, <code>BBEV=1 BBMIRROR=1</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.09&times;10<sup>149123</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 600 seconds and reached step 7.09&times;10<sup>149123</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD 4 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probably nonhalting, for a structural reason not yet proved",
    "text": "Unlike Antihydra-type machines, no halting word is known here, so there is no coin-flip argument for a halt. The word behaves like a stack of nested counters (a residue-0 phase absorbs its last block into the counter, the others push or edit blocks), and the explored part of it never halts; a proof would need an invariant on all reachable words.",

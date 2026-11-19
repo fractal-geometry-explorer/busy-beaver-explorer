@@ -64,6 +64,12 @@
    "where": "<code>py/orbit.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.40&times;10<sup>76326</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 2 cells, from blank tape for 600 seconds and reached step 7.40&times;10<sup>76326</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 4 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB 2 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Each round halts with chance about 1/3",
    "text": "Every round starts at k = 0, so the sequence of k values is the same in every round; only the fuel z decides where it stops. Writing u = k + 2 the sequence is u &rarr; 3&lceil;u/2&rceil; from u = 2, and a round with fuel z halts exactly when z equals the fuel spent before some odd u. For z up to 20,000 that is 33.6% of the values. If the reset values behave like random numbers, the machine halts with probability 1, in some round after the third.",

@@ -21,17 +21,9 @@ folders' modules cannot be imported together.  Written by hand.
 
 namespace TM
 
-theorem cons_head_tail (s : Tape) : cons (s 0) (tail s) = s := by
-  funext n; cases n <;> rfl
-
 section
 variable {Q₁ Q₂ : Type} (δ₁ : Q₁ → Bool → Option (Bool × Dir × Q₁)) (δ₂ : Q₂ → Bool → Option (Bool × Dir × Q₂))
   (φ : Q₂ → Q₁)
-
-/-- The other direction. -/
-def Dir.flip : Dir → Dir
-  | .L => .R
-  | .R => .L
 
 /-- A configuration seen in a mirror, states renamed by φ. -/
 def mir (c : Cfg Q₂) : Cfg Q₁ := ⟨tail c.r, cons (c.r 0) c.l, φ c.st⟩

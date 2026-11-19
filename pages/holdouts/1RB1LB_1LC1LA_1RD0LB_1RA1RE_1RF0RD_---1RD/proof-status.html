@@ -176,6 +176,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Choosing the parity of Y freely at every epoch (both branches), some choices from the real starting tail make the carry run off the end and halt after 10 epochs (e.g. tail <code>(1,1)(19,0) 1^4</code>). So non-halting would have to use the actual parity sequence.</p>
         <p class="where">search over both parities, notes in <code>README.md</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 2.11&times;10<sup>128114</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 601 seconds and reached step 2.11&times;10<sup>128114</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LB_1LC1LA_1RD0LB_1RA1RE_1RF0RD_---1RD 4 601</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

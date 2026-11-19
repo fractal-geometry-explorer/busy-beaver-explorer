@@ -64,6 +64,12 @@
    "where": "<code>py/emap.py far</code>, <code>py/emap.py blank</code>, <code>py/emap.py grid</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.70&times;10<sup>79093</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 5.70&times;10<sup>79093</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 19 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probviously non-halting: a random walk drifting away from 0",
    "text": "If m mod 3 behaves like a fair three-sided die, the counter is a random walk with steps +6, &minus;1, +4 (drift +3). The chance of ever coming down by d is about &lambda;<sup>d</sup> with &lambda; = 0.33489 the root in (0,1) of &lambda;<sup>7</sup>+&lambda;<sup>5</sup>+1 = 3&lambda;: about 10<sup>&minus;27.6</sup> from a = 58 at 1.08&middot;10<sup>10</sup> steps and about 10<sup>&minus;28,700</sup> from a = 60,462 where Lean leaves it. bbchallenge lists the machine as an Antihydra-like cryptid (Racheline, November 2024).",

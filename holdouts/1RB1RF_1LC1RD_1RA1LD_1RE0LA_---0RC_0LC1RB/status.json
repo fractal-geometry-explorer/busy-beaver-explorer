@@ -70,6 +70,12 @@
    "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB 6 24200000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.42&times;10<sup>5302</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 600 seconds and reached step 2.42&times;10<sup>5302</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 13 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB 6 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Two regions, at most three defects",
    "text": "Tapes sampled every 10<sup>8</sup> steps up to 4&middot;10<sup>9</sup> consist of the two periodic regions (between 260 and 14,636 words of each) and one to three defect blocks.",

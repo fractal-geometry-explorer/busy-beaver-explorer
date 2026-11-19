@@ -65,6 +65,12 @@
    "where": "<code>bb6-1RB0LF_1RC0LB/c/pds.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.67&times;10<sup>19945</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 7.67&times;10<sup>19945</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 5 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD--- 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The leftmost segment of the list is processed by a 3/2-type rule whose parity decides whether the next segment is merged or a new segment is pushed; the rules for a general leftmost segment <code>(10)^x (010)^y</code> with x &ne; 2 are still to be written down.",

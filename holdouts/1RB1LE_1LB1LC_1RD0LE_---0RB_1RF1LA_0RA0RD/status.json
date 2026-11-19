@@ -90,6 +90,12 @@
    "where": "<code>c/yorbit.c</code>, <code>c/rle.h</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.89&times;10<sup>703</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 600 seconds and reached step 7.89&times;10<sup>703</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD 4 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "cited",
    "title": "Available in Lean here as a cited axiom: DeepMind's halts-iff map",
    "text": "<code>deepmind_halts_iff</code> states on this repository's definitions what DeepMind's compiled theorem proves: the machine halts from blank tape if and only if the orbit of their map <code>next</code> from <code>start</code> reaches <code>none</code>. The map is copied from their file unchanged, and running the copy and theirs for 120 steps gives the same states. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.",

@@ -88,6 +88,12 @@
    "where": "<code>holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/longrun.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.57&times;10<sup>10154</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 600 seconds and reached step 7.57&times;10<sup>10154</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 6 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The far end cannot halt while the last block lasts",
    "text": "A borrow arriving at the far end halts the machine when the far end reads <code>01</code>, <code>101</code>, <code>1101</code> and a few similar words. The 102 far ends seen in 6&middot;10<sup>9</sup> steps close under borrow arrivals into 128 far ends, none of which halts. All of them fall into the cycle <code>11</code> &rarr; overflow &rarr; <code>0011</code> &rarr; <code>11</code>, where the last block loses one per overflow. This assumes that a far end behaves the same behind any block of 10 or more copies.",

@@ -82,6 +82,12 @@
    "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- L D 1 check 3e9</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 9.79&times;10<sup>137758</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 600 seconds and reached step 9.79&times;10<sup>137758</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 4 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- 4 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "184,790 rounds of the class map without a halt",
    "text": "Iterated with exact integers from the event at step 1,429 of the run (A = <code>(empty)</code>, U = <code>1</code>, m = 75, B = <code>(empty)</code>): 184,790 rounds without meeting a halting class; m then has 261,492 bits (about 10<sup>157,432</sup> steps of the machine). 111 distinct contexts occur, the longest of 27 cells.",

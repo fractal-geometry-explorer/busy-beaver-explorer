@@ -64,6 +64,12 @@
    "where": "<code>c/nbhd.c</code> (<code>./nbhd M 1000000000 D 0</code>)"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.46&times;10<sup>35</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 7.46&times;10<sup>35</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 21 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Sweeps and phases",
    "text": "Sampled with C on a 0 at the right end (once a sweep), the tape is a short counter followed by <code>1^K 0^Z</code>. One sweep (about 4.6 times the tape length in steps) takes K down by 1 or 3 and Z up by 4 while the counter on the left ticks. When K is used up a new phase starts with K about the whole tape: phases began near steps 5.8&middot;10<sup>5</sup>, 2.3&middot;10<sup>6</sup>, 9.4&middot;10<sup>6</sup>, 3.8&middot;10<sup>7</sup>, 1.5&middot;10<sup>8</sup>, 6.0&middot;10<sup>8</sup> with tape lengths 838, 1678, 3358, 6718, 13446, 26894.",

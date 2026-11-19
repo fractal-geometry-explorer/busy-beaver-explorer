@@ -58,6 +58,12 @@
    "where": "<code>py/stack.py</code>, <code>c/canon.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.61&times;10<sup>148105</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 600 seconds and reached step 2.61&times;10<sup>148105</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 4 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LD_0RC1RA_1RD1RE_1LA0LE_0RA0RF_1RC--- 4 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The rule at every level",
    "text": "A level k &ge; 2 changes only when the level below it ends an epoch with two ones left. It then takes one step: a trip, <code>1^(n+3) (01)^m</code> to <code>1^n (01)^(m+7)</code>; or, with no ones, a rebuild to <code>1^(2m+5) (01)^6</code> (or <code>1^(2m+4+p) (01)^6</code>), taking from level k+1; or, with two ones, a carry into level k+1 and a rebuild to <code>1^(2m-6) (01)^6</code> after a trip there, <code>1^(2m-10) (01)^6</code> otherwise. A level reduced to a single one is the same tape as one more <code>01</code> on the level above (a pop). Observed in every simulated case with m &ge; 5; smaller m behaves differently and is not tabulated.",
