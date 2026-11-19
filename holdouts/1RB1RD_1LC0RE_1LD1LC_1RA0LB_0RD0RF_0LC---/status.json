@@ -1,6 +1,6 @@
 {
  "generated": false,
- "group": "layered counter with (110) prefix (rule not found)",
+ "group": "layered counter with (110) prefix; halts (Coq, T4 engine from start C)",
  "title": "What is known about 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---.",
  "machine": "1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---",
@@ -8,11 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine, one of the holdouts of the BB(6) search, halts when started on a blank tape. The halt is a Coq theorem on busycoq's definitions. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 18 November 2026.",
+ "asof": "Status as of 19 November 2026.",
  "verdict": [
-  "<b>The question is open; the round rule is not found.</b> The machine runs a layered counter: a growing prefix <code>(110)^k</code> is turned, at each reset, into runs of groups of sizes 4, 7, 10, 13, … with large multiplicities, which the following sweeps use up. Nothing beyond the generated bounded runs is proved."
+  "<b>It halts</b>, proved in Coq (theorem <code>halt : halts tm c0</code> on busycoq's definitions, no axioms). Mirrored and with its states renamed, its table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state C, one transition away from the table DeepMind proved halting in busycoq PR 93. DeepMind's fast engine, changed for that transition as for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (the same table started in B), reaches a halting configuration from state C after 427,055 engine steps, on a tape of about 2<sup>4360</sup> cells.",
+  "<b>What it does.</b> Before the halt the machine runs a layered counter: a growing prefix <code>(110)^k</code> is turned, at each reset, into runs of groups of sizes 4, 7, 10, 13, … with large multiplicities, which the following sweeps use up. That description comes from simulation; the halt does not depend on it."
  ],
  "claims": [
   {
@@ -64,16 +65,10 @@
    "where": "<code>t4_collision</code>, <code>t4_collide</code>, <code>t4_finishP</code>, <code>t4_defect0</code>, <code>lean/T4Rules.lean</code>"
   },
   {
-   "level": "heuristic",
-   "title": "DeepMind's engine, changed for this table, runs 256,799 steps without a halt",
-   "text": "The engine of busycoq PR 93, with the four rules changed and extracted to OCaml, agrees with direct simulation through 1.2&times;10<sup>10</sup> machine steps and then runs 256,799 engine steps from blank tape (to about 2<sup>2626</sup> written cells) without halting and without a gap. Observed, not proved.",
-   "where": "<code>tools/coq/t4engine</code> (<code>run C</code>, <code>validate C</code>)"
-  },
-  {
-   "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The carry rule between the levels is the missing piece.",
-   "where": ""
+   "level": "kernel",
+   "title": "It halts: DeepMind's engine, changed for this table, proved in Coq",
+   "text": "The engine of busycoq PR 93, with the four rules that pass through F0 changed and every lemma built on them redone (the proof of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---, retargeted to this table and start C), reaches a halting configuration from blank tape after 427,055 engine steps, on a tape of about 2<sup>4360</sup> cells. Coq 8.18.0 checks the run in one evaluation (about 4 hours); <code>Print Assumptions halt</code>: closed under the global context.",
+   "where": "<code>halt</code>, <code>coq/H127983.v</code>; generator <code>tools/coq/t4engine/proof/mkC.py</code>"
   },
   {
    "level": "trusted",
@@ -85,11 +80,17 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/check.sh",
-  "gcc -O2 -o sim holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/sim.c && ./sim 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 600000000 1 | python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/resets.py"
+  "gcc -O2 -o sim holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/sim.c && ./sim 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- 600000000 1 | python3 holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/c/resets.py",
+  "sh holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/coq/build.sh /path/to/busycoq      # the Coq proof; a checkout of busycoq's BB6 branch; 1 to 4 hours"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. The machine builds a long run of the word 110 at the left end, then turns it into groups of sizes 4, 7, 10, 13, … that later sweeps use up: a counter with several levels. How the levels carry into each other has not been worked out.",
+  "lede": "It halts. For a long time it builds a run of the word 110 at the left end and turns it into groups of sizes 4, 7, 10, 13, … that later sweeps use up: a counter with several levels. Underneath, it is a table one transition away from a machine DeepMind proved halting, and DeepMind's engine, changed for that transition, shows in Coq that it halts.",
   "facts": [
+   {
+    "level": "kernel",
+    "value": "halts",
+    "text": "A Coq theorem on busycoq's definitions; the engine needs 427,055 steps, on a tape of about 2<sup>4360</sup> cells."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup>",
@@ -99,11 +100,6 @@
     "level": "heuristic",
     "value": "4, 7, 10, 13, …",
     "text": "Group sizes after the sweeps, in long runs."
-   },
-   {
-    "level": "open",
-    "value": "carry rule",
-    "text": "How the levels interact is not yet known."
    },
    {
     "level": "heuristic",
@@ -145,18 +141,18 @@
    {
     "id": "deepmind-engine",
     "eyebrow": "DeepMind's engine",
-    "heading": "One transition away from a proved halt",
+    "heading": "One transition away from a proved halt, and halting",
     "html": [
      "<p>This machine's table, mirrored and with its states renamed, is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state C; <code>1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---</code> (state B), <code>1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---</code> (state D) are the same table started in the other two states. It differs in the single transition F0 from the table of <code>1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---</code>, which DeepMind proved halts (busycoq PR 93) with a fast engine: an evaluator over run-length tapes of macro words whose every step is proved sound in Coq. All of that engine's rules hold for this table except four, the ones that pass through F0. In those, where DeepMind's machine ends in the configuration <code>&lt;C 100</code>, this one ends in <code>&lt;B 1</code> with <code>11</code> more on the right; on the digit words <code>D n = 1 (11)^n 00</code> of the engine, this moves a carry from the digit on the left to the digit on the right.</p>",
-     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and ran it from blank tape. After each engine step a direct simulation must reach exactly the engine's configuration; it does for every step checked, through 1.2&times;10<sup>10</sup> machine steps. The engine then ran 256,799 of its steps, to a tape of about 2<sup>2626</sup> written cells, without halting and without meeting a configuration it has no rule for. The changed engine is not a proof: only the four basic rules are proved (in Lean), and the rest is DeepMind's design checked by simulation. The same table started in state B halts, and there the engine became a Coq proof (<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq</code>); a halt here would become one the same way.</p>"
+     "<p>We changed the engine at every place that uses one of the four rules (<code>tools/coq/t4engine</code>), extracted it from Coq to OCaml and checked it against direct simulation through 1.2&times;10<sup>10</sup> machine steps. Run from blank tape in state C, it stops after 427,055 of its steps, on a tape of about 2<sup>4360</sup> cells, with the head in state F on a 1: a halt. The proof of the same table started in state B (<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---/coq</code>), which redoes DeepMind's soundness proofs for the four changed rules, needs only its table, its state map and its start changed for this machine. Coq checks the run in one evaluation, so the halt is a theorem (<code>holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/coq</code>).</p>"
     ]
    },
    {
     "id": "halt",
     "eyebrow": "Does it halt?",
-    "heading": "Not known",
+    "heading": "It halts",
     "html": [
-     "<p>The machine stops only if the head in state F reads a 1; in 10<sup>9</sup> simulated steps it never does. Without the carry rule there is no honest estimate either way.</p>"
+     "<p>The machine stops only if the head in state F reads a 1. In 10<sup>9</sup> simulated steps it never does, and the accelerated simulator saw no halt in 1.48&times;10<sup>14</sup> steps. The engine run above reaches the halt much later, on a tape of about 2<sup>4360</sup> cells, so the machine runs for more than 10<sup>1312</sup> steps; the exact count is not computed.</p>"
     ]
    },
    {
@@ -182,5 +178,7 @@
    }
   ]
  },
- "summary": "A layered counter: a growing (110)^k prefix is turned at each reset into runs of groups of sizes 4, 7, 10, 13, …, which the sweeps use up; rule not found; no halt in 10<sup>9</sup> steps."
+ "summary": "Halts, proved in Coq: it is the T4 table started in C, and DeepMind's PR 93 engine changed for T4 reaches a halt after 427,055 engine steps (tape about 2^4360 cells). Before that it runs a layered counter: a growing (110)^k prefix is turned at each reset into runs of groups of sizes 4, 7, 10, 13, …, which the sweeps use up (observed).",
+ "decision": "halts",
+ "decision_level": "coq"
 }

@@ -1,9 +1,11 @@
 # 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---
 
-bbchallenge id 127983. One of the six-state holdouts whose halting from blank tape is open. **It runs a layered
-counter: a growing prefix `(110)^k` is turned, at each reset, into a sorted list of groups of sizes 4, 7, 10, 13, …
-with large multiplicities, which the following sweeps use up one group at a time.** The rule of a round is not
-found; this folder records the structure seen so far.
+bbchallenge id 127983. One of the six-state holdouts of the BB(6) search. **It halts from blank tape, proved in Coq**
+([`coq/`](coq/README.md)): it is the T4 table started in state C, and DeepMind's busycoq PR 93 engine changed for T4
+reaches a halt after 427,055 engine steps (see below). Before that it runs a layered counter: a growing prefix
+`(110)^k` is turned, at each reset, into a sorted list of groups of sizes 4, 7, 10, 13, … with large multiplicities,
+which the following sweeps use up one group at a time. The rule of a round is not found and is not needed for the
+halt.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -76,7 +78,7 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 
 This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state C, mirrored and renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean in `lean/T4Rules.lean` (`t4_collision`, `t4_collide`, `t4_finishP`, `t4_defect0`).
 
-`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 1.2·10¹⁰ (9.7·10¹⁰ before the fast right sweep was added) steps. It then ran 256,799 engine steps from blank tape, to a tape of about 2^2626 written cells, with no halt and no configuration outside its rules. This is evidence, not a proof: only the four basic rules are proved, and the patched engine is checked by simulation. The same table started in state B halts, proved in Coq this way (1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---).
+`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 1.2·10¹⁰ (9.7·10¹⁰ before the fast right sweep was added) steps. From blank tape it stops after 427,055 engine steps, on a tape of about 2^4360 cells, with the head in state F on a 1: **the machine halts.** The Coq proof of the same table started in state B (1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---), which redoes PR 93's soundness proofs for the changed rules, needs only the table, the state map and the start changed (`tools/coq/t4engine/proof/mkC.py`). So this is a Coq theorem, `halt : halts tm c0` on busycoq's definitions with no axioms: see [`coq/`](coq/README.md) (Coq 8.18.0, about 4 hours).
 
 ## Pages
 

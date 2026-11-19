@@ -71,7 +71,7 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 
 With E and F exchanged, the table is `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` (T4) except for D0. T4's D0 is `1RA`; here D0 is `1LE`, and E0 `0RA` with A1 `1RA` bring the head back to T4's configuration in three steps if the cell left of the head is 0. If it is 1, E halts. So the machine follows T4's run from state A, unless it halts earlier at such a detour (Coq lemma `detour`).
 
-T4 is the table of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (start B, proved halting), 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- (start C) and 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB--- (start D). `tools/coq/t4engine` (DeepMind's busycoq PR 93 engine changed for T4) run from start A reaches a halting configuration after 350,227 engine steps, on a tape of about 2^3562 cells. **The machine halts**: `halt : halts tm c0` on busycoq's definitions, no axioms, in [`coq/`](coq/README.md).
+T4 is the table of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (start B, proved halting), 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC--- (start C, proved halting) and 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB--- (start D). `tools/coq/t4engine` (DeepMind's busycoq PR 93 engine changed for T4) run from start A reaches a halting configuration after 350,227 engine steps, on a tape of about 2^3562 cells. **The machine halts**: `halt : halts tm c0` on busycoq's definitions, no axioms, in [`coq/`](coq/README.md).
 
 ## Pages
 
