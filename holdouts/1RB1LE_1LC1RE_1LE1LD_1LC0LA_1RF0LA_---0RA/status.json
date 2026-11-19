@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 105 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The head sweeps over the period-6 word <code>111110</code>, which appears in all six rotations, and the leftward sweep over each rotation is a proved shift rule. Five or six walls between rotations split the tape into domains; between consecutive visits of the right end the domain lengths change by amounts in ratio 4 and the width grows by 1024. This looks like a counter in base 4, but its rule has not been written. Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>, and proves the shift rules of the sweeps (<code>lean/Rules.lean</code>); the C simulator finds no halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
@@ -156,7 +157,8 @@
    }
   ]
  },
- "summary": "A bouncer over the period-6 background 111110 in all its rotations; five or six walls (phase shifts) split it into domains whose lengths change between visits of the right end by amounts in ratio 4 (−384, −96, −24, −6), with powers of 2 throughout: a counter-like structure not yet written as a rule.",
+ "summary": "A bouncer over the period-6 background 111110 in all its rotations; five or six walls (phase shifts) split it into domains whose lengths change between visits of the right end by amounts in ratio 4 (−384, −96, −24, −6), with powers of 2 throughout: a counter-like structure not yet written as a rule. Decided outside: busycoq PR 105 proves in Rocq that it halts (compiled here).",
  "family": "period-6 bouncer with walls, ratio-4 hierarchy",
- "decision": "open"
+ "decision": "halts",
+ "decision_level": "outside"
 }

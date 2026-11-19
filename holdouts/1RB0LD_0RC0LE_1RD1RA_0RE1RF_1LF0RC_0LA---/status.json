@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 106 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
@@ -174,5 +175,7 @@
   ]
  },
  "family": "nested counters built from two words, growing left",
- "summary": "The tape is made of two words, 1 0^2 and 1 0 1^2 0, in runs separated by markers 1 0 1^2 0^2; the runs behave like nested counters, the outermost run on the left growing while inner ones are used up."
+ "summary": "The tape is made of two words, 1 0^2 and 1 0 1^2 0, in runs separated by markers 1 0 1^2 0^2; the runs behave like nested counters, the outermost run on the left growing while inner ones are used up. Decided outside: busycoq PR 106 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

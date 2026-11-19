@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 107 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves both passes over the bulk of the tape (kernel) and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
   "<b>What it does.</b> Seen at the right end, the tape is a list of blocks <code>(110)<sup>n</sup></code> separated by short separators (<code>10</code>, <code>1</code>, <code>0 1</code>). The leftward pass rewrites every <code>110</code> as <code>010</code> (seen from the left end the tape is blocks of <code>(100)<sup>n</sup></code>), and the rightward pass turns them back. On each round trip the last block grows by two and the first few blocks are rewritten like the low digits of a counter; now and then the change runs further right, like a carry.",
   "<b>Where a halt would come from.</b> Only F reading a 0 halts, i.e. E standing on <code>1 0</code> (<code>halt_E</code>). In the run F always reads a 1."
@@ -183,6 +184,7 @@
   ]
  },
  "family": "two-sided bouncer, list of 110-blocks with a counter at the left end",
- "summary": "Round trips over a tape of 110-blocks separated by short separators; the last block grows by two per trip while the blocks near the left end change like the digits of a counter. Open. Accelerated run: no halt in 1.90e11 steps.",
- "decision": "open"
+ "summary": "Round trips over a tape of 110-blocks separated by short separators; the last block grows by two per trip while the blocks near the left end change like the digits of a counter. Open. Accelerated run: no halt in 1.90e11 steps. Decided outside: busycoq PR 107 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
