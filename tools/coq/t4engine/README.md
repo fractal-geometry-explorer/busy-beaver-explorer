@@ -56,7 +56,8 @@ complete Coq proof for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (see Results).
 - `ExtT4C.v` extracts the engine to OCaml; `run.ml` and `validate.ml` are the drivers, `peek.ml` prints the mode,
   the head and the first runs of a checkpoint.
 - `proof/`: `mk.py` and `lem.py` write the Coq proof of the halt from B, `mkA.py` turns it into the proof for
-  1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE (start A); `proof/build.sh /path/to/busycoq [fast]`.
+  1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE (start A), `mkC.py` and `mkD.py` for starts C and D;
+  `proof/build.sh /path/to/busycoq [fast]`.
 - `build.sh /path/to/busycoq` does all of this (Coq 8.18, OCaml with `ocamlfind`).
 
 Run both with `ulimit -s unlimited`: the extracted list functions are not tail-recursive.
@@ -87,4 +88,7 @@ engine's configuration (state, head cell and every tape cell) within `M` steps i
 - Start C (1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---) stops after 427,055 fast steps, on a tape of about 2^4360
   cells, in a halting configuration. `proof/mkC.py` retargets the start-B proof to it; Coq 8.18.0 checks it in
   about 4 hours (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/coq`).
-- Start D has not stopped: see the status page of 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB--- for the current count.
+- Start D (1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---) stops after 688,228 fast steps, on a tape of about 2^6326
+  cells, in a halting configuration. `proof/mkD.py` retargets the start-B proof to it (no mirror, and `run_pow 20`);
+  Coq 8.18.0 checks it in about 12 hours (`holdouts/1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---/coq`). So T4 halts from
+  all four starts.
