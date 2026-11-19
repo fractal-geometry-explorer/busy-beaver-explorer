@@ -17,7 +17,9 @@ build() {
   mkdir -p "$HERE/out/c"
   local C="$HERE/out/c"
   (cd "$T" && $LEAN TM.lean -c "$C/TM.c" > /dev/null)
-  for m in Basic Fin CTL ListFrame Sync; do (cd "$T" && $LEAN TM/$m.lean -c "$C/TM_$m.c" > /dev/null); done
+  # every module of the shared library, in the order tools/lean/check.sh compiles them
+  local MODS; MODS=$(sed -n 's/^for f in \(.*\); do$/\1/p' "$T/check.sh" | head -1)
+  for m in $MODS; do (cd "$T" && $LEAN TM/$m.lean -c "$C/TM_$m.c" > /dev/null); done
   for m in Machine Tick Cert; do $LEAN $m.lean -c "$C/$m.c" > /dev/null; done
   for f in "$C"/*.c; do "$BIN/leanc" -c -fPIC -O2 -DLEAN_EXPORTING -o "${f%.c}.o" "$f"; done
   "$BIN/clang" -shared -o "$C/libcert.so" "$C"/*.o
