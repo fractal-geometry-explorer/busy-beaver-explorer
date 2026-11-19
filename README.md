@@ -35,6 +35,7 @@ Explorations of six-state Busy Beaver machines.
   studied in Thomas Reus's vampire-family repository): proved in Lean that each machine halts iff an explicit map on
   (context, n) reaches a halting entry, and 2^18 passes of that map without a halt
   ([`README.md`](bb6-vampire-family/README.md)).
+- [`holdouts/recent-proofs/`](holdouts/recent-proofs/): the methods of the 32 proofs of 17 to 19 November 2026 and four attempts to reuse them.
 - [`holdouts/`](holdouts/): every other machine of bbchallenge's list of 608 BB(6) holdouts (30 October 2026), one
   folder each: a first bounded run (10^9 steps) sorted by the growth shape of each side of the tape, the machine in
   Lean with its halting configurations and bounded runs from blank tape, and an explainer page; the map of all 608 is
