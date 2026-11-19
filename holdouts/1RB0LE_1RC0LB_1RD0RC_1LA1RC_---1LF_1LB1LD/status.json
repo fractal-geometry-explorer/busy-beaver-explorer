@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 97 (Alex Havrilla of DeepMind, 2026-11-18) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open, and halting looks very unlikely.</b> The tape is a list of blocks <code>(1101)^n</code> separated by single 0s. At each <i>rest</i> (head at the left end in state B) the tape is <code>B&gt;1 P (1101)^A 0 (1101)^b1 0 &hellip;</code> with <code>P</code> = <code>0</code> or <code>000</code>, and the list enters only through <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip;. The next rest is <i>A</i> &rarr; (3<i>A</i>+<i>g</i>)/2 (with &minus;3 or &minus;6 for type 0), or, when the parity is wrong, a <b>push</b>: <i>A</i>+1 joins the list and <i>A</i> restarts at about (<i>A</i>+<i>g</i>)/4. This map reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2&middot;10<sup>5</sup> times from blank tape, <i>A</i> never comes near the tiny values from which the machine halts."
  ],
  "claims": [
@@ -189,6 +190,7 @@
   ]
  },
  "family": "Antihydra-like: A &rarr; (3A+g)/2 or a push A &rarr; (A+g)/4 on a growing list of (1101)^n blocks, g = 6 + sum b_k/2^k",
- "summary": "An exact Collatz-like map on rests (A, g): A becomes (3A+g)/2, or the block is pushed onto a list (g := (A+g+7)/2) and A restarts near (A+g)/4; it matches every rest of the run to 1e10 steps, and halting needs A+g to fall back to single digits. Accelerated run: no halt in 3.81e12 steps.",
- "decision": "open"
+ "summary": "An exact Collatz-like map on rests (A, g): A becomes (3A+g)/2, or the block is pushed onto a list (g := (A+g+7)/2) and A restarts near (A+g)/4; it matches every rest of the run to 1e10 steps, and halting needs A+g to fall back to single digits. Accelerated run: no halt in 3.81e12 steps. Decided outside: busycoq PR 97 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
