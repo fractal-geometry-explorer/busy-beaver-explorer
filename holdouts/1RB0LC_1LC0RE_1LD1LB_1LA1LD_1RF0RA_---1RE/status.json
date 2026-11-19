@@ -70,6 +70,12 @@
    "where": "README.md"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.41&times;10<sup>116</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 3 cells, from blank tape for 1200 seconds and reached step 1.41&times;10<sup>116</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 47 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE 3 1200</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Deterministic counter, no sign of a halt",
    "text": "The front counter behaves much like a binary counter (double, or subtract 5) and every other count moves by fixed amounts per visit; nothing points to the halting transition (F reading 0) being reached.",

@@ -64,6 +64,12 @@
    "where": "<code>c/blocks.c</code>, <code>py/ticks.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.88&times;10<sup>39</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 1201 seconds and reached step 4.88&times;10<sup>39</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 14 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- 6 1201</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A list of blocks with carries",
    "text": "The events: when the carry passes a digit whose c is 1 and the next digit is 0, the two digits merge into one digit 0, <code>(10)^(b+b'+2) 1 (10)^c'</code> (22 of 25 cases). When the carry passes every digit, the first block is cut off and becomes a new digit. Read off the simulation; the remaining cases are not yet described.",
