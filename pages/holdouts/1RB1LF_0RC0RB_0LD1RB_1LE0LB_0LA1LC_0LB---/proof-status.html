@@ -82,15 +82,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---</h1>
     <p class="machine">1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---</p>
     <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 103 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-    <p>Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.</p>
-    <p>The tape is two binary counters written in short words. A counter at the left end, with digits <code>1010</code> (0) and <code>1000</code> (1), counts through all its values once per <em>round</em>; between two of its increments the head goes right and decrements a second counter whose digits are the words <code>1100</code> (1) and <code>1010 1010</code> (0); each borrow of the second counter moves one word <code>110</code> from one run of them to another. When the first run is used up the configuration changes in a way that is not yet understood.</p>
+    <p>This six-state machine was one of the bbchallenge holdouts. It never halts: busycoq pull request 103 proves it in Rocq (compiled here). This page records what is established about it, sorted by what each result rests on.</p>
+    <p>The tape is two binary counters written in short words. A counter at the left end, with digits <code>1010</code> (0) and <code>1000</code> (1), counts through all its values once per <em>round</em>; between two of its increments the head goes right and decrements a second counter whose digits are the words <code>1100</code> (1) and <code>1010 1010</code> (0); each borrow of the second counter moves one word <code>110</code> from one run of them to another. When the first run is used up the configuration changes in a way this repository did not model; the outside proof handles those phase changes too.</p>
     <p class="asof">Status as of 19 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 103 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
-      <p><b>The question is open.</b> No halt in the first 10<sup>10</sup> steps (C simulator). The regular rounds follow an exact law, checked on all 39 of them; the <em>phase changes</em> between runs of regular rounds (24 seen) have no rule yet, and a halt (F reading a 1) could only come from one of them.</p>
+      <p><b>What this repository found on its own (background).</b> No halt in the first 10<sup>10</sup> steps (C simulator). The regular rounds follow an exact law, checked on all 39 of them; the <em>phase changes</em> between runs of regular rounds (24 seen) have no rule yet, and a halt (F reading a 1) could only have come from one of them. The outside proof covers the phase changes too.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -180,7 +180,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>The phase changes, and the question</h3>
-        <p>When m is too small for the next round (m &lt; t) the round ends differently: from H = <code>ab</code> the left counter loses two digits (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code> (four times it stays <code>ab</code> with m + j growing by 4); from those headers the next visit has s + 2, header <code>ab</code>, one more right digit and m + j + 1. The new digits are not yet predicted. Whether the machine halts is open.</p>
+        <p>When m is too small for the next round (m &lt; t) the round ends differently: from H = <code>ab</code> the left counter loses two digits (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code> (four times it stays <code>ab</code> with m + j growing by 4); from those headers the next visit has s + 2, header <code>ab</code>, one more right digit and m + j + 1. The new digits are not yet predicted. Whether the machine halts was open here; busycoq pull request 103 (compiled here, no axioms; see above) proves that it never halts, phase changes included.</p>
         <p class="where"><code>py/round_law_1e10.txt</code> (the 24 phase changes)</p>
       </div>
     </div>

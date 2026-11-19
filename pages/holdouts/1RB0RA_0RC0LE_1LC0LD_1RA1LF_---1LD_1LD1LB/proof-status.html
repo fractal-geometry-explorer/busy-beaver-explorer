@@ -82,14 +82,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB0RA_0RC0LE_1LC0LD_1RA1LF_---1LD_1LD1LB</h1>
     <p class="machine">1RB0RA_0RC0LE_1LC0LD_1RA1LF_---1LD_1LD1LB</p>
     <p class="stand merged"><b>Decided by an outside Rocq proof: it halts</b><span>A Rocq proof in busycoq pull request 94 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on.</p>
+    <p>This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it halts when started on a blank tape, after about 3.1&times;10<sup>957</sup> steps. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on.</p>
     <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 94 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. By their count it halts after about 3.1&times;10<sup>957</sup> steps. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
-      <p><b>The question is open.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does to the word over many trips, and what happens when a trip does not come back (the end of a phase), is not proved. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2·10<sup>10</sup> steps, follows the run through 10 phases to 8.229·10<sup>69</sup> steps without a halt.</p>
+      <p><b>What this repository found on its own.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does over many trips, and what happens at the end of a phase, was not proved here. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2&middot;10<sup>10</sup> steps, follows the run through 10 phases to 8.229&middot;10<sup>69</sup> steps without a halt. The halt the proof finds comes much later.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -179,8 +179,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by F on a 1 with <code>0 1</code> to its left (<code>0 1 F&gt;1</code>). Open: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.</p>
+        <h3>Does it halt from blank tape? (this repository’s own ledger)</h3>
+        <p>Not decided by the results on this page alone. It is decided outside: busycoq pull request 94 proves that it halts (see the verdict). Before the proof: A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by F on a 1 with <code>0 1</code> to its left (<code>0 1 F&gt;1</code>). Open here: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.</p>
       </div>
     </div>
   </section>

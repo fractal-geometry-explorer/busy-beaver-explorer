@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---/status.json",
  "intro": [
-  "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
+  "This six-state machine was one of the bbchallenge holdouts. It halts: busycoq pull request 106 proves it in Rocq (compiled here). This page describes what its run looks like at the level of words and counters and how the proof follows it. The description before the proof comes from simulation; this repository's own work proves nothing beyond the bounded runs."
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 106 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
+  "<b>What this repository found on its own (background).</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
   {
@@ -82,8 +82,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.",
+   "title": "Halting, in this repository's own proofs",
+   "text": "Decided outside: busycoq pull request 106 proves in Rocq that it halts, after about 4.25&middot;10<sup>47</sup> steps (compiled here, no axioms; see above). This repository proved no macro rule for it beyond the shift rules.",
    "where": "",
    "hand": true
   }
@@ -94,7 +94,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. The tape is made of two words in runs that behave like nested counters; the outermost counter grows to the left, slowly.",
+  "lede": "It halts, after about 4.25&middot;10<sup>47</sup> steps. The tape is made of two words in runs that behave like the digits of nested counters, several of them in base 3. Busycoq pull request 106 follows the run exactly, with proved shortcuts that jump over whole counter cycles, through 958,787,029,001 visits of the head to the left end, until it reads a 1 in state F.",
   "facts": [
    {
     "level": "heuristic",
@@ -122,6 +122,18 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "An exact run, accelerated by proved counter shortcuts",
+    "html": [
+     "<p>The proof is busycoq pull request 106 by Alex Havrilla of DeepMind: a Rocq file of 115,070 lines (2.7 MB). About 22,000 lines are proof and the rest is a certificate, a long list of instructions. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 383 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>halt : halts tm c0</code>: from the blank tape, the machine halts.</p>",
+     "<p><b>The shape.</b> Write w<sup>n</sup> for the word w written n times. The proof watches the machine at <em>hubs</em>: the head at the left end of the tape in state E. At a hub the tape reads <code>001 0 1</code>, then a list of items, then <code>0101</code>. Most items are a pair of runs <code>(001)</code><sup>a</sup> <code>(01011)</code><sup>s</sup>, sometimes with the marker <code>01001</code> between them. These are the two words this page calls a and c, cut at a different place. There are also a few other items: a run of such pairs repeated, a run of a single short token, or a raw piece. All the counts are binary numbers, some near 10<sup>47</sup>.</p>",
+     "<p><b>The repeated step.</b> The basic step goes from one hub to the next (<code>step1Hub</code>), and it is proved to match the machine for all counts. Doing it 958,787,029,001 times would be far too slow, so the proof adds shortcuts. Each is a function on the item list, proved for every value of its counts, that jumps over many hubs at once. A base-3 odometer counts through digit groups <code>011</code>, <code>100</code> and <code>010</code>. An <em>eater</em> consumes a run of transparent items. A <em>slicer</em> covers 12 hubs, removing 85 tokens per repeated pair. A <em>wave</em> covers 402 hubs: a front carry runs through the list in 6 regimes. Two <em>mirror</em> cycles cover 3,752 and 162 hubs. Fourteen operators in all (<code>CertOp</code>), with small bridges that run the raw machine for a short window.</p>",
+     "<p><b>The certificate.</b> From the blank tape, 58 machine steps reach the first hub. The certificate then lists 90,940 operator applications in 20 parts. The computer checks each part with <code>vm_compute</code>: it applies the operators and compares with the item list written in the file. The lemma <code>stepCert1_sound</code> says every successful operator really is a run of the machine. In the last hub list the base-3 structure is plain to see: consecutive items have a-counts 126,800,055, 42,266,685, 14,088,895, 4,696,299, ..., each a third of the one before. From that hub a short raw run (<code>runPipeRawHalt</code>, 40 steps of fuel) ends with the head in state F reading a 1, the halting transition.</p>",
+     "<p><b>Computer and algebra.</b> Proved by ordinary reasoning, for every value: the encoding of tapes as item lists, the one-hub step, and each of the 14 operators (odometer arithmetic, carry waves, mirror cycles). Checked by the computer: that the 90,940 steps of the certificate apply, with the exact numbers, and the final raw run. No part of the run is estimated or sampled. Every one of the about 4.25&middot;10<sup>47</sup> steps is covered by a proved rule.</p>"
+    ]
+   },
+   {
     "id": "what",
     "eyebrow": "What it does",
     "heading": "Nested counters",
@@ -135,7 +147,7 @@
     "eyebrow": "The halting question",
     "heading": "What a halt would need",
     "html": [
-     "<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF) and from E on a 0 (E0 = 1LF).</p>"
+     "<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF) and from E on a 0 (E0 = 1LF). It does halt: the proof of pull request 106 (first section) ends with F reading a 1, after about 4.25&middot;10<sup>47</sup> steps.</p>"
     ]
    },
    {
@@ -143,7 +155,7 @@
     "eyebrow": "Phase 2",
     "heading": "Shift rules over the runs",
     "html": [
-     "<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found.</p>"
+     "<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found here; the outside proof (first section) supplies it, as 14 proved operators on the item list.</p>"
     ],
     "addon": true
    },

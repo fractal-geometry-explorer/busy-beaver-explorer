@@ -63,6 +63,8 @@ rule that cell is a 0.
 
 ## Status
 
+**Decided outside: it never halts.** busycoq pull request 80 (Alex Havrilla, DeepMind) proves it and its mirror twin in Rocq; compiled here with Coq 8.20.1, no axioms. The proof follows the family `10110 (100100110)^m 10 A>1 (011)^(6k+7) (001)^z (011)^(3k+1) 0111 (011)^c 01` from M(152, 218, 2162, 5) and shows that every round (the drain loop, then 22 cases by m mod 11 and z) keeps `k <= 5, z >= 1, m >= 33, c >= 9m, c >= 2100`. What follows is this repository's own status.
+
 Open. Kernel: halting configurations, 10,000 steps, five phase periods (`Phases.lean`, `PhasesFeed.lean`: cross6, cross12, cross12b, absorb2, feed30) and `traverse`
 (`Rules.lean`). Native: 10^7 steps. Trusted: no halt in 10^10 steps (`c/ev.c`) and in 1.06·10^300 steps of the exact
 accelerated simulation. The phase ends are from simulation only.

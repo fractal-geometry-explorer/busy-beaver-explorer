@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. It never halts: busycoq pull request 97 proves it in Rocq (compiled here). This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 97 (Alex Havrilla of DeepMind, 2026-11-18) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open, and halting looks very unlikely.</b> The tape is a list of blocks <code>(1101)^n</code> separated by single 0s. At each <i>rest</i> (head at the left end in state B) the tape is <code>B&gt;1 P (1101)^A 0 (1101)^b1 0 &hellip;</code> with <code>P</code> = <code>0</code> or <code>000</code>, and the list enters only through <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip;. The next rest is <i>A</i> &rarr; (3<i>A</i>+<i>g</i>)/2 (with &minus;3 or &minus;6 for type 0), or, when the parity is wrong, a <b>push</b>: <i>A</i>+1 joins the list and <i>A</i> restarts at about (<i>A</i>+<i>g</i>)/4. This map reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2&middot;10<sup>5</sup> times from blank tape, <i>A</i> never comes near the tiny values from which the machine halts."
+  "<b>What this repository found on its own (background).</b> The tape is a list of blocks <code>(1101)^n</code> separated by single 0s. At each <i>rest</i> (head at the left end in state B) the tape is <code>B&gt;1 P (1101)^A 0 (1101)^b1 0 &hellip;</code> with <code>P</code> = <code>0</code> or <code>000</code>, and the list enters only through <i>g</i> = 6 + <i>b</i><sub>1</sub>/2 + <i>b</i><sub>2</sub>/4 + &hellip;. The next rest is <i>A</i> &rarr; (3<i>A</i>+<i>g</i>)/2 (with &minus;3 or &minus;6 for type 0), or, when the parity is wrong, a <b>push</b>: <i>A</i>+1 joins the list and <i>A</i> restarts at about (<i>A</i>+<i>g</i>)/4. This map reproduces all 36 rests of the direct run up to 10<sup>10</sup> steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2&middot;10<sup>5</sup> times from blank tape, <i>A</i> never comes near the tiny values from which the machine halts."
  ],
  "claims": [
   {
@@ -90,8 +90,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. A proof would need the rest map for all values in Lean: the counting rule at every depth (an induction over the binary counter on the block boundaries), the marker crossing block boundaries mid-cycle, and the start and end phases. It would also need an argument that A+g never falls back to the handful of tiny configurations that halt, which is a Collatz-type question.",
+   "title": "Non-halting, in this repository's own Lean",
+   "text": "Decided outside: busycoq pull request 97 proves in Rocq that it never halts (compiled here, no axioms; see above). The proof avoids the Collatz-type question raised here: it does not need the exact rest map, only the parities of a + d and d + q and that the list stays a wall of capacity 3d &minus; 1. This repository's own Lean has the sweep and counting rules, not the invariant.",
    "where": "README.md, Further work"
   }
  ],
@@ -106,7 +106,7 @@
   "python3 holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/py/map.py iterate 2e5   # the map from blank tape"
  ],
  "explainer": {
-  "lede": "Nobody knows, but it almost certainly never stops. This machine runs a Collatz-like rule: a number A on the tape is multiplied by 3/2 and topped up by a constant g that encodes a list of older numbers, and when the parity is wrong, A is filed away onto the list and a new, smaller A starts.",
+  "lede": "It never halts. The tape is a list of blocks <code>(1101)^n</code> separated by single 0s. A working block at the left grows by about 3/2 each round, or is filed onto the list when the parity is wrong. Busycoq pull request 97 proves that the list always keeps the shape of a <em>wall</em> that bounces the head back a known number of times, so the run can never collapse to the tiny tapes from which it would halt.",
   "facts": [
    {
     "level": "trusted",
@@ -144,6 +144,19 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A wall that bounces the head back 3d &minus; 1 times",
+    "html": [
+     "<p>The proof is busycoq pull request 97 by Alex Havrilla of DeepMind: a hand-written Rocq file of 1,103 lines, built on busycoq's <code>Longitudinal</code> library of space-time tiles. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 5 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>nonhalt : ~ halts tm c0</code>. Unlike the map found on this page, it does not follow the numbers exactly. It only tracks parities and one inequality.</p>",
+     "<p><b>Notation.</b> Write X for the word <code>1101</code> and X<sup>n</sup> for X written n times. Two facts are proved for every n: in state C, the head moving right over X<sup>n</sup> turns it into <code>(0011)^n</code>, and in state B, moving left over <code>(0011)^n</code>, it turns it back into X<sup>n</sup>. So a block can be crossed in both directions at no cost to its shape.</p>",
+     "<p><b>The wall.</b> Call a piece r of tape a <em>wall of capacity m</em> if the following holds: when the head enters r from the left in state C, it comes back out in state B, and after exactly m such visits r reads <code>00</code> followed by its old content. The empty tape is a wall of capacity 0. The key lemma (<code>wall_cons_even</code>) builds bigger walls: if r is a wall of capacity m and m + n is even, then <code>0</code> X<sup>n</sup> r is a wall of capacity (m + n)/2. It rests on a tile proved once: the piece <code>0 1101</code> turns one visit from the left into two visits further right. When m + n is odd the same tiles show that the last visit leaves in state F instead, and the proof follows that case separately.</p>",
+     "<p><b>The invariant.</b> The proof watches the head on the blank cell just left of everything, in state B. It shows the tape always has one of two shapes, with r a wall of capacity 3d &minus; 1 and d &ge; 1: <em>normal</em>, X<sup>a</sup> r with a &ge; 1; or <em>merging</em>, X <code>0</code> X<sup>3q+2</sup> r. From a normal tape the head bounces 3d &minus; 1 times between the left end and the wall. At the left end a counter of period 3 adds one block every three bounces. Then the blocks are put back together: if a + d is odd the result is normal again, with a' = (3a + 3d + 1)/2; if it is even the result is merging. From a merging tape, if d + q is odd the block X<sup>3q+2</sup> joins the wall (the list gets one more block, and d becomes (d + q + 1)/2) and the next tape is normal with a = 1; if d + q is even it stays merging with a larger q.</p>",
+     "<p><b>Why it never halts.</b> Each case reaches the next tape in at least one step, so the run never stops. The opening run is short: from the blank tape the machine passes X<sup>2</sup>, X<sup>4</sup> and X<sup>7</sup> and reaches X <code>0</code> X<sup>10</sup> at step 746, a normal tape with a = 1 and a wall of capacity 5 (d = 2). The only halts found on this page come from a tiny tape with an empty list; the invariant keeps a wall of capacity at least 2 for ever.</p>",
+     "<p><b>Computer and algebra.</b> Everything is proved by induction and arithmetic (<code>lia</code>) for all values of a, d, q and n. The computer only runs the short fixed pieces: the opening run and the tiles of a few cells each, stepped through by a tactic. There is no large computation in this proof.</p>"
+    ]
+   },
+   {
     "id": "list",
     "eyebrow": "Emergent behaviour",
     "heading": "A list of blocks and a marker",
@@ -162,7 +175,7 @@
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rest</th><th>condition</th><th>next rest</th></tr></thead><tbody><tr><td>type 000, A</td><td>A+g even</td><td>type 000, (3A+g)/2</td></tr><tr><td>type 000, A</td><td>A+g = 1 mod 4</td><td>push A+1; type 000, (A+g&minus;5)/4</td></tr><tr><td>type 000, A</td><td>A+g = 3 mod 4</td><td>push A+1; type 0, (A+g+1)/4</td></tr><tr><td>type 0, A</td><td>A+g odd</td><td>type 0, (3A+g&minus;3)/2</td></tr><tr><td>type 0, A</td><td>A+g even</td><td>type 000, (3A+g&minus;6)/2</td></tr></tbody></table></div>",
      "<p>A push puts the block A+1 at the front of the list, so g becomes (A+g+7)/2. From blank tape the first rest is type 0 with A = 3 and an empty list (g = 6):</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rest</th><th>type</th><th>A</th><th>g</th><th></th></tr></thead><tbody><tr><td>1&ndash;8</td><td>0, 0, 000, 0, 0, 0, 000, 000</td><td>3, 6, 9, 4, 10, 19, 31, 52</td><td>6 &rarr; 11</td><td>push at 4</td></tr><tr><td>9&ndash;15</td><td>0 &hellip; 000</td><td>16, 40, 76, 130, 211, 331, 514</td><td>35</td><td>push at 9</td></tr><tr><td>33&ndash;36</td><td>0, 0, 0, 000</td><td>3220, 8050, 15295, 26161</td><td>6443</td><td>rest 35 at 9.79&middot;10<sup>9</sup> steps</td></tr></tbody></table></div>",
-     "<p>Without a push the size A+g grows by half; a push (a third of the rests) shrinks it to about three quarters. The machine halts only from A = 0 with an empty list, so it would need this random-looking walk to come all the way back down; with the strong upward drift that has odds of order 10<sup>&minus;10</sup>.</p>"
+     "<p>Without a push the size A+g grows by half; a push (a third of the rests) shrinks it to about three quarters. The machine halts only from A = 0 with an empty list, so it would need this random-looking walk to come all the way back down; with the strong upward drift that has odds of order 10<sup>&minus;10</sup>. The proof of pull request 97 (first section) settles it: the list never becomes empty.</p>"
     ]
    },
    {

@@ -1,6 +1,8 @@
 # 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---
 
-bbchallenge id 178401, group G10 (one side grows like √t, the other like a smaller power). Family: **bouncer with a sorted list of blocks 1^(6j+1)**. Halting from blank tape: **open**.
+bbchallenge id 178401, group G10 (one side grows like √t, the other like a smaller power). Family: **bouncer with a sorted list of blocks 1^(6j+1)**. Halting from blank tape: **halts** (busycoq PR 93).
+
+**Decided outside: it halts.** busycoq PR 93 (Alex Havrilla of DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reflects the tape and renames the states (A, B, C, D become C, D, A, B) to get the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB---` started in C, and runs a fast engine over rows of digit words `D n = 1 (11)^n 00`, every step of it proved sound, from blank tape to the halt (2,452,242 engine steps); see the explainer page.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -30,7 +32,7 @@ Closed tape language with 5-cell windows (`python3 -m bbtools.ctl M 5`, trusted 
 - `lean/Blank.lean` (generated): the halting configurations (`step_none_iff`); no halt in 10,000 steps (kernel) and 10^7 steps (`native_decide`).
 - `lean/Sweeps.lean`: 8 shift rules, kernel-checked: A crosses `110101010` rightward writing `001111111`, C crosses it leftward writing `111011101` (eight proved rules over its rotations) (`sweep_rA_110101010`, `sweep_rB_110101010`, `sweep_lC_110101010_1`, `sweep_rA_101010110`, `sweep_lD_101010110_1`, `sweep_rA_011010101`, `sweep_lC_011010101_0`, `sweep_rD_011010101`). Found by trying every state and direction on one copy of each background word with `bbtools.symtm` (`_one_copy_right`, `_one_copy_left`), then `symtm.prove`.
 
-Everything else here is observation of the run (heuristic) or a trusted computation, as marked in `status.json`. Nothing proved here decides halting.
+Everything else here is observation of the run (heuristic) or a trusted computation, as marked in `status.json`. Nothing proved in this repository decides halting; busycoq PR 93 does.
 
 ## Evidence and how to reproduce
 

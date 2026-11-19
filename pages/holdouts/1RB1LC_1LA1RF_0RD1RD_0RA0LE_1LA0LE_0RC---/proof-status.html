@@ -82,14 +82,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---</h1>
     <p class="machine">1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---</p>
     <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 104 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it never halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 19 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 104 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
-      <p><b>The question is open.</b> Four shift rules of the crossings are proved in Lean for all sizes (<code>lean/Rules.lean</code>); the motion of the marks and the merges are only described from simulation.</p>
+      <p><b>What this repository found on its own.</b> Four shift rules of the crossings are proved in Lean for all sizes (<code>lean/Rules.lean</code>); the motion of the marks and the merges were only described from simulation. The proof turns the whole run into a Collatz-like map on hub tapes: n goes to about 3n/2, in 16 phases and 32 rules (see the explainer).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -169,8 +169,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The halting transition is F1, and F is entered only from B reading a 1 (<code>1RF</code>), so a halt needs <code>B&gt; 1 1</code>. A crossing never does that, so a halt could only come at a merge of two marks. The merges have not been worked out.</p>
+        <h3>Does it halt from blank tape? (this repository’s own ledger)</h3>
+        <p>Not decided by the results on this page alone. It is decided outside: busycoq pull request 104 proves that it never halts (see the verdict). Before the proof: The halting transition is F1, and F is entered only from B reading a 1 (<code>1RF</code>), so a halt needs <code>B&gt; 1 1</code>. A crossing never does that, so a halt could only come at a merge of two marks. The merges were not worked out here.</p>
       </div>
     </div>
   </section>

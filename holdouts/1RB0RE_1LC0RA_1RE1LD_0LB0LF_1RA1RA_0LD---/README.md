@@ -62,6 +62,8 @@ digits) and a new X; the tail starts again short (N = 1, then 11, then 1). Their
 
 ## Status
 
+**Decided outside: it never halts.** busycoq pull request 86 (Alex Havrilla, DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. A token engine with base-4 digit blocks (6 cells per digit, carries proved for all sizes) runs 84,472 steps, about 10^708.37 machine steps, to a fixed window of 102 cells around the head in state D; 6,419 more engine steps return to the same window further right without reading anything left of it. What follows is this repository's own status.
+
 Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps, three
 early rounds for every tape further left (`lean/Rounds.lean`). With `native_decide`: no halt in 10^7 steps, and the
 exact configuration at step 40,509,722, the start of epoch 2 (`epoch2_start`, `lean/Epoch.lean`). Computed

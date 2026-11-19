@@ -1,6 +1,6 @@
 # 1RB1LC_1LA1RF_0RD1RD_0RA0LE_1LA0LE_0RC---
 
-bbchallenge id 65980. One of the six-state holdouts whose halting from blank tape is open.
+bbchallenge id 65980. One of the six-state holdouts whose halting from blank tape was open; it is now decided outside (it never halts, see Status).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -36,7 +36,7 @@ The tape grows to the right by about the square root of the step count; the left
 ## Does it halt?
 
 The halting transition is F1. F is entered only from B1 (`1RF`), so a halt needs the head in state B on `1 1`. The
-crossings never do that, so a halt could only come at a merge. Open.
+crossings never do that, so a halt could only come at a merge. Decided outside: none does (see Status).
 
 ## For later
 
@@ -51,7 +51,9 @@ crossings never do that, so a halt could only come at a merge. Open.
 
 ## Status
 
-Open. Lean: `step_none_iff`, no halt in 10,000 steps by the kernel and in 10^7 by `native_decide` (`lean/Blank.lean`),
+**Decided outside: it never halts.** Busycoq pull request 104 (Alex Havrilla of DeepMind) proves this in Rocq; compiled here with Coq 8.20.1, no axioms. The proof watches hub tapes `cap (100)^b 1010 (100)^a 1 A>` with b = 12(n + 4) + r and a = 4b + d in 16 phases, and checks symbolically that n = 2m + p always goes to 3m + q in another phase (32 rules, none halting; the same rules as PR 96).
+
+**Open here** (this repository's own results). Lean: `step_none_iff`, no halt in 10,000 steps by the kernel and in 10^7 by `native_decide` (`lean/Blank.lean`),
 and the crossings (`lean/Rules.lean`, kernel). C (`tools/c/triage.c`): no halt in 10^9 steps.
 
 ## Pages

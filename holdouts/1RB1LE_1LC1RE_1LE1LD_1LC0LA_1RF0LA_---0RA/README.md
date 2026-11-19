@@ -28,8 +28,10 @@ base-4-counter-like hierarchy.
 
 ## Halting
 
+**Decided outside: it halts.** Busycoq pull request 105 (Alex Havrilla of DeepMind) proves it in Rocq, compiled here with Coq 8.20.1 and no axioms. It runs the list of domain lengths exactly for 11,120 right-end visits (about 1.49·10^33 steps), then proves countdown cycles for all values (a potential bounds the deeper domains), reaching `E>0` at the right end and the halting F0 at visit 1,211,452.
+
 F0 is the only halting transition, reached as `E>0 0`. The background has no `00`; only the ends do. Whether the
-counter ever brings E onto them in the wrong phase is open.
+counter ever brings E onto them in the wrong phase was open here (it does; see above).
 
 ## What is proved
 

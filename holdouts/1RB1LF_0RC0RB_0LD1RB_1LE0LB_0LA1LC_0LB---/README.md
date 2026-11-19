@@ -52,7 +52,9 @@ step 72,347,964 → (32, ababcc, 1111110010001, 31, 4) at step 77,767,580.
 
 ## Status
 
-Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps, the two
+**Decided outside: it never halts.** Busycoq pull request 103 (Alex Havrilla of DeepMind) proves it in Rocq, compiled here with Coq 8.20.1 and no axioms. It reads the left counter in bijective base 2 and proves a 16-shape invariant in which each pass brings at least as many carries into the counter as its value (the calls double across each block `1010100100`), enough to erase every defect, so the undefined macro steps that lead to F reading a 1 never occur.
+
+This repository on its own: proved in Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps, the two
 rules of the left counter (`incr`, `overflow`, `lean/Counter.lean`). Proved with `native_decide`: no halt in 10^7
 steps. Computed (trusted): no halt in 10^10 steps; the round law on all 39 regular rounds to 10^10; a closed tape
 language of 5-cell windows confines a halt to `F>1 1 1 0 1 0`.

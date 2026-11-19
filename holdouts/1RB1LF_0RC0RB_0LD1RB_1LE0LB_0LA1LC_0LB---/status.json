@@ -8,13 +8,13 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB---/status.json",
  "intro": [
-  "Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on.",
-  "The tape is two binary counters written in short words. A counter at the left end, with digits <code>1010</code> (0) and <code>1000</code> (1), counts through all its values once per <em>round</em>; between two of its increments the head goes right and decrements a second counter whose digits are the words <code>1100</code> (1) and <code>1010 1010</code> (0); each borrow of the second counter moves one word <code>110</code> from one run of them to another. When the first run is used up the configuration changes in a way that is not yet understood."
+  "This six-state machine was one of the bbchallenge holdouts. It never halts: busycoq pull request 103 proves it in Rocq (compiled here). This page records what is established about it, sorted by what each result rests on.",
+  "The tape is two binary counters written in short words. A counter at the left end, with digits <code>1010</code> (0) and <code>1000</code> (1), counts through all its values once per <em>round</em>; between two of its increments the head goes right and decrements a second counter whose digits are the words <code>1100</code> (1) and <code>1010 1010</code> (0); each borrow of the second counter moves one word <code>110</code> from one run of them to another. When the first run is used up the configuration changes in a way this repository did not model; the outside proof handles those phase changes too."
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 103 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> No halt in the first 10<sup>10</sup> steps (C simulator). The regular rounds follow an exact law, checked on all 39 of them; the <em>phase changes</em> between runs of regular rounds (24 seen) have no rule yet, and a halt (F reading a 1) could only come from one of them."
+  "<b>What this repository found on its own (background).</b> No halt in the first 10<sup>10</sup> steps (C simulator). The regular rounds follow an exact law, checked on all 39 of them; the <em>phase changes</em> between runs of regular rounds (24 seen) have no rule yet, and a halt (F reading a 1) could only have come from one of them. The outside proof covers the phase changes too."
  ],
  "claims": [
   {
@@ -74,7 +74,7 @@
   {
    "level": "open",
    "title": "The phase changes, and the question",
-   "text": "When m is too small for the next round (m &lt; t) the round ends differently: from H = <code>ab</code> the left counter loses two digits (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code> (four times it stays <code>ab</code> with m + j growing by 4); from those headers the next visit has s + 2, header <code>ab</code>, one more right digit and m + j + 1. The new digits are not yet predicted. Whether the machine halts is open.",
+   "text": "When m is too small for the next round (m &lt; t) the round ends differently: from H = <code>ab</code> the left counter loses two digits (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code> (four times it stays <code>ab</code> with m + j growing by 4); from those headers the next visit has s + 2, header <code>ab</code>, one more right digit and m + j + 1. The new digits are not yet predicted. Whether the machine halts was open here; busycoq pull request 103 (compiled here, no axioms; see above) proves that it never halts, phase changes included.",
    "where": "<code>py/round_law_1e10.txt</code> (the 24 phase changes)"
   }
  ],
@@ -87,7 +87,7 @@
   "cd tools/py && python3 -m bbtools.ctl 1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LB--- 5"
  ],
  "explainer": {
-  "lede": "This machine runs two binary counters at once. One at the left end counts through all its values in each round; between two of its steps the head runs right and takes one from a second counter, and each borrow of that counter moves one word from one pile to another. Nobody knows whether it halts: it has run 10<sup>10</sup> steps without halting.",
+  "lede": "It never halts. The tape holds a binary counter at the left end and, to its right, a growing row of blocks; each pass of the head sends a burst of carries into the counter, and the burst doubles with every block. Busycoq pull request 103 proves that the burst is always big enough to clean up the counter, so the one bad pattern that would halt the machine never forms.",
   "facts": [
    {
     "level": "trusted",
@@ -114,6 +114,19 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A counter that always gets enough carries",
+    "html": [
+     "<p>The proof is busycoq pull request 103 by Alex Havrilla of DeepMind: a hand-written Rocq file of 1,799 lines. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 4 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>nonhalt : ~ halts tm c0</code>.</p>",
+     "<p><b>Words.</b> The proof reads the tape left of the head as a list of words <code>1</code><sup>o</sup><code>0</code><sup>a+1</sup> (o ones, then a + 1 zeros, with o at most 3). Twenty-four <em>macro steps</em> say what the machine does to the first word or two of the list in each of three modes; each is checked by running the machine 2 to 6 steps. In three situations (state D just after one or two 0s, facing two or three 1s) no macro step is defined. These are the only roads to the halting transition, F reading a 1, so the proof has to show they never happen.</p>",
+     "<p><b>The shape.</b> Write w<sup>n</sup> for the word w written n times. At the checkpoints the head is in state B on the blank cell right of everything, and the tape reads, left to right: a counter, a short body word, k blocks <code>1010100100</code>, a fixed separator, <code>(100)</code><sup>m</sup>, and <code>10</code>. The counter is the left counter found on this page, with digits <code>1010</code> and <code>1000</code> and the lowest digit on the right. The proof reads it in <em>bijective base 2</em>: the digits stand for 1 and 2 instead of 0 and 1, so every number has exactly one way to be written and adding 1 is a carry running leftward. The invariant <code>Inv284</code> lists 16 such shapes (16 body words), each with an inequality: the counter's value is at most a constant times (m + 3) &middot; 2<sup>k</sup>.</p>",
+     "<p><b>The repeated step.</b> In one pass the head runs left through the separator and the blocks to the counter and back, again and again. Each visit to the counter, a <em>call</em>, adds 1 to it, or removes a defect (below). Each block doubles the number of calls that get through it (<code>call0N_repBlk</code>), so a pass makes about m &middot; 2<sup>k</sup> calls. At the end of the pass one or two new blocks are added (k grows) and m grows. The pass sometimes leaves a stray <code>10</code> in front of the counter, a defect. The lemma <code>call1N_erase_0</code> proves that if the number of calls is at least about the counter's value (precisely 2<sup>length</sup> + 2&middot;W, with W the value of the digits read as ordinary binary), the defect is absorbed and the counter is clean again. The inequality of the invariant says exactly that the next pass brings enough calls, and because k and m grow, the inequality still holds after the pass.</p>",
+     "<p><b>Why it never halts.</b> From the blank tape, 1 machine step and 682 macro steps (step 2,210 of the machine) reach the first checkpoint, with m = 5, k = 0 and a counter of value 42, which satisfies its bound 16 &le; 42 &le; 48. Every one of the 16 shapes moves, in at least one macro step, to another of the 16 (<code>inv284_step</code>), so the undefined situations are never met and the machine runs for ever.</p>",
+     "<p><b>Computer and algebra.</b> The arithmetic of the counter (bijective base 2, carries, the erasure lemma, a split of any digit string into four kinds of leading runs) is proved by induction and <code>lia</code>/<code>nia</code>, for every counter and every m and k. The computer only checks the 24 macro steps against the machine and the 682 opening macro steps (<code>vm_compute</code>). DeepMind's Lean cryptids repository also has an acceleration file for this machine (<code>Accelerations/M_1RB1LF_0RC0RB_0LD1RB_1LE0LB_0LA1LC_0LBHHH.lean</code>, a transducer); the Rocq proof stands on its own.</p>"
+    ]
+   },
    {
     "id": "counters",
     "eyebrow": "Structure",
@@ -202,11 +215,11 @@
    },
    {
     "id": "phases",
-    "eyebrow": "Open",
+    "eyebrow": "Not modelled here",
     "heading": "Phase changes",
     "html": [
      "<p>When the first pile is too small for the next round (m &lt; t) the round ends differently. From the header <code>ab</code> the left counter comes back two digits shorter (s &minus; 4) and the header becomes <code>ababcc</code> or <code>abccbcc</code>; from those headers the next visit has s + 2, the header <code>ab</code> again, one more digit in the second counter, and one more b in the piles. 24 phase changes happened up to 10<sup>10</sup> steps; the new digits of the second counter are not yet predicted, so the run cannot yet be followed past them by arithmetic.</p>",
-     "<p>A halt needs F to read a 1, and a closed tape language of 5-cell windows confines it to <code>F&gt;1 1 1 0 1 0</code>; the regular rounds never produce it, so the question is decided in the phase changes.</p>"
+     "<p>A halt needs F to read a 1, and a closed tape language of 5-cell windows confines it to <code>F&gt;1 1 1 0 1 0</code>; the regular rounds never produce it, so the question was decided in the phase changes. The proof of pull request 103 (first section) covers them with its 16 shapes.</p>"
     ]
    },
    {

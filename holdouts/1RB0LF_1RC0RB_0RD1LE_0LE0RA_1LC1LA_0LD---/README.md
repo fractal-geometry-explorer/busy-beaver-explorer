@@ -1,6 +1,6 @@
 # 1RB0LF_1RC0RB_0RD1LE_0LE0RA_1LC1LA_0LD---
 
-bbchallenge id 11596, group G08 (two-sided square-root growth). Whether it halts from blank tape is open.
+bbchallenge id 11596, group G08 (two-sided square-root growth). Whether it halts from blank tape was open; it is now decided outside (it never halts, see below).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -42,7 +42,9 @@ left (`c/ctx.c`).
 
 ## Open, and next steps
 
-Open.
+**Decided outside: it never halts.** Busycoq pull request 87 (Alex Havrilla of DeepMind) proves this in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reads the tape as fixed pieces around a crystal (one 66-cell pattern written c times) and a word w of four-cell letters, and checks by computation that one cycle takes every such tape, for all w and c at once, to another with c + 2 and 312 more letters.
+
+**Open here** (this repository's own results).
 
 Deep dive (asked for a full non-halting proof; not reached). What the sweeps do, as far as I worked it out:
 

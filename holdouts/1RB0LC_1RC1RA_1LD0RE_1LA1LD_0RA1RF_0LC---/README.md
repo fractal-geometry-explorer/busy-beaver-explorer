@@ -1,6 +1,8 @@
 # 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---
 
-bbchallenge id 72859 (a2 of the family). One of the six-state holdouts whose halting from blank tape is open.
+bbchallenge id 72859 (a2 of the family). One of the six-state holdouts; it halts from blank tape (busycoq PR 82).
+
+**Decided outside: it halts.** busycoq PR 82 (Alex Havrilla of DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reflects the tape and renames the states (A, B, C, D become B, C, D, A) to get the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1LF_0RD---` started in B, and runs a fast engine over rows of digit words `D n = 1 (11)^n 00`, every step of it proved sound, from blank tape to the halt (2,162,009 engine steps); see the explainer page.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -59,7 +61,7 @@ It halts exactly when state B reads `0 1 1 1`: B0 C1 E1 put F on a 1 (`fevent_ha
 
 In the first 10^9 steps of a2 state B reads `0 1 1` 20,972 times; in 20,941 of them the cells around are `111101[0]110101`, in 29 `001101[0]110101`, and twice (steps 104 and 1,264) something else; the next cell is always 0. a1 has 20,998 such events with the windows `111100[0]110101` and `001100[0]110101`. So after the first 1,300 steps the F-events seen are all of two harmless kinds; whether that holds for ever is the open question.
 
-Not seen in 6.3x10^14 steps. Whether it can happen is open: one would need an invariant for the odd runs between the groups.
+Not seen in 6.3x10^14 steps. It does happen, far later: busycoq PR 82 reaches it (see the top).
 
 ## Reproduce
 
@@ -155,7 +157,7 @@ python3 $P/py/rsim_longrun.py 1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA 600 /tmp
 | trusted | **Neighbours and other starts.** The community tracker says “Several tables share one chaotic Bell orbit. The interior is chaotic.” The shared orbit is explained below; the two tables between a1 and a2 (E1 = 1RF with F0 = 0LD, and E1 = 0RF with F0 = 0LC) both halt at step 1,272. (Direct runs of 3x10^7 steps of every table that differs in one transition, and of the six start states.) | `holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/c/neighbours.c` |
 | heuristic | **The epoch law.** Read off the recorded lists, not proved: with n the counter and c<sub>7</sub>, c<sub>13</sub>, … the numbers of runs, one epoch gives c<sub>7</sub>′ ≈ n/2, c<sub>6j+7</sub>′ ≈ c<sub>6j+1</sub>/2 (the half, or one or two less) and n′ ≈ (5/2)·c<sub>7</sub> (within 10^−4 at 10^14 steps). Hence the two interleaved geometric series in the table of counts, the factor 5 per +12 in length, growth by 5/4 every two epochs and step counts growing by 25/16. Between the groups sit a few odd runs that change from epoch to epoch without a visible rule; they are the chaotic part, and the halting pattern can only arise there. | `data/far_1e14.json` |
 | heuristic | **Where B reads 0 1 1.** In the first 10^9 steps of a2 state B reads `0 1 1` 20,972 times; in 20,941 of them the cells around are `111101[0]110101`, in 29 `001101[0]110101`, and twice (steps 104 and 1,264) something else; the next cell is always 0. a1 has 20,998 such events with the windows `111100[0]110101` and `001100[0]110101`. So after the first 1,300 steps the F-events seen are all of two harmless kinds; whether that holds for ever is the open question. | direct C runs (not kept in the repository) |
-| open | **Does it halt from blank tape?.** Not known. It halts exactly if B ever reads `0 1 1 1`. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10^15 steps because those runs pile up at the right end. |  |
+| open | **Does it halt from blank tape?.** Settled since by busycoq PR 82: it halts. Before that: not known. It halts exactly if B ever reads `0 1 1 1`. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10^15 steps because those runs pile up at the right end. |  |
 
 ## Lean
 

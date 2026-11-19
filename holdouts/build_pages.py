@@ -296,10 +296,13 @@ def standing_line(M, decision, level="lean"):
         return {"kind": kind, "label": f"Decided: it {CLAIM[decision]}",
                 "text": f"Proved in this repository, checked by Lean{both}. The ledger below says what each part rests on."}
     if kind == "outside" and outside_by(M, decision) == "rocq":
-        n = [p["n"] for p in e.get("prs", []) if p.get("compiled") and p["claim"] == decision]
+        ps = [p for p in e.get("prs", []) if p.get("compiled") and p["claim"] == decision]
+        n = [p["n"] for p in ps]
+        ax = ("with no axioms beyond Coq's own" if not ps[0]["compiled"].get("axioms") else
+              "with no axioms beyond the standard ones for Coq's machine integers (PrimInt63)")
         return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
                 "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "
-                        "compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, "
+                        f"compiled here, on busycoq's own definitions, {ax}. It is their proof, "
                         "not one written in this repository; the ledger below says what this repository checked on its own."}
     if kind == "outside":
         k = CLAIM[e["deepmind"]["kind"]]

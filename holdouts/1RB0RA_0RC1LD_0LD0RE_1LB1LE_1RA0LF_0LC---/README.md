@@ -23,7 +23,9 @@ Middle run lengths are 1 mod 3; further right they come in groups `c^3 d c^k d^3
 
 ## Status
 
-Open. Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the three crossing rules. Halting needs F
+**Decided outside: it never halts.** Busycoq pull request 85 (Alex Havrilla of DeepMind) proves this in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reads the tape as fixed pieces around a crystal (one 66-cell pattern written c times) and a word w of four-cell letters, and checks by computation that one cycle takes every such tape, for all w and c at once, to another with c + 2 and 312 more letters.
+
+**Open here** (this repository's own results). Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the three crossing rules. Halting needs F
 to read a 1. CTL (K = 2..5) and NGramCPS (widths 2-8, -H, -U) fail.
 
 ## For later

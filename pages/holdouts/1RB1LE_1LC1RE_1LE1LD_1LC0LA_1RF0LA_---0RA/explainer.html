@@ -190,7 +190,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA</p>
   <p class="stand merged"><b>Decided by an outside Rocq proof: it halts</b><span>A Rocq proof in busycoq pull request 105 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-  <div class="col"><p class="lede">Nobody knows. The tape is the six cells 111110 repeated, in a few stretches whose phases differ. Between visits of the head to the right end the stretches change by amounts that shrink by a factor of 4 each, like the digits of a base-4 counter. The rule has not been written.</p></div>
+  <div class="col"><p class="lede">It halts, after far more than 10<sup>80</sup> steps. The tape is the six cells <code>111110</code> repeated, in stretches (domains) separated by short walls; at each visit of the head to the right end the domains nearest it shrink by fixed amounts, like the digits of a counter counting down. Busycoq pull request 105 follows this for 1,211,452 visits until the first domain runs out and the machine stops.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 99,661 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
@@ -208,7 +208,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">One word in six rotations</a><a href="#ratio">Changes in ratio 4</a><a href="#halting">Two 0s</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#proof">Exact counting for 11,120 visits, then a countdown with a reserve</a><a href="#tape">One word in six rotations</a><a href="#ratio">Changes in ratio 4</a><a href="#halting">Two 0s</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -287,6 +287,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="proof">
+  <span class="eyebrow">How the proof works</span>
+  <h2>Exact counting for 11,120 visits, then a countdown with a reserve</h2>
+<p>The proof is busycoq pull request 105 by Alex Havrilla of DeepMind: a Rocq file of 4,044 lines. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 13 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>halt : halts tm c0</code>: from the blank tape, the machine halts.</p>
+<p><b>The shape.</b> Write w<sup>n</sup> for the word w written n times. The proof writes the tape as a list of numbers, each number a standing for the word <code>0 1</code><sup>a+1</sup>. A 4 is <code>011111</code>, one period of the background, and a 2 is <code>0111</code>, a wall. It watches the machine at <em>hubs</em>: the head in state B on the blank cell right of everything. At a hub the tape is a short prefix next to the head, then a domain of b<sub>0</sub> copies of <code>011111</code>, a wall, a domain of b<sub>1</sub> copies, a wall, and so on. The state is a prefix (one of four) and the list of domain lengths b<sub>0</sub>, b<sub>1</sub>, ...</p>
+<p><b>Stage 1: exact.</b> A step function on this list, proved to match the machine, carries the blank tape through the first 11,120 hubs, about 1.49&middot;10<sup>33</sup> machine steps. The computer runs it with binary numbers (<code>vm_compute</code>) in 15 checked pieces. At hub 11,120 the prefix is <code>0 5 5</code> and the domains are 156,691, then 3,931,792, then 19,317,108, then 14 more up to 1.24&middot;10<sup>16</sup>.</p>
+<p><b>Stage 2: the countdown.</b> From there each sweep costs more than 10<sup>27</sup> steps, so the proof switches to lemmas that hold for every value. One cycle of 3 hubs (<code>cycle_3_step</code>) takes 9 from the first domain and 28 from the second. It also changes the third domain and everything beyond it, in ways the proof does not compute. Instead it bounds them with a <em>potential</em> W, a weight summed over the deeper part of the tape. The lemma <code>mCL_bump_spec</code>, proved by strong induction, says the third domain never loses more than 117 per cycle beyond what W pays for. So the far part acts as a reserve that never runs dry, and the cycle can be repeated. After 17,410 cycles the first domain is down to 1. Two transition hubs follow, and the prefix becomes <code>0 3</code>. The old second domain, now 3,444,302 long, comes first. A cycle of 3 hubs then takes 9 from it each time (<code>cycle_2_step</code>), and after 382,700 cycles 2 are left.</p>
+<p><b>The halt.</b> With 2 copies left, the lemma <code>hub_03_halt</code> runs a few more sweeps. They end with the head in state E on a 0 at the right end, with nothing to its right. E then writes a 1 and moves right into state F on a 0, and F0 is the halting transition. That is hub 1,211,452, after far more than 10<sup>80</sup> steps. At that point the reserve still has about 4.65 million to spare.</p>
+<p><b>Computer and algebra.</b> The computer checks stage 1, the 11,120 exact hubs. Ordinary proofs, valid for every value, handle the base transitions, the potential and its bound, the two cycles and their repetition by induction, and the halt. The ratio-4 pattern seen on this page is most likely this counter seen at other moments. The proof never needs its exact rule, because the deeper digits only have to stay large.</p>
+</section>
 <section id="tape">
   <span class="eyebrow">The tape</span>
   <h2>One word in six rotations</h2>
@@ -304,7 +314,7 @@ step 366,683,522  left end   0 (01)^3 (110101)^4095 1 (101110)^769 (111010)^168 
 <section id="halting">
   <span class="eyebrow">What halting would need</span>
   <h2>Two 0s</h2>
-<p>F0 is the only halting transition, reached as <code>E&gt;0 0</code>. The background never has two 0s in a row; the ends of the tape do (<code>1100</code> at the right end above), so the question is whether the counter ever brings E there in the wrong phase. Open.</p>
+<p>F0 is the only halting transition, reached as <code>E&gt;0 0</code>. The background never has two 0s in a row; the ends of the tape do (<code>1100</code> at the right end above), so the question was whether the counter ever brings E there in the wrong phase. It does: the proof of pull request 105 (first section) brings E onto the right end on a 0 with nothing beyond it, at hub 1,211,452.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -336,7 +346,7 @@ step 366,683,522  left end   0 (01)^3 (110101)^4095 1 (101110)^769 (111010)^168 
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.508). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.142).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Rules.lean</code> (generated by <code>py/rules.py</code>)</div></div><div><b>Shift rules of the sweeps</b><p>The leftward sweep over the background in the four rotations it is entered in: <code>L (111110)^n E&gt;1 R</code>, <code>L (111101)^n A&gt;1 R</code>, <code>L (101111)^n D&gt;1 R</code> and <code>L (011111)^n C&gt;1 R</code>, each copy becoming a rotation of <code>101011</code>, for every n and all tapes L, R.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/c/tokrun.c</code></div></div><div><b>Domains changing in ratio 4</b><p>The right end is visited rarely (325 times in 2&middot;10<sup>9</sup> steps). Between consecutive visits late in the run the width grows by 1024, the first domain by 1536, and the other domains change by &minus;384, &minus;96, &minus;24, &minus;6 (each a quarter of the one before). Domain lengths are often powers of 2 or sums of few (4096, 1792, 448, 256, 872). Read off the run; not proved.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts on F0, reached as <code>E&gt;0 0</code> (E reads 0, moves right onto a 0). The background has no two 0s in a row, so this needs a wall of an unusual kind; whether the ratio-4 counter ever produces one is open.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Halting, in this repository's own proofs</b><p>Decided outside: busycoq pull request 105 proves in Rocq that it halts (compiled here, no axioms; see above), at hub 1,211,452, far beyond any run made here (no halt in 7.19&middot;10<sup>18</sup> steps). Not proved by this repository's own Lean, which has the sweep rules only.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

@@ -54,6 +54,8 @@ for the remaining boundary rules.
 
 ## Status
 
+**Decided outside: it never halts.** busycoq pull request 95 (Alex Havrilla, DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. An exact macro simulation (166,268 outer steps, about 7.93e889 machine steps, own base-64 arithmetic) reaches `(011)^18 A>1` on blank tape, and from there the machine is a translated cycler: 2,035 steps later the same picture is 7 cells further right, the left part never read. What follows is this repository's own status.
+
 Open. Lean: the halting configurations and no halt in 10^7 steps (`lean/Blank.lean`), and three shift rules
 (`lean/Rules.lean`). C: no halt in 3*10^9 steps. One exact local rule is known, the transfer cycle (checked on every instance up to 10^8
 steps). The rules for the ends of a cycle, and so a map on whole lists, are not known yet.

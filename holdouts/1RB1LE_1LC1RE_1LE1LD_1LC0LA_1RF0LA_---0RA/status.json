@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. It halts: busycoq pull request 105 proves it in Rocq (compiled here). This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 105 (Alex Havrilla of DeepMind, 2026-11-19) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> The head sweeps over the period-6 word <code>111110</code>, which appears in all six rotations, and the leftward sweep over each rotation is a proved shift rule. Five or six walls between rotations split the tape into domains; between consecutive visits of the right end the domain lengths change by amounts in ratio 4 and the width grows by 1024. This looks like a counter in base 4, but its rule has not been written. Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>, and proves the shift rules of the sweeps (<code>lean/Rules.lean</code>); the C simulator finds no halt in the first 10<sup>9</sup> steps."
+  "<b>What this repository found on its own (background).</b> The head sweeps over the period-6 word <code>111110</code>, which appears in all six rotations, and the leftward sweep over each rotation is a proved shift rule. Five or six walls between rotations split the tape into domains; between consecutive visits of the right end the domain lengths change by amounts in ratio 4 and the width grows by 1024. This looks like a counter in base 4; its rule was not written here. Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>, and proves the shift rules of the sweeps (<code>lean/Rules.lean</code>); the C simulator finds no halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -72,8 +72,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The machine halts on F0, reached as <code>E&gt;0 0</code> (E reads 0, moves right onto a 0). The background has no two 0s in a row, so this needs a wall of an unusual kind; whether the ratio-4 counter ever produces one is open.",
+   "title": "Halting, in this repository's own proofs",
+   "text": "Decided outside: busycoq pull request 105 proves in Rocq that it halts (compiled here, no axioms; see above), at hub 1,211,452, far beyond any run made here (no halt in 7.19&middot;10<sup>18</sup> steps). Not proved by this repository's own Lean, which has the sweep rules only.",
    "where": ""
   }
  ],
@@ -84,7 +84,7 @@
   "python3 holdouts/1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA/py/rules.py | diff - holdouts/1RB1LE_1LC1RE_1LE1LD_1LC0LA_1RF0LA_---0RA/lean/Rules.lean   # the rules file is current"
  ],
  "explainer": {
-  "lede": "Nobody knows. The tape is the six cells 111110 repeated, in a few stretches whose phases differ. Between visits of the head to the right end the stretches change by amounts that shrink by a factor of 4 each, like the digits of a base-4 counter. The rule has not been written.",
+  "lede": "It halts, after far more than 10<sup>80</sup> steps. The tape is the six cells <code>111110</code> repeated, in stretches (domains) separated by short walls; at each visit of the head to the right end the domains nearest it shrink by fixed amounts, like the digits of a counter counting down. Busycoq pull request 105 follows this for 1,211,452 visits until the first domain runs out and the machine stops.",
   "facts": [
    {
     "level": "trusted",
@@ -117,6 +117,19 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "Exact counting for 11,120 visits, then a countdown with a reserve",
+    "html": [
+     "<p>The proof is busycoq pull request 105 by Alex Havrilla of DeepMind: a Rocq file of 4,044 lines. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 13 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>halt : halts tm c0</code>: from the blank tape, the machine halts.</p>",
+     "<p><b>The shape.</b> Write w<sup>n</sup> for the word w written n times. The proof writes the tape as a list of numbers, each number a standing for the word <code>0 1</code><sup>a+1</sup>. A 4 is <code>011111</code>, one period of the background, and a 2 is <code>0111</code>, a wall. It watches the machine at <em>hubs</em>: the head in state B on the blank cell right of everything. At a hub the tape is a short prefix next to the head, then a domain of b<sub>0</sub> copies of <code>011111</code>, a wall, a domain of b<sub>1</sub> copies, a wall, and so on. The state is a prefix (one of four) and the list of domain lengths b<sub>0</sub>, b<sub>1</sub>, ...</p>",
+     "<p><b>Stage 1: exact.</b> A step function on this list, proved to match the machine, carries the blank tape through the first 11,120 hubs, about 1.49&middot;10<sup>33</sup> machine steps. The computer runs it with binary numbers (<code>vm_compute</code>) in 15 checked pieces. At hub 11,120 the prefix is <code>0 5 5</code> and the domains are 156,691, then 3,931,792, then 19,317,108, then 14 more up to 1.24&middot;10<sup>16</sup>.</p>",
+     "<p><b>Stage 2: the countdown.</b> From there each sweep costs more than 10<sup>27</sup> steps, so the proof switches to lemmas that hold for every value. One cycle of 3 hubs (<code>cycle_3_step</code>) takes 9 from the first domain and 28 from the second. It also changes the third domain and everything beyond it, in ways the proof does not compute. Instead it bounds them with a <em>potential</em> W, a weight summed over the deeper part of the tape. The lemma <code>mCL_bump_spec</code>, proved by strong induction, says the third domain never loses more than 117 per cycle beyond what W pays for. So the far part acts as a reserve that never runs dry, and the cycle can be repeated. After 17,410 cycles the first domain is down to 1. Two transition hubs follow, and the prefix becomes <code>0 3</code>. The old second domain, now 3,444,302 long, comes first. A cycle of 3 hubs then takes 9 from it each time (<code>cycle_2_step</code>), and after 382,700 cycles 2 are left.</p>",
+     "<p><b>The halt.</b> With 2 copies left, the lemma <code>hub_03_halt</code> runs a few more sweeps. They end with the head in state E on a 0 at the right end, with nothing to its right. E then writes a 1 and moves right into state F on a 0, and F0 is the halting transition. That is hub 1,211,452, after far more than 10<sup>80</sup> steps. At that point the reserve still has about 4.65 million to spare.</p>",
+     "<p><b>Computer and algebra.</b> The computer checks stage 1, the 11,120 exact hubs. Ordinary proofs, valid for every value, handle the base transitions, the potential and its bound, the two cycles and their repetition by induction, and the halt. The ratio-4 pattern seen on this page is most likely this counter seen at other moments. The proof never needs its exact rule, because the deeper digits only have to stay large.</p>"
+    ]
+   },
+   {
     "id": "tape",
     "eyebrow": "The tape",
     "heading": "One word in six rotations",
@@ -140,7 +153,7 @@
     "eyebrow": "What halting would need",
     "heading": "Two 0s",
     "html": [
-     "<p>F0 is the only halting transition, reached as <code>E&gt;0 0</code>. The background never has two 0s in a row; the ends of the tape do (<code>1100</code> at the right end above), so the question is whether the counter ever brings E there in the wrong phase. Open.</p>"
+     "<p>F0 is the only halting transition, reached as <code>E&gt;0 0</code>. The background never has two 0s in a row; the ends of the tape do (<code>1100</code> at the right end above), so the question was whether the counter ever brings E there in the wrong phase. It does: the proof of pull request 105 (first section) brings E onto the right end on a 0 with nothing beyond it, at hub 1,211,452.</p>"
     ]
    },
    {

@@ -13,7 +13,7 @@
  "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 93 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> A bouncer over the 9-cell word 110101010 on the left; the slow right side is a list of blocks 1^(6j+1) 00, mostly sorted by length, through which waves of rewriting pass; open. Same mechanism as 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF (and probably the part03 twin).",
+  "<b>What this repository found on its own.</b> A bouncer over the 9-cell word 110101010 on the left; the slow right side is a list of blocks 1^(6j+1) 00, mostly sorted by length, through which waves of rewriting pass. Same mechanism as 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF (and probably the part03 twin).",
   "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps; the rest of the description below is observation of the run, marked as such."
  ],
  "claims": [
@@ -108,7 +108,7 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "It halts. One side of the tape is a bouncer; the other is a sorted list of runs of 1s of lengths 6j+1 that works like a counter, each pass halving the runs of one length and moving them up a length. Long after any simulation could follow, the counter's leftovers line up into the pattern that stops it: busycoq pull request 93 by Alex Havrilla of DeepMind proves it in Rocq.",
   "facts": [
    {
     "level": "trusted",
@@ -146,13 +146,27 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A counter of digit rows, run by a proved engine",
+    "html": [
+     "<p>The proof is busycoq pull request 93 by Alex Havrilla of DeepMind. We compiled it here with Coq 8.20.1 on busycoq's BB6 branch in about 9 minutes; it uses no axioms (<code>Print Assumptions halt</code> prints &ldquo;Closed under the global context&rdquo;). It does not find a formula for the run. It builds a fast simulator, the <em>engine</em>, proves in Coq that every step of the engine is a true statement about the machine, and then lets the engine run the machine from the blank tape until it halts.</p>",
+     "<p><b>A copy of the table.</b> The proof first reflects the tape, so that left and right swap, and renames the states: this machine's A, B, C, D become C, D, A, B. That gives the table <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB---</code> started in state C. Coq checks transition by transition that the two runs are the same up to this change, so a halt of one is a halt of the other. From here on, directions and state names are those of that table. Call this table T3. Changed in F0 it becomes T4, the table of three other holdouts (started in B, C and D). This repository adapted the engine to T4 and proved the B and C starts halting, and also a fourth holdout that reduces to T4 started in A.</p>",
+     "<p><b>Digits and three moments.</b> Write w<sup>n</sup> for the word w written n times. The proof's main word is the <em>digit</em> <code>D n = 1 (11)<sup>n</sup> 00</code>: a run of 2n+1 ones followed by two blanks. Call n its level. The blocks <code>1^(6j+1) 00</code> of the sections below are the digits <code>D 3j</code>, seen reflected. Most of the tape is a long sequence of digits, mostly in rows of equal ones, the highest levels towards the left and the lowest at the right end. Near the left end, where the head turns, lie a few other kinds of word, among them blocks <code>(10)<sup>b</sup></code> and <code>(111)<sup>k</sup></code>. The proof watches the head at three kinds of moment: <code>CfgR</code>, state A at the word <code>0100</code>, heading right over the digits; <code>CfgL</code>, state B heading left with a <code>1</code> just behind it; and <code>CfgJ</code>, state C heading left with <code>100</code> just behind it and a +1 to deliver.</p>",
+     "<p><b>Macro rules.</b> About twenty rules say how the machine gets from one such moment to the next, for every level and every surrounding tape. Heading right, the head turns each digit <code>D n</code> it crosses into <code>S n = 1 (01)<sup>n+1</sup></code>, a word of the same length. Heading left in <code>CfgL</code> it turns <code>S n</code> back into <code>D n</code>; in <code>CfgJ</code> it turns it into <code>D (n+1)</code>, which is how a +1 is delivered. At the blank end of the tape the head writes two new digits <code>D 0</code> and turns back. On the left, each <code>111</code> of a block <code>(111)<sup>k</sup></code> is used up by one turn, so the block is a timer that allows k more round trips. And a round trip that finds two digits <code>D 0</code> side by side merges them: <code>10 D0 D0</code> becomes <code>D2 10</code>, and the digit before them gets a +1; over a row, 2k digits <code>D 0</code> become about k digits <code>D 3</code>. Rows of higher digits are merged in pairs in the same way, through a longer detour over the left part.</p>",
+     "<p><b>A counter.</b> Together these rules make the digits a counter. Its places are the levels 0, 3, 6, &hellip;, and the number of digits in a row is the value at that place. Each pass halves a row and carries it one place up, while fresh digits <code>D 0</code> keep arriving at the right end. This is binary counting with rows instead of bits, so a row of n digits lasts about log<sub>2</sub> n passes. The halving is not exact: a row with an odd count leaves a digit over, and the proof has rules for these leftovers (it calls them <em>defects</em>). Where the leftovers end up depends on the parities of huge counts, and no formula for them is known. That is why the community calls such a machine a <em>chaotic Bell</em>.</p>",
+     "<p><b>The engine.</b> The engine is a program written in Coq. It stores the tape compactly: the left part as a list of words with repeat counts, the digits as a list of pairs (level, how many in a row), all numbers in binary. In one engine step it looks at the tape near the head, picks the rule that applies, often a whole batch of them (k round trips at once, with k found by a division), and writes down the result. Where no rule fits, it makes single machine steps. One theorem, proved for every possible compact tape, says that each engine step is correct: the machine really goes from the tape before to the tape after, and when the engine reports a halt, the machine really halts.</p>",
+     "<p><b>How it stops.</b> In this machine's own terms it halts only when state B reads a 1 and the two cells to its right are 1 too: B1 and E1 then put F on a 1. Nothing in the proof predicts when the leftovers will set this up; the engine simply runs until they do. Coq's virtual machine (<code>vm_compute</code>) evaluates the engine from the blank tape with a budget of 2<sup>22</sup> = 4,194,304 steps, and it stops after 2,452,242 of them, when the newest row holds about 10<sup>420</sup> digits <code>D 0</code>, far beyond any direct simulation. So the computer checks one long but finite computation. What holds for all sizes (the rules, the batches, the correctness of every engine step) is proved by symbolic reasoning in Coq.</p>"
+    ]
+   },
+   {
     "id": "structure",
     "eyebrow": "Macro structure",
     "heading": "What the machine does: bouncer with a sorted list of blocks 1^(6j+1)",
     "html": [
      "<p>Left of the start the tape is <code>(110 10 10 10)</code> repeated (tokens <code>b a^3</code> with <code>b=110, a=10</code>), the background of a bouncer growing like √t.</p>",
      "<p>Right of it, on the slow side (395 cells right of the start after 10<sup>9</sup> steps, exponent about 0.16), the tape is a list of blocks of 1s separated by <code>00</code>. The settled blocks have lengths 6j + 1 and are sorted: <code>… 1^25 0^2 1^25 0^2 1^29 0^2 1^31 0^2 … 1^31 0^2 1^35 0^2 1^37 … 1^41 0^2 1^43 … 1^47 0^2 1^49 0^2 1^49 0^2 1^9 0^2 1 0^2 1 0^2 1^59 0 1 0^2 1^5 0^2 1^11 0^2 1^2 B&gt;0</code> (step 246,254,433). Blocks of length 6j + 5 (29, 35, 41, 47, 53) sit at the boundaries between groups, and the last few blocks near the right end are in the middle of being rewritten.</p>",
-     "<p>Over time the groups move up: near the right end the 1^25 group is gone by step 6·10<sup>8</sup> and the visible list runs from 1^31 to 1^63 at 9.5·10<sup>8</sup>. It looks like a sorted counter whose digits are block lengths, incremented by 6 when a wave passes; we have not written its rule.</p>"
+     "<p>Over time the groups move up: near the right end the 1^25 group is gone by step 6·10<sup>8</sup> and the visible list runs from 1^31 to 1^63 at 9.5·10<sup>8</sup>. It looks like a sorted counter whose digits are block lengths, incremented by 6 when a wave passes; we had not written its rule. The proof has it: see How the proof works.</p>"
     ]
    },
    {
@@ -160,7 +174,8 @@
     "eyebrow": "Halting",
     "heading": "What a halt would require",
     "html": [
-     "<p>F reading 1 halts. The 5-cell closed language allows that with <code>0011x</code> on the left and any right window starting with 1.</p>"
+     "<p>F reading 1 halts. The 5-cell closed language allows that with <code>0011x</code> on the left and any right window starting with 1.</p>",
+     "<p class=\"t4halt\">It happens: state B reads <code>1 1 1</code> (B1 and E1 put F on a 1) after 2,452,242 steps of the proved engine of busycoq pull request 93, when the newest row of the counter holds about 10<sup>420</sup> digits <code>D 0</code>, single 1s between blanks.</p>"
     ]
    },
    {
@@ -169,15 +184,15 @@
     "heading": "What is proved, and what is not",
     "html": [
      "<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): A crosses <code>110101010</code> rightward writing <code>001111111</code>, C crosses it leftward writing <code>111011101</code> (eight proved rules over its rotations); for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>",
-     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>"
+     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing proved in this repository decides halting; the outside proof does.</p>"
     ]
    },
    {
     "id": "later",
     "eyebrow": "Next",
-    "heading": "What would move it forward",
+    "heading": "What is left",
     "html": [
-     "<p>Write the rule of one visit of the head to the right wall on the block list, check it against the run, and compare with 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF, which agrees with this machine on the first records and then diverges.</p>"
+     "<p>Halting is settled by the outside proof, whose engine contains the rule of one visit of the head to the right wall that this page had planned to write. Still open here: the comparison with 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF, which agrees with this machine on the first records and then diverges, and is still an open holdout.</p>"
     ]
    },
    {
@@ -204,7 +219,7 @@
    }
   ]
  },
- "summary": "A bouncer over the 9-cell word 110101010 on the left; the slow right side is a list of blocks 1^(6j+1) 00, mostly sorted by length, through which waves of rewriting pass; open. Same mechanism as 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF (and probably the part03 twin). Decided outside: busycoq PR 93 proves in Rocq that it halts (compiled here).",
+ "summary": "A bouncer over the 9-cell word 110101010 on the left; the slow right side is a list of blocks 1^(6j+1) 00, mostly sorted by length, through which waves of rewriting pass. Same mechanism as 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF (and probably the part03 twin). Decided outside: busycoq PR 93 proves in Rocq that it halts (compiled here).",
  "family": "bouncer with a sorted list of blocks 1^(6j+1)",
  "decision": "halts",
  "decision_level": "outside"

@@ -28,7 +28,9 @@ The machine halts when it reads a 1 in state F (F1 is the halting transition). F
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel) and 10^7 (`native_decide`). C: no halt in 10^9 steps. Lean (`lean/Rules.lean`, kernel): the shift rules `shiftC` (C over `(100)^n` leaves `(110)^n`), `shiftA` (A over `(001)^n` leaves `(101)^n`) and `shiftE` (E over `(11010)^n` leaves `(01010)^n`), for every n and any surrounding tapes. The counter map is observed, not proved.
+**Decided outside: it halts.** Busycoq pull request 106 (Alex Havrilla of DeepMind) proves it in Rocq, compiled here with Coq 8.20.1 and no axioms, after about 4.25·10^47 steps. It encodes the tape at left-end hubs as a list of run-length items over seven tokens and checks a 90,940-step certificate of 14 proved macro operators (one-hub step, base-3 odometer, eater, 12-hub slicer, 402-hub wave, 3,752- and 162-hub mirrors) with `vm_compute`.
+
+This repository on its own: Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel) and 10^7 (`native_decide`). C: no halt in 10^9 steps. Lean (`lean/Rules.lean`, kernel): the shift rules `shiftC` (C over `(100)^n` leaves `(110)^n`), `shiftA` (A over `(001)^n` leaves `(101)^n`) and `shiftE` (E over `(11010)^n` leaves `(01010)^n`), for every n and any surrounding tapes. The counter map is observed, not proved.
 
 ## Later
 

@@ -67,7 +67,9 @@ does not happen (Lean), so a halt can only come from the data word.
 
 ## Status
 
-Open. The reduced machine ran 750,000,000 cycles = 1.4e20 steps of the real machine without halting
+**Decided outside: it halts.** Busycoq pull request 88 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 8.86e27 steps; compiled here with Coq 8.20.1, no axioms. The proof shows that the wall `(0011111)^c` always reflects (13 edge cases, any c), reads the data in 8-cell bytes with a checked table of all 3,072 byte transitions, and computes the odometer as a 20-layer table of 32,053 left-context nodes with their exit rules until D reads 1.
+
+Open here (this repository's own results). The reduced machine ran 750,000,000 cycles = 1.4e20 steps of the real machine without halting
 (`c/edge.c`; the wall then has 2,250,000,007 words, the data 423 cells). The tracker reports 1e17 steps by others.
 
 ## Proved in Lean
