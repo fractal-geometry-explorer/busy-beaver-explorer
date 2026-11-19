@@ -2,6 +2,8 @@
 
 bbchallenge id 139727. A bouncer on the left; on the right a list of runs of 1s separated by 00 whose lengths are 13, 19, 25, 31, ... (13 + 6i), sorted, with multiplicities that fall off from one length to the next (616, 188, 121, 37, 22, 7, 4, 1 at 10^9 steps).
 
+**Decided outside: it halts.** busycoq PR 93 (Alex Havrilla of DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reflects the tape and renames the states (A, B, C, D become C, D, A, B) to get the table `1RB1RA_1LC0RE_1LD1LB_1RA0LE_1RA0LF_0LB---` started in C, and runs a fast engine over rows of digit words `D n = 1 (11)^n 00`, every step of it proved sound, from blank tape to the halt (2,452,242 engine steps); see the explainer page.
+
 | state | read 0 | read 1 |
 |---|---|---|
 | A | 1RB | 1RD |
@@ -37,7 +39,7 @@ E0, and their tapes agree whenever the head is not in that spot.
 
 Everything else above is measured on runs (heuristic), not proved.
 
-## Open
+## Open (before busycoq PR 93)
 
 Whether it halts. The sorted list and its counter-like growth are measured. Halting needs E reading 1 with a 1
 to its right. The same run, up to the moments the head is where the tables differ, is

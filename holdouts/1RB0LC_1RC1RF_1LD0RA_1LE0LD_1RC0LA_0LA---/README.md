@@ -2,6 +2,8 @@
 
 bbchallenge id 16113. Group G01. **Doubling counter paid by a block** (structure found, map not yet): Y(n) = (101)^n 10 A> recurs; in between a (110)^b counter doubles while the (101)s last. Open. **Same table as 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD--- with the states renamed** (another start state); the quadrupling round is now exact.
 
+**Decided outside: it never halts.** busycoq pull request 79 (Alex Havrilla, DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. 595,860 macro steps reach `C> 0 (001)^(a-1) 0 (001)^(b-1)` with 5,300-bit a and b, a proved 60-step lap `(a, b) -> (4(a - b), 4b)` is iterated 115,895,156,973,855,250 times, and 2,083 symbolic steps land in the 642-step lap of the twin 1RB0LD_1LC0RD_1LA0LC_1RE0LB_1RB1RF_0LD---. The rest of this file is this repository's own work, written while the question was open.
+
 | state | read 0 | read 1 |
 |---|---|---|
 | A | 1RB | 0LC |

@@ -1,6 +1,6 @@
 # 1RB1LC_1LA0RD_1LA0LA_---1RE_1RB0RF_1RC0RA
 
-A periodic sea of blocks `1^5 0` with defect blocks drifting through it at several speeds. Halting is open.
+A periodic sea of blocks `1^5 0` with defect blocks drifting through it at several speeds. Halting was open; it is now decided outside (it never halts, see Status).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -49,7 +49,9 @@ is whether some collision makes `B>1 0`.
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
+**Decided outside: it never halts.** Busycoq pull request 90 (Alex Havrilla of DeepMind) proves this in Rocq; compiled here with Coq 8.20.1, no axioms. The proof reads the right end as a reservoir of segments `1^9 0 (1^5 0)^m 1^4` with fuel 2m + 5, shows that each bounce at the wall uses one unit whatever the reservoir holds, and checks by computation that one cycle of 43,207 bounces writes new segments with at least 43,207 fuel.
+
+**Open here** (this repository's own results). Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
 the kernel, in 10,000,000 by `native_decide`; `lean/Rules.lean`: the sweep rules, kernel only. C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 
 ## First look

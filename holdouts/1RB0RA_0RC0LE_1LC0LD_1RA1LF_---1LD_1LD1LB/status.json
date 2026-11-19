@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RA_0RC0LE_1LC0LD_1RA1LF_---1LD_1LD1LB/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it halts when started on a blank tape, after about 3.1&times;10<sup>957</sup> steps. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on."
  ],
  "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 94 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. By their count it halts after about 3.1&times;10<sup>957</sup> steps. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does to the word over many trips, and what happens when a trip does not come back (the end of a phase), is not proved. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2·10<sup>10</sup> steps, follows the run through 10 phases to 8.229·10<sup>69</sup> steps without a halt."
+  "<b>What this repository found on its own.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does over many trips, and what happens at the end of a phase, was not proved here. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2&middot;10<sup>10</sup> steps, follows the run through 10 phases to 8.229&middot;10<sup>69</sup> steps without a halt. The halt the proof finds comes much later."
  ],
  "claims": [
   {
@@ -78,8 +78,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by F on a 1 with <code>0 1</code> to its left (<code>0 1 F&gt;1</code>). Open: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.",
+   "title": "Does it halt from blank tape? (this repository’s own ledger)",
+   "text": "Not decided by the results on this page alone. It is decided outside: busycoq pull request 94 proves that it halts (see the verdict). Before the proof: A normal tick cannot halt (the clock theorem). Halting needs a P-step that does not come back — that happens only at the end of a phase — followed by F on a 1 with <code>0 1</code> to its left (<code>0 1 F&gt;1</code>). Open here: what P does over 2<sup>k</sup> trips (a counter in the word), what a phase end builds, and whether one ever reaches the halting configuration.",
    "where": ""
   }
  ],
@@ -91,7 +91,7 @@
   "python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/sweeps.py 1RB0RA_0RC0LE_1LC0LD_1RA1LF_---1LD_1LD1LB"
  ],
  "explainer": {
-  "lede": "Nobody knows whether it halts. Started on a blank tape, this machine runs a clock: a block of 1s at the left end grows by two cells per tick, and tick k applies one map P to the word beside the block 2<sup>k</sup> times. The clock is proved in Lean for every tick whose 2<sup>k</sup> trips all return; an exact accelerated run follows it through 10 phases to 8.229·10<sup>69</sup> steps.",
+  "lede": "It halts, after about 3.1&times;10<sup>957</sup> steps. Its run is a clock: a block of 1s at the left end grows by two cells per tick, and tick k makes 2<sup>k</sup> trips of the head into the word beside the block. The proof replays the whole run with a fast simulator that jumps over long series of trips using a table it builds and checks, until the head reads a 0 in state E, which has no transition.",
   "facts": [
    {
     "level": "kernel",
@@ -104,9 +104,9 @@
     "text": "No halt, in an exact accelerated run through 10 phases."
    },
    {
-    "level": "open",
-    "value": "phase ends",
-    "text": "Halting needs a trip that does not come back and then F on a 1 with <code>0 1</code> to its left (<code>0 1 F&gt;1</code>)."
+    "level": "kernel",
+    "value": "<code>0 1 F&gt;1</code>",
+    "text": "The only way it can stop (proved in Lean). A normal tick never gets there, so the halt the proof finds comes at the end of a phase."
    }
   ],
   "presets": [
@@ -119,8 +119,20 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A checked table of counter runs, and one long exact replay",
+    "html": [
+     "<p>The proof is busycoq pull request 94 by Alex Havrilla of DeepMind. We compiled it here with Coq 8.20.1, and it uses no axioms: even its big-number arithmetic is built from scratch, with digits in base 64, rather than with Coq's machine integers.</p>",
+     "<p><b>How the proof writes the tape.</b> The proof stores the tape as runs. Right of the clock block lies the word, a list of <em>tokens</em> <code>0 1^(2u+1)</code>: a 0 followed by an odd run of 1s. The blocks <code>1</code> and <code>1^3</code> in which this repository wrote the word are the tokens with u = 0 and u = 1, that is <code>01</code> and <code>0111</code>. On the left, long stretches are stored as runs or as one binary number. One trip of the head into the word and back (the map P) is proved to act on the token list by an explicit rule.</p>",
+     "<p><b>The table.</b> Most of the time goes into long series of trips over a front of the word made only of <code>01</code> and <code>0111</code>. Such a front behaves like a counter. With x tokens <code>01</code> and y tokens <code>0111</code> its width is W = x + 2y, and repeating the trip runs the counter down until it is used up. What is left at the end, and after how many trips, depends only on W and y. The proof builds a table of these outcomes for every width W from 4 to 4,583 and every y up to W/2. It fills each row from the rows before it (a <em>dynamic program</em>) and checks every row as it goes, so the table itself is part of the proof. A second, smaller table does the same for a run of k tokens <code>0111</code>. This fits what this repository saw: every phase ended at a word <code>1 1 3 3 &hellip; 3 1</code>, a long run of <code>0111</code>.</p>",
+     "<p><b>The replay.</b> With the tables in hand, the computer replays the run from the blank tape in 604,910 fused macro steps. In 32,833 of them a whole counter run is skipped by looking it up in the table. The counts involved grow to about 3,180 bits. The last step lands on state E reading a 0, which has no transition, so the machine halts. The number of machine steps, about 3.123449&times;10<sup>957</sup>, is added up along the way.</p>",
+     "<p><b>What is proved and what is computed.</b> Short pieces of the run (sweeps over runs, bounces and the trip P) are proved for every length. Theorems say that every row of either table is a true statement about the machine, and that each fused macro step, a table lookup included, is a true piece of its run. The computer then checks with Coq's <code>vm_compute</code> that building the tables succeeds and that the replay ends in the halting configuration.</p>"
+    ]
+   },
+   {
     "id": "clock",
-    "eyebrow": "The clock",
+    "eyebrow": "Background: the clock",
     "heading": "A block that grows by two, each tick twice as long",
     "html": [
      "<p>Watch the tape each time the head, in state F, sits at the left end. It always reads <code>F&gt;0 1^L 0 W</code>: a block of L ones, then a word W of short blocks. Within a <em>phase</em> L grows by 2 per visit and each visit takes about twice as long as the one before. From the real run:</p>",
@@ -131,18 +143,18 @@
    },
    {
     "id": "word",
-    "eyebrow": "The word",
+    "eyebrow": "Background: the word",
     "heading": "What P does to the word",
     "html": [
      "<p>The word is a string of the two blocks <code>1</code> (written .) and <code>1^3</code> (written #) separated by single 0s. From the visit at step 25,712, one P-step per line:</p>",
      "<pre>1  # # # # # # . # . . # # . . # . 4\n2  # . # . # # # . # . . # # . . # . 4\n3  # . . . # . # # . # . . # # . . # . 4\n4  # . . . . . . # # . # . . # # . . # . 4\n5  # # # # . # . . # . . # # . . # . 4\n6  # . # . # . # . . # . . # # . . # . 4</pre>",
-     "<p>Each P-step rewrites a front part of the word, of varying length; the far end changes rarely. Unlike the four other machines of the family the words do not come back with a period 2<sup>j</sup>, so the counter hidden in the word is not a plain binary one. It has not been identified.</p>",
+     "<p>Each P-step rewrites a front part of the word, of varying length; the far end changes rarely. Unlike the four other machines of the family the words do not come back with a period 2<sup>j</sup>, so the counter hidden in the word is not a plain binary one. It was not identified here; the proof handles it with a table of counter runs (first section).</p>",
      "<p>What ends a phase is the same each time: the trip that fails meets a word <code>1 1 3 3 … 3 1</code> followed by a double 0 — a run of 20 to 30 blocks <code>3</code> in the long phases — as if a counter whose digits are <code>1</code> and <code>3</code> had reached its last value. The last block of a phase grows by a factor of about 1.7 from one phase to the next: 1^8, 1^18, 1^30, 1^54, 1^94, 1^158, 1^268, 1^454.</p>"
     ]
    },
    {
     "id": "phases",
-    "eyebrow": "Phases",
+    "eyebrow": "Background: phases",
     "heading": "A phase ends when a trip does not come back",
     "html": [
      "<p>The tick needs every one of its 2<sup>k</sup> trips to come back to the block. When one does not (the front of the word has run out), the clock breaks: the head goes on to the left over the half-built recursion, the block is dissolved into the word, and a new phase starts from a short block. Phases of the exact accelerated run (<code>clock.py run</code>; phases with blocks of 8 or more):</p>",
@@ -157,7 +169,7 @@
     "heading": "What halting would take",
     "html": [
      "<p>The only halting transition is E on 0. E is entered only from B on 1 (0LE), and B from A on 0 (1RB, after which E reads the 1 that A just wrote, so no halt) or from F on 1 (1LB): the machine halts exactly when F reads a 1 with <code>0 1</code> to its left, <code>0 1 F&gt;1</code>.</p>",
-     "<p>A normal tick never halts: the Lean theorem says it reaches its end. So a halt can only come at the end of a phase, in the trip that does not come back or in what follows it before the next visit of the left end. The accelerated run simulates exactly those parts cell by cell, and none of the 10 phase ends halted. Whether a later one does depends on the word the earlier phases built, which looks irregular: the question is open.</p>"
+     "<p>A normal tick never halts: the Lean theorem says it reaches its end. So a halt can only come at the end of a phase, in the trip that does not come back or in what follows it before the next visit of the left end. The accelerated run simulates exactly those parts cell by cell, and none of the 10 phase ends halted. Whether a later one does depends on the word the earlier phases built, which looks irregular. The outside proof settles it: the run halts at a much later point, after about 3.1&times;10<sup>957</sup> steps.</p>"
     ]
    }
   ]

@@ -8,13 +8,13 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. An outside Rocq proof (busycoq pull request 86, compiled here) now shows that it never halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on.",
   "At the end of each <em>round</em> the tape is a leader <code>11100</code>, a list of digits of six cells each, a fixed stretch, and a tail of single 1s that grows by one per round. Within an <em>epoch</em> each round changes one or two digits next to a walker that moves left, and the round takes exactly twice as long as the one before plus a constant that depends only on the change. When the walker reaches the front the list is rebuilt longer; the rebuilds are not understood."
  ],
  "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 86 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> No halt in direct simulation to 3.54&middot;10<sup>11</sup> steps. The rounds inside an epoch follow an exact law (checked on every round of two epochs, and two rounds predicted before the simulator got there); a halt could only come from a rebuild, whose rule is not known."
+  "<b>Before the outside proof, this repository's own work left it open.</b> No halt in direct simulation to 3.54&middot;10<sup>11</sup> steps. The rounds inside an epoch follow an exact law (checked on every round of two epochs, and two rounds predicted before the simulator got there); a halt could only come from a rebuild, whose rule is not known."
  ],
  "claims": [
   {
@@ -92,7 +92,7 @@
   {
    "level": "open",
    "title": "The rebuilds, and the question",
-   "text": "Rebuilds at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps turn the tail of single 1s and the fixed stretch into a new, longer list of digits (12, 13, then 14 digits) and a new fixed stretch. Their rule, which decides the next epoch, is not known; nor whether the machine halts.",
+   "text": "Decided outside: busycoq pull request 86 proves in Rocq that it never halts (compiled here; see the verdict). From this repository's own work alone: rebuilds at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps turn the tail of single 1s and the fixed stretch into a new, longer list of digits (12, 13, then 14 digits) and a new fixed stretch. Their rule, which decides the next epoch, is not known; nor whether the machine halts.",
    "where": ""
   }
  ],
@@ -105,7 +105,7 @@
   "gcc -O3 -o evrun holdouts/1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---/c/evrun.c && ./evrun 1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD--- 150000000000 A R - ck1"
  ],
  "explainer": {
-  "lede": "Nobody knows. This machine is a two-level counter: a fast counter at the right end of the tape takes twice as long for each round, and each round a walker makes one small change in a list of digits on its left; the length of every round follows exactly from the change. When the walker reaches the front the list is rebuilt longer, in a way nobody has worked out.",
+  "lede": "It never halts. It is a two-level counter: a fast counter at the right end and a list of six-cell digits changed one at a time by a walker. After about 10<sup>708</sup> steps a window of about a hundred cells starts repeating as it moves right, forever.",
   "facts": [
    {
     "level": "trusted",
@@ -132,6 +132,19 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A very long count, then a window that repeats",
+    "html": [
+     "<p>This is busycoq pull request 86 by Alex Havrilla of DeepMind, a proof in Rocq that the machine never halts from a blank tape. We compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions nonhalt</code> is empty), and its transition table is this machine. Below is how it works.</p>",
+     "<p>The proof reads the tape as a list of tokens: single cells, runs of <code>00</code>, <code>11</code>, <code>01</code>, <code>10</code> or <code>110110</code>, and <em>digit blocks</em>. A digit block of m digits writes each base-4 digit as six cells (0 as <code>011001</code>, 1 as <code>001001</code>, 2 as <code>111001</code>, 3 as <code>101001</code>) and holds a number below 4<sup>m</sup>. The key rules, proved for every size, say how a block absorbs a pulse from the head: it adds 1 to the number, with carries, and a block of m zeros takes 4<sup>m</sup> pulses before it wraps around. So the program can add a huge number to a block in one step instead of making the machine count.</p>",
+     "<p>From the blank tape, 84,472 steps of this program, with counts of up to about 2,350 bits, cover about 10<sup>708.37</sup> machine steps and stop at a fixed <em>window</em>: the head in state D, the 89 cells to its left reading <code>00100101100010010110010110010110010010011110010101011001010101001001011001011011100101011</code> and the cells to its right reading <code>0110110000011</code>, then blank tape.</p>",
+     "<p>From that window, with anything at all further left, 6,419 more program steps lead back to the same window, further right, with more written behind it. The program never looks left of the window, so the same lap repeats forever and the machine never halts. A program step can stand for very many machine steps: in our plain simulation from the window, the lap is not over after 2&middot;10<sup>10</sup> steps, and the head is still creeping right like a counter.</p>",
+     "<p>What the computer checks by evaluation inside Rocq (<code>vm_cast_no_check</code>): the 84,472-step run and the 6,419-step lap, with all counts as binary numbers. What is proved for all sizes: each rule of the program, including the carry rules of the digit blocks.</p>",
+     "<p>The digits, the walker and the rebuilds described further down are this same machinery seen early in the run. The proof does not find a general rule for the rebuilds; it follows the one run exactly through all of them until the window appears.</p>"
+    ]
+   },
    {
     "id": "digits",
     "eyebrow": "Structure",
@@ -282,11 +295,11 @@
    },
    {
     "id": "rebuild",
-    "eyebrow": "Open",
+    "eyebrow": "Background",
     "heading": "Rebuilds",
     "html": [
      "<p>After the leader changes (at the end of the carry, or when the phase-1 walker reaches it), the next round is different: the tail of single 1s and the fixed stretch X are turned into a new, longer list of digits and a new X, and the tail starts again short. This happened at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps; the lists after them have 4, 12, 13 and 14 digits. In the round ending at step 348,360,095,421 the phase-1 walker, with no digit left, changes the leader <code>11100</code> to <code>10100</code> and leaves the digits <code>222222000</code>; the round length is 2T + 16, as <code>py/epoch.py</code> gives it. The round after is a rebuild (step 348,489,525,650), as after the leader change of epoch 2.</p>",
-     "<p>The rule of a rebuild is not known, so the run can be followed by arithmetic only to the end of an epoch. A halt (F reading a 1) can come only from a rebuild: inside an epoch the rounds repeat the same five local changes.</p>"
+     "<p>The rule of a rebuild is not known here, so with these rules alone the run can be followed by arithmetic only to the end of an epoch (the outside proof's engine goes through them). A halt (F reading a 1) can come only from a rebuild: inside an epoch the rounds repeat the same five local changes.</p>"
     ]
    },
    {
@@ -304,7 +317,7 @@
   ]
  },
  "family": "two-level counter: a fast binary counter at the right end, one walker step per round in a list of 6-cell digits, rebuilds",
- "summary": "A two-level counter: each round the fast counter at the right end doubles its time and a walker makes one local change in a list of 6-cell digits, with round length T' = 2T + c(change) exactly; the law predicts every round of two epochs (40 rounds, up to 1.8e11 steps); the rebuilds between epochs are not modelled; open. Decided outside: busycoq PR 86 proves in Rocq that it never halts (compiled here).",
+ "summary": "A two-level counter: each round the fast counter at the right end doubles its time and a walker makes one local change in a list of 6-cell digits, with round length T' = 2T + c(change) exactly; the law predicts every round of two epochs (40 rounds, up to 1.8e11 steps); the rebuilds between epochs are not modelled here. Decided outside: busycoq PR 86 proves in Rocq that it never halts (compiled here).",
  "decision": "nonhalting",
  "decision_level": "outside"
 }

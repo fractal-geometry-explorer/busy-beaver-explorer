@@ -190,7 +190,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---</p>
   <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 86 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-  <div class="col"><p class="lede">Nobody knows. This machine is a two-level counter: a fast counter at the right end of the tape takes twice as long for each round, and each round a walker makes one small change in a list of digits on its left; the length of every round follows exactly from the change. When the walker reaches the front the list is rebuilt longer, in a way nobody has worked out.</p></div>
+  <div class="col"><p class="lede">It never halts. It is a two-level counter: a fast counter at the right end and a list of six-cell digits changed one at a time by a walker. After about 10<sup>708</sup> steps a window of about a hundred cells starts repeating as it moves right, forever.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>3.54&middot;10<sup>11</sup></b><span class="small">No halt in direct simulation.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>40 rounds</b><span class="small">Predicted to the step by the walker law, in two epochs.</span></div>
@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#digits">Digits, a walker and a doubling clock</a><a href="#rebuild">Rebuilds</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#proof">A very long count, then a window that repeats</a><a href="#digits">Digits, a walker and a doubling clock</a><a href="#rebuild">Rebuilds</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -286,6 +286,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="proof">
+  <span class="eyebrow">How the proof works</span>
+  <h2>A very long count, then a window that repeats</h2>
+<p>This is busycoq pull request 86 by Alex Havrilla of DeepMind, a proof in Rocq that the machine never halts from a blank tape. We compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions nonhalt</code> is empty), and its transition table is this machine. Below is how it works.</p>
+<p>The proof reads the tape as a list of tokens: single cells, runs of <code>00</code>, <code>11</code>, <code>01</code>, <code>10</code> or <code>110110</code>, and <em>digit blocks</em>. A digit block of m digits writes each base-4 digit as six cells (0 as <code>011001</code>, 1 as <code>001001</code>, 2 as <code>111001</code>, 3 as <code>101001</code>) and holds a number below 4<sup>m</sup>. The key rules, proved for every size, say how a block absorbs a pulse from the head: it adds 1 to the number, with carries, and a block of m zeros takes 4<sup>m</sup> pulses before it wraps around. So the program can add a huge number to a block in one step instead of making the machine count.</p>
+<p>From the blank tape, 84,472 steps of this program, with counts of up to about 2,350 bits, cover about 10<sup>708.37</sup> machine steps and stop at a fixed <em>window</em>: the head in state D, the 89 cells to its left reading <code>00100101100010010110010110010110010010011110010101011001010101001001011001011011100101011</code> and the cells to its right reading <code>0110110000011</code>, then blank tape.</p>
+<p>From that window, with anything at all further left, 6,419 more program steps lead back to the same window, further right, with more written behind it. The program never looks left of the window, so the same lap repeats forever and the machine never halts. A program step can stand for very many machine steps: in our plain simulation from the window, the lap is not over after 2&middot;10<sup>10</sup> steps, and the head is still creeping right like a counter.</p>
+<p>What the computer checks by evaluation inside Rocq (<code>vm_cast_no_check</code>): the 84,472-step run and the 6,419-step lap, with all counts as binary numbers. What is proved for all sizes: each rule of the program, including the carry rules of the digit blocks.</p>
+<p>The digits, the walker and the rebuilds described further down are this same machinery seen early in the run. The proof does not find a general rule for the rebuilds; it follows the one run exactly through all of them until the window appears.</p>
+</section>
 <section id="digits">
   <span class="eyebrow">Structure</span>
   <h2>Digits, a walker and a doubling clock</h2>
@@ -298,10 +308,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="panel stp" data-stepper="digits"></div>
 </section>
 <section id="rebuild">
-  <span class="eyebrow">Open</span>
+  <span class="eyebrow">Background</span>
   <h2>Rebuilds</h2>
 <p>After the leader changes (at the end of the carry, or when the phase-1 walker reaches it), the next round is different: the tail of single 1s and the fixed stretch X are turned into a new, longer list of digits and a new X, and the tail starts again short. This happened at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps; the lists after them have 4, 12, 13 and 14 digits. In the round ending at step 348,360,095,421 the phase-1 walker, with no digit left, changes the leader <code>11100</code> to <code>10100</code> and leaves the digits <code>222222000</code>; the round length is 2T + 16, as <code>py/epoch.py</code> gives it. The round after is a rebuild (step 348,489,525,650), as after the leader change of epoch 2.</p>
-<p>The rule of a rebuild is not known, so the run can be followed by arithmetic only to the end of an epoch. A halt (F reading a 1) can come only from a rebuild: inside an epoch the rounds repeat the same five local changes.</p>
+<p>The rule of a rebuild is not known here, so with these rules alone the run can be followed by arithmetic only to the end of an epoch (the outside proof's engine goes through them). A halt (F reading a 1) can come only from a rebuild: inside an epoch the rounds repeat the same five local changes.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -336,7 +346,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/evrun.c</code>, <code>py/epoch.py</code></div></div><div><b>Epoch 3 meets the leader</b><p>In the round ending at step 348,360,095,421 the phase-1 walker, with no digit left, changes the leader <code>11100</code> to <code>10100</code> and leaves the digits <code>222222000</code>; the round length is 2T + 16, as <code>py/epoch.py</code> gives it. The round after is a rebuild (step 348,489,525,650), as after the leader change of epoch 2.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/evrun.c</code></div></div><div><b>Epoch 4 starts with a new pattern</b><p>After the rebuild at 3.48&middot;10<sup>11</sup> the list has 14 digits <code>00000030000010</code> and the tail N = 2. The first rounds (to step 354,122,694,764) are not in the walker table: the <code>3</code> becomes a <code>2</code>, then the left part runs <code>0000011</code>, <code>0000031</code>, <code>0001001</code>, <code>0003001</code>, <code>0010001</code>, <code>0030001</code>, a carry pattern whose constants are not modelled yet.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>python3 -m bbtools.ctl MACHINE 6</code></div></div><div><b>Where a halt can be (CTL)</b><p>A closed tape language of windows of up to 6 cells closes, but its abstract configurations still allow F to read a 1 in several contexts, so it does not confine the halt.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The rebuilds, and the question</b><p>Rebuilds at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps turn the tail of single 1s and the fixed stretch into a new, longer list of digits (12, 13, then 14 digits) and a new fixed stretch. Their rule, which decides the next epoch, is not known; nor whether the machine halts.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>The rebuilds, and the question</b><p>Decided outside: busycoq pull request 86 proves in Rocq that it never halts (compiled here; see the verdict). From this repository's own work alone: rebuilds at about 2.3&middot;10<sup>4</sup>, 4.05&middot;10<sup>7</sup> 1.2&middot;10<sup>10</sup> and 3.48&middot;10<sup>11</sup> steps turn the tail of single 1s and the fixed stretch into a new, longer list of digits (12, 13, then 14 digits) and a new fixed stretch. Their rule, which decides the next epoch, is not known; nor whether the machine halts.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

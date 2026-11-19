@@ -2,6 +2,8 @@
 
 bbchallenge id 26463. Group G01. **Quadrupling counter with nested lists** (one rule known): B> 000 (100)^a (010)^(b+2a+1) 01 → B> 000 (100)^(4a) (010)^b 01. Open. **Same table as 1RB0LC_1RC1RF_1LD0RA_1LE0LD_1RC0LA_0LA--- with the states renamed** (another start state); the quadrupling round is now exact.
 
+**Decided outside: it never halts.** busycoq pull request 78 (Alex Havrilla, DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. After 17,205 macro steps from blank tape the run reaches `1 (011)^N B> 0` with a 277-bit N, and a 642-step symbolic lap takes `(m, N)` to `(m + 4, 256N + 54 - 180m)` while an invariant keeps 9N between about 600 and 615 times (4^m - 1)/3, so every parity the lap tests is the same each time. The rest of this file is this repository's own work, written while the question was open.
+
 | state | read 0 | read 1 |
 |---|---|---|
 | A | 1RB | 0LD |

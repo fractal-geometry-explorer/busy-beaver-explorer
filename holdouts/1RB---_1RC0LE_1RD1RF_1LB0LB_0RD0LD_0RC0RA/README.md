@@ -13,7 +13,9 @@ bbchallenge id 165799.
 
 ## Status
 
-**Open.** Phases of transfer between long runs of period-6 and period-9 words; the frozen runs it leaves behind shrink by ratios close to 3/2, the mark of a Collatz-like map (not extracted).
+**Decided outside: it halts.** Busycoq pull request 81 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 10^98,832 steps; compiled here with Coq 8.20.1. The proof reads the tape as a stack of runs `(100001000)^n` separated by seven marker words, proves that one pass of the head halves the runs it crosses and sums them into a new front run, and evaluates 192,575 such passes on big numbers until the halting marker reaches the front.
+
+**Open here** (this repository's own results). Phases of transfer between long runs of period-6 and period-9 words; the frozen runs it leaves behind shrink by ratios close to 3/2, the mark of a Collatz-like map (not extracted).
 
 ## What it does
 

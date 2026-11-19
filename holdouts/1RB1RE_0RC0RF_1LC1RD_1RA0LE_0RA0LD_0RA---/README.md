@@ -49,7 +49,9 @@ of work.
 
 ## Status
 
-Open. Lean: the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel and in 10,000,000
+**Decided outside: it halts.** Busycoq pull request 83 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 10^20 steps; compiled here with Coq 8.20.1, no axioms. The proof writes the tape as run-length coded lists of blocks `1^j 0`/`1^j 00` (left) and `0^z 1^j 0` (right), proves a binary odometer theorem that jumps over (4^(m+1)-4)/3 hub visits at once, and replays 3,939 such operations by `vm_compute` up to `A> 0 1 1`.
+
+Open here (this repository's own results). Lean: the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel and in 10,000,000
 by `native_decide` (`lean/Blank.lean`); the sweep `b_right` for all lengths (`lean/Rules.lean`). C
 (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 

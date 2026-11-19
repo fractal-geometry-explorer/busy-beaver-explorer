@@ -14,7 +14,7 @@ bbchallenge id 173433. One of the six-state holdouts whose halting from blank ta
 
 ## What it does
 
-**The question is open, and halting looks very unlikely.** The tape is a list of blocks `(1101)^n` separated by single 0s. At each *rest* (head at the left end in state B) the tape is `B>1 P (1101)^A 0 (1101)^b1 0 …` with `P` = `0` or `000`, and the list enters only through *g* = 6 + *b*_1/2 + *b*_2/4 + …. The next rest is *A* → (3*A*+*g*)/2 (with −3 or −6 for type 0), or, when the parity is wrong, a **push**: *A*+1 joins the list and *A* restarts at about (*A*+*g*)/4. This map reproduces all 36 rests of the direct run up to 10^10 steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2·10^5 times from blank tape, *A* never comes near the tiny values from which the machine halts.
+**Background (this repository's own analysis; the question is now decided, see What is established).** The tape is a list of blocks `(1101)^n` separated by single 0s. At each *rest* (head at the left end in state B) the tape is `B>1 P (1101)^A 0 (1101)^b1 0 …` with `P` = `0` or `000`, and the list enters only through *g* = 6 + *b*_1/2 + *b*_2/4 + …. The next rest is *A* → (3*A*+*g*)/2 (with −3 or −6 for type 0), or, when the parity is wrong, a **push**: *A*+1 joins the list and *A* restarts at about (*A*+*g*)/4. This map reproduces all 36 rests of the direct run up to 10^10 steps and 350 rests started from random configurations; it is built from sweep rules proved in Lean, but the map itself is not proved. Iterated 2·10^5 times from blank tape, *A* never comes near the tiny values from which the machine halts.
 
 ![defect picture](../../pages/holdouts/1RB0LE_1RC0LB_1RD0RC_1LA1RC_---1LF_1LB1LD/defects.png)
 
@@ -91,6 +91,8 @@ Probviously non-halting, like Antihydra.
 
 ## What is established
 
+**Decided outside: it never halts.** Busycoq pull request 97 (Alex Havrilla of DeepMind) proves it in Rocq, compiled here with Coq 8.20.1 and no axioms. Its invariant is coarse: the list right of the working block is a *wall* that sends the head back exactly 3d − 1 times (built block by block with busycoq's `Longitudinal` tiles), and the tape is always `X^a r` or `X 0 X^(3q+2) r` with X = `1101`, so the exact rest map and its Collatz-type question are not needed.
+
 | level | claim | where |
 |---|---|---|
 | kernel | **The halting configurations.** The machine stops exactly when it reads the symbol of a halting transition (E0); the generated statement covers every configuration. | `step_none_iff`, `lean/Blank.lean` |
@@ -104,7 +106,7 @@ Probviously non-halting, like Antihydra.
 | trusted | **Where it halts.** Run from every rest with A < 40 and a list of at most two short blocks, the machine halts only from A = 0 with an empty list (type 0 or 000), after 91 steps, by the whole tape collapsing; the other small cases that leave the map involve blocks of length 1, which the orbit never creates once A > 1. | README.md |
 | heuristic | **The map iterated far, and the odds of a halt.** Iterated 2·10^5 times from blank tape, A stays at 64 or more from the 10th rest on and has 50,000 bits at the end (66,996 pushes). The size A+g is multiplied by 3/2 at every non-push rest and by about 3/4 at a push (a third of the rests): a random walk in log size with strong upward drift. Reaching size ~10 again from the 2·10^4 of the rest at 9.8·10^9 steps has probability of order 10^−10; probviously non-halting. | `py/map.py iterate 2e5` |
 | kernel | **Counting rules at depth 1, 2 and 3.** `u1_one`: `B> 1 W^(c+1) 0 W^(p+1) 0 W^(z+9) 00 W^(y+1) 0 R` → `B> 1 0 W^(c+1) 0 W^(p+1) 0 W^(z+1) 00 W^(y+9) 0 R` in 24c+48p+96z+631 steps; `u1_two` moves four more copies and increments c; `u2_*`, `u3_*` the same with two and three intermediate blocks (16 + 8 and 32 + 16 copies). W = 1101; they hold for all counts and any tape R to the right. | `lean/Deep/*.lean`, `py/gen_deep.py` |
-| open | **Does it halt from blank tape?** Not known. A proof would need the rest map for all values (in Lean) and an argument that A+g never falls back to the handful of tiny configurations that halt, which is a Collatz-type question. | README.md, Further work |
+| open | **Does it halt from blank tape?** Decided outside (busycoq PR 97, never halts). Within this repository's own work it was not known. A proof would need the rest map for all values (in Lean) and an argument that A+g never falls back to the handful of tiny configurations that halt, which is a Collatz-type question. | README.md, Further work |
 
 Levels: kernel = checked by Lean's kernel; native = Lean with `native_decide`; trusted = a computation in this repository (C or Python) that is not formally verified; heuristic = an argument or an observation, not a proof.
 

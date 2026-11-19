@@ -1,8 +1,10 @@
 # 1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---
 
-bbchallenge id 95765. One of the six-state holdouts whose halting from blank tape is open. Same mechanism as
+bbchallenge id 95765. One of the six-state holdouts; it halts from blank tape (busycoq PR 84). Same mechanism as
 `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---` (analysed first, see its folder). **Twin**: `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC1LF_0RA---` has exactly the same tape at all 190
 left-end samples in the first 2·10^9 steps (trusted, `c/samples.c`); the step counts differ by about 0.005 %.
+
+**Decided outside: it halts.** busycoq PR 84 (Alex Havrilla of DeepMind) proves it in Rocq; compiled here with Coq 8.20.1, no axioms. It works on this machine directly (renamed, it is the table `1RB1RA_1LC0RE_1LD1LB_1RA0LE_1RA0LF_0LB---` started in D) and runs a fast engine over rows of digit words `D n = 1 (11)^n 00`, every step of it proved sound, from blank tape to the halt (1,240,545 engine steps, about 10^361 machine steps); see the explainer page.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -39,7 +41,7 @@ never next to three 1s. So: it halts iff some round brings D onto a 0 to the rig
 
 ## Status
 
-Open.
+Halts (busycoq PR 84, see the top). Before that proof: open.
 
 - **Lean, kernel** (`lean/Rules.lean`, from `py/rules.py`): the shift rules `b_run`, `e_halve`, `c_halve`,
   `c_double`, `d_double`; `halt_shape` (`1 1 1 D> 0` reaches F on a 1 in 3 steps) and `halt_after_shape`.

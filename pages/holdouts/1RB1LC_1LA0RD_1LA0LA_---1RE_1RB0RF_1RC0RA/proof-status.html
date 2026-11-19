@@ -82,14 +82,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h1>What is known about 1RB1LC_1LA0RD_1LA0LA_---1RE_1RB0RF_1RC0RA</h1>
     <p class="machine">1RB1LC_1LA0RD_1LA0LA_---1RE_1RB0RF_1RC0RA</p>
     <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 90 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-    <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
+    <p>This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it never halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p class="asof">Status as of 18 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 90 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
-      <p><b>The question is open.</b> At a left turn the tape is mostly blocks <code>1^5 0</code> (374 of 461 blocks at 3&middot;10<sup>6</sup> steps) with defects (blocks of 13, 4, 7, 21); at a right turn the sea reads <code>(110)^k</code>. The sweeps convert between the two forms by shift rules proved in Lean. The defects drift: different stretches of the tape move by 24, 36, 39 or 42 cells per round trip, so defects meet and interact.</p>
+      <p><b>What this repository found on its own.</b> At a left turn the tape is mostly blocks <code>1^5 0</code> (374 of 461 blocks at 3&middot;10<sup>6</sup> steps) with defects (blocks of 13, 4, 7, 21); at a right turn the sea reads <code>(110)^k</code>. The sweeps convert between the two forms by shift rules proved in Lean, and different stretches of the tape drift at different speeds. The proof explains the blocks of 13: they separate <em>segments</em>, and the segments at the right end form a reservoir that the head drains and refills (see the explainer).</p>
       <p>Lean proves no halt in the first 10<sup>7</sup> steps (10,000 by the kernel alone); the C simulator finds none in 10<sup>9</sup>.</p>
     </div>
   </section>
@@ -110,7 +110,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-s0">How it works</h2>
     <div class="prose">
       <p>The tape is a sea of the block <code>1^5 0</code>, rewritten by each sweep into <code>110 110</code> and back. Defects in the sea (blocks of other lengths) drift at different speeds, so they meet and interact.</p>
-      <p>This is the kind of machine whose behaviour is a gas of particles on a periodic background. Halting needs B on a 1 with a 0 to its right, which has not happened in 10<sup>9</sup> steps.</p>
+      <p>This is the kind of machine whose behaviour is a gas of particles on a periodic background. Halting needs B on a 1 with a 0 to its right, which has not happened in 10<sup>9</sup> steps. The outside proof (busycoq pull request 90) shows that it never happens.</p>
     </div>
   </section>
   <section aria-labelledby="h-claims">
@@ -187,8 +187,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>Does it halt from blank tape?</h3>
-        <p>Not known. A description of the defects (which words, how fast each moves, what a collision makes) would turn the run into a particle system; it has not been worked out.</p>
+        <h3>Does it halt from blank tape? (this repository’s own ledger)</h3>
+        <p>Not decided by the results on this page alone. It is decided outside: busycoq pull request 90 proves that it never halts (see the verdict). Before the proof, this ledger said that a description of the defects (which words, how fast each moves, what a collision makes) would turn the run into a particle system. The proof uses a simpler picture: a reservoir of segments at the right end that the head drains and refills.</p>
       </div>
     </div>
   </section>

@@ -1,6 +1,8 @@
 # 1RB0LA_0RC0LE_0RD1RC_1LD1RE_1LA1RF_---0RB
 
-Group G08 (two-sided square-root growth). Whether it halts from blank tape is **open**.
+Group G08 (two-sided square-root growth). Whether it halts from blank tape is **open** by this repository's own results.
+
+**Decided outside: it never halts.** Busycoq pull request 107 (Alex Havrilla of DeepMind) proves this in Rocq; compiled here with Coq 8.20.1, no axioms. The proof watches the head at the right end, with the tape a run `(110)^(t+2)`, a frozen block, `(110)^2 10 (110)^(m+2)` and a fixed counter pattern at the left end, and shows from 3,913 machine-checked bounce rules that 2^37-3 round trips turn this shape into the same one with t+2(2^37-3) and m+1, so it recurs for ever.
 
 | state | read 0 | read 1 |
 |---|---|---|

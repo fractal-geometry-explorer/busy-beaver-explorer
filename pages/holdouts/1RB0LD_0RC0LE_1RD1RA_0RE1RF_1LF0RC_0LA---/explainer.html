@@ -190,7 +190,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---</p>
   <p class="stand merged"><b>Decided by an outside Rocq proof: it halts</b><span>A Rocq proof in busycoq pull request 106 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
-  <div class="col"><p class="lede">Nobody knows yet. The tape is made of two words in runs that behave like nested counters; the outermost counter grows to the left, slowly.</p></div>
+  <div class="col"><p class="lede">It halts, after about 4.25&middot;10<sup>47</sup> steps. The tape is made of two words in runs that behave like the digits of nested counters, several of them in base 3. Busycoq pull request 106 follows the run exactly, with proved shortcuts that jump over whole counter cycles, through 958,787,029,001 visits of the head to the left end, until it reads a 1 in state F.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev h">Heuristic</span><b>nested</b><span class="small">runs of two words behave like the levels of a counter</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 24,776 cells visited.</span></div>
@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">Nested counters</a><a href="#halt">What a halt would need</a><a href="#phase2">Shift rules over the runs</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#proof">An exact run, accelerated by proved counter shortcuts</a><a href="#what">Nested counters</a><a href="#halt">What a halt would need</a><a href="#phase2">Shift rules over the runs</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -286,6 +286,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="proof">
+  <span class="eyebrow">How the proof works</span>
+  <h2>An exact run, accelerated by proved counter shortcuts</h2>
+<p>The proof is busycoq pull request 106 by Alex Havrilla of DeepMind: a Rocq file of 115,070 lines (2.7 MB). About 22,000 lines are proof and the rest is a certificate, a long list of instructions. It was compiled here with Coq 8.20.1 on busycoq's BB6 branch, in 383 seconds, and it uses no axioms (recorded in <code>holdouts/external.json</code>). Its main theorem is <code>halt : halts tm c0</code>: from the blank tape, the machine halts.</p>
+<p><b>The shape.</b> Write w<sup>n</sup> for the word w written n times. The proof watches the machine at <em>hubs</em>: the head at the left end of the tape in state E. At a hub the tape reads <code>001 0 1</code>, then a list of items, then <code>0101</code>. Most items are a pair of runs <code>(001)</code><sup>a</sup> <code>(01011)</code><sup>s</sup>, sometimes with the marker <code>01001</code> between them. These are the two words this page calls a and c, cut at a different place. There are also a few other items: a run of such pairs repeated, a run of a single short token, or a raw piece. All the counts are binary numbers, some near 10<sup>47</sup>.</p>
+<p><b>The repeated step.</b> The basic step goes from one hub to the next (<code>step1Hub</code>), and it is proved to match the machine for all counts. Doing it 958,787,029,001 times would be far too slow, so the proof adds shortcuts. Each is a function on the item list, proved for every value of its counts, that jumps over many hubs at once. A base-3 odometer counts through digit groups <code>011</code>, <code>100</code> and <code>010</code>. An <em>eater</em> consumes a run of transparent items. A <em>slicer</em> covers 12 hubs, removing 85 tokens per repeated pair. A <em>wave</em> covers 402 hubs: a front carry runs through the list in 6 regimes. Two <em>mirror</em> cycles cover 3,752 and 162 hubs. Fourteen operators in all (<code>CertOp</code>), with small bridges that run the raw machine for a short window.</p>
+<p><b>The certificate.</b> From the blank tape, 58 machine steps reach the first hub. The certificate then lists 90,940 operator applications in 20 parts. The computer checks each part with <code>vm_compute</code>: it applies the operators and compares with the item list written in the file. The lemma <code>stepCert1_sound</code> says every successful operator really is a run of the machine. In the last hub list the base-3 structure is plain to see: consecutive items have a-counts 126,800,055, 42,266,685, 14,088,895, 4,696,299, ..., each a third of the one before. From that hub a short raw run (<code>runPipeRawHalt</code>, 40 steps of fuel) ends with the head in state F reading a 1, the halting transition.</p>
+<p><b>Computer and algebra.</b> Proved by ordinary reasoning, for every value: the encoding of tapes as item lists, the one-hub step, and each of the 14 operators (odometer arithmetic, carry waves, mirror cycles). Checked by the computer: that the 90,940 steps of the certificate apply, with the exact numbers, and the final raw run. No part of the run is estimated or sampled. Every one of the about 4.25&middot;10<sup>47</sup> steps is covered by a proved rule.</p>
+</section>
 <section id="what">
   <span class="eyebrow">What it does</span>
   <h2>Nested counters</h2>
@@ -295,12 +304,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="halt">
   <span class="eyebrow">The halting question</span>
   <h2>What a halt would need</h2>
-<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF) and from E on a 0 (E0 = 1LF).</p>
+<p>The machine halts when it reads a 1 in state F (F1 is the halting transition). F is entered from D on a 1 (D1 = 1RF) and from E on a 0 (E0 = 1LF). It does halt: the proof of pull request 106 (first section) ends with F reading a 1, after about 4.25&middot;10<sup>47</sup> steps.</p>
 </section>
 <section id="phase2">
   <span class="eyebrow">Phase 2</span>
   <h2>Shift rules over the runs</h2>
-<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found.</p>
+<p>Runs of a and of c are crossed by shift rules proved for every length: C over <code>(100)^n</code> leaves <code>(110)^n</code>, A over <code>(001)^n</code> leaves <code>(101)^n</code>, and E over <code>(11010)^n</code> leaves <code>(01010)^n</code>. The counter map between left-end samples was not found here; the outside proof (first section) supplies it, as 14 proved operators on the item list.</p>
 </section>
 <section id="screen">
   <span class="eyebrow">Family screen, 13 November 2026</span>
@@ -343,7 +352,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>shiftC</code>, <code>shiftA</code>, <code>shiftE</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules, for every n</b><p>C crosses <code>(100)^n</code> to the right and leaves <code>(110)^n</code>; A crosses <code>(001)^n</code> and leaves <code>(101)^n</code>; E crosses <code>(11010)^n</code> and leaves <code>(01010)^n</code>.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LD_0RC0LE_1RD1RA_0RE1RF_1LF0RC_0LA---</code>, saved in <code>screen.json</code> next to it</div></div><div><b>Size of the tape description (family screen)</b><p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 18,577 to 133,374 visited cells and compresses to 17 to 36 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">the README, section &ldquo;Family screen&rdquo;</div></div><div><b>Proposed family: F06, block-list counters</b><p>The description grows slowly: 19, 24, 36 and 35 level-2 tokens at the left-end records at 2.8&middot;10<sup>8</sup>, 10<sup>9</sup>, 4.2&middot;10<sup>9</sup> and 1.6&middot;10<sup>10</sup> steps. At the last one the tape is a block <code>(010)^1537</code>, then a list of blocks of the words <code>10101</code> and <code>100</code> (3 to 1,184 copies each) closed by markers <code>1010 (01)^3</code>, and a last block <code>(10101)^21602</code>. A list of units of the same form whose number grows slowly is a list of counters (F06) and not a bounded description (F01): the token count nearly doubled on the screen.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. No macro rule has been proved for this machine yet; see the README's Later section for the next steps.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Halting, in this repository's own proofs</b><p>Decided outside: busycoq pull request 106 proves in Rocq that it halts, after about 4.25&middot;10<sup>47</sup> steps (compiled here, no axioms; see above). This repository proved no macro rule for it beyond the shift rules.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

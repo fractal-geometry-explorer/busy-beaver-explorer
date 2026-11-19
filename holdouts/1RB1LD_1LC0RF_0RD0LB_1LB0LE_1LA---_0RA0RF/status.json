@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 91 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> The tape is a short counter region at the left end, written as runs of zeros between 1s, followed by a long block <code>(1000000)^n</code>. Each tick the head zigzags left across the block, changes the counter near its right end, and sweeps back, and the block grows by about 3 every 7 ticks. The two sweeps are proved in Lean. The counter carries further left exponentially rarely, and its region grows like the logarithm of the time. Whether it ever produces the halting pattern (E reading 1) is not known."
+  "<b>What this repository found on its own.</b> The tape is a short counter region at the left end, written as runs of zeros between 1s, followed by a long block <code>(1000000)^n</code>. Each tick the head zigzags left across the block, changes the counter near its right end, and sweeps back, and the block grows by about 3 every 7 ticks. The two sweeps are proved in Lean. The counter carries further left exponentially rarely, and its region grows like the logarithm of the time. This repository could not tell whether it ever produces the halting pattern (E reading 1); the proof shows that it does, after about 2.15&middot;10<sup>114</sup> steps."
  ],
  "claims": [
   {
@@ -66,8 +66,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The open part is the counter: its digits, its carry rules, and whether any carry reaches E reading 1.",
+   "title": "Does it halt from blank tape? (this repository’s own ledger)",
+   "text": "Not decided by the results on this page alone. It is decided outside: busycoq pull request 91 proves that it halts (see the verdict).",
    "where": ""
   },
   {
@@ -83,7 +83,7 @@
   "gcc -O2 -o turns holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c && ./turns 1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF 1000000000 100000 0"
  ],
  "explainer": {
-  "lede": "Nobody knows. This machine keeps a counter at the left end of its tape, written as short runs of zeros. Next to it is a long block of the word 1000000. Every tick the head zigzags across the block, changes the counter, and comes back, and the block slowly grows. This page runs the real machine in your browser and explains the pieces. The sweeps are proved in Lean.",
+  "lede": "It halts, after about 2.15&middot;10<sup>114</sup> steps. The machine keeps a counter at the left end of its tape, written as short runs of zeros, next to a long block of seven-cell words that the head crosses on every tick. The proof treats the low part of the counter, together with the block, as a wall that always sends the head back, builds a bigger such wall out of it 13 times, and in the 14th stage reaches E reading a 1, where the machine stops.",
   "facts": [
    {
     "level": "kernel",
@@ -111,6 +111,18 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A tower of walls, each built from the one below",
+    "html": [
+     "<p>The proof is busycoq pull request 91 by Alex Havrilla of DeepMind. We compiled it here with Coq 8.20.1, and it uses no axioms. The same pull request also settles two other holdouts that busycoq already knew to be equivalent to this one.</p>",
+     "<p><b>The block.</b> Write <code>(1111100)<sup>c</sup></code> for the seven-cell word <code>1111100</code> written c times. It is the block <code>(1000000)<sup>n</sup></code> seen here, in another of its phases. The proof shows that when the head walks into the block from the left, it always walks back out to the left, and the block is again of the same form, in the next of 12 phases and sometimes one word longer. This is proved for every c, so the block acts as a wall that only sends the head back.</p>",
+     "<p><b>Bytes and nodes.</b> The counter is read in bytes of 8 cells. A table, checked by running the machine, lists for each of the 256 byte values, each state and each side the head enters from, what happens inside the byte until the head leaves it. Everything right of the head is described by a <em>node</em>: the wall, with a few bytes in front of it. For each node and each state the head can enter it with, the proof stores where the head comes back out: in which state, and in front of which node. Nodes are built in layers, and checking a rule needs only the byte table and the rules one layer down.</p>",
+     "<p><b>The tower.</b> After a few layers the proof finds a finite set of nodes that is closed: entering any of them, the head always comes back out in front of another of them. From the outside such a set behaves exactly like the block did, a wall that sends the head back. So the proof starts a new stage that uses this set as its wall. This is the counter of this repository made exact: the low digits run through a closed cycle, and from the left they look like a mirror. There are 14 stages and 56 byte layers in all. In the last stage the part of the tape left of the nodes is run directly, and the head in state E reads a 1, which has no transition.</p>",
+     "<p><b>What is proved and what is computed.</b> From a blank tape, 303 steps and one pass of the block reach the first stage. The block statement for every c, the way rules are built from the layer below, and the step from a closed set of nodes to a new wall are proved by hand-style induction. The computer checks with <code>vm_compute</code> the first steps, the 3,072 entries of the byte table, every layer of every stage, the 13 bridges from one stage to the next and the final run to the halt.</p>"
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -119,12 +131,12 @@
      "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"cells visited on each side against steps, log scales\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"40.0\" x2=\"40.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"40.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^4</text><line x1=\"116.8\" x2=\"116.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"116.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^8</text><line x1=\"193.6\" x2=\"193.6\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"193.6\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^12</text><line x1=\"270.4\" x2=\"270.4\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"270.4\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^16</text><line x1=\"347.2\" x2=\"347.2\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"347.2\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^20</text><line x1=\"424.0\" x2=\"424.0\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"424.0\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^24</text><line x1=\"500.8\" x2=\"500.8\" y1=\"20.0\" y2=\"200\" stroke=\"var(--line)\"/><text x=\"500.8\" y=\"216\" text-anchor=\"middle\" fill=\"var(--muted)\">2^28</text><line x1=\"40\" x2=\"520\" y1=\"200.0\" y2=\"200.0\" stroke=\"var(--line)\"/><text x=\"34\" y=\"204.0\" text-anchor=\"end\" fill=\"var(--muted)\">2^0</text><line x1=\"40\" x2=\"520\" y1=\"159.8\" y2=\"159.8\" stroke=\"var(--line)\"/><text x=\"34\" y=\"163.8\" text-anchor=\"end\" fill=\"var(--muted)\">2^4</text><line x1=\"40\" x2=\"520\" y1=\"119.5\" y2=\"119.5\" stroke=\"var(--line)\"/><text x=\"34\" y=\"123.5\" text-anchor=\"end\" fill=\"var(--muted)\">2^8</text><line x1=\"40\" x2=\"520\" y1=\"79.3\" y2=\"79.3\" stroke=\"var(--line)\"/><text x=\"34\" y=\"83.3\" text-anchor=\"end\" fill=\"var(--muted)\">2^12</text><path d=\"M40.0,179.9 L59.2,171.8 L78.4,171.8 L97.6,161.7 L116.8,153.9 L136.0,153.9 L155.2,153.9 L174.4,151.1 L193.6,151.1 L212.8,144.4 L232.0,144.4 L251.2,142.9 L270.4,141.1 L289.6,138.8 L308.8,136.8 L328.0,136.8 L347.2,135.0 L366.4,135.0 L385.6,133.2 L404.8,131.1 L424.0,130.3 L443.2,130.3 L462.4,130.3 L481.6,130.3 L500.8,129.5 L520.0,128.9\" fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\"/><path d=\"M40.0,176.6 L59.2,176.6 L78.4,169.8 L97.6,165.2 L116.8,161.7 L136.0,154.5 L155.2,148.4 L174.4,142.4 L193.6,137.0 L212.8,131.8 L232.0,126.2 L251.2,121.1 L270.4,115.9 L289.6,110.7 L308.8,105.6 L328.0,100.5 L347.2,95.5 L366.4,90.4 L385.6,85.3 L404.8,80.3 L424.0,75.2 L443.2,70.2 L462.4,65.2 L481.6,60.1 L500.8,55.1 L520.0,50.1\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"520\" y=\"24.0\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; left of start</tspan>  <tspan fill=\"var(--head)\">&#9632; right of start</tspan>  (steps across, cells up)</text></svg>",
      "<p>After 10<sup>9</sup> steps the tape spans 41,955 cells (133 left of the start, 30,640 right), with a density of 1s of 0.672.</p>",
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,818,203</td><td><code>1 0^2 1 0^8 1 0^5 1 0^5 1 0^2 1 0^2 1 0^2 1 0 1 0^2 1 0^7 1 0 1 0^2 1 0^6 1 0^5 1 0^2 1^2 0^2 1 0^6 1 0^2 1 0^2 1 0^2 1 0^2 1 0^8 1 0^2 1 0^2 1 0^7 1 0^3 1 0^2 1 0 1 0^2 1 0^11 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6</code></td></tr><tr><td>right</td><td>970,579,389</td><td><code>1 0^2 1 0^8 1 0^5 1 0^5 1 0^2 1 0^2 1 0^2 1 0 1 0^2 1 0^7 1 0 1 0^2 1 0^6 1^2 0^2 1 0 1 0^2 1 0^5 1 0^7 1 0^5 1^2 0^2 1 0^4 1 0^2 1 0^5 1 0^2 1 0^2 1 0^2 1 0^2 1 0^4 1 0^2 1 0^11 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^</code></td></tr><tr><td>right</td><td>986,327,082</td><td><code>1 0^2 1 0^8 1 0^5 1 0^5 1 0^2 1 0^2 1 0^2 1 0 1 0^2 1 0^7 1 0 1 0^2 1 0^6 1^2 0^2 1 0 1 0^2 1^2 0^2 1 0^9 1 0^5 1 0 1 0^2 1^2 0^2 1 0^5 1 0^5 1 0^5 1 0^5 1 0^6 1 0^2 1^2 0^2 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0^6 1 0</code></td></tr></tbody></table></div>",
-     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+     "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is described in the sections below and in the proof section.</p>"
     ]
    },
    {
     "id": "words",
-    "eyebrow": "The pieces",
+    "eyebrow": "Background: what this repository found",
     "heading": "A counter and a conveyor",
     "html": [
      "<p>Watch the head when it turns at the right end in state C. The tape is <code>counter (1000000)^n 100 C&gt; 11</code>. The counter is about a hundred cells at the left end. Read it as the lengths of the runs of zeros between consecutive 1s: each length is a <b>digit</b>.</p>",
@@ -155,10 +167,10 @@
    },
    {
     "id": "open",
-    "eyebrow": "Where it gets hard",
+    "eyebrow": "Before the proof",
     "heading": "What would decide it",
     "html": [
-     "<p>The block only carries the head back and forth. Everything rests on the counter. The machine halts only when state E reads a 1. Deciding it needs the digits and carry rules of the counter, and then a proof that no carry ever creates that pattern, or one that finds the carry that does.</p>"
+     "<p>The block only carries the head back and forth. Everything rests on the counter. The machine halts only when state E reads a 1. This repository looked for the digits and carry rules of the counter and did not find them. The proof above does not need a rule: it computes the counter stage by stage, treating each closed part as a wall, and finds the carry that creates the halting pattern.</p>"
     ]
    },
    {

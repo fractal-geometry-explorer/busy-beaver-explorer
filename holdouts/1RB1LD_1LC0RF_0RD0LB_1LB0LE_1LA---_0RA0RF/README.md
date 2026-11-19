@@ -1,6 +1,6 @@
 # 1RB1LD_1LC0RF_0RD0LB_1LB0LE_1LA---_0RA0RF
 
-bbchallenge id 1309. One of the six-state holdouts whose halting from blank tape is open.
+bbchallenge id 1309. One of the six-state holdouts left open by bbchallenge; an outside proof now shows that it halts.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -47,7 +47,9 @@ block holds 187, 595, 1887, 5974 copies. When a carry reaches the left end, the 
 
 ## Status
 
-**Open.** Proved: the halting configurations, no halt in 10^7 steps (`lean/Blank.lean`), and the rules above. The
+**Decided outside: it halts.** Busycoq pull request 91 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 2.15e114 steps; compiled here with Coq 8.20.1, no axioms. The proof shows that the block `(1111100)^c` always reflects the head (12 phases, any c), summarises everything right of the head as nodes of a byte-layer table with checked exit rules, and each time a stage's nodes form a closed set uses that set as the wall of the next stage: 14 stages, 56 byte layers, until E reads 1.
+
+**Open here** (this repository's own results). Proved: the halting configurations, no halt in 10^7 steps (`lean/Blank.lean`), and the rules above. The
 machine halts only when E reads 1. Deciding it needs the counter's digits and carry rules, and a proof that no carry
 creates that pattern, or the carry that does.
 

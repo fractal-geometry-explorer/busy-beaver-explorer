@@ -131,6 +131,8 @@ met up to 10^300 steps does.
 
 ## Status
 
+**Decided outside: it never halts.** busycoq pull request 80 (Alex Havrilla, DeepMind) proves it and its mirror twin in Rocq; compiled here with Coq 8.20.1, no axioms. Through the mirror and A <-> D it follows the twin's family M(m, z, c, k) from M(91, 1, 2200, 2) and shows that every round keeps `k <= 5, z >= 1, m >= 33, c >= 9m, c >= 2100`: exactly the size invariant that the closed node set below was missing. What follows is this repository's own status.
+
 Open. Kernel: halting configurations, 10,000 steps, the six phase periods of `Phases*.lean` and the two of
 `Rules.lean`. Native: 10^7 steps. Trusted: no halt in 10^10 steps (`c/ev.c`), and in 1.2·10^300 steps by the exact
 accelerated simulator (Python, checked against C up to 1.6·10^10). The phase ends (which branch, what junction) are

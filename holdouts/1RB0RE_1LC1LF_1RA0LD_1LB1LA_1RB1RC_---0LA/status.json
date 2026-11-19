@@ -8,12 +8,12 @@
  "home": "../index.html",
  "source": "holdouts/1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project. An outside Rocq proof (busycoq pull request 95, compiled here) now shows that it never halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 18 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 95 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> The tape is a list of blocks of the word <code>110</code>. Its main move is an exact transfer cycle between three neighbouring blocks: <code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in 28y+111 steps, checked on all 8,397 cycles in the first 10<sup>8</sup> steps. Lean proves the shift rules inside blocks. What happens when a cycle runs out, and so the map on whole lists, is not known."
+  "<b>Before the outside proof, this repository's own work left it open.</b> The tape is a list of blocks of the word <code>110</code>. Its main move is an exact transfer cycle between three neighbouring blocks: <code>(x, y, z) &rarr; (x&minus;2, y+3, z&minus;1)</code> in 28y+111 steps, checked on all 8,397 cycles in the first 10<sup>8</sup> steps. Lean proves the shift rules inside blocks. What happens when a cycle runs out, and so the map on whole lists, is not known."
  ],
  "claims": [
   {
@@ -72,8 +72,8 @@
   },
   {
    "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known. The machine halts if F reads a 0.",
+   "title": "Does it halt from blank tape? (own work)",
+   "text": "Decided outside: busycoq pull request 95 proves in Rocq that it never halts (compiled here; see the verdict). From this repository's own work alone: not known. The machine halts if F reads a 0.",
    "where": ""
   }
  ],
@@ -84,7 +84,7 @@
   "g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0RE_1LC1LF_1RA0LD_1LB1LA_1RB1RC_---0LA 3 1000000000000000 run.ck 300    # 30 minutes"
  ],
  "explainer": {
-  "lede": "Nobody knows. The machine sweeps over a row of blocks. Crossing a block is a plain shift, but at each boundary something more complicated happens: the one-cell separator flips between 0 and 1, and the neighbouring blocks trade length in a way that is not understood yet.",
+  "lede": "It never halts. For a very long time it works on a list of blocks of <code>110</code>, trading length between neighbours in a Collatz-like way. After about 10<sup>890</sup> steps it turns into a small pattern that walks right across the blank tape forever.",
   "facts": [
    {
     "level": "trusted",
@@ -112,13 +112,26 @@
   },
   "sections": [
    {
+    "id": "proof",
+    "eyebrow": "How the proof works",
+    "heading": "A very long start, then a walker that never looks back",
+    "html": [
+     "<p>This is busycoq pull request 95 by Alex Havrilla of DeepMind, a proof in Rocq that the machine never halts from a blank tape. We compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions nonhalt</code> is empty), and its transition table is this machine. Below is how it works.</p>",
+     "<p>Write (011)<sup>18</sup> for the word <code>011</code> written 18 times. The end of the story is the shape W = <code>(011)^18 [A]1</code>: the head in state A on a 1, blank tape to its right, and anything at all to the left of the 18 words. From W the machine runs exactly 2,035 steps and is back at W, seven cells further right, having left <code>0011011</code> behind it. In those 2,035 steps it never looks further left than the 18 words, so what lies there does not matter. The same 2,035 steps therefore repeat forever, and none of them halts. (This kind of pattern is called a <em>translated cycler</em>.)</p>",
+     "<p>The hard part is getting there. From the blank tape the proof follows the run exactly: 166,268 outer macro steps, made of 48,586,387 inner loop steps and 3,152,537 other transitions, about 7.93&middot;10<sup>889</sup> machine steps in all, with blocks of up to about 2,956-bit counts of <code>110</code>. A macro step crosses a whole run of 0s, of 1s or of <code>110</code> words at once; each such rule is proved for every length.</p>",
+     "<p>To do the arithmetic inside Rocq without trusting machine integers, the file defines its own base-64 numbers (digits as an ordinary data type, numbers as lists of digits) with subtraction, halving and multiplication by 3, and proves them correct.</p>",
+     "<p>What the computer checks: the whole 166,268-step run, in one evaluation (<code>vm_cast_no_check</code>), and the 2,035 raw steps of the walker. What is proved for all sizes: the macro rules, the arithmetic, and that the walker's 2,035 steps never read the part of the tape left of the 18 words.</p>",
+     "<p>The 3-for-2 transfer cycle found on this page is part of the long start. The proof does not need a general rule for the block list; it follows this one run to the end, where the tape takes the shape W.</p>"
+    ]
+   },
+   {
     "id": "words",
     "eyebrow": "The tape",
     "heading": "Blocks of 110 and one-cell separators",
     "html": [
      "<p>At the right end the tape is <code>10 (110)^x0 0 (110)^x1 0 ... 0 (110)^3 1</code>. At the left end the same blocks are separated by a mix of 0s and 1s. Crossing the inside of a block is a plain shift by one cell (three Lean rules). The changes happen at the separators.</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>step</th><th>end</th><th>first blocks</th></tr></thead><tbody><tr><td>97,433,463</td><td>right</td><td>555, 401, 749, 316, 218, 99, 221, 70, 160, ...</td></tr><tr><td>112,083,053</td><td>left</td><td>831, 324, 517, 370, 167, 178, 41, 21, 168, ...</td></tr><tr><td>468,333,147</td><td>right</td><td>4587, 369, 679, 1056, 9, 126, 178, 65, ...</td></tr><tr><td>746,418,191</td><td>left</td><td>1226, 2184, 120, 2572, 19, 200, 243, 62, ...</td></tr><tr><td>1,539,966,585</td><td>right</td><td>1633, 4080, 1838, 305, 1874, 709, 298, ...</td></tr></tbody></table></div>",
-     "<p>Many sweeps turn back before they reach an end, so these rows are far apart. The rule that takes one row to the next is the open part.</p>"
+     "<p>Many sweeps turn back before they reach an end, so these rows are far apart. The rule that takes one row to the next is not known; the outside proof does without it by following the one run exactly.</p>"
     ]
    },
    {

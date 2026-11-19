@@ -1,6 +1,6 @@
 # 1RB0RA_0RC0LE_1LC0LD_1RA1LF_---1LD_1LD1LB
 
-bbchallenge id 65692. One of the six-state holdouts whose halting from blank tape is open. Family: **clock and word map (block grows by 2, the word is rewritten by 2^k excursions)** (with the four other clock machines of this batch).
+bbchallenge id 65692. One of the six-state holdouts whose halting from blank tape was open; it is now decided outside (it halts, see Status). Family: **clock and word map (block grows by 2, the word is rewritten by 2^k excursions)** (with the four other clock machines of this batch).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -51,7 +51,9 @@ ever halts.
 
 ## Status
 
-Open.
+**Decided outside: it halts.** Busycoq pull request 94 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 3.1×10^957 steps; compiled here with Coq 8.20.1, no axioms. The proof builds and checks a table of how a counter of `01` / `0111` tokens of width W runs down (W = 4 to 4,583), then replays the whole run in 604,910 fused macro steps, 32,833 of them table lookups, to E reading 0.
+
+**Open here** (this repository's own results).
 
 - Lean, kernel (`lean/Clock.lean`): `tick` (the clock for every k and every word, for each tick whose 2^k P-steps all come back, with the exact step count),
   `tick_left_end`; from `lean/Rules.lean` (`rule_sweep`, `rule_merge`, written by

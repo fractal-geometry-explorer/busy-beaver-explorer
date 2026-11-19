@@ -101,7 +101,9 @@ More than a day of work remains.
 
 ## Status
 
-Open. The claims with what each rests on are in `status.json` and the proof-status page.
+**Decided outside: it halts.** Busycoq pull request 89 (Alex Havrilla of DeepMind) proves in Rocq that it halts after about 4.9e601 steps; compiled here with Coq 8.20.1, no axioms. The proof writes the tape as tokens `0`, `1` and `(001)^n`, proves a depth-k tower rule covering 7^k odometer steps (first block +7^k, the blocks behind pay 2·7^i+1), a base-6 carry sweep and batched base-7 waves, and runs 40,462 such operations by `vm_compute` until E reads 1.
+
+Open here (this repository's own results). The claims with what each rests on are in `status.json` and the proof-status page.
 
 ## Deep exact run
 
