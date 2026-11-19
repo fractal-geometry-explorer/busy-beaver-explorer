@@ -84,4 +84,7 @@ engine's configuration (state, head cell and every tape cell) within `M` steps i
   1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE is T4 with E and F exchanged and D0 replaced by a three-step detour that
   ends where T4's step ends or halts. So that machine halts too: `proof/mkA.py` writes its Coq proof (lemma `detour`
   plus this run), in `holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE/coq`.
-- Starts C and D have not stopped: see the status pages of those two holdouts for the current count.
+- Start C (1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---) stops after 427,055 fast steps, on a tape of about 2^4360
+  cells, in a halting configuration. `proof/mkC.py` retargets the start-B proof to it; Coq 8.18.0 checks it in
+  about 4 hours (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/coq`).
+- Start D has not stopped: see the status page of 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB--- for the current count.
