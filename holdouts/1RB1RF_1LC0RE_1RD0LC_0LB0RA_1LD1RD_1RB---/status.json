@@ -124,6 +124,12 @@
    "where": "<code>py/cycle.py</code> (on top of <code>py/skip.py</code>, <code>py/model.py</code>)"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.37&times;10<sup>124</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 1200 seconds and reached step 1.37&times;10<sup>124</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 44 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB--- 4 1200</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Conserved differences",
    "text": "Counting blocks from the right end, per round block p loses 3<sup>p-1</sup> (the last loses 2), so the differences n<sub>p+1</sub> &minus; 3n<sub>p</sub> (p &ge; 2) do not change between merges. That is why the blocks at the right end run out together, in rare collapses (rounds 23 and 49,668 so far).",
