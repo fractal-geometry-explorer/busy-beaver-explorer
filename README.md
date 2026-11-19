@@ -31,6 +31,10 @@ Explorations of six-state Busy Beaver machines.
   just started: the halting shape (every halt comes from `E>0 1 1`) and the sweep rules in Lean, bounded runs, and
   first observations of its macro structure, walls in front of which the run from blank tape replays
   ([`README.md`](bb6-1RB1RF_1LC0LB/README.md), [`notes/LAB_NOTES.md`](bb6-1RB1RF_1LC0LB/notes/LAB_NOTES.md)).
+- [`bb6-vampire-family/`](bb6-vampire-family/): seven holdouts that are one core table with F0 varied (the family
+  studied in Thomas Reus's vampire-family repository): proved in Lean that each machine halts iff an explicit map on
+  (context, n) reaches a halting entry, and 2^18 passes of that map without a halt
+  ([`README.md`](bb6-vampire-family/README.md)).
 - [`holdouts/`](holdouts/): every other machine of bbchallenge's list of 608 BB(6) holdouts (30 October 2026), one
   folder each: a first bounded run (10^9 steps) sorted by the growth shape of each side of the tape, the machine in
   Lean with its halting configurations and bounded runs from blank tape, and an explainer page; the map of all 608 is
@@ -57,7 +61,8 @@ cd bb6-holdout/lean && ./check.sh      # all 21 files, under a minute
 
 The shared library and the other machines: `tools/lean/check.sh`, `bb6-1RB1RA_1RC1LB/lean/check.sh`,
 `bb6-1RB1RA_1LC1LD/lean/check.sh`, `bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/lean/check.sh`,
-`bb6-1RB0LF_1RC0LB/lean/check.sh` and `bb6-1RB1RF_1LC0LB/lean/check.sh`;
+`bb6-1RB0LF_1RC0LB/lean/check.sh`, `bb6-1RB1RF_1LC0LB/lean/check.sh` and
+`bb6-vampire-family/lean/check.sh`;
 `python3 tools/tests/test_tools.py` tests every tool (CI runs it on each pull request, `.github/workflows/tests.yml`).
 
 The two loop theorems in `bb6-holdout/lean/thm/` take 13 and 40 minutes; see `bb6-holdout/README.md`.
