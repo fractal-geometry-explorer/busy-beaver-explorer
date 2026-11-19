@@ -71,6 +71,17 @@ start, 44,238 right), 33,523 ones.
 . /etc/profile.d/lean.sh && holdouts/1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---/lean/check.sh
 ```
 
+## Vampire family
+
+This machine is one of seven holdouts that are one core table with F0 varied
+([`bb6-vampire-family/README.md`](../../bb6-vampire-family/README.md)): renamed, it is the core with F0 = 1LA
+started in state A. **Proved in Lean** ([`bb6-vampire-family/lean/Machines/H160156.lean`](../../bb6-vampire-family/lean/Machines/H160156.lean)):
+the machine halts from blank tape iff the explicit map `VLA.oiter` on (context, n) reaches a halting table entry
+(`halts_of_check`, `not_halts_of_forall`); the first 2^18 passes of that map do not halt (`native_decide`), so the
+machine runs more than 10^45000 steps. Thomas Reus's
+[vampire-family repository](https://github.com/thomasreus-bb/bb6-vampire-family-1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---)
+reports a halt of its orbit O3 near 10^12 passes, found by computation; that is not reproduced or proved here.
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines
