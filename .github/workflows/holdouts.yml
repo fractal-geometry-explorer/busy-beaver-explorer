@@ -1,5 +1,6 @@
 # The batch of holdouts in holdouts/: on a pull request, the Lean files of every machine folder it touches and the
-# page check; by hand (workflow_dispatch), every folder, in four shards (about 11 s a machine).
+# page check; weekly (Sunday 09:00 UTC) and by hand (workflow_dispatch), every folder, in four shards (about 11 s a
+# machine), so that a change to the shared library that breaks an untouched folder is found within a week.
 name: Holdouts
 
 on:
@@ -10,6 +11,8 @@ on:
       - "tools/**"
       - ".github/workflows/holdouts.yml"
   workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 0"
 
 # A newer push to the same branch or pull request replaces the run in progress.
 concurrency:
@@ -41,7 +44,7 @@ jobs:
           while read d; do if [ -x "holdouts/$d/lean/check.sh" ]; then "holdouts/$d/lean/check.sh"; fi; done < dirs.txt
 
   all:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     strategy:
@@ -54,4 +57,7 @@ jobs:
       - name: Lean of every fourth machine folder
         run: |
           . /etc/profile.d/lean.sh
-          ls -d holdouts/*/lean | sort | awk 'NR % 4 == ${{ matrix.shard }}' | while read d; do "$d/check.sh"; done
+          ls -d holdouts/*/lean | sort | awk 'NR % 4 == ${{ matrix.shard }}' > dirs.txt
+          : > failed.txt
+          while read d; do "$d/check.sh" || echo "$d" >> failed.txt; done < dirs.txt
+          if [ -s failed.txt ]; then echo "Lean failed in:"; cat failed.txt; exit 1; fi
