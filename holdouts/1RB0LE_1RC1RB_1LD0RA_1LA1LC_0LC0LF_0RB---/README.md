@@ -1,6 +1,8 @@
 # 1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---
 
-bbchallenge id 67137. One of the six-state holdouts whose halting from blank tape is open. Siblings with the same
+bbchallenge id 67137. One of the six-state holdouts of the BB(6) search. **It halts from blank tape, proved in Coq**
+([`coq/`](coq/README.md)): it is the T4 table started in state D, and DeepMind's busycoq PR 93 engine changed for T4
+reaches a halt after 688,228 engine steps (see below). Siblings with the same
 mechanism: `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC1LF_0RA---` and `1RB0LE_1RC1RB_1LD0RE_1LA1LC_1RB0LF_0LC---` (those two
 have identical tapes at every sample).
 
@@ -78,7 +80,7 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 
 This machine is the table `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---` started in state D, with its states renamed. That table differs in F0 alone from the table of 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---, which DeepMind proved halts in busycoq PR 93 with a fast engine over macro words. Four of the engine's rules pass through F0; here each ends in state B (source naming) with `11` more on the right, where DeepMind's ends in state C. The four rules are proved in Lean for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---, the same table started in state C (`holdouts/1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---/lean/T4Rules.lean`).
 
-`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. It then ran 278,632 engine steps from blank tape, to a tape of about 2^2773 written cells, with no halt and no configuration outside its rules. This is evidence, not a proof: only the four basic rules are proved, and the patched engine is checked by simulation. The same table started in state B (1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---) and in state C (1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---) halts, proved in Coq this way.
+`tools/coq/t4engine` patches the engine for this, extracts it to OCaml and runs it. It agrees with direct simulation through 3·10¹⁰ steps. From blank tape it stops after 688,228 engine steps, on a tape of about 2^6326 cells, with the head in state F on a 1: **the machine halts.** The Coq proof of the same table started in state B (1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---) needs only the table, the state map, the start and a longer final run changed (`tools/coq/t4engine/proof/mkD.py`). So this is a Coq theorem, `halt : halts tm c0` on busycoq's definitions with no axioms: see [`coq/`](coq/README.md) (Coq 8.18.0, about 12 hours). Started in state C (1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---) the table halts too.
 
 ## Pages
 
