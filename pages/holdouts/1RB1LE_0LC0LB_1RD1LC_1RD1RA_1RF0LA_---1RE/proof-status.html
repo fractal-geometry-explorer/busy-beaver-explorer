@@ -175,6 +175,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From blank tape the run reaches X(1, 1) after 24 steps. Iterating the macro rules exactly (Python big integers): epochs X(2, m) start with m = 6 (step 68), 41 (step 698), 16,169 (step 78,482,217), and the third epoch ends after 6,456 macro steps at m = 2 with k even (1,138 digits), so a fourth epoch starts with m = 3k + 5, a 1,139-digit number. The first epochs agree with the C simulator's records (k = 2, 6, 12, 21, 35, …; m = 16,169 at step 78,482,217).</p>
         <p class="where"><code>py/macro.py epochs</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 8.95&times;10<sup>96812</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 2 cells, from blank tape for 600 seconds and reached step 8.95&times;10<sup>96812</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 4 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE 2 600</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

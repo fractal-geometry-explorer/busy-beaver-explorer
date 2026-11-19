@@ -175,6 +175,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From blank tape the run reaches X(4, 5) after 50 steps; epochs start with m = 5, 57 (step 2,619) and 210,273,201. The third epoch was run exactly with a divide-and-conquer parity iteration (the parities of t steps of y ↦ ⌈3y/2⌉ depend only on y mod 2<sup>t</sup>; blocks are combined with powers of 3, GMP through gmpy2): it ends after 140,180,848 macro steps at m = 1 with n ≡ 2 (mod 4), so a fourth epoch starts with m = 3n/2 + 6, a number of 82,000,544 bits (about 24,684,623 digits; m mod 2<sup>64</sup> = 15369781771884450229). Two runs with different block sizes agree; the fast iteration agrees with plain big-integer iteration on epochs with m up to 10<sup>5</sup>.</p>
         <p class="where"><code>py/macro.py epochs</code>, <code>py/epoch.py 210273201 22</code>, <code>py/fastwalk.py</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 5.13&times;10<sup>17</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 600 seconds and reached step 5.13&times;10<sup>17</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 1 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC 6 600</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

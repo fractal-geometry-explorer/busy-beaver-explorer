@@ -83,6 +83,12 @@
    "where": "<code>py/accel.py</code>, <code>c/tapehash.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 7.80&times;10<sup>236</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 601 seconds and reached step 7.80&times;10<sup>236</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 19 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 4 601</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. A halt needs <code>1 A&gt; 1</code>; the counter passes never produce it, so it would have to come from a block running out or from the re-encoding at a round end, which are not derived yet.",

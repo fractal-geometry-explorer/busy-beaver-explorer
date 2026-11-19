@@ -64,6 +64,12 @@
    "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- 6 14600000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.90&times;10<sup>49318</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 5.90&times;10<sup>49318</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 14 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB--- 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "kernel",
    "title": "The marker zig-zag",
    "text": "Between passes the head bounces between the marker (a single 0 in a run of 1s) and the right end. Two bounces take <code>L 0 (111)^(m+2) B&gt;1 0^&infin;</code> to <code>L 1^8 0 (111)^m B&gt;1 0^&infin;</code>; by induction <code>2j</code> bounces take gap <code>3(m+2j)</code> to <code>3m</code>, leaving <code>1^(8j)</code> behind the marker, for every m, j and every tape L. With the first bounce after a launch at gap &equiv; 1 (mod 3), and the launches from the left end with no marker (width &equiv; 0 or 2), a pass from gap <code>3(e+2j+1)+1</code> reaches gap <code>3e</code> with the tape <code>2j</code> cells wider.",

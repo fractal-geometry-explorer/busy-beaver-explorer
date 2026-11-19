@@ -87,6 +87,12 @@
    "added": true
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.60&times;10<sup>96453</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 2 cells, from blank tape for 600 seconds and reached step 3.60&times;10<sup>96453</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF 2 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "It probably halts, unimaginably late",
    "text": "Epoch 3 makes 114,817,814,715,807 phases, so c<sub>4</sub> = 2x+4+2u has about 2&middot;10<sup>13</sup> digits and c<sub>4</sub> mod 4 = 2(x+u) mod 4. If x+u is odd, epoch 4 ends with r = 2: a halt. If it is even, epoch 4 halts unless its own last u is 3. With the parities behaving like coin flips, the halt comes at the end of epoch 4 with probability 3/4, and eventually with probability 1 (r = 3 is always followed by r = 0 or 2, and r = 2 always halts). Computing the parity needs about 10<sup>27</sup> bit operations at the very least.",

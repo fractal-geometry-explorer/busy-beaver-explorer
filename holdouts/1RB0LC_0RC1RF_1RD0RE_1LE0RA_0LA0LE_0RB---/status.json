@@ -126,6 +126,12 @@
    "where": "<code>compare.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.82&times;10<sup>250</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 600 seconds and reached step 6.82&times;10<sup>250</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 17 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LC_0RC1RF_1RD0RE_1LE0RA_0LA0LE_0RB--- 4 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Halting needs two merges close together",
    "text": "39 of 2,000 random short tapes of the same shape halt within 20,000 steps, while separated merges never halt. Whether the drifting counter ever brings two merges together is a question about its arithmetic that nothing here settles.",

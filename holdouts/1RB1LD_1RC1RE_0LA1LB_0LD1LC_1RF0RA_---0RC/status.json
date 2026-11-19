@@ -76,6 +76,12 @@
    "where": "<code>py/orbit.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.07&times;10<sup>35558</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 600 seconds and reached step 6.07&times;10<sup>35558</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 7 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC 6 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probviously nonhalting",
    "text": "If the residues of m mod 3 behave like independent uniform digits, k is a walk with steps +1 (probability 2/3) and &minus;1 (1/3): from a value k it ever returns to 0 with probability 2<sup>&minus;k</sup>, and then halts only on residue 2. With k in the hundreds of thousands, the chance is nil; the same argument as for Antihydra.",

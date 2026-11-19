@@ -58,6 +58,12 @@
    "where": "<code>holdouts/1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC/c/rvis.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.01&times;10<sup>14</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 3.01&times;10<sup>14</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3000 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Next event about 2<sup>2400</sup> sweeps away",
    "text": "The near zone eats about 7 cells of reservoir per doubling of the number of sweeps; the reservoir has about 16,600 cells.",

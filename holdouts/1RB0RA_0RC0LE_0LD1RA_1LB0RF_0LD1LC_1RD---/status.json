@@ -58,6 +58,12 @@
    "where": "<code>py/check_increments.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 3.14&times;10<sup>134</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 602 seconds and reached step 3.14&times;10<sup>134</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- 4 602 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A second region of <code>1100</code>s",
    "text": "Beyond the counter the machine builds runs of <code>1100</code> at the right end (half the tape at step 2·10<sup>9</sup>) and later turns them back into reservoir <code>10</code>s. Higher separators such as <code>1101</code>, <code>0101</code>, <code>000</code> appear between long blocks.",

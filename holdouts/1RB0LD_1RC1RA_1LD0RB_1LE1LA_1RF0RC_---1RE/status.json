@@ -70,6 +70,12 @@
    "where": "<code>python3 tools/py/bbtools/rleaccel.py 1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE 4 4180000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.90&times;10<sup>79981</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 2 cells, from blank tape for 600 seconds and reached step 1.90&times;10<sup>79981</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 2 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE 2 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probably halts, unimaginably late",
    "text": "If the parity of K at the end of each epoch behaves like a fair coin, the machine halts at the end of epoch 4 with probability 1/2, of epoch 5 with probability 1/4, and so on: it halts with probability 1, but no one can compute when, nor prove it.",

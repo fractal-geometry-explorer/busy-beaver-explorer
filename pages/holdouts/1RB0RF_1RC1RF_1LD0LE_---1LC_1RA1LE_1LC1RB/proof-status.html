@@ -200,6 +200,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The sequence followed for 1,000,000,000 terms by the fast 2-adic algorithm (the low digits run alone, by the shift identity of <code>tools/doucette/lean/Shift.lean</code>; every possible halt checked by the exact map). The last term has 401,524,403 bits; the largest valuation is 32, first at term 161,127,945. The counts of each valuation fit the geometric law of random digits.</p>
         <p class="where"><code>tools/doucette/djump.py M14 1000000000</code>, <code>tools/doucette/results/run_M14.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 3.60&times;10<sup>40933</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 2 cells, from blank tape for 600 seconds and reached step 3.60&times;10<sup>40933</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 22 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB 2 600 mirror</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

@@ -89,6 +89,12 @@
    "where": "<code>compare.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 8.79&times;10<sup>236</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 602 seconds and reached step 8.79&times;10<sup>236</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 18 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD--- 4 602 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "No halting configuration known",
    "text": "None of 2,000 random short tapes of the same shape halts within 20,000 steps, and no merge of separated markers halts. Here F is entered on the detour of every regular E1 step and has read a 0 every time; nothing here shows a tape on which it would read a 1, nor that none is ever reached.",

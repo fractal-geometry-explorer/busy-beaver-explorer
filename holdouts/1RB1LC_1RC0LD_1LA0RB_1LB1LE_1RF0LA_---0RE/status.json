@@ -88,6 +88,12 @@
    "where": "<code>py/orbit.py 1000000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.81&times;10<sup>1386</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 600 seconds and reached step 1.81&times;10<sup>1386</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE 6 600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probviously nonhalting",
    "text": "m is spread over a range of about 10&middot;2<sup>j</sup> values (even ones only), and its residues mod small numbers look uniform along the orbit, so round i halts with chance about 1/(5&middot;2<sup>j</sup>); j grows by about 0.67 per round. After the rounds already checked (j is then about 667,000), the total chance of a halt is below 10<sup>&minus;200000</sup>.",

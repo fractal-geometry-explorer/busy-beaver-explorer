@@ -58,6 +58,12 @@
    "where": "<code>edges</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 4.05&times;10<sup>24454</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 3 cells, from blank tape for 600 seconds and reached step 4.05&times;10<sup>24454</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 16 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA--- 3 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Why it is hard",
    "text": "The gaps between full sweeps grow faster than geometrically: 25,912, then 827,042, then about 10<sup>9</sup>. This is the mark of nested counters, where each region of the tape is used up one unit at a time by the region to its left. To decode it, one has to find the counting rule at each kind of boundary, and there are several kinds.",

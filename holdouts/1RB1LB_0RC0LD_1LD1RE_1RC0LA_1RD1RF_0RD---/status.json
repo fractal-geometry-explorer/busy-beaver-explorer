@@ -58,6 +58,12 @@
    "where": "<code>python3 -m bbtools.cycles M 3 1e40</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.64&times;10<sup>49357</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 5.64&times;10<sup>49357</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 16 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LB_0RC0LD_1LD1RE_1RC0LA_1RD1RF_0RD--- 6 600 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The 4/3 map",
    "text": "The number of cycles per regime goes 3, 7, 12, 17, 25, 36, 49, 67, 89, 117, 159, 218, 290, 385, 511, …, 4498, 6003, 8005, 10672, 14230, 18972, 25273, 33701, 44967: each about 4/3 of the last, with an offset of a few units that depends on the remainder mod 3 and on the word at the left end.",
