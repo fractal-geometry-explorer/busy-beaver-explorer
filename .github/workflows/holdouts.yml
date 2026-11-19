@@ -38,7 +38,7 @@ jobs:
           git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- holdouts \
             | awk -F/ 'NF > 2 {print $2}' | sort -u | head -40 > dirs.txt
           cat dirs.txt
-          while read d; do [ -x "holdouts/$d/lean/check.sh" ] && "holdouts/$d/lean/check.sh"; done < dirs.txt
+          while read d; do if [ -x "holdouts/$d/lean/check.sh" ]; then "holdouts/$d/lean/check.sh"; fi; done < dirs.txt
 
   all:
     if: github.event_name == 'workflow_dispatch'
