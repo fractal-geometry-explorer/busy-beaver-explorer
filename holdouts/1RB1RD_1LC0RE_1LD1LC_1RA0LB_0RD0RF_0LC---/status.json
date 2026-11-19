@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 100 (valu42, 2026-11-18) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It reuses this repository's Coq port of DeepMind's PR 93 engine (built for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---), started from a renamed state, and runs it to the halt. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>It halts</b>, proved in Coq (theorem <code>halt : halts tm c0</code> on busycoq's definitions, no axioms). Mirrored and with its states renamed, its table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state C, one transition away from the table DeepMind proved halting in busycoq PR 93. DeepMind's fast engine, changed for that transition as for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (the same table started in B), reaches a halting configuration from state C after 427,055 engine steps, on a tape of about 2<sup>4360</sup> cells.",
   "<b>What it does.</b> Before the halt the machine runs a layered counter: a growing prefix <code>(110)^k</code> is turned, at each reset, into runs of groups of sizes 4, 7, 10, 13, … with large multiplicities, which the following sweeps use up. That description comes from simulation; the halt does not depend on it."
  ],
@@ -193,7 +194,7 @@
    }
   ]
  },
- "summary": "Halts, proved in Coq: it is the T4 table started in C, and DeepMind's PR 93 engine changed for T4 reaches a halt after 427,055 engine steps (tape about 2^4360 cells). Before that it runs a layered counter: a growing (110)^k prefix is turned at each reset into runs of groups of sizes 4, 7, 10, 13, …, which the sweeps use up (observed).",
+ "summary": "Halts, proved in Coq: it is the T4 table started in C, and DeepMind's PR 93 engine changed for T4 reaches a halt after 427,055 engine steps (tape about 2^4360 cells). Before that it runs a layered counter: a growing (110)^k prefix is turned at each reset into runs of groups of sizes 4, 7, 10, 13, …, which the sweeps use up (observed). Decided outside: busycoq PR 100 proves in Rocq that it halts (compiled here).",
  "decision": "halts",
- "decision_level": "coq"
+ "decision_level": "outside"
 }
