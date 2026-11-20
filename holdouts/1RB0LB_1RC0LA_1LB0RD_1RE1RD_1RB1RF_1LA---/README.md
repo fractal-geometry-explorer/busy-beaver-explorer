@@ -13,7 +13,7 @@ bbchallenge id 104106. One of the six-state holdouts whose halting from blank ta
 
 **Family:** Nested ternary counter with an exact regime law (segments drained by 3^j per event).
 
-A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact model of the whole tape (16 November 2026) follows the run through that collapse and through the middle collapse at 2.06x10^35 steps, and a lean accelerator (17 November) on through a middle collapse at 2.58x10^54 and the collapse of the third regime's oldest segment at 2.8x10^54 to 3.0x10^54, and (18 November) through the end counter running out at 4.8x10^54 and about 53 more middle collapses, without a halt, to 2.2x10^103 steps.
+A nested ternary counter: the tape is a list of segments of 111-blocks; an exact three-step law drains the oldest segment by 9 per generation until it runs out at P_14 (step 2.5x10^18). An exact model of the whole tape (16 November 2026) follows the run through that collapse and through the middle collapse at 2.06x10^35 steps, and a lean accelerator (17 November) on through a middle collapse at 2.58x10^54 and the collapse of the third regime's oldest segment at 2.8x10^54 to 3.0x10^54, and (18 November) through the end counter running out at 4.8x10^54 and about 87 more middle collapses, without a halt, to 6.1x10^135 steps.
 
 ## Equivalence
 
@@ -366,10 +366,10 @@ Reproduce (each run checkpoints after every jump and can be resumed from its che
 far end and the bottom of the tape). `data/b1_lean_last.txt` and `data/b2_lean_last.txt` hold the last state (sweeps,
 steps, digit list) of each run.
 
-## Cycle reuse, and a regular run of collapses to 2.2x10^103 (18 and 19 November 2026)
+## Cycle reuse, and a regular run of collapses to 6.1x10^135 (18 to 20 November 2026)
 
-Result: **both machines run on from 3.09x10^54 to 2.2x10^103 steps without halting**, through the end counter
-running out (b2) or merging (b1) at 4.8x10^54 and about 53 more middle collapses. Halting is still open.
+Result: **both machines run on from 3.09x10^54 to 6.1x10^135 steps without halting**, through the end counter
+running out (b2) or merging (b1) at 4.8x10^54 and about 87 more middle collapses. Halting is still open.
 
 **Faster jumps.** Each generation used to cost about 30 minutes, mostly spent learning the same period of S again
 after the carry that leaves the counter. `py/lean.py` now keeps each learned period with, for every phase, the hash of
@@ -394,11 +394,47 @@ What the runs show:
    middle segment runs out, and the low end starts again: first the 14,976-sweep period, then one of about 4.3 to
    5.1 million sweeps. The oldest segment loses 2 blocks, the next ones 9, 27, 81, ..., and the step count grows
    about 9-fold per cycle: 5.14x10^55, 3.95x10^56, 3.47x10^57, 3.12x10^58, 2.80x10^59, 2.52x10^60, 2.27x10^61,
-   2.04x10^62, 1.84x10^63, 2.2x10^103, and on in the same way to 2.2x10^103.
-3. **Where the runs stand.** At 2.2x10^103 steps the far end is `[0]b2_3 [309]T ...` (b1) and `[0]b2_3 [186]T ...`
-   (b2). The two machines' step counts agree in all but the last few of their 104 digits. If the pattern holds, b2's oldest segment runs out
-   after about 93 more cycles, near 10^192 steps, and b1's near 10^251. That is a fit, not a proof. The
+   2.04x10^62, 1.84x10^63, 6.1x10^135, and on in the same way to 6.1x10^135.
+3. **Where the runs stand.** At 6.1x10^135 steps the far end is `[0]b2_3 [241]T ...` (b1) and `[0]b2_3 [118]T ...`
+   (b2). The two machines' step counts agree in all but the last few of their 136 digits. If the pattern holds, b2's oldest segment runs out
+   after about 59 more cycles, near 10^192 steps, and for b1 its second segment (999 blocks at 3.3x10^120, 9 fewer per cycle) runs out first, near 10^228 (an earlier version said 10^251 from its oldest segment). These are fits, not proofs; see the next section for what those collapses do. The
    `data/b1_lean2.log` and `data/b2_lean2.log` files log these runs, and `data/b?_lean_last.txt` holds the last states.
+
+## The exact cycle law, and the next collapses tried ahead of time (20 November 2026)
+
+**The law.** Read the tape at the same point of each cycle (far end `[0]b2_3`). Then from one cycle to the next,
+digit 1 (the oldest segment) loses exactly 2 blocks and digit j loses exactly 3^j, for j = 2, 3, ... and for every T
+digit of the top part, more than 100 digits. The step count grows by a factor that tends to 9 (8.9996 to 9.0003 over
+the last cycles), and one digit is born at the bottom per cycle. This is exact on every one of the 71 cycles logged
+for b2 from 1.1x10^55 to 3.0x10^121 (`data/b2_lean2.log`, state lines in the project folder). The part below the top
+is a ternary counter with digits of up to 10^67 blocks over a 4-digit gadget, and these do not repeat from cycle to
+cycle.
+
+**Which digit runs out first.** Digit j lasts about a_j / 3^j more cycles (a_1 / 2 for the oldest). For b2 the
+oldest segment goes first (148 blocks at 3.0x10^121, so after 74 cycles, near 10^192). For b1 it is the second
+segment (999 blocks at 3.3x10^120, so after 111 cycles, near 10^228), before its oldest one (269).
+
+**Both collapses tried now.** A digit's run only enters the far end's sweeps as a number. So the collapse can be tried
+ahead of time: take today's tape, set that digit to the value it will have when it runs out, and run on with the
+same exact code. It is exact for that tape, and a forecast for the real one, which by then has more digits at the
+bottom. `py/probe.py` did this (logs in `data/probes/`):
+
+* **b2, oldest segment set to 0** (it reaches 0 at the `[0]b2_3` phase, since 148 is even). The empty digit is
+  absorbed (`[1]Z`, then `[999]Z [5235]Z ...`). The next segment (1008 blocks) becomes the oldest. After one
+  irregular stretch (no period for 3.4 million sweeps) the usual 5-carry cycle of the far end resumes:
+  `[999]Z -> O -> T -> [0]b1_1 [998]T -> [0]b2_3 [996]T`. No halt. On the law above, the next collapse after that
+  comes about 498 cycles later, near 10^660.
+* **b1, second segment set to 0** (999 = 9 x 111, so it reaches 0 at the same phase). The empty digit counts Z, O,
+  T and merges into the oldest segment (`[260]b1_1`, then `[259]b1_2 [0]b2_3 [5099]T ...`). The far end then goes
+  through `[258]b1_6`, `[258]b1_2 [0]b1_1` and `[258]b1_1 [0]b2_3`, the same end-counter shapes as at 3.09x10^54. No
+  halt.
+
+So neither of the next collapses looks like a halting point. Each one hands over to a pattern that is already known.
+
+**Toward a proof.** The cycle law and these collapses suggest the run is self-similar, but a proof is far off. A
+proof needs a set of tape shapes, closed under every sweep, that covers the irregular bottom counter and every kind of
+collapse. The digit model's symbolic rules don't give that set directly: rules for sweeps that reach the far end are
+keyed by the whole tape. A run from 9.3x10^131 derived 304 rules and kept adding a few per cycle.
 
 ## What is proved, and how firmly
 
@@ -420,7 +456,8 @@ What the runs show:
 | trusted | **No halt in the first 8.2x10^51 steps, through the middle collapse.** The whole-tape run reproduces the law events, the first collapse and the msim records (`py/farcheck.py`); the middle collapse comes at 2.060x10^35 steps (two segments merge, then a third regime of the same kind). | `py/tacc.py run`, `py/farcheck.py b1` |
 | kernel | **8 sweeps of the digit model, for all run lengths.** The 8 most used sweeps of the direct run to 2x10^6 steps, proved for all lengths of the long runs. | `lean/Digits.lean`, generated by `py/digits_lean.py b1` |
 | trusted | **No halt in the first 3.09x10^54 steps, through the middle collapse at 2.58x10^54 and the oldest-segment collapse at 2.8x10^54 to 3.0x10^54.** The lean accelerator (closed-form jumps over periods of the low system, every other sweep exact) reproduces all 206 logged states of the counter-macro run to 8.2x10^51 steps, step counts included, and its jumps equal plain sweeps wherever compared. | `py/lean.py run`, `py/lean.py verify`, `py/lean.py test`; `data/b1_lean.log` |
-| trusted | **No halt in the first 2.2x10^103 steps, through the end counter merging at 4.8x10^54 and about 53 more middle collapses.** The lean accelerator with cycle reuse reproduces every logged state of the counter-macro run and of the slower lean runs, step counts included; each middle collapse takes 2 blocks from the oldest segment (309 left) and multiplies the step count by about 9. | `py/lean.py run`, `py/lean.py verify`, `data/b1_lean2.log` |
+| trusted | **No halt in the first 6.1x10^135 steps, through the end counter merging at 4.8x10^54 and about 87 more middle collapses.** The lean accelerator with cycle reuse reproduces every logged state of the counter-macro run and of the slower lean runs, step counts included; each middle collapse takes 2 blocks from the oldest segment (241 left) and multiplies the step count by about 9. | `py/lean.py run`, `py/lean.py verify`, `data/b1_lean2.log` |
+| heuristic | **The next collapses do not halt (tried ahead of time).** On today's tape with the digit that runs out first set to 0 (b2: the oldest segment, due near 10^192; b1: the second segment, due near 10^228), the exact run passes the collapse without a halt and returns to known patterns. The real tape will have more bottom digits by then. | `py/probe.py`, `data/probes/` |
 | open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts). The law never produces it, and neither did the first collapse, the middle collapses at 2.06x10^35 and 2.58x10^54, or the oldest-segment collapse at 2.8x10^54 to 3.0x10^54 (exact runs). The next oldest segment holds 293 blocks; the run goes on from 3.09x10^54 steps. |  |
 
 ## Lean
