@@ -83,13 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 14 November 2026.</p>
+    <p class="asof">Status as of 20 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> This machine is the mirror image of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD with its states renamed, started in another state (an exact comparison of the two tables). The two runs stay in step: the same irregular word W next to a run of 1s that counts the visits, this machine's run one cell shorter.</p>
-      <p>It halts only if W eats the whole run between two visits. An exact simulation that keeps the run as a number followed it for 3&middot;10<sup>7</sup> visits (8.6&middot;10<sup>14</sup> steps): the run gains 0.96 cells a visit and W never eats more than 14 cells at once. A halt is extremely unlikely, but W's behaviour is not understood, so there is no proof.</p>
+      <p>It halts only if W eats the whole run between two visits (a Lean theorem). An exact simulation that keeps the run as a number followed it for 3&middot;10<sup>9</sup> visits (8.6&middot;10<sup>18</sup> steps): the run gains 0.96 cells a visit and W never eats more than 18 cells at once. W behaves like a small chaotic engine with exponential tails, so a halt is extremely unlikely, but there is no proof.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -127,6 +127,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For every length n of the run and any tape around it: <code>L A&gt; 1^n R</code> reaches <code>L 1^n A&gt; R</code>; <code>L 1^n D&gt; 1 R</code> reaches <code>L D&gt; 1 1^n R</code>. These are the moves the head makes across the long uniform stretches of the tape.</p>
         <p class="where"><code>lean/Shifts.lean</code> (written by <code>bbtools.symtm.prove</code>)</p>
       </div>
+      <div class="card">
+        <h3>A halt needs blank tape left of the head</h3>
+        <p>A closed tape language from windows of 3 cells covers the run from blank tape; in it the halting transition C0 can fire only with blank tape left of the head. So the machine halts from blank tape iff C reads a 0 with nothing but blank tape on its left, that is, iff W eats the whole run of 1s.</p>
+        <p class="where"><code>halts_iff_left_edge</code>, <code>lean/Edge.lean</code> (certificate <code>lean/EdgeCert.lean</code> from <code>bbtools.ctl</code>; library lemma <code>TM.CTL.halt_left_blank</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -154,9 +159,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/runsim.c</code></p>
       </div>
       <div class="card">
-        <h3>A halt needs blank tape left of the head</h3>
-        <p>The closed tape language from windows of 3 cells covers the run from blank tape and allows the halting transition C0 only with blank tape left of the head: the machine halts only if W eats the whole run. (Computed; for the sibling the mirrored statement is a Lean theorem.)</p>
-        <p class="where"><code>python3 -m bbtools.ctl 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 3</code></p>
+        <h3>No halt in 3&middot;10<sup>9</sup> visits</h3>
+        <p>The same exact run with W kept in a ring buffer (only the cells near the run are read again) went 3&middot;10<sup>9</sup> visits = 8.6&middot;10<sup>18</sup> steps without a halt. It agrees with <code>c/runsim.c</code> on every line both print.</p>
+        <p class="where"><code>c/wstats.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A chaotic engine with exponential tails</h3>
+        <p>An excursion reads only the cells of W next to the run, with an exponential tail in depth (each further 128 cells about 4.7 times rarer); the deepest grows like the logarithm of the visits (1,582 cells by 3&middot;10<sup>9</sup> visits). The 160 cells next to the run never repeat in 2&middot;10<sup>6</sup> visits, and the frozen trail W leaves behind has about half a bit of entropy per cell. Cells eaten per excursion have an exponential tail too (record 18 by 3&middot;10<sup>9</sup> visits).</p>
+        <p class="where"><code>c/wstats.c</code>, <code>c/winrepeat.c</code>, README (third look)</p>
       </div>
       <div class="card">
         <h3>No halt in the first 3.33&times;10<sup>11</sup> steps (region-memo accelerator)</h3>
@@ -173,7 +183,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card">
         <h3>It almost certainly never halts</h3>
-        <p>W eats at most 14 cells of the run in one visit in 3&middot;10<sup>7</sup> visits, with a geometric tail, while the run gains 0.96 cells a visit: a halt at visit v needs about v cells eaten at once.</p>
+        <p>A halt at visit v needs one excursion to eat about 0.96&middot;v cells; the number eaten has an exponential tail (record 18 cells in 3&middot;10<sup>9</sup> visits), so the chance is of the order 10<sup>-v/2</sup>.</p>
         <p class="where">README, the sibling's README</p>
       </div>
     </div>
@@ -181,7 +191,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. W's dynamics are irregular and not decoded; a proof needs a bound on what W can eat between two visits.</p>
+        <p>Not known. W behaves as a chaotic engine (positive entropy, no period); a proof needs a bound on what one excursion can eat that holds for every W the machine can make.</p>
         <p class="where">README</p>
       </div>
     </div>

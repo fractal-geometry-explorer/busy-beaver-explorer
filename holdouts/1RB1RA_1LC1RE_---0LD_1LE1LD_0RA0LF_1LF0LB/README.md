@@ -30,7 +30,7 @@ Everything in the sibling's README about W and the run holds here, mirrored: the
 the left, D climbs the run (N steps, Lean `cross_ones_left`), adds a 1 at its end (D0 -> 1LE, E0 -> 0RA) and A
 comes back (`cross_ones_right`); W eats the run from its foot. The halting transition C0 is the sibling's E0; the
 closed tape language of windows of 3 cells (`python3 -m bbtools.ctl 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 3`) allows it only with blank tape left
-of the head: **it halts iff W eats the whole run between two visits.** In 3·10^7 visits (8.6·10^14 steps) W eats at
+of the head (in Lean: `halts_iff_left_edge`, `lean/Edge.lean`): **it halts iff W eats the whole run between two visits.** In 3·10^7 visits (8.6·10^14 steps) W eats at
 most 14 cells in a visit (none in 68% of the visits, geometric tail), the run gains 0.961 cells a visit and the
 head never goes more than 1,202 cells into W: it almost certainly never halts, and a proof for one machine is a
 proof for the other except for the one cell of difference.
@@ -43,20 +43,63 @@ Open.
 
 * **Kernel**: the halting configurations and 10^4 steps (`lean/Blank.lean`; 10^7 by `native_decide`), the two
   crossings of the block of 1s for every length (`lean/Shifts.lean`).
+* **Kernel**: `lean/Edge.lean`, `halts_iff_left_edge`: the machine halts from blank tape iff C reads a 0 with only
+  blank tape on its left (closed tape language of 3-cell windows, `lean/EdgeCert.lean`, and the library lemma
+  `TM.CTL.halt_left_blank`). Since the tape is `0^inf 1^N W`, that is: iff W eats the whole run.
 * **Exact (script)**: the tables of the two machines are mirror images up to the renaming (`py/sibling.py`).
 * **Trusted**: the two runs stay in step (same W, run one shorter) at 3·10^7 visits; no halt in 3·10^7 visits =
-  864,573,434,721,961 steps (`c/runsim.c`, the run as a number, agrees with its cell-by-cell mode); the closed
-  tape language of 3-cell windows allows a halt only with blank tape left of the head (`bbtools.ctl`, not in Lean:
-  the shared library has the statement for the right edge only).
+  864,573,434,721,961 steps (`c/runsim.c`, the run as a number, agrees with its cell-by-cell mode).
+* **Trusted**: no halt in 3,000,000,000 visits = 8,645,095,534,069,998,883 steps (run 2,881,805,589, W 118,194,755 cells) (`c/wstats.c` 3000000000 100000000, about two hours: the same exact run with W in a ring
+  buffer; agrees with `c/runsim.c` on every line it prints).
 * **Heuristic**: it never halts.
 * **Open**: W's dynamics, and so whether W ever eats the whole run.
 
 ## Next steps
 
 * The same as for the sibling: a bound on what W can eat in one excursion (see its README).
+* A rigid description of the chaotic engine next to the run, or a bound on what one excursion can eat for every
+  reachable W (see the third look below).
 * In Lean: the mirror-and-rename conjugacy between the two machines is a finite check of the tables plus a
   general lemma about reflected machines; the "one cell shorter" relation needs the statement that W's steps do not
   depend on the length of the run.
+
+## Third look (20 November 2026): a chaotic engine with exponential tails
+
+A block-compressed simulation finds no period in the tape for any block size (1-12 cells), and this pass says why:
+**the word W is not a counter or any other regular structure; it behaves like a small chaotic engine that drifts
+slowly into the run and leaves a random-looking trail behind.** All numbers below are from `c/wstats.c` (exact).
+
+* **Only a short stretch of W is alive.** An excursion (from one visit to the next) reads at most a few hundred
+  cells of W next to the run. The depth has an exponential tail with a constant ratio: each further 128 cells is
+  about 4.7 times rarer (a decay length of about 83 cells). Over the first 10^8 visits:
+
+  | depth at least | 16 | 64 | 256 | 512 | 768 | 1,024 | 1,280 | 1,408 |
+  |---|---|---|---|---|---|---|---|---|
+  | share of visits | 68% | 18.5% | 1.2% | 5.0·10^-4 | 2.2·10^-5 | 1.1·10^-6 | 2·10^-8 | 1·10^-8 |
+
+  So the deepest excursion grows only like the logarithm of the number of visits (1,202 by 3·10^7 visits, 1,491 by
+  10^8, 1,576 by 2·10^8, 1,582 by 3·10^9): there is no wall, only a steep tail.
+* **The live stretch never repeats.** The 160 cells next to the run never take the same value twice in the first
+  2·10^6 visits (`c/winrepeat.c`, a hash of the window at every visit). So the machine is
+  not a translated cycler with a short period.
+* **The trail is random-looking.** Behind the live stretch W is frozen for good. The frozen word has 59% ones and an
+  entropy of about half a bit per cell (the conditional entropy given the previous 15 to 21 cells falls from 0.53 to
+  0.48 bits; xz packs it to 0.70 bits a cell), with runs of 1s up to 8 cells and of 0s at most 2. No counter or
+  substitution word has positive entropy; this one does.
+* **Eating has an exponential tail too.** Cells of the run eaten in one excursion, over the first 10^8 visits (an
+  excursion can also give back one cell, when a 1 of W next to the foot joins the run: 48.7% of the visits):
+
+  | eaten | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | visits | 19,410,273 | 23,907,202 | 1,738,934 | 2,896,924 | 1,787,036 | 170,365 | 853,731 | 422,149 | 42,843 | 19,420 | 1,199 | 520 | 64 | 9 | 21 | 2 |
+
+  From 8 cells on each 2 more cells are about 10 to 40 times rarer. The record grows slowly with the number of
+  visits: 14 by 3·10^7, 15 by 10^8, 17 by 2·10^8, 18 by 3·10^9 (one excursion in 3·10^9).
+* **What a halt would need.** The run gains 0.961 cells a visit, so at visit v it holds about 0.96·v cells, and a
+  halt needs one excursion to eat all of them (`halts_iff_left_edge`). With the tail above that is a chance of the
+  order of 10^(-v/2) at visit v. The machine is, in all likelihood, a non-halter of the same kind as a random walk
+  with a strong drift, and a proof would need either a rigid description of the chaotic engine (none is in sight)
+  or a bound on what one excursion can eat that holds for every W the machine can make.
 
 ## Earlier look: the changes next to the block
 
@@ -96,6 +139,8 @@ start, 343 right), 31,699 ones.
 cd holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB && python3 py/sibling.py 600                 # tables, and the two runs in step
 gcc -O2 -o /tmp/runsim c/runsim.c && /tmp/runsim 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB D A 1000000 1     # mirrored, D climbs, A returns: 10^6 visits
 /tmp/runsim 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD A C 1000000        # the sibling: same lines, run one longer
+gcc -O3 -o /tmp/wstats c/wstats.c && /tmp/wstats 100000000 10000000         # the third look: 10^8 visits, about 12 min
+gcc -O3 -o /tmp/winrepeat c/winrepeat.c && /tmp/winrepeat 2000000 160      # no repeat of the 160 cells next to the run
 ```
 
 <!-- related machines: written by holdouts/related.py -->
