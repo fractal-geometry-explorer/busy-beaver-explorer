@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 19 November 2026.",
+ "asof": "Status as of 20 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>, checked against direct simulation on every event to 10<sup>9</sup> steps. An exact model of the whole tape as one ternary counter follows the machine through the first collapse (2.5&times;10<sup>18</sup> steps) and the middle collapse at 2.06&times;10<sup>35</sup>; a lean accelerator (17 November 2026) carries it on through a second middle collapse at 2.58&times;10<sup>54</sup> steps and the collapse of the third regime's oldest segment (2.8&times;10<sup>54</sup> to 3.0&times;10<sup>54</sup>; the end counter goes 126 &rarr; 127), and on (18 November) through about 53 more middle collapses and the end counter running out at 4.8&times;10<sup>54</sup> (124 blocks, merged into the oldest segment (290 &rarr; 414)) to 2.2&times;10<sup>103</sup> steps, with no halt. The oldest segment now holds 309 blocks."
+  "<b>The question is open.</b> At each new cell on the right the tape is <code>2 3^16 5 3 5 3^a1 5 3^a2 ... 5 3^am TAIL</code> (lengths of runs of 1s), and the counts a<sub>i</sub> follow a closed-form law P<sub>n</sub> &rarr; Q<sub>n</sub> &rarr; R<sub>n</sub> &rarr; P<sub>n+1</sub>, checked against direct simulation on every event to 10<sup>9</sup> steps. An exact model of the whole tape as one ternary counter follows the machine through the first collapse (2.5&times;10<sup>18</sup> steps) and the middle collapse at 2.06&times;10<sup>35</sup>; a lean accelerator (17 November 2026) carries it on through a second middle collapse at 2.58&times;10<sup>54</sup> steps and the collapse of the third regime's oldest segment (2.8&times;10<sup>54</sup> to 3.0&times;10<sup>54</sup>; the end counter goes 126 &rarr; 127), and on (18 November) through about 87 more middle collapses and the end counter running out at 4.8&times;10<sup>54</sup> (124 blocks, merged into the oldest segment (290 &rarr; 414)) to 6.1&times;10<sup>135</sup> steps, with no halt. The oldest segment now holds 241 blocks."
  ],
  "claims": [
   {
@@ -113,14 +113,20 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 2.2&times;10<sup>103</sup> steps",
-   "text": "The lean accelerator with cycle reuse (each learned period of the low end is kept, and after a carry to the far end the low end is matched to its phase in a cached period by the hash of its state) reproduces all logged states of the counter-macro runs and of the slower lean runs, step counts included. It runs through the end counter running out at 4.8&times;10<sup>54</sup> steps and about 53 more middle collapses (each takes 2 blocks from the oldest segment and multiplies the step count by about 9) to 2.2&times;10<sup>103</sup> steps, without a halt.",
+   "title": "No halt in the first 6.1&times;10<sup>135</sup> steps",
+   "text": "The lean accelerator with cycle reuse (each learned period of the low end is kept, and after a carry to the far end the low end is matched to its phase in a cached period by the hash of its state) reproduces all logged states of the counter-macro runs and of the slower lean runs, step counts included. It runs through the end counter running out at 4.8&times;10<sup>54</sup> steps and about 87 more middle collapses (each takes 2 blocks from the oldest segment and multiplies the step count by about 9) to 6.1&times;10<sup>135</sup> steps, without a halt.",
    "where": "<code>py/lean.py run</code>, <code>py/lean.py verify</code>; logs in <code>data/b1_lean.log</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The next collapse does not halt (tried ahead of time)",
+   "text": "Each cycle the oldest segment loses exactly 2 blocks and the j-th exactly 3<sup>j</sup> (all 71 logged cycles). The first digit to run out is the second segment (999 blocks at 3.3&times;10<sup>120</sup>, 9 fewer per cycle), near 10<sup>228</sup> steps. Setting it to 0 on today's tape and running on exactly, the collapse passes without a halt and the run returns to patterns already seen. The real tape will have more bottom digits by then.",
+   "where": "<code>py/probe.py</code>, <code>data/probes/</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Halting needs the head in state D on a 0 with <code>1 1</code> to its right (D0 &rarr; 1RE, E1 &rarr; 1RF, F1 halts). The law never produces it, and neither did the first collapse, the middle collapses at 2.06&times;10<sup>35</sup> and 2.58&times;10<sup>54</sup> steps, or the oldest-segment collapse at 2.8&ndash;3.0&times;10<sup>54</sup> (exact runs). Nor did the end counter running out at 4.8&times;10<sup>54</sup> or about 53 further middle collapses to 2.2&times;10<sup>103</sup> steps. The oldest segment holds 309 blocks and loses 2 per collapse; at the current rate it runs out near 10<sup>251</sup> steps (a fit).",
+   "text": "Not known. Halting needs the head in state D on a 0 with <code>1 1</code> to its right (D0 &rarr; 1RE, E1 &rarr; 1RF, F1 halts). The law never produces it, and neither did the first collapse, the middle collapses at 2.06&times;10<sup>35</sup> and 2.58&times;10<sup>54</sup> steps, or the oldest-segment collapse at 2.8&ndash;3.0&times;10<sup>54</sup> (exact runs). Nor did the end counter running out at 4.8&times;10<sup>54</sup> or about 87 further middle collapses to 6.1&times;10<sup>135</sup> steps. The oldest segment holds 241 blocks and loses 2 per collapse, the second 873 and loses 9; at the current rate the second runs out first, near 10<sup>228</sup> steps (a fit).",
    "where": ""
   },
   {
@@ -136,11 +142,11 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA--- 1000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows yet, but its run is understood exactly far beyond any direct simulation. The tape is a list of counters that drain at rates 3, 9, 27, &hellip; while new ones are born at the far end. Counters run out one after another, and each time the machine has settled into a new pattern of the same kind instead of halting: at 2.5&times;10<sup>18</sup> steps, at 2.06&times;10<sup>35</sup> at 2.58&times;10<sup>54</sup>, at 2.8&ndash;3.0&times;10<sup>54</sup> at 4.8&times;10<sup>54</sup>, and through about 53 more middle collapses so far, all the way to 2.2&times;10<sup>103</sup> steps. This page explains the counters, the law they follow and what is proved.",
+  "lede": "Nobody knows yet, but its run is understood exactly far beyond any direct simulation. The tape is a list of counters that drain at rates 3, 9, 27, &hellip; while new ones are born at the far end. Counters run out one after another, and each time the machine has settled into a new pattern of the same kind instead of halting: at 2.5&times;10<sup>18</sup> steps, at 2.06&times;10<sup>35</sup> at 2.58&times;10<sup>54</sup>, at 2.8&ndash;3.0&times;10<sup>54</sup> at 4.8&times;10<sup>54</sup>, and through about 87 more middle collapses so far, all the way to 6.1&times;10<sup>135</sup> steps. This page explains the counters, the law they follow and what is proved.",
   "facts": [
    {
     "level": "trusted",
-    "value": "2.2&times;10<sup>103</sup> steps",
+    "value": "6.1&times;10<sup>135</sup> steps",
     "text": "No halt (exact whole-tape run with closed-form jumps), through four collapses."
    },
    {
@@ -204,12 +210,13 @@
    {
     "id": "lean",
     "eyebrow": "17 November 2026",
-    "heading": "A lean accelerator: through 2.2&times;10<sup>103</sup> steps",
+    "heading": "A lean accelerator: through 6.1&times;10<sup>135</sup> steps",
     "html": [
      "<p>The counter macros of the earlier run stopped at 8.2&times;10<sup>51</sup> steps: deriving them needed more memory than there was. The new engine needs no macros. It uses two exact facts. First, a carry turns the T digits it passes into Z and takes 1 block (stop on Z) or 2 blocks (stop on O) from the topmost one; a run of r blocks in the chain costs 12r+16 steps. Second, the small low end of the tape below a big digit N sees nothing of the rest except N's wall, so it repeats exactly: 14,976 sweeps per period in the third regime.</p>",
      "<p>So the engine learns one period by exact sweeps and then adds whole stretches of periods in closed form: a ternary addition at the bottom of the counter, the block losses, and the steps as arithmetic series. Only the events that break the pattern are run sweep by sweep. Started from the earlier run's first logged state, it reproduces all 206 later logged states of that run, step counts included, in 11 minutes.</p>",
      "<p>What happened next, on both machines at nearly the same step counts: a middle segment ran out at 2.58&times;10<sup>54</sup> steps and the counter went on. The low end then became nested one level deeper; it now repeats every 4,257,468 sweeps. The oldest segment reached 0 blocks at about 2.76&times;10<sup>54</sup> steps. Its carry reached the far end at 2.82&times;10<sup>54</sup> (end counter 126 &rarr; 127) and the empty digit was absorbed at about 3.02&times;10<sup>54</sup>. None of this came near a halt. The next oldest segment held 293 blocks.</p>",
-     "<p><b>18 and 19 November: on to 2.2&times;10<sup>103</sup> steps.</b> The accelerator now keeps each learned cycle of the low end and reuses it after every carry to the far end, so a generation costs seconds instead of half an hour (it still reproduces every logged state of the slower runs exactly). The end counter ran out at 4.8&times;10<sup>54</sup> steps and merged into the oldest segment. Since 5&times;10<sup>55</sup> the run has followed a new regular pattern: a middle segment runs out, the low end restarts, the oldest segment loses 2 blocks, and the step count grows about 9-fold. About 53 of these passed with no halt. At that rate the oldest segment (309 blocks now) runs out near 10<sup>251</sup> steps; that is a fit, not a proof.</p>"
+     "<p><b>18 to 20 November: on to 6.1&times;10<sup>135</sup> steps.</b> The accelerator now keeps each learned cycle of the low end and reuses it after every carry to the far end, so a generation costs seconds instead of half an hour (it still reproduces every logged state of the slower runs exactly). The end counter ran out at 4.8&times;10<sup>54</sup> steps and merged into the oldest segment. Since 5&times;10<sup>55</sup> the run has followed a new regular pattern: a middle segment runs out, the low end restarts, the oldest segment loses 2 blocks, and the step count grows about 9-fold. About 87 of these passed with no halt. At that rate the second segment (873 blocks now, 9 fewer per cycle) runs out first, near 10<sup>228</sup> steps, before the oldest (241 blocks); that is a fit, not a proof.</p>",
+     "<p><b>20 November: the next collapse, tried ahead of time.</b> Each cycle the oldest segment loses exactly 2 blocks and the j-th exactly 3<sup>j</sup>, and the first digit to run out is the second segment (999 blocks at 3.3&times;10<sup>120</sup>, 9 fewer per cycle), near 10<sup>228</sup> steps. Setting it to 0 on today's tape and running on with the same exact code, the collapse passes without a halt and the run falls back into patterns it has shown before. This is a forecast, not a proof.</p>"
     ]
    },
    {
@@ -235,6 +242,6 @@
    }
   ]
  },
- "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks drained by 3<sup>j</sup> per event; segments run out one after another (collapses), and after each the counter settles into a new regime of the same kind. Exact runs pass collapses at 2.5&times;10<sup>18</sup>, 2.06&times;10<sup>35</sup>, 2.58&times;10<sup>54</sup> and 2.8&ndash;3.0&times;10<sup>54</sup> steps without halting 4.8&times;10<sup>54</sup> and about 53 more middle collapses, and reach 2.2&times;10<sup>103</sup>.",
+ "summary": "A nested ternary counter: the tape is a list of segments of 111-blocks drained by 3<sup>j</sup> per event; segments run out one after another (collapses), and after each the counter settles into a new regime of the same kind. Exact runs pass collapses at 2.5&times;10<sup>18</sup>, 2.06&times;10<sup>35</sup>, 2.58&times;10<sup>54</sup> and 2.8&ndash;3.0&times;10<sup>54</sup> steps without halting 4.8&times;10<sup>54</sup> and about 87 more middle collapses, and reach 6.1&times;10<sup>135</sup>.",
  "family": "Nested ternary counter with an exact regime law (segments drained by 3^j per event)"
 }
