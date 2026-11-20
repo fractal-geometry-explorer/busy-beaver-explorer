@@ -16,6 +16,9 @@ bbchallenge id 123029. One of the six-state holdouts whose halting from blank ta
 Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
 the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel only): 10 sweep rules for all n.
 C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
+Lean (`lean/Halt.lean`, kernel only): a halt needs state B reading 0 with 0, 0, 1 to its left
+(`halt_needs_pattern`). Coq (`coq/`): a halting proof built from busycoq pull request 93 that compiles with one
+assumption, that its accelerated engine stops; the engine has not stopped in more than 10^1336 steps (see below).
 
 ## Structure
 
@@ -67,6 +70,27 @@ Observed, not proved: the accelerated simulator `rsim.py` ran 2.33x10^14 steps f
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF 400
 ```
 
+## The DeepMind sibling and the engine run (20 November 2026)
+
+Up to swapping E and F this machine is U = `1RB1RA_1LC0RD_1LD1LB_1LF0LE_0LB0LE_0RA---`, which is the table T3 of the
+DeepMind proof in busycoq pull request 93 (`1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB---`) with two changes: T3's halting
+transition F1 becomes a step (E keeps erasing to the left), and T3's D0 `1RA` becomes the detour D0 `1LF`, F0 `0RA`,
+A1 `1RA`, which halts exactly when D reads 0 with a 1 on its left. Lean proves the matching fact for this machine: a
+halt needs B reading 0 with the cells 0, 0, 1 to its left.
+
+`coq/mkU.py` turns PR 93's file into a proof that this machine halts, complete except for `run_ok`, the claim that
+PR 93's accelerated engine (run on T3 without its halt) stops. The engine, extracted from that file, ran 18,449,229
+fast steps from blank tape without stopping; the tape then holds more than 2^4439 cells, so the machine does not halt
+in its first 10^1336 steps (computed with extracted code, not by the kernel).
+
+Where the sibling would halt: T3 halts (from A at fast step 4,452, from C at fast step 2,452,241, PR 93's halt) just after C reads 0 with
+`1 1 1` on its left at the left end of the written tape. In this machine's run that configuration recurs once per lap
+of the counter, 10 times so far, always with the same nearest cells; each time the machine erases three 1s and goes
+back to the macro rules. A halt can only happen where the engine leaves its macro rules, and in 18.4 million fast steps
+it left them in only 14 kinds of local situation besides the start, none of which can lead to the halting pattern.
+So the sibling's halting point gives no halting point here; a halt would need a kind of exit never seen. Observed,
+not proved. Details and tools: [`coq/README.md`](coq/README.md).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/explainer.html`](../../pages/holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/explainer.html)
@@ -77,6 +101,7 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 ```sh
 gcc -O2 -I tools/c -o blocks holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/c/blocks.c && ./blocks 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF 1000000000 L E 2 1000000
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/lean/check.sh
+BUSYCOQ=busycoq/verify holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/coq/build.sh PR93.v /tmp/u   # see coq/README.md
 ```
 
 <!-- related machines: written by holdouts/related.py -->
