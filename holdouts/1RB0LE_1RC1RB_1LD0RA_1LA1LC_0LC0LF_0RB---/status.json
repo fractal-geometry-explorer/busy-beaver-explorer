@@ -12,6 +12,7 @@
  ],
  "asof": "Status as of 19 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 102 (valu42, 2026-11-18) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It reuses this repository's Coq port of DeepMind's PR 93 engine (built for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---), started from a renamed state, and runs it to the halt. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>It halts</b>, proved in Coq (theorem <code>halt : halts tm c0</code> on busycoq's definitions, no axioms). With its states renamed, its table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---</code> started in state D, one transition away from the table DeepMind proved halting in busycoq PR 93. DeepMind's fast engine, changed for that transition as for 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- (the same table started in B), reaches a halting configuration from state D after 688,228 engine steps, on a tape of about 2<sup>6326</sup> cells.",
   "<b>What it does.</b> Before the halt the run is a cascade of halving runs: each round turns a run of <i>n</i> equal blocks into about <i>n</i>/2 blocks one level up. In the first 10<sup>9</sup> steps D read a 0 about 21,000 times, always one cell short of a halt. That description comes from simulation; the halt does not depend on it."
  ],
@@ -214,8 +215,8 @@
    }
   ]
  },
- "summary": "Halts, proved in Coq: it is the T4 table started in D, and DeepMind's PR 93 engine changed for T4 reaches a halt after 688,228 engine steps (tape about 2^6326 cells). Before that it is a cascade of halving runs: the tape is runs of equal blocks 1^(6j+1) 00, and each round turns a run of n blocks of level j into about n/2 blocks of level j+1 (observed).",
+ "summary": "Halts, proved in Coq: it is the T4 table started in D, and DeepMind's PR 93 engine changed for T4 reaches a halt after 688,228 engine steps (tape about 2^6326 cells). Before that it is a cascade of halving runs: the tape is runs of equal blocks 1^(6j+1) 00, and each round turns a run of n blocks of level j into about n/2 blocks of level j+1 (observed). Decided outside: busycoq PR 102 proves in Rocq that it halts (compiled here).",
  "family": "halving runs + expanding bouncer (6j+1 blocks)",
  "decision": "halts",
- "decision_level": "coq"
+ "decision_level": "outside"
 }
