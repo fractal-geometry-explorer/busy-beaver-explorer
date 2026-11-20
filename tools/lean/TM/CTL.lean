@@ -14,7 +14,8 @@ can run it: the start `⟨blank, blank, q₀⟩` is in the set, and every non-ha
 Then (`reach`) every configuration of the run from `q₀` is in the set.  If the set allows no halt (`noHalt`), the
 machine never halts (`not_halts`); if every halt it allows has a right state in a list `B` of states accepting only
 blank tape (`haltsBlank`, `blankOnly`), every halt has only blank cells after the head (`halt_tail_blank`), so the
-machine can halt only at the right edge of what it has written.  `no_double_zero` is the same kind of consequence for
+machine can halt only at the right edge of what it has written (`haltsBlankL`, `halt_left_blank`: the same for the
+left edge).  `no_double_zero` is the same kind of consequence for
 two 0s in a row to the right of the head.
 
 `tools/py/bbtools/ctl.py` finds the automata and the set (from windows of a few cells) and runs the same check.
@@ -174,6 +175,33 @@ theorem halt_tail_blank {ML MR : Auto} {S : List (Q × Nat × Nat)} {B : List Na
     rw [hδ] at h1
     simp only [Option.isSome_none, Bool.false_or, decide_eq_true_eq] at h1
     exact hr'.blank_of_blankOnly hB h1
+  | some t =>
+    rw [hδ] at hs
+    obtain ⟨w, d, s'⟩ := t
+    cases d <;> cases hs
+
+/-- The mirror image of `haltsBlank`: every halt the set allows has a left state in `B`. -/
+def haltsBlankL (MR : Auto) (S : List (Q × Nat × Nat)) (B : List Nat) : Bool :=
+  S.all (fun a => (MR.pops a.2.2).all (fun p => (δ a.1 p.1).isSome || decide (a.2.1 ∈ B)))
+
+omit [DecidableEq Q] in
+/-- Every halt the set allows has only blank cells to the left of the head (if `B` holds left states that accept
+only the blank tape): the machine can halt only at the left edge of what it has written. -/
+theorem halt_left_blank {ML MR : Auto} {S : List (Q × Nat × Nat)} {B : List Nat} (hB : blankOnly ML B = true)
+    (hH : haltsBlankL δ MR S B = true) {c : Cfg Q} (hc : Inv ML MR S c) (hs : step δ c = none) :
+    c.l = TM.blank := by
+  obtain ⟨ql, qr, hmem, hl, hr⟩ := hc
+  obtain ⟨⟨x, qr'⟩, hp, hx, _⟩ := hr.pop
+  simp only [haltsBlankL, List.all_eq_true] at hH
+  have h1 := hH _ hmem _ hp
+  simp only at hx h1
+  unfold step at hs
+  rw [hx] at hs
+  cases hδ : δ c.st x with
+  | none =>
+    rw [hδ] at h1
+    simp only [Option.isSome_none, Bool.false_or, decide_eq_true_eq] at h1
+    exact hl.blank_of_blankOnly hB h1
   | some t =>
     rw [hδ] at hs
     obtain ⟨w, d, s'⟩ := t
