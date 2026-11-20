@@ -50,6 +50,30 @@ def external():
     return _EXTERNAL
 
 
+_FAMILIES = None
+
+
+def families():
+    """holdouts/families.json (written by regroup.py): the families of the undecided machines, or an empty one."""
+    global _FAMILIES
+    if _FAMILIES is None:
+        p = os.path.join(HERE, "families.json")
+        _FAMILIES = {"machine": {}, "families": [], "residual": [], "asof": ""}
+        if os.path.isfile(p):
+            with open(p) as f:
+                _FAMILIES = json.load(f)
+    return _FAMILIES
+
+
+def family_list():
+    """The families for the index panel: id, name, one-line technique, size, rank (0 first, the parked one last)."""
+    fam = families()
+    out = [{"id": f["id"], "name": f["name"], "t": f.get("short", ""), "n": len(f["machines"]),
+            "r": f["rank"] if f["rank"] is not None else 99} for f in fam["families"]]
+    out += [{"id": f["id"], "name": f["name"], "t": "", "n": len(f["machines"]), "r": 100} for f in fam["residual"]]
+    return sorted(out, key=lambda f: (f["r"], f["id"]))
+
+
 _KNOWN = None
 
 
@@ -498,6 +522,7 @@ def index_rows(triage, known, spec_by):
             "pr": [[p["n"], p["claim"]] + ([1] if p.get("compiled") else []) for p in e.get("prs", [])],
             "ob": outside_by(M, rows[-1]["dec"]),
             "ws": e["wiki_solved"]["claim"] if e.get("wiki_solved") else "",
+            "fm": families()["machine"].get(M, ""),
         })
         rows[-1].update(lean_results(M, folder, s))
     return rows
@@ -567,6 +592,12 @@ td.tg{white-space:normal;min-width:44ch;font-size:.78rem} td.tg a{white-space:no
 select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);font:13px var(--body)}
 .stat button{all:unset;cursor:pointer;display:grid} .stat button:hover b{text-decoration:underline}
 .new{outline:2px dashed var(--s-computed);outline-offset:4px}
+.fams{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.fams button{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+.fams button[aria-pressed="true"]{border-color:var(--link);box-shadow:0 0 0 1px var(--link)}
+.fams button:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.fams b{font-family:var(--mono);font-size:.8rem} .fams span{font-size:.85rem} .fams small{grid-column:2;color:var(--muted);font-size:.75rem}
+td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
 </style>
 </head>
 <body>
@@ -599,6 +630,16 @@ select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background
  <div class="stats" id="lstats"></div>
 </section>
 
+<section class="panel new">
+ <h2>Families of the undecided machines</h2>
+ <p>The machines not yet decided here, grouped so that one proof technique could settle a whole family, and ranked by
+ how many machines that technique would settle and how likely it is to work (__FAMASOF__). R00 is not a mechanism: it
+ holds the machines whose only proof is an outside one not yet compiled here. Machines that fit no family keep their
+ earlier label (F01 to F11). Click a family to filter the table; the reasoning is in
+ <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.</p>
+ <div class="fams" id="fams"></div>
+</section>
+
 <section class="panel">
  <h2>Growth exponents</h2>
  <p>Each dot is a machine: how fast the tape grows left of the start (across) and right of it (up), as an exponent of
@@ -627,7 +668,7 @@ select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background
   <button class="chip" id="runtog" aria-pressed="false">show run statistics</button></div>
  <div class="tblwrap hide-run" id="tw"><table id="tbl"><thead><tr>
   <th data-k="id">id</th><th data-k="m">machine</th><th data-k="c">growth</th><th class="run" data-k="al">left exp.</th>
-  <th class="run" data-k="ar">right exp.</th><th class="run" data-k="w">cells</th><th class="run" data-k="d">density</th><th data-k="so">standing</th>
+  <th class="run" data-k="ar">right exp.</th><th class="run" data-k="w">cells</th><th class="run" data-k="d">density</th><th data-k="so">standing</th><th data-k="fm">family</th>
   <th data-k="mt">proved map</th><th data-k="mt">halts when</th><th data-k="bl">no halt before</th><th data-k="htn">halts together with</th><th data-k="exn">external</th><th>links</th>
   <th data-k="tc">community class</th><th data-k="n">notes</th>
  </tr></thead><tbody></tbody></table></div>
@@ -644,6 +685,7 @@ select{padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background
 </main>
 <div id="tip"></div>
 <script id="data" type="application/json">__DATA__</script>
+<script id="fams-data" type="application/json">__FAMS__</script>
 <script>
 const rows = JSON.parse(document.getElementById("data").textContent);
 const $ = id => document.getElementById(id);
@@ -663,13 +705,20 @@ const SO = Object.fromEntries(ST.map((s, i) => [s[0], i]));
 for (const r of rows) r.so = SO[r.st];
 const WORD = {nonhalting: "never halts", halts: "halts", open: "open"};
 const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-let active = new Set(), activeS = new Set(), colorBy = "c", q = "", sortK = "id", sortD = 1;
+let active = new Set(), activeS = new Set(), colorBy = "c", q = "", sortK = "id", sortD = 1, activeF = "";
+const FAMS = JSON.parse(document.getElementById("fams-data").textContent);
+const FN = Object.fromEntries(FAMS.map(f => [f.id, f.name]));
+function fams(){
+  $("fams").innerHTML = FAMS.map(f => `<button data-f="${f.id}" aria-pressed="${activeF === f.id}"><b>${f.id}</b><span>${f.name} (${f.n})</span>${f.t ? `<small>${f.t}</small>` : ""}</button>`).join("");
+  for (const b of $("fams").querySelectorAll("button")) b.onclick = () => { activeF = activeF === b.dataset.f ? "" : b.dataset.f; render(); if (activeF) $("tbl").scrollIntoView({behavior: "smooth"}); };
+}
 function visible(r){
   if (!rvisible(r)) return false;
+  if (activeF && r.fm !== activeF) return false;
   if (active.size && !active.has(r.c)) return false;
   if (activeS.size && !activeS.has(r.st)) return false;
   if (!q) return true;
-  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + (r.mp ? r.mp.v + " " + r.mp.h : "") + " " + r.ht.map(h => h.m).join(" ") + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ") + (r.dm ? " deepmind " + r.dm.k : "") + (r.ws ? " wiki solved" : "")).toLowerCase();
+  const s = (r.id + " " + r.m + " " + r.n + " " + r.k + " " + r.sum + " " + r.g + " " + r.tc + " " + (r.mp ? r.mp.v + " " + r.mp.h : "") + " " + r.ht.map(h => h.m).join(" ") + " " + r.pr.map(p => "PR" + p[0] + " PR " + p[0]).join(" ") + (r.dm ? " deepmind " + r.dm.k : "") + (r.ws ? " wiki solved" : "") + " " + r.fm + " " + (FN[r.fm] || "")).toLowerCase();
   return s.includes(q);
 }
 function standingText(r){
@@ -772,13 +821,13 @@ function table(){
   const vs = rows.filter(visible).sort((a,b) => { const x=a[sortK], y=b[sortK]; return (x==null) - (y==null) || (x<y ? -sortD : x>y ? sortD : 0); });
   $("tbl").querySelector("tbody").innerHTML = vs.map(r => `<tr><td>${r.id}</td><td class="m"><a href="${r.x}">${r.m}</a></td>
    <td><span class="dot" style="background:${color(r.c)}"></span>${r.c}</td><td class="run">${r.al ?? ""}</td><td class="run">${r.ar ?? ""}</td><td class="run">${fmt(r.w)}</td><td class="run">${r.d}</td>
-   <td class="st"><span class="dot" style="background:${cssv("--s-" + r.st)}"></span><a href="${r.p}">${standingText(r)}</a></td>
+   <td class="st"><span class="dot" style="background:${cssv("--s-" + r.st)}"></span><a href="${r.p}">${standingText(r)}</a></td><td class="fm" title="${FN[r.fm] || ""}">${r.fm}</td>
    <td class="mp">${mapCell(r)}</td><td class="hc">${haltCell(r)}</td><td class="bd">${boundCell(r)}</td><td class="tg">${htCell(r)}</td><td class="tg">${extCell(r)}</td><td class="lk">${linkCell(r)}</td><td>${r.tc}</td><td class="n">${r.n ? "<b>" + r.n + "</b> " : ""}${r.sum || r.k}</td></tr>`).join("");
   $("count").textContent = `${vs.length} of ${rows.length} machines shown.`;
 }
 for (const th of document.querySelectorAll("th")) th.onclick = () => { const k = th.dataset.k; sortD = sortK === k ? -sortD : 1; sortK = k; table(); };
 $("q").oninput = e => { q = e.target.value.trim().toLowerCase(); render(); };
-function render(){ stats(); chips(); rchips(); plot(); table(); }
+function render(){ stats(); chips(); rchips(); fams(); plot(); table(); }
 for (const [id, v] of [["byC", "c"], ["byS", "st"]]) $(id).onclick = () => { colorBy = v; $("byC").setAttribute("aria-pressed", v === "c"); $("byS").setAttribute("aria-pressed", v === "st"); plot(); };
 render();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
@@ -798,8 +847,9 @@ def build_index():
     data = json.dumps(rows, separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/")
     os.makedirs(PAGES, exist_ok=True)
     with open(os.path.join(PAGES, "index.html"), "w") as f:
+        fams = json.dumps(family_list(), separators=(",", ":"), ensure_ascii=False).replace("</", "<\\/")
         f.write(INDEX.replace("__N__", str(len(rows))).replace("__ASOF__", "as read on " + external()["asof"])
-                .replace("__DATA__", data))
+                .replace("__FAMASOF__", families()["asof"]).replace("__FAMS__", fams).replace("__DATA__", data))
 
 
 def main(argv):
