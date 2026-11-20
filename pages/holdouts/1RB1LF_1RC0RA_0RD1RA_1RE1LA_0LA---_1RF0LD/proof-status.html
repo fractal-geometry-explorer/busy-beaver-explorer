@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 20 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The left end runs a binary decrement over bits separated by blocks of <code>10</code> (proved in Lean for one to three borrows); a halt needs the head in A on four 0s in a row (proved in Lean), which the counter makes only when two neighbouring blocks are empty at once. Perturbing the block lengths of a real configuration makes the machine halt, so non-halting depends on the arithmetic of the lengths; the rewriting rule for an empty block is not yet decoded.</p>
+      <p><b>The question is open.</b> The left end runs a binary decrement over bits separated by blocks of <code>10</code> (proved in Lean for every number of borrows, and many decrements at once); a halt needs the head in A on four 0s in a row (proved in Lean), which the counter makes only when two neighbouring blocks are empty at once. Perturbing the block lengths of a real configuration makes the machine halt, so non-halting depends on the arithmetic of the lengths; the rewriting rule for an empty block is not yet decoded.</p>
+      <p><b>Proved bound.</b> Lean shows no halt in the first 10<sup>1000</sup> steps: a run-length simulator, proved correct, that makes every run of regular decrements in one jump (<code>native_decide</code>).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -122,6 +123,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
       <div class="card">
+        <h3>The decrement for every number of borrows</h3>
+        <p>At a left-end visit the tape is <code>A&gt; 0 (10)^x b1 (10)^y1 b2 (10)^y2 &hellip;</code>. If the lowest set bit is b<sub>j</sub> and the blocks y<sub>1</sub> &hellip; y<sub>j</sub> are not empty, one visit clears b<sub>j</sub>, sets the bits below it, takes one copy from y<sub>j</sub> and adds two to x, in 6(x + y<sub>1</sub> + &hellip; + y<sub>j&minus;1</sub>) + 10 steps, for every bit list and all lengths: seven short passes checked by <code>rfl</code>, the crossings of <code>lean/Rules.lean</code>, and an induction over the zero bits on the way out and on the way back.</p>
+        <p class="where"><code>dec_step</code>, <code>dec_core</code>, <code>lean/Dec.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Many decrements at once</h3>
+        <p>Counting down n times, the lowest bit is set at &lceil;n/2&rceil; or &lfloor;n/2&rfloor; of the decrements (those take a copy from the first block) and the others are the decrements of the rest of the list, so n decrements in a row are one recursion over the bits (<code>drainL</code>), and so is the test that all of them are regular (<code>regN</code>). They take at least n(6x + 6n + 4) steps.</p>
+        <p class="where"><code>drain_reach</code>, <code>regN_succ</code>, <code>lean/Drain.lean</code></p>
+      </div>
+      <div class="card">
         <h3>The sweeps</h3>
         <p>Eight shift rules over <code>(10)^n</code>, <code>(01)^n</code> and <code>(011)^n</code>, for all n and any tapes around (one copy by <code>rfl</code>, all copies by <code>TM.cross_r</code> / <code>TM.cross_l</code>).</p>
         <p class="where"><code>lean/Rules.lean</code></p>
@@ -143,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>1000</sup> steps (run-length simulator with the drain as a jump)</h3>
+        <p>A run-length simulator in Lean (<code>tools/lean/TM/RLE.lean</code>), proved to agree with the machine's semantics, with one jump: at the left end the right part is read as the counter and the longest run of regular decrements is made at once (<code>drain_reach</code>). The visits where a block is empty or the counter is zero are simulated, crossing whole runs at once. Evaluated by compiled code (<code>native_decide</code>): 10<sup>30</sup> steps in <code>lean/Bound.lean</code> (part of <code>check.sh</code>, a few seconds), 10<sup>300</sup> in <code>lean/BoundBig.lean</code> (<code>check_big.sh</code>, about 110 s with the compiled code loaded by <code>tools/lean/check_native.sh</code>) and 10<sup>1000</sup> in <code>lean/BoundFar.lean</code> (<code>check_far.sh</code>, about 30 minutes).</p>
+        <p class="where"><code>bound_1e30</code>, <code>lean/Bound.lean</code>; <code>bound_big</code>, <code>lean/BoundBig.lean</code>; <code>bound_far</code>, <code>lean/BoundFar.lean</code>; <code>jumpD</code>, <code>parseE</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -203,7 +219,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/lean/check.sh
-gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD 1000000000</code></pre>
+gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD 1000000000
+holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/lean/check_big.sh          # 10^300 steps, about 110 s
+holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/lean/check_far.sh          # 10^1000 steps, about 30 minutes</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

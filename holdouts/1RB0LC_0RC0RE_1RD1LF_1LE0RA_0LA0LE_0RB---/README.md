@@ -45,9 +45,22 @@ start, 52 right), 21,074 ones.
 
 ## Family F05: next to the forty-machine core
 
-The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core, so the family's Lean theorems are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
+The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core. It is, however, the core with three transitions moved, `1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---` in frame B (started in frame-A state C): E1 = 1RF, F0 = 0LD and D1 = 0LB.  Wherever the cell right of E is 0, the detour E1 -> F0 -> D1 does what the core's E1 = 0LB does, in three steps instead of one, so the family's visit rule and its closed form hold for this table with longer step counts; Lean proves them on the machine's own table (`go_spec`, `go_closed`, `visit_closed`, `lean/Family.lean`). The conserved residues and drifts are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
 
 <!-- end F05 -->
+
+<!-- Lean runs -->
+
+## Bounded runs in Lean
+
+A run-length simulator in Lean (`tools/lean/TM/RLE.lean`), proved to agree with `steps`: the tape is kept as runs of words, a whole run is crossed at once when one copy of its word is crossed by a bounded simulation, and a whole visit of the block counter is one jump by the proved closed form (`visit_closed` of `lean/Family.lean`), counted as at least the visit's steps (`goT_ge`). One `native_decide` evaluation of the run is a proof that the machine does not halt in the first N steps. `lean/Bound.lean` is written by `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_bound_lean.py`.
+
+- `lean/Bound.lean`: no halt in 10^30 steps (`bound_1e30`, `native_decide`, a few seconds; part of `check.sh`).
+- `lean/BoundBig.lean`: no halt in 10^100 steps (`bound_big`; `lean/check_big.sh`, about 25 s).
+
+`check_big.sh` and `check_far.sh` compile the shared library and this folder's modules to C and load them into Lean (`tools/lean/check_native.sh`), which makes the evaluation about ten times faster; the proof is the same.
+
+<!-- end Lean runs -->
 
 ## Pages
 
@@ -58,6 +71,7 @@ The family plan groups this machine with the nested block counter, 40 holdouts t
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/lean/check.sh
+holdouts/1RB0LC_0RC0RE_1RD1LF_1LE0RA_0LA0LE_0RB---/lean/check_big.sh     # 10^100 steps, about 25 s
 ```
 
 <!-- related machines: written by holdouts/related.py -->
