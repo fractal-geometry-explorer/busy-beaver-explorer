@@ -113,6 +113,20 @@ This machine and [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_
 
 <!-- end F05 twin -->
 
+<!-- Lean runs -->
+
+## Bounded runs in Lean
+
+A run-length simulator in Lean (`tools/lean/TM/RLE.lean`), proved to agree with `steps`: the tape is kept as runs of words, a whole run is crossed at once when one copy of its word is crossed by a bounded simulation, and a whole visit of the block counter is one jump by the proved closed form (`visit_closed` of `lean/Family.lean`), counted as at least the visit's steps (`goT_ge`). One `native_decide` evaluation of the run is a proof that the machine does not halt in the first N steps. `lean/Bound.lean` is written by `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_bound_lean.py`.
+
+- `lean/Bound.lean`: no halt in 10^30 steps (`bound_1e30`, `native_decide`, a few seconds; part of `check.sh`).
+- `lean/BoundBig.lean`: no halt in 10^100 steps (`bound_big`; `lean/check_big.sh`, about 25 s).
+- `lean/BoundFar.lean`: no halt in 10^700 steps (`bound_far`; `lean/check_far.sh`, about 40 minutes).
+
+`check_big.sh` and `check_far.sh` compile the shared library and this folder's modules to C and load them into Lean (`tools/lean/check_native.sh`), which makes the evaluation about ten times faster; the proof is the same.
+
+<!-- end Lean runs -->
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/explainer.html`](../../pages/holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/explainer.html)
@@ -122,6 +136,8 @@ This machine and [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_1LB---`](../1RB0LC_0RC0RB_
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/lean/check.sh
+holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/lean/check_big.sh     # 10^100 steps, about 25 s
+holdouts/1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/lean/check_far.sh     # 10^700 steps, about 40 minutes
 ```
 
 <!-- related machines: written by holdouts/related.py -->

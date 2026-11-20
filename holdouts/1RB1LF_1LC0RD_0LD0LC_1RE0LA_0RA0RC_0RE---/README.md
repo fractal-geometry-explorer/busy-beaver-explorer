@@ -98,9 +98,23 @@ of the counter) would let `py/accel.py` reach far more rounds.
 
 ## Family F05: next to the forty-machine core
 
-The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core, so the family's Lean theorems are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
+The family plan groups this machine with the nested block counter, 40 holdouts that are the core `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in different frames. This machine's table is not a renaming or mirror image of that core. It is, however, the core with three transitions moved, `1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---` in frame G (started in frame-A state E): E1 = 1RF, F0 = 0LD and D1 = 0LB.  Wherever the cell right of E is 0, the detour E1 -> F0 -> D1 does what the core's E1 = 0LB does, in three steps instead of one, so the family's visit rule and its closed form hold for this table with longer step counts; Lean proves them on the machine's own table (`go_spec`, `go_closed`, `visit_closed`, `lean/Family.lean`). The conserved residues and drifts are not proved for it. Compared with [`1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---`](../1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE---/README.md): the first pass found the same tape at every sweep end up to 10^11 steps (the mirrored members from sweep 157,376 on, with a different first block). That is an observation, and the two halting transitions are read in different situations, so one halting question does not settle the other. The family's records are in [`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---`](../1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/README.md).
 
 <!-- end F05 -->
+
+<!-- Lean runs -->
+
+## Bounded runs in Lean
+
+A run-length simulator in Lean (`tools/lean/TM/RLE.lean`), proved to agree with `steps`: the tape is kept as runs of words, a whole run is crossed at once when one copy of its word is crossed by a bounded simulation, and a whole visit of the block counter is one jump by the proved closed form (`visit_closed` of `lean/Family.lean`), counted as at least the visit's steps (`goT_ge`). One `native_decide` evaluation of the run is a proof that the machine does not halt in the first N steps. `lean/Bound.lean` is written by `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_bound_lean.py`.
+
+- `lean/Bound.lean`: no halt in 10^30 steps (`bound_1e30`, `native_decide`, a few seconds; part of `check.sh`).
+- `lean/BoundBig.lean`: no halt in 10^100 steps (`bound_big`; `lean/check_big.sh`, about 30 s).
+- `lean/BoundFar.lean`: no halt in 10^600 steps (`bound_far`; `lean/check_far.sh`, about 30 minutes).
+
+`check_big.sh` and `check_far.sh` compile the shared library and this folder's modules to C and load them into Lean (`tools/lean/check_native.sh`), which makes the evaluation about ten times faster; the proof is the same.
+
+<!-- end Lean runs -->
 
 ## Pages
 
@@ -114,6 +128,8 @@ The family plan groups this machine with the nested block counter, 40 holdouts t
 python3 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/py/accel.py 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 4 A 1.1e10 --hash 1e7 1e9 1e10
 gcc -O2 -I tools/c -o tapehash holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/c/tapehash.c && ./tapehash 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- 10000636 1000004885 10000047652
 python3 holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/py/rounds.py 1e12 300
+holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/lean/check_big.sh     # 10^100 steps, about 30 s
+holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---/lean/check_far.sh     # 10^600 steps, about 30 minutes
 ```
 
 <!-- related machines: written by holdouts/related.py -->
