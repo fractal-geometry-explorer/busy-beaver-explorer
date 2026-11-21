@@ -64,6 +64,29 @@ all-ones length to the next (2 -> 28 -> 492 -> 772 -> 2197 -> ...) shows no stru
 (kernel; before, `native_decide` for n < 10^5), as the fourth machine of the family already had. All four now
 reduce to one question each: does an all-ones length ever land on an explicit list such as 20*2^k - 2k - 12?
 
+## The open problem behind each of the 39 (`open_problems.json`)
+
+For ranks 2 to 40 (the 39 judged Collatz-hard), `open_problems.json` records the exact question each machine reduces
+to: the configuration, the map, the halting condition, the start, the Lean theorem that makes it exact (and how strong
+it is: `iff`, `oneway` for "the condition never met implies no halt", `partial`), a heuristic for halting, how far
+the orbit has been checked, and what is not proved. The machines fall into seven kinds of question:
+
+| kind | machines | the question |
+|---|---|---|
+| sparse target | 11 | does an expanding piecewise-affine orbit land exactly on a set like 5·2^k − k − 6? |
+| Euclid with multiplication | 7 | do two counts in a subtract-and-triple (or double) game ever come out equal (or off by a fixed constant)? |
+| 2-adic valuation | 5 | does D -> D + a + v + c (D = 2^v (2a+1), Doucette's form) reach a power of two? |
+| Antihydra walk | 4 | does a counter driven by the parities (or residues mod 3) of a 3/2 or 4/3 orbit ever hit zero? |
+| nested counters | 3 | does a stack of counters driven by a 3/2 counter ever empty? |
+| base-6 digits | 1 | does a base-6 digit recursion end exactly? |
+| epoch decision | 8 | which residue comes up at the end of an exponentially long epoch? (heuristically these halt) |
+
+The related known problems (Collatz, Conway's undecidability of generalized Collatz maps, Tao's almost-all result,
+Mahler's 3/2 problem, Antihydra, Space Needle and Doucette's sequences, Erdős's ternary digits of 2^n) are listed
+with each kind. `build_open_problems.py` writes `pages/holdouts/open-problems.html` from the JSON: the seven kinds,
+a card per machine, and a runner that iterates 17 of the maps with exact integers (checked against each folder's
+README orbit).
+
 ## Files
 
 - `ranking.json`: the 40 machines, ranked.
@@ -71,3 +94,4 @@ reduce to one question each: does an all-ones length ever land on an explicit li
 - `samemap.py`: the shared function of the three threshold machines.
 - `residues.py`: the residue screen.
 - `build_page.py`: writes `pages/holdouts/number-theory.html` from `ranking.json`.
+- `open_problems.json`, `build_open_problems.py`: the question behind each of the 39, and `pages/holdouts/open-problems.html`.

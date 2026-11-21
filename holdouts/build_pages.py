@@ -620,7 +620,7 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  from what others report (__ASOF__).</p>
  <p><b>New:</b> the <a href="recent.html">latest results</a>, newest first, and the
  <a href="families.html">families of the undecided machines</a>, each family with its mechanism, what is known and the
- technique that could settle it.</p>
+ technique that could settle it, and the <a href="ranking.html">machines closest to being solved</a>.</p>
 </header>
 
 <section class="panel">
@@ -648,7 +648,8 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <a href="families.html">families page</a>, and the reasoning is in
  <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.
  The 40 machines already reduced to a question about a map are ranked by how likely a proof is on the
- <a href="number-theory.html">number-theory page</a>.</p>
+ <a href="number-theory.html">number-theory page</a>, and the open problem each one reduces to is written out on the
+ <a href="open-problems.html">open-problems page</a>.</p>
  <div class="fams" id="fams"></div>
 </section>
 
@@ -873,6 +874,8 @@ def main(argv):
     build_index()
     import build_overview  # noqa: E402  (families.html and recent.html, which read the index rows)
     build_overview.build()
+    import rank  # noqa: E402  (ranking.html, RANKING.md and ranking.json, which read the index rows)
+    rank.main()
 
 
 if __name__ == "__main__":

@@ -70,6 +70,12 @@
    "where": "<code>closed_form</code>, <code>allx</code>, <code>lean/XorLucas.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The danger pattern halts; an x in front shields the defect",
+   "text": "B at the start of <code>y 10 y<sup>n</sup> 0</code> halts for every n: the defect puts B in token mode, F crosses the y words turning each into 000, and F reads the wall's 0. With x before the defect, <code>x 10</code> is the single run 11110, which B rewrites to 00011 and leaves at the start of the gap the ordinary way.",
+   "where": "<code>danger_halts</code>, <code>token_y</code>, <code>shield</code>, <code>lean/Danger.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "Which gaps can reach the danger pattern",
    "text": "Read the gap after a <code>10</code> defect, with the defect as a fixed y, as a polynomial over GF(2): one sweep multiplies it by <code>1 + z</code>, and all y is <code>(1 + z)<sup>2<sup>b</sup>&minus;1</sup></code>. So a gap ever becomes all y exactly when it already is a row <code>s</code> of Pascal's triangle mod 2 (word <code>j</code> is y iff the digits of <code>j</code> lie inside those of <code>s</code>), and then at the sweeps <code>t &equiv; 2<sup>b</sup> &minus; 1 &minus; s</code>. Only <code>2<sup>b</sup> &le; 2n</code> of the <code>2<sup>n</sup></code> gaps of length <code>n</code> can. Checked for all 32,766 gaps of up to 14 words; the algebra is not in Lean, and the claim assumes the gap stays intact between walls, as observed.",

@@ -69,7 +69,9 @@ def build():
   <h1>Which Collatz-like holdouts could be solved?</h1>
   <p>For each of these 40 machines Lean already proves "the machine halts if and only if this map does something".
   What is left is a question about the map: will an orbit ever land on a sparse set, or a counter ever hit zero?
-  This page ranks the 40 by how likely a proof is and shows what was tried. The ranking is a judgement, not a result.</p>
+  This page ranks the 40 by how likely a proof is and shows what was tried. The ranking is a judgement, not a result.
+  For the 39 below the top one, the <a href="open-problems.html">open-problems page</a> writes out the exact question each
+  reduces to and the known problem it resembles.</p>
 </header>
 
 <section class="verdict">

@@ -263,7 +263,7 @@ FAMILIES = (HEAD.replace("__TITLE__", "Families of the BB(6) holdouts")
  how likely it is to work. The ranking is a judgement, not a result.</p>
  <p>Each machine below shows its standing <b>today</b>, so a family shrinks on this page as its machines are
  decided. The same families filter the table of the <a href="index.html">holdout map</a>; see also the
- <a href="recent.html">latest results</a>.</p>
+ <a href="recent.html">latest results</a> and the <a href="ranking.html">machines closest to being solved</a>.</p>
 </header>
 
 <section class="panel">
