@@ -200,6 +200,41 @@ What this leaves is the right end of the frozen word and the crossing phase. In 
 side also holds `c` letters left behind by earlier sweeps. There the left sweep stops at the first `c`: C on it turns
 right at once, D on it goes on in E, which turns `a` into `b` until it meets a `b` and turns right.
 
+**Every right turn, with the crossing phase (observed, `py/turnshape.py`).** Read the tape at a right turn (E
+reading 1 and stepping left) in the 2-cell letters above, plus `o`, a lone 1 that shifts the letter grid by one cell.
+Then all 17,758 right turns of the first 2·10^8 steps have one of three shapes:
+
+| left of the head (far to near) | head and right of it | right turns |
+|---|---|---:|
+| `[o] Z`, `Z` in `a`, `b` (the `o` is the prefix `p = 1`) | `a`, a word in `a`, `c`, then one lone 1 or nothing | 9,005 |
+| `[o] Z o Z'`: the same with one more `o` inside the zone | the same | 8,735 |
+| as above | E on a lone 1, the last cell of the tape | 18 |
+
+So the rest of the tape `R` in `Turn w p s R` is always blank or a single 1, no part of the zone has two `b` next to each
+other, and a crossing is the time between a turn where `nxt` is `none` and the next turn with no `o` inside the zone.
+At every turn with no `o` inside the zone the next right turn is the one `nxt` predicts, with the same `R` (8,988
+times), or `nxt` is `none` (17 times, and each of those starts a crossing). During a crossing the inner `o` is
+the far edge of a short new zone. The old zone beyond it is eaten a few letters per bounce, and the frozen word grows
+by as many letters. Most crossings take the zone from hundreds of letters down to about ten.
+So halting is possible only inside a crossing (`turn_next` covers every other turn).
+
+What does not close, at this level:
+
+* *Turn-to-turn n-grams.* Use the exact map from one right turn to the next (the machine is run, so nothing is
+  approximated between turns). Take as the closed-set candidate every turn whose string of letters (prefix, zone,
+  head, frozen word, end) has only length-`k` factors seen at reachable turns. For `k` = 3 to 6, a few hundred short
+  members map to turns outside the three shapes (several lone 1s in the frozen tape). Writing the frozen side in
+  cells instead of letters and growing the factor set to a fixed point (`k` = 6) reaches an odd head block, which
+  halts. The factor sets can't see that a short zone never meets a long frozen word whose blocks have the wrong
+  phase.
+* *Bounded look at the crossing.* Where a crossing goes is not decided by any bounded number of zone letters next to
+  the head (`py/turnshape.py`, part 3). Out of all zones of up to 12 letters, 216 of the 1,024 classes fixed by the 8
+  letters nearest the head (plus the state and the end) still contain both outcomes. The crossing reads the whole
+  zone, because it sweeps it over and over.
+
+So a proof needs an invariant that ties the zone's digits to the frozen word's, which is the Pascal-triangle structure
+again, not a regular language over letters.
+
 A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
 (`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
 and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture
