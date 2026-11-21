@@ -170,9 +170,35 @@ is written by the sweeps, so the zone's digits enter. Not proved.
 
 With `bounce` and `halts_of_odd` from `Pascal.lean` this covers every right turn in a clean or walled zone except two:
 a 2-cell head block followed by an even block (which the observed invariant rules out), and an even head block
-meeting a walled zone. There the left sweep meets the wall in D and turns right early, and the zone
-gets a wall inside it (brute force), so the clean letter picture ends. That case, and the crossing phase, are what a
-non-halting proof still needs. The halting shape itself is now known in both zone kinds: an odd head block.
+meeting a walled zone. That case is settled below ("Walls are letters"): with 2-cell letters a wall is an ordinary
+letter and the sweep does not turn back early. The crossing phase is what a non-halting proof still needs. The halting shape itself is now known in both zone kinds: an odd head block.
+
+**Walls are letters (21 November 2026, `lean/Wall.lean`).** Cut the tape into 2-cell letters, aligned with the head at
+a right turn: `a = 11` and `b = 10` left of the head, `a = 11` and `c = 01` right of it (read from the head outwards,
+`b` and `c` are the same two cells `0 1`). A clean zone is a word in `ab` (= `u`) and `aa` (= `v`), and the wall `1 0`
+is a single `b`, so a zone with walls anywhere is just a word in `a` and `b`. A frozen tape whose head block is even
+and whose later blocks are odd (the observed invariant) is a word in `a` and `c`. All of the following is proved for
+every such zone, prefix and frozen word:
+
+| pass | what it does | Lean |
+|---|---|---|
+| left sweep, C (odd) / D (even) | running XOR of the zone from the right (`b` = 1), writes `a` (even) or `c` (odd); never turns early, always reaches the left end | `sweep2` |
+| left end | adds one `a`, toggles the prefix in C | `lend` |
+| right sweep, F (even) / E (odd) | running XOR from the left (`c` = 1), writes `b` (odd) or `a` (even); stops at a new right turn at the first place the XOR is odd twice in a row (E reading `a`) | `rsweep2`, `rsw2` |
+
+* `bounce2`: one bounce is the composition, for any zone in `a`, `b` (walls anywhere) and any frozen word in `a`, `c`.
+* `wall_even`: the case left open above, an even head block (`1 1 0 ...`) meeting a walled zone, is the instance with
+  zone `b` followed by the zone's letters. The sweep does not turn back early; the next turn is given by `rsw2`, and its zone
+  is again a word in `a` and `b` (possibly with walls inside, which is harmless now).
+* `turn_next`, `not_halts_of_closed`: the next right turn has the same shape, computed on lists by `nxt`, unless the right
+  sweep runs past the end of the frozen word into the rest of the tape `R`. So the machine cannot halt before that
+  happens, and a set of (zone, prefix, frozen word) closed under `nxt` is a proof of non-halting. Halting needs F on
+  `0 0 1`, which this shape never contains.
+
+What this leaves is the right end of the frozen word and the crossing phase. In the first 10^9 steps, 22,747 of the
+44,837 right turns have this shape all the way to the left end of the tape; at the others (the crossing phase) the left
+side also holds `c` letters left behind by earlier sweeps. There the left sweep stops at the first `c`: C on it turns
+right at once, D on it goes on in E, which turns `a` into `b` until it meets a `b` and turns right.
 
 A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
 (`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
