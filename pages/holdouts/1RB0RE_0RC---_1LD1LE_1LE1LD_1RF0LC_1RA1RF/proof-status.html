@@ -169,6 +169,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Cut the tape into 2-cell letters: <code>a = 11</code>, <code>b = 10</code> in the zone, <code>c = 01</code> in the frozen tape. A clean zone is a word in <code>ab</code> and <code>aa</code>, a wall is one <code>b</code>, so walls anywhere in the zone are just letters. For every zone in <code>a</code> and <code>b</code> and every frozen word in <code>a</code> and <code>c</code>: the left sweep is the running XOR from the right and always reaches the left end; the right sweep is the running XOR from the left and turns at the first place where it is odd twice in a row. The next right turn has the same shape, so an even head block meeting a walled zone is one instance (<code>wall_even</code>), and the machine cannot halt before the right sweep runs past the end of the frozen word: any set of shapes closed under the list map <code>nxt</code> gives a proof of non-halting.</p>
         <p class="where"><code>bounce2</code>, <code>wall_even</code>, <code>turn_next</code>, <code>not_halts_of_closed</code>, <code>lean/Wall.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The left sweep of a crossing</h3>
+        <p>For a zone with one lone 1 between a near part <code>N</code> and a far part <code>O</code> (2-cell letters), the left sweep takes the running XOR over <code>N</code>. If the parity at the lone 1 is even it goes on over <code>O</code> to the left end. If it is odd, E turns the <code>a</code>s of <code>O</code> before its first <code>b</code> into <code>1 0</code> and turns right on that <code>b</code>. This holds for every <code>N</code>, <code>O</code>, prefix and frozen word.</p>
+        <p class="where"><code>cross_even</code>, <code>cross_odd</code>, <code>lean/Crossing.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
