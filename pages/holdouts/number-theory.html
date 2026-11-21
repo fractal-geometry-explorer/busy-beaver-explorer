@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solvable Collatz-like holdouts?</title>
+<meta name="description" content="The 40 BB(6) holdouts whose halting Lean reduces to a question about a map, ranked by how likely a proof is, with the best candidate's free-parity wall search and the three machines that iterate one function.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --c1: #2B59CF; --c2: #1F7A4D; --c3: #B3261E; --c4: #8A5A00; --c5: #5B3FB8; --grid: #DDE3EA;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+.top { display: grid; gap: 12px; max-width: 72ch; }
+.crumb { font-size: 0.9rem; }
+.eyebrow { font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 72ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.card .big { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
+.card p { font-size: 0.92rem; }
+.small { font-size: 0.85rem; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.tbl { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+.tbl th, .tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.tbl th { font-family: var(--font-display); font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+.tbl td.num { font-family: var(--font-display); font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.controls label { font-size: 0.88rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+select, input[type=number], button { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 5px 9px; }
+button { cursor: pointer; background: var(--surface); }
+button:hover { border-color: var(--link); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed=true] { background: var(--link); color: var(--surface); border-color: var(--link); }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--font-display); font-size: 10px; fill: var(--muted); }
+.mono { font-family: var(--font-display); font-size: 0.76rem; overflow-wrap: anywhere; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 2px; }
+.strip span { height: 14px; border-radius: 2px; background: var(--grid); }
+.strip span.on { background: var(--c1); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.out { font-family: var(--font-display); font-size: 0.74rem; line-height: 1.55; max-height: 220px; overflow: auto; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-display); font-size: 0.72rem; border: 1px solid var(--rule); background: var(--surface);
+  color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--link); border-color: var(--link); color: var(--surface); }
+.tier { font-family: var(--font-display); font-weight: 700; font-size: 0.75rem; border-radius: 4px; padding: 0 6px; }
+.tA { color: var(--kernel); background: var(--kernel-bg); } .tB { color: var(--comp); background: var(--comp-bg); }
+.tC { color: var(--heur); background: var(--heur-bg); } .tD { color: var(--native); background: var(--native-bg); }
+.tE, .tF { color: var(--open); background: var(--open-bg); }
+.rk td { vertical-align: top; } .rk .why { min-width: 26ch; }
+input[type=search], input[type=number] { font: inherit; padding: 4px 8px; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); }
+button.b { font: inherit; font-size: 0.85rem; padding: 4px 12px; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); cursor: pointer; }
+button.b:hover { border-color: var(--link); }
+.stack { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px; min-height: 64px; }
+.item { font-family: var(--font-display); font-size: 0.72rem; border: 2px solid var(--c1); border-radius: 4px; padding: 2px 6px;
+  background: var(--surface); }
+.item.closed { border-color: var(--c4); border-style: dashed; }
+.item.wall { border-color: var(--muted); }
+.log { font-family: var(--font-display); font-size: 0.72rem; max-height: 180px; overflow: auto; white-space: pre; }
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / <a href="index.html">holdouts</a> / number theory</p>
+  <p class="eyebrow">40 machines, ranked</p>
+  <h1>Which Collatz-like holdouts could be solved?</h1>
+  <p>For each of these 40 machines Lean already proves "the machine halts if and only if this map does something".
+  What is left is a question about the map: will an orbit ever land on a sparse set, or a counter ever hit zero?
+  This page ranks the 40 by how likely a proof is and shows what was tried. The ranking is a judgement, not a result.</p>
+</header>
+
+<section class="verdict">
+  <p><b>None is decided.</b> One machine stands out, and two smaller results are new:</p>
+  <ul>
+    <li><span class="tag t-comp">computed</span> <b>1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</b> is the best candidate.
+    Its wall changes only through the parity of N, so a closed set of walls would prove non-halting with no number theory.
+    Under every parity sequence, the stack of counters never goes negative (29,195 walls to 30,000 cells). What is left is a
+    2-adic coincidence that the reachable walls get at most 10% of the way towards.</li>
+    <li><span class="tag t-kernel">kernel</span> Three machines iterate one function, f(n) = 3n &minus; 10&middot;2<sup>k</sup> + 3k + 14.
+    Lean now proves the closed form for every n in all three (<code>lean/Closed.lean</code>).</li>
+    <li><span class="tag t-comp">computed</span> The subtract-and-multiply maps have no residue invariant modulo any 2<sup>a</sup>3<sup>b</sup> up to 7,776.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The ranking</h2>
+  <ul class="prose"><li><span class="tier tA">A</span> a route with no number theory may exist (1)</li><li><span class="tier tB">B</span> a simple invariant (parity, residue) is plausible (2)</li><li><span class="tier tC">C</span> Collatz-type; a Lean step that sharpens the question is open or just done (14)</li><li><span class="tier tD">D</span> Collatz-type; known methods shown not to work (10)</li><li><span class="tier tE">E</span> Antihydra type, or not fully reduced (5)</li><li><span class="tier tF">F</span> probably halts, out of reach of computation (8)</li></ul>
+  <div class="controls">
+    <div class="chips" id="tierchips"></div>
+    <input type="search" id="q" placeholder="filter: machine, class, word" aria-label="filter the table">
+  </div>
+  <div class="scroll"><table class="tbl rk"><thead><tr><th>#</th><th>tier</th><th>machine</th><th>class</th>
+  <th class="why">why</th><th>next step</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+
+<section>
+  <h2>The best candidate: a stack of counters under free parities</h2>
+  <div class="prose">
+  <p>For 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC, each step starts at <code>W A&gt; 0 b<sup>N</sup> 1</code> (b = 110),
+  and the next wall W&prime; depends only on W and N mod 2. Every wall seen is <code>1</code> followed by counters:
+  open <code>K(k) = b<sup>k</sup> 1<sup>3</sup> b 1</code> or closed <code>K&prime;(k) = b<sup>k</sup> 1<sup>6</sup></code>.
+  A step sends the parity into the top counter. An open counter closes on an even parity and grows by about 3/2 on an odd one.
+  When it grows, it passes its own parity down and pays for the counter below. Choose the parities yourself below and try to
+  drive a count below zero. That would need the counter above to stay odd for about as many steps as its own value.</p>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <button class="b" id="ev">N even</button><button class="b" id="od">N odd</button>
+      <button class="b" id="rn">10 random</button><button class="b" id="ao">odd until the top is even</button>
+      <button class="b" id="rs">reset</button>
+    </div>
+    <div class="stack" id="stk"></div>
+    <p class="small" id="stat"></p>
+    <div class="log" id="log"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Three machines, one function</h2>
+  <div class="prose">
+  <p>With h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;), set
+  f(n) = 3n &minus; 10&middot;2<sup>k</sup> + 3k + 14 for h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, and let f halt at n = h<sub>k</sub>.
+  Then 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE is the orbit of 4, 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE the orbit of 10
+  (in its coordinate N = 2n + 2), and 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE the orbit of 1. Each machine halts if and only if its orbit lands on some h<sub>k</sub>.
+  The three orbits share no value in their first 20,000 terms.</p>
+  </div>
+  <div class="panel">
+    <div class="controls"><label>start <input type="number" id="f0" value="4" min="1"></label>
+    <button class="b" id="fgo">iterate 40</button></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>i</th><th>n</th><th>level k</th><th>distance to the next h</th></tr></thead>
+    <tbody id="frows"></tbody></table></div>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>Sources</h2>
+  <p>Ranking, scripts and notes: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/tools/number-theory">tools/number-theory</a>
+  (<code>ranking.json</code>, <code>wallstack.py</code>, <code>samemap.py</code>, <code>residues.py</code>). Generated by <code>tools/number-theory/build_page.py</code>.</p>
+</section>
+</main>
+<script>
+const R = [{"rank": 1, "m": "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC", "cls": "wall stack", "tier": "A", "why": "No halting condition is known at all. The wall update depends only on the wall and N mod 2, so a closed set of walls for both parities would prove non-halting with no number theory. New here: the stack-of-counters model matches the Lean step map on all 558 steps of the free-parity wall graph to 300 cells. Under free parities no count goes below zero (29,195 walls to 30,000 cells), counters below the top never pass 17, and each counter is at least 5 times the one below it. Along the real orbit (300,000 steps) the counters below the top stay at 10 or less. A count can go negative only if the counter above stays odd for as many steps as its own size, which is a 2-adic coincidence. The reachable walls get at most 10% of the way there.", "next": "Prove an invariant on the stack (each counter far above the one below), then the stack rules in Lean."}, {"rank": 2, "m": "1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA", "cls": "run stack", "tier": "B", "why": "It halts only if every run of 1s is even at once, so the whole stack has to empty. An invariant that keeps one run odd would settle it. The parity of the number of even runs is already known, so a parity-type invariant is plausible.", "next": "Search for an invariant on run parities, using the Lean visit map."}, {"rank": 3, "m": "1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA", "cls": "subtract and triple", "tier": "B", "why": "It halts only at b = 1 with a = 0 mod 4. The map is fully proved for even a, but b only drops by subtraction steps, which mix residues.", "next": "Prove the halting events in Lean (only simulated so far), then look for an invariant on (a mod 4, b)."}, {"rank": 4, "m": "1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE", "cls": "threshold landing", "tier": "C", "why": "New here: this machine and the next two iterate the same function n -> 3n - 10*2^k + 3k + 14 (k the level, h_k = 5*2^k - k - 6). Starts are 4, 10 and 1, and the orbits are disjoint for the first 20,000 steps. Halting means landing exactly on h_k.", "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"}, {"rank": 5, "m": "1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE", "cls": "threshold landing", "tier": "C", "why": "Same map as the machine above in the coordinate N = 2n + 2, started at n = 10.", "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"}, {"rank": 6, "m": "1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE", "cls": "threshold landing", "tier": "C", "why": "Same map as the two above (c_i = h_(i+1)), started at n = 1.", "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"}, {"rank": 7, "m": "1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE", "cls": "all-ones lengths", "tier": "C", "why": "The numbers stay polynomial (the tape is about t^(1/3) wide) and it halts only right after an all-ones tape whose length is in 20*2^k - 2k - 12. The map from one all-ones length to the next has no visible pattern.", "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."}, {"rank": 8, "m": "1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE", "cls": "all-ones lengths", "tier": "C", "why": "Same mechanism, with fatal lengths 32*2^k - 2k - 12.", "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."}, {"rank": 9, "m": "1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE", "cls": "all-ones lengths", "tier": "C", "why": "Same mechanism, with fatal lengths 28*2^k - 2k - 13.", "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."}, {"rank": 10, "m": "1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE", "cls": "all-ones lengths", "tier": "C", "why": "Same mechanism. Its fatal list is already proved for every n, so all that is left is whether some all-ones length ever lands on 12*2^k - 2k - 9.", "next": "None in Lean. The question is a hitting problem."}, {"rank": 11, "m": "1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD", "cls": "all-ones lengths", "tier": "C", "why": "Same doubling pass (a,b) -> (2a+2, b-2a-2). It halts if a pass ends with b = 0, and the chance of that falls with the width.", "next": "None beyond a hitting argument."}, {"rank": 12, "m": "1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD", "cls": "near power of 2", "tier": "C", "why": "It halts iff a doubling chain meets x = (m+7)(2^(k+1)-1)/2 - k - 1. The total chance of a hit is 0.3187, nearly all of it in the first 20 rounds, but the chain-end remainders cover all of [0, h).", "next": "Prove the chain criterion in Lean (an induction on k)."}, {"rank": 13, "m": "1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD", "cls": "multi-tail 3/2 map", "tier": "C", "why": "Non-halting is reduced to the orbit staying out of a small uncovered region (Z_k with k = 0 or n < 12k+12). n has thousands of digits, so a growth bound k <= f(n) would be enough, but k follows its own 3/2 rule.", "next": "Prove the uncovered Z_k cases, then try a growth bound on k."}, {"rank": 14, "m": "1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA", "cls": "threshold landing", "tier": "C", "why": "It halts iff the orbit of 44 lands on 2^(j+1) - 2j - 7 or on a restart with d + s + 4 = 2^(s+2). There is about one target per doubling band, and t grows about 1.3x per reset.", "next": "A last-step congruence lemma, in the style of the Doucette family's Preimage.lean."}, {"rank": 15, "m": "1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD", "cls": "two-counter rounds", "tier": "C", "why": "It halts iff a Y run starts with c - b = 3, which parity rules out during the doubling stage. Outside that stage the chance is about 1/N per run.", "next": "A closed form for the end of a round."}, {"rank": 16, "m": "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC", "cls": "doubling with resets", "tier": "C", "why": "It halts at a reset with 2u = v exactly. Reset k needs about 1.47^k operations, so resets are rare.", "next": "None beyond a hitting argument."}, {"rank": 17, "m": "1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC", "cls": "base-6 digits", "tier": "C", "why": "A round halts only when a block is a base-6 repunit-like number. The chance is about 6^-D per round for D-digit blocks.", "next": "A digit automaton for the block, if its updates are digit-local."}, {"rank": 18, "m": "1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA", "cls": "subtract and triple", "tier": "D", "why": "After the first round c = 0 mod 3, but a mod 3 mixes. A residue search with branch guards relaxed (residues.py) reaches the halting difference for every modulus 2^a 3^b up to 7,776.", "next": "None known."}, {"rank": 19, "m": "1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE", "cls": "subtract and double", "tier": "D", "why": "It halts iff r = p + 1, which is a divisibility condition P(2^(t+1) - 1) = r + t + 1 at the end of each doubling phase. residues.py finds the halting class for every modulus 2^a 3^b up to 7,776.", "next": "None known."}, {"rank": 20, "m": "1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD", "cls": "subtract and triple", "tier": "D", "why": "Subtract the smaller and triple it. It halts at u - v in {0, 1}, with a chance of about 2^-size per round. Residues mix (residues.py).", "next": "None known."}, {"rank": 21, "m": "1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE", "cls": "subtract and triple", "tier": "D", "why": "The same type as the machine above, on (i, j, J). It halts at i = j or i + 1 = j. Residues mix (residues.py).", "next": "None known."}, {"rank": 22, "m": "1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB", "cls": "subtract and double", "tier": "D", "why": "It halts at k = 1 with n odd, with a chance of about 2/n per doubling stage. It is the same table as 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD started elsewhere, but the run is different.", "next": "None known."}, {"rank": 23, "m": "1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC", "cls": "Doucette", "tier": "D", "why": "A Doucette sequence has to reach a power of 2. tools/doucette shows that no congruence is invariant along these orbits (each run of valuations is one residue class), and its last-step lemmas leave infinitely many exponents open.", "next": "None known."}, {"rank": 24, "m": "1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB", "cls": "Doucette", "tier": "D", "why": "As above: it must reach a power of 2.", "next": "None known."}, {"rank": 25, "m": "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE", "cls": "Doucette", "tier": "D", "why": "As above: it must reach a power of 2.", "next": "None known."}, {"rank": 26, "m": "1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB", "cls": "Doucette", "tier": "D", "why": "As above, in base 3.", "next": "None known."}, {"rank": 27, "m": "1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD", "cls": "Doucette", "tier": "D", "why": "Space Needle: the community's flagship Doucette sequence, run to 10^10 terms. The question is open.", "next": "None known."}, {"rank": 28, "m": "1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA", "cls": "Antihydra walk", "tier": "E", "why": "A counter does a +2/-1 walk driven by the parity of a 3/2 map, the same type as Antihydra. That is a known open problem of Mahler type.", "next": "None known."}, {"rank": 29, "m": "1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC", "cls": "Antihydra walk", "tier": "E", "why": "The same type, driven by m mod 3. A return to k = 0 has a chance of about 2^-331763.", "next": "None known."}, {"rank": 30, "m": "1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---", "cls": "Antihydra walk", "tier": "E", "why": "The same type in base 3.", "next": "None known."}, {"rank": 31, "m": "1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA", "cls": "Antihydra walk", "tier": "E", "why": "This is Antihydra-type exactly: x -> floor(3x/2) with p moving +2/-1 by parity.", "next": "None known."}, {"rank": 32, "m": "1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA", "cls": "nested resets", "tier": "E", "why": "Not fully reduced yet: the reset table is only measured. Level 2 runs about 10^770 phases, and its end depends on n mod 10 and r there.", "next": "Prove the reset rows in Lean (decode work)."}, {"rank": 33, "m": "1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD", "cls": "probably halts", "tier": "F", "why": "It probably halts, after about 10^13 to 10^18 rounds on numbers with 10^12 bits or more, which is out of reach. Its halts-iff also still assumes the map never gets stuck.", "next": "Remove the never-stuck hypothesis."}, {"rank": 34, "m": "1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF", "cls": "probably halts", "tier": "F", "why": "It halts at the end of epoch 4 with probability 3/4. Deciding it needs parities after 1.1*10^14 steps of X -> floor(3X/2)+5 on 10^13-digit numbers, about 10^27 bit operations.", "next": "None feasible."}, {"rank": 35, "m": "1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB", "cls": "probably halts", "tier": "F", "why": "Round 4 needs the parity of u_i for i near 1.5*10^22 under u -> 3*ceil(u/2).", "next": "None feasible."}, {"rank": 36, "m": "1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA", "cls": "probably halts", "tier": "F", "why": "Phase 3 needs the (c-1)/2-th iterate of x -> floor(3x/2)+7 with c about 2.3*10^101.", "next": "None feasible."}, {"rank": 37, "m": "1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA", "cls": "probably halts", "tier": "F", "why": "A fair coin per budget. The next decision is about 2^1478 rounds away.", "next": "None feasible."}, {"rank": 38, "m": "1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA", "cls": "probably halts", "tier": "F", "why": "1/5 per cycle. The third cycle needs about 5*10^2901 phases.", "next": "None feasible."}, {"rank": 39, "m": "1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE", "cls": "probably halts", "tier": "F", "why": "A fair coin per epoch. Epoch 4 needs the parity of an iterate at an index with 39,991 digits.", "next": "None feasible."}, {"rank": 40, "m": "1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE", "cls": "probably halts", "tier": "F", "why": "About 1/4 per budget end. The fifth budget holds a 399,947-bit number of pairs.", "next": "None feasible."}];
+const TIERS = ["A", "B", "C", "D", "E", "F"];
+let on = new Set(TIERS);
+const chips = document.getElementById('tierchips');
+for (const t of TIERS) {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = 'tier ' + t;
+  b.setAttribute('aria-pressed', 'true');
+  b.onclick = () => { if (on.has(t)) on.delete(t); else on.add(t); b.setAttribute('aria-pressed', on.has(t)); draw(); };
+  chips.appendChild(b);
+}
+const esc = s => s.replace(/[&<>]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+function draw() {
+  const q = document.getElementById('q').value.toLowerCase();
+  document.getElementById('rows').innerHTML = R.filter(x => on.has(x.tier) &&
+      (x.m + ' ' + x.cls + ' ' + x.why + ' ' + x.next).toLowerCase().includes(q)).map(x =>
+    `<tr><td>${x.rank}</td><td><span class="tier t${x.tier}">${x.tier}</span></td>` +
+    `<td><a href="${x.m}/explainer.html"><code>${x.m}</code></a></td><td>${esc(x.cls)}</td>` +
+    `<td>${esc(x.why)}</td><td>${esc(x.next)}</td></tr>`).join('');
+}
+document.getElementById('q').oninput = draw; draw();
+
+// the stack model of holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py, with BigInt counts
+function step(lv, s) {
+  if (lv.length === 0) return s === 0 ? [[], 2n, 2n] : [[[0n, false]], 0n, 0n];
+  const [k, pr] = lv[lv.length - 1], V = lv.slice(0, -1);
+  if (!pr) {
+    if (s === 0) return [V.concat([[k, true]]), 2n, 2n];
+    const r = step(V, Number(k % 2n)); if (r === null) return null;
+    const k2 = 3n * k / 2n + r[1]; if (k2 < 0n) return null;
+    const o = -(k2 - k) + r[2]; return [r[0].concat([[k2, false]]), o, o];
+  }
+  if (k === 0n && s === 1) return [V.concat([[0n, true], [0n, false]]), 0n, 0n];
+  const r = step(V, Number((k + BigInt(s)) % 2n)); if (r === null) return null;
+  const c = 2n + BigInt(s) * (1n + k % 2n);
+  return [r[0], r[1] + 3n * k / 2n + c, r[2] + k + 2n];
+}
+let lv = [], n = 0, dead = false, lines = [];
+function show() {
+  const el = document.getElementById('stk');
+  el.innerHTML = '<span class="item wall">1</span>' + lv.map(([k, pr]) =>
+    `<span class="item ${pr ? 'closed' : ''}">${pr ? "K'" : 'K'}(${k})</span>`).join('');
+  let ratio = null;
+  for (let i = 0; i + 1 < lv.length; i++) if (lv[i][0] > 0n) {
+    const q = Number(lv[i + 1][0]) / Number(lv[i][0]); if (ratio === null || q < ratio) ratio = q; }
+  document.getElementById('stat').textContent = dead ? 'A count would go below zero: the model stops here (never seen from the wall 1).' :
+    `${n} steps, ${lv.length} counters` + (ratio === null ? '' : `, smallest counter/lower ratio ${ratio.toFixed(2)}`);
+  document.getElementById('log').textContent = lines.slice(-200).join('\n');
+}
+function go(s) {
+  if (dead) return; const r = step(lv, s);
+  if (r === null) { dead = true; show(); return; }
+  lv = r[0]; n++; lines.push(`${n}: N ${s ? 'odd ' : 'even'} -> ` + (lv.map(([k, p]) => (p ? "K'" : 'K') + k).join(' ') || '1'));
+}
+document.getElementById('ev').onclick = () => { go(0); show(); };
+document.getElementById('od').onclick = () => { go(1); show(); };
+document.getElementById('rn').onclick = () => { for (let i = 0; i < 10; i++) go(Math.random() < 0.5 ? 0 : 1); show(); };
+document.getElementById('ao').onclick = () => { let g = 0;
+  do { go(1); g++; } while (!dead && g < 200 && lv.length && !lv[lv.length - 1][1] && lv[lv.length - 1][0] % 2n === 1n); show(); };
+document.getElementById('rs').onclick = () => { lv = []; n = 0; dead = false; lines = []; show(); };
+show();
+
+// the shared function f
+const h = k => 5n * (1n << BigInt(k)) - BigInt(k) - 6n;
+function level(x) { let k = 0; while (h(k + 1) <= x) k++; return k; }
+document.getElementById('fgo').onclick = () => {
+  let x = BigInt(Math.max(1, parseInt(document.getElementById('f0').value) || 1)), out = [];
+  for (let i = 0; i < 40; i++) {
+    const k = level(x);
+    if (x === h(k) && k >= 1) { out.push(`<tr><td>${i}</td><td>${x}</td><td>${k}</td><td>halts: n = h<sub>${k}</sub></td></tr>`); break; }
+    out.push(`<tr><td>${i}</td><td>${x}</td><td>${k}</td><td>${h(k + 1) - x}</td></tr>`);
+    x = 3n * x - 10n * (1n << BigInt(k)) + 3n * BigInt(k) + 14n;
+  }
+  document.getElementById('frows').innerHTML = out.join('');
+};
+document.getElementById('fgo').click();
+</script>
+</body>
+</html>

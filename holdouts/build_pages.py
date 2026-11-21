@@ -646,7 +646,9 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  holds the machines whose only proof is an outside one not yet compiled here. Machines that fit no family keep their
  earlier label (F01 to F11). Click a family to filter the table; each family is explained on the
  <a href="families.html">families page</a>, and the reasoning is in
- <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.</p>
+ <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.
+ The 40 machines already reduced to a question about a map are ranked by how likely a proof is on the
+ <a href="number-theory.html">number-theory page</a>.</p>
  <div class="fams" id="fams"></div>
 </section>
 
