@@ -124,6 +124,27 @@ its README, "Long accelerated run") ran from state B to step
 309,912,429,635,717,488,255,026,042,251,054,316,912,233,544,920,575,434,371,030,188,155,071,676,538,482,240,087,883,083
 without a halt. Its rounds agree with the direct simulator for all 19,307 rounds up to 4·10^8 steps.
 
+## Top-part forecast: the timers (21 November 2026, group C)
+
+**Exact bound unchanged** (region-memo 1.18·10^246). **Forecast: the first right-end timer exhaustions after 3.10·10^89 steps (start B) do not
+halt; 124266 overflow cycles followed** (trusted computation of a reduced model; the reduction is an argument checked on data).
+
+- **Method** (`py/forecast.py`, code in `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py` and `cmacro.py`). The digit model counts at the bottom, and a carry reaches a digit only through carry walls, so the first P digits (the *top part*) see only carries arriving from below; the lower part decides only *when*. The top part is therefore followed alone: the top P digits of an exact state are kept, the rest is replaced by 3 zero digits with runs of 10^60 (the *reduced model*), and the reduced tape is run by `cmacro.py`, an exact macro engine over the same digits.py window rules (macro keys hold only walls, small runs and parities; every comparison on a big run is recorded as a linear condition and checked at each application). One overflow cycle of the top part is a translation of its runs while none is near exhaustion, so K cycles are jumped at once (top += K·D); near an exhaustion the cycles are run one by one. A merge at index j changes only digits j-1 and j, so the forecast of the top part holds until the real run at index P-1 (lifetime run/|D|) is used up. The forecast says nothing about step counts (they depend on the lower part) and assumes the lower part keeps delivering carries, which is what every exact run so far shows. 
+- Check of the reduction (P = 40, start A, from 5.71·10^90): the 9 top events of a 200 s exact run agree with the reduced model.
+- The timers are the top runs of the mirrored model: a cycle (a right-end visit) moves the runs at index 2, 4, 6, 8, ... by
+  -3, -8, -32, -128, ... words of `110` (the README's 9, 24, 96, 384 cells). From the 16 November state (`py/accel.py`
+  pickle, 3.10·10^89), with P = 40: the timers `1191614`/`1186943` (lifetime about 9,300 cycles) and `317959`/`317669` (about 40,000)
+  are used up and refilled from their neighbours; 124266 cycles were followed in about 400 s (the cycles after a refill are run
+  one by one and each derives new window macros, so this is slow), with no STOP: the E-chain on a run of length 2 mod 3,
+  which would be the halt, never came up as a window rule.
+- Next deciding event: the next timer exhaustion beyond cycle 124266 (the top runs then: see the forecast log); the run
+  at index 2 (about 1.13·10^6, -3 per cycle) lasts about 3.5·10^5 cycles.
+
+```sh
+python3 holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/py/forecast.py test      # about 7 minutes
+python3 holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/py/forecast.py run saved 40 3 1e7 700 out.pkl
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html`](../../pages/holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/explainer.html)

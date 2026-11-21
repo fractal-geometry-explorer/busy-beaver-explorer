@@ -436,6 +436,14 @@ proof needs a set of tape shapes, closed under every sweep, that covers the irre
 collapse. The digit model's symbolic rules don't give that set directly: rules for sweeps that reach the far end are
 keyed by the whole tape. A run from 9.3x10^131 derived 304 rules and kept adding a few per cycle.
 
+## Cache file for lean.py, and b2 to 4.96x10^137 (21 November 2026)
+
+`py/lean.py` keeps the periods it has learned in a file when `LCACHE_FILE` is set (`PYTHONHASHSEED` must be the
+same in every run). Learning a period of 4 to 5 million sweeps costs about an hour, and without the file every new
+run learned its periods again. With it, the twin `1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---` was run two more cycles,
+to 4.96·10^137 steps, with no halt (its README, section of 21 November). b1 was not run today; its next deciding
+event, the second segment running out near 10^228, is unchanged.
+
 ## What is proved, and how firmly
 
 | level | claim | where |

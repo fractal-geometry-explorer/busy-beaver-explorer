@@ -82,6 +82,12 @@
    "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD 3 1200</code>; <code>holdouts/regaccel.json</code>"
   },
   {
+   "level": "heuristic",
+   "title": "Top-part forecast: the first timer exhaustions after 3.10&times;10<sup>89</sup> steps (start B) do not halt (124,266 overflow cycles)",
+   "text": "The digit model counts at the bottom, so the first P digits (the top part) only see carries arriving from below. <code>py/forecast.py</code> keeps the top P digits of an exact state, replaces the rest by three zero digits with runs of 10<sup>60</sup>, runs this reduced tape with the exact condition-macro engine <code>cmacro.py</code> (the same digits.py window rules), and jumps K whole overflow cycles at once while every top run only moves by a constant per cycle. The model is the twin's (1RB1LE_..._---1LE started in state B, lean/Twin.lean). From the 16 November state at 3.10&times;10<sup>89</sup>, with P = 40: the timers 317,669 (about 40,000 cycles) and 1,186,943 are used up and refilled, and no window rule halts, splits or fails to parse in 124,266 cycles. The step counts are not computed (they depend on the lower part), and that the reduced model predicts the real top part is an argument (a merge at index j changes only digits j-1 and j) checked on data, not a proof. This is a bounded forecast.",
+   "where": "<code>python3 holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/py/forecast.py run STATE.pkl P 3 CYCLES SECONDS</code> (test: <code>... test 60</code>); README, section of 21 November 2026 (group C)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known; by the twin theorem it is the same question as for the twin started in state B (see that machine’s page for the right-end map and what is missing).",

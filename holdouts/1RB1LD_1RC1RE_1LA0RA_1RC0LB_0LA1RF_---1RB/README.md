@@ -59,6 +59,32 @@ No halt in the first 4.96x10^19 steps: the macro simulator `holdouts/1RB0LB_1RC0
 from blank tape to step 49,671,575,971,845,881,180. It is exact, and at this block size it agrees with the
 direct simulator after 2,000,037,093 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240`, then `verify`).
 
+## Countdown hunt: through two top-level resets to 4.06·10^9138 steps (21 November 2026)
+
+**No halt in the first 4.05609256814·10^9138 steps** (trusted computation; the bound of 20 November was
+3.86·10^5137). `py/ratrack.py run` runs the region-memo accelerator `tools/py/bbtools/regaccel.py` (blocks of 6,
+exact, step counts included), checkpoints it, and logs the block list each time the head is at the right end
+(runs of `111110` between separators of 7 ones, the end of 8 ones). `py/ratrack.py test` checks the decoded
+snapshots against a direct run: 11 of 11 up to 2·10^9 steps agree. The list has the same shape as for
+1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD: the last block is the far-end countdown, worn down by one per arrival.
+
+| steps | event |
+|---|---|
+| ~10^500 | the last block (19,879 at 10^500) runs out; 129,755 becomes the last block; end `8 0`; no halt |
+| 10^500 to 10^5138 | it loses about 15.7 per decade (761 at 10^5091) |
+| 3.8589218·10^5137 | **the last block runs out, no halt**; the 10^9 block in front of it becomes the last block. At the same time middle blocks of the list run out and the front is rebuilt from small timers, so the step count stays at 3.8589218·10^5137 for about 20 minutes of the run (this is where the 20-minute run of 18 November stopped: the same step count, 3.85892·10^5137) |
+| 10^5138 to 10^9138 | the front regrows past the old blocks and the run speeds up again |
+
+At the checkpoint the end of the list is `... [8] 10^35, 1,900,754,236 (last block), end 8 0`; the logged run went on
+to about 5·10^11138 steps before it was stopped (the bound is the checkpoint, which is exact and can be resumed).
+**Next deciding event:** that last block, losing about 16 per decade, runs out near 10^(1.2·10^8) steps (a
+forecast from the rate, not a run).
+
+```sh
+python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/py/ratrack.py test 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 6 2e9
+python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/py/ratrack.py run 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 6 3600 ckpt=/tmp/m3.pkl every=100 hb=60
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/explainer.html`](../../pages/holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB/explainer.html)

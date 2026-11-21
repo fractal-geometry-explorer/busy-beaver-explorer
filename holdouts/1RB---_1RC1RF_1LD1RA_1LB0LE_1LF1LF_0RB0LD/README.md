@@ -119,6 +119,27 @@ after 1.57·10^45 rounds. It passed the next absorption by END, the "cheaper fir
   That block is at 205 at the end of the run, with 75 digits. End state:
   `/mnt/project-files/halt-hunt/f06left/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD_state_1.58e90.pkl`.
 
+## Top-part forecast: the next END absorptions (21 November 2026, group C)
+
+**Exact bound unchanged** (region-memo 3.19·10^314). **Forecast: the END absorptions after 1.58·10^90 steps do not halt, for
+3.3·10^6 overflow cycles** (trusted computation of a reduced model; the reduction is an argument checked on data).
+
+- **Method** (`py/forecast.py`, code in `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py` and `cmacro.py`). The digit model counts at the bottom, and a carry reaches a digit only through carry walls, so the first P digits (the *top part*) see only carries arriving from below; the lower part decides only *when*. The top part is therefore followed alone: the top P digits of an exact state are kept, the rest is replaced by 3 zero digits with runs of 10^60 (the *reduced model*), and the reduced tape is run by `cmacro.py`, an exact macro engine over the same digits.py window rules (macro keys hold only walls, small runs and parities; every comparison on a big run is recorded as a linear condition and checked at each application). One overflow cycle of the top part is a translation of its runs while none is near exhaustion, so K cycles are jumped at once (top += K·D); near an exhaustion the cycles are run one by one. A merge at index j changes only digits j-1 and j, so the forecast of the top part holds until the real run at index P-1 (lifetime run/|D|) is used up. The forecast says nothing about step counts (they depend on the lower part) and assumes the lower part keeps delivering carries, which is what every exact run so far shows. 
+- Check of the reduction from the 1.58·10^90 state (P = 40): 261 top events of the exact run (300 s, the block before END
+  went 205 to 140) agree with the reduced model, 0 mismatches.
+- Forecast from the 16 November state at 1.58·10^90 (top `[0]T [205]P [1861]R [24090]P ...`, mirrored: T is END): a cycle
+  moves the block before END by -1 and the run at index i by -4^(i-1). The block before END is used up at cycle 203; END
+  absorbs the digit and the new block before END is 1,037 (the earlier absorption, near 10^18 steps, left 426). Further
+  absorptions at cycles 1,241 (new block 16,639), 17,882 (12,972), 30,854, ... With P = 36 (horizon: index 35, 3.3·10^6 cycles):
+  345 non-translation cycles, all absorptions or merges, no STOP (no halting window, no split, no unparsed tape).
+  The region-memo run to 3.2·10^314 has very likely already passed the first of these (it is exact).
+- Next deciding event: the horizon, the run at index 35 (cycle ~3.3·10^6).
+
+```sh
+python3 holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/py/forecast.py test      # about 7 minutes
+python3 holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/py/forecast.py run saved 36 3 3.3e6 900 out.pkl
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/explainer.html`](../../pages/holdouts/1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/explainer.html)
