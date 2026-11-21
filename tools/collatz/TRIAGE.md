@@ -18,6 +18,8 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 | `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | 10^12 visits, no halt; a, b reach 3.5e12, about 6.8e35 machine steps; values grow about linearly, so a hit b = a + 4 (a even) stays possible |
 | `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly |
 | `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | 10^12 operations, no halt: modulus about 4.8e11, past both targets 2^37 - 36 and 2^38 - 37; 36 odd events |
+| `1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE` | the Lean frame map (lean/Phases.lean, next from Ph.g 0 1) generated into C, with bulk shift cycles (tools/collatz/frames) | 10^8 frames by native_decide | 10^19 frames, no halt; arguments reach 1.4e10 (they grow like the square root of the frame count); 83 minutes |
+| `1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD` | the Lean frame map (lean/Phases.lean, next from Ph.z 0 0 2) generated into C, with bulk shift cycles (tools/collatz/frames) | 10^8 frames by native_decide | 10^19 frames, no halt; arguments reach 1.1e10 (they grow like the square root of the frame count); 112 minutes |
 
 ## Halt hunt (7)
 
@@ -55,9 +57,9 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 - **Halts when:** Halts iff an iterate of next from Ph.z 0 0 2 is undefined: .z 1 1 1, .w l 0 1, .w l 1 0, .W l 0 1, .W l 1 0.
 - **From blank tape:** Ph.z 0 0 2 at step 2
 - **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel), none_halts for the undefined cases.
-- **Checked:** 10^8 frames native_decide (~4.5e11 steps); 3.58e22 steps rleaccel C++.
+- **Checked:** 10^8 frames native_decide (~4.5e11 steps); 3.58e22 steps rleaccel C++; 10^19 frames of the Lean frame map in C (tools/collatz/frames), no halt.
 - **Odds:** not stated
-- **Next step:** Derive a closed-form (z/w/W) frame map from the 78 cases and a heuristic for how often block sizes reach the small undefined cases; iterate it far beyond 10^8 frames.
+- **Next step:** Characterise which frames lead to the none cases and estimate the odds; the frame map has been run to 10^19 frames (arguments about 10^10) without a halt.
 
 ### [`1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---`](../../holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/README.md)
 
@@ -103,9 +105,9 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 - **Halts when:** Orbit reaches a frame where next is undefined: .e l 0 0, .E l 0 0, .f 0 1, .h l 0 1, .i l 0 1, .k l 0, .K l 0 (machine: D reads 0).
 - **From blank tape:** Ph.g 0 1 at step 6
 - **Proved:** halts_iff, next_sound and none_halts in lean/Phases.lean (kernel); no_halt_phases: 10^8 frames by native_decide.
-- **Checked:** 10^8 frames native_decide (~9.7e11 steps); 10^15 steps exact macro sim and 6.66e22 steps rle accelerator (trusted).
+- **Checked:** 10^8 frames native_decide (~9.7e11 steps); 10^15 steps exact macro sim and 6.66e22 steps rle accelerator (trusted); 10^19 frames of the Lean frame map in C (tools/collatz/frames), no halt.
 - **Odds:** not stated
-- **Next step:** Port the frame map to C/GMP and iterate far beyond 10^8 frames (as done for the doubling machines), and characterise which frames lead to the halting cases.
+- **Next step:** Characterise which frames lead to the none cases and estimate the odds; the frame map has been run to 10^19 frames (arguments about 10^10) without a halt.
 
 
 ## Outside proof (2)

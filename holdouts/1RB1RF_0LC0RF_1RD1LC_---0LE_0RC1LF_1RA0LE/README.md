@@ -123,7 +123,8 @@ def next : Ph → Option Ph
 `lean/Phases.lean` proves every case for all sizes (`next_sound`, from the symbolic runs in `lean/Pieces.lean`),
 that the undefined cases `.e l 0 0`, `.E l 0 0`, `.f 0 1`, `.h l 0 1`, `.i l 0 1`, `.k l 0`, `.K l 0` halt (`none_halts`), `halts_iff` (the machine halts from blank tape
 iff the orbit of `Ph.g 0 1` reaches one of them), and by `native_decide` that the first 10^8 frames do
-not (`no_halt_phases`; about 9.7*10^11 steps).
+not (`no_halt_phases`; about 9.7*10^11 steps). The same map, generated into C from this Lean file, was
+followed for 10^19 frames without reaching a `none` case (simulation, not proof; [`tools/collatz/frames`](../../tools/collatz/frames/README.md)).
 
 `py/pieces.py` regenerates both Lean files from the machine: it fits the map (`py/fitlib.py`, frames in `py/spec.py`),
 collapses it into cases (`py/tree.py`) and proves each case with `tools/py/bbtools/symtm.py`. `py/framemap.py` is the
