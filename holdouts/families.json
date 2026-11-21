@@ -7,11 +7,11 @@
    "id": "R01",
    "name": "Base-5 marker counter on one five-state core (F05)",
    "mechanism": "Forty machines are one five-state core, `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in frame A, differing in D1, F0 and the start; five more use the same core with E1 or F0 changed. The tape is a list of 0010-blocks run like a nested base-5 counter; a machine can halt only at an F-event (the detour through F) that reads a 1.",
-   "known": "Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0.",
-   "technique": "One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never near 0 when its block runs out. A proof on the core settles all 40 at once; even without it, Lean proofs that variants with the same block list are the same run cut the 40 questions to about 10.",
-   "odds": "medium-low: halting needs two rare events to coincide, and nothing found so far bounds the drift; but the payoff is the largest of any single argument.",
+   "known": "Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0. The same-run step is done: ten twin pairs and seven start-twin pairs (`EQUIVALENCES.md`; `Twin.lean`, `StartTwin.lean`) put 31 of the 40 into 14 classes, so the 40 are 23 questions, and a recheck of all 40 block lists at every left-end event to 10^30 steps (21 November) found no further pair: the twelve start-E machines part from each other and from the start-A ones by the sixth left-end event.",
+   "technique": "One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never within a few hundred of 0 when block i runs out. Clean visits keep every drift fixed, so only the drifts made at merges matter. A proof on the core settles all 40 at once.",
+   "odds": "low: the drifts made at merges behave like differences of unrelated large numbers. To 10^100 steps the 599 drifts of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- are all even but take every residue mod 9 and mod 25 (122 of 125 mod 125), and |b(i+1) - 5·b(i)| / b(i) gets as low as 0.015, so neither a congruence nor a ratio bound is kept. A proof would have to show that a chaotic integer process misses a thin set, a Collatz-type statement. Heuristically they do not halt: every drift made after the 30th left-end event is above 8·10^6 in size, against the few hundred a halt needs.",
    "rank": 1,
-   "short": "one drift invariant on the shared core (first: same-run equivalences, 40 questions to about 10)",
+   "short": "one drift invariant on the shared core (same-run step done: 40 machines, 23 questions)",
    "machines": [
     {
      "m": "1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA",
