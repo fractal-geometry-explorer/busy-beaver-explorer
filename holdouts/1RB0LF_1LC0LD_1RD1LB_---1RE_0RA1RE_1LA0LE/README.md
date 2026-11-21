@@ -4,8 +4,8 @@ bbchallenge id 15252, a six-state holdout of group G05 (growth class fixed/sqrt)
 that the machine follows an exact block machine and halts *if and only if* that block machine reaches a left block
 of exactly four 1s with nothing but single 1s to its right (`halts_iff`, `halts_iff_four`). The run is a
 doubly exponential counter: from the configurations `O(N) = 1^N F>0 0 1^3` it goes to `O(N')` with N' roughly
-2^(√N / 3), and an epoch halts exactly when N lies in a sparse set `H = {2^(n+4) - 2n - 10}` (the *if* part is proved
-in Lean for every n, `outer_halts`). The orbit from blank tape is 10, 27, 60, 118, 254, 514, 1014, 2106, 17220,
+2^(√N / 3), and an epoch halts exactly when N lies in a sparse set `H = {2^(n+4) - 2n - 10}` (both directions are
+proved in Lean: `outer_halts`, `halts_iff_outer`). The orbit from blank tape is 10, 27, 60, 118, 254, 514, 1014, 2106, 17220,
 8534636888060, ...: none of these is in H.
 
 | state | read 0 | read 1 |
@@ -70,8 +70,9 @@ right. In an epoch this happens when a doubling pass leaves exactly four 1s on t
 By computation, for 5 <= N <= 3000 the epoch from O(N) halts iff N is one of these. Nearly all odd N go to a power
 of two minus 4 (27 -> 60), and from 60 on the orbit stays even.
 
-So the machine halts iff the outer orbit 10, 27, 60, ... ever hits H (and the converse rests on the computed
-pattern, not on a proof). H has one element per doubling of N, so if N behaves like a random number of its size
+So the machine halts iff the outer orbit 10, 27, 60, ... ever hits H (`halts_iff_outer`, Lean, kernel: the
+converse holds because X stays odd or 0 from the moment it leaves the doubling passes until the next outer
+configuration). H has one element per doubling of N, so if N behaves like a random number of its size
 the chance that it lies in H is about 1/N: already about 2^(-43) for N = 8534636888060, and N grows doubly
 exponentially, so the chance of any later hit is negligible.
 
@@ -115,6 +116,11 @@ simulation.
   `mstep_halt_iff`; **`halts_iff_four`**.
 - `lean/Outer.lean`: `rounds_tail`, `pass` (a doubling pass: X = x + 2q + 7 -> x + 1, block 2q + 3 -> 2(2q + 4) + 3),
   `pass_halt`, `T_closed`, **`outer_halts`: `1^N F>0 0 1^3` halts for N = 2^(n+4) - 2n - 10**, every n.
+- `lean/Epoch.lean`: the converse, by a parity invariant (`Good`, kept by every macro step until the next outer
+  configuration, `good_next`, and never at a halt, `good_no_halt`): **`halts_iff_outer`: the machine halts from
+  blank tape iff the run passes an outer configuration `O(N)` with N = 2^(n+4) - 2n - 10.** While X is even the run
+  is in the doubling passes, and `BadT`/`BadU` (computed from `T`) say whether they end at X = 4; once X leaves
+  them it stays odd or 0 until the next `O(N')`, so it cannot be 4.
 
 **Lean, `native_decide`** (`lean/MacroRun.lean`): `macro_runs`, `blank_runs_macro`: 2·10^7 macro steps of the
 block machine, no halt, so no halt in the first 191,906,825,348,151 steps (`runN_sound`, kernel, says the runner
@@ -129,10 +135,9 @@ computes a run of the machine). `lean/Axioms.lean` prints the axioms: only the s
   102, then 27 (401), 60 (2,196), 118 (10,760), 254 (43,454), 514 (181,170), 1014 (721,486), 2106 (2,911,484),
   17220 (251,528,266), 8534636888060 (about 6.54·10^25 steps). The first eight epochs need no jump or one; the
   ninth jumps 35 inner epochs, all with j < 400 where the closed form was checked.
-- For 5 <= N <= 3000 the epoch from O(N) halts iff N ∈ H.
+- For 5 <= N <= 3000 the epoch from O(N) halts iff N ∈ H (now proved for every N: `halts_iff_outer`).
 
-**Heuristic.** The inner-epoch closed form beyond j = 400; the claim that H is the only way to halt for all N; and
-the estimate that the orbit avoids H forever (chance of a hit about 1/N per epoch).
+**Heuristic.** The inner-epoch closed form beyond j = 400, and the estimate that the orbit avoids H forever (chance of a hit about 1/N per epoch).
 
 **Open.** Whether the orbit ever hits H. N' depends on N through the remainder left by the doubling passes and the
 number of inner epochs, a Collatz-like map of N; nothing visible excludes an exact hit.
@@ -158,6 +163,7 @@ python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/gen_rules.py      
 | `lean/Sound.lean` | `mstep_sound`, `mstep_halt` |
 | `lean/Reduce.lean` | the invariant, `halts_iff`, `halts_iff_four` |
 | `lean/Outer.lean` | doubling passes and `outer_halts` |
+| `lean/Epoch.lean` | the parity invariant and `halts_iff_outer` |
 | `lean/MacroRun.lean` | the block machine run 2·10^7 macro steps with `native_decide` |
 | `lean/Axioms.lean` | the axioms of the main theorems |
 | `py/macro.py` | the block machine in Python, checked against the machine |
@@ -173,7 +179,6 @@ python3 holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/py/gen_rules.py      
 
 - Prove the inner epoch in Lean, for every j and every number of units: X_j = 24·2^j - 3 goes to X_{j+1} with
   j + 4 units used. With `pass` this gives the whole epoch as a function `Φ` with `O(N) -> O(Φ(N))`, so that
-  halting becomes, in Lean, *the orbit of 10 under Φ meets H*. The same proof would show that halting outside H is
-  impossible.
+  halting becomes, in Lean, *the orbit of 10 under Φ meets H*.
 - Then compute Φ on the tenth value (on the order of a million bits) and later ones directly from the formula, and study Φ
   mod powers of two: an exact hit needs N' ≡ -2n - 10 (mod 2^(n+4)), which could perhaps be ruled out 2-adically.
