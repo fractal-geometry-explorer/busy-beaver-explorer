@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one right sweep and one left sweep over a clean word string replace each word by the XOR of it and its right neighbour (x = 0, y = 1), the linear cellular automaton known as rule 102, now in Lean for every string length. By Lucas' theorem (also in Lean) word i after t sweeps is the XOR of the words i + k whose offset k has its binary digits inside those of t. The danger pattern needs a gap after a <code>10</code> defect that turns all y, and that happens exactly when the gap already is a row of Pascal's triangle mod 2. So halting is now a question about which gaps the right end hands to a <code>10</code> defect, in binary digits. No closed tape language has been found.</p>
+      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one round trip of the head replaces each word by the XOR of it and its right neighbour (rule 102), in Lean for every length, with its Lucas closed form. A halt needs a <code>10</code> defect with <code>y</code> in front of it and only <code>y</code>s up to the next wall. Lean now proves what a deep sweep does at a defect: with <code>x</code> in front it is rule 102 on the whole line, with <code>y</code> in front the defect jumps to the end of the gap's first <code>x</code> block, and after a jump over m slots the next jump comes exactly m sweeps later. So a defect's whole life is one map on its gap, and the danger pattern is a jump with nothing to land on. The map does not rule that out by itself; a proof also needs to show that no new bulk <code>10</code> defect is born, which in the run has not happened since 8.5 million steps. No closed tape language has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -146,6 +146,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>B at the start of <code>y 10 y<sup>n</sup> 0</code> halts for every n: the defect puts B in token mode, F crosses the y words turning each into 000, and F reads the wall's 0. With x before the defect, <code>x 10</code> is the single run 11110, which B rewrites to 00011 and leaves at the start of the gap the ordinary way.</p>
         <p class="where"><code>danger_halts</code>, <code>token_y</code>, <code>shield</code>, <code>lean/Danger.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The defect's two deep sweeps: shielded, or a jump</h3>
+        <p>For all word strings and lengths. Shielded (<code>x</code> before the defect T): <code>P x T G y 0</code> becomes <code>x102(P, x) T x102(y G y, y) 1</code>, the defect one slot further left; counting T as a <code>y</code> this is rule 102 on the whole line (<code>x102_shielded</code>). Jump (<code>y</code> before T): <code>P y T y<sup>j</sup> x<sup>a+1</sup> C y 0</code>, with C empty or starting with <code>y</code>, becomes <code>x102(P y, x) x<sup>j+a+1</sup> T x102(C y, y) 1</code>: the defect jumps to the last slot of the gap's first <code>x</code> block. With no <code>x</code> before the wall this is the danger pattern, which halts.</p>
+        <p class="where"><code>shielded</code>, <code>jump</code>, <code>x102_shielded</code>, <code>lean/Hop.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The jump clock</h3>
+        <p>After a jump over <code>m = j + a + 1</code> slots the words before the defect are <code>Q y x<sup>m</sup></code>; each shielded sweep turns <code>Q y x<sup>k</sup></code> into <code>Q' y x<sup>k&minus;1</sup></code>. So exactly <code>m</code> shielded sweeps follow and then the word before the defect is <code>y</code> again: the next jump (or merge, or the danger pattern) comes <code>m</code> sweeps later, whatever the words further left.</p>
+        <p class="where"><code>clock</code>, <code>lean/Hop.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -161,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,577 cells have been visited and 35,099 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>The deep-sweep rules, against the machine's table</h3>
+        <p>The shielded rule for every <code>P</code> of up to 5 words and <code>G</code> of up to 6 (8,001 cases), the jump for <code>P</code> up to 5 words, <code>j</code> up to 4, <code>a + 1</code> up to 4 and <code>C</code> up to 5 words (40,320 cases), and the danger pattern (504 cases, all halt), run with the machine's own table.</p>
+        <p class="where"><code>py/hop_rule.py</code></p>
       </div>
       <div class="card">
         <h3>Which gaps can reach the danger pattern</h3>
@@ -191,8 +206,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
       <div class="card">
+        <h3>A defect's lifetime is one map on the gap</h3>
+        <p>Read the gap with the defect as constant term, <code>W = 1 + g<sub>0</sub> z + &hellip;</code> over GF(2). Shielded sweeps multiply <code>W</code> by <code>1 + z</code>; a jump strips the leading run of ones and the run of zeros after it (<code>L = j + a + 2</code> slots) and, with the clock, gives <code>F(W) = (1 + z)<sup>L</sup> C</code> at the next jump. The left words fix only the first jump. Every deep sweep of the real run to 1.2&middot;10<sup>7</sup> steps (54 shielded, 10 jumps, 3 merges) follows the rules, the gap agrees with the model on every word the old gap determines (63 of 63), and all 10 jumps and merges after a first jump came on the clock. For random gaps the run of ones at a jump is geometric (<code>py/fmap.py</code>), so the map does not by itself prevent a halt; the real run had <code>j</code> = 0 or 1 at every jump.</p>
+        <p class="where"><code>c/turns.c</code>, <code>py/defect_life.py</code>, <code>py/fmap.py</code></p>
+      </div>
+      <div class="card">
         <h3>A 10 defect is a pinned y in a rule-102 line</h3>
-        <p>In the run to 9&middot;10<sup>6</sup> steps, every sweep with an <code>x</code> before a bulk <code>10</code> defect (50 of them) moves the words on both sides by <code>w'[i] = w[i&minus;1] xor w[i]</code> in the defect's frame, with the defect acting as a fixed <code>y</code> for the gap. So the word before the defect is a Lucas sum of the words left of it (checked for 36 sweeps). The other 9 sweeps are exactly those with <code>y</code> before the defect: the defect hops back and the gap shrinks. A halt needs such a sweep to meet an all-<code>y</code> gap; the two never coincided.</p>
+        <p>In the run to 9&middot;10<sup>6</sup> steps, every sweep with an <code>x</code> before a bulk <code>10</code> defect (50 of them) moves the words on both sides by <code>w'[i] = w[i&minus;1] xor w[i]</code> in the defect's frame, with the defect acting as a fixed <code>y</code> for the gap. So the word before the defect is a Lucas sum of the words left of it (checked for 36 sweeps). The other 9 sweeps are exactly those with <code>y</code> before the defect: the defect jumps (see the jump rule above). A halt needs such a sweep to meet an all-<code>y</code> gap; the two never coincided.</p>
         <p class="where"><code>c/defect10.c</code>, <code>py/defect_frame.py</code></p>
       </div>
       <div class="card">
@@ -229,7 +249,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB 1000000000
-python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/route.py        # rewrites lean/Route.lean</code></pre>
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/route.py        # rewrites lean/Route.lean
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/hop_rule.py
+gcc -O2 -o turns holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/c/turns.c &amp;&amp; ./turns 12000000 150 &gt; turns.txt &amp;&amp; python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/defect_life.py turns.txt
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/fmap.py</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>
