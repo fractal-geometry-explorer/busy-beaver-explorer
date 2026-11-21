@@ -82,6 +82,12 @@
    "where": "<code>halts_of_odd</code>, <code>halt_turn</code>, <code>lean/Pascal.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Even head blocks: absorption and walls",
+   "text": "For every zone: a head block of 2 cells followed by a block of 4k+1 cells is absorbed and leaves a clean zone (<code>tmap w</code>, v<sup>k</sup>, u) with the third block one cell shorter under the head; with 4k+3 cells the zone gets a wall <code>1 0</code> next to the head. A bounce against a walled zone is the running XOR with a 0 appended, and the wall stays; an odd head block still halts with a wall. The one case left in this picture is an even head block meeting a walled zone.",
+   "where": "<code>absorb</code>, <code>absorb3</code>, <code>wbounce</code>, <code>halts_of_odd_wall</code>, <code>lean/Absorb.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "An even frozen block: absorption",
    "text": "With a block of 2 under the head the zone swallows it and the next block, and the block after that loses one cell (frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code>; if <code>c = 1</code> the next pair goes too). Checked on 20,000 random zones (up to 8 letters, both prefixes) and frozen tapes; the zone never changes the outcome.",

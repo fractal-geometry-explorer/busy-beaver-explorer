@@ -159,6 +159,21 @@ A proof of non-halting would follow from showing that this invariant is preserve
 there about 60% of right turns happen inside old zone material rather than at the edge of a clean zone, and the frozen tape
 is written by the sweeps, so the zone's digits enter. Not proved.
 
+**Even head blocks and walls, in Lean (21 November 2026, `lean/Absorb.lean`).** All for every zone word and prefix:
+
+* `absorb`: frozen tape `1 1 0 1^(4k+1) 0 1 R`: the head block and the next block are absorbed; the next right turn has
+  the clean zone `tmap ws`, `v^k`, `u` and E on `R` (the third block, one cell shorter).
+* `absorb3`: frozen tape `1 1 0 1^(4k+3) 0 1 R`: the same, but the zone comes out `tmap ws`, `v^(k+1)` and then a *wall*
+  `1 0` next to the head, two cells out of step with the letters.
+* `wbounce`: a bounce against a walled zone is the running XOR of the word with a `0` appended (`smap`), the wall stays
+  and the head block loses two cells. `halts_of_odd_wall`: an odd head block followed by `0 1` still halts.
+
+With `bounce` and `halts_of_odd` from `Pascal.lean` this covers every right turn in a clean or walled zone except two:
+a 2-cell head block followed by an even block (which the observed invariant rules out), and an even head block
+meeting a walled zone. There the left sweep meets the wall in D and turns right early, and the zone
+gets a wall inside it (brute force), so the clean letter picture ends. That case, and the crossing phase, are what a
+non-halting proof still needs. The halting shape itself is now known in both zone kinds: an odd head block.
+
 A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
 (`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
 and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture
