@@ -216,25 +216,25 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 
 *map-partial, outlook halts-late, table set T11*
 
-- **Map:** Phase starts P 1^n 0 C>0 (P a word of blocks ending in 0): n -> 8*(n div 3) + d, where d and the next word P' depend only on P and n mod 3 (word map measured by simulation). Proved case: residue 0, (L 0 1^(a+1) 0, 3m+3) -> (L 0, a+8m+11). Finer class map on events A U^m B (affine in m per class (A,U,B,m mod 3)), extrapolated.
+- **Map:** Same table as 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- (mirrored, states renamed), started in its state F; first phase start PS(11, [6]). Phase map phi on (M, list of blocks) proved there for every tail but one shape (m = 2, a block 2 with more blocks after it); see that entry.
 - **Halts when:** Granted the class map: the orbit reaches a halting class; nearest needs 108 prescribed residues mod 3 in a row, ending at tail 01011011 with m = 1 (mod 3).
 - **From blank tape:** first phase start at step 110, P = 1111110, n = 12 (class map from step 2,763: A=0, U=1, m=107, B empty)
-- **Proved:** Rounds of a phase for all counts and words and the residue-0 phase end (first_X, drain_X, drain_iter, phase_zero in lean/Phase.lean, kernel); no halts_iff; plus step_none_iff and 10^7 steps (native) in lean/Blank.lean.
-- **Checked:** 9.66e72809 steps rle accelerator and 1.71e299748 steps region-memo accelerator (trusted); 2,000 exact phases (n 2,835 bits, trusted); 161,449 class-map rounds (~10^137,548 steps, heuristic); 10^7 steps native_decide.
+- **Proved:** not_halts17454 (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/Twins.lean, kernel): if the orbit of phi from PS(11, [6]) never meets the uncovered shape, no halt. Not a halts-iff. Also the own lean/ files (rounds of a phase).
+- **Checked:** 9.66e72809 steps rle accelerator and 1.71e299748 steps region-memo accelerator (trusted); 2,000 exact phases (n 2,835 bits, trusted); 161,449 class-map rounds (~10^137,548 steps, heuristic); 10^7 steps native_decide; orbit of phi from PS(11, [6]) covered for 30,000 phases (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phimap.py).
 - **Odds:** one chance in 3^108 per try for the nearest halting class (fair-dice residues); README older note: probably nonhalting
-- **Next step:** Prove the class/word map in Lean (halts-iff on the word dynamics) or find an invariant excluding the halting classes; computation cannot reach the 108-residue halt.
+- **Next step:** As for 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---: close the last shape of phi (then the reduction is an equivalence).
 
 ### [`1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---`](../../holdouts/1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---/README.md)
 
 *map-partial, outlook halts-late, table set T11*
 
-- **Map:** Phase starts P 1^n 0 B>0: n -> 8*(n div 3) + d, d and next word P' depend only on P and n mod 3 (measured). Proved: residue 0, (L 0 1^(a+1) 0, 3m+3) -> (L 0, a+8m+11). Same table as 1RB---_0RC0RE_... with relabelled states; class map on A U^m B (m mod 3) extrapolated.
+- **Map:** Same table as 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- (mirrored, states renamed), started in its state B; first phase start PS(5, []). Phase map phi on (M, list of blocks) proved there for every tail but one shape (m = 2, a block 2 with more blocks after it); see that entry.
 - **Halts when:** Granted the class map: orbit reaches a halting class; nearest needs 107 prescribed residues mod 3, tail 01011011 with m = 2 (mod 3).
 - **From blank tape:** first phase start at step 17, P empty, n = 6 (class map from step 4,187: A=0, U=1, m=126, B=0 1^6)
-- **Proved:** Rounds of a phase and residue-0 phase end (first_X, drain_X, drain_iter, phase_zero in lean/Phase.lean, kernel); no halts_iff; 10^7 steps native in lean/Blank.lean.
-- **Checked:** 1.94e301751 steps region-memo and 1.88e69794 rle accelerator (trusted); 2,000 exact phases (n 2,833 bits, trusted); 167,895 class-map rounds (~10^143,039 steps, heuristic); 10^7 steps native_decide.
+- **Proved:** not_halts104936 (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/Twins.lean, kernel): if the orbit of phi from PS(5, []) never meets the uncovered shape, no halt. Not a halts-iff. Also the own lean/ files (rounds of a phase).
+- **Checked:** 1.94e301751 steps region-memo and 1.88e69794 rle accelerator (trusted); 2,000 exact phases (n 2,833 bits, trusted); 167,895 class-map rounds (~10^143,039 steps, heuristic); 10^7 steps native_decide; orbit of phi from PS(5, []) covered for 30,000 phases (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phimap.py).
 - **Odds:** one chance in 3^107 per try for nearest halting class; README status still says probably nonhalting
-- **Next step:** Prove the word/class map in Lean (shared with its relabelled twins) or find an invariant excluding the halting classes.
+- **Next step:** As for 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---: close the last shape of phi (then the reduction is an equivalence).
 
 ### [`1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA`](../../holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA/README.md)
 
@@ -252,13 +252,13 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 
 *map-partial, outlook probviously-nonhalting, table set T11*
 
-- **Map:** Phase start PS(M, T) = 0^inf F> 0 1^M T, M -> ~8M/3 + c with tail stack T edited by M mod 3. Proved: PS(3j+5,[]) -> PS(8j+17,[]); PS(3j+6,[]) -> PS(8j+19,[]); PS(3j+7,[]) -> PS(8j+13,[6]); PS(3j+5,[6]) -> PS(8j+23,[]); PS(3j+6,[6]) -> PS(8j+35,[]); PS(3j+7,[6]) -> PS(8j+17,[1,1,3]). Other tails: push/pop rules extrapolated from simulation.
+- **Map:** Phase start PS(M, T) = 0^inf F> 0 1^M T, T a list of blocks; M = 3q+5+m, wall k = 5+4q. m=0: PS(2k+7+u, R) for T = u::R; m=1: the block u joins the wall and the rounds go on; m=2: j unit blocks then a block x >= 3 -> PS(2k+7, 1^(j+2) (x-3) R), an empty block or the end -> PS(2k+3, [2j+6+y] R), a last block 2 -> PS(2k+3, [2j+2, 6]). All proved for every tail except m=2 with a block 2 that is not the last block (lean/Map.lean phi).
 - **Halts when:** Halts exactly when the tail reaches one of a few shapes with two adjacent blocks 0 1 1, e.g. [2, 2] with M = 1 mod 3; nearest halting class (tail 01011011, m = 1 mod 3) needs 108 prescribed residues mod 3.
 - **From blank tape:** PS(9, [])
-- **Proved:** Phase rules for tails [] and [6] (phase_e0 ... phase_s2 in lean/Phase.lean, rounds in lean/Rules.lean, kernel); no halts-iff.
-- **Checked:** 10^7 steps native_decide; 30,000 phases of the extrapolated map Python (M ~12,800 digits, >10^25000 steps); region-memo run to 1.88e299809 steps; 184,790 class-map rounds.
+- **Proved:** Phase map phi for every tail but one shape (phi_sound, lean/Map.lean, with the rules of lean/TailRules.lean); not_halts_of_covered: if the orbit of phi from PS(9, []) never meets the uncovered shape (m = 2, a block 2 with more blocks after it, where all halts lie), no halt (kernel). Not a halts-iff: the uncovered shape is not proved.
+- **Checked:** 10^7 steps native_decide; phi = machine on 11,525 small (M, tail) pairs and the orbit stays covered for 30,000 phases (py/phimap.py; M ~12,800 digits, >10^25000 steps); region-memo run to 1.88e299809 steps; 184,790 class-map rounds.
 - **Odds:** one chance in 3^108 per try (fair-dice residues); 3e6 random-residue phases had no halt
-- **Next step:** Prove the phase map for every tail (generic push/pop rules) in Lean to get a full halts-iff reduction.
+- **Next step:** Close the last shape of phi (m = 2, unit blocks and blocks 2 before the first other block: the sweep back is an automaton on 10/110 words with short B excursions) to make phi total and the reduction an equivalence.
 
 ### [`1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA`](../../holdouts/1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/README.md)
 
@@ -288,13 +288,13 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 
 *map-partial, outlook probviously-nonhalting, table set T11*
 
-- **Map:** Phase start Q 0 1^m (01)^5 1 D>0 with m = 3k + r -> Q' 0 1^(8k+c) (01)^5 1 D>0, Q' and c fixed by (Q, r) (prefix Q acts as a nested counter), step count 12k^2 + Bk + C; fitted case by case (py/phasemap.py), not proved.
+- **Map:** Same table as 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE--- (mirrored, states renamed), started in its state C; first phase start PS(15, []). Phase map phi on (M, list of blocks) proved there for every tail but one shape (m = 2, a block 2 with more blocks after it); see that entry.
 - **Halts when:** Granted the class map: halts if the orbit reaches a halting class; nearest known is tail 01011011 with m = 1 mod 3, 107 prescribed residues mod 3 away.
 - **From blank tape:** phase 1 at step 3,291
-- **Proved:** The cycle inside a phase only (cycle, lean/Cycle.lean, kernel): L 1^(x+3) (01)^y 1 D>0 -> L 1^x (01)^(y+4) 1 D>0.
-- **Checked:** 10^7 steps native_decide; fitted map 3,000 phases (~10^2557 steps, Python); 185,703 class-map rounds; region-memo run to 4.44e299820 steps.
+- **Proved:** not_halts58362 (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/Twins.lean, kernel): if the orbit of phi from PS(15, []) never meets the uncovered shape, no halt. Not a halts-iff. Also the own lean/ files (rounds of a phase).
+- **Checked:** 10^7 steps native_decide; fitted map 3,000 phases (~10^2557 steps, Python); 185,703 class-map rounds; region-memo run to 4.44e299820 steps; orbit of phi from PS(15, []) covered for 30,000 phases (holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phimap.py).
 - **Odds:** one chance in 3^107 per try (fair-dice residues)
-- **Next step:** Prove the phase map for every prefix (Q, r) in Lean to obtain a halts-iff reduction.
+- **Next step:** As for 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---: close the last shape of phi (then the reduction is an equivalence).
 
 ### [`1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA`](../../holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA/README.md)
 
