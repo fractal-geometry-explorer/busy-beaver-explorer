@@ -129,6 +129,27 @@ Tried without success (scratch tools, not in the repository): n-gram closed sets
 with a DFA on one side; none gives a certificate. About 200,000 random and exhaustive small configurations of the
 step-start and mid-step shapes do not halt.
 
+## Free parities (21 November)
+
+The step map changes the wall only through N mod 2, so the walls reachable when the parity is chosen freely at
+every step contain the real ones. `tools/number-theory/wallstack.py` explores that set with `py/stackmodel.py`:
+
+- The model agrees with the Lean step map on all 558 steps of the free-parity wall graph to 300 cells (`compare 300`).
+  That includes walls with a closed empty counter under other items, which the model did not claim.
+- Under free parities no count goes below zero: 29,195 walls to 30,000 cells (`bfs 30000`). Every counter is at least
+  5 times the one below it, and counters below the top never pass 17. Along the real orbit (300,000 steps) the
+  counters below the top stay at 10 or less (`orbit 300000`).
+- A count can go negative only if an open counter stays odd for a long run of odd steps while the counter under it
+  is open. Each such step takes about half the lower count from the upper one, while both grow by 3/2, so the run has
+  to be about as long as the upper count. A run of length J needs the upper count to agree with a fixed 2-adic
+  number (set by the stack below) in J binary digits. For the stack below that is empty at the start, that number
+  has no run of more than 11 zero bits among its first 3,000 bits. Among the reachable walls no run gets past 10% of
+  the length needed (`margin 3000`).
+
+So a proof along these lines needs (1) an invariant that rules out those long odd runs, which is a statement about
+2-adic digits and not about the orbit of N, and (2) the stack rules for every stack in Lean. This is still the most
+promising of the 40 number-theory holdouts (`tools/number-theory/README.md`).
+
 ## Remainder classes (family survey)
 
 - **Rounds between end events, by remainder class** (trusted). Sample the run whenever the head is in state B reading 1 with only 0s to its right. Read leftwards from the head, the tape is then `A U^m B`: one long periodic block between two short context words. For each class (A, U, B, m modulo 1 or 2 (the smallest modulus that works for the context)) the next sample is simulated for six values of m and extended as an affine map of m (with a cubic step count). Along the direct run from blank tape to 3·10^9 steps (39 events) the class map predicts the next event in all 26 rounds it applies to. This is an extrapolation checked by computation, not a proof. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 3e9`
