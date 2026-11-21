@@ -6,9 +6,9 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 |---|---|---|
 | Halt hunt | 7 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
-| Prove the map | 15 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
+| Prove the map | 14 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
 | Decode | 30 | The round or phase map is not closed yet and has to be read off the machine first. |
-| Number theory | 44 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
+| Number theory | 45 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
 
@@ -136,7 +136,7 @@ A busycoq pull request claims a decision. Compile it.
 - **Next step:** Check busycoq PR 67's nonhalting proof; internally, prove the outer event and the 3-ones inner round to complete the two-level map.
 
 
-## Prove the map (15)
+## Prove the map (14)
 
 The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map.
 
@@ -283,18 +283,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 4,000 epochs of the epoch map (Y 1,593 digits, tail 1,311 digits, trusted); 1.49e193089 steps region-memo and 2.91e78053 rle accelerator (trusted).
 - **Odds:** astronomically small (carry depth has an exponential tail, tail of 1,311 digits grows linearly)
 - **Next step:** Prove the full reset map F (finite list of parametric reset shapes plus merging e = 0 digits) and glue it to epoch to get halts_iff.
-
-### [`1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD`](../../holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/README.md)
-
-*map-partial, outlook probviously-nonhalting, table set T278*
-
-- **Map:** Y(n) = 0^inf 1^n 0 B>0: odd n -> 3n - 7 (Y(3) halts); even n: 2-adic piecewise linear, e.g. n = 4 mod 8 -> 3n/2 - 6, 16 mod 32 -> 9n/8 - 5, 22 mod 32 -> 15n/8 - 9/4, 2 mod 64 -> 27n/16 - 99/8, 14 mod 64 -> 45n/16 - 3/8, finer classes for the rest (infinitely many).
-- **Halts when:** An even step halts on a sparse set: 10, 12, 34, 48, 122, 138, 178, 186, 192, 230, 294, ... including every 3*4^k (57 even n below 20,000).
-- **From blank tape:** Y(2) (orbit 2, 5, 8, 14, 39, 110, 232, ...)
-- **Proved:** Shift rules, the halting pattern r_halt and first/last phases of the odd rule (lean/Rules.lean, kernel); the map itself is computed by simulation, not proved.
-- **Checked:** 10^7 steps native_decide; exact run-length C simulator to 1.748e20 steps (Y(7,858,625,690) at step 1.72e19); region-memo run to 7.89e703 steps.
-- **Odds:** halting fraction of even n falls ~n^-0.5; chance of a halt after n = 1.4e9 of order 10^-4
-- **Next step:** Decode the nested 2-adic structure of the even map into a closed recursive rule so the orbit can be iterated without simulation.
 
 ### [`1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---`](../../holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/README.md)
 
@@ -670,7 +658,7 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Next step:** Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.
 
 
-## Number theory (44)
+## Number theory (45)
 
 Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that.
 
@@ -697,6 +685,18 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Checked:** Three epochs computed exactly (m = 6, 41, 16,169; third epoch ends after 6,456 macro steps); rleaccel 1.02x10^41433 steps; region-memo 3.85x10^213008 steps.
 - **Odds:** halts with probability 2/5 (runs away 3/5); 1/5 halt per epoch
 - **Next step:** none: the fourth epoch (m with 1,139 digits) is out of reach; optionally a Lean link from DeepMind's map to the epoch game.
+
+### [`1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD`](../../holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/README.md)
+
+*reduced, outlook probviously-nonhalting, table set T278*
+
+- **Map:** Y(n) = 0^inf 1^n 0 B>0: odd n -> 3n - 7 (Y(3) halts); even n: 2-adic piecewise linear, e.g. n = 4 mod 8 -> 3n/2 - 6, 16 mod 32 -> 9n/8 - 5, 22 mod 32 -> 15n/8 - 9/4, 2 mod 64 -> 27n/16 - 99/8, 14 mod 64 -> 45n/16 - 3/8, finer classes for the rest (infinitely many).
+- **Halts when:** An even step halts on a sparse set: 10, 12, 34, 48, 122, 138, 178, 186, 192, 230, 294, ... including every 3*4^k (57 even n below 20,000).
+- **From blank tape:** Y(2) (orbit 2, 5, 8, 14, 39, 110, 232, ...)
+- **Proved:** deepmind_halts_iff in lean/DMMap.lean (kernel): halts iff the orbit of DeepMind's map on E(q,a,b,c), F_even(d,k,b,c) stops; 36 rules in lean/DMRules.lean. Also shift rules and r_halt in lean/Rules.lean.
+- **Checked:** 10^7 steps native_decide; exact run-length C simulator to 1.748e20 steps (Y(7,858,625,690) at step 1.72e19); region-memo run to 7.89e703 steps.
+- **Odds:** halting fraction of even n falls ~n^-0.5; chance of a halt after n = 1.4e9 of order 10^-4
+- **Next step:** none: pure number theory; optionally a closed form of the even map (nested 2-adic structure) to iterate the orbit faster.
 
 ### [`1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC`](../../holdouts/1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC/README.md)
 
