@@ -2,8 +2,8 @@
  "generated": false,
  "group": "G07",
  "family": "exponential bouncer with an inner counter (epochs, T' = 2T + 5)",
- "summary": "Epochs with exact doubling: the tape ends in (aaacacac)^T ... (baccaaa)^(6T+17) (a = 10, b = 100, c = 1000) and the next epoch has T' = 2T + 5 (checked for 9 epochs, 6·10^10 steps); phases 1, 2 and 5 of an epoch are proved in Lean for every count, phases 3 and 4 (an inner counter) are exact 144- and 288-visit cycles checked by symbolic computation; open.",
- "decision": "open",
+ "summary": "Epochs with exact doubling: the tape ends in (aaacacac)^T ... (baccaaa)^(6T+17) (a = 10, b = 100, c = 1000) and the next epoch has T' = 2T + 5 (checked for 9 epochs, 6·10^10 steps); phases 1, 2 and 5 of an epoch are proved in Lean for every count, phases 3 and 4 (an inner counter) are exact 144- and 288-visit cycles checked by symbolic computation; open. Decided outside: busycoq PR 56 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
  "title": "What is known about 1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---.",
  "machine": "1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
@@ -13,8 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 56 (Alex Havrilla of DeepMind, 2026-11-04) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open,</b> but the run is now known in detail: it goes through <em>epochs</em> whose sizes follow T' = 2T + 5 exactly, with X = 6T + 17 copies of the word <code>baccaaa</code> at each epoch start, 72T + 290 visits of the right end per epoch and (from T = 91 on) exactly 16416T² + 151769T + 288000 steps. Three of the five phases of every epoch are proved in Lean for all counts; the other two, where an inner counter runs deep inside the tape, are exact cycles of 144 and 288 visits checked by symbolic computation but not yet in Lean."
  ],
  "claims": [
@@ -182,5 +183,6 @@
     ]
    }
   ]
- }
+ },
+ "decision_level": "outside"
 }

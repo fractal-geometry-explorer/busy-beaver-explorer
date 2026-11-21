@@ -32,7 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build_pages as bp  # noqa: E402
 
-ASOF = "20 November 2026"
+ASOF = "21 November 2026"
 
 # ---------------------------------------------------------------- table distance
 
@@ -155,7 +155,7 @@ FAMILIES = [
                "and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short "
                "timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin "
                "`1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). "
-               "`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` has a halting proof in busycoq PR 64 (not compiled here).",
+               "`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` was decided by busycoq PR 64 (halts; compiled here 21 November).",
          technique="Halt hunting with exact odometer jumps (the PR 83 / PR 89 method: b^k ticks in one operation, "
                    "then an exact executor to the halt). In the week of 13 November this kind of family (F06) gave half of all decisions, "
                    "all of them halting.",
@@ -203,10 +203,10 @@ FAMILIES = [
                    "digits of the other and refills it. A halt needs one exact rebuild (for example a walk that "
                    "crosses the whole counter).",
          known="Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) "
-               "and iterated past 10^150,000,000 steps. Two members have outside non-halting proofs: busycoq PR 57 "
+               "and iterated past 10^150,000,000 steps. Two former members were decided by outside non-halting proofs compiled here on 21 November: busycoq PR 57 "
                "(`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 "
-               "(`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`), neither compiled here.",
-         technique="Compile PRs 57 and 58, then prove the closed rebuild recursions in Lean and extend the PR 57/58 wall "
+               "(`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`); their wall invariants are the model for the rest.",
+         technique="Prove the closed rebuild recursions in Lean and extend the PR 57/58 wall "
                    "invariant to the case where a rebuild reads only part of the counter (that is where it failed "
                    "for the three siblings).",
          odds="medium: the rebuilds are already explicit maps; the last step is a number-theoretic inequality."),
@@ -245,11 +245,11 @@ FAMILIES = [
                    "are those of the PR 59 machines.",
          known="Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, "
                "`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and "
-               "PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; none compiled here. The three "
+               "PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; all four compiled here on 21 November, so they are decided. The three "
                "open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).",
-         technique="Compile PRs 55 and 59 (four machines). For the three open members, continue the accelerated "
+         technique="For the three open members, continue the accelerated "
                    "visit-law run: our two halting proofs from 13 November came from this law.",
-         odds="high for the four pending, low to medium for the three open."),
+         odds="low to medium."),
     dict(id="R11", name="Nested ternary counters (draining odometers)",
          pattern=(r"ternary|base-3 countdown", "Skelet"),
          mechanism="Segments of 111-blocks (or digits between blocks) drained by 3^j per event; segments run out one "
@@ -297,10 +297,10 @@ COLLATZ = dict(
     odds="very low for non-halting; occasional halts.")
 
 PENDING = dict(
-    id="R00", name="Outside proofs awaiting compilation (busycoq PRs 43 to 68)",
-    technique="Compile each pull request on busycoq's BB6 branch with Print Assumptions appended, as was done for "
-              "PRs 78 to 109 (`holdouts/external.json`), and record it. No research, and it can move every one of "
-              "these machines from 'awaiting review' to decided here.")
+    id="R00", name="Outside proofs awaiting compilation (busycoq PR 60)",
+    technique="Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles "
+              "and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours "
+              "of native_compute jobs; sample jobs pass here, the full runs need a large machine.")
 
 # One line per family for the ranking table.
 SHORT = {
@@ -310,10 +310,10 @@ SHORT = {
     "R04": "halt hunting with exact odometer jumps (PR 83 / 89 method)",
     "R05": "prove each sweep is one CA step; closed form by Lucas' theorem for the parity pair",
     "R06": "retarget the PR 93 engine and run to the halt (halting only)",
-    "R07": "compile PRs 57 and 58; prove the closed rebuild maps; extend the wall invariant",
+    "R07": "prove the closed rebuild maps; extend the PR 57/58 wall invariant",
     "R08": "Lean leftmost-zone reduction, then a two-zone model",
     "R09": "port the one-map reduction to the siblings; invariant of the map",
-    "R10": "compile PRs 55 and 59; accelerated visit-law runs for the rest",
+    "R10": "accelerated visit-law runs (PRs 55 and 59 compiled: four decided)",
     "R11": "exact macro simulators to the first top-level overflow",
     "R12": "decode the middle first",
     "R13": "transfer theory for the shifted run",
@@ -487,9 +487,9 @@ def write_md(out, rows):
     w("")
     w("## Recommended next attacks")
     w("")
-    w(f"1. **Compile the outside proofs of busycoq PRs 43 to 68** ({len(out['pending'])} machines). They are the only "
-      "machines on the list whose proofs exist but have not been checked here, and checking them is mechanical "
-      "(the same procedure as for PRs 78 to 109). Ten of them also belong to families below (R04, R07, R10 and R15).")
+    w(f"1. **Finish the two PR 60 halts** ({len(out['pending'])} machines). All other proofs in busycoq PRs 43 to 68 were "
+      "compiled on 21 November and their 32 machines are decided; PR 60's two proofs need about 555 core-hours of "
+      "native_compute jobs, which needs a large machine (sample jobs pass here).")
     n = {f["id"]: len(f["machines"]) for f in fams}
     w(f"2. **R01, the F05 core** ({n['R01']} machines). The largest family by far, with its whole macro structure already "
       "proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is "
@@ -504,8 +504,7 @@ def write_md(out, rows):
       "proof that each sweep is one row of Pascal's triangle mod 2 turns halting into a statement about binary "
       "digits (Lucas' theorem).")
     w("")
-    w("Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted). "
-      "R07 and R10 start with the compiles in step 1.")
+    w("Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted).")
     w("")
     w("## The families")
     for f in fams:

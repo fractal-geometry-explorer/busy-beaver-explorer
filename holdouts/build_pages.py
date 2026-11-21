@@ -244,6 +244,7 @@ def elsewhere(M, decision="open"):
                                 f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in {c['seconds']} s: "
                                 f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
                                 f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
+                                + (html.escape(c["note"]) + " " if c.get("note") else "") +
                                 "It is their proof, not one written in this repository. " +
                                 ("The verdict on this page rests on this proof." if decision == pr["claim"] and not dmc
                                  else same.strip())})
@@ -253,7 +254,9 @@ def elsewhere(M, decision="open"):
                             f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
                             f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). As of {ext['asof']} it "
                             "was open: not merged, not reviewed by the maintainer, and not compiled here unless the "
-                            f"ledger below says so.{same}"})
+                            f"ledger below says so.{same}" +
+                            (f" Partly checked here on {pr['spot_checked']['date']} with Coq {pr['spot_checked']['coq']}: "
+                             + html.escape(pr['spot_checked']['what']) if pr.get("spot_checked") else "")})
     w = e.get("wiki_solved")
     if w:
         out.append({"kind": "report", "title": f"Reported on the wiki: it {CLAIM[w['claim']]}",
@@ -322,7 +325,10 @@ def standing_line(M, decision, level="lean"):
     if kind == "outside" and outside_by(M, decision) == "rocq":
         ps = [p for p in e.get("prs", []) if p.get("compiled") and p["claim"] == decision]
         n = [p["n"] for p in ps]
-        ax = ("with no axioms beyond Coq's own" if not ps[0]["compiled"].get("axioms") else
+        axl = ps[0]["compiled"].get("axioms") or []
+        ax = ("with no axioms beyond Coq's own" if not axl else
+              "with no axioms beyond functional extensionality from Coq's standard library"
+              if all("xtensionality" in a for a in axl) else
               "with no axioms beyond the standard ones for Coq's machine integers (PrimInt63)")
         return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
                 "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "

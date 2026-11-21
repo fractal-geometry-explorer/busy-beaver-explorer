@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 66 (Dennis Koshta, 2026-11-10) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Left of the start the tape is a block of <code>1011</code> words, which grows by one word every two rounds, then a <em>binary counter</em> (about three cells a bit), then <em>junk</em>: a run of <code>1110</code> words and a second, slower counter. Lean proves the left-end turns and the counter's two carries for all lengths, and that a counter of 2m digits counts through all 4<sup>m</sup> values (<code>count</code>). Each overflow of the counter eats one or two junk words; when the junk is used up the machine <em>restarts</em>: the whole block turns into junk and the counter into the new slow counter. The blank-tape run restarts at round 25,515,382 with 12,757,674 words of new junk. Jumping from overflow to overflow (checked against the machine at small sizes, extrapolated beyond) the next two epochs also end in restarts, not halts; the one after that starts with a junk length of about 2<sup>17,010,257</sup> words, and whether it halts depends on arithmetic properties of that number that are out of reach. Halting configurations do exist in the same family, so no closed family of configurations avoids them without that arithmetic."
  ],
  "claims": [
@@ -210,5 +211,7 @@
   ]
  },
  "family": "binary counter beside a growing block",
- "summary": "A block of 1011 words grows at the left end while a binary counter next to it is incremented every two rounds and eats into junk at its far end; when the junk is gone the block becomes the next epoch's junk. Epochs 1 to 3 end in restarts; open. Accelerated run: no halt in 8.41e14 steps."
+ "summary": "A block of 1011 words grows at the left end while a binary counter next to it is incremented every two rounds and eats into junk at its far end; when the junk is gone the block becomes the next epoch's junk. Epochs 1 to 3 end in restarts; open. Accelerated run: no halt in 8.41e14 steps. Decided outside: busycoq PR 66 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

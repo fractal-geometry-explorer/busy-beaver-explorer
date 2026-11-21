@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 63 (Dennis Koshta, 2026-11-09) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. The proof states halting with a second copy of busycoq's machine definitions; a short audit file proves the two notions of halting agree, so the result holds for busycoq's own <code>halts</code>. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps."
  ],
  "claims": [
@@ -125,6 +126,7 @@
    }
   ]
  },
- "summary": "Two counters in six-cell words, X = 011111 and Y = 111110, next to the left end: each pass moves one word from the X block to the Y block; when X is empty the Y block is rewritten as X and leftover blocks of 1^5 and 1^10 pile up behind it. Accelerated run: no halt in 4.88e14 steps.",
- "decision": "open"
+ "summary": "Two counters in six-cell words, X = 011111 and Y = 111110, next to the left end: each pass moves one word from the X block to the Y block; when X is empty the Y block is rewritten as X and leftover blocks of 1^5 and 1^10 pile up behind it. Accelerated run: no halt in 4.88e14 steps. Decided outside: busycoq PR 63 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

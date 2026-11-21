@@ -11,8 +11,9 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "Unlike the rest of its group it grows mostly to the right. Its tape is a word of the tokens <code>1^5 0</code>, <code>1^6 0^2</code>, <code>1^7 0</code> and a few others, ending in a block <code>1^(2j+1)</code>. j grows by one per overflow, at gaps that double, so some binary counter is hidden in the word; from time to time a restructure rewrites the word and j starts again."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 43 (Alk, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in the first 10<sup>11</sup> steps.",
   "<b>What it does.</b> Each time the head reaches a new cell at the right end, in state C, the tape ends in <code>1^7 0 1^7 0 1^(2j+1) 0 C&gt;0</code> for most of an epoch. j grows by one each time and the gap doubles exactly. The last four restructures began at steps 2,963,507, 220,322,024, 466,316,545 and 4,568,654,941; in the current epoch the end block has reached <code>1^61</code> (step 66,520,947,462), longer than in any earlier epoch.",
   "<b>Why it is hard.</b> Where the counter is, and the restructure rule, are not known, and a closed tape language from short windows does not confine the halt (state F reading a 0)."
@@ -131,5 +132,7 @@
   ]
  },
  "family": "counter with a unary end block, gaps doubling, and restructures",
- "summary": "Open. No halt in 10^11 steps. Most of the time the block of 1s at the right end grows by two cells per overflow while the gap between overflows doubles; at irregular restructures the end block falls back to a few cells and the word in front of it is rewritten."
+ "summary": "Open. No halt in 10^11 steps. Most of the time the block of 1s at the right end grows by two cells per overflow while the gap between overflows doubles; at irregular restructures the end block falls back to a few cells and the word in front of it is rewritten. Decided outside: busycoq PR 43 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

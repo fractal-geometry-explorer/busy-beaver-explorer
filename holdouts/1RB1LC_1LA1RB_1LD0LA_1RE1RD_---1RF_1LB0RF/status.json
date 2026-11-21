@@ -11,8 +11,9 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The left part of the tape is a binary counter, written as a composition of a number s into parts; each tick of it adds 1 to a binary number N written on the right. Every single rule of this counter is proved in Lean; an accelerated simulator built from them jumps whole rounds and reproduces the direct run exactly."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 43 (Alk, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>), that a halt can only happen at the right edge of the tape, and every single rule of the counter (kernel). An accelerated simulator built from those rules reproduces all 44 overflow configurations of a direct 10<sup>11</sup>-step run exactly and then follows the run, without a halt, to about 1.8&middot;10<sup>83</sup> steps.",
   "<b>What the machine computes.</b> The left part of the tape is a binary counter written as a composition of s into parts (gaps <code>1 1 0^(5a-2)</code>); every tick of it adds 1 to a binary number N written on the right. A full count of a level-k counter adds 2<sup>k+1</sup> to N in exactly 84&middot;2<sup>k</sup> &minus; 5 + 4(s<sub>2</sub>(N) &minus; s<sub>2</sub>(N+2<sup>k+1</sup>)) steps. When N runs out of digits on a tick of even counter value, N is replaced by 2<sup>b+2</sup>+24 and the counter loses a digit (proved in Lean); on an odd counter value the tape is rebuilt (not decoded, simulated directly).",
   "<b>Why it is still open.</b> The rebuilds at odd counter values are the only part not reduced to arithmetic. Five have been followed (at 3.1&middot;10<sup>6</sup>, 2.3&middot;10<sup>23</sup> steps, and so on); the one at about 1.8&middot;10<sup>83</sup> steps starts a structure nested inside the tape that did not finish in 2&middot;10<sup>10</sup> direct steps."
@@ -206,5 +207,7 @@
   ]
  },
  "family": "binary accumulator fed by a counter",
- "summary": "A binary counter of compositions adds 1 to a binary number N per tick (tick rules proved in Lean); an exact accelerated run finds no halt before about 1.8*10^83 steps, where a nested restructure begins. Open."
+ "summary": "A binary counter of compositions adds 1 to a binary number N per tick (tick rules proved in Lean); an exact accelerated run finds no halt before about 1.8*10^83 steps, where a nested restructure begins. Open. Decided outside: busycoq PR 43 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
