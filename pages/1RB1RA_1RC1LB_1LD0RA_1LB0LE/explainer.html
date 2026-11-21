@@ -406,7 +406,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 <!-- Built from status.json by bb6-1RB1RA_1RC1LB_1LD0RA_1LB0LE/py/explainer_status.py; do not edit by hand. -->
 <script type="application/json" id="status-data">
 {
- "asof": "Status as of 5 November 2026.",
+ "asof": "Status as of 6 November 2026.",
  "claims": [
   {
    "level": "kernel",
@@ -500,6 +500,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   },
   {
    "level": "kernel",
+   "title": "The return map below 2<sup>74<\/sup>, and no halt in the first 1.42&middot;10<sup>22<\/sup> passes",
+   "text": "The same check as below 2<sup>62<\/sup>, run to 2<sup>74<\/sup>: the class a = 5 + 4u cut into 9,389 pieces, each a <code>decide +kernel<\/code> of <code>explore<\/code> with the bound 2<sup>74<\/sup>, joined by <code>Cov.split<\/code>, so every a = 1 mod 4 with 5 &le; a &lt; 2<sup>74<\/sup> returns (<code>returns_2_74_kernel<\/code>) and every pass n &le; 3&middot;2<sup>72<\/sup> + 1 &asymp; 1.42&middot;10<sup>22<\/sup> from blank tape is a block list with no stop at a block of 1, reached by the machine (<code>no_one_1e22_kernel<\/code>). The Python range of the return map is now a kernel theorem. About 5.3 times the work of 2<sup>62<\/sup>: 62 minutes on 4 cores. Kernel only.",
+   "where": "<code>returns_2_74_kernel<\/code>, <code>no_one_1e22_kernel<\/code>, <code>lean/Return74.lean<\/code>, <code>lean/R74/<\/code>, <code>replay_1e22_kernel<\/code> in <code>lean/Replay74.lean<\/code>; <code>lean/check_return74.sh<\/code>, <code>lean/return62.py 12000 16 74<\/code>"
+  },
+  {
+   "level": "kernel",
    "title": "For every a: a failing excursion lies in a thin 2-adic set",
    "text": "With no upper bound on a: the class search of <code>Return.lean<\/code>, stopped at a depth limit without running the members of the open classes, returns their residues (<code>thin<\/code>), and <code>thin_ok<\/code> proves that an a whose excursion from <code>[a, 2a+1]<\/code> does not come back to <code>[a+12k, 2(a+12k)+1]<\/code> has its residue among them. So every a = 1 mod 4, a &ge; 5, returns unless a mod 2<sup>34<\/sup> is one of 67 residues, a fraction 1.6&middot;10<sup>&minus;8<\/sup> of them. Kernel only (40 s). It does not settle the machine: the open set is infinite at every depth and contains a = 1.",
    "where": "<code>returns_off_open34<\/code>, <code>thin_ok<\/code>, <code>lean/Thin.lean<\/code>"
@@ -525,8 +531,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   {
    "level": "kernel",
    "title": "For every a, the first v<sub>2<\/sub>(a&minus;1) passes of its excursion are safe",
-   "text": "The pass map is 2-adically 1-Lipschitz and monotone: if every block of one list is the block of another plus a multiple of 2Q (extra blocks on the left multiples of 2Q) and the second list's pass gives a list, so does the first's, with Q in place of 2Q. The first pass from <code>[a, 2a+1]<\/code>, a = 1 + 2<sup>m<\/sup>u, is <code>[k, 3k+5, 2k+3]<\/code>, k = 2<sup>m&minus;1<\/sup>u, which is &phi;(blank) plus multiples of 2<sup>m&minus;1<\/sup>; so the excursion follows &phi; of the blank orbit for m passes. For every such a, with no upper bound, the first min(m, 3&middot;2<sup>60<\/sup>+2) passes never halt and never stop at a block of 1. Kernel only.",
-   "where": "<code>next_rel<\/code>, <code>iter_rel<\/code>, <code>replay<\/code>, <code>replay_49153<\/code>, <code>lean/Replay.lean<\/code>; <code>replay_3e18_kernel<\/code>, <code>lean/Replay62.lean<\/code>"
+   "text": "The pass map is 2-adically 1-Lipschitz and monotone: if every block of one list is the block of another plus a multiple of 2Q (extra blocks on the left multiples of 2Q) and the second list's pass gives a list, so does the first's, with Q in place of 2Q. The first pass from <code>[a, 2a+1]<\/code>, a = 1 + 2<sup>m<\/sup>u, is <code>[k, 3k+5, 2k+3]<\/code>, k = 2<sup>m&minus;1<\/sup>u, which is &phi;(blank) plus multiples of 2<sup>m&minus;1<\/sup>; so the excursion follows &phi; of the blank orbit for m passes. For every such a, with no upper bound, the first min(m, 3&middot;2<sup>72<\/sup>+2) passes never halt and never stop at a block of 1. Kernel only.",
+   "where": "<code>next_rel<\/code>, <code>iter_rel<\/code>, <code>replay<\/code>, <code>replay_49153<\/code>, <code>lean/Replay.lean<\/code>; <code>replay_3e18_kernel<\/code>, <code>lean/Replay62.lean<\/code>, <code>replay_1e22_kernel<\/code>, <code>lean/Replay74.lean<\/code>"
   },
   {
    "level": "trusted",
@@ -537,7 +543,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   {
    "level": "trusted",
    "title": "No halt in the first 1.4&middot;10<sup>22<\/sup> passes",
-   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>74<\/sup>, about pass 1.4&middot;10<sup>22<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>.",
+   "text": "The orbit is <code>[5, 11]<\/code> at pass 3, and the states <code>[a, 2a+1]<\/code> follow each other by G with a = 5 mod 12 (checked against the orbit for 30,000 passes). With the line above, the orbit of the pass map has no halt and no stop block of 1 until a reaches 2<sup>74<\/sup>, about pass 1.4&middot;10<sup>22<\/sup> (pass n has 3a + 1 = 4(n+1) ones), and by <code>halts_only_by_one<\/code> the machine does not halt before. Rests on the Lean pass map and on the Python computation, whose <code>passmap<\/code> is tested against Lean's <code>next<\/code>. Since 6 November the same range is a kernel theorem (<code>no_one_1e22_kernel<\/code>).",
    "where": "<code>python3 py/returnmap.py orbit 200000<\/code>, <code>notes/LAB_NOTES.md<\/code>"
   },
   {
