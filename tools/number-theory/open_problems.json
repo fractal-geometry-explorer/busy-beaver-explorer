@@ -275,11 +275,11 @@
    "map": "six cases: B (x+1, m, s) -> (x, m+4, 1−s); R (0, m) -> ((m+6)/2, 1 + 2s, 0); C doubles m along a chain, m -> (m+7)·2^i − 7; A and A' double x",
    "halt": "a chain of C steps from (x, m, 0) with x = (m+7)(2^(k+1) − 1)/2 − k − 1; after an R step with m = 1 that is x = 2^(k+3) − k − 5 (3, 10, 25, 56, 119, ...)",
    "start": "(7, 1, 0) at step 216",
-   "lean": "lean/MapThm.lean halts_iff: halts iff the orbit of (7, 1, 0) under mstep reaches H",
+   "lean": "lean/MapThm.lean halts_iff; lean/Chain.lean halts_iff_chain: HaltsFromBlank ↔ ∃ t x m k, orbit t = some (x, m, false) ∧ m odd ∧ x + k + 1 = (m + 7)(2^(k+1) − 1)/2 (crit_m1: after m = 1 this is x = 2^(k+3) − k − 5)",
    "leanLevel": "iff",
    "heuristic": "The sum of 1/h over doubling chains is 0.3187 over the whole orbit, and under 10^-4 after round 20.",
    "evidence": "10,000 R steps (29 million C steps) in Python",
-   "gap": "the chain criterion (halts iff x = (m+7)(2^(k+1)−1)/2 − k − 1) is read off the map, not yet a Lean theorem"
+   "gap": "which steps can start a chain is not stated in Lean (halts_iff_chain_start only excludes a C step just before)"
   },
   {
    "rank": 13,
