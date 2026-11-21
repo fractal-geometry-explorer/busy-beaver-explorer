@@ -22,6 +22,7 @@ pages/proof-status.html (same colours, fonts and tags), written out here so that
 that page.
 """
 import html
+import re
 import json
 import sys
 
@@ -185,7 +186,20 @@ def build(spec, home="../index.html"):
             '    <p>Source: <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer">'
             "github.com/fractal-geometry-explorer/busy-beaver-explorer</a></p>", "  </footer>",
             "</main>", "</body>", "</html>"]
-    return "\n".join(out) + "\n"
+    return breakable("\n".join(out) + "\n")
+
+
+def _wbr(m):
+    run = m.group(0)
+    if "," in run:
+        return run.replace(",", ",<wbr>")
+    return "<wbr>".join(run[i:i + 30] for i in range(0, len(run), 30))
+
+
+def breakable(page):
+    """Let very long numbers (40 or more digits and commas) wrap on narrow cards, outside <pre> and tags."""
+    parts = re.split(r"(<pre>.*?</pre>|<[^>]*>)", page, flags=re.S)
+    return "".join(p if p.startswith("<") else re.sub(r"\d[\d,]{39,}", _wbr, p) for p in parts)
 
 
 def main(argv):

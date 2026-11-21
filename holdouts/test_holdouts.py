@@ -70,5 +70,24 @@ class TestHoldouts(unittest.TestCase):
             self.assertEqual(f.read(), old)
 
 
+    def test_overview_current(self):
+        """families.html and recent.html are what build_overview.py writes, and recent.json names real holdouts."""
+        import build_overview
+        names = {n for n, _ in build_pages.specs()}
+        with open(os.path.join(build_pages.HERE, "recent.json")) as f:
+            for e in json.load(f)["entries"]:
+                for M in e.get("machines", []):
+                    self.assertIn(M, names, e["title"])
+        pages = ("families.html", "recent.html")
+        old = {}
+        for p in pages:
+            with open(os.path.join(build_pages.PAGES, p)) as f:
+                old[p] = f.read()
+        build_overview.build()
+        for p in pages:
+            with open(os.path.join(build_pages.PAGES, p)) as f:
+                self.assertEqual(f.read(), old[p], p)
+
+
 if __name__ == "__main__":
     unittest.main()
