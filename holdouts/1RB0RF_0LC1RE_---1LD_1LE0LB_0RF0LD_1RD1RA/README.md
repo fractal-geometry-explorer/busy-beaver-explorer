@@ -40,6 +40,24 @@ them into the full e ≡ 0 (mod 4) map is not done.
 Blank orbit (C(4) at step 67): 4, 17, 29, 47, 74, 101, 155, 236, 357, 539, 812, 1221, 1835, 2756, 4137, 6209,
 9317, 13979, 20972, 31461, 47195, 70796 (step 9,357,982,502).
 
+## Even branch, second stage (simulation, 21 November 2026)
+
+With `Y(i, j) = 0^inf E> 110 (10)^i 1100 (10)^j 0^inf` (so `C(2i+4)` reaches `Y(i, i+4)`, `even_start`), the next
+`C` or `Y` configuration, found by direct simulation and checked for every 2 <= i <= 120 and j in {0, 1, 2, 5, 8, 13,
+30, 61} (`tools/collatz/` triage, not proved):
+
+| Y(i, j) | next |
+|---|---|
+| i = 2w, j = 2u | C(3w + 3u + 3) |
+| i = 2w, j = 2u + 1 | Y(w + u + 1, w + u + 1) |
+| i = 4w + 1 | Y(2w, j + 2w + 2) |
+| i = 8m + 7, m >= 1 | C(12m + 14 + j) |
+| i = 8m + 3 | recursive (another halving); i = 2^k - 5 (3, 11, 27, 59, ...) halts for every j |
+
+So every even e is decided by these rows except when the cascade reaches i = 8m + 3 (or the exception i = 7), which is
+where the 2-adic recursion of the e = 2 (mod 8) branch lives. Closing that row would give the whole map, and with it a
+big-integer iteration of the orbit far past C(70796).
+
 ## Halting
 
 Only C0 halts; C is entered only from B0 (0LC): halts iff `0 B> 0`. CTL K = 3..6: halts remain; n-gram CPS fails;
