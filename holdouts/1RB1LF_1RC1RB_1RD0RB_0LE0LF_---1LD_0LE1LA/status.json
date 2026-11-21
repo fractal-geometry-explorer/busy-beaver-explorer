@@ -2,8 +2,8 @@
  "generated": false,
  "group": "G09",
  "family": "bouncer with merging counters",
- "summary": "A list of blocks (01)^x (1)^y in which every 1-block shrinks by 2 and every 01-block grows by 1 per sweep; an empty 1-block merges its neighbours by a zigzag, and a merge at the left end halts the machine if its left block is too short (proved). An exact block machine, proved in Lean, runs it to 10^18 steps: at all 49 left-end merges the right block was at most 0.35 times the left one once the left block had 50 pairs (0.6 at the tiny early ones).",
- "decision": "open",
+ "summary": "A list of blocks (01)^x (1)^y in which every 1-block shrinks by 2 and every 01-block grows by 1 per sweep; an empty 1-block merges its neighbours by a zigzag, and a merge at the left end halts the machine if its left block is too short (proved). An exact block machine, proved in Lean, runs it to 10^18 steps: at all 49 left-end merges the right block was at most 0.35 times the left one once the left block had 50 pairs (0.6 at the tiny early ones). Decided outside: busycoq PR 68 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
  "title": "What is known about 1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA",
  "description": "Proof status of the six-state BB(6) holdout 1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA.",
  "machine": "1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA",
@@ -13,8 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 68 (Alex Havrilla of DeepMind, 2026-11-09) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>Open, with the way to halt pinned down and the run followed exactly to 10<sup>18</sup> steps.</b> The tape is a list of blocks <code>(01)^x (1)^y</code>; Lean proves (kernel) that a merge at the left end halts the machine when the right block has at least two pairs more than the left one, and that a run-length block machine follows the Turing machine exactly from blank tape. Its C twin finds no halt in 10<sup>18</sup> steps: at all 49 merges at the left end with a left block of 50 pairs or more the right block was at most 0.35 times the left one (0.6 at the tiny early ones)."
  ],
  "claims": [
@@ -262,5 +263,6 @@
     ]
    }
   ]
- }
+ },
+ "decision_level": "outside"
 }

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 55 (Alk, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> A region at the fixed end is ticked once per sweep of a growing wall of 8-cell words (the wall crossings are proved in Lean); the tick rule has not been extracted yet."
  ],
  "claims": [
@@ -130,5 +131,7 @@
   ]
  },
  "family": "counter beside a growing wall",
- "summary": "A wall of 8-cell words grows at the left end and the head crosses it every sweep, rewriting each word (the crossings are proved in Lean); a region of mixed words at the right end changes rarely, like a counter. The tick rule has not been extracted."
+ "summary": "A wall of 8-cell words grows at the left end and the head crosses it every sweep, rewriting each word (the crossings are proved in Lean); a region of mixed words at the right end changes rarely, like a counter. The tick rule has not been extracted. Decided outside: busycoq PR 55 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

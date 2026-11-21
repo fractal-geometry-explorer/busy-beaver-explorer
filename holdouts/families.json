@@ -1,7 +1,7 @@
 {
- "_source": "holdouts/regroup.py, 20 November 2026. Families of the undecided holdouts (standing open, cryptid or pr on the index) that one proof technique could settle together; ranked R01 first. 'set' is the table set (single-linkage at table distance <= 1 up to renaming and mirror; T1 is the largest, and table_sets names each by its smallest member); 'old' is the 13 November family; 'pending' are the machines whose only proof is an uncompiled outside pull request.",
- "asof": "20 November 2026",
- "undecided": 554,
+ "_source": "holdouts/regroup.py, 21 November 2026. Families of the undecided holdouts (standing open, cryptid or pr on the index) that one proof technique could settle together; ranked R01 first. 'set' is the table set (single-linkage at table distance <= 1 up to renaming and mirror; T1 is the largest, and table_sets names each by its smallest member); 'old' is the 13 November family; 'pending' are the machines whose only proof is an uncompiled outside pull request.",
+ "asof": "21 November 2026",
+ "undecided": 522,
  "families": [
   {
    "id": "R01",
@@ -1018,7 +1018,7 @@
    "id": "R04",
    "name": "Base-4 counters with countdown timers (Skelet 1-like)",
    "mechanism": "A base-4 counter whose digits sit between blocks, and blocks that lose 4^i (or 9, 24, 96, ...) units per visit like timers; when a timer runs out digits fuse or a level is rebuilt.",
-   "known": "Digit and sweep rules are proved in Lean for several; for `1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD` and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin `1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). `1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` has a halting proof in busycoq PR 64 (not compiled here).",
+   "known": "Digit and sweep rules are proved in Lean for several; for `1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD` and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin `1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). `1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` was decided by busycoq PR 64 (halts; compiled here 21 November).",
    "technique": "Halt hunting with exact odometer jumps (the PR 83 / PR 89 method: b^k ticks in one operation, then an exact executor to the halt). In the week of 13 November this kind of family (F06) gave half of all decisions, all of them halting.",
    "odds": "medium-high for halts: short-timer tapes halt, so a run that reaches one is a proof.",
    "rank": 4,
@@ -1060,21 +1060,6 @@
      "set_size": 1,
      "folder": "holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
      "pr": [],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA",
-     "id": 77294,
-     "st": "pr",
-     "tc": "Shift-overflow bouncer counter",
-     "old": "",
-     "set": "T210",
-     "set_size": 1,
-     "folder": "holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA",
-     "pr": [
-      64
-     ],
      "map": false,
      "dm": ""
     },
@@ -1537,11 +1522,11 @@
    "id": "R07",
    "name": "Up/down counters and two binary counters with rebuilds",
    "mechanism": "One counter counts up while another counts down; when the down counter is empty a rebuild eats low digits of the other and refills it. A halt needs one exact rebuild (for example a walk that crosses the whole counter).",
-   "known": "Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) and iterated past 10^150,000,000 steps. Two members have outside non-halting proofs: busycoq PR 57 (`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 (`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`), neither compiled here.",
-   "technique": "Compile PRs 57 and 58, then prove the closed rebuild recursions in Lean and extend the PR 57/58 wall invariant to the case where a rebuild reads only part of the counter (that is where it failed for the three siblings).",
+   "known": "Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) and iterated past 10^150,000,000 steps. Two former members were decided by outside non-halting proofs compiled here on 21 November: busycoq PR 57 (`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 (`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`); their wall invariants are the model for the rest.",
+   "technique": "Prove the closed rebuild recursions in Lean and extend the PR 57/58 wall invariant to the case where a rebuild reads only part of the counter (that is where it failed for the three siblings).",
    "odds": "medium: the rebuilds are already explicit maps; the last step is a number-theoretic inequality.",
    "rank": 7,
-   "short": "compile PRs 57 and 58; prove the closed rebuild maps; extend the wall invariant",
+   "short": "prove the closed rebuild maps; extend the PR 57/58 wall invariant",
    "machines": [
     {
      "m": "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
@@ -1635,21 +1620,6 @@
      "dm": ""
     },
     {
-     "m": "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC",
-     "id": 15053,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T251",
-     "set_size": 1,
-     "folder": "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC",
-     "pr": [
-      58
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
      "m": "1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
      "id": 163594,
      "st": "open",
@@ -1659,21 +1629,6 @@
      "set_size": 4,
      "folder": "holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
      "pr": [],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---",
-     "id": 159749,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T282",
-     "set_size": 1,
-     "folder": "holdouts/1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---",
-     "pr": [
-      57
-     ],
      "map": false,
      "dm": ""
     },
@@ -1941,72 +1896,12 @@
    "id": "R10",
    "name": "Visit laws on streams (busycoq PR 59 family)",
    "mechanism": "Two binary counters off one engine, read as a rewriting system on streams; the first four rules are those of the PR 59 machines.",
-   "known": "Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; none compiled here. The three open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).",
-   "technique": "Compile PRs 55 and 59 (four machines). For the three open members, continue the accelerated visit-law run: our two halting proofs from 13 November came from this law.",
-   "odds": "high for the four pending, low to medium for the three open.",
+   "known": "Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; all four compiled here on 21 November, so they are decided. The three open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).",
+   "technique": "For the three open members, continue the accelerated visit-law run: our two halting proofs from 13 November came from this law.",
+   "odds": "low to medium.",
    "rank": 10,
-   "short": "compile PRs 55 and 59; accelerated visit-law runs for the rest",
+   "short": "accelerated visit-law runs (PRs 55 and 59 compiled: four decided)",
    "machines": [
-    {
-     "m": "1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---",
-     "id": 133258,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T153",
-     "set_size": 1,
-     "folder": "holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---",
-     "id": 128126,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T31",
-     "set_size": 3,
-     "folder": "holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---",
-     "pr": [
-      59
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---",
-     "id": 23933,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T31",
-     "set_size": 3,
-     "folder": "holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---",
-     "pr": [
-      59
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---",
-     "id": 85227,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T31",
-     "set_size": 3,
-     "folder": "holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---",
-     "pr": [
-      59
-     ],
-     "map": false,
-     "dm": "reduction"
-    },
     {
      "m": "1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---",
      "id": 28035,
@@ -2783,21 +2678,6 @@
      "dm": ""
     },
     {
-     "m": "1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE",
-     "id": 15252,
-     "st": "pr",
-     "tc": "Quadratic Mess",
-     "old": "",
-     "set": "T97",
-     "set_size": 2,
-     "folder": "holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE",
-     "pr": [
-      67
-     ],
-     "map": true,
-     "dm": "map"
-    },
-    {
      "m": "1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---",
      "id": 9146,
      "st": "open",
@@ -2980,21 +2860,6 @@
      "pr": [],
      "map": false,
      "dm": "reduction"
-    },
-    {
-     "m": "1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC",
-     "id": 127123,
-     "st": "pr",
-     "tc": "Quadratic Mess",
-     "old": "",
-     "set": "T97",
-     "set_size": 2,
-     "folder": "holdouts/1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC",
-     "pr": [
-      67
-     ],
-     "map": false,
-     "dm": "map"
     },
     {
      "m": "1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB",
@@ -3754,13 +3619,13 @@
   },
   {
    "id": "R00",
-   "name": "Outside proofs awaiting compilation (busycoq PRs 43 to 68)",
+   "name": "Outside proofs awaiting compilation (busycoq PR 60)",
    "mechanism": "Various; no other family.",
    "known": "",
-   "technique": "Compile each pull request on busycoq's BB6 branch with Print Assumptions appended, as was done for PRs 78 to 109 (`holdouts/external.json`), and record it. No research, and it can move every one of these machines from 'awaiting review' to decided here.",
+   "technique": "Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours of native_compute jobs; sample jobs pass here, the full runs need a large machine.",
    "odds": "high",
    "rank": 0,
-   "short": "compile and record; listed here are the 24 with no other family, the other 10 pending machines sit in R04, R07, R10, R15",
+   "short": "compile and record; listed here are the 1 with no other family, the other 1 pending machines sit in R15",
    "machines": [
     {
      "m": "1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE",
@@ -3773,353 +3638,6 @@
      "folder": "holdouts/1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE",
      "pr": [
       60
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA",
-     "id": 82928,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T138",
-     "set_size": 1,
-     "folder": "holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA",
-     "pr": [
-      44
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---",
-     "id": 34517,
-     "st": "pr",
-     "tc": "Chaotic Ack-like Bell",
-     "old": "",
-     "set": "T150",
-     "set_size": 1,
-     "folder": "holdouts/1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---",
-     "pr": [
-      63
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA",
-     "id": 166072,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T167",
-     "set_size": 1,
-     "folder": "holdouts/1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA",
-     "pr": [
-      54
-     ],
-     "map": false,
-     "dm": "reduction"
-    },
-    {
-     "m": "1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD",
-     "id": 48815,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T36",
-     "set_size": 3,
-     "folder": "holdouts/1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF",
-     "id": 35160,
-     "st": "pr",
-     "tc": "Skelet 1-like Class 1",
-     "old": "",
-     "set": "T183",
-     "set_size": 1,
-     "folder": "holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF",
-     "pr": [
-      45
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF",
-     "id": 128933,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T197",
-     "set_size": 1,
-     "folder": "holdouts/1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF",
-     "pr": [
-      54
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF",
-     "id": 68184,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T98",
-     "set_size": 2,
-     "folder": "holdouts/1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF",
-     "pr": [
-      54
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF",
-     "id": 124651,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T98",
-     "set_size": 2,
-     "folder": "holdouts/1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF",
-     "pr": [
-      54
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---",
-     "id": 32304,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T51",
-     "set_size": 3,
-     "folder": "holdouts/1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---",
-     "pr": [
-      62
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB",
-     "id": 16925,
-     "st": "pr",
-     "tc": "Quadratic Mess",
-     "old": "",
-     "set": "T223",
-     "set_size": 1,
-     "folder": "holdouts/1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---",
-     "id": 16554,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T51",
-     "set_size": 3,
-     "folder": "holdouts/1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---",
-     "pr": [
-      62
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC",
-     "id": 104518,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T36",
-     "set_size": 3,
-     "folder": "holdouts/1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF",
-     "id": 96519,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T36",
-     "set_size": 3,
-     "folder": "holdouts/1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
-     "id": 72270,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T114",
-     "set_size": 2,
-     "folder": "holdouts/1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
-     "pr": [
-      55
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF",
-     "id": 104840,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T117",
-     "set_size": 2,
-     "folder": "holdouts/1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF",
-     "pr": [
-      43
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC",
-     "id": 166286,
-     "st": "pr",
-     "tc": "Shift-overflow bouncer counter",
-     "old": "",
-     "set": "T249",
-     "set_size": 1,
-     "folder": "holdouts/1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC",
-     "pr": [
-      66
-     ],
-     "map": false,
-     "dm": "acceleration"
-    },
-    {
-     "m": "1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF",
-     "id": 124655,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T117",
-     "set_size": 2,
-     "folder": "holdouts/1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF",
-     "pr": [
-      43
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA",
-     "id": 117456,
-     "st": "pr",
-     "tc": "Shift-overflow counter",
-     "old": "",
-     "set": "T277",
-     "set_size": 1,
-     "folder": "holdouts/1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA",
-     "pr": [
-      43
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA",
-     "id": 60424,
-     "st": "pr",
-     "tc": "Chaotic Fractal Others",
-     "old": "",
-     "set": "T290",
-     "set_size": 1,
-     "folder": "holdouts/1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA",
-     "pr": [
-      68
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
-     "id": 181063,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T304",
-     "set_size": 1,
-     "folder": "holdouts/1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
-     "pr": [
-      56
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF",
-     "id": 1965,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T305",
-     "set_size": 1,
-     "folder": "holdouts/1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF",
-     "pr": [
-      46
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
-     "id": 10642,
-     "st": "pr",
-     "tc": "Unknown",
-     "old": "",
-     "set": "T51",
-     "set_size": 3,
-     "folder": "holdouts/1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
-     "pr": [
-      61,
-      62,
-      63
-     ],
-     "map": false,
-     "dm": ""
-    },
-    {
-     "m": "1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA",
-     "id": 68358,
-     "st": "pr",
-     "tc": "Bell eats counter",
-     "old": "",
-     "set": "T114",
-     "set_size": 2,
-     "folder": "holdouts/1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA",
-     "pr": [
-      55
      ],
      "map": false,
      "dm": ""
@@ -7526,39 +7044,7 @@
  ],
  "pending": [
   "1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE",
-  "1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA",
-  "1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---",
-  "1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA",
-  "1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD",
-  "1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF",
-  "1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE",
-  "1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF",
-  "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF",
-  "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF",
-  "1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA",
-  "1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA",
-  "1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---",
-  "1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB",
-  "1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---",
-  "1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC",
-  "1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC",
-  "1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF",
-  "1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA",
-  "1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF",
-  "1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC",
-  "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC",
-  "1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF",
-  "1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA",
-  "1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---",
-  "1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA",
-  "1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---",
-  "1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF",
-  "1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---",
-  "1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA"
+  "1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA"
  ],
  "machine": {
   "1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA": "R01",
@@ -7587,7 +7073,6 @@
   "1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE": "F09",
   "1RB---_1LC0RF_1RF0LD_0LE1LC_0RC0LC_1RB0RA": "F11",
   "1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA": "F02",
-  "1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA": "R00",
   "1RB---_1RC0LD_0LB0RE_1LB1LC_1RD1RF_1RD1RA": "F10",
   "1RB---_1RC0LE_0LD0RF_1LB0RE_0RC0LE_1RD1RA": "R12",
   "1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB": "F02",
@@ -7609,7 +7094,6 @@
   "1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA": "F11",
   "1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---": "R15",
   "1RB0LA_0RC1RF_0LD1RE_1LA0RB_0RD---_1RA1RD": "F02",
-  "1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---": "R00",
   "1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF": "F07",
   "1RB0LA_1RC---_0LD1RD_0RA0RE_0RF1RC_1LF0LA": "F08",
   "1RB0LA_1RC---_0LD1RD_0RB0RE_0RF0LD_1LF0LA": "F08",
@@ -7618,10 +7102,6 @@
   "1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC": "F01",
   "1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE": "F08",
   "1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE": "F07",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---": "R10",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---": "R10",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---": "R10",
-  "1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---": "R10",
   "1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---": "R10",
   "1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---": "R10",
   "1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB": "R15",
@@ -7697,8 +7177,6 @@
   "1RB0LD_0LB1RC_0RD---_1RE0RF_1LF0RA_0LA0LF": "R01",
   "1RB0LD_0LC0RE_1LA0RD_0RB0LD_1RC1RF_1RA---": "R12",
   "1RB0LD_0LC0RE_1LA0RD_0RB0LF_1RC1LA_0RB---": "R12",
-  "1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA": "R00",
-  "1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD": "R00",
   "1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB": "F02",
   "1RB0LD_0RC0RF_1LD0RB_1LE---_0LA0LB_0LE0RA": "F01",
   "1RB0LD_0RC1RA_1LD1RC_1LE0RF_---1LA_1LF0LA": "F08",
@@ -7726,7 +7204,6 @@
   "1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF": "F02",
   "1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB": "R02",
   "1RB0LE_0LC0RF_1LD1LC_1RA0RD_0LA1LA_1RD---": "F11",
-  "1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF": "R00",
   "1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC": "F07",
   "1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---": "F06",
   "1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC": "F08",
@@ -7762,12 +7239,8 @@
   "1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF": "F11",
   "1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB": "F07",
   "1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE": "F01",
-  "1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE": "R15",
   "1RB0LF_1LC0RB_0LD1LA_0RA1LE_0LA0RA_1LA---": "R15",
   "1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA": "R04",
-  "1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF": "R00",
-  "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF": "R00",
-  "1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF": "R00",
   "1RB0LF_1LC1RA_0RD1LB_0LA0RE_1RC1RB_---0LD": "F10",
   "1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA": "R15",
   "1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---": "F02",
@@ -7801,7 +7274,6 @@
   "1RB0RA_1RC1RD_1LD1LB_0RF1LE_1LE0LC_---1RA": "F10",
   "1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD": "F11",
   "1RB0RB_0LC0RA_1LE1LD_0LE---_1LF0LC_1RA1LB": "F07",
-  "1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA": "R04",
   "1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB": "R15",
   "1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD": "R05",
   "1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---": "R02",
@@ -7814,7 +7286,6 @@
   "1RB0RB_1RC0LE_1LD1LA_---0LC_1RF1LE_1RA0RA": "F10",
   "1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA": "R08",
   "1RB0RC_0LA0RA_0LD0RA_1LE---_0LF1LB_1LA1LD": "F11",
-  "1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---": "R00",
   "1RB0RC_1LC0LD_1RA0LB_1LE0RA_1LB1LF_0LC---": "R03",
   "1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RA1LF_0LC---": "R03",
   "1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RD1LF_0LC---": "R03",
@@ -7838,7 +7309,6 @@
   "1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---": "F02",
   "1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD": "R15",
   "1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA": "R15",
-  "1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB": "R00",
   "1RB0RC_1RC1LB_1LD1RA_1LE0LB_---1LF_0LF0LC": "F09",
   "1RB0RC_1RC1RA_1LD0RA_0LE1RA_---1LF_1RB0LF": "F08",
   "1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF": "F06",
@@ -7852,10 +7322,8 @@
   "1RB0RD_1LC1LB_---1LD_1RA0RE_1RD0LF_1LE0LD": "F09",
   "1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA": "F02",
   "1RB0RD_1LC1RE_1LD0LC_0LE0LC_0RA0RF_1RA---": "F02",
-  "1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---": "R00",
   "1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---": "R14",
   "1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF": "F08",
-  "1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC": "R00",
   "1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB": "F01",
   "1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---": "R15",
   "1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF": "R05",
@@ -7869,7 +7337,6 @@
   "1RB0RE_1LC0RA_1LA1LD_1LA---_0RF0LB_0LD1RE": "F10",
   "1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---": "R15",
   "1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---": "F08",
-  "1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC": "R15",
   "1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---": "F06",
   "1RB0RE_1LC0RE_1LA1LD_0LB1LF_1RC1RA_1LB---": "F06",
   "1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB": "R15",
@@ -7879,7 +7346,6 @@
   "1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---": "R15",
   "1RB0RE_1LC1RD_1LD0LD_0RE0LC_1RA1RF_0RA---": "F07",
   "1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF": "R15",
-  "1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF": "R00",
   "1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF": "R05",
   "1RB0RE_1RC0RE_1LD1RB_1LA0LA_1RF0LC_---0RC": "F11",
   "1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD": "R15",
@@ -7895,7 +7361,6 @@
   "1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA": "F01",
   "1RB0RF_1LC0RD_1LA0LD_1LE0RA_0LB---_0LB1RB": "F07",
   "1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB": "F02",
-  "1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA": "R00",
   "1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC": "F11",
   "1RB0RF_1LC1RD_1LA1LC_1RA1RE_1RB0RB_---0LC": "F11",
   "1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---": "R09",
@@ -7911,7 +7376,6 @@
   "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE": "R15",
   "1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---": "R04",
   "1RB1LA_1LA0RC_1RD1RC_1LE0RC_---0LF_1LE0LA": "F10",
-  "1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF": "R00",
   "1RB1LA_1LC0RA_0LF0LD_1RE1LD_1RE0RB_---0LC": "F10",
   "1RB1LA_1LC0RE_---0LD_1LA0LF_1RA1RE_1LA0LB": "F10",
   "1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB": "F10",
@@ -7930,19 +7394,16 @@
   "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB": "R05",
   "1RB1LB_1LC0RE_0LE0LD_0LC---_1LA0RF_1RE1LC": "F09",
   "1RB1LB_1LC1LA_1RD0LB_1RA1RE_1RF0RD_---1RD": "R15",
-  "1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC": "R00",
   "1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA---": "R15",
   "1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF": "F02",
   "1RB1LC_0LC---_1RE1LD_1RD0LA_1RF0RC_0RA1RC": "F06",
   "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB": "R07",
-  "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC": "R07",
   "1RB1LC_1LA---_1LD0LA_1RE0LE_0RF1RE_1LB1RD": "F01",
   "1RB1LC_1LA0RD_0LB1LF_1RE1LC_1LC0RB_0LA---": "R15",
   "1RB1LC_1LA0RD_1LB1LF_1LE1RE_0LA0RB_0LB---": "R15",
   "1RB1LC_1LA0RE_0LD---_1LB1LD_1RB1RF_0LA0RB": "F01",
   "1RB1LC_1LA0RE_0LD---_1RE0LF_1RF0RD_1LD0LB": "R03",
   "1RB1LC_1LA1LD_1LD0LC_0LE0RD_1RA1LF_1RC---": "R15",
-  "1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF": "R00",
   "1RB1LC_1LA1RD_1LA0LA_1LD0RE_0RF1RB_---0RC": "F03",
   "1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB": "R02",
   "1RB1LC_1LC0RD_0LE1LA_---1RA_1RF0LA_0RF0RB": "F10",
@@ -7981,13 +7442,11 @@
   "1RB1LE_0RC---_1RD0LA_1RE0RB_0LA0LF_0LD1LF": "R04",
   "1RB1LE_0RC0RA_0RD1RF_1LD1LA_0LA0LE_0LB---": "F11",
   "1RB1LE_0RC0RB_1RD1RF_1LA0LE_0LD0LB_---0RD": "F03",
-  "1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA": "R00",
   "1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB": "R15",
   "1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD": "R15",
   "1RB1LE_1LC0LF_1LA1RD_1LB0RD_0LC0LA_---1RA": "F03",
   "1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC": "R15",
   "1RB1LE_1LC1RC_1LA1RD_1LD0RB_0LC0LF_0LB---": "R15",
-  "1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---": "R07",
   "1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE": "R07",
   "1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA": "F03",
   "1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF": "F02",
@@ -8004,7 +7463,6 @@
   "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC": "R15",
   "1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD": "F06",
   "1RB1LF_1RC1LD_1LB1LE_1LE0LD_0LA0RE_1RD---": "R15",
-  "1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA": "R00",
   "1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE": "R15",
   "1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---": "F11",
   "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC": "R15",
@@ -8034,9 +7492,7 @@
   "1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE": "R05",
   "1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB": "F10",
   "1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD": "F10",
-  "1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---": "R00",
   "1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE": "R15",
-  "1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF": "R00",
   "1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF": "F10",
   "1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE": "F07",
   "1RB1RC_1LC0RE_1LD0LB_1RA1LC_1RA0RF_---0RC": "R08",
@@ -8053,7 +7509,6 @@
   "1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF": "F08",
   "1RB1RD_1LC0LC_0RD0LB_1RF0LE_0RD---_0RA1RC": "F11",
   "1RB1RD_1LC0LC_1RD1LB_1RF0RE_0RA1RE_---1RB": "R08",
-  "1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---": "R00",
   "1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---": "R15",
   "1RB1RD_1LC0LE_1RA0LB_1RB---_0LF0RC_0RA1LE": "F10",
   "1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF": "F08",
@@ -8086,7 +7541,6 @@
   "1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF": "R06",
   "1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD": "F11",
   "1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE": "R15",
-  "1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA": "R00",
   "1RB1RF_0RC0LE_1RD0RF_1LB---_1LB1LE_1RA0LC": "F11",
   "1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC": "F08",
   "1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB": "R15",

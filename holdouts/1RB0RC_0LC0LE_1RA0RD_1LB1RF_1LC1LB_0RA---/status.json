@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 62 (Dennis Koshta, 2026-11-09) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. The proof states halting with a second copy of busycoq's machine definitions; a short audit file proves the two notions of halting agree, so the result holds for busycoq's own <code>halts</code>. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved."
  ],
  "claims": [
@@ -177,5 +178,7 @@
   ]
  },
  "family": "counters of 1^2 0^2 words and zero gaps",
- "summary": "The tape holds runs of the word 1^2 0^2, runs of 10 pairs and gaps of 0s; at the right end one run of 1^2 0^2 is converted into 10 pairs while gaps further left shrink slowly, like the higher digits of a counter. Accelerated run: no halt in 1.11e11 steps."
+ "summary": "The tape holds runs of the word 1^2 0^2, runs of 10 pairs and gaps of 0s; at the right end one run of 1^2 0^2 is converted into 10 pairs while gaps further left shrink slowly, like the higher digits of a counter. Accelerated run: no halt in 1.11e11 steps. Decided outside: busycoq PR 62 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -11,8 +11,9 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The tape holds two binary counters, U up and V down. When V runs out the machine rebuilds V from the bottom digits of U; the rebuild is now computed exactly as a map on the counters."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 58 (Dennis Koshta, 2026-11-05) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: its only axiom is functional extensionality from Coq's standard library (<code>Print Assumptions</code>), and its transition table is this machine. The file proves it for the left-right mirror image and transfers it with busycoq's <code>flip</code> lemma. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the ticks; the exact macro map finds no halt in the first 10<sup>656</sup> steps.",
   "<b>Where a halt would come from.</b> Only from a rebuild after V reaches 0; which rebuilds halt is listed for small counters."
  ],
@@ -149,6 +150,7 @@
   ]
  },
  "family": "Up/down two counters with resets (G12 family 3b)",
- "summary": "Up/down counters with proved ticks; in the run every rebuild with top word 1 reads almost all of U; macro map on (H, n, N) computed exactly; no halt in ~10^656 steps.",
- "decision": "open"
+ "summary": "Up/down counters with proved ticks; in the run every rebuild with top word 1 reads almost all of U; macro map on (H, n, N) computed exactly; no halt in ~10^656 steps. Decided outside: busycoq PR 58 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 67 (Alex Havrilla of DeepMind, 2026-11-07) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open, and reduced in Lean to a block machine.</b> Lean proves (kernel) that the machine follows an exact block machine and halts <em>if and only if</em> it reaches a left block of exactly four 1s with only single 1s on its right (<code>halts_iff</code>, <code>halts_iff_four</code>), and that every outer configuration <code>1^N F&gt;0 0 1^3</code> with N = 2<sup>n+4</sup> &minus; 2n &minus; 10 halts (<code>outer_halts</code>). With <code>native_decide</code>: no halt in the first 1.9&middot;10<sup>14</sup> steps. Computed: the outer orbit from blank tape is 10, 27, 60, 118, 254, 514, 1014, 2106, 17220, 8534636888060 (about 6.5&middot;10<sup>25</sup> steps), never in that set; for N &le; 3000 the set is exactly where an epoch halts."
  ],
  "claims": [
@@ -219,6 +220,7 @@
   ]
  },
  "family": "doubly exponential counter; halts iff the outer orbit hits 2^(n+4) - 2n - 10",
- "summary": "A left block of 1s and blocks on the right wear each other down two by two, and units merge into doubled blocks; epochs O(N) = 1^N F&gt;0 0 1^3 go to O(N') with N' about 2^(&radic;N/3). Proved in Lean: it halts iff the block machine reaches a left block of four with only units on its right, and O(N) halts for every N = 2^(n+4) - 2n - 10; the orbit 10, 27, 60, ..., 17220, 8534636888060 never hits that set. Accelerated run: no halt in 1.92e1788 steps.",
- "decision": "open"
+ "summary": "A left block of 1s and blocks on the right wear each other down two by two, and units merge into doubled blocks; epochs O(N) = 1^N F&gt;0 0 1^3 go to O(N') with N' about 2^(&radic;N/3). Proved in Lean: it halts iff the block machine reaches a left block of four with only units on its right, and O(N) halts for every N = 2^(n+4) - 2n - 10; the orbit 10, 27, 60, ..., 17220, 8534636888060 never hits that set. Accelerated run: no halt in 1.92e1788 steps. Decided outside: busycoq PR 67 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 61 (Thomas Reus, 2026-11-09; the same file is in pull requests 62 and 63) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. The proof states halting with a second copy of busycoq's machine definitions; a short audit file proves the two notions of halting agree, so the result holds for busycoq's own <code>halts</code>. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The run is a sequence of phases. In each, a block of pairs <code>(01)<sup>a</sup></code> at the left grows by about 10 cells for every 3 words eaten from a block of 4-cell words next to it; when that block is used up, the pairs are converted into a new block of about a/2 words and a starts again near 0. The phase lengths grow by a factor of about 1.4 to 1.7, and a region at the right end, read at each conversion, decides the details: a Collatz-like system, not yet written exactly."
  ],
  "claims": [
@@ -165,6 +166,7 @@
   ]
  },
  "family": "two-phase converter, Collatz-like growth",
- "summary": "Phases alternate: a block (01)^a grows while a block of 4-cell words (1100/1001/0011) is consumed, then the whole (01)^a is converted into the next 4-cell block of about a/2 words; the phase lengths grow by a factor of about 1.4 to 1.7, with a remainder-driven right end. Accelerated run: no halt in 5.62e11 steps.",
- "decision": "open"
+ "summary": "Phases alternate: a block (01)^a grows while a block of 4-cell words (1100/1001/0011) is consumed, then the whole (01)^a is converted into the next 4-cell block of about a/2 words; the phase lengths grow by a factor of about 1.4 to 1.7, with a remainder-driven right end. Accelerated run: no halt in 5.62e11 steps. Decided outside: busycoq PR 61 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

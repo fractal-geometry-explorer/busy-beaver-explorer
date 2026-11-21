@@ -11,8 +11,9 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
     "The head works at one place, cell 110, in state D (an <em>event</em>). Each event adds 1 to a count that the tape holds twice: in binary on the left, where it is split into a low, a middle and a high counter written with different digit words, and in binary on the right, in 3-cell digits. The event rules are proved in Lean for every size. The layout changes at each visit of the head to the left end (the boundary between the low and middle counters moves by one digit), and the right counter collects junk words between its segments."
   ],
-  "asof": "Status as of 8 November 2026.",
+  "asof": "Status as of 21 November 2026.",
   "verdict": [
+    "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 44 (Alk, 2026-11-05) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: its only axiom is functional extensionality from Coq's standard library (<code>Print Assumptions</code>), and its transition table is this machine. The proof states halting with a second copy of busycoq's machine definitions; a short audit file proves the two notions of halting agree, so the result holds for busycoq's own <code>halts</code>. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
     "<b>The question is open.</b> The events at the engine follow seven rules proved in Lean for all sizes (and 121 rarer ones, also proved), which cover 99.4% of the 45 million events of the first 3&middot;10<sup>9</sup> steps; none of them halts (each ends at the next event). Halting needs B to meet <code>1 1 1</code> (from the table), which only the sweeps after a left-end visit and the overflows of the right counter's low segment come near (25 times in 3&middot;10<sup>9</sup> steps). After step 3&middot;10<sup>9</sup> the engine moves to cell 111 and a new layout begins, not decoded."
   ],
   "claims": [
@@ -216,6 +217,8 @@
       }
     ]
   },
-  "summary": "Layered counter: one engine (D on cell 110) adds 1 to a binary count kept twice, on the left (low, middle and high counters with different digit words) and on the right (base 2 in 3-cell digits); the event rules are proved for all sizes and cover 99.4% of 4.5·10^7 events; halting (B on 111) can only come from the left-end sweeps or the overflows of the right counter.",
-  "family": "two-ended counter, (10)^n left / 110 digits right"
+  "summary": "Layered counter: one engine (D on cell 110) adds 1 to a binary count kept twice, on the left (low, middle and high counters with different digit words) and on the right (base 2 in 3-cell digits); the event rules are proved for all sizes and cover 99.4% of 4.5·10^7 events; halting (B on 111) can only come from the left-end sweeps or the overflows of the right counter. Decided outside: busycoq PR 44 proves in Rocq that it never halts (compiled here).",
+  "family": "two-ended counter, (10)^n left / 110 digits right",
+  "decision": "nonhalting",
+  "decision_level": "outside"
 }
