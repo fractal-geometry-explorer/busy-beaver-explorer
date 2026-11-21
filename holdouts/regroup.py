@@ -104,13 +104,20 @@ FAMILIES = [
                    "(the detour through F) that reads a 1.",
          known="Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own "
                "table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every "
-               "F-event reading 0.",
+               "F-event reading 0. The same-run step is done: ten twin pairs and seven start-twin pairs "
+               "(`EQUIVALENCES.md`; `Twin.lean`, `StartTwin.lean`) put 31 of the 40 into 14 classes, so the 40 are "
+               "23 questions, and a recheck of all 40 block lists at every left-end event to 10^30 steps "
+               "(21 November) found no further pair: the twelve start-E machines part from each other and from "
+               "the start-A ones by the sixth left-end event.",
          technique="One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift "
-                   "b(i+1) - 5·b(i) is never near 0 when its block runs out. A proof on the core settles all 40 at once; "
-                   "even without it, Lean proofs that variants with the same block list are the same run cut the 40 "
-                   "questions to about 10.",
-         odds="medium-low: halting needs two rare events to coincide, and nothing found so far bounds the drift; "
-              "but the payoff is the largest of any single argument."),
+                   "b(i+1) - 5·b(i) is never within a few hundred of 0 when block i runs out. Clean visits keep every "
+                   "drift fixed, so only the drifts made at merges matter. A proof on the core settles all 40 at once.",
+         odds="low: the drifts made at merges behave like differences of unrelated large numbers. To 10^100 steps "
+              "the 599 drifts of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- are all even but take every residue "
+              "mod 9 and mod 25 (122 of 125 mod 125), and |b(i+1) - 5·b(i)| / b(i) gets as low as 0.015, so "
+              "neither a congruence nor a ratio bound is kept. A proof would have to show that a chaotic integer "
+              "process misses a thin set, a Collatz-type statement. Heuristically they do not halt: every drift "
+              "made after the 30th left-end event is above 8·10^6 in size, against the few hundred a halt needs."),
     dict(id="R02", name="Clock and word: a block grows in doubling time while a word map runs 2^k times",
          pattern=(r"\bclock\b|doubling time|2\^k applications|2<sup>k</sup> applications", "Shift-overflow"),
          mechanism="A block at one end grows by 2, 3 or 4 cells per tick and tick k applies one word map P (one trip "
@@ -290,7 +297,7 @@ PENDING = dict(
 
 # One line per family for the ranking table.
 SHORT = {
-    "R01": "one drift invariant on the shared core (first: same-run equivalences, 40 questions to about 10)",
+    "R01": "one drift invariant on the shared core (same-run step done: 40 machines, 23 questions)",
     "R02": "automaton invariant for the word map P alone, plus the clock lemma in Lean",
     "R03": "shared Lean library for the core, then exact block-list runs to hunt halts",
     "R04": "halt hunting with exact odometer jumps (PR 83 / 89 method)",
@@ -478,8 +485,8 @@ def write_md(out, rows):
       "(the same procedure as for PRs 78 to 109). Ten of them also belong to families below (R04, R07, R10 and R15).")
     n = {f["id"]: len(f["machines"]) for f in fams}
     w(f"2. **R01, the F05 core** ({n['R01']} machines). The largest family by far, with its whole macro structure already "
-      "proved in Lean on all 40 core tables. One invariant on the drift settles all of them; the equivalence proofs "
-      "that cut 40 questions to about 10 are a safe first step.")
+      "proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is "
+      "done (the 40 are 23 questions); the invariant itself looks like a Collatz-type statement, so the odds are low.")
     w(f"3. **R02, clock and word** ({n['R02']} machines on six tables). The clock lemma is in Lean for six; what is left is "
       "a finite-state question about one word map per machine, which an automaton search on the word alone "
       "can answer far more cheaply than the whole-tape search that failed.")

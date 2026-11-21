@@ -14,7 +14,7 @@ Of the 608 holdouts, **554** are undecided here: open, cryptid, or covered only 
 | rank | family | machines | of which awaiting review | technique | odds |
 |---|---|---|---|---|---|
 | 0 | **R00** Outside proofs awaiting compilation (busycoq PRs 43 to 68) | 34 (all) | 34 | compile and record | high |
-| 1 | **R01** Base-5 marker counter on one five-state core (F05) | 45 |  | one drift invariant on the shared core (first: same-run equivalences, 40 questions to about 10) | medium-low |
+| 1 | **R01** Base-5 marker counter on one five-state core (F05) | 45 |  | one drift invariant on the shared core (same-run step done: 40 machines, 23 questions) | low |
 | 2 | **R02** Clock and word: a block grows in doubling time while a word map runs 2^k times | 15 |  | automaton invariant for the word map P alone, plus the clock lemma in Lean | medium |
 | 3 | **R03** Blocks of 10s split by 01100: one table core with cursors that triple blocks | 15 |  | shared Lean library for the core, then exact block-list runs to hunt halts | medium |
 | 4 | **R04** Base-4 counters with countdown timers (Skelet 1-like) | 16 | 1 | halt hunting with exact odometer jumps (PR 83 / 89 method) | medium-high for halts |
@@ -34,7 +34,7 @@ Of the 608 holdouts, **554** are undecided here: open, cryptid, or covered only 
 ## Recommended next attacks
 
 1. **Compile the outside proofs of busycoq PRs 43 to 68** (34 machines). They are the only machines on the list whose proofs exist but have not been checked here, and checking them is mechanical (the same procedure as for PRs 78 to 109). Ten of them also belong to families below (R04, R07, R10 and R15).
-2. **R01, the F05 core** (45 machines). The largest family by far, with its whole macro structure already proved in Lean on all 40 core tables. One invariant on the drift settles all of them; the equivalence proofs that cut 40 questions to about 10 are a safe first step.
+2. **R01, the F05 core** (45 machines). The largest family by far, with its whole macro structure already proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is done (the 40 are 23 questions); the invariant itself looks like a Collatz-type statement, so the odds are low.
 3. **R02, clock and word** (15 machines on six tables). The clock lemma is in Lean for six; what is left is a finite-state question about one word map per machine, which an automaton search on the word alone can answer far more cheaply than the whole-tape search that failed.
 4. **R04 and R11, base-4 and ternary countdown counters** (23 machines). Halt hunting with exact odometer jumps; this kind of family (F06) produced half of the decisions of the week of 13 November, all halting, and short-timer tapes of the same shape are proved to halt.
 5. **R05, cellular-automaton sweeps** (10 machines). New idea: for the two running-parity machines, a Lean proof that each sweep is one row of Pascal's triangle mod 2 turns halting into a statement about binary digits (Lucas' theorem).
@@ -47,11 +47,11 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 
 **Mechanism.** Forty machines are one five-state core, `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in frame A, differing in D1, F0 and the start; five more use the same core with E1 or F0 changed. The tape is a list of 0010-blocks run like a nested base-5 counter; a machine can halt only at an F-event (the detour through F) that reads a 1.
 
-**Known.** Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0.
+**Known.** Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0. The same-run step is done: ten twin pairs and seven start-twin pairs (`EQUIVALENCES.md`; `Twin.lean`, `StartTwin.lean`) put 31 of the 40 into 14 classes, so the 40 are 23 questions, and a recheck of all 40 block lists at every left-end event to 10^30 steps (21 November) found no further pair: the twelve start-E machines part from each other and from the start-A ones by the sixth left-end event.
 
-**Technique.** One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never near 0 when its block runs out. A proof on the core settles all 40 at once; even without it, Lean proofs that variants with the same block list are the same run cut the 40 questions to about 10.
+**Technique.** One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never within a few hundred of 0 when block i runs out. Clean visits keep every drift fixed, so only the drifts made at merges matter. A proof on the core settles all 40 at once.
 
-**Odds.** medium-low: halting needs two rare events to coincide, and nothing found so far bounds the drift; but the payoff is the largest of any single argument.
+**Odds.** low: the drifts made at merges behave like differences of unrelated large numbers. To 10^100 steps the 599 drifts of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- are all even but take every residue mod 9 and mod 25 (122 of 125 mod 125), and |b(i+1) - 5·b(i)| / b(i) gets as low as 0.015, so neither a congruence nor a ratio bound is kept. A proof would have to show that a chaotic integer process misses a thin set, a Collatz-type statement. Heuristically they do not halt: every drift made after the 30th left-end event is above 8·10^6 in size, against the few hundred a halt needs.
 
 | machine | standing | community class | table set | 13 Nov family | notes |
 |---|---|---|---|---|---|
