@@ -1,8 +1,9 @@
-"""Writes the "Rerun on the 257 unfamilied holdouts" section of pages/deciders.html from results.json
-(between the rerun:start and rerun:end markers). python3 build_page_section.py [check]"""
+"""Writes the "Rerun on the 257 unfamilied holdouts" section of pages/src/deciders/page.html (the source of
+pages/deciders.html) from results.json, between the rerun:start and rerun:end markers; then run
+python3 pages/src/deciders/build.py. python3 build_page_section.py [check]"""
 import json, os, sys, html
 here = os.path.dirname(os.path.abspath(__file__))
-page = os.path.join(here, '..', '..', 'pages', 'deciders.html')
+page = os.path.join(here, '..', '..', 'pages', 'src', 'deciders', 'page.html')
 d = json.load(open(os.path.join(here, 'results.json')))
 def ng(r):
     p = r['ngramcps']

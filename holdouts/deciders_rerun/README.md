@@ -7,7 +7,7 @@ to clear any cheap case before more work goes into them.
 **Result: none of the 257 was decided.** Nothing new needed a Lean or busycoq certificate. (Any success would have
 been easy to certify: busycoq has verified `verify_cycler`, translated cyclers and `verify_backwards` for any
 number of states.) Per machine: [`results.json`](results.json); the same table is on the
-[deciders page](../../pages/deciders.html#rerun).
+[deciders page](../../pages/deciders.html#rerun) (source `pages/src/deciders/page.html`).
 
 | decider | program | limits | outcome |
 |---|---|---|---|
@@ -50,7 +50,7 @@ gcc -O2 -I tools/c -o tcyc tools/c/tcyc.c; gcc -O2 -I tools/c -o bkr tools/c/bkr
 python3 holdouts/deciders_rerun/ngsweep.py machines.txt ng.jsonl     # NGRAMCPS=./ngramcps
 bash holdouts/deciders_rerun/rwsweep.sh MACHINE                      # from the folder holding ./repwl
 python3 holdouts/deciders_rerun/summarize.py RAWDIR                  # results.json from the raw outputs
-python3 holdouts/deciders_rerun/build_page_section.py                # the section of pages/deciders.html
+python3 holdouts/deciders_rerun/build_page_section.py && python3 pages/src/deciders/build.py   # the page section
 ```
 
 The run took about 4 hours on 4 cores. The raw outputs (n-gram logs per width, 340 KB compressed) are kept outside
