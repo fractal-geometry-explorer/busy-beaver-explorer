@@ -99,10 +99,40 @@ So, by the data, a halt needs a `10` far from both ends, and none has formed sin
 lines would show that `y 0 x^k 0` (a y word, a wall, only x words, a wall) never forms again in the bulk. The right end itself runs through four phases (`x 0 0 y 10 x`,
 `x y 0 y 10 x`, `x 0 y x 0 x`, `0 x x 0 10 x`), and none of them contains the pattern.
 
+## Rule 102 in Lean, and Lucas' theorem (21 November 2026)
+
+* `lean/Xor.lean`, `epoch`: for **every** word string `w ++ [y]` followed by a 0, B on its first cell, the right sweep
+  (`x -> 000`, `y -> 011`, B zigzagging `B 1 1 -> 0 B 1`), the turn (B on 0 writes 1, steps left in C) and the left sweep
+  (C = "the word to the right is y", E = "it is x") leave the string `x102 (w ++ [y]) y`: word `i` becomes
+  `w[i] xor w[i+1]`, with `y` after the end (`x102_getD`). The last word becomes `x`, and the 0 after the string becomes
+  a 1. This replaces the exhaustive check in `py/xor_epoch.py` (strings up to 16 words) by a proof for all lengths.
+* `lean/XorLucas.lean`, `closed_form`: iterating rule 102 with a fixed value after the end, word `i` after `t` sweeps is
+  the XOR of the starting words `i + k` over the `k <= t` with `C(t, k)` odd, and by Lucas' theorem that is "the binary
+  digits of `k` and `t - k` are disjoint" (`disj`, `pascal_rule`, shared with the Pascal-triangle machine
+  1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF).
+* `allx`: a gap of `n` `x`s next to the fixed `y` has word `j` (counted from the `y`) equal to `y` after `t` sweeps iff
+  `C(t, j)` is odd. So the whole gap is `y` exactly when the binary digits of `t` contain those of `1, ..., n`, i.e.
+  `t = -1 mod 2^b` with `2^b > n`: first after `2^b - 1` sweeps, then every `2^b`.
+
+**What it says about the danger pattern.** In the gap `10 W 0` after a `10` defect the words follow the same rule with
+the defect side fixed at `y` (section above). Write the gap with the defect cell as the polynomial
+`W(z) = 1 + sum w_j z^j` over GF(2), mod `z^(n+1)`. One sweep multiplies it by `1 + z`; all `y` is
+`1 + z + ... + z^n = (1 + z)^(2^b - 1)`; and `(1 + z)^(2^b) = 1` mod `z^(n+1)`. So:
+
+* a gap of `n` words ever becomes all `y` **iff it already is a row of Pascal's triangle mod 2**: `w_j = 1` exactly when
+  the binary digits of `j` lie inside those of some `s < 2^b`; it then becomes all `y` at sweeps `t = 2^b - 1 - s mod 2^b`;
+* only `2^b <= 2n` of the `2^n` gaps of length `n` can ever reach the danger pattern, and every gap is periodic with period `2^b`.
+
+`py/pascal_gaps.py` checks both statements for every gap of up to 14 words (all 32,766). The algebra is not in Lean. A
+halt still needs, at such a sweep, a `y` or `0` before the `10` (in the data it was `x` all 131 times). So the open
+question is now about binary digits: which gaps the right end hands to a newborn `10`, and what word stands before the
+defect at the sweeps `t = 2^b - 1 - s mod 2^b`.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
-search over all words of 1-3 cells, each for every n and every tape around.
+search over all words of 1-3 cells, each for every n and every tape around. `lean/Xor.lean` and `lean/XorLucas.lean`:
+the rule 102 epoch and its closed form (section above).
 
 ## Halting
 
@@ -111,8 +141,7 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 
 ## Notes for later
 
-* Done: the sweep pair is the XOR rule (above). Next: prove it in Lean for all lengths (two per-word transducer
-  lemmas and an induction over the word list; the toolchain was not available in the 16 November container).
+* Done: the sweep pair is the XOR rule, proved in Lean for all lengths (`lean/Xor.lean`), with its Lucas closed form.
 * The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
 * Done: how `10` defects are made (walls as particles, above). Next: prove that `y 0 x^k 0` never forms after 10^7 steps (no
   local rule found: the word before a wall and the gap after it are correlated only through the XOR history), and write the right end's four phases as rules.
