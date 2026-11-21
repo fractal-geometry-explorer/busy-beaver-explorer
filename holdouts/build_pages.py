@@ -612,6 +612,9 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>The list is a moving target. Since it was drawn up, proofs for some of these machines have appeared here and
  elsewhere; the bar below sorts the machines by where each one stands, and keeps what this repository checked apart
  from what others report (__ASOF__).</p>
+ <p><b>New:</b> the <a href="recent.html">latest results</a>, newest first, and the
+ <a href="families.html">families of the undecided machines</a>, each family with its mechanism, what is known and the
+ technique that could settle it.</p>
 </header>
 
 <section class="panel">
@@ -635,7 +638,8 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>The machines not yet decided here, grouped so that one proof technique could settle a whole family, and ranked by
  how many machines that technique would settle and how likely it is to work (__FAMASOF__). R00 is not a mechanism: it
  holds the machines whose only proof is an outside one not yet compiled here. Machines that fit no family keep their
- earlier label (F01 to F11). Click a family to filter the table; the reasoning is in
+ earlier label (F01 to F11). Click a family to filter the table; each family is explained on the
+ <a href="families.html">families page</a>, and the reasoning is in
  <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.</p>
  <div class="fams" id="fams"></div>
 </section>
@@ -859,6 +863,8 @@ def main(argv):
             if not want or name in want:
                 build_machine_pages(name, spec)
     build_index()
+    import build_overview  # noqa: E402  (families.html and recent.html, which read the index rows)
+    build_overview.build()
 
 
 if __name__ == "__main__":
