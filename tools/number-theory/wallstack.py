@@ -13,6 +13,11 @@ usage (from the repository root):
                                                          many odd steps in a row the top would need before its count
                                                          goes below zero, against how many it actually gets
   python3 tools/number-theory/wallstack.py orbit STEPS    the model along the real orbit (from step 10,206 of the run)
+  python3 tools/number-theory/wallstack.py runs STEPS     along the real orbit: odd runs of N, and the fewest odd steps in
+                                                         a row that would drive a count below zero (two open counters
+                                                         on top)
+  python3 tools/number-theory/wallstack.py need           odd steps in a row needed for a negative count, for a top
+                                                         count k over an open counter kl
   python3 tools/number-theory/wallstack.py compare LIM    the model against the Lean step map (py/zonemap.py) on every
                                                          step of the free-parity wall graph to LIM cells (slow: 300
                                                          takes about 2 minutes)
@@ -108,6 +113,40 @@ def orbit(steps):
           f"largest count below the top {lower}, smallest counter/lower ratio {ratio}")
 
 
+def need_of(lv):
+    below, k, n = list(lv[:-1]), Fraction(lv[-1][0]), 0
+    while k >= 0 and n < 5000:
+        r = step(below, 1)
+        below, k, n = r[0], (3 * k - 1) / 2 + r[1], n + 1
+    return n
+
+
+def runs(steps):
+    import zonemap as Z
+    from collections import Counter
+    W, N = Z.START
+    lv, run, hist, best, height = unword(Z.show(W)), 0, Counter(), None, 0
+    for i in range(steps):
+        if N % 2:
+            run += 1
+        else:
+            hist[run] += 1
+            run = 0
+        if len(lv) >= 2 and not lv[-1][1] and not lv[-2][1] and i % 5 == 0:
+            n = need_of(lv)
+            if best is None or n < best[0]:
+                best = (n, lv[-2:], i)
+        lv, N = stepN(lv, N)
+        height = max(height, len(lv))
+    print(f"{steps} steps: at most {height} items; odd runs of N (length: how many) {sorted(hist.items())}; "
+          f"fewest odd steps in a row a negative count would need: {best[0]} (counters {best[1]}, step {best[2]})")
+
+
+def need(_):
+    for kl in (0, 1, 2, 5, 10, 17):
+        print(kl, [(k, need_of([(kl, False), (k, False)])) for k in (10, 20, 50, 100, 200, 500, 1000)])
+
+
 def compare(lim):
     import zonemap as Z
     dist, queue, bad, n = {(1,): 0}, [(1,)], 0, 0
@@ -129,8 +168,8 @@ def compare(lim):
 
 
 if __name__ == "__main__":
-    cmd, arg = sys.argv[1], int(sys.argv[2])
-    f = {"bfs": bfs, "margin": margin, "orbit": orbit, "compare": compare}[cmd]
+    cmd, arg = sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    f = {"bfs": bfs, "margin": margin, "orbit": orbit, "compare": compare, "runs": runs, "need": need}[cmd]
     t = threading.Thread(target=f, args=(arg,))
     t.start()
     t.join()

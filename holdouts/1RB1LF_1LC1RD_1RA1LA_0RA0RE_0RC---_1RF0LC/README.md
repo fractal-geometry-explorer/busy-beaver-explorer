@@ -194,6 +194,36 @@ does not occur there.
 Left for a non-halting proof along these lines: the odd signal on `K'(0)` under other items (or a proof that it
 never comes), and an invariant ruling out counts below zero (see "Free parities").
 
+## What the 2-adic condition says (21 November)
+
+The free-parity search (above) and the Lean stack rules leave one gap: a proof that no count goes negative.
+`tools/number-theory/wallstack.py need` and `runs` measure what a negative count would take.
+
+- **Only a long odd run can do it.** A count goes negative only when two open counters are on top, the top one
+  (count k, over a lower count kl) stays odd, and the step signal stays odd, for J steps in a row. J grows linearly
+  in k: about 2.8 k/kl steps, so at least k/6 while the lower counters stay at 17 or below (the most seen under free
+  parities). For example kl = 2 needs J = 9, 35 and 664 for k = 10, 50 and 1000.
+- **That run is a 2-adic coincidence.** Under J odd signals the stack below evolves in a fixed way, and the top
+  stays odd for J steps exactly when k agrees with a 2-adic number rho(V), fixed by the stack V below, in J binary
+  digits. Once k > 60 or so, J > log2 k, so the agreement means k *equals* rho(V) mod 2^J. In other words, the
+  digits of rho(V) from about log2 k up to about k/6 must all be 0. Computing B digits of rho(V) therefore rules
+  out every top count below 2^B over V, except one count and the counts below about 6B, all checked directly. Counts at or
+  above 2^B would need a run of at least 2^B/6 zero digits. For the empty V the longest zero run in the first
+  3,000 digits is 11.
+- **Why this is not finite.** Under free parities the stacks V that occur are infinite: piles of empty closed
+  counters `C0^j` under the rest grow without bound, and each changes rho(V). So the statement left is "no rho(V)
+  over a reachable V has a zero run from position p to about 2^p/6". Its digits come from another 3/2 map (the stack
+  below, driven by odd signals). This is the same kind of statement as Antihydra's. Heuristically it is far safer: a
+  top count k is dangerous with probability about 2^(-k/6), and the free-parity search already clears every wall up
+  to 30,000 cells.
+- **The real orbit** (`runs 300000`): the wall never has more than 7 items. Odd runs of N are geometric (75,357 of
+  length 0, 37,138 of 1, 18,723 of 2, and so on), with the longest 15. The fewest odd steps in a row any wall on the
+  orbit would need for a negative count is 9 (counters (2, open), (10, open) at step 1,275). Each time, the top
+  counter turned even long before that.
+
+So the holdout is solvable to the same degree as the other 3/2-map holdouts: the reduction is now proved in Lean,
+and what is left is a 2-adic avoidance statement, with no known technique to prove it.
+
 ## Regular invariants tried (21 November)
 
 The machine halts only through A0 → B1 → D1 → E1, so a halt needs the head in state A on a 0 with 111 to its right.
