@@ -128,6 +128,17 @@ halt still needs, at such a sweep, a `y` or `0` before the `10` (in the data it 
 question is now about binary digits: which gaps the right end hands to a newborn `10`, and what word stands before the
 defect at the sweeps `t = 2^b - 1 - s mod 2^b`.
 
+## The danger pattern in Lean (21 November 2026, `lean/Danger.lean`)
+
+* `danger_halts`: B at the start of `y 10 y^n 0` halts, for every `n`. The `y` is a run `1 1 0` (B leaves it as
+  `0 1 1`); on the defect B goes into token mode (`B 1 -> 0 D`, `D 0 -> 0 F`); F crosses each `y` turning it into `000`
+  (`token_y`); F reads the wall's 0 and halts.
+* `shield`: with `x` before the defect, `x 10` is the single run `1 1 1 1 0`, which B rewrites to `0 0 0 1 1` and leaves
+  in B at the start of the gap, the ordinary way.
+
+So the danger pattern found in the data is a real halting shape, and the word in front of the defect decides whether
+the right sweep reaches it in token mode.
+
 ## In the frame of a `10` defect (21 November 2026)
 
 `c/defect10.c` prints, at every new left cell up to 9·10^6 steps, each bulk `10` (more than 30 tokens from the right end)
