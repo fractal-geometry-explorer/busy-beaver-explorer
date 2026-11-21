@@ -81,22 +81,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</p>
     <h1>What is known about 1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</h1>
     <p class="machine">1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---</p>
-    <p class="stand pr"><b>Open here; an outside proof awaits review</b><span>A Rocq proof that it never halts is in an open busycoq pull request, not merged and not compiled here. This page's own ledger treats halting as open.</span></p>
+    <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 62 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. This page describes what its run looks like at the level of words and counters, what a halt would need, and what is still missing. The description comes from simulation (first look, about an hour of study); nothing beyond the bounded runs is proved.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 62 (Dennis Koshta, 2026-11-09) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. The proof states halting with a second copy of busycoq's machine definitions; a short audit file proves the two notions of halting agree, so the result holds for busycoq's own <code>halts</code>. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
       <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps, the C simulator none in 10<sup>9</sup>. The macro structure described below is observed in the simulation, not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
-      <div class="card report">
-        <h3>An outside proof is waiting for review: it never halts</h3>
-        <p><a href="https://github.com/ccz181078/busycoq/pull/62">busycoq pull request 62</a> (Dennis Koshta, 2026-11-09) contains a Rocq proof that this machine never halts (<code>verify/PR_LongTranslatedCycler_Siblings.v</code>). As of 19 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+      <div class="card proof">
+        <h3>An outside Rocq proof, compiled here: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/62">busycoq pull request 62</a> (Dennis Koshta, 2026-11-09) contains a Rocq proof that this machine never halts (<code>verify/PR_LongTranslatedCycler_Siblings.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 21 November 2026, in 60 s: the theorem <code>StartC.nonhalt : ~ halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. The theorem is stated with a second instance of busycoq&#x27;s TM functor on the same context BB62; our audit file proves its halting equivalent to Individual62&#x27;s and restates the result on Individual62&#x27;s halts and c0. It is their proof, not one written in this repository. The verdict on this page rests on this proof.</p>
       </div>
       <div class="card label">
         <h3>Community label</h3>

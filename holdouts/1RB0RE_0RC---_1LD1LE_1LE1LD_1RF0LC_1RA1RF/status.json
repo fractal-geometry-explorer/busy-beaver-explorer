@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine acts on a list of blocks of 1s: Lean proves every rule by which the head meets a block or a separator, and that it halts exactly on <code>F&gt; 0 0 1</code>. A leftward pass computes a running parity, and the run is organised in epochs that grow the tape by a factor about 1.75. In 10<sup>10</sup> steps F met two 0s in a row only at the right end of the tape, with blank tape beyond (observed). Whether that always holds is not settled."
+  "<b>The question is open.</b> Lean proves that one bounce of the head turns the zone, a word in the 4-cell letters <code>u = 1110</code> and <code>v = 1111</code>, into the next row of Pascal's triangle mod 2 (the running XOR of the word with a 1 appended), for every word, and solves the rows in closed form by Lucas' theorem. It also proves that the machine halts as soon as a right turn meets a frozen block of odd length followed by <code>0 1</code>, whatever the zone. In 10<sup>10</sup> steps that never happens: at every right turn the tape right of the head is a word in the 2-cell letters <code>11</code> and <code>01</code> (observed). Proving that invariant would settle the machine; it is not proved."
  ],
  "claims": [
   {
@@ -62,6 +62,36 @@
    "title": "Where it can halt",
    "text": "Only B reading 1 halts; B is entered only from A reading 0, and A only from F reading 0. So the machine halts exactly on <code>F&gt; 0 0 1</code>: F on that pattern halts within two steps (<code>halt_F</code>), and two steps before any halt the machine is in F on <code>0 0 1</code> (<code>halt_route</code>). An earlier version of this page gave the pattern as <code>F&gt; 1 0 1</code>, which was wrong.",
    "where": "<code>halt_F</code>, <code>lean/Blocks.lean</code>; <code>halt_route</code>, <code>lean/Route.lean</code> (from <code>py/route.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "One bounce is one row of Pascal's triangle mod 2",
+   "text": "At a right turn the head is in E just right of the zone, a word <code>w</code> in <code>u = 1110</code> (1) and <code>v = 1111</code> (0) after a prefix that is empty or one 1. If the frozen tape starts <code>1 1 1</code>, then for every word the machine reaches the next right turn with the zone <code>T(w)</code>, the running XOR from the right of <code>w 1</code>, the prefix kept or toggled by the parity of <code>w</code>, and the frozen tape two cells shorter. A block of <code>2k + 1</code> frozen cells gives <code>k</code> such bounces.",
+   "where": "<code>bounce</code>, <code>bounces</code>, with <code>sweep</code>, <code>lend</code>, <code>rsweep</code>, <code>regroup</code>, <code>lean/Pascal.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The zone after j bounces, by Lucas' theorem",
+   "text": "Number the letters from the right end of the zone and flip letter 0. After <code>j</code> bounces letter <code>i</code> is the XOR of the starting letters <code>d<sub>k</sub></code> with <code>C(i − k − 1, j − 1)</code> odd, and that binomial coefficient is odd exactly when <code>i − k ≥ j</code> and <code>j − 1</code>, <code>i − k − j</code> share no binary 1 (Lucas). Proved for every word and every <code>j</code>, with Pascal's rule for the bit test proved from scratch.",
+   "where": "<code>closed_form</code>, <code>diagram</code>, <code>pascal_rule</code>, <code>Q_rule</code>, <code>lean/Lucas.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A right turn at an odd frozen block halts",
+   "text": "Whatever the zone and prefix, a right turn with the frozen tape <code>1<sup>2k+1</sup> 0 1 ...</code> leads to a halt: <code>k</code> bounces, then F reads <code>0 0 1</code>.",
+   "where": "<code>halts_of_odd</code>, <code>halt_turn</code>, <code>lean/Pascal.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "An even frozen block: absorption",
+   "text": "With a block of 2 under the head the zone swallows it and the next block, and the block after that loses one cell (frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code>; if <code>c = 1</code> the next pair goes too). Checked on 20,000 random zones (up to 8 letters, both prefixes) and frozen tapes; the zone never changes the outcome.",
+   "where": "<code>py/frozen.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Right of every right turn: 2-cell letters (10<sup>10</sup> steps)",
+   "text": "At all 139,833 right turns in E in 10<sup>10</sup> steps, the tape from the head to the last 1 is a word in <code>11</code> and <code>01</code> starting at the head, so the block under the head has even length and every later block odd length. The block under the head had 2 to 4, 6 to 8, 10 to 16 or 18 to 32 cells (dyadic bands; once 62 and once more than 64). The same holds for 10<sup>9</sup> steps of this table started in C, D and E (the three holdouts with this table).",
+   "where": "<code>c/twoletter.c</code>"
   },
   {
    "level": "trusted",
@@ -115,6 +145,8 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh",
+  "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py",
+  "gcc -O2 -o twoletter holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/twoletter.c && ./twoletter 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 10000000000",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py > holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/route.py        # rewrites lean/Route.lean",
   "gcc -O2 -o turns holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/turns.c && ./turns 10000000000",
@@ -168,6 +200,14 @@
     ]
    },
    {
+    "id": "pascal",
+    "eyebrow": "Pascal's triangle",
+    "heading": "One bounce, one row of Pascal's triangle mod 2",
+    "html": [
+     "<p><b>One bounce is one row of Pascal's triangle mod 2</b> (Lean, <code>bounce</code> in <code>lean/Pascal.lean</code>). Read the zone, the stretch the head sweeps, as a word in <code>u = 1110</code> (bit 1) and <code>v = 1111</code> (bit 0) at the left end of the tape. At a right turn the head is in E just right of the zone, on the frozen tape. If the frozen tape starts <code>1 1 1</code>, then for <i>every</i> word <code>w</code> the machine comes back to a right turn after 8|w| + 6 or 8|w| + 8 steps with the zone <code>T(w)</code>: write a 1 after the last letter and replace each letter by the XOR of it and everything to its right. The frozen tape is two cells shorter. The left sweep computes the running XOR (states D = even, C = odd, writing <code>1111</code> or <code>0101</code>), the left end toggles a one-cell prefix, and the right sweep in F rewrites <code>0101</code> as <code>1011</code>, which regroups into the new letters.</p>\n<p><b>Closed form by Lucas' theorem</b> (Lean, <code>closed_form</code> in <code>lean/Lucas.lean</code>). Number the letters from the right end, 0 next to the frozen tape, and flip letter 0. Then a bounce is \"running XOR, then shift by one\", and after <code>j</code> bounces letter <code>i</code> is the XOR over <code>k</code> of the starting letters <code>d<sub>k</sub></code> for which <code>C(i − k − 1, j − 1)</code> is odd. Lucas' theorem decides that from binary digits: odd exactly when <code>i − k ≥ j</code> and <code>j − 1</code> and <code>i − k − j</code> have no 1 in the same place (<code>pascal_rule</code> proves the rule that makes this work). Try it: pick a starting zone, then click any cell. A single <code>u</code> is the fixed point (it stays <code>v…v u</code>); a zone of <code>v</code>s flips only its last letter, and the triangle it grows is Pascal's triangle mod 2 itself, read with the bounce count downwards and the distance from the right end across.</p>\n<div class=\"panel\" id=\"pzPanel\">\n  <div class=\"controls\">\n    <label for=\"pzWord\" class=\"small\">start zone (u = 1, v = 0)</label>\n    <input type=\"text\" id=\"pzWord\" value=\"000000000000000000000000000000000000000000000000\" spellcheck=\"false\" autocomplete=\"off\">\n    <button type=\"button\" data-pz=\"000000000000000000000000000000000000000000000000\">48 v</button>\n    <button type=\"button\" data-pz=\"1\">one u</button>\n    <button type=\"button\" data-pz=\"101101\">u v u u v u</button>\n    <button type=\"button\" data-pz=\"100000000000000000000000000000000000000000000000\">u, then 47 v</button>\n    <button type=\"button\" data-pz=\"rand\">random</button>\n  </div>\n  <div class=\"controls\" style=\"margin-top:10px\">\n    <label for=\"pzJ\" class=\"small\">bounces</label>\n    <input type=\"range\" id=\"pzJ\" min=\"1\" max=\"96\" value=\"64\" style=\"flex:1 1 180px\">\n    <b id=\"pzJv\" style=\"font-family:var(--mono)\">64</b>\n  </div>\n  <div class=\"stwrap\"><canvas id=\"pzCanvas\" aria-label=\"The zone after each bounce, one row per bounce\"></canvas></div>\n  <div class=\"cap\">Row <code>j</code> is the zone after <code>j</code> bounces, left end of the tape on the left; dark is <code>u</code>. The zone grows by one letter per bounce, on the right, against the frozen tape.</div>\n  <div class=\"config\" id=\"pzOut\">Click a cell.</div>\n</div>\n<p><b>What it means for halting: the zone does not matter, the frozen tape does.</b> Call <code>m</code> the length of the block of 1s under the head at a right turn. Each bounce with <code>m ≥ 3</code> takes 2 of its cells. If <code>m</code> is odd and the block is followed by <code>0 1</code>, the last bounce ends with F on <code>0 0 1</code> and the machine halts, whatever the zone (Lean, <code>halts_of_odd</code>). If <code>m</code> is even, it comes down to 2 and the zone absorbs the next blocks: frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code> (brute force over random zones and frozen tapes, <code>py/frozen.py</code>). So during a growing phase halting depends only on the parities of the frozen blocks, never on the binary digits in the zone; those matter only through what the crossing phase writes.</p>\n<p><b>The invariant that would settle it (observed, not proved).</b> At every right turn of the run from blank tape, the tape from the head to the last 1 is a word in the 2-cell letters <code>11</code> and <code>01</code>, starting at the head (<code>c/twoletter.c</code>, every right turn in E for 10<sup>10</sup> steps). Then every frozen block but the first has odd length and the first has even length, so the odd case above never arises. The lengths <code>m</code> fall in dyadic bands (2 to 4, 6 to 8, 10 to 16, 18 to 32, ...), the Sierpinski pattern again. A proof needs the crossing phase, where right turns happen inside old zone material and the frozen tape is written by the sweeps.</p>\n<script>\n(function () {\n  var cv = document.getElementById(\"pzCanvas\"), inp = document.getElementById(\"pzWord\"), js = document.getElementById(\"pzJ\"),\n      jv = document.getElementById(\"pzJv\"), out = document.getElementById(\"pzOut\");\n  if (!cv) return;\n  var rows = [], CELL = 6, start = [];\n  function tmap(w) { // w left to right; append 1, running XOR from the right\n    var v = w.concat([1]), r = new Array(v.length), s = 0;\n    for (var i = v.length - 1; i >= 0; i--) { s ^= v[i]; r[i] = s; }\n    return r;\n  }\n  function parse() {\n    var t = (inp.value || \"\").replace(/[^01uv]/g, \"\").replace(/u/g, \"1\").replace(/v/g, \"0\");\n    if (!t.length) t = \"000000000000000000000000000000000000000000000000\";\n    return t.split(\"\").map(Number);\n  }\n  function col(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || \"#000\"; }\n  function draw(sel) {\n    start = parse();\n    var J = +js.value; jv.textContent = J;\n    rows = [start];\n    for (var j = 1; j <= J; j++) rows.push(tmap(rows[j - 1]));\n    var W = rows[J].length;\n    CELL = Math.max(2, Math.min(10, Math.floor(Math.min(640, (cv.parentNode.clientWidth || 640)) / W)));\n    cv.width = W * CELL; cv.height = (J + 1) * CELL;\n    var g = cv.getContext(\"2d\"), ink = col(\"--ink\"), bg = col(\"--cell0\"), hd = col(\"--head\");\n    g.fillStyle = bg; g.fillRect(0, 0, cv.width, cv.height);\n    for (var r = 0; r <= J; r++) {\n      g.fillStyle = ink;\n      for (var i = 0; i < rows[r].length; i++) if (rows[r][i]) g.fillRect(i * CELL, r * CELL, CELL, CELL);\n    }\n    if (sel) {\n      g.fillStyle = hd;\n      sel.ks.forEach(function (k) { var x = start.length - 1 - k; g.fillRect(x * CELL, 0, CELL, CELL); });\n      g.strokeStyle = hd; g.lineWidth = 2;\n      g.strokeRect(sel.x * CELL + 1, sel.r * CELL + 1, CELL - 2, CELL - 2);\n    }\n  }\n  function bin(n) { return n.toString(2); }\n  function explain(x, r) {\n    if (r < 1 || r >= rows.length || x >= rows[r].length) return;\n    var n = rows[r].length, i = n - 1 - x, d = start.slice().reverse(); // d[k], k from the right\n    d[0] ^= 1;\n    var lines = [], acc = 0, ks = [];\n    for (var k = 0; k < d.length; k++) {\n      if (!d[k]) continue;\n      var t = i - k - r, on = t >= 0 && (((r - 1) & t) === 0);\n      if (on) { acc ^= 1; ks.push(k); }\n      lines.push(\"k = \" + k + \": i − k − j = \" + t + (t >= 0 ? \" = \" + bin(t) + \"b, j − 1 = \" + bin(r - 1) + \"b, \" + (on ? \"disjoint: C(\" + (i - k - 1) + \", \" + (r - 1) + \") odd\" : \"share a 1: even\") : \": no contribution\"));\n    }\n    var val = acc ^ (i === 0 ? 1 : 0);\n    out.innerHTML = \"Row j = \" + r + \", letter i = \" + i + \" from the right end. Flipped start d has 1s at k = \" + (d.map(function (b, k) { return b ? k : -1; }).filter(function (k) { return k >= 0; }).join(\", \") || \"none\") + \".<br>\" +\n      lines.slice(0, 12).join(\"<br>\") + (lines.length > 12 ? \"<br>…\" : \"\") + \"<br>XOR = \" + acc + (i === 0 ? \", unflip letter 0\" : \"\") + \" → <b>\" + (val ? \"u\" : \"v\") + \"</b>; the row says <b>\" + (rows[r][x] ? \"u\" : \"v\") + \"</b>.\";\n    draw({x: x, r: r, ks: ks});\n  }\n  cv.addEventListener(\"click\", function (e) {\n    var b = cv.getBoundingClientRect(), sx = cv.width / b.width, sy = cv.height / b.height;\n    explain(Math.floor((e.clientX - b.left) * sx / CELL), Math.floor((e.clientY - b.top) * sy / CELL));\n  });\n  document.querySelectorAll(\"[data-pz]\").forEach(function (bt) {\n    bt.addEventListener(\"click\", function () {\n      var v = bt.getAttribute(\"data-pz\");\n      if (v === \"rand\") { v = \"\"; for (var i = 0; i < 24; i++) v += Math.random() < 0.5 ? \"1\" : \"0\"; }\n      inp.value = v; out.textContent = \"Click a cell.\"; draw();\n    });\n  });\n  inp.addEventListener(\"input\", function () { draw(); });\n  js.addEventListener(\"input\", function () { draw(); });\n  window.addEventListener(\"resize\", function () { draw(); });\n  draw();\n})();\n</script>\n"
+    ]
+   },
+   {
     "id": "epochs",
     "eyebrow": "The emergent behavior",
     "heading": "Epochs, each about 1.75 times longer",
@@ -210,7 +250,7 @@
    }
   ]
  },
- "summary": "A binary word written in 4-cell letters 1110 and 1111; every leftward sweep replaces it by its running parity (XOR from the right), so the space-time diagram is Pascal's triangle mod 2 (Sierpinski triangles), in epochs that each grow the tape by about 1.75.",
+ "summary": "A binary word written in 4-cell letters 1110 and 1111; Lean proves each bounce maps it to the next row of Pascal's triangle mod 2 and solves the rows by Lucas' theorem; halting reduces to the parity of the frozen block at a right turn.",
  "family": "running-XOR (Sierpinski) zone in epochs",
  "decision": "open"
 }

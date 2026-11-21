@@ -83,11 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA</p>
     <p class="stand pr"><b>Open here; an outside proof awaits review</b><span>A Rocq proof that it halts is in an open busycoq pull request, not merged and not compiled here. This page's own ledger treats halting as open.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Partly checked here (21 November 2026).</b> We compiled the framework of busycoq pull request 60 for this machine (rule map, checker and cut points) with Coq 8.20.1 on busycoq's BB6 branch, and ran two of its 313 <code>native_compute</code> jobs: <code>JHalt</code>, the stretch that ends in the halt, and <code>J0202</code>; both pass. The other 311 jobs (about 275 core-hours) need a large machine, so the machine stays open here until they are run.</p>
       <p><b>Reported to halt: an external Rocq proof exists (busycoq pull request 60, by Yeyito, 7 November 2026), which we have not compiled.</b> It proves a map on tapes A(a, b) from the raw machine and checks, with 313 compiled jobs (275 core-hours by its README), that the orbit from blank tape reaches the halting case at a = 28&middot;2<sup>85</sup> &minus; 6, about 10<sup>55</sup> steps. We cross-checked it against our own Lean map: its state (a, b) is our round P((a&minus;6)/2, b), its first 2,000,000 map steps all appear in order in our orbit, and both maps halt from the same final round. The middle of the orbit (about 10<sup>25</sup> returns) rests on that proof alone. Until it is compiled here or merged upstream, this page keeps the machine as open. </p>
       <p><b>Our own result: reduced in Lean to a question about an explicit map.</b> It is a Lean theorem (kernel-checked, no <code>native_decide</code>) that the machine halts from blank tape if and only if the orbit of the reset configuration S(13) = <code>0^inf 1^13 1110 B&gt; 0^inf</code> under an explicit map F on four kinds of tape (the reset S(x), the doubling round P(k, m), and two leftover shapes Q(u, n), T(u, v)) reaches a doubling round P(k, 0) that finds no 1s at all (<code>halts_iff_H</code>, <code>lean/Map.lean</code>). F is written as a Lean function and every one of its cases is a proved rule of the machine. The orbit does not halt in its first 10<sup>7</sup> nodes (Lean, compiled evaluation; 10<sup>5</sup> by the kernel) and, iterated in C, in its first 10<sup>8</sup> returns to S (X up to 1.5&middot;10<sup>10</sup>); our own runs stop there.</p>
     </div>
@@ -97,7 +98,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="else">
       <div class="card report">
         <h3>An outside proof is waiting for review: it halts</h3>
-        <p><a href="https://github.com/ccz181078/busycoq/pull/60">busycoq pull request 60</a> (Yeyito, 2026-11-07) contains a Rocq proof that this machine halts (<code>verify/Halt_1RB0LF_1RC1RA/Rules.v</code>). As of 19 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</p>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/60">busycoq pull request 60</a> (Yeyito, 2026-11-07) contains a Rocq proof that this machine halts (<code>verify/Halt_1RB0LF_1RC1RA/Rules.v</code>). As of 21 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it. Partly checked here on 21 November 2026 with Coq 8.20.1 with native compilation: framework files (Rules, Map, Num to HTop, Cuts) compile; sample jobs JHalt (1 s) and J0202 (891 s) pass with native_compute. The other 311 jobs (about 275 core-hours) and Final.v were not run.</p>
       </div>
       <div class="card report">
         <h3>Reported on the wiki: it halts</h3>

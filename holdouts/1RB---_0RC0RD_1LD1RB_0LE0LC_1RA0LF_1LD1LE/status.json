@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape has just two parts: a solid block of 1s and a stretch of alternating <code>1 0 1 0 …</code>. On every trip to the left end the machine carries the solid block across the alternating stretch, so the two swap sides; on the way back their sizes change. The sizes jump around without an obvious pattern, while the total width creeps up."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Partly checked here: an outside Rocq proof says it halts.</b> Busycoq pull request 60 (Yeyito, 2026-11-07) proves <code>halts tm c0</code> for this machine (the Lopsided Camper, about 8.3&middot;10<sup>41</sup> steps) with 523 <code>native_compute</code> jobs, about 280 core-hours by its README. On 21 November we compiled its rule map and kernel with Coq 8.20.1 on busycoq's BB6 branch and ran two of the jobs, the first and the last one, which ends at the halt; both pass. The other 521 jobs need a large machine, so the machine stays open here until they are run.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps. The C simulator shows the two-part tape at every one of the 1,139 side switches after step 10<sup>4</sup>, up to 10<sup>9</sup> steps, and the block carried across intact all 569 times. How the trip back sets the new sizes is not yet known."
  ],
  "claims": [

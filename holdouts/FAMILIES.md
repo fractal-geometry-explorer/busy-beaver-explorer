@@ -1,6 +1,6 @@
-# Families of the undecided holdouts (20 November 2026)
+# Families of the undecided holdouts (21 November 2026)
 
-Of the 608 holdouts, **554** are undecided here: open, cryptid, or covered only by an outside proof that has not been compiled here (34 machines). This note regroups them into families where one proof technique could settle several machines at once, and ranks the families. It replaces the ranking of the 13 November plan (F01 to F12, kept in `families.json` as each machine's `old` family). The machine-readable version is [`families.json`](families.json), written with this note by [`regroup.py`](regroup.py); the [holdout map](../pages/holdouts/index.html) can filter by family.
+Of the 608 holdouts, **522** are undecided here: open, cryptid, or covered only by an outside proof that has not been compiled here (2 machines). This note regroups them into families where one proof technique could settle several machines at once, and ranks the families. It replaces the ranking of the 13 November plan (F01 to F12, kept in `families.json` as each machine's `old` family). The machine-readable version is [`families.json`](families.json), written with this note by [`regroup.py`](regroup.py); the [holdout map](../pages/holdouts/index.html) can filter by family.
 
 ## How the families were made
 
@@ -13,33 +13,33 @@ Of the 608 holdouts, **554** are undecided here: open, cryptid, or covered only 
 
 | rank | family | machines | of which awaiting review | technique | odds |
 |---|---|---|---|---|---|
-| 0 | **R00** Outside proofs awaiting compilation (busycoq PRs 43 to 68) | 34 (all) | 34 | compile and record | high |
-| 1 | **R01** Base-5 marker counter on one five-state core (F05) | 45 |  | one drift invariant on the shared core (first: same-run equivalences, 40 questions to about 10) | medium-low |
+| 0 | **R00** Outside proofs awaiting compilation (busycoq PR 60) | 2 (all) | 2 | compile and record | high |
+| 1 | **R01** Base-5 marker counter on one five-state core (F05) | 45 |  | one drift invariant on the shared core (same-run step done: 40 machines, 23 questions) | low |
 | 2 | **R02** Clock and word: a block grows in doubling time while a word map runs 2^k times | 15 |  | automaton invariant for the word map P alone, plus the clock lemma in Lean | medium |
 | 3 | **R03** Blocks of 10s split by 01100: one table core with cursors that triple blocks | 15 |  | shared Lean library for the core, then exact block-list runs to hunt halts | medium |
-| 4 | **R04** Base-4 counters with countdown timers (Skelet 1-like) | 16 | 1 | halt hunting with exact odometer jumps (PR 83 / 89 method) | medium-high for halts |
+| 4 | **R04** Base-4 counters with countdown timers (Skelet 1-like) | 15 |  | halt hunting with exact odometer jumps (PR 83 / 89 method) | medium-high for halts |
 | 5 | **R05** Cellular-automaton sweeps: running parity and Sierpinski triangles | 10 |  | prove each sweep is one CA step; closed form by Lucas' theorem for the parity pair | medium for the parity pair, low for the others |
 | 6 | **R06** Neighbours of DeepMind's PR 93 tables (the T3 and T4 engine) | 11 |  | retarget the PR 93 engine and run to the halt (halting only) | medium |
-| 7 | **R07** Up/down counters and two binary counters with rebuilds | 11 | 2 | compile PRs 57 and 58; prove the closed rebuild maps; extend the wall invariant | medium |
+| 7 | **R07** Up/down counters and two binary counters with rebuilds | 9 |  | prove the closed rebuild maps; extend the PR 57/58 wall invariant | medium |
 | 8 | **R08** Reservoir counters: a chaotic zone eats a reservoir behind a growing block | 10 |  | Lean leftmost-zone reduction, then a two-zone model | medium for the four, low for the rest |
 | 9 | **R09** Word map phi with a counter: one table, a race between word and collisions | 7 |  | port the one-map reduction to the siblings; invariant of the map | medium-low |
-| 10 | **R10** Visit laws on streams (busycoq PR 59 family) | 7 | 4 | compile PRs 55 and 59; accelerated visit-law runs for the rest | high for the four pending, low to medium for the three open |
+| 10 | **R10** Visit laws on streams (busycoq PR 59 family) | 3 |  | accelerated visit-law runs (PRs 55 and 59 compiled: four decided) | low to medium |
 | 11 | **R11** Nested ternary counters (draining odometers) | 7 |  | exact macro simulators to the first top-level overflow | medium for halts |
 | 12 | **R12** Two-word sweepers: base-3 and binary counters side by side | 11 |  | decode the middle first | low |
 | 13 | **R13** Shifted-run quartet (F09) | 4 |  | transfer theory for the shifted run | medium-low |
 | 14 | **R14** Block lists rewritten like a cellular automaton (blocks of 4k+3 ones) | 6 |  | none yet | low |
-| parked | **R15** Collatz-like maps and cryptids (parked) | 98 | 3 | halt hunts on proved maps only | very low |
+| parked | **R15** Collatz-like maps and cryptids (parked) | 96 | 1 | halt hunts on proved maps only | very low |
 | - | the rest of F01 to F11 | 257 | | no shared technique found | |
 
 ## Recommended next attacks
 
-1. **Compile the outside proofs of busycoq PRs 43 to 68** (34 machines). They are the only machines on the list whose proofs exist but have not been checked here, and checking them is mechanical (the same procedure as for PRs 78 to 109). Ten of them also belong to families below (R04, R07, R10 and R15).
-2. **R01, the F05 core** (45 machines). The largest family by far, with its whole macro structure already proved in Lean on all 40 core tables. One invariant on the drift settles all of them; the equivalence proofs that cut 40 questions to about 10 are a safe first step.
+1. **Finish the two PR 60 halts** (2 machines). All other proofs in busycoq PRs 43 to 68 were compiled on 21 November and their 32 machines are decided; PR 60's two proofs need about 555 core-hours of native_compute jobs, which needs a large machine (sample jobs pass here).
+2. **R01, the F05 core** (45 machines). The largest family by far, with its whole macro structure already proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is done (the 40 are 23 questions); the invariant itself looks like a Collatz-type statement, so the odds are low.
 3. **R02, clock and word** (15 machines on six tables). The clock lemma is in Lean for six; what is left is a finite-state question about one word map per machine, which an automaton search on the word alone can answer far more cheaply than the whole-tape search that failed.
-4. **R04 and R11, base-4 and ternary countdown counters** (23 machines). Halt hunting with exact odometer jumps; this kind of family (F06) produced half of the decisions of the week of 13 November, all halting, and short-timer tapes of the same shape are proved to halt.
+4. **R04 and R11, base-4 and ternary countdown counters** (22 machines). Halt hunting with exact odometer jumps; this kind of family (F06) produced half of the decisions of the week of 13 November, all halting, and short-timer tapes of the same shape are proved to halt.
 5. **R05, cellular-automaton sweeps** (10 machines). New idea: for the two running-parity machines, a Lean proof that each sweep is one row of Pascal's triangle mod 2 turns halting into a statement about binary digits (Lucas' theorem).
 
-Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted). R07 and R10 start with the compiles in step 1.
+Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted).
 
 ## The families
 
@@ -47,11 +47,11 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 
 **Mechanism.** Forty machines are one five-state core, `1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??---` in frame A, differing in D1, F0 and the start; five more use the same core with E1 or F0 changed. The tape is a list of 0010-blocks run like a nested base-5 counter; a machine can halt only at an F-event (the detour through F) that reads a 1.
 
-**Known.** Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0.
+**Known.** Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every F-event reading 0. The same-run step is done: ten twin pairs and seven start-twin pairs (`EQUIVALENCES.md`; `Twin.lean`, `StartTwin.lean`) put 31 of the 40 into 14 classes, so the 40 are 23 questions, and a recheck of all 40 block lists at every left-end event to 10^30 steps (21 November) found no further pair: the twelve start-E machines part from each other and from the start-A ones by the sixth left-end event.
 
-**Technique.** One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never near 0 when its block runs out. A proof on the core settles all 40 at once; even without it, Lean proofs that variants with the same block list are the same run cut the 40 questions to about 10.
+**Technique.** One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift b(i+1) - 5·b(i) is never within a few hundred of 0 when block i runs out. Clean visits keep every drift fixed, so only the drifts made at merges matter. A proof on the core settles all 40 at once.
 
-**Odds.** medium-low: halting needs two rare events to coincide, and nothing found so far bounds the drift; but the payoff is the largest of any single argument.
+**Odds.** low: the drifts made at merges behave like differences of unrelated large numbers. To 10^100 steps the 599 drifts of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- are all even but take every residue mod 9 and mod 25 (122 of 125 mod 125), and |b(i+1) - 5·b(i)| / b(i) gets as low as 0.015, so neither a congruence nor a ratio bound is kept. A proof would have to show that a chaotic integer process misses a thin set, a Collatz-type statement. Heuristically they do not halt: every drift made after the 30th left-end event is above 8·10^6 in size, against the few hundred a halt needs.
 
 | machine | standing | community class | table set | 13 Nov family | notes |
 |---|---|---|---|---|---|
@@ -157,11 +157,11 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---`](1RB0LE_1RC0LB_1RD1RF_1RE0RB_1LA0RD_0RE---/README.md) | open | Chaotic Bell Class 3 | T43 (3) | F07 |  |
 | [`1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---`](1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/README.md) | open | Chaotic Bell Class 3 | T43 (3) | F07 |  |
 
-### R04. Base-4 counters with countdown timers (Skelet 1-like) (16 machines)
+### R04. Base-4 counters with countdown timers (Skelet 1-like) (15 machines)
 
 **Mechanism.** A base-4 counter whose digits sit between blocks, and blocks that lose 4^i (or 9, 24, 96, ...) units per visit like timers; when a timer runs out digits fuse or a level is rebuilt.
 
-**Known.** Digit and sweep rules are proved in Lean for several; for `1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD` and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin `1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). `1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` has a halting proof in busycoq PR 64 (not compiled here).
+**Known.** Digit and sweep rules are proved in Lean for several; for `1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD` and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin `1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). `1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` was decided by busycoq PR 64 (halts; compiled here 21 November).
 
 **Technique.** Halt hunting with exact odometer jumps (the PR 83 / PR 89 method: b^k ticks in one operation, then an exact executor to the halt). In the week of 13 November this kind of family (F06) gave half of all decisions, all of them halting.
 
@@ -182,7 +182,6 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF`](1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/README.md) | open | Shift-overflow structural counter | - | F06 |  |
 | [`1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD`](1RB---_1RC1RF_1LD1RA_1LB0LE_1LF1LF_0RB0LD/README.md) | open | Skelet 1-like Class 1 | - | F06 |  |
 | [`1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA`](1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/README.md) | open | Skelet 1-like Class 1 | - | F06 |  |
-| [`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA`](1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/README.md) | awaiting review | Shift-overflow bouncer counter | - | - | busycoq PR 64 |
 | [`1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA`](1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/README.md) | open | Shift-overflow structural counter | - | F06 |  |
 | [`1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---`](1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/README.md) | open | Skelet 1-like Class 1 | - | F06 |  |
 
@@ -190,7 +189,7 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 
 **Mechanism.** Each sweep rewrites the tape like one step of a one-dimensional cellular automaton. In `1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF` and its slower twin `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` a leftward sweep replaces a binary word by its running parity, so the space-time diagram is Pascal's triangle mod 2; `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102 (XOR); the others draw Sierpinski-like triangles on blocks of 1s.
 
-**Known.** Two pairs run through the same tapes (observed); for the XOR machine the bulk-merge trigger is known and was last seen at 4.07·10^6 steps in a 10^11 run.
+**Known.** Lean proves for `1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF` (and, renamed, `1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`) that one bounce maps the zone to the next row of Pascal's triangle mod 2 for every zone word, solves the rows by Lucas' theorem, and that a right turn at a frozen block of odd length halts whatever the zone; so halting depends on the parities of the frozen blocks, not on the zone's digits. At every right turn of the four runs on that table (10^10 steps for the first, 10^9 for the others) the tape right of the head is a word in the 2-cell letters 11, 01, which rules that out (observed, not proved). Two pairs run through the same tapes (observed); for the XOR machine the bulk-merge trigger is known and was last seen at 4.07·10^6 steps in a 10^11 run.
 
 **Technique.** For the parity machines, prove in Lean that sweep n writes row n of Pascal's triangle mod 2 in 4-cell letters. Lucas' theorem then gives every cell in closed form, and the halting condition becomes a statement about binary digits that may be provable outright. The same template (sweep = one CA step, then a closed form of the CA) is the route for the rest.
 
@@ -233,13 +232,13 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC`](1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC/README.md) | open | Unknown | T2 (16) | F11 |  |
 | [`1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF`](1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF/README.md) | open | Unknown | T2 (16) | F01 |  |
 
-### R07. Up/down counters and two binary counters with rebuilds (11 machines)
+### R07. Up/down counters and two binary counters with rebuilds (9 machines)
 
 **Mechanism.** One counter counts up while another counts down; when the down counter is empty a rebuild eats low digits of the other and refills it. A halt needs one exact rebuild (for example a walk that crosses the whole counter).
 
-**Known.** Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) and iterated past 10^150,000,000 steps. Two members have outside non-halting proofs: busycoq PR 57 (`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 (`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`), neither compiled here.
+**Known.** Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) and iterated past 10^150,000,000 steps. Two former members were decided by outside non-halting proofs compiled here on 21 November: busycoq PR 57 (`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 (`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`); their wall invariants are the model for the rest.
 
-**Technique.** Compile PRs 57 and 58, then prove the closed rebuild recursions in Lean and extend the PR 57/58 wall invariant to the case where a rebuild reads only part of the counter (that is where it failed for the three siblings).
+**Technique.** Prove the closed rebuild recursions in Lean and extend the PR 57/58 wall invariant to the case where a rebuild reads only part of the counter (that is where it failed for the three siblings).
 
 **Odds.** medium: the rebuilds are already explicit maps; the last step is a number-theoretic inequality.
 
@@ -253,8 +252,6 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---`](1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---/README.md) | open | Shift-overflow counter | T119 (2) | F03 |  |
 | [`1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---`](1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/README.md) | open | Shift-overflow counter | - | F03 |  |
 | [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB`](1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/README.md) | open | Shift-overflow counter | - | F03 |  |
-| [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`](1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 58 |
-| [`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`](1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 57 |
 | [`1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE`](1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE/README.md) | open | Shift-overflow counter | - | F03 |  |
 
 ### R08. Reservoir counters: a chaotic zone eats a reservoir behind a growing block (10 machines)
@@ -300,22 +297,18 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---`](1RB1RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---/README.md) | open | Shift-overflow counter | T5 (7) | F03 |  |
 | [`1RB1RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RE---`](1RB1RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RE---/README.md) | open | Shift-overflow counter | T5 (7) | F02 |  |
 
-### R10. Visit laws on streams (busycoq PR 59 family) (7 machines)
+### R10. Visit laws on streams (busycoq PR 59 family) (3 machines)
 
 **Mechanism.** Two binary counters off one engine, read as a rewriting system on streams; the first four rules are those of the PR 59 machines.
 
-**Known.** Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; none compiled here. The three open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).
+**Known.** Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; all four compiled here on 21 November, so they are decided. The three open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).
 
-**Technique.** Compile PRs 55 and 59 (four machines). For the three open members, continue the accelerated visit-law run: our two halting proofs from 13 November came from this law.
+**Technique.** For the three open members, continue the accelerated visit-law run: our two halting proofs from 13 November came from this law.
 
-**Odds.** high for the four pending, low to medium for the three open.
+**Odds.** low to medium.
 
 | machine | standing | community class | table set | 13 Nov family | notes |
 |---|---|---|---|---|---|
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59 |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59 |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59; DeepMind: reduction |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`](1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 55 |
 | [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/README.md) | open | Shift-overflow counter | - | F02 |  |
 | [`1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---`](1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/README.md) | open | Shift-overflow counter | - | F02 |  |
 | [`1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---`](1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/README.md) | open | Shift-overflow counter | - | F02 | DeepMind: acceleration |
@@ -400,7 +393,7 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---`](1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md) | open | Chaotic 1dCA-like in bouncer | T6 (6) | F11 |  |
 | [`1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---`](1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md) | open | Chaotic 1dCA-like in bouncer | T6 (6) | F11 |  |
 
-### R15. Collatz-like maps and cryptids (parked) (98 machines)
+### R15. Collatz-like maps and cryptids (parked) (96 machines)
 
 **Mechanism.** The run is (provably, for many) the orbit of an explicit Collatz-like map: 3/2 and 4/3 growth with a parity- or residue-driven counter (Antihydra-like), doubling maps modulo a growing number, Euclid-like two-counter games, halving cascades.
 
@@ -454,8 +447,6 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA`](1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/README.md) | cryptid | Bell-like | T76 (2) | F12 | halts-iff map in Lean; DeepMind: map |
 | [`1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---`](1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/README.md) | open | Unknown | T92 (2) | F04 |  |
 | [`1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---`](1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/README.md) | open | Unknown | T92 (2) | F04 |  |
-| [`1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE`](1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/README.md) | awaiting review | Quadratic Mess | T97 (2) | - | busycoq PR 67; halts-iff map in Lean; DeepMind: map |
-| [`1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC`](1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC/README.md) | awaiting review | Quadratic Mess | T97 (2) | - | busycoq PR 67; DeepMind: map |
 | [`1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---`](1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---/README.md) | open | Bell-like | T101 (2) | F04 |  |
 | [`1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---`](1RB0RE_1LC1RD_1LA0LC_0RA1RF_1RD0LB_1RA---/README.md) | open | Bell-like | T101 (2) | F04 |  |
 | [`1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC`](1RB0RA_1LC1RA_0LD1LD_0LE0LC_1LA0LF_---1LC/README.md) | open | Chaotic Fractal Type 1 | T103 (2) | F04 |  |
@@ -511,46 +502,14 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE`](1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/README.md) | cryptid | Cubic Mess | - | F12 | halts-iff map in Lean; DeepMind: map |
 | [`1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE`](1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/README.md) | open | Bell-like | - | F04 |  |
 
-### R00. Outside proofs awaiting compilation (busycoq PRs 43 to 68) (34 machines)
+### R00. Outside proofs awaiting compilation (busycoq PR 60) (2 machines)
 
-Compile each pull request on busycoq's BB6 branch with Print Assumptions appended, as was done for PRs 78 to 109 (`holdouts/external.json`), and record it. No research, and it can move every one of these machines from 'awaiting review' to decided here. Machines here that also belong to a family above are listed there too.
+Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours of native_compute jobs; sample jobs pass here, the full runs need a large machine. Machines here that also belong to a family above are listed there too.
 
 | machine | standing | community class | table set | 13 Nov family | notes |
 |---|---|---|---|---|---|
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59 |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59 |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`](1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---/README.md) | awaiting review | Shift-overflow counter | T31 (3) | - | busycoq PR 59; DeepMind: reduction |
-| [`1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD`](1RB0LD_0RC---_0RD0RF_1LE0LA_1LF1LE_1RA0RD/README.md) | awaiting review | Unknown | T36 (3) | - | busycoq PR 55 |
-| [`1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC`](1RB0RD_1RC1RB_1LD0LA_1LE0RA_0LF---_0LA0LC/README.md) | awaiting review | Unknown | T36 (3) | - | busycoq PR 55 |
-| [`1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF`](1RB0RE_1RC0LE_0RD---_0RE0RA_1LF0LB_1LA1LF/README.md) | awaiting review | Unknown | T36 (3) | - | busycoq PR 55 |
-| [`1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---`](1RB0RC_0LC0LE_1RA0RD_1LB1RF_1LC1LB_0RA---/README.md) | awaiting review | Unknown | T51 (3) | - | busycoq PR 62 |
-| [`1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---`](1RB0RD_1RC0RA_0LA0LE_1LC1RF_1LA1LC_0RB---/README.md) | awaiting review | Unknown | T51 (3) | - | busycoq PR 62 |
-| [`1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---`](1RB1RD_1LC0LE_1LD0LB_0RB0RA_1RD1LF_0LC---/README.md) | awaiting review | Unknown | T51 (3) | - | busycoq PR 61, 62, 63 |
-| [`1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE`](1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/README.md) | awaiting review | Quadratic Mess | T97 (2) | - | busycoq PR 67; halts-iff map in Lean; DeepMind: map |
-| [`1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC`](1RB0RE_1LC0RA_1RF0RD_---1LE_0LB1LE_1LE1RC/README.md) | awaiting review | Quadratic Mess | T97 (2) | - | busycoq PR 67; DeepMind: map |
-| [`1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF`](1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_0LE1LF/README.md) | awaiting review | Bell eats counter | T98 (2) | - | busycoq PR 54 |
-| [`1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF`](1RB0LF_1LC0RE_0LD1LC_1LA---_0RB1RA_1LC1LF/README.md) | awaiting review | Bell eats counter | T98 (2) | - | busycoq PR 54 |
-| [`1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA`](1RB0RF_1LC1RA_0RD0LC_1LB1RE_---0RA_1RC1RA/README.md) | awaiting review | Bell eats counter | T114 (2) | - | busycoq PR 55 |
-| [`1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA`](1RB1RF_0RC0LB_1LD1RE_1LB1RF_---0RF_1RD0RA/README.md) | awaiting review | Bell eats counter | T114 (2) | - | busycoq PR 55 |
-| [`1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF`](1RB1LA_1LA1RC_1RD0RB_1LE1LD_---1LF_1RA0LF/README.md) | awaiting review | Shift-overflow counter | T117 (2) | - | busycoq PR 43 |
-| [`1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF`](1RB1LC_1LA1RB_1LD0LA_1RE1RD_---1RF_1LB0RF/README.md) | awaiting review | Shift-overflow counter | T117 (2) | - | busycoq PR 43 |
 | [`1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE`](1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE/README.md) | awaiting review | Cubic Mess | - | - | busycoq PR 60 |
-| [`1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA`](1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 44 |
-| [`1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---`](1RB0LA_1LC0RD_0LD1LA_1LF0RE_1LB1RE_1RD---/README.md) | awaiting review | Chaotic Ack-like Bell | - | - | busycoq PR 63 |
-| [`1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`](1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 55 |
-| [`1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA`](1RB0LD_0RC---_0LD0RF_1LE1LD_0LA0RD_0RB1RA/README.md) | awaiting review | Bell eats counter | - | - | busycoq PR 54; DeepMind: reduction |
-| [`1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF`](1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF/README.md) | awaiting review | Skelet 1-like Class 1 | - | - | busycoq PR 45 |
-| [`1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF`](1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF/README.md) | awaiting review | Bell eats counter | - | - | busycoq PR 54 |
 | [`1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA`](1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/README.md) | awaiting review | Cubic Mess | - | - | busycoq PR 60; halts-iff map in Lean; DeepMind: map |
-| [`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA`](1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/README.md) | awaiting review | Shift-overflow bouncer counter | - | - | busycoq PR 64 |
-| [`1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB`](1RB0RC_1RC---_1LD1RE_1LE0LD_1RA0LF_0RC0RB/README.md) | awaiting review | Quadratic Mess | - | - | busycoq PR 55 |
-| [`1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC`](1RB1LB_1RC0RD_0LA1RE_0RF1LC_1LA0RB_---1LC/README.md) | awaiting review | Shift-overflow bouncer counter | - | - | busycoq PR 66; DeepMind: acceleration |
-| [`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`](1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 58 |
-| [`1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA`](1RB1LE_0RC1RA_0LD0RB_1LA1LF_0LC1RF_---0LA/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 43 |
-| [`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`](1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---/README.md) | awaiting review | Shift-overflow counter | - | - | busycoq PR 57 |
-| [`1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA`](1RB1LF_1RC1RB_1RD0RB_0LE0LF_---1LD_0LE1LA/README.md) | awaiting review | Chaotic Fractal Others | - | - | busycoq PR 68 |
-| [`1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---`](1RB1RB_0LC0LD_0LE1LD_1LB0RE_1RA0RF_1RD---/README.md) | awaiting review | Unknown | - | - | busycoq PR 56 |
-| [`1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF`](1RB1RC_0LC1RE_1RA0LD_1LB0RD_0RF---_0RA0RF/README.md) | awaiting review | Unknown | - | - | busycoq PR 46 |
 
 ## The rest, by their 13 November family
 
