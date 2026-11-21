@@ -131,6 +131,51 @@ gcc -O2 -o /tmp/twin c/twin.c && /tmp/twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_--
 gcc -O2 -o /tmp/turns c/turns.c && /tmp/turns 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 300000000 100000000 30 | python3 py/check_countdown.py
 ```
 
+## Countdown hunt: through the top-level reset to 2.2·10^73459 steps (21 November 2026)
+
+**No halt in the first 2.2470778089·10^73459 steps, and no break with the twin** (trusted computation). The run is
+of the lockstep *product* of this machine and its twin
+[`1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC`](../1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/README.md):
+
+    1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE      states AA BB CC CE DD EF FC (this machine's state first)
+
+Its only halting transitions are the three breaks: CC reads 1 (the two machines diverge), CE reads 0 (the twin
+halts), FC reads 0 (this machine halts). It writes the same tape as either machine, so a run of it without a halt
+is a run of both machines, in step, without a halt. `py/ratrack.py twin` builds it and checks it directly.
+
+The run is the region-memo accelerator `tools/py/bbtools/regaccel.py` (blocks of 6, exact, step counts included)
+with a log (`py/ratrack.py run`): each time the head is at the right end and the step count has gained 100 digits
+(or every 30 s), the tape is decoded into the block list (runs of w = `111110` between separators of 7 and 8 ones;
+at those moments the head has just swept the whole word). `py/ratrack.py test` checks the decoded snapshots
+against a direct run (`tools/c/snap.c`, all 8 snapshots up to 2·10^9 steps agree). Wall time: 2,160 s to step
+1.5·10^26306 (checkpoint at 10^22404), then 6,000 s resumed from 10^26289.
+
+What the list did (timer first, last block = the far-end countdown):
+
+| steps | event |
+|---|---|
+| ~10^78 | the last block (1,062 at 10^8, 1,002 at 10^19) runs out; the block before it (5,910) becomes the last block |
+| ~10^297 | that one runs out; 561,946 becomes the last block |
+| 10^500 to 10^26300 | steady: the last block loses 15.7 per decade (553,512 at 10^500, 147,852 at 10^26307) |
+| ~10^26330 | the third block (about 10^10 at 10^2000, 47,139,466 at 10^26307) runs out; the list in front of the 10^13175 block is rebuilt from small timers |
+| 1.5547978·10^26352 | while the front regrows (its timers have only thousands of digits, so the step count hardly moves), the far end is reached often: the last block runs from 146,770 to 0. **The top-level reset: no halt.** The far end goes from `... 7 we9 7 w<last> 8 0` to `... 7 we9 8 1` |
+| 10^26353 to 10^73459 | steady again (13 decades per second) |
+
+This is where the 1-hour region-memo run of 20 November stopped (1.55·10^26352): not a stall, but the stretch of the
+run in which the step count grows only in low digits.
+
+At the end the list is (copies of w, `[8]` = a separator of 8 ones): timer, 10^36729, 10^4689, 10^13175, [8]
+10^175, 405,990,472,314, 10^102, [8] 10^147, 10^86, 90,403,965, [8] 1,275,792,951, and the far end `8 1`.
+**Next deciding events:** the last block (1,275,792,951) losing about 16 per decade runs out near 10^(8·10^7) steps (a forecast from the rate, not a run)
+(the next top-level reset); the 10^4689 block behind the growing front is the next middle block to run out (the
+previous such block, about 10^10 copies, lasted about 24,000 decades).
+
+```sh
+python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/ratrack.py twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 1e6
+python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/ratrack.py test 1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE 6 2e9
+python3 holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/py/ratrack.py run 1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE 6 8200 ckpt=/tmp/prod.pkl every=100 hb=30
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/explainer.html`](../../pages/holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/explainer.html)

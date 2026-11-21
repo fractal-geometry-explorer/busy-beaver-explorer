@@ -166,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From <code>P (01)^m</code>, the number E(m) of excursions to the next left record satisfies E(m+12) = 4E(m)+2 for m = 12…87; for m = 4+12t, E = (14·4<sup>t</sup>−2)/3 and the epoch ends without a halt with E+1 trailing <code>10</code> pairs.</p>
         <p class="where"><code>py/epochs.py law</code>, <code>py/epochs.py epoch3</code></p>
       </div>
+      <div class="card">
+        <h3>An outside proof claims a halt (busycoq PR 64); its sweep checked against the machine</h3>
+        <p>busycoq PR 64 (<code>Halt_1RB0RB_0LC1RA.v</code>, 15,177 lines of Coq, not compiled here) claims that the machine halts from blank tape. Its mechanism: at records <code>0<sup>&infin;</sup> W 0 1 1 B&gt; 0<sup>&infin;</sup></code> (W a word over a = 11, b = 01) one sweep is a three-state right-to-left letter transducer; at the left edge the word grows, the machine halts (D on <code>0 1</code> next to the blank edge), or a level ends (the tape is rewritten by a shifted pass). Level 1 starts at step 589,507 with the tail b<sup>518</sup>; a level whose word starts with b<sup>12q+12+r</sup> behaves like the word with b<sup>r</sup>, slowed down by 4<sup>q+1</sup>; the file follows 25 levels with symbolic run lengths (residues modulo powers of 3) and the reduced word of level 25 halts. The halting step is a tower of 4s of height about 25 and is not computed. Checked here: <code>py/pr64_sweep.py test</code> transcribes the PR's sweep and finds it equal to direct simulation at all 766 records up to step 700,000, including the 10 level ends up to step 589,507 (the PR's start of level 1). The halting claim itself is the PR's, not checked here (21 November 2026).</p>
+        <p class="where"><code>/mnt/project-files/busycoq-prs/64/verify/Halt_1RB0RB_0LC1RA.v</code>, <code>python3 py/pr64_sweep.py test</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -198,7 +203,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/lean/check.sh
 python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py law 12,16,20,24          # E(m+12) = 4E(m)+2
-python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt</code></pre>
+python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt
+python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/pr64_sweep.py test</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

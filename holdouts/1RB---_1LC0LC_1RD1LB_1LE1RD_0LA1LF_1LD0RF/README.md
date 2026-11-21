@@ -96,3 +96,43 @@ direct simulator after 2,000,009,883 steps (`python3 holdouts/1RB0LB_1RC0LA_1LB0
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/lean/check.sh
 ```
+
+## Counter jumps and the first overflow (21 November 2026)
+
+`py/units.py` (with `c/pbvis.c` for direct round starts and `c/tailsim.c` for cell-by-cell tails) runs the machine
+round by round. A round goes from one round start to the next. At a round start the head is in state B on the
+leftmost visited cell and reads `0 1^7 0`. Between round starts the tape is `P (w1)^n1 L1 ... (wK)^nK LK`: walls
+of a 6-cell word, each followed by a literal. Each round is a symbolic run with every wall count a variable, so the
+result holds for all counts. Counter jumps apply the rounds below the next deep carry in closed form, using
+per-unit hit records (base 4). Before each jump, every kind of round the jump uses is run symbolically and
+compared with the records; the counts must stay at or above the symbolic threshold.
+
+- **Check against direct simulation**: `python3 py/units.py test 3e8 300 150000`. It runs 300 rounds one by one
+  (0 mismatches). Then it does 150,000 rounds with jumps (1,376 explicit rounds, 1,373 jumps) from step
+  300,070,111 to step 182,496,543,407, and the tape and the step count agree with the direct run. It takes about
+  14 minutes; `test 3e8 300 13000` takes about 20 seconds.
+- **The first top-level overflow** is at step 1,368,863,940,823,250, with 9 units. This is the next deciding event
+  of the plain counter. The carry out of the young end rebuilds the young walls as blocks of 1s, and F erases these
+  blocks into blank stretches.
+  - No halt there.
+  - A new counter with the same prefix starts in front of a blank stretch and grows leftwards into it. Its round
+    start is B with at least 2,000 zeros on its left, then `0 1^7 0`.
+- **The run continues through nested counters.** `python3 py/units.py drun 3e8 3600 1000000 CKPT` runs each new
+  counter with its blank stretch as its left end, and runs whole-tape rounds when a round leaves the counter.
+  - The blank stretch in front of the new counter has 2,464, 9,880, 39,620, 158,588, 634,412 and then
+    2,538,650 cells (×4 each). These steps are at 1,368,863,940,823,250, ...,943,916,134, ...,994,487,828,
+    1,368,865,109,971,304, 1,368,876,867,265,822 and 1,369,158,701,312,906.
+  - Then a wall of the 8-cell word `10101110` (66,076 words) is consumed from the left by a third counter. That
+    counter crosses into a blank stretch of 40,619,638 cells at step 1,372,272,818,760,694.
+  - A block of 10,154,845 ones is then erased into a blank stretch at step 1,372,272,828,957,492.
+  - **No halt up to step 1,372,272,966,263,488** in this run.
+- **Where it stops.** The next whole-tape round, from step 1,372,272,966,263,488, starts with 21 units in front of
+  the 10.15M-cell stretch.
+  - No smaller set of written-out units avoids a split, so the round is run fully written out (about 3.5·10^6
+    cells). It ran past 2·10^11 concrete steps without ending.
+  - This is the crush of the whole chain into blocks of 1s, and it is the next deciding event. Going on needs
+    symbolic rules for a wall turning into a block of 1s (`(101011)^n -> 1^(6n)`) and for the C/B sweep over
+    `1^n`.
+- **The step bound is unchanged.** The exact bound stays at 2.48·10^15 from the macro run above. The engine's
+  reach of 1.372·10^15 is below it. The jumps themselves are checked against direct simulation only up to
+  1.8·10^11 steps; past that, exactness rests on the symbolic runs and the checks before each jump.

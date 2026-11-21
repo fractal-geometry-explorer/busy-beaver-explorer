@@ -177,6 +177,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Of the 7.1&middot;10<sup>8</sup> passes to the right, all but 168 start under one of the proved rules, and the block erased is always odd (never 2 or 4 cells). B stands on the leftmost 1 of a block 123 times, with 1, 3, 5, 7, 11, 17, 55 or more than 59 zeros on its left, never 4. After step 193,799,086 the head keeps a fixed parity in each of the states A, B, C, E (C and A on even cells, B on odd ones) and comes no closer than 182 cells to the right end of the tape.</p>
         <p class="where"><code>python3 py/stats.py</code> (<code>c/stats.c</code>)</p>
       </div>
+      <div class="card">
+        <h3>Counter jumps through the first overflow, to 1.372&middot;10<sup>15</sup> steps</h3>
+        <p>The run is computed round by round with symbolic wall counts and closed-form counter jumps. Every kind of round a jump uses is checked symbolically before the jump. Over 150,000 rounds, to step 182,496,543,407, it agrees with direct simulation in tape and step count. The first top-level overflow is at step 1,368,863,940,823,250: the young walls become blocks of 1s, and these are erased into blank stretches. New counters then grow in front of the stretches, of 2,464 to 2,538,650 cells and then 40,619,638 cells. There is no halt up to step 1,372,272,966,263,488. The next deciding event is the crush of the whole 21-unit chain into blocks of 1s, which this engine cannot yet run symbolically. This run does not raise the exact bound of 2.48&middot;10<sup>15</sup>.</p>
+        <p class="where"><code>python3 py/units.py test 3e8 300 150000</code>; <code>python3 py/units.py drun 3e8 3600 1000000 CKPT</code> (21 November 2026)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -208,7 +213,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/lean/check.sh
-python3 holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/py/view.py   # the views of the run quoted in the README</code></pre>
+python3 holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/py/view.py   # the views of the run quoted in the README
+python3 holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/py/units.py test 3e8 300 13000   # counter jumps against direct simulation</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF/status.json</code>; edit that file and rebuild rather than editing this page.</p>

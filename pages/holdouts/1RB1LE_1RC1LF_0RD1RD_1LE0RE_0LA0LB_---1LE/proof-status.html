@@ -195,6 +195,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.487). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.045).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
+      <div class="card">
+        <h3>Top-part forecast: the first timer exhaustions after 5.71&times;10<sup>90</sup> steps do not halt (28,389 overflow cycles)</h3>
+        <p>The digit model counts at the bottom, so the first P digits (the top part) only see carries arriving from below. <code>py/forecast.py</code> keeps the top P digits of an exact state, replaces the rest by three zero digits with runs of 10<sup>60</sup>, runs this reduced tape with the exact condition-macro engine <code>cmacro.py</code> (the same digits.py window rules), and jumps K whole overflow cycles at once while every top run only moves by a constant per cycle. From the 16 November state at 5.71&times;10<sup>90</sup>, with P = 40: the right-end timers move by -3, -8, -32, -128, ... words per visit; the timer 1,191,614 (about 9,300 cycles) and others are used up and refilled, and no window rule halts (the halt would be the E-chain on a run of length 2 mod 3), splits or fails to parse in 28,389 cycles. Check: 9 top events of an exact run agree with the reduced model. The step counts are not computed (they depend on the lower part), and that the reduced model predicts the real top part is an argument (a merge at index j changes only digits j-1 and j) checked on data, not a proof. This is a bounded forecast.</p>
+        <p class="where"><code>python3 holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/forecast.py run STATE.pkl P 3 CYCLES SECONDS</code> (test: <code>... test 60</code>); README, section of 21 November 2026 (group C)</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">

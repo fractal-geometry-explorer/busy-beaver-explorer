@@ -187,6 +187,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 6 3600</code>; <code>holdouts/regaccel.json</code></p>
       </div>
       <div class="card">
+        <h3>The exact run passes three top-level resets without a halt</h3>
+        <p>The region-memo accelerator, logged by <code>py/ratrack.py</code> (the tape decoded into the block list whenever the head is at the right end; the decoded snapshots up to 2&times;10<sup>9</sup> steps agree with a direct run), shows the last block before the end, which loses one pair per right-end event, running out near 10<sup>5</sup>, 10<sup>18</sup> and 10<sup>173</sup> steps; each time the end rearranges and the run goes on without a halt (exact run to 10<sup>1083</sup> steps in 100 seconds). These are the events at which the short-timer tapes of <code>lean/Perturbed.lean</code> halt.</p>
+        <p class="where"><code>py/ratrack.py run 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 6 100</code>; <code>/mnt/project-files/countdown-hunt/A.md</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same tape and head as 1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB at every one of the first 10<sup>7</sup> steps (the tables differ). The same table as 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>

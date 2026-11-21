@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 6 1200</code>; <code>holdouts/regaccel.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 4.05&times;10<sup>9138</sup> steps (region-memo accelerator, through two top-level resets)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> (blocks of 6 cells, exact, step counts included), run and checkpointed by <code>py/ratrack.py</code>, reached step 4.05609256814&times;10<sup>9138</sup> from blank tape without a halt. Its log decodes the tape into the block list whenever the head is at the right end (the decoded snapshots up to 2&times;10<sup>9</sup> steps agree with a direct run). On the way the last block of the list (the far-end countdown) ran out twice, near 10<sup>500</sup> and at 3.86&times;10<sup>5137</sup> steps, and the far end rearranged without a halt; the second time middle blocks also ran out and the list was rebuilt from the front. A bounded run; it says nothing about later steps.</p>
+        <p class="where"><code>py/ratrack.py run 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB 6 3600 ckpt=FILE every=100 hb=60</code>; <code>/mnt/project-files/countdown-hunt/A.md</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
