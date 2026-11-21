@@ -6,9 +6,9 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 |---|---|---|
 | Halt hunt | 7 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
-| Prove the map | 16 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
+| Prove the map | 15 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
 | Decode | 30 | The round or phase map is not closed yet and has to be read off the machine first. |
-| Number theory | 43 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
+| Number theory | 44 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
 
@@ -136,7 +136,7 @@ A busycoq pull request claims a decision. Compile it.
 - **Next step:** Check busycoq PR 67's nonhalting proof; internally, prove the outer event and the 3-ones inner round to complete the two-level map.
 
 
-## Prove the map (16)
+## Prove the map (15)
 
 The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map.
 
@@ -295,18 +295,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 10^7 steps native_decide; exact run-length C simulator to 1.748e20 steps (Y(7,858,625,690) at step 1.72e19); region-memo run to 7.89e703 steps.
 - **Odds:** halting fraction of even n falls ~n^-0.5; chance of a halt after n = 1.4e9 of order 10^-4
 - **Next step:** Decode the nested 2-adic structure of the even map into a closed recursive rule so the orbit can be iterated without simulation.
-
-### [`1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC`](../../holdouts/1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC/README.md)
-
-*map-partial, outlook probviously-nonhalting, table set T280*
-
-- **Map:** Marker lists at left-extension moments B> 0 0 a^k b a^m 1 / ... b a^n 1 (a=10, b=110): [k,m], m>=k+2 -> [2k+3, m-k-2]; [k,k+1] -> [1, 2k+3, 1]; [k,k] -> [2k+3] (no marker, halts); m < k: [k-m, 2m+3] if k-m odd, [1, k-m-1, 2m+3] if even; [k,m,n] n odd: [2k+3, m-k-2, n] if m>=k+2, [1, 2k+n+4] if m<=k, [1, 4k+n+10] if m=k+1. Fitted, not proved.
-- **Halts when:** Halts iff the orbit of [1,1,1] meets two equal blocks [k,k] (assuming the fitted map); a block with no marker halts (proved).
-- **From blank tape:** [1,1,1] at step 72
-- **Proved:** Only blank_to_P and single_halts in lean/Halt.lean plus sweep rules (kernel); the map and halts-iff are not proved.
-- **Checked:** 3x10^8 map iterations exact Python (blocks ~1,000 bits); map matches run at 214 marker moments to 3.7x10^7 steps; rleaccel 2.21x10^88 steps trusted.
-- **Odds:** 'a halt looks very unlikely' (chance of exact hit shrinks as blocks grow); no number given
-- **Next step:** Prove the fitted map in Lean (doubling pass by induction and the overflow cases) to get a halts-iff reduction.
 
 ### [`1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---`](../../holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/README.md)
 
@@ -682,7 +670,7 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Next step:** Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.
 
 
-## Number theory (43)
+## Number theory (44)
 
 Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that.
 
@@ -709,6 +697,18 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Checked:** Three epochs computed exactly (m = 6, 41, 16,169; third epoch ends after 6,456 macro steps); rleaccel 1.02x10^41433 steps; region-memo 3.85x10^213008 steps.
 - **Odds:** halts with probability 2/5 (runs away 3/5); 1/5 halt per epoch
 - **Next step:** none: the fourth epoch (m with 1,139 digits) is out of reach; optionally a Lean link from DeepMind's map to the epoch game.
+
+### [`1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC`](../../holdouts/1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC/README.md)
+
+*reduced, outlook probviously-nonhalting, table set T280*
+
+- **Map:** Marker lists at left-extension moments B> 0 0 a^k b a^m 1 / ... b a^n 1 (a=10, b=110): [k,m], m>=k+2 -> [2k+3, m-k-2]; [k,k+1] -> [1, 2k+3, 1]; [k,k] -> [2k+3] (no marker, halts); m < k: [k-m, 2m+3] if k-m odd, [1, k-m-1, 2m+3] if even; [k,m,n] n odd: [2k+3, m-k-2, n] if m>=k+2, [1, 2k+n+4] if m<=k, [1, 4k+n+10] if m=k+1. Fitted, not proved.
+- **Halts when:** Halts iff the orbit of [1,1,1] meets two equal blocks [k,k] (assuming the fitted map); a block with no marker halts (proved).
+- **From blank tape:** [1,1,1] at step 72
+- **Proved:** deepmind_halts_iff in lean/DMMap.lean (kernel): halts iff the orbit of DeepMind's map on A(a,b), B(a,b,c) reaches some A(a,a); rounds and zloops by induction, 18 rules in lean/DMRules.lean. Also blank_to_P and single_halts in lean/Halt.lean.
+- **Checked:** 3x10^8 map iterations exact Python (blocks ~1,000 bits); map matches run at 214 marker moments to 3.7x10^7 steps; rleaccel 2.21x10^88 steps trusted.
+- **Odds:** 'a halt looks very unlikely' (chance of exact hit shrinks as blocks grow); no number given
+- **Next step:** none: pure number theory (does the orbit of DeepMind's map from A(2,0) ever reach A(a,a)?).
 
 ### [`1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC`](../../holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/README.md)
 

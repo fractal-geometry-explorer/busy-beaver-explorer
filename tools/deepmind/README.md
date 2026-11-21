@@ -37,7 +37,7 @@ So `axioms.py` states each result on our definitions as a Lean `axiom`, one file
 
 - **The 11 settled machines**: `holdouts/<M>/lean/DeepMind.lean` has `deepmind_halts : HaltsFromBlank` or
   `deepmind_not_halts : ¬ HaltsFromBlank`.
-- **9 of the 15 maps** (the 6 others are proved here: `Map.lean`, `Iff.lean`, `DMMap.lean`):
+- **8 of the 15 maps** (the 7 others are proved here: `Map.lean`, `Iff.lean`, `DMMap.lean`):
   `holdouts/<M>/lean/DeepMindMap.lean` copies DeepMind's `State`, `start`, `next` and the definitions `next` uses,
   unchanged but for `ℕ` → `Nat`, into a namespace `DM`, and has `deepmind_halts_iff : HaltsFromBlank ↔ ∃ n,
   (DM.orbit n).isNone = true`. `orbits.sh` runs the copies and DeepMind's own maps from `start` and compares the
@@ -55,8 +55,9 @@ semantics, turns an axiom into a theorem with the same statement.
 (one symbolic rule per clause of `next`, found by `tools/py/bbtools/symtm.py`, split into cases where a count must be
 0 or positive) and `lean/DMMap.lean` (`deepmind_halts_iff` from `TM.halts_iff_orbit` in `tools/lean/TM/MapOrbit.lean`);
 `--install` then replaces `DeepMindMap.lean` in the machine's `check.sh`. It proved the maps of
-`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB` and `1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC`; the map of
-`1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE` needed an induction and is written by hand.
+`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB` and `1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC`; the maps of
+`1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE` and `1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC` need inductions and are
+written by hand (their rules by `py/dmrules.py`, with `dmproof.prove_any`).
 
     python3 tools/deepmind/dmproof.py MACHINE CRYPTIDS_DIR/BusyBeaver/BB6/M_<name>.lean [--install]
     python3 tools/deepmind/axioms.py tools/deepmind/compiled.json tools/deepmind/compiled_maps.json CRYPTIDS_DIR
