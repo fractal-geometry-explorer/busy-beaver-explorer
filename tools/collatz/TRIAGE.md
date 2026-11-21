@@ -6,9 +6,9 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 |---|---|---|
 | Halt hunt | 7 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
-| Prove the map | 14 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
+| Prove the map | 13 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
 | Decode | 30 | The round or phase map is not closed yet and has to be read off the machine first. |
-| Number theory | 45 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
+| Number theory | 46 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
 
@@ -136,7 +136,7 @@ A busycoq pull request claims a decision. Compile it.
 - **Next step:** Check busycoq PR 67's nonhalting proof; internally, prove the outer event and the 3-ones inner round to complete the two-level map.
 
 
-## Prove the map (14)
+## Prove the map (13)
 
 The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map.
 
@@ -211,18 +211,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 100,000 rounds of round map Python (beyond 10^24990 steps); class map 376,892 rounds (~10^94,180 steps, heuristic); regaccel 1.13x10^113280 steps; 10^18 steps macro sim.
 - **Odds:** below 2^-100,000
 - **Next step:** Prove the round map with the tail runs in residue classes in Lean (no regular/pushdown certificate can work); the halting question is then number-theoretic.
-
-### [`1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE`](../../holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/README.md)
-
-*map-partial, outlook probviously-nonhalting, table set T97*
-
-- **Map:** Outer epochs O(N) = 1^N F>0 0 1^3 -> O(N'), N' about 2^(sqrt(N)/3) (depends on remainders of doubling passes; inner epochs X_j = 24*2^j - 3 heuristic, checked j < 400). Lean proves the block machine (mstep) exactly, not the N -> N' map.
-- **Halts when:** Block machine halts iff it reaches a left block of exactly four 1s with only units to its right (Lean); O(N) halts for N = 2^(n+4) - 2n - 10 (Lean, if direction; converse computed N <= 3000).
-- **From blank tape:** N = 10 at step 102
-- **Proved:** halts_iff and halts_iff_four (block machine) in lean/Reduce.lean, outer_halts in lean/Outer.lean (kernel); the outer map N -> N' is not proved.
-- **Checked:** Outer orbit 10, 27, 60, 118, 254, 514, 1014, 2106, 17220, 8534636888060 (~6.5x10^25 steps) computed Python; 1.9x10^14 steps native_decide; rleaccel 1.92x10^1788 steps.
-- **Odds:** negligible: halting set has ~1 element per doubling of N, orbit at 8.5x10^12 and growing doubly exponentially
-- **Next step:** Prove the inner-epoch closed form and the converse (epoch halts only for N = 2^(n+4) - 2n - 10) to get an outer-map halts-iff.
 
 ### [`1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---`](../../holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/README.md)
 
@@ -658,7 +646,7 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Next step:** Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.
 
 
-## Number theory (45)
+## Number theory (46)
 
 Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that.
 
@@ -673,6 +661,18 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Checked:** 20,000 map steps native_decide (>10^5000 steps, counter 60,462); 1,000 kernel; 10^6 map steps Python (counter never below 58); regaccel 1.64x10^177574 steps.
 - **Odds:** ~10^-28,700 from where Lean leaves it (10^-27.6 from a = 58)
 - **Next step:** none: pure number theory (random walk with drift +3).
+
+### [`1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE`](../../holdouts/1RB0LF_1LC0LD_1RD1LB_---1RE_0RA1RE_1LA0LE/README.md)
+
+*reduced, outlook probviously-nonhalting, table set T97*
+
+- **Map:** Outer epochs O(N) = 1^N F>0 0 1^3 -> O(N'), N' about 2^(sqrt(N)/3) (depends on remainders of doubling passes; inner epochs X_j = 24*2^j - 3 heuristic, checked j < 400). Lean proves the block machine (mstep) exactly and that halting is exactly hitting H, but not a closed form for N -> N'.
+- **Halts when:** Machine halts iff the run passes an outer configuration O(N) = 1^N F>0 0 1^3 with N = 2^(n+4) - 2n - 10 (Lean, both directions: outer_halts, halts_iff_outer).
+- **From blank tape:** N = 10 at step 102
+- **Proved:** halts_iff and halts_iff_four (block machine) in lean/Reduce.lean, outer_halts in lean/Outer.lean, halts_iff_outer (halts iff the outer orbit meets 2^(n+4) - 2n - 10) in lean/Epoch.lean, all kernel; the closed form of N -> N' is not proved.
+- **Checked:** Outer orbit 10, 27, 60, 118, 254, 514, 1014, 2106, 17220, 8534636888060 (~6.5x10^25 steps) computed Python; 1.9x10^14 steps native_decide; rleaccel 1.92x10^1788 steps.
+- **Odds:** negligible: halting set has ~1 element per doubling of N, orbit at 8.5x10^12 and growing doubly exponentially
+- **Next step:** Prove the inner-epoch closed form (X_j = 24*2^j - 3 -> X_{j+1}, j + 4 units) so that N -> N' is an explicit function in Lean, then study it mod powers of two.
 
 ### [`1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE`](../../holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/README.md)
 
