@@ -52,6 +52,12 @@
    "where": "<code>c/accel.c</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 8.20&times;10<sup>21040</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 304 seconds and reached step 8.20&times;10<sup>21040</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RE_1LC0RA_0LD0LB_1RE0LB_1RF---_0RB0RC 6 304 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "A hierarchy of counters",
    "text": "The events between batches follow a cycle per segment. A segment <code>1^x (10)^9</code> ticks four times (4 ones fewer, 2 <code>10</code>s more each time) while its small companion goes through the shapes 0.4, 2.3, 2.4, 4.4, 0.6, 10.1 and 6.3. Then it freezes, and the new last segment, about three times as long, starts the same cycle. Later segments also show other companion shapes (2.5, 6.4), depending on residues. Read off the event log of the accelerated run; not proved.",

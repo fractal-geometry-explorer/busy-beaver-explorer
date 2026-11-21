@@ -74,16 +74,16 @@
    "where": "<code>c/wstats.c</code>, <code>c/winrepeat.c</code>, README (third look)"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5.69&times;10<sup>12</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 3600 seconds and reached step 5.69&times;10<sup>12</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 85 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 4 3600</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "kernel",
    "title": "A halt needs blank tape left of the head",
    "text": "A closed tape language from windows of 3 cells covers the run from blank tape; in it the halting transition C0 can fire only with blank tape left of the head. So the machine halts from blank tape iff C reads a 0 with nothing but blank tape on its left, that is, iff W eats the whole run of 1s.",
    "where": "<code>halts_iff_left_edge</code>, <code>lean/Edge.lean</code> (certificate <code>lean/EdgeCert.lean</code> from <code>bbtools.ctl</code>; library lemma <code>TM.CTL.halt_left_blank</code>)"
-  },
-  {
-   "level": "trusted",
-   "title": "No halt in the first 3.33&times;10<sup>11</sup> steps (region-memo accelerator)",
-   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 600 seconds and reached step 3.33&times;10<sup>11</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 85 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
-   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB 4 600</code>; <code>holdouts/regaccel.json</code>"
   },
   {
    "level": "heuristic",
