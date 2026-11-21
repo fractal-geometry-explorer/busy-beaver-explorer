@@ -4,10 +4,10 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 
 | bucket | machines | meaning |
 |---|---|---|
-| Halt hunt | 7 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
+| Halt hunt | 13 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
-| Prove the map | 13 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
-| Decode | 30 | The round or phase map is not closed yet and has to be read off the machine first. |
+| Prove the map | 8 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
+| Decode | 29 | The round or phase map is not closed yet and has to be read off the machine first. |
 | Number theory | 46 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
@@ -19,7 +19,7 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 | `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly |
 | `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | 10^12 operations, no halt: modulus about 4.8e11, past both targets 2^37 - 36 and 2^38 - 37; 36 odd events |
 
-## Halt hunt (7)
+## Halt hunt (13)
 
 The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far.
 
@@ -107,6 +107,78 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 - **Odds:** not stated
 - **Next step:** Port the frame map to C/GMP and iterate far beyond 10^8 frames (as done for the doubling machines), and characterise which frames lead to the halting cases.
 
+### [`1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD`](../../holdouts/1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 139, context 11, n = 17
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O4 halts at Bell 1,941,376,761,248.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
+### [`1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE`](../../holdouts/1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 105, context 1, n = 15
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O1 halts at Bell 747,242,483,684.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
+### [`1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---`](../../holdouts/1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 123, context 11, n = 15
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O3 halts at Bell 1,961,935,897,288.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
+### [`1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA`](../../holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 27, context 1, n = 7
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O4 halts at Bell 1,941,376,761,248.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
+### [`1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA`](../../holdouts/1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 80, context 10001, n = 9
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O2 halts at Bell 731,899,010,932.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
+### [`1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF`](../../holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/README.md)
+
+*reduced, outlook halts-late, table set T4*
+
+- **Map:** Vampire family (bb6-vampire-family/README.md): E-events (c, n) = c E> 1^n with a context word c; the E-pass halves the block, then a context rewrite decided by (c, b = q mod 2) gives the next E-event, so n -> about 3n/2 with c -> c' (a counter-like rewriting of c). The rewrite is proved for the 99 contexts of the table; the rule for a general context is not decoded.
+- **Halts when:** The orbit reaches a halting table entry (c, b); the machine halts iff it does, as long as the orbit stays in the table.
+- **From blank tape:** first E-event at step 114, context 1, n = 17
+- **Proved:** bb6-vampire-family/lean (kernel): Core.drain, Core.tbl_sound (99 contexts), nextE_sound, haltE_sound, and for this machine halts_of_check and not_halts_of_forall: a halting criterion both ways for orbits that stay in the table; orbit_kernel, 10,000 passes in the table.
+- **Checked:** 2^18 passes native_decide (no halt, more than 10^45000 steps); c/orbit.c agrees with the outside repository's checkpoints. Outside report (not reproduced): orbit O2 halts at Bell 731,899,010,932.
+- **Odds:** high: halting rate about 8.9e-13 per pass in the Markov model; the outside repository reports a halt near 10^12 passes.
+- **Next step:** Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table.
+
 
 ## Outside proof (2)
 
@@ -136,21 +208,9 @@ A busycoq pull request claims a decision. Compile it.
 - **Next step:** Check busycoq PR 67's nonhalting proof; internally, prove the outer event and the 3-ones inner round to complete the two-level map.
 
 
-## Prove the map (13)
+## Prove the map (8)
 
 The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map.
-
-### [`1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD`](../../holdouts/1RB---_0RC0RB_1LD1LE_1LC1RF_1RB0LE_1RA0RD/README.md)
-
-*map-partial, outlook halts-late, table set T4*
-
-- **Map:** Phase starts P (10)^n 111 B>0 (word P, counter n): each phase n -> about 3n/2 and parity of n edits the short word P. For P empty (proved): (eps, 2m+2) -> (eps, 3m+9), (eps, 2m+1) -> (1, 3m+6); the general word map is measured by simulation. Alt. class map A U^m B (affine in m by class, extrapolated).
-- **Halts when:** Halts iff the parities of the 3/2 counter spell a halting run of the word dynamics; shortest: 42 phases with parities 1,0,1,0,... from the empty word, through word 1111 with n even.
-- **From blank tape:** P = 1, n = 9 at step 163
-- **Proved:** Phase rounds for all lengths (drain, drain_iter in lean/Rules.lean) and whole phases for P empty (phase_even, phase_odd in lean/Phase.lean), kernel; no halts-iff theorem.
-- **Checked:** 10^7 steps native_decide; 20,000 phases exact Python (n 11,704 bits); class map 276,739 rounds (~10^97,466 steps, heuristic); regaccel to 3.08x10^210185 steps (trusted).
-- **Odds:** halts with probability 1 but after ~2^40 phases, when n has ~10^11 digits
-- **Next step:** Prove the general word map (all words P) in Lean to get a halts-iff reduction; the halting question itself is Collatz-type.
 
 ### [`1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA`](../../holdouts/1RB---_0RC0RE_1RD1RF_1LE0LB_1RC0LD_1RC1RA/README.md)
 
@@ -163,30 +223,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 9.66e72809 steps rle accelerator and 1.71e299748 steps region-memo accelerator (trusted); 2,000 exact phases (n 2,835 bits, trusted); 161,449 class-map rounds (~10^137,548 steps, heuristic); 10^7 steps native_decide.
 - **Odds:** one chance in 3^108 per try for the nearest halting class (fair-dice residues); README older note: probably nonhalting
 - **Next step:** Prove the class/word map in Lean (halts-iff on the word dynamics) or find an invariant excluding the halting classes; computation cannot reach the 108-residue halt.
-
-### [`1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE`](../../holdouts/1RB---_1LC0RB_0LD0LC_1RE1RB_1RD1LF_1LA0LE/README.md)
-
-*map-partial, outlook halts-late, table set T4*
-
-- **Map:** Phase starts C> 0 0^4 111 (01)^n P (word P, counter n): each phase n -> about 3n/2 and the parity of n edits the short word P (word map measured by simulation, not given as a closed formula in the files). Alternative ctxround class map on A U^m B (affine in m by residue class, extrapolated).
-- **Halts when:** Word P = 1111 with next n even (and a few other words) halts; shortest route from the empty word is a specific run of 42 parities (1,0,1,0,...). Halts iff the 3/2 counter's parities ever spell a halting run.
-- **From blank tape:** first phase start at step 143, P empty, n = 6
-- **Proved:** Only phase rounds: drain / drain_iter in lean/Rules.lean and lean/Phase.lean (kernel); no halts-iff, word dynamics measured by simulation.
-- **Checked:** 20,000 phases exact (n has 11,704 bits) Python; 274,781 class-map rounds (~10^98,131 steps) heuristic; regaccel to 2.66x10^207178 steps trusted; 10^7 steps native_decide.
-- **Odds:** halts with probability 1 but after ~2^40 phases, when n has ~10^11 digits
-- **Next step:** Prove the measured word map in Lean to get a halts-iff reduction; the halting question itself is then a Collatz-type parity question.
-
-### [`1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---`](../../holdouts/1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---/README.md)
-
-*map-partial, outlook halts-late, table set T4*
-
-- **Map:** Phase starts with counter n and short word P: n -> about 3n/2 per phase, parity of n edits P (word map measured by simulation). Lean-proved round: P (10)^(c+2) 111 0^(2g) B>0 -> two pairs fewer, six more visited zeros (drain, drain_iter). Class map on events A U^m B (m mod 2) extrapolated.
-- **Halts when:** The parities of the 3/2 counter spell out a halting run of the word dynamics; shortest from empty word: 42 phases with parities 1,0,1,0,... reaching word 1111 with n even (class map: 39 rounds, ending B = 10 1^4).
-- **From blank tape:** first phase start at step 161, P = 1, n = 6
-- **Proved:** One round and iterated rounds of a phase (lean/Rules.lean, lean/Phase.lean, kernel); no halts_iff; step_none_iff and 10^7 steps (native) in lean/Blank.lean.
-- **Checked:** 6.45e207473 steps region-memo accelerator and 1.02e54653 rle accelerator (trusted); 20,000 exact phases (n 11,704 bits, trusted); 284,777 class-map rounds (~10^101,766 steps, heuristic); 10^7 steps native_decide.
-- **Odds:** about one chance in 2^40 per return to the empty word; halts with probability 1 after about 2^40 phases, n about 10^11 digits
-- **Next step:** Prove the word map (halts-iff to the parity sequence) in Lean; the halt itself, ~2^40 phases away, is beyond computation.
 
 ### [`1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---`](../../holdouts/1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---/README.md)
 
@@ -236,30 +272,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Odds:** not quantified; 'a random-looking orbit hits such a sparse set with small probability'
 - **Next step:** Close the last row of the even branch: a 21 Nov simulation table (README) gives the second stage Y(i, j) for all i except i = 8m+3 (and 7); with that row in hand, prove the map in Lean and iterate the orbit far beyond C(70796).
 
-### [`1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA`](../../holdouts/1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA/README.md)
-
-*map-partial, outlook halts-late, table set T4*
-
-- **Map:** Half-phase ends w (10)^k F> (or w (01)^k A>): (w,k) -> (w', (3k + c)/2), w' and c depend only on w and k mod 2 (table read off simulation, c in {5,7,8,9,11,14,17} for the 50 entries used). Proved piece: zig, L (10)^(x+2j) 1 1 E> 0 1 1^(2y+1) -> L (10)^x 1 1 E> 0 1 1^(2y+6j+1).
-- **Halts when:** Orbit meets a halting entry: w containing 1111 with the wrong parity of k, e.g. ('1111', odd), ('111101', odd), ('11111', even); shortest route 41 prescribed parities.
-- **From blank tape:** (w, k) = ('', 4)
-- **Proved:** zig in lean/Zig.lean (kernel) and e_round in lean/Rules.lean; table entries and halts-iff not proved.
-- **Checked:** 2,000,005 half-phases with the sampled table (k 352,184 digits, ~10^704,000 steps, trusted); 3.68e208019 steps region-memo accelerator (trusted); 321,951 class-map rounds (heuristic).
-- **Odds:** probviously halting: P(halt within 2^40 half-phases) = 0.62, 0.9996 within 2^43; ~10^12 half-phases, k ~2*10^11 digits
-- **Next step:** Prove the table entries the orbit uses (second sweep and half-phase end per (w, k mod 2)) and compose with zig to get halts_iff.
-
-### [`1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA`](../../holdouts/1RB0RF_1LC---_1RD0LC_0RE0RD_1LF1LC_1LE1RA/README.md)
-
-*map-partial, outlook halts-late, table set T4*
-
-- **Map:** K(P, m) = 0^inf P (10)^m C> 11111: m -> 3*floor(m/2) + 4 + d, d in {0,1,3}, prefix P moves by parity of m. Proved: K(e,2n) -> K(1,3n+4); K(e,2n+1) -> K(e,3n+7); K(1,2n) -> K(e,3n+4); K(1,2n+1) -> K(1000,3n+4); the other 173 (P, parity) pairs are measured.
-- **Halts when:** Halts at prefix 111101 with m odd; shortest route from the empty prefix is 42 samples (41 specific parities in a row).
-- **From blank tape:** K(1, 1) at step 30
-- **Proved:** Round trip and the four transitions for P = empty and P = 1 (K_e_even ... K_1_odd, blank_K in lean/Macro.lean, kernel); no halts-iff.
-- **Checked:** 10^7 steps native_decide; 10,000 samples of the measured map (m 1,762 digits, ~10^3500 steps); region-memo run to 2.38e205469 steps.
-- **Odds:** ~2^-41 per visit of the empty prefix; halt expected after 10^12-10^13 samples (~10^(10^12) steps)
-- **Next step:** Prove the remaining 173 prefix transitions to reduce halting to the parity sequence in Lean; a fast low-bits orbit iterator (as for related machines) could reach ~10^9-10^10 samples.
-
 ### [`1RB1LB_1LC1LA_1RD0LB_1RA1RE_1RF0RD_---1RD`](../../holdouts/1RB1LB_1LC1LA_1RD0LB_1RA1RE_1RF0RD_---1RD/README.md)
 
 *map-partial, outlook probviously-nonhalting, table set T248*
@@ -297,7 +309,7 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Next step:** Prove the round map in Lean (the halving sweep with its carry and the small-block cases are missing) for a halts-iff.
 
 
-## Decode (30)
+## Decode (29)
 
 The round or phase map is not closed yet and has to be read off the machine first.
 
@@ -462,18 +474,6 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Checked:** 3.18e97153 steps region-memo and 1.75e25107 rle accelerator (trusted); 3*10^9 steps C.
 - **Odds:** not stated
 - **Next step:** Write down the region types and boundary-advance rules between full sweeps and fit the sweep gaps to a nested-counter formula.
-
-### [`1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF`](../../holdouts/1RB0RE_1RC---_0RD0RC_1LE1LF_1LD1RA_1RC0LF/README.md)
-
-*map-partial, outlook unclear, table set T4*
-
-- **Map:** P(pre, x) = [1] (10)^x 1110 D>: P(0,x) -> P(x mod 2, 3*floor(x/2)+6); P(1,2i+1) -> P(0,3i+6); P(1,4i+2) -> P(1,9i+15); P(1,8i) -> P(1,27i+18); P(1,8i+4) undecoded, splits by higher powers of 2 (32i+20 -> P(0,243i+202), 32i+28 -> P(0,243i+264) for i <= 3).
-- **Halts when:** Halts exactly on E> 1 0 1 (B1 halts); not known which map case could produce it.
-- **From blank tape:** P(1, 3) at step 34
-- **Proved:** Round rules and shift rules only (lean/Rules.lean, kernel); the phase map is checked by simulation for x <= 120.
-- **Checked:** 10^7 steps native_decide; 63 phases of the map (to P(1, 2,162,240,868,156,300), prediction); 1.81e46707 steps rleaccel; 5.07e208047 steps region-memo.
-- **Odds:** not stated
-- **Next step:** Decode the P(1, 8i+4) case on all its 2-adic levels (x -> (3/2)^k x) and continue the orbit past phase 63.
 
 ### [`1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD`](../../holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/README.md)
 
