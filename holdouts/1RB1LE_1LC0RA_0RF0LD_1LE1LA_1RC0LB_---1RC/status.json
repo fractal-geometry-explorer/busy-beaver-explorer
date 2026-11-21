@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
   "<b>The question is open, and Collatz-like.</b> Write <code>a = 10</code>, <code>b = 110</code>. At the moments the head, in B, extends the tape to the left, the tape is <code>B&gt; 0 0 a^k b a^m 1</code> (two blocks, one marker) or <code>B&gt; 0 0 a^k b a^m b a^n 1</code> (three blocks). The first block doubles, k &rarr; 2k + 3, and takes k + 2 pairs from the second block each time; when the second block is too short the marker runs off the end and the blocks are rebuilt from what is left. All of this is one explicit map on the lists [k, m] and [k, m, n] (eight cases, below). The map is <b>fitted</b>: it agrees with a direct run of the machine on 1,053 small lists and with the run from blank tape at all 214 marker moments of the first 3.7&middot;10<sup>7</sup> steps, but it is not proved. Proved in Lean: blank tape reaches the list [1, 1, 1] at step 72, and a block with no marker halts whatever its length. By the map, a block with no marker is produced exactly from two equal blocks [k, k], so the machine halts if and only if the orbit of [1, 1, 1] ever meets [k, k]. It has not in 3&middot;10<sup>8</sup> iterations, where the blocks are numbers of about 1,000 bits; no residue pattern excludes it. The community tracker lists this machine as a cryptid (halting reduces to a Collatz-like question), which is what this map shows."
  ],
@@ -94,10 +94,10 @@
    "where": "this page"
   },
   {
-   "level": "cited",
-   "title": "Available in Lean here as a cited axiom: DeepMind's halts-iff map",
-   "text": "<code>deepmind_halts_iff</code> states on this repository's definitions what DeepMind's compiled theorem proves: the machine halts from blank tape if and only if the orbit of their map <code>next</code> from <code>start</code> reaches <code>none</code>. The map is copied from their file unchanged, and running the copy and theirs for 120 steps gives the same states. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.",
-   "where": "<code>deepmind_halts_iff</code>, <code>DM.next</code>, <code>lean/DeepMindMap.lean</code> (from <code>tools/deepmind/axioms.py</code>)"
+   "level": "kernel",
+   "title": "Halts if and only if DeepMind's map stops",
+   "text": "The machine halts from blank tape if and only if the orbit of DeepMind's map <code>DM.next</code> on A(a, b) = 0<sup>&infin;</sup> C&gt; 0 (10)<sup>a</sup> 110 (10)<sup>b</sup> 0<sup>&infin;</sup> and B(a, b, c) = 0<sup>&infin;</sup> C&gt; 0 (10)<sup>a</sup> 110 (10)<sup>b</sup> 110 (1010)<sup>c</sup> 0<sup>&infin;</sup> from A(2, 0) stops, that is, reaches some A(a, a). Proved here on this repository's machine semantics with core Lean (it used to be a cited axiom from google-deepmind/cryptids): min(a, b) rounds by induction (<code>rounds</code>), a second loop for the B cases (<code>zloops</code>), and 18 symbolic rules (<code>lean/DMRules.lean</code>, from <code>py/dmrules.py</code>).",
+   "where": "<code>deepmind_halts_iff</code>, <code>step_rel</code>, <code>lean/DMMap.lean</code>"
   },
   {
    "level": "open",

@@ -57,6 +57,12 @@ less likely: this is a Collatz-like question, a "cryptid" in the bbchallenge sen
   every N).
 - `lean/Rules.lean` (from `py/rules.py`): the sweeps `d_run`, `a_run`, `b_run`, `a_left`.
 - `lean/Blank.lean` (generated): the halting configurations, no halt in 10^4 / 10^7 steps.
+- `lean/DMMap.lean`: **`deepmind_halts_iff`, the machine halts iff the orbit of DeepMind's map stops** (it used to be
+  a cited axiom). The map (google-deepmind/cryptids) is on `A(a, b) = 0^∞ C> 0 (10)^a 110 (10)^b 0^∞` and
+  `B(a, b, c) = 0^∞ C> 0 (10)^a 110 (10)^b 110 (1010)^c 0^∞`: A(a, b) halts iff a = b, otherwise it goes to A or B
+  with doubled counters. Proof: `min(a, b)` rounds by induction (`rounds`, each round moves a `10` from both
+  counters, two into the middle), the B cases with a second loop (`zloops`), and 18 rules from `py/dmrules.py`
+  (`lean/DMRules.lean`, symbolic runs). Axioms: propext, Classical.choice, Quot.sound.
 
 ## Checked, not proved
 
@@ -71,10 +77,8 @@ less likely: this is a Collatz-like question, a "cryptid" in the bbchallenge sen
 ## Open
 
 - Halting: whether the orbit of `[1, 1, 1]` ever meets `[k, k]`.
-- The map itself is not a theorem. A proof needs the doubling pass as an induction (each pass is k+1 rounds of a
-  zig-zag; the rounds are visible as `a^j B> 0 0 a^i b a^m ...` with (j, i, m) → (j−1, i+2, m−1)) and the five
-  overflow cases; `1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/lean` (same k → 2k+3 doubling) is the model to follow.
-  With that, `halts iff the orbit of [1,1,1] meets [k,k]` becomes a Lean theorem.
+- The block-list map above is still not a theorem, but DeepMind's map is (`lean/DMMap.lean`), so halting is now
+  exactly a question about the orbit of that map: does it reach some A(a, a)?
 
 ## Reproduce
 
