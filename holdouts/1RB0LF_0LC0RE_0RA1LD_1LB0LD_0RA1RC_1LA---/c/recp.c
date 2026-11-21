@@ -1,6 +1,7 @@
 // recp: 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- from blank tape; at each left record (state B left of the
 // previous record) print "steps recno width headcell |" and the tape right of the head as P-blocks: k = (10)^k,
-// i / o = a single 1 / 0 cell.  usage: recp MAXCELLS MAXSTEPS EVERY MAXTOK
+// i / o = a single 1 / 0 cell.  usage: recp MAXCELLS MAXSTEPS EVERY MAXTOK [START]
+// START is the start state (A by default; D gives the twin 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- in a mirror)
 #include <stdio.h>
 #include <stdlib.h>
 int main(int argc,char**argv){
@@ -8,7 +9,7 @@ int main(int argc,char**argv){
   int W[6][2]={{1,0},{0,0},{0,1},{1,0},{0,1},{1,0}};
   int Mv[6][2]={{1,-1},{-1,1},{1,-1},{-1,-1},{1,1},{-1,0}};
   int Nx[6][2]={{1,5},{2,4},{0,3},{1,3},{0,2},{0,-1}};
-  unsigned char*t=calloc(N,1); long h=N-N/8,lo=h,hi=h; int s=0; unsigned long long st=0; long rec=0;
+  unsigned char*t=calloc(N,1); long h=N-N/8,lo=h,hi=h; int s=argc>5?argv[5][0]-'A':0; unsigned long long st=0; long rec=0;
   while((double)st<maxs){
     if(h<=1||h>=N-1){printf("OUT OF TAPE\n");break;}
     int c=t[h];

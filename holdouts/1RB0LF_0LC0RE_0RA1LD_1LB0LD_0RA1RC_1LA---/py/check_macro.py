@@ -23,15 +23,16 @@ def parse(line):
     return int(h[0]), int(h[1]), int(h[3]), bl
 
 
-lines = [l for l in open(sys.argv[1]) if '|' in l]
-recs = [parse(l) for l in lines]
-assert recs[0][1] == 1
-cur = ((), recs[0][2], recs[0][3])
-steps = recs[0][0]
-for st, rn, c, bl in recs[1:]:
-    cur, s, _ = macro_step(*cur)
-    steps += s
-    if (steps, cur[1], cur[2]) != (st, c, bl):
-        print('MISMATCH at record', rn, steps, st)
-        sys.exit(1)
-print('records 1 ..', recs[-1][1], 'agree (steps, head cell, blocks); last step', steps)
+if __name__ == '__main__':
+    lines = [l for l in open(sys.argv[1]) if '|' in l]
+    recs = [parse(l) for l in lines]
+    assert recs[0][1] == 1
+    cur = ((), recs[0][2], recs[0][3])
+    steps = recs[0][0]
+    for st, rn, c, bl in recs[1:]:
+        cur, s, _ = macro_step(*cur)
+        steps += s
+        if (steps, cur[1], cur[2]) != (st, c, bl):
+            print('MISMATCH at record', rn, steps, st)
+            sys.exit(1)
+    print('records 1 ..', recs[-1][1], 'agree (steps, head cell, blocks); last step', steps)

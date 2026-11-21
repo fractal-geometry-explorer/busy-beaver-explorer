@@ -97,6 +97,62 @@ X' = (3X + 5)/2 for odd X. For example, 142 → 214 → 322 → 484 → 727 → 
 slowly (8 ... 40). Each phase takes about 2.25 times as many steps as the one before. The parities of the blocks
 decide the corrections, so the long-run behaviour is a Collatz-like question.
 
+## The twin, and what the tail sees (21 Nov)
+
+**One counter, two starts.** [`1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---`](../1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/README.md)
+is this table in a mirror, its states A to F renamed D, B, C, A, E, F. So its run is the run of this table started in
+state D (`twin_halts_iff`, `lean/Twin29537.lean`, kernel). After 157 steps that run is at a left record
+`0^inf B> 0 (10)^3 0 0 (10) 1 (10) 1 (10) 1 (10)`, blocks `(3, o) (0, o) (1, i) (1, i) (1, i) (1, ·)`
+(`twin_reach157`, `twin_halts_iff_record`). From there the block macro machine of this folder reproduces it:
+`py/twin.py` compares steps, head cell and blocks with a direct run at all 15,228 records up to step 299,972,981, and
+all agree. The macro run of the twin finds no halt in 300,000 records (1.20·10^11 steps). It uses 56 right and 175
+left crossing rules that this machine's own first 300,000 records do not use; they are proved for all t and all
+tapes in `lean/RulesTwin1.lean` and `lean/RulesTwin2.lean` (kernel, written by `py/gen_rules_twin.py`). Everything in
+this section holds for both machines.
+
+**The countdown map, exactly.** Call X the long block after the first block `(0, o)` at a reset. The next reset has
+
+    X' = floor(3X/2) + 1   (X even)        X' = floor(3X/2) + 3   (X odd)
+
+`py/reset_map.py` checks this at every reset of a run. It holds at all of them: 13 transitions in this machine's
+direct run to 3·10^7 steps, 19 in the twin's direct run to 3·10^9 steps, 34 in this machine's macro run to 3.4·10^14 steps and 33 in the twin's macro run (2·10^7 records, 2.5·10^14 steps, no halt). The map involves X only, and
+the two machines are two orbits of it: 142, 214, 322, 484, 727, 1093, 1642, ... here, and 52, 79, 121, 184, 277,
+418, 628, 943, ... for the twin. The reason is visible in the records: in a phase the countdown starts at X + 1 and
+loses one per record, while the block after it starts again near 0 and gains 3 per increment (two records); so it
+has about 3X/2 when the countdown runs out, and becomes the next countdown.
+
+**What the tail sees.** At the `o o` records of a phase the tape is `0^inf B> 0 (D0, o) (0, o) (Y, x) T`. Call T the
+tail. From one such record to the next (one increment), T changes in a way that depends only on Y mod 2 and x, not
+on D0 or on the size of Y. So there are four operators on tails:
+
+| operator | the block before T | what it does to the cells of T |
+|---|---|---|
+| E0 | Y even, x = o | lengthens the first block by one `10`, nothing else |
+| E1 | Y odd, x = i | a carry: changes a few cells, sometimes hundreds of cells deep |
+| O0, O1 | Y odd, x = o / Y even, x = i | another carry (the two give the same cells, parsed differently) |
+
+`py/tail_ops.py` computes each one by a direct run of the machine on a constructed tape (D0 = 61, Y = 20 or 21) and
+checks, on a direct run:
+- the operators come out the same with D0 = 41, 61, 81 and Y = 20/21 or 30/31 (every tail probed, both machines);
+- inside every phase Y + x is even, so the tail goes through E0, E1, E0, E1, ...: 1,467 of 1,467 increments in this
+  machine's first 3·10^7 steps, 2,965 of 2,965 in the twin's first 6,000 records;
+- a reset applies E1 O0 O1 when X is even and E1 when X is odd: 13 of 13 resets here, 13 of 14 in the twin (the
+  exception is its first, at X = 7, which applies E1 O0).
+
+So, read this way, whether either machine halts is a question about one fixed word of operators acting on one tail:
+`w = (E0 E1)^m1 r(X1) (E0 E1)^m2 r(X2) ...`, where the phase lengths m_k and the reset words r(X_k) are read off the
+orbit of the 3/2 map. The operators do not commute (E1 E0 E1 and E1 E1 differ on the three tails tried, at records 278, 1,502 and 3,000, even though E0
+only lengthens the first block), so the tail is not a function of the number of increments, and the halting
+question is about the parity sequence of a 3/2 map driving a carry through an irregular tail. All of this is
+**heuristic**: checked on the runs named, not proved.
+
+**Why compression stalls.** The tail is where the counter's carries leave their marks, and they are not regular: the
+records have 29 blocks at 10^5 steps, 90 at 3·10^7 and 156 at 3·10^9 steps (190 in the twin), most of them short and of different
+lengths (`... 2 o o 1 i 10 o o 1 i 188 o o 1 i 24 o o 2 o 11 i ...`). A run-length code of the tape therefore has
+thousands of distinct runs beyond the first few blocks, which is what made the region-memo engine recurse that deep.
+The method that works here is the one of this folder: keep the countdown and the long blocks symbolic (the macro
+machine), and treat the tail as data acted on by the operators above.
+
 ## Where it could halt
 
 F is entered only by A reading 1 (A1 = 0LF), and F1 halts. So the machine halts exactly on `1 A>1`. Neither the
@@ -114,7 +170,12 @@ which lists the run can reach.
   arbitrary list of blocks; `lean/Seq.lean` is the sequence library, copied from bb6-1RB1RF_1LC0LB;
 - `short_raw` / `short` (`lean/Gadgets.lean`, `lean/Macro.lean`): the short sweep for every x and tape;
 - `reach2438`, `reach2522`: the run from blank tape reaches the first counter configuration;
-- `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`): halting configurations; no halt in 10^4 steps.
+- `step_none_iff`, `blank_runs_kernel` (`lean/Blank.lean`): halting configurations; no halt in 10^4 steps;
+- `twin_halts_iff`, `twin_reach157`, `twin_halts_iff_record` (`lean/Twin29537.lean`): the twin
+  1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- halts from blank tape iff this table halts from blank tape started in D,
+  iff it halts from the twin's record at step 157;
+- `twin_right0` ... `twin_right55`, `twin_left0` ... `twin_left174` (`lean/RulesTwin1.lean`, `lean/RulesTwin2.lean`, from
+  `py/gen_rules_twin.py`): the further crossing rules used in the twin's first 300,000 records.
 
 **Lean, native_decide**: `blank_runs_native`, no halt in 10^7 steps.
 
@@ -126,7 +187,11 @@ which lists the run can reach.
   rules of the first 300,000 records are the ones in Lean.
 - `c/rec18.c` (previous pass): no halt in 1.17·10^11 steps, by direct simulation.
 
-**Heuristic**: the reset map, the three record patterns, and the 99.99% share of simple sweeps.
+- `py/twin.py`: the macro machine agrees with a direct run of the twin at all records up to step 299,972,981; its
+  macro run finds no halt in 300,000 records (1.20·10^11 steps).
+
+**Heuristic**: the reset map (now exact: `py/reset_map.py`), the tail operators (`py/tail_ops.py`), the three record
+patterns, and the 99.99% share of simple sweeps.
 
 **Open**: whether it halts. The Lean theorem `¬ Halts` is not proved, and no `halts_iff` reduction is stated.
 
@@ -140,6 +205,10 @@ python3 $D/py/gen_sweep.py                  # rewrites lean/Sweep.lean
 gcc -O2 -o recp $D/c/recp.c && ./recp 4000000 3e8 1 100000 > r3e8.txt && python3 $D/py/check_macro.py r3e8.txt
 python3 $D/py/run_macro.py 2e7 1e6          # the long macro run, about 40 minutes
 python3 $D/py/random_check.py SEED 20000     # random block lists, one macro step each
+python3 $D/py/gen_rules_twin.py 3e5          # rewrites lean/RulesTwin1.lean, lean/RulesTwin2.lean (a few minutes)
+./recp 4000000 3e8 1 100000 D > twin3e8.txt && python3 $D/py/twin.py twin3e8.txt   # the twin, record by record
+python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset (also: reset_map.py own|twin N)
+./recp 4000000 3e7 1 100000 > r3e7.txt && python3 $D/py/tail_ops.py r3e7.txt 400   # the tail operators (minutes)
 ```
 
 ## Layout
@@ -154,7 +223,10 @@ python3 $D/py/random_check.py SEED 20000     # random block lists, one macro ste
 | `py/run_macro.py`, `py/check_macro.py` | long macro run; comparison with direct simulation |
 | `py/gen_rules.py`, `py/gen_sweep.py`, `py/gen_gadgets.py` | Lean generators |
 | `py/random_check.py`, `py/check_counter.py` | random-list test; the previous pass's counter check |
-| `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation / the old notation |
+| `lean/Twin29537.lean` | the twin is this table, mirrored, started in D (kernel) |
+| `lean/RulesTwin1.lean`, `lean/RulesTwin2.lean`, `py/gen_rules_twin.py`, `py/gen_rules_lib.py` | crossing rules of the twin's run (generated) |
+| `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
+| `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
 
 ## For later
 
