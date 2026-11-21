@@ -1,0 +1,322 @@
+[
+ {
+  "rank": 1,
+  "m": "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC",
+  "cls": "wall stack",
+  "tier": "A",
+  "why": "No halting condition is known at all. The wall update depends only on the wall and N mod 2, so a closed set of walls for both parities would prove non-halting with no number theory. New here: the stack-of-counters model matches the Lean step map on all 558 steps of the free-parity wall graph to 300 cells. Under free parities no count goes below zero (29,195 walls to 30,000 cells), counters below the top never pass 17, and each counter is at least 5 times the one below it. Along the real orbit (300,000 steps) the counters below the top stay at 10 or less. A count can go negative only if the counter above stays odd for as many steps as its own size, which is a 2-adic coincidence. The reachable walls get at most 10% of the way there.",
+  "next": "Prove an invariant on the stack (each counter far above the one below), then the stack rules in Lean."
+ },
+ {
+  "rank": 2,
+  "m": "1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
+  "cls": "run stack",
+  "tier": "B",
+  "why": "It halts only if every run of 1s is even at once, so the whole stack has to empty. An invariant that keeps one run odd would settle it. The parity of the number of even runs is already known, so a parity-type invariant is plausible.",
+  "next": "Search for an invariant on run parities, using the Lean visit map."
+ },
+ {
+  "rank": 3,
+  "m": "1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA",
+  "cls": "subtract and triple",
+  "tier": "B",
+  "why": "It halts only at b = 1 with a = 0 mod 4. The map is fully proved for even a, but b only drops by subtraction steps, which mix residues.",
+  "next": "Prove the halting events in Lean (only simulated so far), then look for an invariant on (a mod 4, b)."
+ },
+ {
+  "rank": 4,
+  "m": "1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE",
+  "cls": "threshold landing",
+  "tier": "C",
+  "why": "New here: this machine and the next two iterate the same function n -> 3n - 10*2^k + 3k + 14 (k the level, h_k = 5*2^k - k - 6). Starts are 4, 10 and 1, and the orbits are disjoint for the first 20,000 steps. Halting means landing exactly on h_k.",
+  "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"
+ },
+ {
+  "rank": 5,
+  "m": "1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE",
+  "cls": "threshold landing",
+  "tier": "C",
+  "why": "Same map as the machine above in the coordinate N = 2n + 2, started at n = 10.",
+  "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"
+ },
+ {
+  "rank": 6,
+  "m": "1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE",
+  "cls": "threshold landing",
+  "tier": "C",
+  "why": "Same map as the two above (c_i = h_(i+1)), started at n = 1.",
+  "next": "Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?"
+ },
+ {
+  "rank": 7,
+  "m": "1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE",
+  "cls": "all-ones lengths",
+  "tier": "C",
+  "why": "The numbers stay polynomial (the tape is about t^(1/3) wide) and it halts only right after an all-ones tape whose length is in 20*2^k - 2k - 12. The map from one all-ones length to the next has no visible pattern.",
+  "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."
+ },
+ {
+  "rank": 8,
+  "m": "1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE",
+  "cls": "all-ones lengths",
+  "tier": "C",
+  "why": "Same mechanism, with fatal lengths 32*2^k - 2k - 12.",
+  "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."
+ },
+ {
+  "rank": 9,
+  "m": "1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE",
+  "cls": "all-ones lengths",
+  "tier": "C",
+  "why": "Same mechanism, with fatal lengths 28*2^k - 2k - 13.",
+  "next": "Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list."
+ },
+ {
+  "rank": 10,
+  "m": "1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE",
+  "cls": "all-ones lengths",
+  "tier": "C",
+  "why": "Same mechanism. Its fatal list is already proved for every n, so all that is left is whether some all-ones length ever lands on 12*2^k - 2k - 9.",
+  "next": "None in Lean. The question is a hitting problem."
+ },
+ {
+  "rank": 11,
+  "m": "1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD",
+  "cls": "all-ones lengths",
+  "tier": "C",
+  "why": "Same doubling pass (a,b) -> (2a+2, b-2a-2). It halts if a pass ends with b = 0, and the chance of that falls with the width.",
+  "next": "None beyond a hitting argument."
+ },
+ {
+  "rank": 12,
+  "m": "1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD",
+  "cls": "near power of 2",
+  "tier": "C",
+  "why": "It halts iff a doubling chain meets x = (m+7)(2^(k+1)-1)/2 - k - 1. The total chance of a hit is 0.3187, nearly all of it in the first 20 rounds, but the chain-end remainders cover all of [0, h).",
+  "next": "Prove the chain criterion in Lean (an induction on k)."
+ },
+ {
+  "rank": 13,
+  "m": "1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD",
+  "cls": "multi-tail 3/2 map",
+  "tier": "C",
+  "why": "Non-halting is reduced to the orbit staying out of a small uncovered region (Z_k with k = 0 or n < 12k+12). n has thousands of digits, so a growth bound k <= f(n) would be enough, but k follows its own 3/2 rule.",
+  "next": "Prove the uncovered Z_k cases, then try a growth bound on k."
+ },
+ {
+  "rank": 14,
+  "m": "1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA",
+  "cls": "threshold landing",
+  "tier": "C",
+  "why": "It halts iff the orbit of 44 lands on 2^(j+1) - 2j - 7 or on a restart with d + s + 4 = 2^(s+2). There is about one target per doubling band, and t grows about 1.3x per reset.",
+  "next": "A last-step congruence lemma, in the style of the Doucette family's Preimage.lean."
+ },
+ {
+  "rank": 15,
+  "m": "1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD",
+  "cls": "two-counter rounds",
+  "tier": "C",
+  "why": "It halts iff a Y run starts with c - b = 3, which parity rules out during the doubling stage. Outside that stage the chance is about 1/N per run.",
+  "next": "A closed form for the end of a round."
+ },
+ {
+  "rank": 16,
+  "m": "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
+  "cls": "doubling with resets",
+  "tier": "C",
+  "why": "It halts at a reset with 2u = v exactly. Reset k needs about 1.47^k operations, so resets are rare.",
+  "next": "None beyond a hitting argument."
+ },
+ {
+  "rank": 17,
+  "m": "1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC",
+  "cls": "base-6 digits",
+  "tier": "C",
+  "why": "A round halts only when a block is a base-6 repunit-like number. The chance is about 6^-D per round for D-digit blocks.",
+  "next": "A digit automaton for the block, if its updates are digit-local."
+ },
+ {
+  "rank": 18,
+  "m": "1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA",
+  "cls": "subtract and triple",
+  "tier": "D",
+  "why": "After the first round c = 0 mod 3, but a mod 3 mixes. A residue search with branch guards relaxed (residues.py) reaches the halting difference for every modulus 2^a 3^b up to 7,776.",
+  "next": "None known."
+ },
+ {
+  "rank": 19,
+  "m": "1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE",
+  "cls": "subtract and double",
+  "tier": "D",
+  "why": "It halts iff r = p + 1, which is a divisibility condition P(2^(t+1) - 1) = r + t + 1 at the end of each doubling phase. residues.py finds the halting class for every modulus 2^a 3^b up to 7,776.",
+  "next": "None known."
+ },
+ {
+  "rank": 20,
+  "m": "1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD",
+  "cls": "subtract and triple",
+  "tier": "D",
+  "why": "Subtract the smaller and triple it. It halts at u - v in {0, 1}, with a chance of about 2^-size per round. Residues mix (residues.py).",
+  "next": "None known."
+ },
+ {
+  "rank": 21,
+  "m": "1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE",
+  "cls": "subtract and triple",
+  "tier": "D",
+  "why": "The same type as the machine above, on (i, j, J). It halts at i = j or i + 1 = j. Residues mix (residues.py).",
+  "next": "None known."
+ },
+ {
+  "rank": 22,
+  "m": "1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB",
+  "cls": "subtract and double",
+  "tier": "D",
+  "why": "It halts at k = 1 with n odd, with a chance of about 2/n per doubling stage. It is the same table as 1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD started elsewhere, but the run is different.",
+  "next": "None known."
+ },
+ {
+  "rank": 23,
+  "m": "1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC",
+  "cls": "Doucette",
+  "tier": "D",
+  "why": "A Doucette sequence has to reach a power of 2. tools/doucette shows that no congruence is invariant along these orbits (each run of valuations is one residue class), and its last-step lemmas leave infinitely many exponents open.",
+  "next": "None known."
+ },
+ {
+  "rank": 24,
+  "m": "1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB",
+  "cls": "Doucette",
+  "tier": "D",
+  "why": "As above: it must reach a power of 2.",
+  "next": "None known."
+ },
+ {
+  "rank": 25,
+  "m": "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE",
+  "cls": "Doucette",
+  "tier": "D",
+  "why": "As above: it must reach a power of 2.",
+  "next": "None known."
+ },
+ {
+  "rank": 26,
+  "m": "1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB",
+  "cls": "Doucette",
+  "tier": "D",
+  "why": "As above, in base 3.",
+  "next": "None known."
+ },
+ {
+  "rank": 27,
+  "m": "1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD",
+  "cls": "Doucette",
+  "tier": "D",
+  "why": "Space Needle: the community's flagship Doucette sequence, run to 10^10 terms. The question is open.",
+  "next": "None known."
+ },
+ {
+  "rank": 28,
+  "m": "1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA",
+  "cls": "Antihydra walk",
+  "tier": "E",
+  "why": "A counter does a +2/-1 walk driven by the parity of a 3/2 map, the same type as Antihydra. That is a known open problem of Mahler type.",
+  "next": "None known."
+ },
+ {
+  "rank": 29,
+  "m": "1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC",
+  "cls": "Antihydra walk",
+  "tier": "E",
+  "why": "The same type, driven by m mod 3. A return to k = 0 has a chance of about 2^-331763.",
+  "next": "None known."
+ },
+ {
+  "rank": 30,
+  "m": "1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---",
+  "cls": "Antihydra walk",
+  "tier": "E",
+  "why": "The same type in base 3.",
+  "next": "None known."
+ },
+ {
+  "rank": 31,
+  "m": "1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA",
+  "cls": "Antihydra walk",
+  "tier": "E",
+  "why": "This is Antihydra-type exactly: x -> floor(3x/2) with p moving +2/-1 by parity.",
+  "next": "None known."
+ },
+ {
+  "rank": 32,
+  "m": "1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA",
+  "cls": "nested resets",
+  "tier": "E",
+  "why": "Not fully reduced yet: the reset table is only measured. Level 2 runs about 10^770 phases, and its end depends on n mod 10 and r there.",
+  "next": "Prove the reset rows in Lean (decode work)."
+ },
+ {
+  "rank": 33,
+  "m": "1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "It probably halts, after about 10^13 to 10^18 rounds on numbers with 10^12 bits or more, which is out of reach. Its halts-iff also still assumes the map never gets stuck.",
+  "next": "Remove the never-stuck hypothesis."
+ },
+ {
+  "rank": 34,
+  "m": "1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "It halts at the end of epoch 4 with probability 3/4. Deciding it needs parities after 1.1*10^14 steps of X -> floor(3X/2)+5 on 10^13-digit numbers, about 10^27 bit operations.",
+  "next": "None feasible."
+ },
+ {
+  "rank": 35,
+  "m": "1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "Round 4 needs the parity of u_i for i near 1.5*10^22 under u -> 3*ceil(u/2).",
+  "next": "None feasible."
+ },
+ {
+  "rank": 36,
+  "m": "1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "Phase 3 needs the (c-1)/2-th iterate of x -> floor(3x/2)+7 with c about 2.3*10^101.",
+  "next": "None feasible."
+ },
+ {
+  "rank": 37,
+  "m": "1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "A fair coin per budget. The next decision is about 2^1478 rounds away.",
+  "next": "None feasible."
+ },
+ {
+  "rank": 38,
+  "m": "1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "1/5 per cycle. The third cycle needs about 5*10^2901 phases.",
+  "next": "None feasible."
+ },
+ {
+  "rank": 39,
+  "m": "1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "A fair coin per epoch. Epoch 4 needs the parity of an iterate at an index with 39,991 digits.",
+  "next": "None feasible."
+ },
+ {
+  "rank": 40,
+  "m": "1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE",
+  "cls": "probably halts",
+  "tier": "F",
+  "why": "About 1/4 per budget end. The fifth budget holds a 399,947-bit number of pairs.",
+  "next": "None feasible."
+ }
+]

@@ -58,14 +58,17 @@ a sparse set?), hence "Cryptid".
 | kernel | **`halts_iff`: the machine halts from blank tape if and only if `orbit k 4 = none` for some k** (the fuel in `pstep` never runs out, and a macro step takes at least 8 steps) | `halts_iff`, `pstep_never_unknown`, `lean/Iff.lean` |
 | kernel | 200 rounds without a halt, > 10⁸⁶ steps | `orbit_200`, `orbitT_200_big` |
 | native | 2,000 rounds without a halt, > 10⁷⁹⁸ steps | `orbit_2000`, `orbitT_2000_big` |
-| trusted | closed form = `pstep` for 1 ≤ n ≤ 200,000 (Python transcription of the Lean function) | `py/macro.py check 200000` |
+| kernel | closed form of the position: `pstep n` goes to P(3n + 3k + 14 − 10·2^k) for h_k < n < h_{k+1}, halts at n = h_k | `pstep_closed`, `pstep_halt`, `lean/Closed.lean` |
+| trusted | closed form of the step count = `pstep` for 1 ≤ n ≤ 200,000 (Python transcription of the Lean function) | `py/macro.py check 200000` |
 | trusted | all 16 P-events up to 10¹⁰ steps match direct simulation (last: P(70411) at step 9,108,900,940) | `py/macro.py orbit 1e10`, `c/pevents.c` |
 | trusted | 10⁵ rounds without a halt: n has 66,605 bits, ≈ 10^40,100 steps | `py/macro.py far 1e5` |
 | heuristic | chance of a later halt ≈ 10^−20,000 | above |
 | open | does the orbit of 4 ever hit an h_k? | |
 
-The closed form itself is not proved in Lean: Lean evaluates `pstep` (closed polynomial step counts, fuel-bounded
-round recursion) directly, so the orbit theorems do not depend on it.
+The closed form of the position is now proved in Lean for every n (`pstep_closed`: for h_k < n < h_{k+1},
+`pstep n = .go (3n + 3k + 14 − 10·2^k) t` for some t; `pstep_halt`: `pstep (h k)` halts for k ≥ 1; both in
+`lean/Closed.lean`, kernel only); the step-count formula is still only checked in Python, and the orbit theorems
+evaluate `pstep` directly. The three holdouts 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE, 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE and 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE iterate the same function f(n) = 3n − 10·2^k + 3k + 14 (h_k < n < h_{k+1}, halt at n = h_k), the second in the coordinate N = 2n + 2, from different starts (n = 4, 10, 1); the three orbits share no value in their first 20,000 steps (checked in Python).
 
 ## Reproduce
 
@@ -80,8 +83,7 @@ python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5  
 
 ## Further work
 
-Prove the closed form in Lean (an induction over the doubling rounds with c = 5·2^j − 4), which would turn
-`pstep` into an explicit map and the halting question into a pure number-theory statement.
+The closed form of the position is proved (`lean/Closed.lean`); the step-count formula could be added the same way.
 
 ## Pages
 

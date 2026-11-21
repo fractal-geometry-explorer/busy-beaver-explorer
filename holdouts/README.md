@@ -42,14 +42,20 @@ from the bbchallenge wiki.
 4. `python3 holdouts/build_pages.py M` rebuilds that machine's pages and the index; `python3 holdouts/test_holdouts.py`
    checks that everything is current. The index is generated, so on a merge conflict in it rebuild it with
    `python3 holdouts/build_pages.py --index-only`.
+5. When a result changes what is known, add an entry at the top of [`recent.json`](recent.json) (date, PR numbers,
+   kind, what it rests on, a plain-language title and text, the machines by full name). `build_pages.py` then writes
+   it to `pages/holdouts/recent.html`, the latest-results page, through `build_overview.py`.
 
 ## Families of the undecided machines
 
-[`FAMILIES.md`](FAMILIES.md) (20 November 2026) groups the 554 machines not yet decided here into families that one
+[`FAMILIES.md`](FAMILIES.md) (21 November 2026) groups the 522 machines not yet decided here into families that one
 proof technique could settle together, from table distance (tables one transition apart, up to renaming and mirror)
-and shared mechanism, and ranks them; the first recommendations are to compile the 34 outside proofs of busycoq PRs
-43 to 68, then the F05 core (45 machines), the clock-and-word counters (15) and halt hunts on the base-4 and ternary
-countdown counters (23). `regroup.py` writes it and `families.json`, which the holdout map uses for its family filter.
+and shared mechanism, and ranks them. The outside proofs of busycoq PRs 43 to 68 were compiled on 21 November
+(`tools/coq/busycoq/prs-43-68`, 32 machines decided; PR 60's two long runs are left); the next recommendations are
+the F05 core (45 machines), the clock-and-word counters (15) and halt hunts on the base-4 and ternary countdown
+counters (22). `regroup.py` writes it and `families.json`, which the holdout map uses for its family filter;
+`build_overview.py` (run by `build_pages.py`) turns both into the page `pages/holdouts/families.html`, showing each
+machine's standing today.
 
 ## Related machines
 

@@ -76,6 +76,10 @@ started at these values the machine does halt). This is a cryptid-type question:
 
 - Lean (`lean/Orbit.lean`, kernel only): `halts_iff : HaltsFromBlank ↔ ∃ i, orbit i = none`, where `orbit` iterates
   `next N = phase 1 N` from 22 and `phase` is the doubling/remainder map above, written as a Lean function.
+- The closed form is proved in Lean for every N (`lean/Closed.lean`, kernel only): with h_k = 5·2^k − k − 6 and
+  N = 2n + 2, `next_closed` gives `next (2n + 2) = some (2(3n + 3k + 14 − 10·2^k) + 2)` for h_k < n < h_{k+1}, and
+  `next_halt` gives `next (2 h_k + 2) = none` for k ≥ 1 (this is N ↦ 3N + 24 + 6k − 20·2^k, halting at
+  N = 10·2^k − 2k − 10). The three holdouts 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE, 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE and 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE iterate the same function f(n) = 3n − 10·2^k + 3k + 14 (h_k < n < h_{k+1}, halt at n = h_k), the second in the coordinate N = 2n + 2, from different starts (n = 4, 10, 1); the three orbits share no value in their first 20,000 steps (checked in Python).
 - `c/check_map.c` runs the machine from `D> a 1^N` for every even N from 8 to 3000 and agrees with the closed form
   (including the halts).
 - `py/orbit.py` iterates the map with exact integers: no halt in 10^6 rounds (see `status.json` for the closest
@@ -91,12 +95,13 @@ started at these values the machine does halt). This is a cryptid-type question:
   (`bbtools.symtm`).
 - `lean/Orbit.lean`: the zigzag and the transfer chained by induction, the doubling, the end of a round, the halting
   case, the map `phase`/`next`/`orbit`, the first 208 steps (`decide +kernel`) and `halts_iff`.
+- `lean/Closed.lean`: the closed form of `next` (`next_closed`, `next_halt`).
 - `py/orbit.py`: the map, iterated. `c/check_map.c`: the map against the machine.
 
 ## Status
 
 Open, reduced to the orbit question above. Lean: `step_none_iff`, no halt in 10^7 steps (`lean/Blank.lean`) and the
-reduction `halts_iff` (`lean/Orbit.lean`). C (`tools/c/triage.c`): no halt in 10^9 steps.
+reduction `halts_iff` (`lean/Orbit.lean`), and the closed form of the map (`lean/Closed.lean`). C (`tools/c/triage.c`): no halt in 10^9 steps.
 
 ## Pages
 

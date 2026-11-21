@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The sweep rule is now decoded: writing x = 111 and y = 110, one right sweep and one left sweep over a clean word string replace each word by the XOR of it and its right neighbour (x = 0, y = 1), the linear cellular automaton known as rule 102, checked exhaustively for every string up to 16 words. Every word string is therefore possible in the bulk, and halting depends only on the defects (alignment walls) that the small structure at the right end emits. No closed tape language has been found.</p>
+      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one right sweep and one left sweep over a clean word string replace each word by the XOR of it and its right neighbour (x = 0, y = 1), the linear cellular automaton known as rule 102, now in Lean for every string length. By Lucas' theorem (also in Lean) word i after t sweeps is the XOR of the words i + k whose offset k has its binary digits inside those of t. The danger pattern needs a gap after a <code>10</code> defect that turns all y, and that happens exactly when the gap already is a row of Pascal's triangle mod 2. So halting is now a question about which gaps the right end hands to a <code>10</code> defect, in binary digits. No closed tape language has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -131,6 +131,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Ten rules, each for every n and every surrounding tape: for example D turns (101)<sup>n</sup> into (110)<sup>n</sup> going right, B turns (110)<sup>n</sup> into (011)<sup>n</sup>, A runs left over (110)<sup>n</sup> turning it into (111)<sup>n</sup>.</p>
         <p class="where"><code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>One round trip is rule 102, for every length</h3>
+        <p>For every word string <code>w</code> ending in <code>y</code> and followed by a 0, started in B on its first cell: the right sweep turns <code>x</code> into <code>000</code> and <code>y</code> into <code>011</code>, B on the 0 writes 1 and turns, and the left sweep (C or E remembering the word to the right) writes back word <code>i</code> as <code>w[i] xor w[i+1]</code>, with <code>y</code> after the end. The last word becomes <code>x</code> and the 0 after the string a 1.</p>
+        <p class="where"><code>epoch</code>, <code>x102_getD</code>, <code>lean/Xor.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Many round trips: Lucas' theorem</h3>
+        <p>Iterating rule 102 with a fixed word after the end, word <code>i</code> after <code>t</code> sweeps is the XOR of the starting words <code>i + k</code> over the <code>k &le; t</code> with <code>C(t, k)</code> odd, i.e. the binary digits of <code>k</code> and <code>t &minus; k</code> disjoint. For a gap of <code>n</code> x's next to the fixed y, word <code>j</code> from the y is y iff <code>C(t, j)</code> is odd, so the whole gap is y first after <code>2<sup>b</sup> &minus; 1</code> sweeps, <code>2<sup>b</sup> &gt; n</code>.</p>
+        <p class="where"><code>closed_form</code>, <code>allx</code>, <code>lean/XorLucas.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -146,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 43,577 cells have been visited and 35,099 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>Which gaps can reach the danger pattern</h3>
+        <p>Read the gap after a <code>10</code> defect, with the defect as a fixed y, as a polynomial over GF(2): one sweep multiplies it by <code>1 + z</code>, and all y is <code>(1 + z)<sup>2<sup>b</sup>&minus;1</sup></code>. So a gap ever becomes all y exactly when it already is a row <code>s</code> of Pascal's triangle mod 2 (word <code>j</code> is y iff the digits of <code>j</code> lie inside those of <code>s</code>), and then at the sweeps <code>t &equiv; 2<sup>b</sup> &minus; 1 &minus; s</code>. Only <code>2<sup>b</sup> &le; 2n</code> of the <code>2<sup>n</sup></code> gaps of length <code>n</code> can. Checked for all 32,766 gaps of up to 14 words; the algebra is not in Lean, and the claim assumes the gap stays intact between walls, as observed.</p>
+        <p class="where"><code>py/pascal_gaps.py</code></p>
       </div>
       <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
@@ -169,6 +184,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>A 10 defect is a pinned y in a rule-102 line</h3>
+        <p>In the run to 9&middot;10<sup>6</sup> steps, every sweep with an <code>x</code> before a bulk <code>10</code> defect (50 of them) moves the words on both sides by <code>w'[i] = w[i&minus;1] xor w[i]</code> in the defect's frame, with the defect acting as a fixed <code>y</code> for the gap. So the word before the defect is a Lucas sum of the words left of it (checked for 36 sweeps). The other 9 sweeps are exactly those with <code>y</code> before the defect: the defect hops back and the gap shrinks. A halt needs such a sweep to meet an all-<code>y</code> gap; the two never coincided.</p>
+        <p class="where"><code>c/defect10.c</code>, <code>py/defect_frame.py</code></p>
       </div>
       <div class="card">
         <h3>The string is rewritten every sweep</h3>

@@ -244,6 +244,7 @@ def elsewhere(M, decision="open"):
                                 f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in {c['seconds']} s: "
                                 f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
                                 f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
+                                + (html.escape(c["note"]) + " " if c.get("note") else "") +
                                 "It is their proof, not one written in this repository. " +
                                 ("The verdict on this page rests on this proof." if decision == pr["claim"] and not dmc
                                  else same.strip())})
@@ -253,7 +254,9 @@ def elsewhere(M, decision="open"):
                             f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
                             f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). As of {ext['asof']} it "
                             "was open: not merged, not reviewed by the maintainer, and not compiled here unless the "
-                            f"ledger below says so.{same}"})
+                            f"ledger below says so.{same}" +
+                            (f" Partly checked here on {pr['spot_checked']['date']} with Coq {pr['spot_checked']['coq']}: "
+                             + html.escape(pr['spot_checked']['what']) if pr.get("spot_checked") else "")})
     w = e.get("wiki_solved")
     if w:
         out.append({"kind": "report", "title": f"Reported on the wiki: it {CLAIM[w['claim']]}",
@@ -322,7 +325,10 @@ def standing_line(M, decision, level="lean"):
     if kind == "outside" and outside_by(M, decision) == "rocq":
         ps = [p for p in e.get("prs", []) if p.get("compiled") and p["claim"] == decision]
         n = [p["n"] for p in ps]
-        ax = ("with no axioms beyond Coq's own" if not ps[0]["compiled"].get("axioms") else
+        axl = ps[0]["compiled"].get("axioms") or []
+        ax = ("with no axioms beyond Coq's own" if not axl else
+              "with no axioms beyond functional extensionality from Coq's standard library"
+              if all("xtensionality" in a for a in axl) else
               "with no axioms beyond the standard ones for Coq's machine integers (PrimInt63)")
         return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
                 "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "
@@ -612,6 +618,9 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>The list is a moving target. Since it was drawn up, proofs for some of these machines have appeared here and
  elsewhere; the bar below sorts the machines by where each one stands, and keeps what this repository checked apart
  from what others report (__ASOF__).</p>
+ <p><b>New:</b> the <a href="recent.html">latest results</a>, newest first, and the
+ <a href="families.html">families of the undecided machines</a>, each family with its mechanism, what is known and the
+ technique that could settle it.</p>
 </header>
 
 <section class="panel">
@@ -635,8 +644,11 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>The machines not yet decided here, grouped so that one proof technique could settle a whole family, and ranked by
  how many machines that technique would settle and how likely it is to work (__FAMASOF__). R00 is not a mechanism: it
  holds the machines whose only proof is an outside one not yet compiled here. Machines that fit no family keep their
- earlier label (F01 to F11). Click a family to filter the table; the reasoning is in
- <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.</p>
+ earlier label (F01 to F11). Click a family to filter the table; each family is explained on the
+ <a href="families.html">families page</a>, and the reasoning is in
+ <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.
+ The 40 machines already reduced to a question about a map are ranked by how likely a proof is on the
+ <a href="number-theory.html">number-theory page</a>.</p>
  <div class="fams" id="fams"></div>
 </section>
 
@@ -859,6 +871,8 @@ def main(argv):
             if not want or name in want:
                 build_machine_pages(name, spec)
     build_index()
+    import build_overview  # noqa: E402  (families.html and recent.html, which read the index rows)
+    build_overview.build()
 
 
 if __name__ == "__main__":

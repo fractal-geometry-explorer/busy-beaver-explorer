@@ -348,6 +348,7 @@ class Rotate:
     w: tuple
     w2: tuple
     n: Lin
+    rev: bool = False    # the other way: the word x comes from the far side of the repeat to the head
 
 
 def try_rotate(cfg):
@@ -564,6 +565,22 @@ def prove(m, name, start, end, nsteps=None, doc=None, max_moves=100000, cross=Tr
             counts.append(str(n))
         elif seg[0] == "rot":
             _, a, b, x = seg
+            if x.rev:
+                # a.left = rest x (w)^n (reading order) becomes rest (w2)^n x; on the right (w)^n x rest becomes
+                # x (w2)^n rest.  `rep_rotate` read backwards, with the roles of w and w2 swapped.
+                j = len(x.x)
+                if x.side == "l":
+                    xs, ys, y2s = tuple(reversed(x.x)), tuple(reversed(x.w2)), tuple(reversed(x.w))
+                    lhs, rhs, rest = left_term(a.left), left_term(b.left), left_term(a.left[:len(a.left) - 1 - j])
+                else:
+                    xs, ys, y2s = x.x, x.w2, x.w
+                    lhs, rhs, rest = right_term(a.right), right_term(b.right), right_term(a.right[j + 1:])
+                lines.append(f"  have h{i} : steps 0 {cfg_term(a)} = some {cfg_term(b)} := by")
+                lines.append(f"    simp only [steps_zero, show {lhs} = {rhs} from")
+                lines.append(f"      (rep_rotate ({x.n.lean()}) {_word(xs)} {_word(ys)} {_word(y2s)} rfl ({rest})).symm]")
+                counts.append("0")
+                hs.append(f"h{i}")
+                continue
             if x.side == "l":
                 j = len(x.x)
                 xs, ys, y2s = tuple(reversed(x.x)), tuple(reversed(x.w)), tuple(reversed(x.w2))

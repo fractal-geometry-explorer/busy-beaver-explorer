@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Seen from the left end, its tape is mostly two long runs of the word <code>100 / 1100</code> with a marker between them; seen from the right end, it is one long run of <code>1100</code> with about as many words, after a short disordered stretch. Its near-twin <code>1RB0LF_1LC0RD_1LA1LC_---0RE_0RB1RA_1LC1LF</code> does the same."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 54 (Alex Havrilla of DeepMind, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps; the C simulator shows none in 10<sup>9</sup>. How the disordered stretch evolves is not yet understood."
  ],
  "claims": [
@@ -155,5 +156,7 @@
   ]
  },
  "family": "runs of 1100 rewritten end to end",
- "summary": "Two long runs of the word 100 / 1100 at the left end turn into one run of 1100 at the right end, with about as many words, next to a short disordered stretch; the head shuttles between the ends and the width grows like t^(1/3). Accelerated run: no halt in 1.99e10 steps."
+ "summary": "Two long runs of the word 100 / 1100 at the left end turn into one run of 1100 at the right end, with about as many words, next to a short disordered stretch; the head shuttles between the ends and the width grows like t^(1/3). Accelerated run: no halt in 1.99e10 steps. Decided outside: busycoq PR 54 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
