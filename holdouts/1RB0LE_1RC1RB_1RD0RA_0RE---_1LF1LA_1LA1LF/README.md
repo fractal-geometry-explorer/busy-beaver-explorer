@@ -41,6 +41,17 @@ Open.
 - **Computed, negative**: `bbtools.ctl` K = 2..6 closes but allows halts (its right automaton doubles with K); n-gram
   CPS widths 3..7 fail.
 
+## Pascal's triangle (21 November 2026)
+
+This is the table of [`1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF`](../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/README.md) with the states renamed A→C, B→D, C→E, D→F, E→A, F→B, so that
+machine's Lean results hold here: one bounce maps the zone (a word in `u = 1110`, `v = 1111`) to the next row of
+Pascal's triangle mod 2, the rows have a closed form by Lucas' theorem, and a right turn at a frozen block of odd length
+followed by `0 1` halts (`bounce`, `closed_form`, `halts_of_odd` in `lean/Pascal.lean` and `lean/Lucas.lean`, written
+from the other machine's files by its `py/port_pascal.py`; in this machine's names the right turn is in A, the left
+sweep in E/F and the right sweep in B). In 10^9 steps of this run every right turn in A has a word in the 2-cell
+letters `11` and `01` right of the head (`c/twoletter.c` there, start state E of that table), so that never happens
+(observed). See the other machine's README for what the halting question reduces to.
+
 ## Notes for later
 
 - The natural conjecture is "every 0 inside the tape stays single". It would prove non-halting. It is not a regular

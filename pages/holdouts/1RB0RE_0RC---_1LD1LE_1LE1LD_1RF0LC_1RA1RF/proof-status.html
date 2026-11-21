@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine acts on a list of blocks of 1s: Lean proves every rule by which the head meets a block or a separator, and that it halts exactly on <code>F&gt; 0 0 1</code>. A leftward pass computes a running parity, and the run is organised in epochs that grow the tape by a factor about 1.75. In 10<sup>10</sup> steps F met two 0s in a row only at the right end of the tape, with blank tape beyond (observed). Whether that always holds is not settled.</p>
+      <p><b>The question is open.</b> Lean proves that one bounce of the head turns the zone, a word in the 4-cell letters <code>u = 1110</code> and <code>v = 1111</code>, into the next row of Pascal's triangle mod 2 (the running XOR of the word with a 1 appended), for every word, and solves the rows in closed form by Lucas' theorem. It also proves that the machine halts as soon as a right turn meets a frozen block of odd length followed by <code>0 1</code>, whatever the zone. In 10<sup>10</sup> steps that never happens: at every right turn the tape right of the head is a word in the 2-cell letters <code>11</code> and <code>01</code> (observed). Proving that invariant would settle the machine; it is not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -144,6 +144,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Only B reading 1 halts; B is entered only from A reading 0, and A only from F reading 0. So the machine halts exactly on <code>F&gt; 0 0 1</code>: F on that pattern halts within two steps (<code>halt_F</code>), and two steps before any halt the machine is in F on <code>0 0 1</code> (<code>halt_route</code>). An earlier version of this page gave the pattern as <code>F&gt; 1 0 1</code>, which was wrong.</p>
         <p class="where"><code>halt_F</code>, <code>lean/Blocks.lean</code>; <code>halt_route</code>, <code>lean/Route.lean</code> (from <code>py/route.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>One bounce is one row of Pascal's triangle mod 2</h3>
+        <p>At a right turn the head is in E just right of the zone, a word <code>w</code> in <code>u = 1110</code> (1) and <code>v = 1111</code> (0) after a prefix that is empty or one 1. If the frozen tape starts <code>1 1 1</code>, then for every word the machine reaches the next right turn with the zone <code>T(w)</code>, the running XOR from the right of <code>w 1</code>, the prefix kept or toggled by the parity of <code>w</code>, and the frozen tape two cells shorter. A block of <code>2k + 1</code> frozen cells gives <code>k</code> such bounces.</p>
+        <p class="where"><code>bounce</code>, <code>bounces</code>, with <code>sweep</code>, <code>lend</code>, <code>rsweep</code>, <code>regroup</code>, <code>lean/Pascal.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The zone after j bounces, by Lucas' theorem</h3>
+        <p>Number the letters from the right end of the zone and flip letter 0. After <code>j</code> bounces letter <code>i</code> is the XOR of the starting letters <code>d<sub>k</sub></code> with <code>C(i − k − 1, j − 1)</code> odd, and that binomial coefficient is odd exactly when <code>i − k ≥ j</code> and <code>j − 1</code>, <code>i − k − j</code> share no binary 1 (Lucas). Proved for every word and every <code>j</code>, with Pascal's rule for the bit test proved from scratch.</p>
+        <p class="where"><code>closed_form</code>, <code>diagram</code>, <code>pascal_rule</code>, <code>Q_rule</code>, <code>lean/Lucas.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A right turn at an odd frozen block halts</h3>
+        <p>Whatever the zone and prefix, a right turn with the frozen tape <code>1<sup>2k+1</sup> 0 1 ...</code> leads to a halt: <code>k</code> bounces, then F reads <code>0 0 1</code>.</p>
+        <p class="where"><code>halts_of_odd</code>, <code>halt_turn</code>, <code>lean/Pascal.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -159,6 +174,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Every turn of F is at a block of odd length, except at the right end (10<sup>10</sup> steps)</h3>
         <p>In the first 10<sup>10</sup> steps F turned 139,833 times. The block it turned at had odd length every time (3 cells 36,463 times, 5 cells 46,436, 7 cells 19,254, 9 cells 20,280, and longer), except 22 turns at a block of exactly two cells, each of which was the last block of the tape. A turn at a block of two with another block after it would leave <code>0 0 1</code> (<code>turn_two</code>). F met two 0s in a row 42 times, each time at the right end with only blank cells beyond. No halt.</p>
         <p class="where"><code>c/turns.c</code></p>
+      </div>
+      <div class="card">
+        <h3>An even frozen block: absorption</h3>
+        <p>With a block of 2 under the head the zone swallows it and the next block, and the block after that loses one cell (frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code>; if <code>c = 1</code> the next pair goes too). Checked on 20,000 random zones (up to 8 letters, both prefixes) and frozen tapes; the zone never changes the outcome.</p>
+        <p class="where"><code>py/frozen.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Right of every right turn: 2-cell letters (10<sup>10</sup> steps)</h3>
+        <p>At all 139,833 right turns in E in 10<sup>10</sup> steps, the tape from the head to the last 1 is a word in <code>11</code> and <code>01</code> starting at the head, so the block under the head has even length and every later block odd length. The block under the head had 2 to 4, 6 to 8, 10 to 16 or 18 to 32 cells (dyadic bands; once 62 and once more than 64). The same holds for 10<sup>9</sup> steps of this table started in C, D and E (the three holdouts with this table).</p>
+        <p class="where"><code>c/twoletter.c</code></p>
       </div>
       <div class="card">
         <h3>Epochs to 3·10<sup>9</sup> steps</h3>
@@ -216,6 +241,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py
+gcc -O2 -o twoletter holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/twoletter.c &amp;&amp; ./twoletter 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 10000000000
 python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean
 python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/route.py        # rewrites lean/Route.lean
 gcc -O2 -o turns holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/turns.c &amp;&amp; ./turns 10000000000
