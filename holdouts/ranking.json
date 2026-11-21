@@ -150,6 +150,18 @@
    "best": 17
   },
   {
+   "key": "xor",
+   "title": "Rule 102 machine: no danger pattern",
+   "route": "nonhalt",
+   "work": "lean",
+   "what": "The round trip is rule 102 in Lean and the danger pattern is proved to halt. A gap can reach all y only if it is a row of Pascal's triangle mod 2, so what is left is to bound the gaps that the defect jumps make.",
+   "need": "",
+   "machines": [
+    "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB"
+   ],
+   "best": 18
+  },
+  {
    "key": "r07",
    "title": "Rebuild maps and the wall invariant (R07)",
    "route": "either",
@@ -167,19 +179,7 @@
     "1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE",
     "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---"
    ],
-   "best": 21
-  },
-  {
-   "key": "xor",
-   "title": "Rule 102 machine: no danger pattern",
-   "route": "nonhalt",
-   "work": "lean",
-   "what": "The round trip is rule 102 in Lean and the danger pattern is proved to halt. A gap can reach all y only if it is a row of Pascal's triangle mod 2, so what is left is to bound the gaps that the defect jumps make.",
-   "need": "",
-   "machines": [
-    "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB"
-   ],
-   "best": 28
+   "best": 22
   },
   {
    "key": "doublers",
@@ -604,6 +604,28 @@
    "rank": 17
   },
   {
+   "m": "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
+   "id": 696,
+   "fam": "R05",
+   "famname": "Cellular-automaton sweeps: running parity and Sierpinski triangles",
+   "set": "T247",
+   "mates": 1,
+   "stage": "finite",
+   "score": 50.8,
+   "route": "nonhalt",
+   "work": "lean",
+   "kernel": 9,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Chaotic 1dCA-like in bouncer",
+   "why": "Rule 102 machine: Lean proves the round trip is rule 102 for every length, its Lucas closed form, and that the danger pattern y 10 y^n 0 halts (PR 348).",
+   "next": "Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create.",
+   "folder": "holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
+   "rank": 18
+  },
+  {
    "m": "1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD",
    "id": 44966,
    "fam": "R02",
@@ -623,7 +645,7 @@
    "why": "A clock at the right end: the last block of 1s is a binary counter with 4-cell digits, and the tick that lengthens it from 5+4j to 9+4j cells makes exactly 2^j excursions into the rest of the tape (one word map P per excursion), in E + 51·2^j − 4 steps: proved in Lean for every j, and followed on the run from blank tape for 4 ticks. Whether P always returns is open.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD",
-   "rank": 18
+   "rank": 19
   },
   {
    "m": "1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---",
@@ -645,7 +667,7 @@
    "why": "A clock: at each visit of the left end in state C the block 1^(3+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 28 phases past 5.792·10^176 steps, no halt. Halting needs C on a 1 with two 1s to its left (1 1 C>1).",
    "next": "Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next.",
    "folder": "holdouts/1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---",
-   "rank": 19
+   "rank": 20
   },
   {
    "m": "1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---",
@@ -667,7 +689,7 @@
    "why": "A clock: at each visit of the left end in state B the block 1^(3+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 14 phases to 3.634·10^18 steps, no halt. Halting needs B on a 1 with two 1s to its left (1 1 B>1).",
    "next": "Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next.",
    "folder": "holdouts/1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---",
-   "rank": 20
+   "rank": 21
   },
   {
    "m": "1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
@@ -689,7 +711,7 @@
    "why": "Up/down counters; ticks and whole tick phases proved in Lean; the rebuild found as a closed recursion on the counter (checked, not proved); halts only if a walk crosses the whole counter; with the recursion no halt in 10^8 rebuilds (more than 10^257,000,000 steps); open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---",
-   "rank": 21
+   "rank": 22
   },
   {
    "m": "1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB",
@@ -711,7 +733,7 @@
    "why": "Mirrored start of the Pascal table: every theorem there is about the table, so it applies after exchanging the tape sides; the 2-cell-letter invariant holds for 10^9 steps.",
    "next": "Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine.",
    "folder": "holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB",
-   "rank": 22
+   "rank": 23
   },
   {
    "m": "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---",
@@ -733,7 +755,7 @@
    "why": "Family 1c: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 7.28·10^4298 steps (accelerated run, never more than one defect). Open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---",
-   "rank": 23
+   "rank": 24
   },
   {
    "m": "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---",
@@ -755,7 +777,7 @@
    "why": "Family 1d: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 6.03·10^14900 steps (accelerated run, never more than one defect). Open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---",
-   "rank": 24
+   "rank": 25
   },
   {
    "m": "1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---",
@@ -777,7 +799,7 @@
    "why": "A clock: at each visit of the left end in state B the block 1^(4+3k) has grown by 3, and the word to its right has gone through 2^k applications of one map P (one trip of the head through the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run to 1.46·10^13 steps, no halt. Halting needs C on a 0 with two 1s to its left (1 1 C&gt;0).",
    "next": "Prove the second-level tick (1^a 0 D>0 1^(3+3j) 0 W, the left context 1^a 0 instead of 0 0 0) the same way and add it to the accelerated run, to follow the run past 1.4·10^13 steps; then describe P in closed form.",
    "folder": "holdouts/1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---",
-   "rank": 25
+   "rank": 26
   },
   {
    "m": "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---",
@@ -799,7 +821,7 @@
    "why": "Family 1a: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 8.47·10^1907 steps (accelerated run). Open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---",
-   "rank": 26
+   "rank": 27
   },
   {
    "m": "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---",
@@ -821,28 +843,6 @@
    "why": "Family 1b: two binary counters, E written in odd blocks left of the head counting down and N written in gaps right of it counting up (proved in Lean for every size); when E runs out the floor block becomes a new E and defects appear on the right; it halts only if two defects meet. No halt to 2.53·10^819 steps (accelerated run). Open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---",
-   "rank": 27
-  },
-  {
-   "m": "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
-   "id": 696,
-   "fam": "R05",
-   "famname": "Cellular-automaton sweeps: running parity and Sierpinski triangles",
-   "set": "T247",
-   "mates": 1,
-   "stage": "finite",
-   "score": 49.2,
-   "route": "nonhalt",
-   "work": "lean",
-   "kernel": 7,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "Rule 102 machine: Lean proves the round trip is rule 102 for every length, its Lucas closed form, and that the danger pattern y 10 y^n 0 halts (PR 348).",
-   "next": "Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create.",
-   "folder": "holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
    "rank": 28
   },
   {
