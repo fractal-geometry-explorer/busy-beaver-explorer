@@ -105,9 +105,9 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 
 **Mechanism.** A block at one end grows by 2, 3 or 4 cells per tick and tick k applies one word map P (one trip of the head) 2^k times to the word beside it; halting is possible only when a rebuild of the end goes wrong. Six tables.
 
-**Known.** The clock lemma (block growth and the 2^k trips, whenever the trips return) is proved in Lean for every k on six of them, for example `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` and `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF`. DeepMind's file lists three as cryptids.
+**Known.** The clock lemma (block growth and the 2^k trips, whenever the trips return) is proved in Lean for every k on six of them, for example `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` and `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF`. DeepMind's file lists three as cryptids. Since 21 Nov: 12 of the 15 run on these six tables, the clock is in Lean for all 12 and the exact accelerated simulator covers them all (no halt; T20 and T45 members past 10^162 to 10^202 steps). See `R02-clock-word/README.md`.
 
-**Technique.** Close the word map alone: find a regular language of words that P maps into itself and that never triggers the halting rebuild (a SAT search over automata on the word, much smaller than the whole-tape search that failed in `satctl.json`), then combine it with the clock lemma in Lean. The same pipeline serves every member; only P changes.
+**Technique.** Close the word map alone: find a regular language of words that P maps into itself and that never triggers the halting rebuild (a SAT search over automata on the word, much smaller than the whole-tape search that failed in `satctl.json`), then combine it with the clock lemma in Lean. The same pipeline serves every member; only P changes. (21 Nov: P fails at every phase end, so the word map cannot be closed alone; generic words make a phase end halt on four of the six tables, never on T88, where an invariant that forgets the word is being searched with `tools/py/satctl_forget.py`.)
 
 **Odds.** medium: the remaining question is one finite-state map per machine, not a counter race; the three DeepMind cryptids are the least likely.
 
