@@ -57,6 +57,15 @@ counters (22). `regroup.py` writes it and `families.json`, which the holdout map
 `build_overview.py` (run by `build_pages.py`) turns both into the page `pages/holdouts/families.html`, showing each
 machine's standing today.
 
+## Closest to being solved
+
+[`RANKING.md`](RANKING.md) ranks every undecided machine by how close it is to a decision and gives the next concrete
+step for each, with the top ten recommended attacks; the sortable version is
+[`pages/holdouts/ranking.html`](../pages/holdouts/ranking.html). `rank.py` writes both and `ranking.json` from what the
+repository records (index rows, `status.json`, `families.json`, the Collatz triage, the number-theory ranking), and
+`build_pages.py` reruns it, so a machine drops off the ranking when it is decided. The score is a judgement, not a
+result.
+
 ## Related machines
 
 Many of the 608 are tied to one another, in four different ways that must not be confused: the same table started in
