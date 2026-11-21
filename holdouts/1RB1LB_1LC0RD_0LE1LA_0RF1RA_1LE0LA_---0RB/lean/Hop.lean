@@ -10,7 +10,8 @@ words before the word in front of `T` and `G` for the gap (words, `x = false`, `
   defect's frame the whole line `P x (T as y) G y` is one row of rule 102 (`x102_shielded` below).
 * `jump`: with `y` in front, `P y T y^j x^(a+1) C y 0` (`C` empty or starting with `y`) becomes
   `x102 (P y) x, x^(j+a+1), T, x102 (C y) y, 1`.  The defect jumps over the `y`s and the first block of `x`s and lands
-  in the block's last slot; the words it jumped over become `x`, so the next `j + a + 1` sweeps are shielded.
+  in the block's last slot; the words it jumped over become `x`.
+* `clock`: so the next `j + a + 1` sweeps are shielded, and the one after them is again a jump.
 * With no `x` in the gap, `P y T y^n 0` halts (`danger_halts` in `Danger.lean`).
 
 So the danger pattern is the jump with nothing to jump to.  Both rules are checked against the machine for all short
