@@ -128,6 +128,31 @@ halt still needs, at such a sweep, a `y` or `0` before the `10` (in the data it 
 question is now about binary digits: which gaps the right end hands to a newborn `10`, and what word stands before the
 defect at the sweeps `t = 2^b - 1 - s mod 2^b`.
 
+## In the frame of a `10` defect (21 November 2026)
+
+`c/defect10.c` prints, at every new left cell up to 9·10^6 steps, each bulk `10` (more than 30 tokens from the right end)
+with the 80 tokens before it and the gap after it; `py/defect_frame.py` reads the sweeps where something near the defect
+changed (59 of them, in the three long lifetimes starting near 2.2, 4.1 and 6.6 million steps, gap closed by a `0` wall):
+
+* **When the word before the `10` is `x`, everything is linear.** Keep the defect in place and index words left to right.
+  Then the words before it go from `l` to `l'[i] = l[i-1] xor l[i]`, and the gap goes from `g` to
+  `g'[j] = g[j-1] xor g[j]` with a `y` in place of the defect. That is one rule-102 line, information flowing to the
+  right, with the defect a cell pinned at `y`: it swallows the word before it each sweep and emits `y` into the gap.
+  All 50 sweeps with `x` before the defect follow it, on both sides (45 of 45 gap updates of unchanged length).
+* **So the word before the defect is a Lucas sum**: `t` sweeps after a start, it is the XOR of the words `L_(1+k)`
+  (the `k`-th word left of the defect at the start) over the `k` whose binary digits lie inside those of `t`. At a
+  birth (`y 0 x^k 0 -> x^(k+1) 10`) the defect has `k + 1` `x`s before it, so the word before stays `x` for at least
+  `k` sweeps. The prediction holds for 36 sweeps in total, each time up to the first sweep with `y` before the defect.
+* **When the word before is `y`, the defect hops**: the 9 other sweeps are exactly the ones with `y` before the `10`. The
+  defect moves back one or two tokens and the gap shrinks, and the linear picture restarts. If the gap were all `y`
+  at such a sweep it would be `y 10 y^n 0`, the danger pattern.
+
+So the danger pattern is a coincidence of two Lucas sums: the gap, whose all-`y` times are `t = 2^b - 1 - s` (mod
+`2^b`) for a gap that is Pascal row `s`, and the word before the defect, which is `y` at the `t` where the digit-masked XOR
+of the left words is 1. In the data the two never coincide: all 93 snapshots with an all-`y` gap have `x` before the defect, and
+every `y` before the defect came with a gap that was not all `y`. A proof along these lines would have to control the left words that a newborn defect sees, which are rule-102 images of
+the bulk, and the hops.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
