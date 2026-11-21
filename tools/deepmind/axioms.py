@@ -104,7 +104,8 @@ def add_claim(M, c):
 
 # halts-iff maps this repository proves itself (lean/Map.lean, lean/Iff.lean, lean/DMMap.lean)
 SKIP_MAPS = {"1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA", "1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE",
-             "1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC"}
+             "1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC", "1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE"}
+# and every machine whose lean/DMMap.lean proves DeepMind's statement (tools/deepmind/dmproof.py)
 
 
 def _blocks(src):
@@ -232,7 +233,7 @@ def main(argv):
     with open(argv[1]) as f:
         maps = json.load(f)
     for M, e in maps.items():
-        if M in SKIP_MAPS:
+        if M in SKIP_MAPS or os.path.exists(os.path.join(ROOT, "holdouts", M, "lean", "DMMap.lean")):
             continue
         mod = os.path.join(argv[2], *e["module"].split(".")) + ".lean"
         with open(os.path.join(ROOT, "holdouts", M, "lean", "DeepMindMap.lean"), "w") as f:

@@ -56,6 +56,7 @@ for Antihydra.
 | kernel | `blank_reaches_E` (E(4, 124) after 9008 steps), `orbit_sound` (the run is the orbit while the counter is positive), **`not_halts_of_good`** (a counter that never runs out ⇒ no halt) | `lean/Orbit.lean` |
 | kernel | the counter stays positive for 1,000 rounds: no halt in more than 10²⁵⁰ steps (`no_halt_kernel`, `kernel_bound`) | `lean/Orbit.lean` |
 | native | 20,000 rounds: no halt in more than 10⁵⁰⁰⁰ steps (`no_halt_native`, `native_bound`); the counter is then 60,462 | `lean/Orbit.lean` |
+| kernel | **`deepmind_halts_iff`: halts iff the orbit of DeepMind's map stops** (was a cited axiom); each clause of the map is a rule of `lean/DMRules.lean`, written by `tools/deepmind/dmproof.py` | `lean/DMMap.lean` |
 | trusted | 10⁶ rounds after step 1.08·10¹⁰ without the counter going below 58; the map against direct simulation (25 consecutive E-events of the blank run up to 1.1·10¹⁰ steps with exact step counts; all 546 starts 1 ≤ a ≤ 7, 2 ≤ m ≤ 79) | `py/emap.py` |
 | heuristic | random walk with drift +3: P(counter ever runs out) ≈ 10^−28,700 | above |
 
