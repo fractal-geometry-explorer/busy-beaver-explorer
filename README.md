@@ -37,6 +37,9 @@ Explorations of six-state Busy Beaver machines.
   ([`README.md`](bb6-vampire-family/README.md)).
 - [`holdouts/FAMILIES.md`](holdouts/FAMILIES.md): the 554 undecided holdouts regrouped (20 November 2026) into
   families that one proof technique could settle together, ranked, with the technique recommended for each.
+- [`holdouts/RANKING.md`](holdouts/RANKING.md): every undecided holdout ranked by how close it is to a decision, with
+  the next concrete step for each and the top ten recommended attacks; sortable page
+  [`pages/holdouts/ranking.html`](pages/holdouts/ranking.html).
 - [`tools/collatz/TRIAGE.md`](tools/collatz/TRIAGE.md): the 98 Collatz-like holdouts (family R15) sorted by their next
   step (halt hunt, outside proof, prove the map, decode, number theory), with long halt-hunt runs; interactive version
   with an in-browser map runner: [`pages/holdouts/collatz-family.html`](pages/holdouts/collatz-family.html).

@@ -620,7 +620,7 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  from what others report (__ASOF__).</p>
  <p><b>New:</b> the <a href="recent.html">latest results</a>, newest first, and the
  <a href="families.html">families of the undecided machines</a>, each family with its mechanism, what is known and the
- technique that could settle it.</p>
+ technique that could settle it, and the <a href="ranking.html">machines closest to being solved</a>.</p>
 </header>
 
 <section class="panel">
@@ -873,6 +873,8 @@ def main(argv):
     build_index()
     import build_overview  # noqa: E402  (families.html and recent.html, which read the index rows)
     build_overview.build()
+    import rank  # noqa: E402  (ranking.html, RANKING.md and ranking.json, which read the index rows)
+    rank.main()
 
 
 if __name__ == "__main__":
