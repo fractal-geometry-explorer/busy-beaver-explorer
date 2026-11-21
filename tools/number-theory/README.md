@@ -39,10 +39,12 @@ non-halting with no number theory. `wallstack.py` explores that set with the sta
   in J binary digits. Among the reachable walls no run gets past 10% of the length needed
   (`wallstack.py margin 3000`).
 
-So the remaining step is a statement about 2-adic digits (no long run of zeros in a few explicit 2-adic numbers),
-not about the orbit of N. That is a much better position than the other 39, but it is still not a proof. For a
-proof one also needs the stack rules for every stack in Lean (today only the cell-level step map is proved, for
-each concrete wall).
+So the remaining step is a statement about 2-adic digits, not about the orbit of N. The stack rules for every
+stack are now proved in Lean (`holdouts/<machine>/lean/Stack.lean`). The 2-adic statement is spelled out in that
+machine's README ("What the 2-adic condition says"): no 2-adic number rho(V), over the stacks V that occur, may
+have a run of zero digits from position p to about 2^p/6. The stacks V form an infinite family, so this is not a
+finite check. It is in the same class as Antihydra, but heuristically far safer. This is a much better position
+than the other 39, but it is still not a proof.
 
 **Three machines iterate one function.** 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE,
 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE (in the coordinate N = 2n + 2) and
