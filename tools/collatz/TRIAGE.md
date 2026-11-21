@@ -6,9 +6,9 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 |---|---|---|
 | Halt hunt | 7 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
-| Prove the map | 19 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
+| Prove the map | 16 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
 | Decode | 30 | The round or phase map is not closed yet and has to be read off the machine first. |
-| Number theory | 40 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
+| Number theory | 43 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
 
@@ -136,7 +136,7 @@ A busycoq pull request claims a decision. Compile it.
 - **Next step:** Check busycoq PR 67's nonhalting proof; internally, prove the outer event and the 3-ones inner round to complete the two-level map.
 
 
-## Prove the map (19)
+## Prove the map (16)
 
 The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map.
 
@@ -187,18 +187,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 6.45e207473 steps region-memo accelerator and 1.02e54653 rle accelerator (trusted); 20,000 exact phases (n 11,704 bits, trusted); 284,777 class-map rounds (~10^101,766 steps, heuristic); 10^7 steps native_decide.
 - **Odds:** about one chance in 2^40 per return to the empty word; halts with probability 1 after about 2^40 phases, n about 10^11 digits
 - **Next step:** Prove the word map (halts-iff to the parity sequence) in Lean; the halt itself, ~2^40 phases away, is beyond computation.
-
-### [`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB`](../../holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/README.md)
-
-*map-partial, outlook probviously-nonhalting, table set T70*
-
-- **Map:** E(a,m) = 1 0 0 (10)^a 0^m E> 1. For a >= 1, m >= 2: m=3k -> E(a+6,4k+4); m=3k+1 -> E(a-1,4k+7); m=3k+2 -> E(a+4,4k+4).
-- **Halts when:** Can only halt when the counter a runs out (a = 0 with m = 1 mod 3, and then only for some gaps; others become a translated cycler or restart the counter); the a = 0 case is not decoded as a map.
-- **From blank tape:** E(4,124) at step 9,008
-- **Proved:** emap_sound in lean/Map.lean and orbit_sound / not_halts_of_good in lean/Orbit.lean (kernel): if the counter never runs out the machine never halts (one direction only); DeepMind's halts-iff map available only as a cited axiom (deepmind_halts_iff, lean/DeepMindMap.lean).
-- **Checked:** 20,000 map steps native_decide (>10^5000 steps, counter 60,462); 1,000 kernel; 10^6 map steps Python (counter never below 58); regaccel 1.64x10^177574 steps.
-- **Odds:** ~10^-28,700 from where Lean leaves it (10^-27.6 from a = 58)
-- **Next step:** none: pure number theory (random walk with drift +3; optionally prove the a = 0 cases to get a full halts-iff without the cited DeepMind axiom).
 
 ### [`1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---`](../../holdouts/1RB0LC_1RC1RE_1LA0LD_0RB0RA_1RB1RF_1RD---/README.md)
 
@@ -296,18 +284,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Odds:** astronomically small (carry depth has an exponential tail, tail of 1,311 digits grows linearly)
 - **Next step:** Prove the full reset map F (finite list of parametric reset shapes plus merging e = 0 digits) and glue it to epoch to get halts_iff.
 
-### [`1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE`](../../holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/README.md)
-
-*map-partial, outlook unclear, table set T273*
-
-- **Map:** X(k,m) = A>0 0 (10)^k 1^m 0, k >= 1: m >= 4 (or m = 3, k even): k = 2j -> X(3j+3, m-2), k = 2j+1 -> X(3j+5, m-3); m = 3, k odd -> X(3j+4, 1); m = 2: k even -> X(2, 3k+5), k odd halts; m = 1: k odd -> X(2, 3k+3), k even runs right forever; m = 0: k even -> X(2, 3k), k odd runs right forever.
-- **Halts when:** Countdown reaches m = 2 with k odd (halts); m = 1 with k even or m = 0 with k odd is a non-halting translated cycler.
-- **From blank tape:** X(1,1) at step 24
-- **Proved:** Only the cited DeepMind axiom deepmind_halts_iff (lean/DeepMindMap.lean, not proved in the repo); the macro rules are checked by simulation (k < 40, m < 14), not in Lean.
-- **Checked:** Three epochs computed exactly (m = 6, 41, 16,169; third epoch ends after 6,456 macro steps); rleaccel 1.02x10^41433 steps; region-memo 3.85x10^213008 steps.
-- **Odds:** halts with probability 2/5 (runs away 3/5); 1/5 halt per epoch
-- **Next step:** Prove the macro rules in Lean for a repo-native halts-iff; the fourth epoch (m with 1,139 digits) is out of reach.
-
 ### [`1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD`](../../holdouts/1RB1LE_1LB1LC_1RD0LE_---0RB_1RF1LA_0RA0RD/README.md)
 
 *map-partial, outlook probviously-nonhalting, table set T278*
@@ -331,18 +307,6 @@ The map is explicit but not yet a Lean halts-iff. Proof engineering would make t
 - **Checked:** 3x10^8 map iterations exact Python (blocks ~1,000 bits); map matches run at 214 marker moments to 3.7x10^7 steps; rleaccel 2.21x10^88 steps trusted.
 - **Odds:** 'a halt looks very unlikely' (chance of exact hit shrinks as blocks grow); no number given
 - **Next step:** Prove the fitted map in Lean (doubling pass by induction and the overflow cases) to get a halts-iff reduction.
-
-### [`1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC`](../../holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/README.md)
-
-*map-partial, outlook halts-late, table set T295*
-
-- **Map:** X(n, m) = 0^inf C>0 0^n 1^m 0 1, n even: m >= 2: n = 0 mod 4 -> X(3n/2+4, m-1), n = 2 mod 4 -> X((3n+10)/2, m-2); m = 1: n = 0 -> X(3n/2+4, 0), n = 2 -> new epoch X(4, 3n/2+6); m = 0: n = 0 -> X(4, 3n/2+5), n = 2 -> halt. Equivalently y = n/2+4, y -> ceil(3y/2), m -1 (y even) / -2 (y odd).
-- **Halts when:** Halts at X(n, 0) with n = 2 mod 4.
-- **From blank tape:** X(4, 5) at step 50; epochs start with m = 5, 57, 210,273,201, then m of 82,000,544 bits
-- **Proved:** Shift rules/blank run only in this repo's Lean; the macro map is checked by simulation (even n < 60, m < 12); DeepMind's halts-iff map is a cited axiom in lean/DeepMindMap.lean.
-- **Checked:** Third epoch exactly (140,180,848 macro steps, divide-and-conquer parity iteration with GMP); 10^7 steps native_decide; 2.42e65295 steps rleaccel_rec.
-- **Odds:** each epoch halts with probability 1/3, so halts with probability 1, but the fourth epoch lasts ~10^24,684,623 macro steps
-- **Next step:** Prove the macro rules in Lean for a halts-iff reduction; the halting question itself is out of computational reach.
 
 ### [`1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---`](../../holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/README.md)
 
@@ -718,9 +682,45 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Next step:** Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.
 
 
-## Number theory (40)
+## Number theory (43)
 
 Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that.
+
+### [`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB`](../../holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/README.md)
+
+*reduced, outlook probviously-nonhalting, table set T70*
+
+- **Map:** E(a,m) = 1 0 0 (10)^a 0^m E> 1. For a >= 1, m >= 2: m=3k -> E(a+6,4k+4); m=3k+1 -> E(a-1,4k+7); m=3k+2 -> E(a+4,4k+4).
+- **Halts when:** Can only halt when the counter a runs out (a = 0 with m = 1 mod 3, and then only for some gaps; others become a translated cycler or restart the counter); the a = 0 case is not decoded as a map.
+- **From blank tape:** E(4,124) at step 9,008
+- **Proved:** emap_sound in lean/Map.lean and orbit_sound / not_halts_of_good in lean/Orbit.lean (kernel): if the counter never runs out the machine never halts; deepmind_halts_iff in lean/DMMap.lean (kernel): halts iff the orbit of DeepMind's map stops, every clause a rule of lean/DMRules.lean (written by tools/deepmind/dmproof.py).
+- **Checked:** 20,000 map steps native_decide (>10^5000 steps, counter 60,462); 1,000 kernel; 10^6 map steps Python (counter never below 58); regaccel 1.64x10^177574 steps.
+- **Odds:** ~10^-28,700 from where Lean leaves it (10^-27.6 from a = 58)
+- **Next step:** none: pure number theory (random walk with drift +3).
+
+### [`1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE`](../../holdouts/1RB1LE_0LC0LB_1RD1LC_1RD1RA_1RF0LA_---1RE/README.md)
+
+*reduced, outlook unclear, table set T273*
+
+- **Map:** X(k,m) = A>0 0 (10)^k 1^m 0, k >= 1: m >= 4 (or m = 3, k even): k = 2j -> X(3j+3, m-2), k = 2j+1 -> X(3j+5, m-3); m = 3, k odd -> X(3j+4, 1); m = 2: k even -> X(2, 3k+5), k odd halts; m = 1: k odd -> X(2, 3k+3), k even runs right forever; m = 0: k even -> X(2, 3k), k odd runs right forever.
+- **Halts when:** Countdown reaches m = 2 with k odd (halts); m = 1 with k even or m = 0 with k odd is a non-halting translated cycler.
+- **From blank tape:** X(1,1) at step 24
+- **Proved:** deepmind_halts_iff in lean/DMMap.lean (kernel): halts iff the orbit of DeepMind's map stops, every case a rule of lean/DMRules.lean; the passes are an induction (rounds). The macro rules above are checked by simulation (k < 40, m < 14).
+- **Checked:** Three epochs computed exactly (m = 6, 41, 16,169; third epoch ends after 6,456 macro steps); rleaccel 1.02x10^41433 steps; region-memo 3.85x10^213008 steps.
+- **Odds:** halts with probability 2/5 (runs away 3/5); 1/5 halt per epoch
+- **Next step:** none: the fourth epoch (m with 1,139 digits) is out of reach; optionally a Lean link from DeepMind's map to the epoch game.
+
+### [`1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC`](../../holdouts/1RB1RA_0RC1RC_1LD0LF_0LE1LE_1RA0LB_---0LC/README.md)
+
+*reduced, outlook halts-late, table set T295*
+
+- **Map:** X(n, m) = 0^inf C>0 0^n 1^m 0 1, n even: m >= 2: n = 0 mod 4 -> X(3n/2+4, m-1), n = 2 mod 4 -> X((3n+10)/2, m-2); m = 1: n = 0 -> X(3n/2+4, 0), n = 2 -> new epoch X(4, 3n/2+6); m = 0: n = 0 -> X(4, 3n/2+5), n = 2 -> halt. Equivalently y = n/2+4, y -> ceil(3y/2), m -1 (y even) / -2 (y odd).
+- **Halts when:** Halts at X(n, 0) with n = 2 mod 4.
+- **From blank tape:** X(4, 5) at step 50; epochs start with m = 5, 57, 210,273,201, then m of 82,000,544 bits
+- **Proved:** deepmind_halts_iff in lean/DMMap.lean (kernel): halts iff the orbit of DeepMind's map stops, every clause a rule of lean/DMRules.lean (written by tools/deepmind/dmproof.py). The macro map is checked by simulation (even n < 60, m < 12).
+- **Checked:** Third epoch exactly (140,180,848 macro steps, divide-and-conquer parity iteration with GMP); 10^7 steps native_decide; 2.42e65295 steps rleaccel_rec.
+- **Odds:** each epoch halts with probability 1/3, so halts with probability 1, but the fourth epoch lasts ~10^24,684,623 macro steps
+- **Next step:** none: the halting question is out of computational reach; optionally a Lean link from DeepMind's map to the epoch game.
 
 ### [`1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD`](../../holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/README.md)
 
