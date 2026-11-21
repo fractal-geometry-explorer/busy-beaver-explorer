@@ -648,7 +648,8 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <a href="families.html">families page</a>, and the reasoning is in
  <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/holdouts/FAMILIES.md">FAMILIES.md</a>.
  The 40 machines already reduced to a question about a map are ranked by how likely a proof is on the
- <a href="number-theory.html">number-theory page</a>.</p>
+ <a href="number-theory.html">number-theory page</a>, and the open problem each one reduces to is written out on the
+ <a href="open-problems.html">open-problems page</a>.</p>
  <div class="fams" id="fams"></div>
 </section>
 

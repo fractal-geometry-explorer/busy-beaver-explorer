@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Open problems behind the holdouts</title>
+<meta name="description" content="For each of the 39 Collatz-hard BB(6) holdouts: the map Lean reduces it to, the exact halting condition, a probabilistic heuristic, and the known open problem it resembles, with a runner for the simpler maps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Martian+Mono:wght@400;500;700&display=swap">
+<style>
+:root {
+  --paper: #EEF1F5; --surface: #FFFFFF; --ink: #142033; --muted: #5A6679; --rule: #D0D8E2; --link: #2B59CF;
+  --kernel: #1F7A4D; --kernel-bg: #E2F3EA; --native: #8A5A00; --native-bg: #FBF0D9;
+  --comp: #5B3FB8; --comp-bg: #ECE7FA; --heur: #3D5A80; --heur-bg: #E3EAF3; --open: #B3261E; --open-bg: #FBE6E4;
+  --c1: #2B59CF; --c2: #1F7A4D; --c3: #B3261E; --c4: #8A5A00; --c5: #5B3FB8; --grid: #DDE3EA;
+  --font-display: "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 6px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+    --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+    --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+    --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0E131A; --surface: #161E29; --ink: #E5EBF3; --muted: #95A2B4; --rule: #2B3644; --link: #7C9DFF;
+  --kernel: #6FD3A0; --kernel-bg: #15301F; --native: #F0C060; --native-bg: #33280F;
+  --comp: #B9A6F5; --comp-bg: #251C42; --heur: #9DB8DA; --heur-bg: #1B2838; --open: #FF8A80; --open-bg: #3A1714;
+  --c1: #7C9DFF; --c2: #6FD3A0; --c3: #FF8A80; --c4: #F0C060; --c5: #B9A6F5; --grid: #263140;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 56px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); line-height: 1.2; }
+h2 { font-size: 1.05rem; line-height: 1.35; }
+h3 { font-size: 0.88rem; line-height: 1.4; }
+p, ul, ol { margin: 0; }
+ul, ol { padding-left: 1.3em; display: grid; gap: 6px; }
+a { color: var(--link); }
+code { font-family: var(--font-display); font-size: 0.8em; overflow-wrap: anywhere; }
+.top { display: grid; gap: 12px; max-width: 72ch; }
+.crumb { font-size: 0.9rem; }
+.eyebrow { font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 14px; }
+.prose { display: grid; gap: 12px; max-width: 72ch; }
+.verdict { background: var(--surface); border: 1px solid var(--rule); border-left: 4px solid var(--link); border-radius: var(--r); padding: 16px 18px; display: grid; gap: 10px; }
+.tag { display: inline-block; font-family: var(--font-display); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.03em; padding: 1px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 0.1em; }
+.t-kernel { color: var(--kernel); background: var(--kernel-bg); }
+.t-native { color: var(--native); background: var(--native-bg); }
+.t-comp { color: var(--comp); background: var(--comp-bg); }
+.t-heur { color: var(--heur); background: var(--heur-bg); }
+.t-open { color: var(--open); background: var(--open-bg); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.card .big { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
+.card p { font-size: 0.92rem; }
+.small { font-size: 0.85rem; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.tbl { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+.tbl th, .tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.tbl th { font-family: var(--font-display); font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+.tbl td.num { font-family: var(--font-display); font-size: 0.78rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.controls label { font-size: 0.88rem; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+select, input[type=number], button { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 5px 9px; }
+button { cursor: pointer; background: var(--surface); }
+button:hover { border-color: var(--link); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.seg button[aria-pressed=true] { background: var(--link); color: var(--surface); border-color: var(--link); }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--font-display); font-size: 10px; fill: var(--muted); }
+.mono { font-family: var(--font-display); font-size: 0.76rem; overflow-wrap: anywhere; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(14px, 1fr)); gap: 2px; }
+.strip span { height: 14px; border-radius: 2px; background: var(--grid); }
+.strip span.on { background: var(--c1); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.out { font-family: var(--font-display); font-size: 0.74rem; line-height: 1.55; max-height: 220px; overflow: auto; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font-display); font-size: 0.72rem; border: 1px solid var(--rule); background: var(--surface);
+  color: var(--ink); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--link); border-color: var(--link); color: var(--surface); }
+input[type=search], input[type=text], select { font: inherit; padding: 4px 8px; border: 1px solid var(--rule);
+  border-radius: var(--r); background: var(--surface); color: var(--ink); max-width: 100%; }
+button.b { font: inherit; font-size: 0.85rem; padding: 4px 12px; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); cursor: pointer; }
+button.b:hover { border-color: var(--link); }
+.fam { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px;
+  display: grid; gap: 8px; }
+.fam .q { font-weight: 700; }
+.fam .n { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); }
+.mc { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); }
+.mc summary { cursor: pointer; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.mc summary code { font-size: 0.78rem; }
+.mc .body { padding: 0 14px 14px; display: grid; gap: 8px; }
+.mc dl { display: grid; grid-template-columns: minmax(7em, max-content) 1fr; gap: 6px 12px; margin: 0; }
+.mc dt { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); padding-top: 3px; }
+.mc dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .mc dl { grid-template-columns: 1fr; } .mc dt { padding-top: 6px; } }
+.rk { font-family: var(--font-display); font-size: 0.72rem; color: var(--muted); }
+.list { display: grid; gap: 8px; }
+.out { font-family: var(--font-display); font-size: 0.72rem; }
+.out td { white-space: nowrap; }
+.hit { color: var(--open); font-weight: 700; }
+section > *, .panel > * { min-width: 0; }
+#rsel { width: 100%; }
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / <a href="index.html">holdouts</a> / open problems</p>
+  <p class="eyebrow">39 machines, 7 kinds of question</p>
+  <h1>Which open problem does each holdout reduce to?</h1>
+  <p>The <a href="number-theory.html">number-theory ranking</a> judged 39 holdouts to be genuinely Collatz-hard.
+  For each one, Lean proves that the machine halts if and only if an explicit map does something specific. This page
+  writes each of those questions down exactly: the map, the halting condition, how far it has been checked, a
+  probabilistic guess, and the known problem it most resembles. None of the 39 is decided.</p>
+</header>
+
+<section class="verdict">
+  <p><b>The 39 questions fall into seven kinds.</b> Every one of them asks about one specific orbit of a map of the kind
+  Conway showed can be undecidable in general. The strongest known results, like Tao's on Collatz, cover almost all
+  starting values but never one given orbit.</p>
+  <ul>
+    <li><span class="tag t-kernel">kernel</span> For 34 machines Lean proves "halts if and only if the map's
+    condition is met", with no unproved assumption.</li>
+    <li><span class="tag t-native">one way</span> For 4, Lean proves the direction that matters for
+    non-halting: if the condition is never met, the machine never halts.</li>
+    <li><span class="tag t-open">partial</span> For 1, the rules of a period are proved but the reset
+    table is still measured.</li>
+    <li><span class="tag t-heur">heuristic</span> 31 are expected never to halt. In each case the estimated chance
+    of a later halt is small and shrinks as the orbit grows, down to 2<sup>-800,000</sup>. The 8 "epoch" machines are
+    expected to halt eventually, but only after an epoch whose outcome no computation can reach.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The seven kinds of question</h2>
+  <div class="list"><div class="fam" id="fam-sparse">
+  <h3>Landing on a sparse target</h3>
+  <p class="n">11 machines: ranks 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16</p>
+  <p class="q">Does the orbit of an expanding piecewise-affine map ever land exactly on a sparse set, with about one target per doubling of scale (numbers like 5·2^k − k − 6)?</p>
+  <p><b>Heuristic.</b> At scale N an orbit point hits a target with chance about c/N. The orbit grows geometrically, so the chances form a convergent geometric series dominated by its first unchecked term.</p>
+  <p class="small">Related: <a href="#rel-collatz">The Collatz</a>, <a href="#rel-conway">Conway</a>, <a href="#rel-tao">Tao</a></p>
+</div><div class="fam" id="fam-euclid">
+  <h3>Euclid&#x27;s algorithm with multiplication</h3>
+  <p class="n">7 machines: ranks 3, 15, 18, 19, 20, 21, 22</p>
+  <p class="q">Two counts play a subtractive Euclid game in which the smaller count is also multiplied (by 2 or 3) each round. Do the two counts ever come out equal, or off by one exact small constant?</p>
+  <p><b>Heuristic.</b> The ratio of the two counts moves like a chaotic orbit of an expanding interval map, so the difference is about as large as the counts. Hitting one exact value has chance about 1/size per round, and the sizes grow geometrically.</p>
+  <p class="small">Related: <a href="#rel-collatz">The Collatz</a>, <a href="#rel-conway">Conway</a>, <a href="#rel-residue">No residue obstruction</a></p>
+</div><div class="fam" id="fam-dyadic">
+  <h3>Powers of two in a 2-adic valuation sequence</h3>
+  <p class="n">5 machines: ranks 23, 24, 25, 26, 27</p>
+  <p class="q">Write D = 2^v (2a + 1). The sequence D -&gt; D + a + v + c (Katelyn Doucette&#x27;s form) or a base-3 analogue. Does it ever reach a power of two (or of three)?</p>
+  <p><b>Heuristic.</b> If the low digits of the terms are random, an n-bit term is a power of two with chance about 2^-n. The terms grow geometrically, so the total chance after the computed terms is negligible.</p>
+  <p class="small">Related: <a href="#rel-spaceneedle">Space Needle and Doucette&#x27;s sequences</a>, <a href="#rel-erdos3">Erdős&#x27;s ternary digits of 2^n</a>, <a href="#rel-collatz">The Collatz</a></p>
+</div><div class="fam" id="fam-drift">
+  <h3>Antihydra-type walk with drift</h3>
+  <p class="n">4 machines: ranks 28, 29, 30, 31</p>
+  <p class="q">A number is multiplied by about 3/2 or 4/3 each round, and a counter goes up or down by its last digit (parity, or residue mod 3). The counter drifts upward. Does it ever reach zero?</p>
+  <p><b>Heuristic.</b> If the digits behave like fair coins or dice, the counter is a random walk with positive drift. From height h it ever returns to zero with chance ρ^h (gambler&#x27;s ruin), and h is already in the thousands to hundreds of thousands.</p>
+  <p class="small">Related: <a href="#rel-mahler">Mahler&#x27;s 3/2 problem</a>, <a href="#rel-antihydra">Antihydra</a>, <a href="#rel-gambler">Gambler&#x27;s ruin</a>, <a href="#rel-collatz">The Collatz</a></p>
+</div><div class="fam" id="fam-nested">
+  <h3>Nested counters and stacks</h3>
+  <p class="n">3 machines: ranks 2, 13, 32</p>
+  <p class="q">A fast 3/2 counter drives a stack of slower counters, or a small counter must catch up with a large one. Does the whole stack ever empty, or the small counter ever reach the threshold?</p>
+  <p><b>Heuristic.</b> The depth that the fast counter reaches into the stack falls off geometrically while the stack grows. Emptying it needs a run of coincidences, each about as unlikely as a Collatz hit.</p>
+  <p class="small">Related: <a href="#rel-mahler">Mahler&#x27;s 3/2 problem</a>, <a href="#rel-antihydra">Antihydra</a>, <a href="#rel-collatz">The Collatz</a></p>
+</div><div class="fam" id="fam-digits">
+  <h3>Digit recursion in base 6</h3>
+  <p class="n">1 machine: ranks 17</p>
+  <p class="q">A number is peeled digit by digit in base 6. Does the recursion ever end exactly on a repunit-type value (a block of trailing base-6 digits that runs off the end)?</p>
+  <p><b>Heuristic.</b> For a block of D base-6 digits the halting pattern has chance about 6^-D, and D grows by a constant per round.</p>
+  <p class="small">Related: <a href="#rel-erdos3">Erdős&#x27;s ternary digits of 2^n</a>, <a href="#rel-collatz">The Collatz</a></p>
+</div><div class="fam" id="fam-epoch">
+  <h3>Decision at the end of an exponentially long epoch (probably halts)</h3>
+  <p class="n">8 machines: ranks 33, 34, 35, 36, 37, 38, 39, 40</p>
+  <p class="q">A 3/2 or 4/3 iteration runs for a precisely determined, exponentially long epoch. At its end one parity or residue decides between halting and a new, vastly longer epoch. Which residue comes up?</p>
+  <p><b>Heuristic.</b> Each epoch end halts with a fixed chance p (1/5 to 3/4). So the machine halts with probability 1, but the next undecided epoch is far beyond any computation: deciding it needs one specific bit of an iterate with billions of digits or more.</p>
+  <p class="small">Related: <a href="#rel-mahler">Mahler&#x27;s 3/2 problem</a>, <a href="#rel-hydra">Hydra</a>, <a href="#rel-collatz">The Collatz</a></p>
+</div></div>
+</section>
+
+<section>
+  <h2>The 39 machines</h2>
+  <div class="prose"><p>Open a machine to see its question. "kernel" means the halts-iff statement is a Lean theorem
+  checked by the kernel. The heuristic is a model, not a theorem.</p></div>
+  <div class="controls">
+    <div class="chips" id="famchips"></div>
+    <input type="search" id="q" placeholder="filter: machine, map, word" aria-label="filter the machines">
+  </div>
+  <div class="list" id="cards"><details class="mc" data-fam="nested" data-text="1rb1re_1lc1lb_1le0ld_1le1lc_0rf1ra_---1ra r0 += 2; the first odd run r_j is joined with the next one (w = r_j + r_(j+1) + 2), and an even-run cascade runs left. level by level, an epoch counter follows m&#x27; = 3m/2 + d (d ∈ {−2, +1, +4} for even m, {−1/2, +5/2} for odd m), and its parities drive a stack of slower counters. a visit at which every run is even (so the whole stack must be used up) nested counters and stacks" id="m-2">
+<summary><span class="rk">#2</span> <code>1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Nested counters and stacks</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>runs of 1s [r0, r1, ..., rk] at each visit of the left end</dd>
+<dt>map</dt><dd>r0 += 2; the first odd run r_j is joined with the next one (W = r_j + r_(j+1) + 2), and an even-run cascade runs left. Level by level, an epoch counter follows m&#x27; = 3m/2 + d (d ∈ {−2, +1, +4} for even m, {−1/2, +5/2} for odd m), and its parities drive a stack of slower counters.</dd>
+<dt>halts iff</dt><dd>a visit at which every run is even (so the whole stack must be used up)</dd>
+<dt>start</dt><dd>[12, 1^9] at step 423</dd>
+<dt>Lean</dt><dd><code>lean/Visit.lean halts_iff: HaltsFromBlank ↔ ∃ n, orbit n = none</code></dd>
+<dt>heuristic</dt><dd>The depth reached into the stack falls off geometrically while the stack grows linearly, so emptying it is very unlikely. An adversarial search over parities found no halting class among 5,000 contexts. The number of even runs is always odd, but that does not rule out a halt.</dd>
+<dt>checked</dt><dd>260,000 epochs (about 10^91,568 steps)</dd>
+<dt>not proved</dt><dd>none in the reduction; an invariant on run parities would settle it (tier B)</dd>
+<dt>ranking</dt><dd>tier B, run stack. Next step: Search for an invariant on run parities, using the Lean visit map.</dd>
+</dl>
+<p class="small"><a href="1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/explainer.html">explainer</a> · <a href="1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA">folder</a></p>
+</div></details><details class="mc" data-fam="euclid" data-text="1rb0lc_0lc1rf_1le1rd_0rc1rc_0la1la_---1ra b odd: a -&gt; about 3a/2 (by a mod 4) and b moves by −5, 0, +8 or +3. both even: the smaller is subtracted from the larger and a is tripled, swapping when b was smaller (16 rows per letter). b = 1 with a ≡ 0 (mod 4) euclid&#x27;s algorithm with multiplication" id="m-3">
+<summary><span class="rk">#3</span> <code>1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA</code> <span class="tag t-native">one way</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>U(a, b) = A&gt; 011011 1^a 0 1^b or V(a, b) = A&gt; 1110 1^a 0 1^b</dd>
+<dt>map</dt><dd>b odd: a -&gt; about 3a/2 (by a mod 4) and b moves by −5, 0, +8 or +3. Both even: the smaller is subtracted from the larger and a is tripled, swapping when b was smaller (16 rows per letter).</dd>
+<dt>halts iff</dt><dd>b = 1 with a ≡ 0 (mod 4)</dd>
+<dt>start</dt><dd>U(4, 3) at step 118</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean next_sound (the map for every even a, the only kind the run meets); lean/Orbit.lean not_halts_of_orbit (if the orbit never gets stuck, no halt)</code></dd>
+<dt>heuristic</dt><dd>From random starts at scale S, the halting frequency is about 2/S. After 10^6 passes, the chance of a later halt is about 10^-96,600.</dd>
+<dt>checked</dt><dd>10^5 passes in Lean (native_decide), 10^6 in Python</dd>
+<dt>not proved</dt><dd>the converse direction (a stuck orbit halts) is not stated; the odd-a rows are checked by simulation only, and the run never uses them</dd>
+<dt>ranking</dt><dd>tier B, subtract and triple. Next step: Prove the halting events in Lean (only simulated so far), then look for an invariant on (a mod 4, b).</dd>
+</dl>
+<p class="small"><a href="1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/explainer.html">explainer</a> · <a href="1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb0ld_1lc0ra_1ra1lb_1la1le_1rf0lc_---0re f(n) = 3n − 10·2^k + 3k + 14 for h_k &lt; n &lt; h_(k+1), with h_k = 5·2^k − k − 6 n = h_k for some k (3, 12, 31, 70, 149, ...) landing on a sparse target" id="m-4">
+<summary><span class="rk">#4</span> <code>1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>P(n) = (10)^n A&gt;</dd>
+<dt>map</dt><dd>f(n) = 3n − 10·2^k + 3k + 14 for h_k &lt; n &lt; h_(k+1), with h_k = 5·2^k − k − 6</dd>
+<dt>halts iff</dt><dd>n = h_k for some k (3, 12, 31, 70, 149, ...)</dd>
+<dt>start</dt><dd>n = 4 at step 31</dd>
+<dt>Lean</dt><dd><code>lean/Iff.lean halts_iff; lean/Closed.lean pstep_closed, pstep_halt (closed form for every n)</code></dd>
+<dt>heuristic</dt><dd>Chance about 2^-k per round at level k. After 10^5 rounds (k ≈ 66,605) a later halt has chance about 10^-20,000.</dd>
+<dt>checked</dt><dd>2,000 rounds in Lean (about 10^798 steps), 10^5 in Python</dd>
+<dt>not proved</dt><dd>none; same function as ranks 5 and 6 from another start</dd>
+<dt>ranking</dt><dd>tier C, threshold landing. Next step: Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?</dd>
+</dl>
+<p class="small"><a href="1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/explainer.html">explainer</a> · <a href="1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE">folder</a></p>
+<p><button class="b" data-run="f" data-start="4" data-m="1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE">run this map</button></p></div></details><details class="mc" data-fam="sparse" data-text="1rb1lc_1rc0ld_1la0rb_1lb1le_1rf0la_---0re n&#x27; = 3n + 24 + 6j − 20·2^j (j doublings). in n with n = 2n + 2 this is the same f(n) = 3n − 10·2^k + 3k + 14. a remainder m = 0, i.e. n = 10·2^j − 2j − 10, i.e. n = h_k landing on a sparse target" id="m-5">
+<summary><span class="rk">#5</span> <code>1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>X(K, m) = D&gt; (10)^K 1^m; round starts D&gt; 10 1^N</dd>
+<dt>map</dt><dd>N&#x27; = 3N + 24 + 6j − 20·2^j (j doublings). In n with N = 2n + 2 this is the same f(n) = 3n − 10·2^k + 3k + 14.</dd>
+<dt>halts iff</dt><dd>a remainder m = 0, i.e. N = 10·2^j − 2j − 10, i.e. n = h_k</dd>
+<dt>start</dt><dd>N = 22 (n = 10) at step 208</dd>
+<dt>Lean</dt><dd><code>lean/Orbit.lean halts_iff; lean/Closed.lean next_closed, next_halt</code></dd>
+<dt>heuristic</dt><dd>Chance about 1/(5·2^j) per round. After 10^6 rounds a later halt has chance below 10^-200,000; the closest approach was 3.8·10^-6 of the range.</dd>
+<dt>checked</dt><dd>10^6 rounds in Python</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier C, threshold landing. Next step: Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?</dd>
+</dl>
+<p class="small"><a href="1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/explainer.html">explainer</a> · <a href="1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE">folder</a></p>
+<p><button class="b" data-run="f" data-start="10" data-m="1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE">run this map</button></p></div></details><details class="mc" data-fam="sparse" data-text="1rb1re_1lc0ra_1rd0lb_1lb1rc_1lf0rd_---0le next(n) = 3n − 2c_i + i + 3 for c_i &lt; n &lt; c_(i+1), c_i = 10·2^i − i − 7; the same f with h_k = c_(k−1) n = c_(i+1) exactly landing on a sparse target" id="m-6">
+<summary><span class="rk">#6</span> <code>1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>S(n) = C&gt; 0 (10)^n 1</dd>
+<dt>map</dt><dd>next(n) = 3n − 2c_i + i + 3 for c_i &lt; n &lt; c_(i+1), c_i = 10·2^i − i − 7; the same f with h_k = c_(k−1)</dd>
+<dt>halts iff</dt><dd>n = c_(i+1) exactly</dd>
+<dt>start</dt><dd>n = 1 at step 4</dd>
+<dt>Lean</dt><dd><code>lean/Phase1.lean halts_iff_orbit; lean/Closed.lean next_closed, next_halt</code></dd>
+<dt>heuristic</dt><dd>Chance about 1/(10·2^i) per step at level i. After 8·10^6 map steps the expected number of later hits is about 2^-800,000.</dd>
+<dt>checked</dt><dd>8·10^6 map steps (C, GMP)</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier C, threshold landing. Next step: Done here: lean/Closed.lean proves the closed form for every n (kernel). What is left is the hitting question: does the orbit ever land on some h_k?</dd>
+</dl>
+<p class="small"><a href="1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/explainer.html">explainer</a> · <a href="1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE">folder</a></p>
+<p><button class="b" data-run="f" data-start="1" data-m="1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE">run this map</button></p></div></details><details class="mc" data-fam="sparse" data-text="1rb1rd_0lc1ra_1ra1lc_0rb1le_1rf0ld_---0re left phase e(x, z) -&gt; e(2x+4, z−2x−6); right phase r(x, y) -&gt; r(x−(y+3)/2, 2y+5); the blocks double at each other&#x27;s expense an all-ones tape 1^n with n = 0 or n = 20·2^k − 2k − 12 (8, 26, 64, 142, ...) landing on a sparse target" id="m-7">
+<summary><span class="rk">#7</span> <code>1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks (10)^x 1^y; phases E(x, z), R(x, y), Q(m, k, t)</dd>
+<dt>map</dt><dd>left phase E(x, z) -&gt; E(2x+4, z−2x−6); right phase R(x, y) -&gt; R(x−(y+3)/2, 2y+5); the blocks double at each other&#x27;s expense</dd>
+<dt>halts iff</dt><dd>an all-ones tape 1^n with n = 0 or n = 20·2^k − 2k − 12 (8, 26, 64, 142, ...)</dd>
+<dt>start</dt><dd>R(0, 2) at step 6</dd>
+<dt>Lean</dt><dd><code>lean/Phases.lean halts_iff (the phase map); lean/Fatal.lean ones_fatal_all, ones_safe_all (the fatal lengths, for every n)</code></dd>
+<dt>heuristic</dt><dd>All-ones tapes are rare: the tape width grows like t^(1/3), and the all-ones lengths grow by a factor of a few each time. A length near n is fatal with chance about 1/n, so a later halt has chance of order 10^-10.</dd>
+<dt>checked</dt><dd>10^11 phases (about 4·10^30 steps); all-ones lengths 2, 28, 492, ..., 58,442,346,273, none fatal</dd>
+<dt>not proved</dt><dd>that a halt needs an all-ones tape is checked by probing small tapes, not stated in Lean</dd>
+<dt>ranking</dt><dd>tier C, all-ones lengths. Next step: Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list.</dd>
+</dl>
+<p class="small"><a href="1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE/explainer.html">explainer</a> · <a href="1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb1le_1rc1ra_0ld1rb_1le1ld_1rf0la_---0re the same doubling phases as rank 7, with other constants an all-ones tape 1^n with n ∈ {0, 6} or n = 32·2^k − 2k − 12 (20, 50, 112, ...) landing on a sparse target" id="m-8">
+<summary><span class="rk">#8</span> <code>1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks (10)^x 1^y, as rank 7</dd>
+<dt>map</dt><dd>the same doubling phases as rank 7, with other constants</dd>
+<dt>halts iff</dt><dd>an all-ones tape 1^n with n ∈ {0, 6} or n = 32·2^k − 2k − 12 (20, 50, 112, ...)</dd>
+<dt>start</dt><dd>R(0, 2) at step 2</dd>
+<dt>Lean</dt><dd><code>lean/Phases.lean halts_iff; lean/Fatal.lean (fatal lengths for every n)</code></dd>
+<dt>heuristic</dt><dd>As rank 7: a later halt has chance of order 10^-10.</dd>
+<dt>checked</dt><dd>10^11 phases; 30 all-ones tapes, the last of length 15,210,719,738, none fatal</dd>
+<dt>not proved</dt><dd>as rank 7. It follows rank 9 for long stretches; the two part only at all-ones tapes and never agree there (holdouts/EQUIVALENCES.md)</dd>
+<dt>ranking</dt><dd>tier C, all-ones lengths. Next step: Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list.</dd>
+</dl>
+<p class="small"><a href="1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/explainer.html">explainer</a> · <a href="1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb1rd_0lc1ra_1la1lc_1ra1le_1rf0ld_---0re the same doubling phases as rank 7, with other constants an all-ones tape 1^n with n = 3 or n = 28·2^k − 2k − 13 (15, 41, 95, 205, ...) landing on a sparse target" id="m-9">
+<summary><span class="rk">#9</span> <code>1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks (10)^x 1^y, as rank 7</dd>
+<dt>map</dt><dd>the same doubling phases as rank 7, with other constants</dd>
+<dt>halts iff</dt><dd>an all-ones tape 1^n with n = 3 or n = 28·2^k − 2k − 13 (15, 41, 95, 205, ...)</dd>
+<dt>start</dt><dd>the blank tape A(0, 0)</dd>
+<dt>Lean</dt><dd><code>lean/Phases.lean halts_iff; lean/Fatal.lean (fatal lengths for every n)</code></dd>
+<dt>heuristic</dt><dd>As rank 7: a later halt has chance of order 10^-10.</dd>
+<dt>checked</dt><dd>10^11 phases; 23 all-ones tapes, the last of length 9,908,670,666, none fatal</dd>
+<dt>not proved</dt><dd>as rank 7</dd>
+<dt>ranking</dt><dd>tier C, all-ones lengths. Next step: Done here: lean/Fatal.lean proves the fatal list for every n (kernel). What is left is whether some all-ones length ever lands on the list.</dd>
+</dl>
+<p class="small"><a href="1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/explainer.html">explainer</a> · <a href="1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb1rd_0lc1ra_0ra1lc_1ra1le_1rf0ld_---0re the same doubling phases as rank 7, with other constants an all-ones tape 1^n with n = 1 or n = 12·2^k − 2k − 9 (3, 13, 35, 81, ...) landing on a sparse target" id="m-10">
+<summary><span class="rk">#10</span> <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks (10)^x 1^y, as rank 7</dd>
+<dt>map</dt><dd>the same doubling phases as rank 7, with other constants</dd>
+<dt>halts iff</dt><dd>an all-ones tape 1^n with n = 1 or n = 12·2^k − 2k − 9 (3, 13, 35, 81, ...)</dd>
+<dt>start</dt><dd>the blank tape A(0, 0)</dd>
+<dt>Lean</dt><dd><code>lean/Phases.lean halts_iff; lean/Fatal.lean (fatal lengths for every n)</code></dd>
+<dt>heuristic</dt><dd>As rank 7: a later halt has chance of order 10^-10.</dd>
+<dt>checked</dt><dd>10^11 phases; 30 all-ones tapes, the last of length 14,325,742,934, none fatal</dd>
+<dt>not proved</dt><dd>as rank 7</dd>
+<dt>ranking</dt><dd>tier C, all-ones lengths. Next step: None in Lean. The question is a hitting problem.</dd>
+</dl>
+<p class="small"><a href="1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE/explainer.html">explainer</a> · <a href="1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb1rf_1lc1lf_0re1ld_0lb1ld_---1rc_1ra0rd plain pass (a, b) -&gt; (2a + 2, b − 2a − 2); a rebound off the right end gives (2a − b − 1, 3b + 4 − 2a). doubling and folding of a inside a width that grows by about 2 per pass. a pass start ps(a, c) with c ≤ 1 (b = 0 at the end of a pass) landing on a sparse target" id="m-11">
+<summary><span class="rk">#11</span> <code>1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>pass starts PS(a, c) = B&gt; 0 0 (10)^a 1^c</dd>
+<dt>map</dt><dd>plain pass (a, b) -&gt; (2a + 2, b − 2a − 2); a rebound off the right end gives (2a − b − 1, 3b + 4 − 2a). Doubling and folding of a inside a width that grows by about 2 per pass.</dd>
+<dt>halts iff</dt><dd>a pass start PS(a, c) with c ≤ 1 (b = 0 at the end of a pass)</dd>
+<dt>start</dt><dd>PS(0, 2) at step 4</dd>
+<dt>Lean</dt><dd><code>lean/Phases.lean halts_iff, no_halt_phases (10^8 phases, native_decide)</code></dd>
+<dt>heuristic</dt><dd>Only passes with even b can halt, and they come in short chains of doublings that need b = 2a + 2 exactly. That has chance about 1/width per even pass. Even passes are rare (166 in 10^8), so the expected number of later hits is small, but it decays only slowly.</dd>
+<dt>checked</dt><dd>10^8 passes</dd>
+<dt>not proved</dt><dd>no closed form for the pass map</dd>
+<dt>ranking</dt><dd>tier C, all-ones lengths. Next step: None beyond a hitting argument.</dd>
+</dl>
+<p class="small"><a href="1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/explainer.html">explainer</a> · <a href="1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb---_1rc1le_0rd0rf_0re0la_1lf0lb_1la1ld six cases: b (x+1, m, s) -&gt; (x, m+4, 1−s); r (0, m) -&gt; ((m+6)/2, 1 + 2s, 0); c doubles m along a chain, m -&gt; (m+7)·2^i − 7; a and a&#x27; double x a chain of c steps from (x, m, 0) with x = (m+7)(2^(k+1) − 1)/2 − k − 1; after an r step with m = 1 that is x = 2^(k+3) − k − 5 (3, 10, 25, 56, 119, ...) landing on a sparse target" id="m-12">
+<summary><span class="rk">#12</span> <code>1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>K(x, m, s) = 1^4 0 (10)^x 1^m C&gt;s</dd>
+<dt>map</dt><dd>six cases: B (x+1, m, s) -&gt; (x, m+4, 1−s); R (0, m) -&gt; ((m+6)/2, 1 + 2s, 0); C doubles m along a chain, m -&gt; (m+7)·2^i − 7; A and A&#x27; double x</dd>
+<dt>halts iff</dt><dd>a chain of C steps from (x, m, 0) with x = (m+7)(2^(k+1) − 1)/2 − k − 1; after an R step with m = 1 that is x = 2^(k+3) − k − 5 (3, 10, 25, 56, 119, ...)</dd>
+<dt>start</dt><dd>(7, 1, 0) at step 216</dd>
+<dt>Lean</dt><dd><code>lean/MapThm.lean halts_iff: halts iff the orbit of (7, 1, 0) under mstep reaches H</code></dd>
+<dt>heuristic</dt><dd>The sum of 1/h over doubling chains is 0.3187 over the whole orbit, and under 10^-4 after round 20.</dd>
+<dt>checked</dt><dd>10,000 R steps (29 million C steps) in Python</dd>
+<dt>not proved</dt><dd>the chain criterion (halts iff x = (m+7)(2^(k+1)−1)/2 − k − 1) is read off the map, not yet a Lean theorem</dd>
+<dt>ranking</dt><dd>tier C, near power of 2. Next step: Prove the chain criterion in Lean (an induction on k).</dd>
+</dl>
+<p class="small"><a href="1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/explainer.html">explainer</a> · <a href="1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD">folder</a></p>
+</div></details><details class="mc" data-fam="nested" data-text="1rb---_1lc0ld_0rf0ld_0le0ra_0lc1ra_1rc1rd tail 1: n -&gt; 3n/2 (+ constants); tails x_k, y_k: n -&gt; (9n + c)/8 by n mod 8, and the small counter k moves by −2..+1 or is multiplied by 3/2 at one pass in 8 only from a z_k event with n &lt; 12k + 12, i.e. the small counter k must catch up with n/12 nested counters and stacks" id="m-13">
+<summary><span class="rk">#13</span> <code>1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD</code> <span class="tag t-native">one way</span>
+<span class="small">Nested counters and stacks</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>E-events E&gt; 0^6 (10)^n T with tail T ∈ {1, X_k, Y_k, Z_k}</dd>
+<dt>map</dt><dd>tail 1: n -&gt; 3n/2 (+ constants); tails X_k, Y_k: n -&gt; (9n + c)/8 by n mod 8, and the small counter k moves by −2..+1 or is multiplied by 3/2 at one pass in 8</dd>
+<dt>halts iff</dt><dd>only from a Z_k event with n &lt; 12k + 12, i.e. the small counter k must catch up with n/12</dd>
+<dt>start</dt><dd>(tail 1, n = 0) at step 18</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean next_sound (every tail, outside Z_k with n &lt; 12k + 12); lean/Orbit.lean not_halts_of_orbit, no_halt_100k</code></dd>
+<dt>heuristic</dt><dd>k is reset every phase and grows only occasionally, while n grows every pass. The chance of some phase reaching k ≈ n/12 is about (n/12)^-1.2. After pass 70 the margin n/(12k+12) is above 10^6.</dd>
+<dt>checked</dt><dd>10^5 passes in Lean (native_decide), n with 8,063 digits</dd>
+<dt>not proved</dt><dd>the region Z_k with n &lt; 12k + 12, where a halt could come from, is not mapped (the orbit never enters it)</dd>
+<dt>ranking</dt><dd>tier C, multi-tail 3/2 map. Next step: Prove the uncovered Z_k cases, then try a growth bound on k.</dd>
+</dl>
+<p class="small"><a href="1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/explainer.html">explainer</a> · <a href="1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb0lf_1lc1ra_0re0rd_---1le_1lf1rc_1lc1la f(t) = 3t/2 + 1 or 3t/2 + 3 for even t; for odd t a doubling loop (a, d) -&gt; (2a+3, d−a−2) from (1, (t+3)/2) that ends in s(a−1−d, 2d+2), 4a + 4 or a restart an odd block t = h_j = 2^(j+1) − 2j − 7 (3, 17, 47, 109, 235, ...) landing on a sparse target" id="m-14">
+<summary><span class="rk">#14</span> <code>1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>solid blocks Z(t) = 1^t A&gt;</dd>
+<dt>map</dt><dd>F(t) = 3t/2 + 1 or 3t/2 + 3 for even t; for odd t a doubling loop (a, d) -&gt; (2a+3, d−a−2) from (1, (t+3)/2) that ends in S(a−1−d, 2d+2), 4a + 4 or a restart</dd>
+<dt>halts iff</dt><dd>an odd block t = H_j = 2^(j+1) − 2j − 7 (3, 17, 47, 109, 235, ...)</dd>
+<dt>start</dt><dd>Z(0) (the blank tape), then Z(19), Z(44)</dd>
+<dt>Lean</dt><dd><code>lean/Reset.lean halts_iff_H: HaltsFromBlank ↔ ∃ n s, orbitFrom (z 44) n = some s ∧ InH s, with InH (z t) := ∃ s, t + 2s + 11 = 2^(s+3)</code></dd>
+<dt>heuristic</dt><dd>One halting value per doubling band, and the orbit grows about 1.3 times per reset. Chance about 1/t per reset, a convergent sum.</dd>
+<dt>checked</dt><dd>10,000 resets in Lean (native_decide); accelerated run to 3.3·10^1615 steps</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier C, threshold landing. Next step: A last-step congruence lemma, in the style of the Doucette family&#x27;s Preimage.lean.</dd>
+</dl>
+<p class="small"><a href="1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/explainer.html">explainer</a> · <a href="1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA">folder</a></p>
+<p><button class="b" data-run="F14" data-start="44" data-m="1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA">run this map</button></p></div></details><details class="mc" data-fam="euclid" data-text="1rb1ld_1rc0ra_1la1re_0la0lb_0rb1rf_---1rd 20 rules: in x the left block gives 3 ones and the middle gains 2 pairs per 1 of the right block; in y the reverse; a round doubles and then runs a short euclid-like endgame z(a, 2): a y run whose middle block empties exactly when the right block has 3 ones (c − b = 3) euclid&#x27;s algorithm with multiplication" id="m-15">
+<summary><span class="rk">#15</span> <code>1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>three counters X(a, b, c), Y(a, b, c), Z(a, c)</dd>
+<dt>map</dt><dd>20 rules: in X the left block gives 3 ones and the middle gains 2 pairs per 1 of the right block; in Y the reverse; a round doubles and then runs a short Euclid-like endgame</dd>
+<dt>halts iff</dt><dd>Z(a, 2): a Y run whose middle block empties exactly when the right block has 3 ones (c − b = 3)</dd>
+<dt>start</dt><dd>X(2, 0, 3) at step 29</dd>
+<dt>Lean</dt><dd><code>lean/Model.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>Halting needs c − b = 3 exactly in a Y run, chance about 1/N per round, and N grows about 2.4 times a round. The closest approach after round 3 was about 10^-5.5 N.</dd>
+<dt>checked</dt><dd>9,500 rounds (C, GMP)</dd>
+<dt>not proved</dt><dd>no closed form of the round map N -&gt; N&#x27;</dd>
+<dt>ranking</dt><dd>tier C, two-counter rounds. Next step: A closed form for the end of a round.</dd>
+</dl>
+<p class="small"><a href="1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/explainer.html">explainer</a> · <a href="1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LD_1RC0RA_1LA1RE_0LA0LB_0RB1RF_---1RD">folder</a></p>
+</div></details><details class="mc" data-fam="sparse" data-text="1rb1ra_0lc0re_1lf1ld_1la0la_1lc1rb_---1lc u -&gt; 2u mod v while v grows by one every operation; c counts the wrap-arounds allowed; at c = 0 a reset sets c = 2(v − u − 1), u = 2u − v, v = u + 3 a reset with 2u = v exactly landing on a sparse target" id="m-16">
+<summary><span class="rk">#16</span> <code>1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Landing on a sparse target</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>(c, u, v): left block, fast wheel, modulus</dd>
+<dt>map</dt><dd>u -&gt; 2u mod v while v grows by one every operation; c counts the wrap-arounds allowed; at c = 0 a reset sets c = 2(v − u − 1), u = 2u − v, v = u + 3</dd>
+<dt>halts iff</dt><dd>a reset with 2u = v exactly</dd>
+<dt>start</dt><dd>(0, 2, 5) at step 43</dd>
+<dt>Lean</dt><dd><code>lean/Doubling.lean halts_iff_op: HaltsFromBlank ↔ ∃ n, opIter n (0, 2, 5) = none</code></dd>
+<dt>heuristic</dt><dd>A reset finds 2u − v anywhere in [0, v), so a halt has chance about 1/v per reset, and v grows about 1.47 times per reset. A later halt has chance about 10^-10.</dd>
+<dt>checked</dt><dd>10^11 operations, 54 resets</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier C, doubling with resets. Next step: None beyond a hitting argument.</dd>
+</dl>
+<p class="small"><a href="1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/explainer.html">explainer</a> · <a href="1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC">folder</a></p>
+<p><button class="b" data-run="odo" data-start="0,2,5" data-m="1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC">run this map</button></p></div></details><details class="mc" data-fam="digits" data-text="1rb1rd_1lc0rd_1rf1rb_1le0ra_0lb0le_---0rc even blocks n -&gt; 5n/2 + 1; odd blocks are divided by 6 digit by digit. one block: n = 6^j·m + (6^j − 1)/5 with m ≢ 1 (mod 6) goes to n + 3m/2 + 1 + j (m even), n + 3 + j (m ≡ 3), or two blocks (m = 6q + 5) m = 0: the block is a base-6 repunit (0, 1, 7, 43, 259, ...), or a nested recursion ends exactly (second block 5, 41, 257, ...) digit recursion in base 6" id="m-17">
+<summary><span class="rk">#17</span> <code>1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Digit recursion in base 6</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>round starts B&gt; 0 0 1^a 0 1^b (one or two blocks)</dd>
+<dt>map</dt><dd>even blocks n -&gt; 5n/2 + 1; odd blocks are divided by 6 digit by digit. One block: n = 6^j·m + (6^j − 1)/5 with m ≢ 1 (mod 6) goes to n + 3m/2 + 1 + j (m even), n + 3 + j (m ≡ 3), or two blocks (m = 6q + 5)</dd>
+<dt>halts iff</dt><dd>m = 0: the block is a base-6 repunit (0, 1, 7, 43, 259, ...), or a nested recursion ends exactly (second block 5, 41, 257, ...)</dd>
+<dt>start</dt><dd>C(0, 2, 0); the rounds E 2, E 6, E 16, E 41, ...</dd>
+<dt>Lean</dt><dd><code>lean/DMMap.lean halts_iff: halts iff the orbit of next from C(0, 2, 0) reaches none (DeepMind&#x27;s map, proved here in core Lean)</code></dd>
+<dt>heuristic</dt><dd>For a block of D base-6 digits the halting pattern has chance about 6^-D. After 10^6 rounds D is about 263,000.</dd>
+<dt>checked</dt><dd>10^6 rounds of the round map (block with about 205,000 decimal digits)</dd>
+<dt>not proved</dt><dd>the per-round digit description is computed; the Lean map is DeepMind&#x27;s sweep-level form</dd>
+<dt>ranking</dt><dd>tier C, base-6 digits. Next step: A digit automaton for the block, if its updates are digit-local.</dd>
+</dl>
+<p class="small"><a href="1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/explainer.html">explainer</a> · <a href="1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC">folder</a></p>
+</div></details><details class="mc" data-fam="euclid" data-text="1rb1lf_0rc1rd_1la1ld_1le0ra_---1lc_0la1la c even: (a − c + 12, 3c − 6) if c ≤ a + 8, (c − a − 10, 3a + 27) if c ≥ a + 14; c odd: (a − c − 1, 3c + 6) if c ≤ a − 5, (c − a + 3, 3a) if c &gt; a c − a ∈ {10, 12} (c even) or a − c ∈ {1, 3} (c odd) euclid&#x27;s algorithm with multiplication" id="m-18">
+<summary><span class="rk">#18</span> <code>1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks of ones (a, c), a even</dd>
+<dt>map</dt><dd>c even: (a − c + 12, 3c − 6) if c ≤ a + 8, (c − a − 10, 3a + 27) if c ≥ a + 14; c odd: (a − c − 1, 3c + 6) if c ≤ a − 5, (c − a + 3, 3a) if c &gt; a</dd>
+<dt>halts iff</dt><dd>c − a ∈ {10, 12} (c even) or a − c ∈ {1, 3} (c odd)</dd>
+<dt>start</dt><dd>(74, 30) at step 6,998</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff (no extra assumption)</code></dd>
+<dt>heuristic</dt><dd>c − a is about as large as c. The chance is about Σ 4/c_k, and c grows about 1.236 times a round.</dd>
+<dt>checked</dt><dd>2·10^7 rounds</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, subtract and triple. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/explainer.html">explainer</a> · <a href="1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA">folder</a></p>
+<p><button class="b" data-run="r18" data-start="74,30" data-m="1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA">run this map</button></p></div></details><details class="mc" data-fam="euclid" data-text="1rb1re_1lc0ra_0rd1lb_---1rc_1lf1re_0lb0le f(p, r) = (2p + 2, r − p − 1) if r ≥ p + 2; (2, 4p + 1) if r = p; (p − r, 4r + 2) if r &lt; p r = p + 1 euclid&#x27;s algorithm with multiplication" id="m-19">
+<summary><span class="rk">#19</span> <code>1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>W(p, 0, r): p pairs and a reservoir of r ones</dd>
+<dt>map</dt><dd>f(p, r) = (2p + 2, r − p − 1) if r ≥ p + 2; (2, 4p + 1) if r = p; (p − r, 4r + 2) if r &lt; p</dd>
+<dt>halts iff</dt><dd>r = p + 1</dd>
+<dt>start</dt><dd>(2, 1) at step 27</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff_orbit</code></dd>
+<dt>heuristic</dt><dd>The leftover r is spread over about 2p values, so the chance is about 1/(2p) per run of doublings, and p grows exponentially. No modulus below 200 excludes the halting pairs.</dd>
+<dt>checked</dt><dd>3·10^6 map steps (p with 137,000 bits)</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, subtract and double. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/explainer.html">explainer</a> · <a href="1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE">folder</a></p>
+<p><button class="b" data-run="r19" data-start="2,1" data-m="1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE">run this map</button></p></div></details><details class="mc" data-fam="euclid" data-text="1rb1rc_1lc1lc_1re0ld_1lb1rf_---1ra_0rd1rd p: u &lt; v -&gt; p(3u + 2, v − u − 1); u ≥ v + 2 -&gt; q(3v + 3, u − v − 2). q: u &lt; v -&gt; q(3u + 3, v − u − 1); u ≥ v + 2 -&gt; p(3v + 5, u − v − 2). the smaller count is subtracted and tripled. u = v or u = v + 1 euclid&#x27;s algorithm with multiplication" id="m-20">
+<summary><span class="rk">#20</span> <code>1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>P(u, v), Q(u, v): pairs of 1s</dd>
+<dt>map</dt><dd>P: u &lt; v -&gt; P(3u + 2, v − u − 1); u ≥ v + 2 -&gt; Q(3v + 3, u − v − 2). Q: u &lt; v -&gt; Q(3u + 3, v − u − 1); u ≥ v + 2 -&gt; P(3v + 5, u − v − 2). The smaller count is subtracted and tripled.</dd>
+<dt>halts iff</dt><dd>u = v or u = v + 1</dd>
+<dt>start</dt><dd>P(3, 0) at step 42</dd>
+<dt>Lean</dt><dd><code>lean/Reduction.lean halts_iff&#x27; : HaltsFromBlank ↔ ∃ n k u v, orbit n = some (k, u, v) ∧ (u = v ∨ u = v + 1)</code></dd>
+<dt>heuristic</dt><dd>The direction u/(u+v) follows an expanding map like x -&gt; 3x/(1+x). The chance of landing on the diagonal is about 1/(u+v), and after 10^6 rounds the total is about 2^-300,000. Residues mod 2 to 39 do not exclude the diagonal.</dd>
+<dt>checked</dt><dd>10^6 rounds</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, subtract and triple. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/explainer.html">explainer</a> · <a href="1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD">folder</a></p>
+<p><button class="b" data-run="r20" data-start="P,3,0" data-m="1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD">run this map</button></p></div></details><details class="mc" data-fam="euclid" data-text="1rb1rb_1lc0re_---1ld_0ra1lb_1ra1lf_0le1le i ≥ j + 2: (i − j − 1, 3j + 2 + j, j); i = j + 1: (3i − 3, 3, 1) or (3i, 1, 0); i + 2 = j: (3i + 3, 1, 0) or (3i + 3, 3, 1); i + 3 ≤ j: (j − i − 2, 3i + 3 + 2j, 1 − j) i = j or i + 1 = j euclid&#x27;s algorithm with multiplication" id="m-21">
+<summary><span class="rk">#21</span> <code>1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>R1(i, j), R2(i, j): blocks of 2i and 2j ones, flag J</dd>
+<dt>map</dt><dd>i ≥ j + 2: (i − j − 1, 3j + 2 + J, J); i = j + 1: (3i − 3, 3, 1) or (3i, 1, 0); i + 2 = j: (3i + 3, 1, 0) or (3i + 3, 3, 1); i + 3 ≤ j: (j − i − 2, 3i + 3 + 2J, 1 − J)</dd>
+<dt>halts iff</dt><dd>i = j or i + 1 = j</dd>
+<dt>start</dt><dd>(3, 1, 0) at step 74</dd>
+<dt>Lean</dt><dd><code>lean/Round.lean halts_iff: HaltsFromBlank ↔ ∃ n, orb n = none</code></dd>
+<dt>heuristic</dt><dd>i − j behaves like a random number of the size of i, so the chance is about 2^-n per round with n-bit numbers.</dd>
+<dt>checked</dt><dd>10^6 rounds (numbers with about 92,000 digits)</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, subtract and triple. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/explainer.html">explainer</a> · <a href="1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE">folder</a></p>
+<p><button class="b" data-run="r21" data-start="3,1,0" data-m="1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE">run this map</button></p></div></details><details class="mc" data-fam="euclid" data-text="1rb1rf_1lc---_1le1rd_1ra0rc_0lf0la_0ld0rb n odd: double n, paying (n+5)/2 pairs, d(2n + 7, k − (n+5)/2); if the pairs do not suffice, give the ones back and double the pair block instead; n even: drain, each 01 becomes four 1s n odd and k = 1 (a doubling in d that leaves exactly one pair, 2k = n + 7) euclid&#x27;s algorithm with multiplication" id="m-22">
+<summary><span class="rk">#22</span> <code>1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Euclid&#x27;s algorithm with multiplication</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>left-end states A(n, k), D(n, k) = 1^n (01)^k 111</dd>
+<dt>map</dt><dd>n odd: double n, paying (n+5)/2 pairs, D(2n + 7, k − (n+5)/2); if the pairs do not suffice, give the ones back and double the pair block instead; n even: drain, each 01 becomes four 1s</dd>
+<dt>halts iff</dt><dd>n odd and k = 1 (a doubling in D that leaves exactly one pair, 2k = n + 7)</dd>
+<dt>start</dt><dd>D(3, 0) at step 11</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff (map_step from lean/MapRules.lean)</code></dd>
+<dt>heuristic</dt><dd>Each doubling stage ends with a remainder spread over about n/2 values, so the chance is about 2/n per stage, about 2^-10,000 now.</dd>
+<dt>checked</dt><dd>8,598 epochs (more than 10^3,100 steps)</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, subtract and double. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/explainer.html">explainer</a> · <a href="1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB">folder</a></p>
+</div></details><details class="mc" data-fam="dyadic" data-text="1rb0rb_1lc1re_1lf0ld_1ra1ld_1rc1rb_---1lc hole at odd p jumps to (p − 3)/2, else the tape grows by p/2 + 2. in doucette&#x27;s form, d = p + 3 = 2^v (2a + 1) goes to d + a + v + 1 d reaches a power of two (a run of halvings ends at p = 1, a tape length 2^j − 1) powers of two in a 2-adic valuation sequence" id="m-23">
+<summary><span class="rk">#23</span> <code>1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Powers of two in a 2-adic valuation sequence</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>ones with one hole; samples S(p, r)</dd>
+<dt>map</dt><dd>hole at odd p jumps to (p − 3)/2, else the tape grows by p/2 + 2. In Doucette&#x27;s form, D = p + 3 = 2^v (2a + 1) goes to D + a + v + 1</dd>
+<dt>halts iff</dt><dd>D reaches a power of two (a run of halvings ends at p = 1, a tape length 2^j − 1)</dd>
+<dt>start</dt><dd>(5, 2), (9, 1), (14, 1), (19, 1), ...</dd>
+<dt>Lean</dt><dd><code>lean/Doucette.lean halts_iff_doucette; lean/Map.lean halts_iff; lean/Bound.lean no_halt_10_3669</code></dd>
+<dt>heuristic</dt><dd>An n-bit term is a power of two with chance about 2^-n. After 30,000 terms (1,835 digits) the chance is negligible.</dd>
+<dt>checked</dt><dd>30,000 terms</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, Doucette. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/explainer.html">explainer</a> · <a href="1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC">folder</a></p>
+<p><button class="b" data-run="douc" data-start="9,1" data-m="1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC">run this map</button></p></div></details><details class="mc" data-fam="dyadic" data-text="1rb0rf_1rc1rf_1ld0le_---1lc_1ra1le_1lc1rb with d = n + 2 = 2^v (2a + 1): d -&gt; d + a + v + 2 (d = 3·2^v with v even and positive is an exception) d reaches a power of two powers of two in a 2-adic valuation sequence" id="m-24">
+<summary><span class="rk">#24</span> <code>1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Powers of two in a 2-adic valuation sequence</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>one block of n ones</dd>
+<dt>map</dt><dd>with D = n + 2 = 2^v (2a + 1): D -&gt; D + a + v + 2 (D = 3·2^v with v even and positive is an exception)</dd>
+<dt>halts iff</dt><dd>D reaches a power of two</dd>
+<dt>start</dt><dd>6, 10, 15, 24, 30, 40, ...</dd>
+<dt>Lean</dt><dd><code>lean/Doucette.lean halts_iff_doucette; lean/Macro.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>Only about 1.3 values per binary length end the run, and the orbit spends about 2.5 passes per length. From 80,223 bits on, the chance is about 2^-80,000.</dd>
+<dt>checked</dt><dd>accelerated run to 1.5·10^25722 steps</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, Doucette. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/explainer.html">explainer</a> · <a href="1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB">folder</a></p>
+<p><button class="b" data-run="douc" data-start="6,2,even" data-m="1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB">run this map</button></p></div></details><details class="mc" data-fam="dyadic" data-text="1rb1la_0lc0rc_1le1rd_1re1rc_1lf0la_---1le odd p is halved to (p − 3)/2, even p becomes 3p/2 + q. in doucette&#x27;s form, d = p + 3 = 2^v (2a + 1) goes to d + a + v d reaches a power of two (with q = 1) powers of two in a 2-adic valuation sequence" id="m-25">
+<summary><span class="rk">#25</span> <code>1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Powers of two in a 2-adic valuation sequence</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>two blocks K(p, q)</dd>
+<dt>map</dt><dd>odd p is halved to (p − 3)/2, even p becomes 3p/2 + q. In Doucette&#x27;s form, D = p + 3 = 2^v (2a + 1) goes to D + a + v</dd>
+<dt>halts iff</dt><dd>D reaches a power of two (with q = 1)</dd>
+<dt>start</dt><dd>5, 7, 10, 13, 19, 28, 33, ...</dd>
+<dt>Lean</dt><dd><code>lean/Doucette.lean halts_iff_doucette; lean/LowerBound.lean (no halt before 2^2073 steps)</code></dd>
+<dt>heuristic</dt><dd>Near X, p is 3 below a power of two with chance about 1/X, and p grows geometrically. After 200,000 iterations (40,089 bits) the chance is negligible.</dd>
+<dt>checked</dt><dd>200,000 iterations</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, Doucette. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/explainer.html">explainer</a> · <a href="1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE">folder</a></p>
+<p><button class="b" data-run="douc" data-start="5,0" data-m="1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE">run this map</button></p></div></details><details class="mc" data-fam="dyadic" data-text="1rb0rb_1lb0lc_1rd1lc_1re0ra_0rf1ra_---1lb base 3: the hole at p ≡ 2 (mod 3) jumps to (p − 2)/3, else the tape grows by about a third. in doucette&#x27;s form, d = p + 1 = 3^v (3a + ρ) goes to d + a + v + 2 + ρ d reaches (3^v, r) with v + r ≡ 1 (mod 3); not every power of 3 halts powers of two in a 2-adic valuation sequence" id="m-26">
+<summary><span class="rk">#26</span> <code>1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Powers of two in a 2-adic valuation sequence</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>ones with one hole; samples S(p, r)</dd>
+<dt>map</dt><dd>base 3: the hole at p ≡ 2 (mod 3) jumps to (p − 2)/3, else the tape grows by about a third. In Doucette&#x27;s form, D = p + 1 = 3^v (3a + ρ) goes to D + a + v + 2 + ρ</dd>
+<dt>halts iff</dt><dd>D reaches (3^v, r) with v + r ≡ 1 (mod 3); not every power of 3 halts</dd>
+<dt>start</dt><dd>(4, 1), (8, 1), (14, 1), (22, 1), ...</dd>
+<dt>Lean</dt><dd><code>lean/Doucette.lean halts_iff_doucette; lean/Bound.lean no_halt_10_3747</code></dd>
+<dt>heuristic</dt><dd>An n-digit term in base 3 is a power of 3 with chance about 3^-n, and only one residue of v in three halts. After 30,000 terms (1,874 digits) the chance is negligible.</dd>
+<dt>checked</dt><dd>30,000 terms</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, Doucette. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/explainer.html">explainer</a> · <a href="1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB">folder</a></p>
+</div></details><details class="mc" data-fam="dyadic" data-text="1rb1la_1lc0re_1lf1ld_0rb0la_1rc1re_---0ld d -&gt; d + v + 3a, d = 2^v (2a + 1): 6, 10, 17, 41, 101, 251, 626, ... d reaches a power of two powers of two in a 2-adic valuation sequence" id="m-27">
+<summary><span class="rk">#27</span> <code>1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Powers of two in a 2-adic valuation sequence</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>Space Needle: block lengths at the left end</dd>
+<dt>map</dt><dd>D -&gt; D + v + 3a, D = 2^v (2a + 1): 6, 10, 17, 41, 101, 251, 626, ...</dd>
+<dt>halts iff</dt><dd>D reaches a power of two</dd>
+<dt>start</dt><dd>D = 6</dd>
+<dt>Lean</dt><dd><code>lean/Collatz.lean halts_iff_pow2 (kernel; see lean/Axioms.lean)</code></dd>
+<dt>heuristic</dt><dd>If the low bits are random, v is geometric with mean 1 and D grows about 1.92 times per term (0.941 bits). An n-bit term is a power of two with chance 2^-n.</dd>
+<dt>checked</dt><dd>3·10^6 terms here (2.8·10^6 bits); the community reports 10^8</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier D, Doucette. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/explainer.html">explainer</a> · <a href="1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD">folder</a></p>
+<p><button class="b" data-run="sn" data-start="6" data-m="1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD">run this map</button></p></div></details><details class="mc" data-fam="drift" data-text="1rb1rc_1lc1le_1ra1rd_0rf0re_1la0lb_---1ra n even: n -&gt; 3n/2 + 2, m -&gt; m + 2; n odd: n -&gt; (3n + 7)/2, m -&gt; m − 1. with a = n + 4 this is antihydra&#x27;s a -&gt; 3a/2 / 3(a+1)/2 an odd n meets m = −1 antihydra-type walk with drift" id="m-28">
+<summary><span class="rk">#28</span> <code>1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Antihydra-type walk with drift</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>R(n, m) = A&gt; 0 11 (01)^n 0 11 (01)^m</dd>
+<dt>map</dt><dd>n even: n -&gt; 3n/2 + 2, m -&gt; m + 2; n odd: n -&gt; (3n + 7)/2, m -&gt; m − 1. With a = n + 4 this is Antihydra&#x27;s a -&gt; 3a/2 / 3(a+1)/2</dd>
+<dt>halts iff</dt><dd>an odd n meets m = −1</dd>
+<dt>start</dt><dd>(0, −1) at step 10</dd>
+<dt>Lean</dt><dd><code>lean/Reduction.lean halts_iff, halts_iff&#x27;</code></dd>
+<dt>heuristic</dt><dd>With fair-coin parities the counter is a walk with steps +2 and −1 (drift +1/2). It returns from m with chance φ^-(m+2), φ = 1.618. From 50,008 that is about 10^-10,450.</dd>
+<dt>checked</dt><dd>10^5 rounds (the counter at 50,008)</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier E, Antihydra walk. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/explainer.html">explainer</a> · <a href="1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA">folder</a></p>
+<p><button class="b" data-run="w28" data-start="0,-1" data-m="1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA">run this map</button></p></div></details><details class="mc" data-fam="drift" data-text="1rb1ld_1rc1re_0la1lb_0ld1lc_1rf0ra_---0rc (3t, k) -&gt; (4t + 4, k − 1); (3t + 1, k) -&gt; (4t + 4, k + 1); (3t + 2, k) -&gt; (4t + 5, k + 1) (3t + 2, 0): k = 0 at m ≡ 2 (mod 3) antihydra-type walk with drift" id="m-29">
+<summary><span class="rk">#29</span> <code>1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Antihydra-type walk with drift</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>E(m, k) = D&gt; 110 (10)^m (110)^k</dd>
+<dt>map</dt><dd>(3t, k) -&gt; (4t + 4, k − 1); (3t + 1, k) -&gt; (4t + 4, k + 1); (3t + 2, k) -&gt; (4t + 5, k + 1)</dd>
+<dt>halts iff</dt><dd>(3t + 2, 0): k = 0 at m ≡ 2 (mod 3)</dd>
+<dt>start</dt><dd>(8, 1) at step 280</dd>
+<dt>Lean</dt><dd><code>lean/Round.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>With fair residues k is a walk with steps +1 (chance 2/3) and −1 (1/3). It returns from k with chance 2^-k, and k = 331,763 after 10^6 rounds.</dd>
+<dt>checked</dt><dd>10^6 rounds</dd>
+<dt>not proved</dt><dd>none</dd>
+<dt>ranking</dt><dd>tier E, Antihydra walk. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/explainer.html">explainer</a> · <a href="1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC">folder</a></p>
+<p><button class="b" data-run="w29" data-start="8,1" data-m="1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC">run this map</button></p></div></details><details class="mc" data-fam="drift" data-text="1rb0ld_1rc1rf_1la0ra_0la0le_1ld1la_0rb--- (3k, y) -&gt; (4k + 1, y + 4); (3k + 1, y) -&gt; (4k + 5, y + 6); (3k + 2, y) -&gt; (4k + 8, y − 1) the orbit leaves the rules only at y = 0 with z not a multiple of 3; from some of those walls the machine halts (c 92 0 does, after 54,805 steps), from others it does not antihydra-type walk with drift" id="m-30">
+<summary><span class="rk">#30</span> <code>1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---</code> <span class="tag t-native">one way</span>
+<span class="small">Antihydra-type walk with drift</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>walls (z, y): a wall of 0s and a block of 10s</dd>
+<dt>map</dt><dd>(3k, y) -&gt; (4k + 1, y + 4); (3k + 1, y) -&gt; (4k + 5, y + 6); (3k + 2, y) -&gt; (4k + 8, y − 1)</dd>
+<dt>halts iff</dt><dd>the orbit leaves the rules only at y = 0 with z not a multiple of 3; from some of those walls the machine halts (C 92 0 does, after 54,805 steps), from others it does not</dd>
+<dt>start</dt><dd>(0, 0)</dd>
+<dt>Lean</dt><dd><code>lean/Reduce.lean not_halts_of_orbit (if the orbit never reaches y = 0 with 3 ∤ z, no halt). DeepMind&#x27;s full halts-iff (cryptids, Mathlib) is stated as an axiom in lean/DeepMindMap.lean and not used.</code></dd>
+<dt>heuristic</dt><dd>With fair residues y is a walk with steps +4, +6, −1 (drift +3). It reaches 0 from height y with chance ρ^y, ρ = 0.3349. After the first step y was never below 4.</dd>
+<dt>checked</dt><dd>10^4 walls in Lean (native_decide, more than 10^2400 steps), 10^6 in Python (y = 2,999,377)</dd>
+<dt>not proved</dt><dd>the converse (an exit actually halts) is not proved, and not every exit halts</dd>
+<dt>ranking</dt><dd>tier E, Antihydra walk. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/explainer.html">explainer</a> · <a href="1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---">folder</a></p>
+<p><button class="b" data-run="w30" data-start="0,0" data-m="1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---">run this map</button></p></div></details><details class="mc" data-fam="drift" data-text="1rb1ra_0lc1le_1ld1lc_1la0lb_1lf1re_---0ra x -&gt; ⌊3x/2⌋ (x = a + 5); the counter p goes +2 when x is even, −1 when x is odd the counter would go below 0 antihydra-type walk with drift" id="m-31">
+<summary><span class="rk">#31</span> <code>1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Antihydra-type walk with drift</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>Antihydra: Q(p, a, 2) = 1^p 0 1^a 0 11 B&gt;</dd>
+<dt>map</dt><dd>x -&gt; ⌊3x/2⌋ (x = a + 5); the counter p goes +2 when x is even, −1 when x is odd</dd>
+<dt>halts iff</dt><dd>the counter would go below 0</dd>
+<dt>start</dt><dd>(p, a) = (2, 7) at step 62</dd>
+<dt>Lean</dt><dd><code>lean/Macro.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>With fair-coin parities p is a walk with drift +1/2 that returns from p with chance φ^-(p+1). After 10^6 steps p = 498,505.</dd>
+<dt>checked</dt><dd>10^6 steps of the walk (x with 584,967 bits)</dd>
+<dt>not proved</dt><dd>none; this is the community&#x27;s reference cryptid</dd>
+<dt>ranking</dt><dd>tier E, Antihydra walk. Next step: None known.</dd>
+</dl>
+<p class="small"><a href="1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/explainer.html">explainer</a> · <a href="1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA">folder</a></p>
+<p><button class="b" data-run="w31" data-start="2,12" data-m="1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA">run this map</button></p></div></details><details class="mc" data-fam="nested" data-text="1rb1lc_1rc0rf_1rd0lb_1re0ld_1lf---_0ra1la a period trades 5 words 10110110 for 31 words 1100: (n, m + 5) -&gt; (n + 31, m). a phase ends at r = m mod 5 &lt; 5 and resets by a table (r = 0: new phase with m&#x27; = ⌈(n+4)/2⌉; r = 1, 2: (n + 12, 0), (n + 32, 0); r = 3, 4: new phase with m&#x27; = ⌊(n+25)/2⌋, ⌊(n+26)/2⌋), while the tail t loses 1 to 4 words. when the tail runs out it is rebuilt with about 3.1 n words: a second level. on the second level, some remainder classes at a nearly empty tail halt (for example cfg n 2 with tail 10 (1110)^2 1001101011001), others loop nested counters and stacks" id="m-32">
+<summary><span class="rk">#32</span> <code>1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA</code> <span class="tag t-open">partial</span>
+<span class="small">Nested counters and stacks</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>cfg(n, m, T) = B&gt; 0 0 1 (1100)^n (10110110)^m T with a tail T = 10 (1110)^t ...</dd>
+<dt>map</dt><dd>a period trades 5 words 10110110 for 31 words 1100: (n, m + 5) -&gt; (n + 31, m). A phase ends at r = m mod 5 &lt; 5 and resets by a table (r = 0: new phase with m&#x27; = ⌈(n+4)/2⌉; r = 1, 2: (n + 12, 0), (n + 32, 0); r = 3, 4: new phase with m&#x27; = ⌊(n+25)/2⌋, ⌊(n+26)/2⌋), while the tail t loses 1 to 4 words. When the tail runs out it is rebuilt with about 3.1 n words: a second level.</dd>
+<dt>halts iff</dt><dd>on the second level, some remainder classes at a nearly empty tail halt (for example cfg n 2 with tail 10 (1110)^2 1001101011001), others loop</dd>
+<dt>start</dt><dd>(n, r, t) = (17, 0, 6805) at step 374,475,636</dd>
+<dt>Lean</dt><dd><code>lean/Rules.lean period; lean/Periods.lean periods</code></dd>
+<dt>heuristic</dt><dd>Level 1 ends after about 2,176 more phases (n about 10^770). Whether level 2 halts depends on residues mod 10 of a 770-digit number, so it is a Collatz-like question one level up.</dd>
+<dt>checked</dt><dd>exact accelerated run to 4.5·10^17 steps; the table iterated to about 10^1541 steps</dd>
+<dt>not proved</dt><dd>the reset table is measured, not proved (work in progress)</dd>
+<dt>ranking</dt><dd>tier E, nested resets. Next step: Prove the reset rows in Lean (decode work).</dd>
+</dl>
+<p class="small"><a href="1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/explainer.html">explainer</a> · <a href="1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb1lf_1lc0rd_---1la_0la0re_1la1ra_1lb0ld with n = c + 1 + 3t, the next round has n&#x27; = 4t + d and a tail t&#x27;, where (d, t&#x27;) depends only on (t, c): a 4/3 map with a tail markov chain some tails halt decision at the end of an exponentially long epoch (probably halts)" id="m-33">
+<summary><span class="rk">#33</span> <code>1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD</code> <span class="tag t-native">one way</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>D&gt; 0 0 111 0 1^n T: a block and a short tail word</dd>
+<dt>map</dt><dd>with n = c + 1 + 3t, the next round has n&#x27; = 4t + d and a tail T&#x27;, where (d, T&#x27;) depends only on (T, c): a 4/3 map with a tail Markov chain</dd>
+<dt>halts iff</dt><dd>some tails halt</dd>
+<dt>start</dt><dd>n = 3, empty tail, at step 51</dd>
+<dt>Lean</dt><dd><code>lean/Reduction.lean not_halts_of_orbit (if the round map never halts or gets stuck, no halt), halts_of_orbit (a halting round is a real halt), halts_iff under the hypothesis that the orbit never gets stuck</code></dd>
+<dt>heuristic</dt><dd>With c uniform, the tail is a recurrent Markov chain, and an excursion hits a halting tail with chance between 10^-18 and 10^-13. So the model halts with probability 1, but only after some 10^13 to 10^18 rounds.</dd>
+<dt>checked</dt><dd>2·10^6 rounds</dd>
+<dt>not proved</dt><dd>the &#x27;never stuck&#x27; hypothesis of halts_iff is checked along the orbit, not proved in general</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: Remove the never-stuck hypothesis.</dd>
+</dl>
+<p class="small"><a href="1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/explainer.html">explainer</a> · <a href="1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb1re_1lc1ld_---1la_1lb1le_0rf0ra_1ld1rf x -&gt; ⌊3x/2⌋ + 5 per phase; at the end of an epoch c mod 4 and the last parity decide halt or a new, vastly longer epoch the end of epoch 4 halts if x + u is odd at the end of epoch 3, or if it is even and the last u of epoch 4 is 2 decision at the end of an exponentially long epoch (probably halts)" id="m-34">
+<summary><span class="rk">#34</span> <code>1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>epochs: a run of c ones eaten 4 at a time while a block X grows</dd>
+<dt>map</dt><dd>X -&gt; ⌊3X/2⌋ + 5 per phase; at the end of an epoch c mod 4 and the last parity decide halt or a new, vastly longer epoch</dd>
+<dt>halts iff</dt><dd>the end of epoch 4 halts if x + u is odd at the end of epoch 3, or if it is even and the last u of epoch 4 is 2</dd>
+<dt>start</dt><dd>X = 12</dd>
+<dt>Lean</dt><dd><code>lean/Phase.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>Epoch 4 halts with chance 3/4 (fair-coin parities), and eventually with chance 1. Deciding it needs the parity after 1.15·10^14 phases (numbers of about 4·10^13 bits).</dd>
+<dt>checked</dt><dd>epochs 0 to 3 computed</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/explainer.html">explainer</a> · <a href="1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb0re_1lc1ld_0ra0ld_1lb0la_1rf1ra_---1lb u -&gt; 3⌈u/2⌉ while the fuel burns; when the fuel runs out the machine halts or turns its number into new fuel the fuel runs out on an odd point of the u-sequence decision at the end of an exponentially long epoch (probably halts)" id="m-35">
+<summary><span class="rk">#35</span> <code>1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>a number u and a fuel counter</dd>
+<dt>map</dt><dd>u -&gt; 3⌈u/2⌉ while the fuel burns; when the fuel runs out the machine halts or turns its number into new fuel</dd>
+<dt>halts iff</dt><dd>the fuel runs out on an odd point of the u-sequence</dd>
+<dt>start</dt><dd>fuel 5, 14, 185, then 22,205,951,667,644,132,025,548</dd>
+<dt>Lean</dt><dd><code>lean/Macro.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>For fuel 1 to 20,000, 33.6% of rounds halt. So each round halts with chance about 1/3, and the machine with chance 1. The fourth round needs the parity of u_i for i near 1.5·10^22.</dd>
+<dt>checked</dt><dd>three rounds survived</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB/explainer.html">explainer</a> · <a href="1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0RE_1LC1LD_0RA0LD_1LB0LA_1RF1RA_---1LB">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb1la_1lc0re_1lf1ld_1re0lc_1lb1ra_---0la s(x, c + 2) -&gt; s(⌊3x/2⌋ + 7, c); at the end of a countdown, one residue class of x in four halts, else a new countdown of length about x one residue class mod 4 at the end of a countdown decision at the end of an exponentially long epoch (probably halts)" id="m-36">
+<summary><span class="rk">#36</span> <code>1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>S(x, c): countdown phases</dd>
+<dt>map</dt><dd>S(x, c + 2) -&gt; S(⌊3x/2⌋ + 7, c); at the end of a countdown, one residue class of x in four halts, else a new countdown of length about x</dd>
+<dt>halts iff</dt><dd>one residue class mod 4 at the end of a countdown</dd>
+<dt>start</dt><dd>phases 0 to 2 computed</dd>
+<dt>Lean</dt><dd><code>lean/Step.lean step_rule; lean/Reset.lean halts_iff, no_halt_585</code></dd>
+<dt>heuristic</dt><dd>Each phase from 3 on halts with chance 1/4, so the machine halts with chance 1, after a tower of exponentials of steps.</dd>
+<dt>checked</dt><dd>phases 0 to 2 do not halt</dd>
+<dt>not proved</dt><dd>the residue table is read off the proved map, not stated in Lean</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/explainer.html">explainer</a> · <a href="1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb0lc_0lc0rf_1rd1lc_0ra1le_---0ld_1lf1la a -&gt; 3a/2 + 7 (even) or (3a + 7)/2 (odd), antihydra&#x27;s map; the 01 pairs are a budget: an even value costs 3, an odd one 1 when the budget is gone, the next even value halts if it is 2 mod 4 (0 mod 4 refills the budget with half the second block) decision at the end of an exponentially long epoch (probably halts)" id="m-37">
+<summary><span class="rk">#37</span> <code>1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>D&gt; 0 0 1^a 0 1^b (01)^c</dd>
+<dt>map</dt><dd>a -&gt; 3a/2 + 7 (even) or (3a + 7)/2 (odd), Antihydra&#x27;s map; the 01 pairs are a budget: an even value costs 3, an odd one 1</dd>
+<dt>halts iff</dt><dd>when the budget is gone, the next even value halts if it is 2 mod 4 (0 mod 4 refills the budget with half the second block)</dd>
+<dt>start</dt><dd>(1, 1, 4) at step 138</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>Each budget end is a fair coin, so the machine halts with chance 1. The fifth budget has 2^1479 pairs.</dd>
+<dt>checked</dt><dd>four budget ends survived (cycles 3, 8, 25, 2,549)</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA/explainer.html">explainer</a> · <a href="1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LC_0LC0RF_1RD1LC_0RA1LE_---0LD_1LF1LA">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb0rd_0rc1re_1rd0la_1le1lc_1rf0ld_---0ra n -&gt; about 8n/3 per phase while the stack m drains by 1 or 2; an empty stack resets to about 2n/3 words the orbit of (14, 5) reaches (1, n) with n ≡ 1 (mod 3) decision at the end of an exponentially long epoch (probably halts)" id="m-38">
+<summary><span class="rk">#38</span> <code>1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>P(m, n) = (1011)^m 1^n (10)^3 A&gt; 1</dd>
+<dt>map</dt><dd>n -&gt; about 8n/3 per phase while the stack m drains by 1 or 2; an empty stack resets to about 2n/3 words</dd>
+<dt>halts iff</dt><dd>the orbit of (14, 5) reaches (1, n) with n ≡ 1 (mod 3)</dd>
+<dt>start</dt><dd>P(14, 5) at step 1,098</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff; runs_long (no halt in 10^2899 steps)</code></dd>
+<dt>heuristic</dt><dd>With fair residues the stack lands on m = 1 with chance 3/5 and then halts with chance 1/3, so each cycle halts with chance 1/5. The third cycle needs about 5·10^2901 phases.</dd>
+<dt>checked</dt><dd>two cycles in Lean (native_decide)</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/explainer.html">explainer</a> · <a href="1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb0ld_1rc1ra_1ld0rb_1le1la_1rf0rc_---1re a wall cell is spent per phase while k grows like k -&gt; 3k/2; when the wall runs out the whole tape becomes a new, much longer wall an epoch ends with k even decision at the end of an exponentially long epoch (probably halts)" id="m-39">
+<summary><span class="rk">#39</span> <code>1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>(a, K, j) = 1^a 0 0 (10)^K 1^(2j+1) C&gt;: a wall, pairs and a block</dd>
+<dt>map</dt><dd>a wall cell is spent per phase while K grows like K -&gt; 3K/2; when the wall runs out the whole tape becomes a new, much longer wall</dd>
+<dt>halts iff</dt><dd>an epoch ends with K even</dd>
+<dt>start</dt><dd>walls 3, 25, 227,097, then a 39,991-digit one</dd>
+<dt>Lean</dt><dd><code>lean/Macro.lean halts_iff, halts_iff_orbit; lean/Epoch3.lean</code></dd>
+<dt>heuristic</dt><dd>With fair-coin parities each epoch end halts with chance 1/2, so the machine halts with chance 1, but after more than 10^(10^39989) steps.</dd>
+<dt>checked</dt><dd>three epochs end odd</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/explainer.html">explainer</a> · <a href="1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LD_1RC1RA_1LD0RB_1LE1LA_1RF0RC_---1RE">folder</a></p>
+</div></details><details class="mc" data-fam="epoch" data-text="1rb0lc_1lc0rd_1lf1la_1lb1re_1rb1le_---0le a -&gt; (3a + 11)/2 (odd) or 3a/2 + 6 (even), antihydra&#x27;s map with other constants; each phase costs two pairs of the budget c a budget ends at a = 1 with b even decision at the end of an exponentially long epoch (probably halts)" id="m-40">
+<summary><span class="rk">#40</span> <code>1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE</code> <span class="tag t-kernel">kernel</span>
+<span class="small">Decision at the end of an exponentially long epoch (probably halts)</span></summary>
+<div class="body"><dl>
+<dt>tape</dt><dd>E&gt; 0 1^a 0 1 0 1^b (01)^c (11101)^k 1</dd>
+<dt>map</dt><dd>a -&gt; (3a + 11)/2 (odd) or 3a/2 + 6 (even), Antihydra&#x27;s map with other constants; each phase costs two pairs of the budget c</dd>
+<dt>halts iff</dt><dd>a budget ends at a = 1 with b even</dd>
+<dt>start</dt><dd>(15, 7, 7, 1) at step 1,188</dd>
+<dt>Lean</dt><dd><code>lean/Map.lean halts_iff</code></dd>
+<dt>heuristic</dt><dd>Each budget end halts with chance about 1/4, so the machine halts with chance 1. The fifth budget holds a 399,947-bit number of pairs.</dd>
+<dt>checked</dt><dd>four budget ends survived</dd>
+<dt>not proved</dt><dd>none in the reduction</dd>
+<dt>ranking</dt><dd>tier F, probably halts. Next step: None feasible.</dd>
+</dl>
+<p class="small"><a href="1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE/explainer.html">explainer</a> · <a href="1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE/proof-status.html">proof status</a> ·
+<a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/tree/main/holdouts/1RB0LC_1LC0RD_1LF1LA_1LB1RE_1RB1LE_---0LE">folder</a></p>
+</div></details></div>
+</section>
+
+<section id="runner">
+  <h2>Run a map</h2>
+  <div class="prose"><p>The simpler maps can be iterated here, with exact big integers. Each row is one step of the
+  map as Lean states it, and the last column shows how close the orbit is to its halting set. A machine halts exactly
+  when its row says so. Starting from another value shows how sparse the halting set is.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <select id="rsel" aria-label="machine"><option value="4">#4 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE</option><option value="5">#5 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE</option><option value="6">#6 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE</option><option value="14">#14 1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA</option><option value="16">#16 1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC</option><option value="18">#18 1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA</option><option value="19">#19 1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE</option><option value="20">#20 1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD</option><option value="21">#21 1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE</option><option value="23">#23 1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC</option><option value="24">#24 1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB</option><option value="25">#25 1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE</option><option value="27">#27 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD</option><option value="28">#28 1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA</option><option value="29">#29 1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC</option><option value="30">#30 1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---</option><option value="31">#31 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA</option></select>
+      <label>start <input type="text" id="rstart" size="14"></label>
+      <button class="b" id="rgo">50 steps</button><button class="b" id="rmore">50 more</button>
+    </div>
+    <p class="small" id="rmsg"></p>
+    <div class="scroll"><table class="tbl out"><thead id="rhead"></thead><tbody id="rrows"></tbody></table></div>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>Known problems these resemble</h2>
+  <ul><li id="rel-collatz"><b>The Collatz (3x + 1) problem.</b> Every orbit of a map like n -&gt; n/2, 3n + 1 is conjectured to reach 1. This is open (Lagarias&#x27;s surveys collect what is known). All of these machines ask the same kind of question about one specific orbit of a similar map.</li><li id="rel-tao"><b>Tao (2019): almost all Collatz orbits attain almost bounded values.</b> The strongest known positive result is about almost all starting values, in logarithmic density. It says nothing about one specific orbit, and one specific orbit is what each machine asks about.</li><li id="rel-conway"><b>Conway (1972); Kurtz and Simon (2007): generalized Collatz maps are undecidable.</b> Maps n -&gt; a_i n + b_i, chosen by n mod m, can simulate any Turing machine. So whether such an orbit reaches a set is undecidable in general (Kurtz and Simon showed the universal form is Π⁰₂-complete). No uniform method exists, and each machine needs an argument of its own.</li><li id="rel-mahler"><b>Mahler&#x27;s 3/2 problem (Z-numbers, 1968).</b> Is there a real ξ &gt; 0 with frac(ξ(3/2)^n) &lt; 1/2 for every n? This is open. Flatto, Lagarias and Pollington (1995) proved that the fractional parts of ξ(p/q)^n spread over an interval of length at least 1/p. The parities of the iterates of x -&gt; ⌊3x/2⌋ are exactly such fractional-part events (Akiyama, Frougny and Sakarovitch, rational base 3/2 numeration, 2008). Controlling them along one orbit is beyond known methods.</li><li id="rel-antihydra"><b>Antihydra (bbchallenge cryptid).</b> 1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA. It halts iff the walk x -&gt; ⌊3x/2⌋, with a counter +2 on even and −1 on odd, ever goes below zero. The bbchallenge community treats it as the standard example of a Collatz-like cryptid. Its halting status is open, and a proof either way would be a result about the parity sequence of ⌊3x/2⌋.</li><li id="rel-hydra"><b>Hydra (bbchallenge cryptid).</b> Hydra is a cryptid of the same 3/2 kind as Antihydra. In it the counter must hit zero at the end of a long countdown. The &#x27;probably halts&#x27; machines here share its shape: the outcome is a fair coin at the end of an exponentially long run.</li><li id="rel-spaceneedle"><b>Space Needle and Doucette&#x27;s sequences.</b> 1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD (Space Needle) halts iff D -&gt; D + v + 3a (D = 2^v (2a+1)) from 6 ever reaches a power of two. Katelyn Doucette wrote the reduction in this form. The community has checked 10^8 terms. The other four machines here share the form with other constants.</li><li id="rel-erdos3"><b>Erdős&#x27;s ternary digits of 2^n (1979).</b> Erdős conjectured that 2^n has a digit 2 in base 3 for every n &gt; 8. It is open, and it is the classic example of a question about the digits of an exponentially growing orbit in another base. The base-6 recursion and the power-of-two targets are questions of this type.</li><li id="rel-gambler"><b>Gambler&#x27;s ruin (the heuristic model).</b> A random walk with steps +s_i and positive drift returns from height h with probability ρ^h, where ρ &lt; 1 solves E[ρ^step] = 1. This is the source of the heuristic numbers on this page. It is a model, not a theorem about any machine.</li><li id="rel-residue"><b>No residue obstruction.</b> For the subtract-and-multiply maps, the residues reachable modulo every 2^a 3^b up to 7,776 include the halting class (tools/number-theory/residues.py). So no congruence alone can prove non-halting; a proof must control sizes, not only residues.</li></ul>
+</section>
+
+<section class="prose">
+  <h2>Sources</h2>
+  <p>Each machine's folder <code>holdouts/&lt;machine&gt;/</code> has the Lean files named above and a README with the
+  derivation. The data for this page is in <a href="https://github.com/fractal-geometry-explorer/busy-beaver-explorer/blob/main/tools/number-theory/open_problems.json">tools/number-theory/open_problems.json</a>,
+  and the page is generated by <code>tools/number-theory/build_open_problems.py</code>.</p>
+</section>
+</main>
+<script>
+
+// Each runner: init(text) -> state; step(state) -> {s: next state, row: [cells], stop: message or null}
+const B = BigInt;
+const big = x => { const s = x.toString(); return s.length > 36 ? s.slice(0, 12) + '…' + s.slice(-8) + ' (' + s.length + ' digits)' : s; };
+const nums = t => t.split(',').map(x => x.trim());
+function v2(D) { let v = 0n; while (D > 0n && D % 2n === 0n) { D /= 2n; v++; } return [v, D]; }
+const isPow2 = D => D > 0n && (D & (D - 1n)) === 0n;
+const hk = k => 5n * (1n << B(k)) - B(k) - 6n;
+const RUN = {
+  f: { cols: ['n', 'level k', 'distance to h(k+1)'], init: t => B(nums(t)[0]),
+    step(n) { let k = 0; while (hk(k + 1) <= n) k++;
+      if (k >= 1 && n === hk(k)) return { row: [big(n), k, '0'], stop: 'n = h(' + k + '): the machine halts' };
+      const n2 = 3n * n - 10n * (1n << B(k)) + 3n * B(k) + 14n; return { s: n2, row: [big(n), k, big(hk(k + 1) - n)] }; } },
+  F14: { cols: ['t', 'parity', 'next'], init: t => B(nums(t)[0]),
+    step(t) {
+      const small = { 0: 19n, 1: 19n, 2: 6n, 4: 7n, 5: 20n };
+      if (t === 3n) return { row: ['3', 'odd', ''], stop: 'Z(3) halts' };
+      if (t < 6n) return { s: small[Number(t)], row: [big(t), t % 2n ? 'odd' : 'even', big(small[Number(t)])] };
+      if (t % 2n === 0n) { const n = t % 4n === 0n ? 3n * t / 2n + 1n : 3n * t / 2n + 3n; return { s: n, row: [big(t), 'even', big(n)] }; }
+      let a = 1n, d = (t + 3n) / 2n;
+      for (;;) {
+        if (d === 0n) return { row: [big(t), 'odd', ''], stop: 't = 2^(j+1) − 2j − 7: the machine halts' };
+        if (d < a) { const x = a - 1n - d, y = 2n * d + 2n; const n = x % 2n === 0n ? 2n * y + 1n + 3n * x : 2n * y + 3n + 3n * x;
+          return { s: n, row: [big(t), 'odd', big(n)] }; }
+        if (d === a) { const n = 4n * a + 4n; return { s: n, row: [big(t), 'odd', big(n)] }; }
+        if (d === a + 1n) { d = 2n * a + 3n; a = 1n; continue; }
+        const a0 = a; a = 2n * a + 3n; d = d - a0 - 2n;
+      } } },
+  odo: { cols: ['reset', 'operations', 'v', '2u − v', '(2u − v)/v'], init: t => { const [c, u, v] = nums(t).map(B); return { c, u, v, ops: 0, r: 0 }; },
+    step(S) { let { c, u, v, ops, r } = S;
+      for (let i = 0; i < 2000000; i++) { ops++;
+        if (2n * u < v) { u = 2n * u; v = v + 1n; continue; }
+        if (c >= 1n) { if (2n * u === v) { u = 1n; v = v + 2n; } else { u = 2n * u - v; v = v + 1n; } c--; continue; }
+        if (2n * u === v) return { row: [r + 1, ops, big(v), '0', '0'], stop: 'a reset with 2u = v: the machine halts' };
+        const w = 2n * u - v; const row = [r + 1, ops, big(v), big(w), (Number(w) / Number(v)).toFixed(4)];
+        c = 2n * (v - u - 1n); u = w; v = u + 3n; return { s: { c, u, v, ops, r: r + 1 }, row }; }
+      return { s: { c, u, v, ops, r }, row: ['—', ops, big(v), '', ''] }; } },
+  r18: { cols: ['a', 'c', 'c − a'], init: t => nums(t).map(B),
+    step([a, c]) { const d = c - a, row = [big(a), big(c), big(d)];
+      if (c % 2n === 0n) { if (d === 10n || d === 12n) return { row, stop: 'c − a = ' + d + ': the machine halts' };
+        return { s: d <= 8n ? [a - c + 12n, 3n * c - 6n] : [c - a - 10n, 3n * a + 27n], row }; }
+      if (d === -1n || d === -3n) return { row, stop: 'a − c = ' + (-d) + ': the machine halts' };
+      return { s: c <= a - 5n ? [a - c - 1n, 3n * c + 6n] : [c - a + 3n, 3n * a], row }; } },
+  r19: { cols: ['p', 'r', 'r − p − 1'], init: t => nums(t).map(B),
+    step([p, r]) { const row = [big(p), big(r), big(r - p - 1n)];
+      if (r === p + 1n) return { row, stop: 'r = p + 1: the machine halts' };
+      if (r >= p + 2n) return { s: [2n * p + 2n, r - p - 1n], row };
+      if (r === p) return { s: [2n, 4n * p + 1n], row };
+      return { s: [p - r, 4n * r + 2n], row }; } },
+  r20: { cols: ['shape', 'u', 'v', 'u − v'], init: t => { const x = nums(t); return [x[0], B(x[1]), B(x[2])]; },
+    step([k, u, v]) { const row = [k, big(u), big(v), big(u - v)];
+      if (u === v || u === v + 1n) return { row, stop: 'u = v or u = v + 1: the machine halts' };
+      if (u < v) return { s: [k, 3n * u + (k === 'P' ? 2n : 3n), v - u - 1n], row };
+      return { s: [k === 'P' ? 'Q' : 'P', 3n * v + (k === 'P' ? 3n : 5n), u - v - 2n], row }; } },
+  r21: { cols: ['i', 'j', 'J', 'i − j'], init: t => nums(t).map(B),
+    step([i, j, J]) { const row = [big(i), big(j), J, big(i - j)];
+      if (i === j || i + 1n === j) return { row, stop: 'i = j or i + 1 = j: the machine halts' };
+      if (i >= j + 2n) return { s: [i - j - 1n, 3n * j + 2n + J, J], row };
+      if (i === j + 1n) return { s: J ? [3n * i, 1n, 0n] : [3n * i - 3n, 3n, 1n], row };
+      if (i + 2n === j) return { s: J ? [3n * i + 3n, 3n, 1n] : [3n * i + 3n, 1n, 0n], row };
+      return { s: [j - i - 2n, 3n * i + 3n + 2n * J, 1n - J], row }; } },
+  douc: { cols: ['D', 'v', 'a'], init: t => { const x = nums(t); return [B(x[0]), B(x[1]), x[2] || '']; },
+    step([D, c, mode]) { const [v, o] = v2(D), a = (o - 1n) / 2n, row = [big(D), v.toString(), big(a)];
+      if (isPow2(D)) return { row, stop: 'D is a power of two: the machine halts' };
+      if (a === 1n && (mode !== 'even' || (v > 0n && v % 2n === 0n)))
+        return { row, stop: 'D = 3·2^v: a special rule applies here (not modelled; never seen in the first 20,000 terms)' };
+      return { s: [D + a + v + c, c, mode], row }; } },
+  sn: { cols: ['D', 'v', 'a'], init: t => B(nums(t)[0]),
+    step(D) { const [v, o] = v2(D), a = (o - 1n) / 2n, row = [big(D), v.toString(), big(a)];
+      if (isPow2(D)) return { row, stop: 'D is a power of two: the machine halts' };
+      return { s: D + v + 3n * a, row }; } },
+  w28: { cols: ['n', 'counter m'], init: t => nums(t).map(B),
+    step([n, m]) { const row = [big(n), m.toString()];
+      if (n % 2n === 1n && m === -1n) return { row, stop: 'odd n with m = −1: the machine halts' };
+      return { s: n % 2n === 0n ? [3n * n / 2n + 2n, m + 2n] : [(3n * n + 7n) / 2n, m - 1n], row }; } },
+  w29: { cols: ['m', 'm mod 3', 'counter k'], init: t => nums(t).map(B),
+    step([m, k]) { const r = m % 3n, t = m / 3n, row = [big(m), r.toString(), k.toString()];
+      if (r === 2n && k === 0n) return { row, stop: 'm ≡ 2 (mod 3) with k = 0: the machine halts' };
+      if (r === 0n) return { s: [4n * t + 4n, k > 0n ? k - 1n : 0n], row };
+      return { s: [4n * t + (r === 1n ? 4n : 5n), k + 1n], row }; } },
+  w30: { cols: ['z', 'z mod 3', 'counter y'], init: t => nums(t).map(B),
+    step([z, y]) { const r = z % 3n, k = z / 3n, row = [big(z), r.toString(), y.toString()];
+      if (y === 0n && r !== 0n) return { row, stop: 'y = 0 with 3 ∤ z: the orbit leaves the rules (the machine may halt here)' };
+      return { s: r === 0n ? [4n * k + 1n, y + 4n] : r === 1n ? [4n * k + 5n, y + 6n] : [4n * k + 8n, y - 1n], row }; } },
+  w31: { cols: ['x', 'parity', 'counter p'], init: t => { const [p, x] = nums(t).map(B); return [x, p]; },
+    step([x, p]) { const row = [big(x), x % 2n ? 'odd' : 'even', p.toString()];
+      if (x % 2n === 1n && p === 0n) return { row, stop: 'the counter would go below 0: the machine halts' };
+      return { s: [3n * x / 2n, x % 2n ? p - 1n : p + 2n], row }; } },
+};
+
+const RUNNERS = {"4": ["f", "4", "1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE"], "5": ["f", "10", "1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE"], "6": ["f", "1", "1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE"], "14": ["F14", "44", "1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA"], "16": ["odo", "0,2,5", "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC"], "18": ["r18", "74,30", "1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA"], "19": ["r19", "2,1", "1RB1RE_1LC0RA_0RD1LB_---1RC_1LF1RE_0LB0LE"], "20": ["r20", "P,3,0", "1RB1RC_1LC1LC_1RE0LD_1LB1RF_---1RA_0RD1RD"], "21": ["r21", "3,1,0", "1RB1RB_1LC0RE_---1LD_0RA1LB_1RA1LF_0LE1LE"], "23": ["douc", "9,1", "1RB0RB_1LC1RE_1LF0LD_1RA1LD_1RC1RB_---1LC"], "24": ["douc", "6,2,even", "1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB"], "25": ["douc", "5,0", "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE"], "27": ["sn", "6", "1RB1LA_1LC0RE_1LF1LD_0RB0LA_1RC1RE_---0LD"], "28": ["w28", "0,-1", "1RB1RC_1LC1LE_1RA1RD_0RF0RE_1LA0LB_---1RA"], "29": ["w29", "8,1", "1RB1LD_1RC1RE_0LA1LB_0LD1LC_1RF0RA_---0RC"], "30": ["w30", "0,0", "1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---"], "31": ["w31", "2,12", "1RB1RA_0LC1LE_1LD1LC_1LA0LB_1LF1RE_---0RA"]};
+const FAMS = [["sparse", "Landing on a sparse target"], ["euclid", "Euclid's algorithm with multiplication"], ["dyadic", "Powers of two in a 2-adic valuation sequence"], ["drift", "Antihydra-type walk with drift"], ["nested", "Nested counters and stacks"], ["digits", "Digit recursion in base 6"], ["epoch", "Decision at the end of an exponentially long epoch (probably halts)"]];
+let on = new Set(FAMS.map(f => f[0]));
+const chips = document.getElementById('famchips');
+for (const [k, n] of FAMS) {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = n; b.setAttribute('aria-pressed', 'true');
+  b.onclick = () => { if (on.has(k)) on.delete(k); else on.add(k); b.setAttribute('aria-pressed', on.has(k)); filt(); };
+  chips.appendChild(b);
+}
+function filt() {
+  const q = document.getElementById('q').value.toLowerCase();
+  for (const c of document.querySelectorAll('#cards .mc'))
+    c.style.display = on.has(c.dataset.fam) && c.dataset.text.includes(q) ? '' : 'none';
+}
+document.getElementById('q').oninput = filt;
+
+let cur = null, st = null, done = false, count = 0;
+function setup(rank) {
+  const [r, s] = RUNNERS[rank]; cur = RUN[r];
+  document.getElementById('rstart').value = s;
+  document.getElementById('rhead').innerHTML = '<tr><th>step</th>' + cur.cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+}
+function go(fresh) {
+  const msg = document.getElementById('rmsg'), body = document.getElementById('rrows');
+  if (fresh) { try { st = cur.init(document.getElementById('rstart').value); } catch (e) { msg.textContent = 'could not read the start value'; return; }
+    body.innerHTML = ''; done = false; count = 0; msg.textContent = ''; }
+  if (done) return;
+  let out = '';
+  for (let i = 0; i < 50 && !done; i++) {
+    const r = cur.step(st);
+    out += `<tr${r.stop ? ' class="hit"' : ''}><td>${count}</td>` + r.row.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    count++;
+    if (r.stop) { done = true; msg.textContent = r.stop; } else st = r.s;
+  }
+  body.insertAdjacentHTML('beforeend', out);
+  if (!done) msg.textContent = `${count} steps, no halt`;
+}
+const sel = document.getElementById('rsel');
+sel.onchange = () => { setup(sel.value); go(true); };
+document.getElementById('rgo').onclick = () => go(true);
+document.getElementById('rmore').onclick = () => go(false);
+for (const b of document.querySelectorAll('button[data-run]')) b.onclick = () => {
+  const rank = b.closest('.mc').id.slice(2); sel.value = rank; setup(rank);
+  document.getElementById('rstart').value = b.dataset.start; go(true);
+  document.getElementById('runner').scrollIntoView({ behavior: 'smooth' });
+};
+setup(sel.value); go(true);
+</script>
+</body>
+</html>
