@@ -106,6 +106,76 @@ Regular-language deciders tried here (all fail, i.e. their closed sets contain a
 says anything about halting): see "Deciders tried" below.
 
 - No halt in 10^10 steps (`c/turns.c`).
+- See "Pascal's triangle and Lucas' theorem" below: Lean now proves that an odd frozen block at a right turn halts,
+  whatever the zone, and the 2-cell-letter invariant (observed to 10^10 steps) is what rules it out.
+
+## Pascal's triangle and Lucas' theorem (21 November 2026)
+
+**One bounce is one row of Pascal's triangle mod 2 (Lean, every zone).** At a right turn the head is in E just right of
+the zone, on the first cell of the frozen tape. The zone is a word `w` in `u = 1110` (1) and `v = 1111` (0) after a
+prefix that is empty or one 1. If the frozen tape starts `1 1 1`, then for **every** word `w` (`bounce`,
+`lean/Pascal.lean`) the machine is back at a right turn after 8|w| + 6 or 8|w| + 8 steps, with
+
+- the zone `T(w)`: write a 1 after the last letter, then replace each letter by the XOR of it and all letters to its
+  right (the running XOR of `w 1` from the right), so the zone grows by one letter;
+- the prefix kept if `w` has an odd number of `u`, toggled otherwise;
+- the frozen tape two cells shorter.
+
+The pieces: the left sweep in C (odd) / D (even) writes `0101` / `1111` (`sweep`), the left end toggles the prefix
+(`lend`), F rewrites `0101` as `1011` going right (`rsweep`), and `1011 1011 ... 11` regroups as `11 1110 1110 ...`
+(`regroup`). A frozen block of `2k + 1` cells gives `k` bounces (`bounces`).
+
+**The rows in closed form (Lean, Lucas' theorem).** Number the letters from the right end of the zone (0 next to the
+frozen tape) and flip letter 0; then a bounce is "running XOR, then shift by one", so the space-time diagram obeys
+Pascal's rule (`diagram`, `lean/Lucas.lean`). After `j` bounces letter `i` of the flipped zone is the XOR of the
+flipped starting letters `d_k` with `C(i - k - 1, j - 1)` odd, and by Lucas' theorem that coefficient is odd exactly
+when `i - k >= j` and the binary digits of `j - 1` and `i - k - j` are disjoint (`closed_form`; `pascal_rule` proves
+Pascal's rule for the bit test from scratch, without Mathlib). Every Sierpinski triangle in the space-time diagram is
+an instance.
+
+**What it says about halting: the zone does not matter, the frozen tape does.** Let `m` be the length of the block of
+1s under the head at a right turn.
+
+| frozen tape from the head | next | where |
+|---|---|---|
+| `1^m 0 ...`, m >= 3 | one bounce, m - 2 | `bounce` (Lean) |
+| `1 0 1 ...` (m = 1) | halt, F reads `0 0 1`; so any odd m followed by `0 1` halts, whatever the zone | `halts_of_odd` (Lean) |
+| blocks `2, b, c, ...` | the zone absorbs `2` and `b`; frozen blocks `c - 1, ...` (if c = 1 the next pair goes too) | `py/frozen.py` (20,000 random zones and frozen tapes) |
+
+So inside a growing phase halting depends only on the parities of the frozen blocks, never on the binary digits of
+the zone; those digits matter only through what the crossing phase writes into the frozen tape.
+
+**The invariant that would settle it (observed).** At all 139,833 right turns in E of the first 10^10 steps, the tape
+from the head to the last 1 is a word in the 2-cell letters `11` and `01` starting at the head (`c/twoletter.c`).
+Then the block under the head has even length and every later block odd length, so the odd case never comes up.
+The block under the head had 2 to 4, 6 to 8, 10 to 16 or 18 to 32 cells (dyadic bands, once 62 and once more than 64),
+the Sierpinski pattern once more:
+
+| m | 2 | 4 | 6 | 8 | 10 to 16 | 18 to 32 | more |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| right turns with tape after the block | 36,458 | 46,426 | 19,254 | 20,280 | 14,830 | 2,546 | 2 |
+
+A proof of non-halting would follow from showing that this invariant is preserved. That needs the crossing phase:
+there about 60% of right turns happen inside old zone material rather than at the edge of a clean zone, and the frozen tape
+is written by the sweeps, so the zone's digits enter. Not proved.
+
+**The other machines of R05.**
+
+- Same table, other start (`1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`, and the mirrored
+  `1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB` and `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---`): every theorem above is
+  about the table, for any surrounding tape, so it holds for them after renaming the states. Lean checks it for
+  `1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF` (`lean/Pascal.lean`, `lean/Lucas.lean` in its folder, written by
+  `py/port_pascal.py`); the mirrored two would need the tape sides exchanged. The 2-cell-letter invariant holds at
+  every right turn of all three runs for 10^9 steps.
+- The slower twin `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` follows this machine step for step up to a break
+  (`lean/Twin.lean` there), so the bounce applies to it through that simulation; the four other holdouts on the twin's
+  table are that table started in B, C, E and F. The invariant holds at every right turn in E for 10^9 steps of the
+  twin table started in A, B, C and E; started in F (`1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE`) it fails at 12 right
+  turns near step 2.6·10^7, each within 30 cells of the right end. The twin halts only on `F> 0 0 1 1`, so a failure
+  is not a halt there.
+- `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102, whose `j`-th power is `v[i] = XOR_k C(j, k) w[i + k]`,
+  odd exactly when the binary digits of `k` are among those of `j` (the same theorem of Lucas); its danger pattern is
+  a gap of words reaching all `y` under that map (see its README). Not attempted here.
 
 ## Notes for later
 

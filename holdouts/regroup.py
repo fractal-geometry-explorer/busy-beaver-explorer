@@ -169,8 +169,15 @@ FAMILIES = [
                    "parity, so the space-time diagram is Pascal's triangle mod 2; "
                    "`1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102 (XOR); the others draw Sierpinski-like "
                    "triangles on blocks of 1s.",
-         known="Two pairs run through the same tapes (observed); for the XOR machine the bulk-merge trigger is known "
-               "and was last seen at 4.07·10^6 steps in a 10^11 run.",
+         known="Lean proves for `1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF` (and, renamed, "
+               "`1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`) that one bounce maps the zone to the next row of "
+               "Pascal's triangle mod 2 for every zone word, solves the rows by Lucas' theorem, and that a right "
+               "turn at a frozen block of odd length halts whatever the zone; so halting depends on the parities of "
+               "the frozen blocks, not on the zone's digits. At every right turn of the four runs on that table "
+               "(10^10 steps for the first, 10^9 for the others) the tape right of the head is a word in the 2-cell "
+               "letters 11, 01, which rules that out (observed, not proved). Two pairs run through the same tapes "
+               "(observed); for the XOR machine the bulk-merge trigger is known and was last seen at 4.07·10^6 steps "
+               "in a 10^11 run.",
          technique="For the parity machines, prove in Lean that sweep n writes row n of Pascal's triangle mod 2 in "
                    "4-cell letters. Lucas' theorem then gives every cell in closed form, and the halting condition "
                    "becomes a statement about binary digits that may be provable outright. The same template "
