@@ -168,6 +168,24 @@ python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py test 3e7
 python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py run 3e7 3600 twin.pkl twin
 ```
 
+## Top-part forecast (21 November 2026, group C)
+
+**Exact bound unchanged** (region-memo 1.19·10^283). **Forecast: no halt at any top-level timer event for 1.09·10^6 overflow
+cycles after 2.88·10^90 steps** (trusted computation of a reduced model; the reduction is an argument checked on data).
+
+- **Method** (`py/forecast.py`, code in `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py` and `cmacro.py`). The digit model counts at the bottom, and a carry reaches a digit only through carry walls, so the first P digits (the *top part*) see only carries arriving from below; the lower part decides only *when*. The top part is therefore followed alone: the top P digits of an exact state are kept, the rest is replaced by 3 zero digits with runs of 10^60 (the *reduced model*), and the reduced tape is run by `cmacro.py`, an exact macro engine over the same digits.py window rules (macro keys hold only walls, small runs and parities; every comparison on a big run is recorded as a linear condition and checked at each application). One overflow cycle of the top part is a translation of its runs while none is near exhaustion, so K cycles are jumped at once (top += K·D); near an exhaustion the cycles are run one by one. A merge at index j changes only digits j-1 and j, so the forecast of the top part holds until the real run at index P-1 (lifetime run/|D|) is used up. The forecast says nothing about step counts (they depend on the lower part) and assumes the lower part keeps delivering carries, which is what every exact run so far shows. 
+- Check of the reduction from the 2.88·10^90 state (P = 40): 20 top events of the exact run (200 s) agree with the reduced model.
+- Forecast from the 16 November state at 2.88·10^90 (top `[0]S [218]S0 [16464]S2 [5888]S3 [1648259]S2 ...`): a cycle moves the
+  run at index i by -4^(i-1). With P = 19 (horizon: index 18, 1.09·10^6 cycles): the left-edge run 218 is used up at cycle 216,
+  the run 5,888 at cycle 812, the next ones at 11,735, 15,803 (left edge again), 26,726, 37,649, ...; 117 non-translation
+  cycles in all, every one an ordinary merge, no STOP. (P = 40 to 4.46·10^6 cycles, horizon 5.9·10^3, also no STOP.)
+- Next deciding event: the horizon, the run at index 18 (cycle ~1.09·10^6).
+
+```sh
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/forecast.py test      # about 7 minutes
+python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/forecast.py run saved 19 3 1.09e6 900 out.pkl
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html`](../../pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html)

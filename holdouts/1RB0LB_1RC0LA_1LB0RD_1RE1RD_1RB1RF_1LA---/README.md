@@ -474,6 +474,14 @@ description of the reachable digit lists, closed under all of these rules, that 
 table. The runs show the tape staying in this shape through all the collapses seen so far, but it is not shown yet
 that a collapse can never meet another one in a way the table does not cover. That closure is the open step.
 
+## Cache file for lean.py, and b2 to 4.96x10^137 (21 November 2026)
+
+`py/lean.py` keeps the periods it has learned in a file when `LCACHE_FILE` is set (`PYTHONHASHSEED` must be the
+same in every run). Learning a period of 4 to 5 million sweeps costs about an hour, and without the file every new
+run learned its periods again. With it, the twin `1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---` was run two more cycles,
+to 4.96·10^137 steps, with no halt (its README, section of 21 November). b1 was not run today; its next deciding
+event, the second segment running out near 10^228, is unchanged.
+
 ## What is proved, and how firmly
 
 | level | claim | where |

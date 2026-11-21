@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -206,6 +206,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 1200 seconds and reached step 1.37&times;10<sup>124</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 44 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB--- 4 1200</code>; <code>holdouts/regaccel.json</code></p>
       </div>
+      <div class="card">
+        <h3>The next deciding event: an A phase in round 16,952,683,091 (21 November 2026)</h3>
+        <p>In every round a block with q blocks to its right is passed exactly 3<sup>q</sup> &minus; 1 times, whatever is to its left, so the charged block and everything right of it evolve on their own; blocks to its left only merge into it, which can only make it longer. <code>py/rightpart.py</code> runs that part alone, in closed form between events and with the exact model in every round in which a block may run out. It agrees with <code>py/skip.py</code> on the blocks right of the split at all 58,000 round starts from round 2,000 to 60,000. From round 561,525,639 the right end has events in rounds 906,304,366, 14,812,159,822 and 16,952,683,090, and then <b>an A phase in round 16,952,683,091</b>: the last block runs out with two empty blocks behind it, and the counter wraps about 4.6&times;10<sup>12</sup> times without new front blocks. Up to that round the front cannot reach the charged block (its left neighbour lives 8&times;10<sup>10</sup> rounds), the charged block outlives its right neighbour, and so the charged pair cannot halt the model. A phases are where charges are made (the first block runs out into the front block), so this round, not the race about 2.7&times;10<sup>12</sup> rounds out, is the next one that can decide halting. Deciding it needs the exact front of that round, which no run has reached (<code>py/cycle.py</code> would need about 40 hours). Run with nothing fed into it, the charged block outlives its right neighbour through 20 more A phases until the list is down to 5 blocks (round 9.2&times;10<sup>108</sup>); the real block holds at least as much as long as some front block survives every A phase to its left (observed, not proved).</p>
+        <p class="where"><code>python3 py/rightpart.py test 60000</code>, <code>python3 py/rightpart.py run STATE.pkl</code> (STATE: the round-561,525,639 state of <code>py/cycle.py</code>); README, section of 21 November 2026</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -218,6 +223,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What the charge means for halting</h3>
         <p>If the charged block runs out while the block after it is not empty, the borrow finds an empty block followed by a digit 0: the model halts. A block with p &minus; 1 blocks to its right loses 3<sup>p&minus;1</sup> per round, so the charged block would last 3&middot;10<sup>11</sup> rounds and its right neighbour 1.9&middot;10<sup>11</sup>: the neighbour would go first, and the charged block is also fed by the young blocks that run out on its left. Nothing is proved about the long run. A round-skipping run to round 33,199,619 (next claim) saw one event behind the charged block, after which both blocks last 9 times longer: 2.7&middot;10<sup>12</sup> and 1.7&middot;10<sup>12</sup> rounds, the neighbour still first. The earlier guess on this page, that a halt would come from the end of the list, is withdrawn.</p>
         <p class="where"><code>python3 py/charge.py run 50000</code> prints the lifetimes</p>
+      </div>
+      <div class="card">
+        <h3>The A phase of round 16,952,683,091 on today's front (forecast)</h3>
+        <p>The front of round 613,061,665 (25,614 blocks) was put in front of the right part as it will be just before that A phase, and the round was run by the exact model. In that round 33 front blocks and 4 blocks at the right end run out. Afterwards n0 + d1 = 2 (mod 3), so a new charged pair is made at the next round end. Its left block is the newborn front block, with a lifetime of about 6.6&times;10<sup>22</sup> rounds, ten times its right neighbour's. <code>py/skip.py</code> then ran 100,000 rounds without a halt, with two charged pairs. This is what round 49,668 did. It is a forecast made on today's front, not on the front that round will have.</p>
+        <p class="where"><code>python3 py/rightpart.py probe STATE.pkl FRONT.pkl OUT.pkl</code>; README</p>
       </div>
       <div class="card">
         <h3>Conserved differences</h3>

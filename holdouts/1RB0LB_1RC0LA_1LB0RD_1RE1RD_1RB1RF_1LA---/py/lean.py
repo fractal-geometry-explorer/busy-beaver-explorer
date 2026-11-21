@@ -36,6 +36,7 @@ up in the cache, so no cycle is learned twice.
     python3 py/lean.py test CKPT.pkl [b2]                      jumps of 1, 2, 3, 5, 13 periods against exact sweeps
     python3 py/lean.py verify CKPT.pkl|lineK FULLLOG [b2]      every line of a tacc.py FULLLOG, states and steps
     python3 py/lean.py run CKPT.pkl|STATE.txt SECONDS OUT.pkl [b2]   (STATELOG=FILE: one state line per jump)
+    LCACHE_FILE=FILE with a fixed PYTHONHASHSEED keeps the learned periods across runs (21 November 2026)
 """
 import os
 import pickle
@@ -515,6 +516,7 @@ def advance(st, T, nsw, P=None, seconds=None, target=None, out=None, log=sys.std
 
 
 def run(st, T, nsw, seconds, out=None, log=sys.stdout, every=120):
+    cache_load()
     st, T, nsw, P = advance(st, T, nsw, None, seconds=seconds, out=out, log=log, every=every)
     return st, T, nsw
 
@@ -522,6 +524,35 @@ def run(st, T, nsw, seconds, out=None, log=sys.stdout, every=120):
 def save(path, st, T, nsw):
     pickle.dump((st, T, nsw), open(path + '.tmp', 'wb'))
     os.replace(path + '.tmp', path)
+    cache_save()
+
+
+def cache_save():
+    """LCACHE_FILE (21 November 2026): keep the learned periods across runs.  The index is keyed by Python's
+    hash(), so the runs must share PYTHONHASHSEED (checked)."""
+    global _SAVED_IDS
+    f = os.environ.get('LCACHE_FILE')
+    ids = [id(P) for P in CACHE]
+    if f and ids != _SAVED_IDS:
+        pickle.dump((os.environ.get('PYTHONHASHSEED'), CACHE), open(f + '.tmp', 'wb'))
+        os.replace(f + '.tmp', f)
+        _SAVED_IDS = ids
+
+
+_SAVED_IDS = None
+
+
+def cache_load():
+    f = os.environ.get('LCACHE_FILE')
+    if f and os.path.exists(f):
+        seed, cached = pickle.load(open(f, 'rb'))
+        if seed is None or seed != os.environ.get('PYTHONHASHSEED'):
+            print('cache file %s ignored: PYTHONHASHSEED differs' % f, flush=True)
+            return
+        global _SAVED_IDS
+        CACHE[:] = cached
+        _SAVED_IDS = [id(P) for P in CACHE]
+        print('loaded %d cached periods from %s' % (len(CACHE), f), flush=True)
 
 
 def load(path):

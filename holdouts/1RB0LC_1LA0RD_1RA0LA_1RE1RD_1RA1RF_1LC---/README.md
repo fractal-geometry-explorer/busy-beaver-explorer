@@ -208,6 +208,30 @@ the scripts there take `b2` for this machine. For this machine:
   (`sweepZ`, `sweepO`; `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/chain_lean.py b2`). The
   details are in the other machine's README.
 
+## Two more cycles, to 4.96x10^137 steps (21 November 2026)
+
+**Result: no halt in the first 4.96·10^137 steps** (trusted, exact, step count included), up from 6.1·10^135:
+step 495,961,341,062,022,070,820,955,557,186,228,633,466,085,083,016,309,334,064,238,288,272,484,319,140,315,034,308,152,384,660,157,737,491,524,498,421,462,153,919,475,695,173,266,305,330.
+Halting is still open. The run is `py/lean.py` of `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/` (unchanged rules), continued from
+`data/b2_lean_last.txt`, with the new option of keeping learned periods in a file (below).
+
+* Two more cycles of the law of 20 November: the far end went `[0]b2_3 [118]T` -> `[0]b2_3 [116]T` (5.51·10^136)
+  -> `[0]b2_3 [114]T` (4.96·10^137). So the oldest segment loses exactly 2 blocks per cycle, and the step count
+  grows by a factor of 9 per cycle.
+* **The next deciding event is unchanged.** The oldest segment runs out after 57 more cycles, near 10^192 steps.
+  `py/probe.py` already ran that collapse ahead of time without a halt (section of 20 November).
+* **Why it is slow.** Each cycle needs a long period of the low system: 4,257,468 sweeps, then 4,799,484 sweeps. A
+  period that is not in the cache costs 45 to 60 minutes of exact sweeps, because Brent's search needs about three
+  times the period. The cache lived only in memory, so every new run learned its periods again. `lean.py` now
+  saves the cache when `LCACHE_FILE` is set (`PYTHONHASHSEED` must be fixed, since the cache is indexed by Python's
+  `hash()`; a cache file written with another seed is ignored). The cache of this run was 271 MB.
+  With the cache, a cycle whose periods are known takes minutes; reaching the 10^192 collapse still needs every
+  new period to be learned once.
+
+Reproduce: `cd holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py; PYTHONHASHSEED=0 LCACHE_FILE=/tmp/b2cache.pkl STATELOG=/tmp/b2state.log
+python3 lean.py run ../data/b2_lean_last.txt 7000 /tmp/b2.pkl b2` (the log of this run is `data/b2_lean3.log`; the
+end state is `data/b2_lean_last.txt`).
+
 ## What is proved, and how firmly
 
 | level | claim | where |
