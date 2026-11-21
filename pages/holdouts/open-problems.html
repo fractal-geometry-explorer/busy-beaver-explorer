@@ -138,8 +138,8 @@ section > *, .panel > * { min-width: 0; }
     condition is met", with no unproved assumption.</li>
     <li><span class="tag t-native">one way</span> For 4, Lean proves the direction that matters for
     non-halting: if the condition is never met, the machine never halts.</li>
-    <li><span class="tag t-open">partial</span> For 1, the rules of a period are proved but the reset
-    table is still measured.</li>
+    <li><span class="tag t-open">partial</span> For 1, level 1 (periods and the reset table) is now a
+    Lean theorem, but the second level, where a halt could come from, is not.</li>
     <li><span class="tag t-heur">heuristic</span> 31 are expected never to halt. In each case the estimated chance
     of a later halt is small and shrinks as the orbit grows, down to 2<sup>-800,000</sup>. The 8 "epoch" machines are
     expected to halt eventually, but only after an epoch whose outcome no computation can reach.</li>
@@ -689,10 +689,10 @@ section > *, .panel > * { min-width: 0; }
 <dt>map</dt><dd>a period trades 5 words 10110110 for 31 words 1100: (n, m + 5) -&gt; (n + 31, m). A phase ends at r = m mod 5 &lt; 5 and resets by a table (r = 0: new phase with m&#x27; = ⌈(n+4)/2⌉; r = 1, 2: (n + 12, 0), (n + 32, 0); r = 3, 4: new phase with m&#x27; = ⌊(n+25)/2⌋, ⌊(n+26)/2⌋), while the tail t loses 1 to 4 words. When the tail runs out it is rebuilt with about 3.1 n words: a second level.</dd>
 <dt>halts iff</dt><dd>on the second level, some remainder classes at a nearly empty tail halt (for example cfg n 2 with tail 10 (1110)^2 1001101011001), others loop</dd>
 <dt>start</dt><dd>(n, r, t) = (17, 0, 6805) at step 374,475,636</dd>
-<dt>Lean</dt><dd><code>lean/Rules.lean period; lean/Periods.lean periods</code></dd>
-<dt>heuristic</dt><dd>Level 1 ends after about 2,176 more phases (n about 10^770). Whether level 2 halts depends on residues mod 10 of a 770-digit number, so it is a Collatz-like question one level up.</dd>
-<dt>checked</dt><dd>exact accelerated run to 4.5·10^17 steps; the table iterated to about 10^1541 steps</dd>
-<dt>not proved</dt><dd>the reset table is measured, not proved (work in progress)</dd>
+<dt>Lean</dt><dd><code>lean/Periods.lean periods; lean/Resets.lean reset_spec (all five reset rows, both parities, kernel), phase_spec, phaseRun_spec, level1_end&#x27; (2,177 phases from (17, 0, 6805) to (n, 3, 0), about 10^1543 steps, as one theorem)</code></dd>
+<dt>heuristic</dt><dd>Level 1 ends after 2,177 phases at r = 3 with an empty tail and n of 772 digits. Whether level 2 halts depends on residues of that number, so it is a Collatz-like question one level up.</dd>
+<dt>checked</dt><dd>exact accelerated run to 4.5·10^17 steps; level 1 (2,177 phases, numbers of 772 digits) evaluated by the Lean kernel</dd>
+<dt>not proved</dt><dd>the run from blank tape to (17, 0, 6805) is measured, not proved; resets at a nearly empty tail (the second level, where the halting classes are) are not rules yet</dd>
 <dt>ranking</dt><dd>tier E, nested resets. Next step: Prove the reset rows in Lean (decode work).</dd>
 </dl>
 <p class="small"><a href="1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/explainer.html">explainer</a> · <a href="1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/proof-status.html">proof status</a> ·

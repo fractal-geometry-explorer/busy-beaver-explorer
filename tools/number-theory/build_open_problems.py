@@ -232,8 +232,8 @@ def build():
     condition is met", with no unproved assumption.</li>
     <li><span class="tag t-native">one way</span> For {nlev['oneway']}, Lean proves the direction that matters for
     non-halting: if the condition is never met, the machine never halts.</li>
-    <li><span class="tag t-open">partial</span> For {nlev['partial']}, the rules of a period are proved but the reset
-    table is still measured.</li>
+    <li><span class="tag t-open">partial</span> For {nlev['partial']}, level 1 (periods and the reset table) is now a
+    Lean theorem, but the second level, where a halt could come from, is not.</li>
     <li><span class="tag t-heur">heuristic</span> 31 are expected never to halt. In each case the estimated chance
     of a later halt is small and shrinks as the orbit grows, down to 2<sup>-800,000</sup>. The 8 "epoch" machines are
     expected to halt eventually, but only after an epoch whose outcome no computation can reach.</li>

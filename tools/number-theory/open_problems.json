@@ -583,11 +583,11 @@
    "map": "a period trades 5 words 10110110 for 31 words 1100: (n, m + 5) -> (n + 31, m). A phase ends at r = m mod 5 < 5 and resets by a table (r = 0: new phase with m' = ⌈(n+4)/2⌉; r = 1, 2: (n + 12, 0), (n + 32, 0); r = 3, 4: new phase with m' = ⌊(n+25)/2⌋, ⌊(n+26)/2⌋), while the tail t loses 1 to 4 words. When the tail runs out it is rebuilt with about 3.1 n words: a second level.",
    "halt": "on the second level, some remainder classes at a nearly empty tail halt (for example cfg n 2 with tail 10 (1110)^2 1001101011001), others loop",
    "start": "(n, r, t) = (17, 0, 6805) at step 374,475,636",
-   "lean": "lean/Rules.lean period; lean/Periods.lean periods",
+   "lean": "lean/Periods.lean periods; lean/Resets.lean reset_spec (all five reset rows, both parities, kernel), phase_spec, phaseRun_spec, level1_end' (2,177 phases from (17, 0, 6805) to (n, 3, 0), about 10^1543 steps, as one theorem)",
    "leanLevel": "partial",
-   "heuristic": "Level 1 ends after about 2,176 more phases (n about 10^770). Whether level 2 halts depends on residues mod 10 of a 770-digit number, so it is a Collatz-like question one level up.",
-   "evidence": "exact accelerated run to 4.5·10^17 steps; the table iterated to about 10^1541 steps",
-   "gap": "the reset table is measured, not proved (work in progress)"
+   "heuristic": "Level 1 ends after 2,177 phases at r = 3 with an empty tail and n of 772 digits. Whether level 2 halts depends on residues of that number, so it is a Collatz-like question one level up.",
+   "evidence": "exact accelerated run to 4.5·10^17 steps; level 1 (2,177 phases, numbers of 772 digits) evaluated by the Lean kernel",
+   "gap": "the run from blank tape to (17, 0, 6805) is measured, not proved; resets at a nearly empty tail (the second level, where the halting classes are) are not rules yet"
   },
   {
    "rank": 33,
