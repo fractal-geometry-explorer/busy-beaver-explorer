@@ -235,6 +235,22 @@ What does not close, at this level:
 So a proof needs an invariant that ties the zone's digits to the frozen word's, which is the Pascal-triangle structure
 again, not a regular language over letters.
 
+**The left sweep of a crossing, in Lean (`lean/Crossing.lean`).** At a crossing turn the zone is `O o N`: a near
+part `N`, a lone 1, and a far part `O`. Every letter ends in a 1, so `o` followed by `O` is again `O` in letters,
+one cell further out. `Turn2 N O p s R` is this shape. For every `N`, `O`, prefix and frozen word:
+
+* `cross_near`: the left sweep over `N` is `sweep2` (running XOR, no early turn) and reaches `o` in C (odd) or D (even).
+* `cross_even`: if the parity is even, D writes 1 over `o` and sweeps `O` in letters to the left end, as in a clean zone.
+* `cross_odd`: if the parity is odd, C turns into E on `o`. E turns each `a` of `O` before its first `b` into the
+  misaligned pair `1 0` (`erun`), then turns right on that `b`, which becomes `a` (`eturn`).
+
+So one bit, the parity of `N`, decides whether a crossing bounce reaches the left end. Observed at all 2,590
+crossing turns of the first 2·10^7 steps: the letter of `O` next to `o` is always `b`, so in the odd case E turns at
+once. Neither that fact nor the other observed ones (no `bb` in any part of the zone, `b` next to the head) is kept by
+one exact turn-to-turn step on all small shapes. A zone of one or two letters meeting a frozen word of `c`s can put
+a lone 1 into the frozen side; the run never builds that combination, but nothing local says why. That is where this
+attempt stops.
+
 A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
 (`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
 and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture
