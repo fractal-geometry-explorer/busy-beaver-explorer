@@ -1,0 +1,178 @@
+<style>
+.wrap, section, .panel { grid-template-columns: minmax(0, 1fr); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button[aria-pressed=true] { background: var(--link); color: var(--surface); border-color: var(--link); }
+.b-hunt { color: var(--open); background: var(--open-bg); }
+.b-external { color: var(--native); background: var(--native-bg); }
+.b-prove-map { color: var(--kernel); background: var(--kernel-bg); }
+.b-decode { color: var(--comp); background: var(--comp-bg); }
+.b-number-theory { color: var(--heur); background: var(--heur-bg); }
+details.row { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 8px 12px; }
+details.row summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+details.row summary code { font-size: 0.74rem; }
+details.row dl { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px 12px; margin: 10px 0 2px; font-size: 0.9rem; }
+details.row dt { color: var(--muted); font-size: 0.8rem; }
+details.row dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) { details.row dl { grid-template-columns: 1fr; } details.row dt { margin-top: 6px; } }
+.list { display: grid; gap: 6px; }
+input[type=search], input[type=text] { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 5px 9px; min-width: 0; }
+select { max-width: 100%; }
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+  <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / <a href="index.html">holdouts</a> / Collatz-like holdouts</p>
+  <p class="eyebrow">Family R15, triaged</p>
+  <h1>98 holdouts that compute a Collatz-like map</h1>
+  <p>For these machines the run from blank tape is, provably or apparently, the orbit of an explicit arithmetic map:
+  numbers multiplied by 3/2, 4/3 or 8/3 with a remainder steering a small counter or word, doubling maps with a moving
+  modulus, Euclid-like games between two blocks. Each machine halts exactly when its orbit meets some special value.
+  This page sorts all 98 by what is left to do, and lets you run 20 of the maps yourself.</p>
+</header>
+
+<section class="verdict">
+  <p><b>None of the 98 is decided here.</b> The sort, by what the next useful step is:</p>
+  <ul id="bucketList"></ul>
+  <p class="small">Each machine's own pages hold the evidence; the short records below are read from them
+  (<code>tools/collatz/triage.json</code>). The sort is a judgement, not a result.</p>
+</section>
+
+<section>
+  <p class="eyebrow">This round's halt hunts</p>
+  <h2>Long runs of the maps where a halt could still be within reach</h2>
+  <div class="prose"><p>A halt found by following a proved map is a proof. These runs go past what the machines'
+  pages had before; none found a halt.</p></div>
+  <div class="scroll"><table class="tbl" id="huntTable" style="min-width:640px"></table></div>
+</section>
+
+<section>
+  <p class="eyebrow">Run it</p>
+  <h2>Follow a map in your browser</h2>
+  <div class="panel">
+    <div class="controls">
+      <label style="flex:1 1 260px;min-width:0">machine <select id="runM" style="flex:1;min-width:0;width:100%"></select></label>
+      <label>steps <input type="number" id="runN" value="2000" min="10" max="200000" step="100" style="width:7em"></label>
+      <button id="runGo">Run</button>
+    </div>
+    <p class="small" id="runInfo"></p>
+    <svg id="runChart" viewBox="0 0 600 200" role="img" aria-label="size of the state, in bits, along the orbit"></svg>
+    <div class="out" id="runOut"></div>
+    <p class="small">The maps are transcribed from each machine's folder into <code>tools/collatz/maps.js</code>, and
+    <code>tools/collatz/test_maps.js</code> checks them against the machines: for 17 of them the first map states appear,
+    in order, as exact tapes of the run from blank tape; the other 3 against the sequences quoted in their folders.
+    Exact integers (BigInt), so the numbers can grow to thousands of digits; the run stops at a halt or at the step limit.</p>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">All 98</p>
+  <h2>The records</h2>
+  <div class="controls">
+    <span class="chips" id="chips"></span>
+    <input type="search" id="q" placeholder="filter by name or word" aria-label="filter" style="flex:1 1 200px">
+  </div>
+  <p class="small" id="count"></p>
+  <div class="list" id="list"></div>
+</section>
+
+<footer>
+  <p>Built by <code>tools/collatz/build.py</code> from <code>tools/collatz/triage.json</code>, <code>hunts.json</code>
+  and <code>maps.js</code>; the text version is <code>tools/collatz/TRIAGE.md</code>.</p>
+  <p>Machine names are bbchallenge standard text format; the families are those of <code>holdouts/FAMILIES.md</code>.</p>
+</footer>
+</main>
+<script>
+const DATA = __DATA__;
+const HUNTS = __HUNTS__;
+__MAPS__
+const BUCKETS = {
+  "hunt": ["halt hunt", "the map is fixed and a halt, if there is one, might come early enough to compute; run it far"],
+  "external": ["outside proof", "a busycoq pull request claims a decision; compile it"],
+  "prove-map": ["prove the map", "the map is explicit but not yet a Lean halts-iff; proof engineering would make it one"],
+  "decode": ["decode", "the round or phase map is not closed yet; it has to be read off the machine first"],
+  "number-theory": ["number theory", "Lean already reduces halting to the map; what is left is a Collatz-type question beyond current methods"],
+};
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const tag = (b) => `<span class="tag b-${b}">${BUCKETS[b][0]}</span>`;
+
+// bucket summary
+const counts = {}; DATA.forEach((x) => (counts[x.bucket] = (counts[x.bucket] || 0) + 1));
+document.getElementById("bucketList").innerHTML = Object.keys(BUCKETS).map((b) =>
+  `<li>${tag(b)} <b>${counts[b] || 0}</b>: ${BUCKETS[b][1]}.</li>`).join("");
+
+// hunts
+document.getElementById("huntTable").innerHTML = "<thead><tr><th>machine</th><th>what was run</th><th>before</th><th>now</th></tr></thead><tbody>" +
+  HUNTS.map((h) => `<tr><td><code>${esc(h.m)}</code></td><td>${esc(h.what)}</td><td>${esc(h.before)}</td><td>${esc(h.now)}</td></tr>`).join("") + "</tbody>";
+
+// list
+let active = new Set(Object.keys(BUCKETS));
+const chips = document.getElementById("chips");
+chips.innerHTML = Object.keys(BUCKETS).map((b) => `<button data-b="${b}" aria-pressed="true">${BUCKETS[b][0]} (${counts[b] || 0})</button>`).join("");
+chips.addEventListener("click", (e) => {
+  const b = e.target.dataset && e.target.dataset.b; if (!b) return;
+  if (active.has(b)) active.delete(b); else active.add(b);
+  e.target.setAttribute("aria-pressed", active.has(b)); draw();
+});
+document.getElementById("q").addEventListener("input", draw);
+const FIELDS = [["map", "map"], ["halt", "halts when"], ["start", "from blank"], ["proved", "proved"], ["checked", "checked"], ["odds", "odds"], ["next", "next step"]];
+function draw() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const rows = DATA.filter((x) => active.has(x.bucket) && (!q || JSON.stringify(x).toLowerCase().includes(q)));
+  document.getElementById("count").textContent = `${rows.length} of ${DATA.length} machines`;
+  document.getElementById("list").innerHTML = rows.map((x) => `<details class="row"><summary>${tag(x.bucket)} <code>${esc(x.m)}</code>
+    <span class="small">${esc(x.tier)}, ${esc(x.outlook)}${x.set && x.set !== "-" ? ", table set " + esc(x.set) : ""}</span></summary>
+    <dl>${FIELDS.filter(([k]) => x[k]).map(([k, l]) => `<dt>${l}</dt><dd>${esc(x[k])}</dd>`).join("")}
+    <dt>pages</dt><dd><a href="${x.m}/explainer.html">explainer</a> · <a href="${x.m}/proof-status.html">proof status</a>${MAPS_BY[x.m] ? ` · <a href="#run" data-run="${x.m}">run the map</a>` : ""}</dd></dl></details>`).join("");
+}
+const MAPS_BY = {}; COLLATZ_MAPS.forEach((m) => (MAPS_BY[m.m] = m));
+document.getElementById("list").addEventListener("click", (e) => {
+  const m = e.target.dataset && e.target.dataset.run; if (!m) return;
+  e.preventDefault(); document.getElementById("runM").value = m; run(); document.getElementById("runM").scrollIntoView({ behavior: "smooth", block: "center" });
+});
+draw();
+
+// runner
+const sel = document.getElementById("runM");
+sel.innerHTML = COLLATZ_MAPS.map((m) => `<option value="${m.m}">${m.m}</option>`).join("");
+const bits = (s) => s.reduce((t, v) => t + (v < 0n ? 0 : v.toString(2).length), 0);
+const fmt = (v) => { const t = v.toString(); return t.length > 40 ? `${t.slice(0, 12)}…${t.slice(-6)} (${t.length} digits)` : t; };
+let token = 0;
+function run() {
+  const map = MAPS_BY[sel.value], N = Math.min(200000, Math.max(1, Number(document.getElementById("runN").value) || 2000));
+  const me = ++token; let s = map.start, i = 0, end = null; const sizes = [bits(s)], lines = [`0: (${s.map(fmt).join(", ")})`];
+  document.getElementById("runInfo").innerHTML = `<b>${esc(map.cfg)}</b>, ${esc(map.vars.join(", "))}. Rule: ${esc(map.rule)}. <span class="tag t-kernel" style="white-space:normal">${esc(map.level)}</span>`;
+  const chunk = () => {
+    if (me !== token) return;
+    const t0 = performance.now();
+    while (i < N && !end && performance.now() - t0 < 30) {
+      const n = map.step(s); i++;
+      if (!Array.isArray(n)) { end = n; break; }
+      s = n; sizes.push(bits(s));
+      if (i <= 200 || i % Math.ceil(N / 200) === 0) lines.push(`${i}: (${s.map(fmt).join(", ")})`);
+    }
+    if (i < N && !end) { setTimeout(chunk, 0); }
+    if (end) lines.push(`${i}: ${end.halt ? "HALT: " + end.halt : "stop: " + end.stop}`);
+    else if (i >= N) lines.push(`… no halt in ${N} map steps; the state has ${bits(s)} bits`);
+    document.getElementById("runOut").textContent = lines.slice(-400).join("\n");
+    chart(sizes);
+  };
+  chunk();
+}
+function chart(sz) {
+  const W = 600, H = 200, L = 44, R = 10, T = 10, Bm = 26, n = sz.length, mx = Math.max(4, ...sz);
+  const x = (i) => L + (W - L - R) * i / Math.max(1, n - 1), y = (v) => H - Bm - (H - T - Bm) * v / mx;
+  const step = Math.max(1, Math.floor(n / 600));
+  let d = ""; for (let i = 0; i < n; i += step) d += (d ? "L" : "M") + x(i).toFixed(1) + "," + y(sz[i]).toFixed(1);
+  document.getElementById("runChart").innerHTML =
+    `<line x1="${L}" x2="${W - R}" y1="${H - Bm}" y2="${H - Bm}" stroke="var(--rule)"/><line x1="${L}" x2="${L}" y1="${T}" y2="${H - Bm}" stroke="var(--rule)"/>` +
+    `<text x="${L - 6}" y="${y(mx) + 4}" text-anchor="end">${mx}</text><text x="${L - 6}" y="${H - Bm + 4}" text-anchor="end">0</text>` +
+    `<text x="${W - R}" y="${H - 8}" text-anchor="end">map step ${n - 1}</text><text x="${L}" y="${H - 8}">bits in the state</text>` +
+    `<path d="${d}" fill="none" stroke="var(--c1)" stroke-width="1.6"/>`;
+}
+document.getElementById("runGo").addEventListener("click", run);
+sel.addEventListener("change", run);
+run();
+</script>
+</body>
+</html>
