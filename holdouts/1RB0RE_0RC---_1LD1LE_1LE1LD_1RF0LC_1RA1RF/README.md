@@ -220,6 +220,22 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 - Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4).
 - Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.
 
+- Run lengths mod 4 with memory beyond the window (21 November 2026, `py/rlcps.py`): each side is its K nearest runs
+  (1-runs exact up to T, longer ones by length mod 4; 0-runs exact) plus an n-gram summary of the runs beyond, grown
+  to a fixed point as in n-gram CPS. K = 2..6, T = 4..8, n = 2..4: every closing parameter set reaches a halt in the
+  abstraction, the others exceed 2·10^6 configurations. The spurious paths all go the same way: F walks right far past
+  the window, and the summary it built on earlier walks offers block sequences that never occur in the frozen tape
+  (even blocks, `0 0`). The summary does not know that the tape right of the zone is a word in `11` and `01`.
+- A fixed feature automaton read from the far end of each side (`py/dfactl.py`: open run and its length mod 4, the
+  number of even blocks and of `0 0` gaps seen, capped): halts in the abstraction after about 2,200 abstract
+  configurations, through a `0 0` created at the right end early in the run and carried to the head. Counting
+  features cannot tell "a `0 0` at the right end" from "a `0 0` in the bulk".
+
+What a proof needs instead is the phase structure: the growing phase is now in Lean for clean and walled zones
+(`lean/Absorb.lean`), and in the crossing phase the run looks like the wall of `absorb3` moving left through the old
+zone one block per few bounces (block lists at turns, steps 7,484 to 7,800 above). Writing the wall's step as a block
+rule, and the right end's two events per epoch, would give a macro-machine whose states are these phases.
+
 ## Pages
 
 - [`pages/holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html`](../../pages/holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html)
