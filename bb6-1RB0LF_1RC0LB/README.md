@@ -52,7 +52,7 @@ to its right every time so far; pass endings look like a binary counter, a gap o
 4j − 2 (`notes/LAB_NOTES.md`).
 
 **Computed** (trusted C, tested against Python): the two-stack form of the macro machine does not get stuck in its
-first 5.1·10¹² steps (`c/fastrun.c`, about 4 s per 10⁹ steps; `c/twostack.c` to 2·10¹¹); it has two near misses (a
+first 10¹³ steps (`c/fastrun.c`, about 4 s per 10⁹ steps; `c/twostack.c` to 2·10¹¹); it has two near misses (a
 frame flipped down to 0), at steps 204,719,421 and 2,084,922,784, both harmless, and none after. Memoizing frames on
 the inputs they inspect (`py/accel.py`) is exact but gives no real speed-up: the memo grows like steps^0.86.
 
