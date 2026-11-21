@@ -14,10 +14,10 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 
 | machine | what was run | before | now |
 |---|---|---|---|
-| `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` | the E-pass map, 2-adic divide and conquer (holdouts/.../c/orbit.c), 2^33 passes | 2^32 passes (4.3e9); a halt then had probability 0.4% under the fair-bit model | RUNNING |
-| `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | RUNNING |
-| `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | RUNNING |
-| `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | RUNNING |
+| `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` | the E-pass map, 2-adic divide and conquer (holdouts/.../c/orbit.c), 2^33 passes | 2^32 passes (4.3e9); a halt then had probability 0.4% under the fair-bit model | 2^33 passes (8.6e9), no halt; 36 minutes, about 7.5 GB (memory caps this run; a halt is expected near 2^40 under the fair-bit model) |
+| `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | 10^12 visits, no halt; a, b reach 3.5e12, about 6.8e35 machine steps; values grow about linearly, so a hit b = a + 4 (a even) stays possible |
+| `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly |
+| `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | 10^12 operations, no halt: modulus about 4.8e11, past both targets 2^37 - 36 and 2^38 - 37; 36 odd events |
 
 ## Halt hunt (7)
 
