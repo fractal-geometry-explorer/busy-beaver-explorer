@@ -161,7 +161,7 @@
     {
       "level": "trusted",
       "title": "Most of the run is a map on two numbers",
-      "text": "87% of the first 95,333 pass starts are two blocks <code>1^x 0 1^b A&gt;0</code>, x always even; the others have at most 11 blocks. For one block x left of a last block 3j, <code>pre</code> is given in closed form (equal to the block machine for every x below 30,000): affine in x on each residue mod 18, except x &equiv; 14 mod 18, where it follows the power of 3 in (x &minus; 5)/9. So the pass map on two blocks is an explicit Collatz-like map on (x, b); the offset is 0 after an even block exactly when x &equiv; 8 mod 18, or x &equiv; 14 mod 18 and (x &minus; 5)/9 without its factors 3 is 1 mod 6. Offset 0 occurs up to 6 recursive passes in a row; the smallest last block from pass 50,000 on is 1,787.",
+      "text": "87% of the first 95,333 pass starts are two blocks <code>1^x 0 1^b A&gt;0</code>, x always even; the others have at most 11 blocks. For one block x left of a last block 3j, <code>pre</code> is given in closed form (equal to the block machine for every x below 30,000, and since proved in Lean, <code>lean/TwoBlock.lean</code>): affine in x on each residue mod 18, except x &equiv; 14 mod 18, where it follows the power of 3 in (x &minus; 5)/9. So the pass map on two blocks is an explicit Collatz-like map on (x, b); the offset is 0 after an even block exactly when x &equiv; 8 mod 18, or x &equiv; 14 mod 18 and (x &minus; 5)/9 without its factors 3 is 1 mod 6. Offset 0 occurs up to 6 recursive passes in a row; the smallest last block from pass 50,000 on is 1,787.",
       "where": "<code>py/twoblock.py</code> (<code>pre1</code>, <code>verify</code>), <code>notes/LAB_NOTES.md</code> (5 November)"
     },
     {
@@ -217,6 +217,12 @@
       "title": "Does it halt from blank tape?",
       "text": "Not known.",
       "where": ""
+    },
+    {
+      "level": "kernel",
+      "title": "The pass after a single block, in closed form",
+      "text": "For every x &ge; 3, the recursive pass from one block x before a last block 3j reaches the next pass start given by a formula: affine in x and j on each residue of x mod 18, and for x &equiv; 14 mod 18 a carry down the powers of 3 in (x &minus; 5)/9, proved by strong induction over its levels. With the closed form for the other last blocks and <code>recur_two</code>, every pass from a two-block start <code>1^x 0 1^b A&gt;0</code> is a proved closed form; 87% of the run's pass starts are of that kind. The theorems, transcribed in Python, agree with the block machine on 11,837 passes.",
+      "where": "<code>one_zero6</code> &hellip; <code>one_fifteen18</code>, <code>lvl</code>, <code>one_fourteen_two</code>, <code>one_fourteen_three</code>, <code>lean/TwoBlock.lean</code>; <code>py/twoblock.py lean</code>"
     }
   ],
   "check": [

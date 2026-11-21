@@ -12,6 +12,7 @@ import Chain
 import CaseB
 import Bound
 import Tokens
+import TwoBlock
 
 /-! What each theorem rests on: `lean Axioms.lean` prints the axioms. `propext` and `Quot.sound` are the standard ones;
 a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
@@ -115,3 +116,19 @@ a `native_decide` axiom means the theorem also trusts Lean's compiler. -/
 #print axioms BB6c.row_five_tokens
 #print axioms BB6c.row_five_nil_tokens
 #print axioms BB6c.cycle36
+-- TwoBlock.lean: the recursive pass after a single block, every residue mod 18 (kernel only)
+#print axioms BB6c.one_zero6
+#print axioms BB6c.one_four6
+#print axioms BB6c.one_five6
+#print axioms BB6c.one_five
+#print axioms BB6c.one_two18
+#print axioms BB6c.one_eight18
+#print axioms BB6c.lvl
+#print axioms BB6c.one_fourteen_two
+#print axioms BB6c.one_fourteen_three
+#print axioms BB6c.one_one18
+#print axioms BB6c.one_seven18
+#print axioms BB6c.one_thirteen18
+#print axioms BB6c.one_three18
+#print axioms BB6c.one_nine18
+#print axioms BB6c.one_fifteen18
