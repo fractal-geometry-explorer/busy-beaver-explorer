@@ -76,6 +76,12 @@
    "addon": true
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 1.91&times;10<sup>20673</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 294 seconds and reached step 1.91&times;10<sup>20673</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB 6 294 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "No halt in the first 2.22&times;10<sup>609</sup> steps of an accelerated run",
    "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 2.22&times;10<sup>609</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.02&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 9,243 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
