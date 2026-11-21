@@ -122,6 +122,36 @@ by `native_decide` (`lean/Blank.lean`); the four digit rules for all block lengt
 of the counter form with short blocks halt (`lean/Perturbed.lean`, `native_decide`). C (`tools/c/tmrun.c`): no
 halt in 10^11 steps (377,233 cells visited).
 
+## Countdown hunt: the far-end resets in the exact run (21 November 2026)
+
+`py/ratrack.py` runs the region-memo accelerator `tools/py/bbtools/regaccel.py` (blocks of 6, exact) and, each
+time the head is at the right end with blank tape beyond (the head has just swept the whole tape), decodes the
+tape into the block list: runs of `111110` between separators of 7 ones and the end (8 ones and a short tail).
+`py/ratrack.py test` checks the decoded snapshots against a direct run (13 of 13 up to 2·10^9 steps agree). A
+100-second run reaches 10^1083 steps and shows the **top-level resets**, the moments when the last block before
+the end (the block that loses one pair per right-end event) runs out:
+
+| steps | last block before | after |
+|---|---|---|
+| ~10^5 | 2 | the end rearranges (`... w17 7 w60 7 1`) |
+| ~10^18 | 4 | 4,226 is the last block, end `8 2` |
+| ~10^173 | 18, 2 | 236,708 is the last block, end `8 0` |
+
+None of them halts (the run is exact, and it passes them). This is the event at which the short-timer tapes of
+`lean/Perturbed.lean` halt (the carry off the top runs into a short end); in the run from blank tape the block in
+front is always long when it happens. At 10^1083 the list is (copies of w): 262,141 (timer), 10^540, 10^65, 10^12,
+10^85, 10^48, 10^32, 1,061,293, 482,551, 222,422 (last), end `8 0`.
+
+Forecast (heuristic, from the rates in the log, not a run): the last block loses about 15 per decade and the one
+before it about 63, so the block of 482,551 runs out first, near 10^8700, and the last block near 10^15800; the
+1-hour run of 20 November (10^27641) has probably passed both, but this was not logged. No new run was made, so
+the bound is unchanged.
+
+```sh
+python3 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/py/ratrack.py test 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 6 2e9
+python3 holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/py/ratrack.py run 1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD 6 100
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/explainer.html`](../../pages/holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD/explainer.html)

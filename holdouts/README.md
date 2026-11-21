@@ -128,3 +128,9 @@ contains the run from blank tape and excludes every halt; a solution becomes a L
   open machines with the same first four rules rewrite `1011` differently and run past round 200,000.
 - Every open machine that shares a table with an upstream-proved machine (another start or a mirror) is itself
   already in an upstream pull request.
+
+## Standard deciders rerun on the 257 unfamilied holdouts (21 November 2026)
+
+Cyclers and translated cyclers to 2·10^9 steps, backward reasoning to depth 3,000, n-gram CPS up to 30-cell windows
+(with histories, LRU and asymmetric windows) and RepWL with blocks up to 48 cells: none of the 257 machines in no
+family of `FAMILIES.md` was decided. Details and per-machine results: [`deciders_rerun/`](deciders_rerun/README.md).

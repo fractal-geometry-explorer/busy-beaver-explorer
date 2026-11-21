@@ -105,3 +105,27 @@ python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 1
 
 - [`pages/holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/explainer.html`](../../pages/holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/explainer.html)
 - [`pages/holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/proof-status.html`](../../pages/holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/proof-status.html)
+
+## Outside halting proof: busycoq PR 64 (21 November 2026)
+
+busycoq PR 64 (`/mnt/project-files/busycoq-prs/64/verify/Halt_1RB0RB_0LC1RA.v`, 15,177 lines of Coq, not compiled
+here) states `Theorem halt : halts tm c0`: the machine **halts** from blank tape. What it claims, as read from the
+file (not redone here):
+
+* Pairs a = 11, b = 01. A record is `0^inf W 0 1 1 B> 0^inf`, W a word over {a, b}; the first record (step 31)
+  is `1111 0 1 0 1 1 B>`. One sweep (the D/E/F/C pass left and the A/B pass right) acts on W as a three-state
+  right-to-left letter transducer (`Sim356.sweep`, `sweep_act`). At the left edge the word grows (exit state T0),
+  the machine halts (T1: D on `0 1` next to the blank edge, `D_halt`), or a level ends (T2: the tape is rewritten
+  by a right pass shifted by one cell, `ovf`).
+* Level 1 starts at step 589,507 with the tail b^518 (q = 43, r = 2); a level whose word starts with a long run
+  b^(12q+12+r) behaves like the short word with b^r, slowed down by 4^(q+1) (`Level356`, `Tail356`). This is the
+  epoch-3 law of this README (E(m + 12) = 4 E(m) + 2) made exact.
+* 25 levels are followed with symbolic run lengths; only residues of the lengths modulo powers of 3 are carried
+  from one level to the next (`Resid356`, `Reach356`). The reduced word of level 25 halts (`chain_halt`).
+  The halting step is a tower of 4s of height about 25; it is not computed. This agrees with the prediction
+  above that epoch 4 (level 2 of the PR) does not halt: the halt comes 23 levels later.
+
+Cross-check (cheap): `py/pr64_sweep.py test` transcribes the PR's `dscan`/`sig`/`ovf`/`oscan` and compares the
+sweep with direct simulation: all 766 records up to step 700,000 agree, including the 10 level ends up to step
+589,507 (the record after the last of them is the PR's start of level 1). `python3 py/pr64_sweep.py levels 3000`
+iterates the transducer alone. Status: the halting claim is the PR's; compiling it is the next step.

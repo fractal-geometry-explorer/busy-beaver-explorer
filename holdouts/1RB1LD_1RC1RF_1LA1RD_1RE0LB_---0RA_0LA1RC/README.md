@@ -75,6 +75,29 @@ python3 $T/py/check_macro.py 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC verify < 
 gcc -O2 -o /tmp/twin $T/c/twin.c && /tmp/twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 1000000000
 ```
 
+## Countdown hunt: one run for both twins, to 2.2·10^73459 steps (21 November 2026)
+
+**No halt in the first 2.2470778089·10^73459 steps, and no break with the twin** (trusted computation). The
+correspondence with [`1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD`](../1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD/README.md)
+is turned into one machine, the lockstep product (`py/ratrack.py twin` builds it from the two tables and checks it
+step by step against both):
+
+    1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE      states AA BB CC CE DD EF FC (the other machine's state first)
+
+Every transition where the paired rows agree is kept; the three where they differ are halting: CC reads 1 (the
+machines diverge), CE reads 0 (this machine halts, E0), FC reads 0 (the other halts). So up to the first break the
+product writes the same tape as both machines, and a run of the product without a halt is a run of both, in step,
+without a halt; a halt of this machine would show up as the product halting in CE. The region-memo accelerator
+ran the product to step 2.2470778089·10^73459 without a halt. The run, the block list and the events it passed
+(the top-level reset near 1.55·10^26352 steps: the far-end countdown ran out without a halt) are described in the
+other machine's README. So the "observed, not proved" twin relation now holds, by an exact computation, for the
+first 2.2·10^73459 steps; a proof for all steps still needs the three local patterns as an invariant.
+
+```sh
+python3 holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/py/ratrack.py twin 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC 1e6
+python3 holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/py/ratrack.py test 1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE 6 2e9
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/explainer.html`](../../pages/holdouts/1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC/explainer.html)

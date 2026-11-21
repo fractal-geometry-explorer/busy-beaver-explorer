@@ -158,6 +158,38 @@ python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py test 3e7
 python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/macro4.py run 3e7 3600 main.pkl     # resumable checkpoint
 ```
 
+## Top-part forecast and condition macros (21 November 2026, group C)
+
+**Exact bound unchanged** (the region-memo bound 6.97·10^153 stands). **Forecast: no halt at any top-level timer event for at
+least 2.26·10^6 overflow cycles after 4.79·10^63 steps** (trusted computation of a reduced model; the reduction is an argument
+checked on data, not a proof).
+
+- `py/cmacro.py` (exact): from the 16 November state at 3.55·10^38 it reached step
+  4,793,665,653,522,497,960,519,246,549,042,984,084,070,144,923,733,051,616,030,988,496 (4.79·10^63) in 600 s, passing the
+  first top-level timer events of that state (its top runs 11,336, 3,662, 178,638 and 156,728 were used up and merged; the
+  top run at 4.79·10^63 is 7,220,965, the former 8,273,482); no halt, no unknown window. Test: `python3 py/cmacro.py py/macro4.py test 3e7 2000000 main`
+  (4,472 landing points, 2.0·10^6 sweeps, 0 mismatches against plain digits.py sweeps). It is not faster than regaccel at depth.
+- **Method** (`py/forecast.py`, code in `holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py` and `cmacro.py`). The digit model counts at the bottom, and a carry reaches a digit only through carry walls, so the first P digits (the *top part*) see only carries arriving from below; the lower part decides only *when*. The top part is therefore followed alone: the top P digits of an exact state are kept, the rest is replaced by 3 zero digits with runs of 10^60 (the *reduced model*), and the reduced tape is run by `cmacro.py`, an exact macro engine over the same digits.py window rules (macro keys hold only walls, small runs and parities; every comparison on a big run is recorded as a linear condition and checked at each application). One overflow cycle of the top part is a translation of its runs while none is near exhaustion, so K cycles are jumped at once (top += K·D); near an exhaustion the cycles are run one by one. A merge at index j changes only digits j-1 and j, so the forecast of the top part holds until the real run at index P-1 (lifetime run/|D|) is used up. The forecast says nothing about step counts (they depend on the lower part) and assumes the lower part keeps delivering carries, which is what every exact run so far shows. 
+- Check of the reduction: from 3.55·10^38, the exact run and the reduced model (P = 16) give the same top 7 digits at all
+  1,984 top events compared (to about 10^63): 0 mismatches. (P = 9 fails after 1,146 events, when merges bring the fake digits
+  into the compared window, as expected.)
+- Forecast from the exact state at 4.79·10^63 (52 digits, top `[0]W1 [7220965]W0 [419154193]W0 [9371979629]W0 [1116859675]W0
+  [11231167]W0 ...`): one overflow cycle moves the run at index i by -4^i. With P = 42 (horizon: index 41, run 1.09·10^31,
+  2.26·10^6 cycles) the timer events are at cycle 10,968 (index 5, the run 11,231,167, merge W0 W0), 1,742,014 (index 6) and
+  1,805,240 (index 1, the left-edge run 7,220,965); all are ordinary merges. Continued to 1.1·10^8 cycles (two more: index 5 at
+  60,257,693 and the left-edge run again at 99,372,823) under the argument that merges above index 41 only lengthen its life
+  (x4 per merge). No STOP (halt, split or unparsed window) in any of it.
+- Rough scale: the left-edge run lost 3,761 between 4.79·10^63 and the state of a 600 s region-memo run at 10^145 (where it
+  is 7,217,204 words 110), about 940 cycles, so
+  a cycle is about 0.087 decimal digits of steps at this depth; cycle 10,968 is near 10^1000 steps, cycle 2.26·10^6 near 10^200000.
+- Next deciding event: the forecast's horizon (index 41 used up, after 2.26·10^6 cycles; or, with the extension, about
+  1.1·10^8). Beyond it the top part depends on digits born after 4.79·10^63.
+
+```sh
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py test 60
+python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py run saved 42 3 2.2e6 1700 out.pkl
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html`](../../pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html)

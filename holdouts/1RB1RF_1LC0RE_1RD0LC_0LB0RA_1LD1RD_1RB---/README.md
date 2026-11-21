@@ -212,6 +212,62 @@ python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/cycle.py test 3000
 python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/cycle.py run 1000000000000 3600 START.pkl CKPT.pkl
 ```
 
+## The right part on its own, and the next deciding event (21 November 2026)
+
+**Result: the next event that can decide halting is an A phase in round 16,952,683,091, about 30 times the round
+count reached so far, not the race of the charged block about 2.7·10^12 rounds out. Up to that round the charged
+pair cannot halt the model. Its outcome depends on the young groups at the front, which no run has reached yet.**
+Halting is still open, and the trusted bound stays at round 561,525,639.
+
+**The right part is autonomous.** In every round a group with q groups to its right is passed exactly 3^q − 1 times
+(the last group twice), whatever lies to its left. So the charged block X and everything right of it evolve on their
+own. The groups left of X act on it only through merges, and a merge only adds to X. `py/rightpart.py` runs that part
+alone. Two neutral sentinel groups, whose lifetimes are a million times X's, stand in for a front that survives;
+after every round everything left of them (the new front block) is deleted, so nothing is fed into X. Between
+events, whole runs of rounds are done in closed form (each group loses K·3^q). Every round in which some group may
+run out is run by the exact model (`py/model.py`), so events, A phases included, are exact. Check:
+`python3 py/rightpart.py test 60000` splits off the last 30 groups at round 2,000 and compares the groups right of
+X with `py/skip.py` at every round start up to round 60,000 (58,000 rounds, through the A phase of round 49,668):
+no mismatch.
+
+**The run from round 561,525,639** (`python3 py/rightpart.py run STATE.pkl`, seconds):
+
+| round | event at the right end | groups X..end |
+|---|---|---|
+| 906,304,366 / 906,304,367 | D, the last groups merge | 208 → 206 |
+| 14,812,159,822 | D D | 206 → 205 |
+| 16,952,683,090 | D | 205 |
+| **16,952,683,091** | **A, F, D**: the last group runs out with two empty groups behind it, and the counter wraps about 4.6·10^12 times with no new front block | 205 → 201 |
+
+Up to round 16,952,683,091 the front cannot reach X. X's left neighbour has a lifetime of 8·10^10 rounds, and
+merges and right-end events only lengthen it. So the X..end part computed here is the real one, and X keeps a
+lifetime about 1.6 times its right neighbour's (5.9·10^15 against 3.7·10^15 rounds). The charged pair cannot halt
+before the A phase.
+
+**The old charge on its own (zero feed, past the A phase).** Continued with nothing fed into X, the run goes through
+20 more A phases (128 events in all, 1.4 s) and all the right-end merges until only 5 groups are left, near round 9.2·10^108. X outlives
+its right neighbour throughout, by a factor of 1.59 to 2.16 in lifetime, and then the charge disappears into the
+end of the list. The real block always holds at least as much as the zero-feed one, as long as some group survives
+to its left through every A phase (in an A phase every death of a front group lengthens the lifetimes of all
+groups to its left by 9, so the front is never used up; observed, not proved). So the charge made in round 49,668
+is not the danger.
+
+**Where a halt could come from.** New charges are made at A phases: in the wraps the first group runs out and is
+merged into the front block, which can break n0 + d1 = 1 (mod 3) (see "Charged pairs"). The A phase of round
+16,952,683,091 needs the exact front at that round. `py/cycle.py` does about 1.7·10^5 rounds a second at 25,800
+groups and slows down as the front grows, so it would need about 40 hours to get there; a closed form for the
+front (`For later`) is still the missing piece.
+
+**Forecast (heuristic).** `python3 py/rightpart.py probe STATE.pkl FRONT.pkl OUT.pkl` puts the front of a
+`cycle.py` state (here round 613,061,665, 25,614 front groups) in front of the right part as it is just before the A
+phase, and runs that round with the exact model (26 minutes). In the A round the list goes from 25,819 to 25,782 groups (33 of the front, 4 at the right end). Then
+n0 + d1 = 2 (mod 3), and at the next round end a new charged pair is born at the front. Its left block is the
+newborn front block, with a lifetime of about 6.6·10^22 rounds, ten times its right neighbour's (5.4·10^21).
+`py/skip.py` from there: 100,000 rounds without a halt, with two charged pairs, the new one at the front and the old
+one at position 201 from the right. So the A phase of round 16,952,683,091 is expected to repeat what happened in
+round 49,668: a new charged block that is far longer-lived than its neighbour. That is a forecast on today's front,
+not on the front of that round.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html`](../../pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html)
