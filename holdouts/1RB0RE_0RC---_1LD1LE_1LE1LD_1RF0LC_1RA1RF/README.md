@@ -159,6 +159,15 @@ A proof of non-halting would follow from showing that this invariant is preserve
 there about 60% of right turns happen inside old zone material rather than at the edge of a clean zone, and the frozen tape
 is written by the sweeps, so the zone's digits enter. Not proved.
 
+A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
+(`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
+and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture
+between turns: no `00`, and the parity of the offsets of the 0s switches at most once on each side of the head. An
+abstract interpretation built on that (`py/absz.py`: K cells each side kept exactly, the rest summarized by its first cell,
+the parity of its first 0 and the number of parity switches; K = 2 to 8, up to 3 switches) does not close: it lets the
+head reach configurations with a second switch near the right end, or with a `00` that the real run only makes
+for a moment in D. Closing it needs the letter structure (block lengths mod 4) in the summary.
+
 **The other machines of R05.**
 
 - Same table, other start (`1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`, and the mirrored
@@ -175,7 +184,9 @@ is written by the sweeps, so the zone's digits enter. Not proved.
   is not a halt there.
 - `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102, whose `j`-th power is `v[i] = XOR_k C(j, k) w[i + k]`,
   odd exactly when the binary digits of `k` are among those of `j` (the same theorem of Lucas); its danger pattern is
-  a gap of words reaching all `y` under that map (see its README). Not attempted here.
+  a gap of words reaching all `y` under that map. Done there (`lean/Xor.lean`, `lean/XorLucas.lean`): the round trip
+  is proved to be rule 102 for every length, with the same Lucas lemmas, and a gap can reach all `y` only if it is
+  already a row of Pascal's triangle mod 2.
 
 ## Notes for later
 
