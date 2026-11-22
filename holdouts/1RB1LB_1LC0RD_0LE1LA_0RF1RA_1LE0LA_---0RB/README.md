@@ -123,7 +123,7 @@ the defect side fixed at `y` (section above). Write the gap with the defect cell
   the binary digits of `j` lie inside those of some `s < 2^b`; it then becomes all `y` at sweeps `t = 2^b - 1 - s mod 2^b`;
 * only `2^b <= 2n` of the `2^n` gaps of length `n` can ever reach the danger pattern, and every gap is periodic with period `2^b`.
 
-`py/pascal_gaps.py` checks both statements for every gap of up to 14 words (all 32,766). The algebra is not in Lean. A
+`py/pascal_gaps.py` checks both statements for every gap of up to 14 words (all 32,766). The algebra is now in Lean (`lean/Gaps.lean`, below). A
 halt still needs, at such a sweep, a `y` or `0` before the `10` (in the data it was `x` all 131 times). So the open
 question is now about binary digits: which gaps the right end hands to a newborn `10`, and what word stands before the
 defect at the sweeps `t = 2^b - 1 - s mod 2^b`.
@@ -210,12 +210,47 @@ of which gaps are born, not something the map rules out. In the real run `j` was
 merges. The no-halt argument therefore still needs the births: that `y 0 x^k 0` (the only way a bulk `10` forms) never
 appears again after 8.5·10^6 steps, which is about the walls and the right end, not about the defect.
 
+## Which gaps the jumps can make dangerous (22 November 2026, `lean/Gaps.lean`)
+
+Read the gap as the series `W = 1 + g0 z + g1 z^2 + ...` (defect = constant term) as above. `Gaps.lean` first ties the
+series to the words of `Hop.lean`: on every coefficient the old gap determines, the shielded sweep leaves `(1 + z) W`
+(`ser_shielded`) and the jump leaves `(1 + z) C` (`ser_jump`, `ser_rest`). Then it inverts `(1 + z)^t`:
+
+* `mask t` is the series with coefficient `k` equal to 1 exactly when `k` and `t` share no binary 1. It is
+  `(1 + z)^(-(t+1))` (coefficient `C(t + k, k)` mod 2), and `(1 + z) mask (t + 1) = mask t` is Pascal's rule
+  (`mz_mask`), so `(1 + z)^t mask t = 1 + z + z^2 + ...` (`mzi_mask`).
+* Multiplying by `(1 + z)^t` keeps and reflects agreement on the first `r` coefficients (`mzi_agree`), so **after `t`
+  shielded sweeps the first `r` coefficients are all `y` iff they were `mask t`** (`reach_ones`).
+* `mask` has period `2^b` below `2^b` (`mask_period`), so a gap of fewer than `2^b` words ever becomes all `y` iff it
+  is `mask t` for some `t < 2^b` (`pascal_reach`). This is the Pascal-row statement of the Lucas section
+  (`mask t` = row `2^b - 1 - t`), now proved for every length instead of checked up to 14 words.
+* **The next jump** (`next_jump_run`): at a jump over `y^j x^(a+1)` with rest `C`, `L = j + a + 2`, the first `r`
+  coefficients of `F(W) = (1 + z)^L C` are all `y` iff `C` agrees with `mask L` on its first `r` words. So the run of
+  `y`s at the next jump is the length of the common prefix of `C` and `mask L`, minus one, and the danger pattern at the
+  next jump needs `C = mask L` on the whole gap: one gap per `(j, a)`, at most about `n^2 / 2` of the `2^n` gaps of
+  `n` words (190 of 1,048,576 for `n = 20`). Since `mask L` starts `y`, then `x` at `k = 2^(v_2 L)`, an odd `L` needs
+  `C` to start `y x`, and a long run needs `L` divisible by a large power of 2.
+
+`py/jump_gaps.py` checks the agreement rule on 163,800 cases (every `C` up to 12 words, `L` up to 40) and on the real
+run (`./turns 12000000 150 > turns.txt; python3 py/jump_gaps.py turns.txt`): at all 10 jumps that have a successor in
+the same lifetime, the next run equals the agreement minus one. Two came close. At 2.53·10^6 steps (`j = 1`, `L = 6`)
+the rest `C = yyxx` is `mask 6` on every word the old gap holds; the next run was 3 because the gap had grown to 7 and
+the words that entered at the wall did not continue the mask. At 5.44·10^6 steps (`L = 3`, `C = yxxxx` against
+`mask 3 = yxxxy`) the agreement was 4 of 5: run 3 where 4 would have halted.
+
+What this does not settle: the jump map now pins down the dangerous gaps exactly, but the words that enter the gap at
+the wall between jumps are not controlled (the wall moves, and the series model only covers the words the old gap
+determines), and the near miss at 2.53·10^6 steps shows that they can matter. Two ways forward: model the wall's
+contribution between jumps (what the walls feed in is again a rule-102 image of the bulk), or return to the births and
+show that `y 0 x^k 0` never forms again, so that no bulk `10` exists to jump.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
 search over all words of 1-3 cells, each for every n and every tape around. `lean/Xor.lean` and `lean/XorLucas.lean`:
 the rule 102 epoch and its closed form (section above). `lean/Danger.lean`: the danger pattern halts. `lean/Hop.lean`:
-the shielded sweep, the jump and the jump clock (section above).
+the shielded sweep, the jump and the jump clock (section above). `lean/Gaps.lean`: which gaps sweeps and jumps can
+turn into the danger pattern (section above).
 
 ## Halting
 

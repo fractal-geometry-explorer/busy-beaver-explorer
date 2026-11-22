@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves two crossings of the sweeps and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>The scrambling is decoded.</b> In 4-cell letters s = <code>0111</code> and c = <code>1111</code> of the dense form, one round trip replaces the letter word by its running XOR: backwards in time the list evolves by the XOR cellular automaton (rule 102). This is proved in Lean for <a href="../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/explainer.html#ca">1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---</a>, which has the same tapes, and checked on this machine's run for every letter away from the far end of the tape over 2&middot;10<sup>8</sup> steps. Only a thin layer at that end is not decoded, and a halt can only come from the ends.</p>
       <p><b>What it does.</b> The mirror image of a known family: at the <em>right</em> end the tape is dense, blocks of 1s of length 4j+3 separated by single 0s; at the <em>left</em> end it is sparse, the words <code>01</code>, <code>0001</code> and <code>00</code>. The sweeps translate between the two forms; going left, E with a 0 ahead turns each <code>11</code> into <code>10</code>. The list of block lengths is scrambled on every trip.</p>
       <p><b>Where a halt would come from.</b> Only F reading a 1 halts; <code>E&gt;1 1</code>, <code>1 F&gt;0</code>, <code>B&gt;1 1 1</code> and <code>D&gt;0 1 1</code> lead there. In 2&middot;10<sup>8</sup> steps F always reads a 0.</p>
     </div>
@@ -165,6 +166,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
       </div>
       <div class="card">
+        <h3>The round trip is a running XOR (on the run)</h3>
+        <p>At every return of the head to the end where the rewriting sweep starts, in the first 2&middot;10<sup>8</sup> steps (4,073 round trips), every letter before the far-end layer is the XOR of the same letter one round trip later and its neighbour on the starting side: 8,142,955 letters, no exception. The rule is proved in Lean for 1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---.</p>
+        <p class="where"><code>holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -196,7 +202,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE--- 1000000000
-python3 holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/py/route.py        # rewrites lean/Route.lean</code></pre>
+python3 holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/py/route.py        # rewrites lean/Route.lean
+python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---   # the XOR rule on the run</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>
