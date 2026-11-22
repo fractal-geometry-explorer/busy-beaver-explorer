@@ -207,6 +207,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LE--- jump 200 10</code></p>
       </div>
       <div class="card">
+        <h3>What a change of era hands on</h3>
+        <p>The change of era is one event whose carry runs off the last word; the head then sweeps back to the left end. Let d be the number of base-3 digits N loses. R1: N' = ⌊N/3<sup>d</sup>⌋ + 1. R2: if d &gt; 0, d is fixed by N: read from its lowest digit, N starts with a zeros, one digit 1 or 2, b twos and one more digit, and the change eats exactly that block, so d = a + b + 2. R3: d = 0 exactly when the sweep back reaches the head cell of the last event in state C (otherwise it arrives in A). Every word wraps and the words are read again with each separator moved by half a digit. In 200 changes of era of this machine every change follows them except 4 of the first 5; the same holds for 1,000 changes of 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---.</p>
+        <p class="where">py/handoff.py</p>
+      </div>
+      <div class="card">
         <h3>The layered shapes of the later run</h3>
         <p>In the first 3·10<sup>8</sup> steps the full events have the plain layout only at steps 20,972 to 53,160 with C of 2 digits and R of 10 (454 events), and 453 consecutive pairs of them follow the cascade rule with no mismatch. The other full events carry more words between Z and R; their commonest shapes: <code>Z2 d c a X2 d c a X5 d C13</code> (steps 631,729 to 4,139,087, 17,264 events); <code>Z2 d c a X9 d C13</code> (steps 4,139,645 to 52,754,059, 621,448 events); <code>Z1 d c a d C1 a X1 d C1 a X8 d C14</code> (steps 52,762,347 to 115,360,679, 30,680 events); <code>Z1 d C3 a d C2 a X7 d C15</code> (steps 115,364,405 to 240,683,295, 1,104,608 events); <code>Z1 d C7 a X6 d C16</code> (steps 240,683,907 to 299,999,997, 1,126,875 events).</p>
         <p class="where"><code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/cascade_check.py</code></p>
@@ -222,8 +227,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>What a change of era hands on</h3>
-        <p>At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.</p>
+        <h3>Which kind of change comes, and the new words</h3>
+        <p>R3 makes the kind of change a bit computed word by word during the sweep back; a closed form for it, and for the new widths and values, is open, and so is whether a change of era can ever halt.</p>
       </div>
     </div>
   </section>

@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The engine is decoded and proved in Lean for every size and every layout. At an event the tape is a base-3 counter N, then a binary counter Z, then a chain of binary words; N and Z get 1 per event, and every word is a counter that, when it wraps, sends 3 to the next word (so a carry is multiplied by 3 at every separator, and an empty word passes 3 times what it got). This chain law covers every layout the run has shown (the plain cascade, the X layer and all later eras are special cases) and is proved in <code>lean/Layers.lean</code> for any number of words of any widths. Inside a layout the whole right side is one number that grows by 1 per event, so an era change happens only when a carry runs off the last word. Using this, a simulator that jumps from one era change to the next and runs each change cell by cell has followed the run through 510 changes of era, 2.4·10<sup>297</sup> events (so at least that many steps), with no halt. What an era change hands on (the new widths and values, and how many base-3 digits it takes from N) is the open part; C never runs out of digits: instead the chain keeps gaining words.</p>
+      <p><b>The question is open.</b> The engine is decoded and proved in Lean for every size and every layout. At an event the tape is a base-3 counter N, then a binary counter Z, then a chain of binary words; N and Z get 1 per event, and every word is a counter that, when it wraps, sends 3 to the next word (so a carry is multiplied by 3 at every separator, and an empty word passes 3 times what it got). This chain law covers every layout the run has shown (the plain cascade, the X layer and all later eras are special cases) and is proved in <code>lean/Layers.lean</code> for any number of words of any widths. Inside a layout the whole right side is one number that grows by 1 per event, so an era change happens only when a carry runs off the last word. Using this, a simulator that jumps from one era change to the next and runs each change cell by cell has followed the run through 510 changes of era, 2.4·10<sup>297</sup> events (so at least that many steps), with no halt. At an era change N becomes ⌊N/3<sup>d</sup>⌋ + 1, where d &gt; 0 is fixed by N's lowest digits and whether d = 0 is decided by the state in which the head gets back to the left end; a closed form for that state and for the new words is the open part. C never runs out of digits: instead the chain keeps gaining words.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -212,6 +212,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- jump 510 5</code></p>
       </div>
       <div class="card">
+        <h3>What a change of era hands on</h3>
+        <p>The change of era is one event whose carry runs off the last word; the head then sweeps back to the left end. Let d be the number of base-3 digits N loses. R1: N' = ⌊N/3<sup>d</sup>⌋ + 1. R2: if d &gt; 0, d is fixed by N: read from its lowest digit, N starts with a zeros, one digit 1 or 2, b twos and one more digit, and the change eats exactly that block, so d = a + b + 2. R3: d = 0 exactly when the sweep back reaches the head cell of the last event in state C (otherwise it arrives in A). Every word wraps and the words are read again with each separator moved by half a digit. In 1,000 changes of era of this machine (no halt) every change follows them except 6 of the first 9, while N has at most 5 digits.</p>
+        <p class="where">py/handoff.py</p>
+      </div>
+      <div class="card">
         <h3>The run follows the cascade</h3>
         <p>Every one of the 4,866,936 full events (the tape left of the head exactly <code>0^∞ 1 0 [N]</code>) from step 173,166,400 to 3·10<sup>8</sup> has the plain layout with Z, C, R of 10, 4 and 17 digits, and each follows from the one before by the rule, with no mismatch; N grows from 14 to 15 digits at step 271,308,046.</p>
         <p class="where"><code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/cascade_check.py</code></p>
@@ -252,8 +257,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
-        <h3>What a change of era hands on</h3>
-        <p>At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.</p>
+        <h3>Which kind of change comes, and the new words</h3>
+        <p>R3 makes the kind of change a bit computed word by word during the sweep back; a closed form for it, and for the new widths and values, is open, and so is whether a change of era can ever halt.</p>
       </div>
     </div>
   </section>

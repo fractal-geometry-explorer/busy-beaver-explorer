@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The engine is decoded and proved in Lean for every size and every layout. At an event the tape is a base-3 counter N, then a binary counter Z, then a chain of binary words; N and Z get 1 per event, and every word is a counter that, when it wraps, sends 3 to the next word (so a carry is multiplied by 3 at every separator, and an empty word passes 3 times what it got). This chain law covers every layout the run has shown (the plain cascade, the X layer and all later eras are special cases) and is proved in <code>lean/Layers.lean</code> for any number of words of any widths. Inside a layout the whole right side is one number that grows by 1 per event, so an era change happens only when a carry runs off the last word. Using this, a simulator that jumps from one era change to the next and runs each change cell by cell has followed the run through 510 changes of era, 2.4·10<sup>297</sup> events (so at least that many steps), with no halt. What an era change hands on (the new widths and values, and how many base-3 digits it takes from N) is the open part; C never runs out of digits: instead the chain keeps gaining words."
+  "<b>The question is open.</b> The engine is decoded and proved in Lean for every size and every layout. At an event the tape is a base-3 counter N, then a binary counter Z, then a chain of binary words; N and Z get 1 per event, and every word is a counter that, when it wraps, sends 3 to the next word (so a carry is multiplied by 3 at every separator, and an empty word passes 3 times what it got). This chain law covers every layout the run has shown (the plain cascade, the X layer and all later eras are special cases) and is proved in <code>lean/Layers.lean</code> for any number of words of any widths. Inside a layout the whole right side is one number that grows by 1 per event, so an era change happens only when a carry runs off the last word. Using this, a simulator that jumps from one era change to the next and runs each change cell by cell has followed the run through 510 changes of era, 2.4·10<sup>297</sup> events (so at least that many steps), with no halt. At an era change N becomes ⌊N/3<sup>d</sup>⌋ + 1, where d &gt; 0 is fixed by N's lowest digits and whether d = 0 is decided by the state in which the head gets back to the left end; a closed form for that state and for the new words is the open part. C never runs out of digits: instead the chain keeps gaining words."
  ],
  "claims": [
   {
@@ -124,9 +124,15 @@
    "where": "<code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- jump 510 5</code>"
   },
   {
-   "level": "open",
+   "level": "trusted",
    "title": "What a change of era hands on",
-   "text": "At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.",
+   "text": "The change of era is one event whose carry runs off the last word; the head then sweeps back to the left end. Let d be the number of base-3 digits N loses. R1: N' = ⌊N/3<sup>d</sup>⌋ + 1. R2: if d &gt; 0, d is fixed by N: read from its lowest digit, N starts with a zeros, one digit 1 or 2, b twos and one more digit, and the change eats exactly that block, so d = a + b + 2. R3: d = 0 exactly when the sweep back reaches the head cell of the last event in state C (otherwise it arrives in A). Every word wraps and the words are read again with each separator moved by half a digit. In 1,000 changes of era of this machine (no halt) every change follows them except 6 of the first 9, while N has at most 5 digits.",
+   "where": "py/handoff.py"
+  },
+  {
+   "level": "open",
+   "title": "Which kind of change comes, and the new words",
+   "text": "R3 makes the kind of change a bit computed word by word during the sweep back; a closed form for it, and for the new widths and values, is open, and so is whether a change of era can ever halt.",
    "where": ""
   },
   {
@@ -181,7 +187,7 @@
   "python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- jump 510 5"
  ],
  "explainer": {
-  "lede": "Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a chain of binary words on the right tick together, and each word that wraps sends 3 to the next. So between two changes of era the whole right side is one counter. A simulator built on this has followed the run for 2.4·10<sup>297</sup> events without a halt; what a change of era hands on is the open question.",
+  "lede": "Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a chain of binary words on the right tick together, and each word that wraps sends 3 to the next. So between two changes of era the whole right side is one counter. A simulator built on this has followed the run for 2.4·10<sup>297</sup> events without a halt. At a change of era the counter becomes ⌊N/3<sup>d</sup>⌋ + 1, with d read off its lowest digits; which kind of change comes is the open question.",
   "facts": [
    {
     "level": "kernel",
@@ -192,6 +198,11 @@
     "level": "trusted",
     "value": "2.4·10<sup>297</sup>",
     "text": "Events of the run (510 eras followed), no halt."
+   },
+   {
+    "level": "trusted",
+    "value": "1,000",
+    "text": "Changes of era checked against the hand-over rules for N (and no halt)."
    },
    {
     "level": "kernel",
@@ -354,7 +365,9 @@
     "eyebrow": "Open",
     "heading": "What is left",
     "html": [
-     "<p>The engine is proved for every layout: N + 1 on the left, and on the right the chain law. A halt can only come during a change of era, when a carry runs off the last word: every event that follows the law is a run of the machine that never reads the halting 1. At the end of an era all words are near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has a digit more, and N has either gained 1 or given 2 to 9 of its lowest base-3 digits to new words. Open: (1) a rule for this hand-over; (2) whether some change of era can ever put the head on the halting 1.</p>"
+     "<p>The engine is proved for every layout: N + 1 on the left, and on the right the chain law. A halt can only come during a change of era, when a carry runs off the last word: every event that follows the law is a run of the machine that never reads the halting 1.</p>",
+     "<p>What a change hands on is now known in part (trusted, <code>py/handoff.py</code>, 1,000 changes). Let d be the number of base-3 digits N loses. N becomes ⌊N/3<sup>d</sup>⌋ + 1. When d &gt; 0 it is fixed by N alone: read from its lowest digit, N starts with a zeros, one digit 1 or 2, b twos and one more digit, and the change eats exactly that block, so d = a + b + 2 (d = 1 never comes). Whether d = 0 is decided by the state in which the head, after the carry has run off the right end, gets back to the left end: C gives d = 0 and A gives d &gt; 0. All words wrap and are read again with every separator moved by half a digit.</p>",
+     "<p>Open: (1) a closed form for that state, and for the new widths and values; (2) whether some change of era can ever put the head on the halting 1.</p>"
     ]
    },
    {
@@ -369,6 +382,6 @@
    }
   ]
  },
- "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 510 changes of era (2.4·10^297 events) with no halt; the era changes are open.",
+ "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 510 changes of era (2.4·10^297 events) with no halt; at each era change N becomes ⌊N/3^d⌋ + 1 with d fixed by its lowest digits when d > 0; which kind of change comes is open.",
  "family": "two-word sweeper"
 }
