@@ -38,8 +38,30 @@ With a single block of 3(k + 1) cells left, one sub-round (proved) cuts it into 
 a new gap of the zone (l - 4 cells). The digits of `3 2^k` give T = 2^k - 1, so on its own a rebuild brings back the
 same single block after 2^k sub-rounds (`rebuild_cycle`). The single blocks grow because of the *small gaps*: the new
 gap shrinks by 4 at each carry into it, and when a carry meets it at 1 or 2 cells (or 0 before 0 or 1) cells of the
-counter move into the list. These few dozen sub-rounds per rebuild (the *transient*) are the only part without a
-proved rule.
+counter move into the list. These few dozen sub-rounds per rebuild form the *transient*.
+
+**One sweep machine for every sub-round.** All sub-rounds, the transients included, are the same two sweeps
+(`lean/Pass.lean`, `lean/General.lean`). The left sweep erases the last block, moves the block before it one cell to
+the right and adds 3 to the block before that; then the head turns right in state A. The right sweep reads the tape in
+one of three phases A, E, C (the machine states) with an *open block*, the 1s just left of the head:
+
+| phase | reads | does |
+|---|---|---|
+| A | 1 | writes 0: the open block closes, an empty one opens; then E |
+| E, C | 1 | keeps it (the open block grows); E goes to C, C to A |
+| C | 0 after a non-empty open block | the next moment: the open block is the new last block |
+| C, E | 0 next to an empty open block | the two cells become `11`; then C |
+| E | 0 after an open block | the open block moves one cell right, the block before it grows by 3; A again |
+| A | `010` | the same, with one more 1 to read |
+| A | `000` | `111`; then C |
+| A | `001` | `101`: the open block closes at the middle cell (cells of the counter move into the list) |
+| A | `011` | the machine halts |
+
+W is a block of 3a + 2 read from A (`(011)^a 01`), the regular counter is A on `000` and on gaps of 3 (`0001` ->
+`1111`); the small gaps are A on `001` and `010`. The function `pstep` is total and proved sound for every size and every
+tape (`sub_moment`, `sub_halt`), so the only way the machine can halt is a carry that meets `011` in phase A; the halting
+family below reaches the zone `4 3 ... 3 1 0` that way. With it the kernel evaluates the first two transients and the
+run from blank tape is proved to the third single block (`lean/Transient.lean`).
 
 | rebuild | single block | sub-rounds so far | list afterwards |
 |---|---|---|---|
@@ -81,24 +103,28 @@ rebuilds, more than 2^105,958 sub-rounds, no halt. Tapes of the same shape do ha
 
 **Proved in Lean, kernel only** — The run from blank tape through the first rebuild, to step 71,355: The kernel evaluates the first 2,918 steps (to `3 2 8 5 14 | 9`) and the counter `gstep`; the rest is the rules above: 1,616 sub-rounds to the single block of 36 cells (`first_single`), the rebuild sub-round (`first_rebuild`, step 70,871: `3 2^11 | 5`), and 13 more sub-rounds to step 71,355, where the carry meets a gap of 2 cells, the first sub-round of the run the rules do not cover (`first_uncovered`). (`reach_2918`, `first_single`, `first_rebuild`, `first_uncovered`, `lean/Run.lean`)
 
-**Computed (trusted C/Python)** — What the rules leave: the small gaps: The hybrid run of `py/model.py` through 243 rebuilds with every directly simulated sub-round checked against the Lean rules (`c/rules_check.c` decides from the cells near the head which rule applies and checks that the next sub-round comes exactly that rule's number of steps later): of 70,055 sub-rounds simulated directly in the transients, 67,154 follow a Lean rule with its exact step count and none differs; 2,901 are not covered, 1,584 where the carry meets a small gap and 1,317 where cells the small gaps moved into the list leave a last block that is not 2 mod 3 (a sub-round or two each); every single block (43 of them with last block 1) is covered by a rebuild rule. Symbolic runs show the next rules to prove: a carry that meets a gap of 2 before a gap of at least 3 puts a block of 4n + 3 cells into the list and leaves the last block 4; a gap of 1 depends on n mod 3. The regular sub-rounds the run takes by arithmetic are all of the proved kinds; the arithmetic that takes many of them at once (`applyW`, `enc`/`dec`) is Python. (`py/rules_check.py`, `c/rules_check.c`)
+**Proved in Lean, kernel only** — Every sub-round, small gaps included: the pass machine: At every moment (the head in C on a 0, a last block l on its left, then any blocks of 1s separated by single 0s, and on its right any zone of gaps) the next sub-round is the same two sweeps. The left sweep (`start`) erases the last block, moves the block before it one cell to the right and adds 3 cells to the block before that. The right sweep reads the tape in one of three phases A, E, C (the machine states) with an *open block*, the 1s just left of the head. On a 1, A writes 0 (the open block closes, an empty one opens) and E and C keep it; the phase goes A, E, C, A. On a 0: C after a non-empty open block is the next moment (the open block is the new last block); C or E next to an empty open block fill two cells; E after an open block, and A on `010`, move the open block one cell right, add 3 to the block before it and start again in A; A on `000` writes `111` and goes on in C; A on `001` writes `101` (the open block closes at the middle cell); A on `011` halts. Each move is a machine rule proved for every size (`lean/Pass.lean`, generated by `py/gen_pass.py`); `pstep` puts them into one total function, and `sub_moment` and `sub_halt` prove that a sub-round it computes is a run of the machine with exactly its number of steps, and that a halt it finds is a halt of the machine. So the halts of the machine are exactly the carries that meet `011` in phase A. W on the list and the binary counter (the rules above) are the cases where the right sweep only meets blocks 2 mod 3 and gaps 3 mod 4; the small gaps are the moves A on `001` and `010`, which move cells of the counter into the list. (`pstep_next`, `pstep_done`, `pstep_halt`, `sub_moment`, `sub_halt`, `subs_moment` in `lean/General.lean`; the moves in `lean/Pass.lean`)
+
+**Proved in Lean, kernel only** — The run from blank tape through two transients, to the third single block: From step 71,355 (where the first small gap was the end of the proved run) the kernel evaluates the pass machine: 7 sub-rounds of the first transient to the regular configuration `3 2^6 11 5^2 2^2 5 | 5` with zone gaps 4 7 3 (`first_transient`); `collapse`, with the counter evaluated by the kernel (260,270 counter steps), gives the second single block, 57 cells (`second_single`); `rebuild` and 24 more sub-rounds of the pass machine give `3 2^13 11 5^2 2^2 5 2^2 5 | 9`, a regular configuration (`second_transient`); and `collapse_regular` the third single block, 90 cells, 536,840,942 sub-rounds later, with a regular counter (`third_single`). Direct simulation puts that block at step 22,558,329,283; the Lean proof does not evaluate any machine step past step 2,918, and the counter after the third block is left existential (it needs the counter in closed form). (`first_transient`, `second_single`, `second_transient`, `third_single`, `lean/Transient.lean`)
+
+**Computed (trusted C/Python)** — What the regular rules leave, and the pass machine against the run: Before the pass machine: the hybrid run of `py/model.py` through 243 rebuilds with every directly simulated sub-round checked against the regular rules (`c/rules_check.c`): of 70,055 sub-rounds simulated directly in the transients, 67,154 follow a regular rule with its exact step count and none differs; 2,901 are not covered, 1,584 where the carry meets a small gap and 1,317 where cells the small gaps moved into the list leave a last block that is not 2 mod 3. The pass machine covers all of them. Its Python mirror `py/passm.py`, move for move the Lean function, agrees with the machine on 30,000 random tapes (configuration, step count and halts) and, in the hybrid run through 243 rebuilds, gives for every one of the 24,034 stretches the run simulates cell by cell (the transients and the sub-rounds where the counter reaches an irregular gap; 363,515,147 machine steps) exactly the configuration and step count of `c/trans.c`. (`py/rules_check.py`, `c/rules_check.c`; `py/passm.py` (`check 30000`, `hybrid 243`))
 
 **Computed (trusted C/Python)** — Tapes of the same shape that halt: A rebuild starts when the interior is a single block. The tape 1^3k 0 1^4k−3 with the head in C on the 0 right of it, a single block of 3k cells meeting the counter exactly at the start of round k − 1, halts for every k from 3 to 9 (after 311, 659, 1,343, 2,699, 5,399, 10,787 and 21,551 steps; direct simulation). So no property of the shape alone can show that the machine never halts: it depends on which single blocks and counter values the run from blank tape produces. (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`halting 9`), `c/trans.c`)
 
-**Heuristic / observed** — 986 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block, and the sub-rounds where the counter reaches an irregular gap of the zone. It passes 986 rebuilds; by then the counter has made more than 2^105,958 sub-rounds, so the machine more than 10^31,896 steps, and the single block has 317,877 cells. A halt could only be found by the direct part and none was. The sub-rounds the arithmetic part takes are of the kinds proved in Lean for all sizes (W and the regular counter); what rests on Python is the arithmetic that takes many of them at once, and the direct part's reading of the tape. (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`run 986`), `c/trans.c`)
+**Heuristic / observed** — 986 rebuilds without a halt: A run that takes the regular sub-rounds by arithmetic (any number at once, with the two rules above) and gives everything else to the machine itself, cell by cell: the transient after each single block, and the sub-rounds where the counter reaches an irregular gap of the zone. It passes 986 rebuilds; by then the counter has made more than 2^105,958 sub-rounds, so the machine more than 10^31,896 steps, and the single block has 317,877 cells. A halt could only be found by the direct part and none was. The sub-rounds the arithmetic part takes are of the kinds proved in Lean for all sizes (W and the regular counter); the direct part is now covered by the pass machine as well (proved for every sub-round); what rests on Python is the arithmetic that takes many regular sub-rounds at once (`applyW`, `enc`/`dec`). (`holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py` (`run 986`), `c/trans.c`)
 
-**Open** — Does it halt from blank tape?: Not known. Every sub-round with more than one interior block and no small gap is proved (no halt there), and so are the rebuild sub-rounds; what is left is the cascade of small gaps that follows each rebuild, a few dozen sub-rounds that move cells of the counter into the list, and in which a halt could happen (tapes of the same shape do halt). The question is whether the single blocks and counters of this run ever meet in a halting way; the halting family above needs the single block to arrive exactly when a round of the counter starts, a coincidence of two binary numbers that the run has avoided so far.
+**Open** — Does it halt from blank tape?: Not known. Every sub-round is proved, with its exact step count, and the only halting move is a carry that meets `011` in phase A (a gap of one cell followed by two 1s side by side). Tapes of the same shape do halt that way (the halting family above ends with the zone `... 3 3 1 0`). So the question is arithmetic: whether the single blocks and counters that this run produces ever lead a carry to such a place. The halting family needs the single block to arrive exactly when a round of the counter starts, a coincidence of two binary numbers that the run has avoided so far. In Lean the run is proved to the third single block; to go on, the counter is needed in closed form (the transients are a few dozen sub-rounds of the pass machine each, cheap for the kernel).
 
 ## For later
 
-1. The small gaps: prove their sub-rounds as rules (`py/rules_check.py` lists them; a carry meeting a gap of 2 before
-   a gap of at least 3 puts a block of 4n + 3 cells into the list and leaves l = 4; a gap of 1 depends on n mod 3), with
-   an interior that allows a few irregular blocks, so that a whole rebuild becomes a theorem and the halting
-   coincidences can be described.
-2. Lean: the binary counter in closed form (the `enc`/`dec` of `py/model.py` against `giter`), so that the jumps of the
-   hybrid run are proved too.
+1. Lean: the binary counter in closed form (the `enc`/`dec` of `py/model.py` against `giter`), so that `collapse` no
+   longer needs the counter evaluated step by step; the transients are a few dozen sub-rounds of the pass machine each,
+   cheap for the kernel, so the run could then be proved through many rebuilds.
+2. The transient as a map: with the pass machine, show that a transient depends only on the last block and a bounded
+   prefix of the zone once the single block is large, so that a rebuild is an explicit map on (single block, counter),
+   and the halting question becomes whether that map ever leads a carry to `011` in phase A.
 3. The same skeleton appears in `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` (blocks 2a + 1, last block a multiple
-   of 5) and probably in `1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---`.
+   of 5) and probably in `1RB0RE_1LC0RA_1RE1LD_0LB0LF_1RA1RA_0LD---`; their sub-rounds may be sweep machines as well.
 
 ## Reproduce
 
@@ -113,7 +139,10 @@ python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py rounds   
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py halting 9        # the halting tapes 1^(3k) 0 1^(4k-3) C>0
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/model.py run 986          # the hybrid run (87 minutes; run 243 takes 5)
 python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/gen_subround.py > lean/Subround.lean   # the Lean rules
-python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/rules_check.py 243      # 8 minutes: the rules against every directly simulated sub-round
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/rules_check.py 243      # 8 minutes: the regular rules against every directly simulated sub-round
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/gen_pass.py > lean/Pass.lean      # the moves of the pass machine
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/passm.py check 30000     # the pass machine against the machine, random tapes
+python3 holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/py/passm.py hybrid 243      # 6 minutes: against every directly simulated stretch of the hybrid run
 ```
 
 Pages: [`explainer.html`](../../pages/holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/explainer.html), [`proof-status.html`](../../pages/holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/proof-status.html).
