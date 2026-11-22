@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> A two-level counter on words 0 1^(odd): the run of 1s at the right end grows by 2 per round in doubling time while a carry moves left through the word; full rewrites at 1.4e7 and 5.2e8 steps; open."
+  "<b>The question is open.</b> Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 2.72·10<sup>177</sup> steps, no halt. A halt can only come at a phase end."
  ],
  "claims": [
   {
@@ -56,6 +56,18 @@
    "title": "Two-level counter",
    "text": "Left of the fast counter is a slow list, a word in a, b, c, d, e: blocks of odd length separated by single 0s. In each round one local change happens in it, a little further left each time (a carry: for example <code>c a^3</code> → <code>b a b a^2</code>, <code>b^3</code> → <code>a^2 b^2</code>), so the list behaves like the low digits of a slow counter whose digits are the odd block lengths. When the change reaches the left end, the head sweeps the whole tape: going left, state C erases runs of 1s and the tape is rewritten into words <code>1^2 0^k</code>, and going right it is rewritten back, a rebuild that makes the list longer. This pair shares the first rows <code>1RB0RE_1LC1RA_1LD0LC</code> and differs in D0 and E1; both behave in the same way. Not shown for all sizes.",
    "where": "<code>README.md</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Clock: 2^k trips per tick, for every k",
+   "text": "The table is the table of 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- renamed (A→C, B→D, C→A, D→B, E→E, F→F, mirrored). At the right end a block grows by 2 per tick, and tick k applies one word map P (one trip of the head into the word) 2<sup>k</sup> times, for every k and every word, whenever the 2<sup>k</sup> trips all return; with the exact step count.",
+   "where": "<code>tick</code>, <code>tick_right_end</code>, <code>lean/MirrorBridge.lean</code> (<code>MirrorClock.lean</code>, written by <code>holdouts/R02-clock-word/py/gen_clockx.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Clock run: no halt to 2.72·10<sup>177</sup> steps",
+   "text": "The exact accelerated clock simulator agrees with tools/c/tmrun.c at all 113 visits of the clock end in the first 2&middot;10<sup>9</sup> steps and follows the run past 2.72·10<sup>177</sup> steps (31 phases) without a halt. A halt can only come at a phase end, when a trip does not return.",
+   "where": "<code>holdouts/R02-clock-word/py/runx.py</code>, <code>out/run_1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---.txt</code>"
   },
   {
    "level": "open",
@@ -145,5 +157,5 @@
   ]
  },
  "family": "two-level counter on odd blocks (fast tail, leftward carry, full rewrites)",
- "summary": "A two-level counter on words 0 1^(odd): the run of 1s at the right end grows by 2 per round in doubling time while a carry moves left through the word; full rewrites at 1.4e7 and 5.2e8 steps; open."
+ "summary": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 2.72·10<sup>177</sup> steps, no halt. A halt can only come at a phase end."
 }
