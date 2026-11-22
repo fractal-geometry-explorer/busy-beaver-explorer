@@ -19,7 +19,8 @@ tape if and only if the zone orbit halts.**  Everything is checked by Lean's ker
 
 namespace H117020
 
-open TM XS
+open TM hiding run
+open XS
 
 /-- Split off the longest block prefix (phase `s`), counting its letters on top of `k`.  Tail-recursive. -/
 def cpr : Nat → Nat → List Bool → Nat × List Bool

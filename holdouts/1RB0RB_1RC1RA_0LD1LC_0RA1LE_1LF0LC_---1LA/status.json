@@ -125,6 +125,18 @@
   },
   {
    "level": "kernel",
+   "title": "One sweep is one event in a cascade of one-bit cells",
+   "text": "Keep the word as a row of one-bit cells, the first next to the block of words. A sweep is an event that enters at the first cell and travels away from the block: <code>P c</code> (it arrives carrying the letter <code>c</code>) or <code>F</code> (it stopped just before this cell and flips it). Every cell applies the same small table to its own bit, and the event either dies inside the word, which gives the new word, or leaves the last cell, as <code>F</code> a halt and as <code>P</code> a reset. What a cell's bit does depends on the event only, so the first <code>m</code> cells of the zone orbit are periodic with a period dividing 3&middot;2<sup>m</sup>, and if nothing leaves the word during one period of the whole word, the machine never halts.",
+   "where": "<code>swr_feed_ok</code>, <code>swr_feed_halt</code>, <code>swr_feed_reset</code>, <code>cell_bit</code>, <code>zone_period</code>, <code>never_of_quiet</code>, <code>lean/Cascade.lean</code>; <code>never_halts_of_quiet</code>, <code>lean/ZoneCascade.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The block stops every event",
+   "text": "An event that reaches the untouched part of the stranded block dies within five of its cells and changes nothing beyond them, so 5k cells of the block fed at most k events let nothing out: the old zone is frozen until the new zone has sent 80,767 events into the block. With the period of the first 96 cells (compiled evaluation) this alone gives no halt in the first 5.5&middot;10<sup>27</sup> steps.",
+   "where": "<code>sb_stop</code>, <code>shield</code>, <code>per_run</code>, <code>zone96</code>, <code>blank_runs_shield</code>, <code>lean/Shield.lean</code>"
+  },
+  {
+   "level": "kernel",
    "title": "The cascade a period at a time",
    "text": "A cell is back to its bit after a list of events or after two copies of it, so the events that enter cell m during the first 3&middot;2<sup>d</sup> sweeps can be built cell by cell (one or two passes each, d the number of cells that needed two). Run through the rest of the word, they give every event that leaves it in that window.",
    "where": "<code>wfold_run</code>, <code>window_quiet</code>, <code>window_of_check</code>, <code>lean/Window.lean</code>"

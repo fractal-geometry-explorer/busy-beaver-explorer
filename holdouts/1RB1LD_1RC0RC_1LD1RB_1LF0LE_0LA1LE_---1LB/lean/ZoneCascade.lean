@@ -15,7 +15,8 @@ row of one-bit cells, and that a row of `m` cells fed the block's letters is bac
 
 namespace H117020
 
-open TM XS
+open TM hiding run
+open XS
 
 theorem cstep_feed (n : Nat) (Z : List Bool) (h : (feed Z (.P (pat n))).2 = none) :
     ∃ k, cstep n Z [] = some (k, n + 1, (feed Z (.P (pat n))).1, []) := by
