@@ -47,6 +47,11 @@ cell for cell:
 
 The sections below are the first pass on this machine, read from the right end; they remain correct.
 
+**The reset map, phase by phase (22 Nov).** Every tail excursion of the first 36 phases of this run is now checked in
+Lean, by a run-length simulator proved for every tape on the left (`ExcSim.lean`, `ResetExc.lean` in the twin's folder):
+`reach_twin_phases36` (`ResetExcLong.lean`, by hand) says that this table started in D reaches the reset with
+X = 121,081,390 with no hypothesis, and `reach_twin_phases` (`ResetExcRuns.lean`, in CI) does 26 phases, X = 2,099,734.
+
 ## What it does
 
 **The tape.** Write `a = 10`. Apart from a short fixed start, the tape is made of runs of `a`s separated by
