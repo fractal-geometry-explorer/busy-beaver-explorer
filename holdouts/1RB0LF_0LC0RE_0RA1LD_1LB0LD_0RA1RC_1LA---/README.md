@@ -227,6 +227,46 @@ eventually halts with probability 1. Nothing here says whether the true orbit ha
 schedules avoid it. That is the open question, now stated sharply: which property of the phase-length sequence
 keeps every carry inside the tail returning.
 
+**Where the carries die, and how often the true run goes there.** Each sweep from a left record turns at some
+block, the rightmost one it reaches. `CTX=1 ./perturb ...` prints that turning block with its neighbours (D capped
+at 9) at every record. In the true run (the first 2·10^10 steps, 126,293 records here, 123,155 in the twin)
+99.3% of the turns are at four contexts: the head's `(0, o)` or a long o-block, followed by a long block. The other
+0.7% (892 here, 972 in the twin) turn further out, in the **rough part of the tail**, where short blocks follow
+each other. In the steered runs with X uniform in [36, 400], 14.4% of all turns are rough (180,471 of 1,252,308).
+That is 20 times more often.
+
+Every halt of a steered run happens at a rough turn: a short block followed by small blocks such as `1i 1i 1o 1i`,
+`1i 1o 1i` or `1o 2o`. Most of these contexts never occur as a turn of the true run. Per rough turn, the steered
+runs halt about once in 8,600 (21 of 180,471). At that rate the true run's 1,864 rough turns (both machines)
+would give about 0.2 halts, so its survival so far fits the same hazard per rough turn. **What keeps the true run
+safe so far is mainly that its carries rarely reach the rough tail.**
+
+In the true run the rough turns of a phase come in two groups. The first group is the first 8 or so records after
+each reset. The second is a regular train of turns later in the phase, at records 4, 8, 12, ... or 16, 32, 48, ...
+into it, like the carries of a binary counter reaching a fixed depth. Their number per phase grows slowly: about
+20 to 40 in phases 1 to 6, and 45 to 85 in phases 14 to 18, much slower than the phase lengths (×1.5 each). If the
+hazard per rough turn stayed near 1 in 10^4 and the count kept growing like this, the expected number of halts
+would grow without bound, but only over a hundred or more phases. Nothing here rules that out, and nothing proves
+it. A proof would have to show that the rough tail the carries reach never contains a fatal context.
+
+**The tail is a binary counter of blocks.** Within a phase, compare the tail at consecutive `o o` records
+(the first 3·10^9 steps, 23,785 increments with a change). One increment in two (E0) changes only the first block.
+The others (E1, the carries) change the first d blocks with frequency halving in d: 5,939 / 2,975 / 1,480 / 739
+/ 372 / 187 / 93 / 46 for d = 2 ... 9, and 56 blocks once. Write a block's *shape* as its x and D (D capped at
+8 + D mod 2). After a transient following each reset, the shapes of the first w blocks repeat with period
+**exactly 2^w carries**. In the eight phases of more than 500 records in the first 3·10^9 steps, this holds for w ≤ 4 in all of them. It
+holds up to w = 7 (128 carries) in the five longest, and for w = 8 in the last one. It is not seen for w = 5 in
+the second phase, and the phases are too short to test larger w (`py/tail_counter.py`). So block w is a digit touched once per 2^w carries, and the rough tail is reached only by the
+rare deep carries and by the transient after a reset.
+
+This suggests how a halt hunt could go much further than the 28 phases of `py/run_macro.py`, which steps through
+every record. A carry-skipping simulator would keep the tail as blocks with big-integer D. It would advance block w
+by its number of touches in a phase (about m / 2^w for m carries), using the per-touch rule of its regular shape.
+It would step the macro machine only through the post-reset transient and through carries that reach a rough or
+irregular block. The cost per phase would then be about (tail blocks) × (transient length) instead of X, which
+makes phase 100 a matter of bookkeeping. This is not built yet. The per-touch rules for regular blocks are the
+crossing rules of `py/blockmm.py`.
+
 Reproduce: `gcc -O2 -o perturb c/perturb.c && ./perturb 5 36 400 30 1e10` (seed 5 halts after 23 resets);
 `gcc -O2 -o branch c/branch.c && ./branch 16 2 A 0 1 2 3 4 5 6 7 8 -1 -2 -3`.
 
@@ -310,6 +350,7 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
 | `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
+| `py/tail_counter.py` | the tail as a binary counter of blocks: depth of each carry, periods of the first w blocks |
 | `c/perturb.c`, `c/branch.c` | the real machine with the countdown replaced at resets: steered runs, and branches off the true run |
 
 ## For later
