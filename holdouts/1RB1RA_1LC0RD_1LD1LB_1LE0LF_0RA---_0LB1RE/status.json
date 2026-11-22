@@ -37,6 +37,12 @@
   },
   {
    "level": "kernel",
+   "title": "One round of the right-end bouncer, for every chamber",
+   "text": "At rest the tape right of the left-end digits is S-blocks <code>S_n = 1 (01)^(n+1)</code> with a few walls (runs of 1s) in between. For every wall <code>1^(a+3)</code> and every list of blocks behind it, a long visit turns each block into <code>D_n = 1 (11)^n 00</code> on the way left, uses up three 1s of the wall, turns the blocks back on the way right and grows the last block: in regime I (right end <code>S_n 101100 (110)^(c+2)</code>) to S<sub>n+3</sub>, followed by a short visit that adds one <code>110</code>; in regime II (right end <code>S_n (011)^c 0</code>) by one block step, with two copies of <code>011</code> added. Also k rounds in a row, and the same rounds at a wall of exactly three 1s, which becomes <code>00</code>.",
+   "where": "<code>round_I</code>, <code>short_I</code>, <code>rounds_I</code>, <code>round_II</code>, <code>round_I3</code>, <code>round_II3</code>, <code>lean/RoundRules.lean</code> (written by <code>py/round_rules.py</code>)"
+  },
+  {
+   "level": "kernel",
    "title": "No halt in the first 10,000 steps",
    "text": "The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.",
    "where": "<code>blank_runs_kernel</code>, <code>lean/Blank.lean</code>"
@@ -132,10 +138,10 @@
    "where": "scratch simulators; README section <i>The right end</i>"
   },
   {
-   "level": "heuristic",
-   "title": "Most visits cross the digit list",
-   "text": "In 1,475 sampled intervals between right-end visits (every 7th visit from 10<sup>8</sup> to 9&middot;10<sup>8</sup> steps) the head turned back in the left half of the visited tape 950 times. Symbolic simulation of each sampled visit (big runs made variables) found the eat rule above and a handful of rules specific to one phase; the other visits depend on the irregular digit list, so a closed visit-to-visit map would have to carry it.",
-   "where": "<code>tools/py/bbtools/symtm.py</code> on sampled visits"
+   "level": "trusted",
+   "title": "The round rule predicts 87% of visits exactly",
+   "text": "Every consecutive pair of right-end visits in three windows (10<sup>8</sup> to 2&middot;10<sup>8</sup>, 2.8&middot;10<sup>8</sup> to 4.2&middot;10<sup>8</sup>, 4&middot;10<sup>9</sup> to 4.05&middot;10<sup>9</sup> steps): a visit works on the tape right of the rightmost wall, three-1 wall or leftover <code>100</code>, and at a wall, a three-1 wall or the regime I gadget the proved rounds predict the next tape cell for cell (3,607 of 4,145 visits, every one of those kinds). The remaining 536 visits all meet a leftover <code>100</code>, where the left sweep is reflected early and the head, in state A, glues the D-blocks it passes into long runs of 1s: the new walls. That case has no rule yet.",
+   "where": "<code>py/round_check.py</code> on tapes from <code>c/vdump.c</code>"
   },
   {
    "level": "trusted",
@@ -164,7 +170,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The macro configuration family has not been found (only the eat phase of the right end is proved), and the proof of the neighbouring start (state D) does not cover this run at any of the four times tested.",
+   "text": "Not known. Visits at walls and at the right-end gadget are proved for every chamber; the visits that meet a leftover <code>100</code> (13% of visits) and rebuild walls have no rule yet, so there is no complete map. The proof of the neighbouring start (state D) does not cover this run at any of the four times tested.",
    "where": ""
   },
   {
@@ -188,7 +194,7 @@
   "g++ -O2 -std=c++17 -o mm2 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/mm2.cpp && ./mm2 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 15 11"
  ],
  "explainer": {
-  "lede": "This machine keeps a list of digits that changes like a counter, and a right end where a few long blocks of repeated words grow and turn into one another while the head bounces back and forth. One phase of the bounce is proved in Lean for all counts. It has run 10<sup>12</sup> steps without halting.",
+  "lede": "This machine keeps a stack of walls (runs of 1s) between lists of blocks; each visit of the head wears the rightmost wall down by three, and leftover pieces of worn-out walls build new ones. Every round at a wall is proved in Lean for all block lists. It has run 10<sup>12</sup> steps without halting.",
   "facts": [
    {
     "level": "trusted",
@@ -244,10 +250,10 @@
    {
     "id": "bouncer",
     "eyebrow": "The right end",
-    "heading": "A bouncer over long blocks",
+    "heading": "Walls worn down three at a time",
     "html": [
-     "<p>Between two visits to the right end the head sweeps left and comes back, and the right end gains 3 cells. Right of the digit list the tape holds a few long periodic blocks, such as <code>(1)^3396 (01011)^1379 (001)^1403</code> at 3.3&middot;10<sup>8</sup> steps. In one phase each visit eats three 1s from the first block and adds two copies of <code>011</code> at the end: Lean proves this visit for all counts, and k visits in a row, which take k(20b + 10c + 15) + 10k<sup>2</sup> steps.</p>",
-     "<p>Most visits, though, turn back deep inside the irregular digit list (950 of 1,475 sampled), so the next step is to decode how the digit list changes. Here the halt is close in form: it needs the leftward sweep to step onto a run of three 0s with a 1 before it, and in 10<sup>10</sup> steps it has only ever met runs of one or two inside the tape.</p>"
+     "<p>At rest the tape right of the left-end digits is a list of blocks <code>1 (01)^(n+1)</code>, with a few <i>walls</i> (runs of 1s) in between. Each long visit sweeps left from the right end, turns every block it passes into <code>1 (11)^n 00</code>, stops at the rightmost wall, uses up three of its 1s, and on the way back turns the blocks back as they were. The right end grows: either a small gadget alternates long and short visits and the last block gains 3 per round, or every visit is long and the last block gains 1. Lean proves these rounds for every list of blocks, and k rounds in a row.</p>",
+     "<p>Checked visit by visit, the rule predicts 3,607 of 4,145 visits in three windows cell for cell. The rest meet a leftover <code>100</code> left behind when a wall of a length divisible by 3 runs out. There the sweep bounces early and glues blocks into long runs of 1s, the new walls (lengths like 15, 27 and 34). That case is the open piece. A halt needs the sweep to meet three 0s in a row, and at rest the only <code>00</code>s are these leftover <code>100</code>s.</p>"
     ]
    },
    {
