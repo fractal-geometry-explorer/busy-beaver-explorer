@@ -186,15 +186,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 22 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows whether it halts. Its engine is now decoded and proved: a base-3 counter on the left and two binary counters on the right tick together, N and M by one per event and R by three each time M wraps. Only the overflows of R, where the machine reaches its rare transitions, remain a mystery.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a cascade of binary counters on the right tick together, Z by one per event, C by three each time Z wraps, R by three each time C wraps. From step 173 million the run follows this cascade exactly; before that it passes through eras with one more word, and what happens when C runs out of digits is the open question.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>54 rules</b><span class="small">The event rule (N+1, M+1, R+3 on a wrap) for every size, in Lean.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>5,820</b><span class="small">Events by the rule in 3·10<sup>6</sup> steps.</span></div>
-    <div class="fact"><span class="ev o">Open</span><b>R overflow</b><span class="small">The only place a halt could come from.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>162 rules</b><span class="small">The cascade rule of the later layout for every size, in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>4,866,936</b><span class="small">Consecutive events by the cascade rule from step 173 million to 3·10<sup>8</sup>, no mismatch.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
     <div class="report"><strong>Also formalized in DeepMind cryptids</strong><a href="https://github.com/google-deepmind/cryptids/blob/3647718/BusyBeaver/BB6/Accelerations/M_1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LBHHH.lean">M_1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LBHHH.lean</a> in <a href="https://github.com/google-deepmind/cryptids">google-deepmind/cryptids</a> (commit <code>3647718</code>, 12 November 2026) has a Lean module that classes it as a hard cryptid (<code>IsStackCryptid</code>). It was not compiled here.</div>
@@ -207,7 +208,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#engine">Three counters on one tape</a><a href="#rule">One event: N + 1, M + 1, and R + 3 when M wraps</a><a href="#runs">How long the run keeps this shape</a><a href="#words">Two words and a separator</a><a href="#sweeps">Sweeps and an inner counter</a><a href="#family">What the siblings share and where they differ</a><a href="#front">The front section</a><a href="#siblings">Six siblings</a><a href="#halt">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#open">What is left</a><a href="#visit">One visit of a stream</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#engine">Three counters on one tape</a><a href="#rule">One event: N + 1, M + 1, and R + 3 when M wraps</a><a href="#runs">How long the run keeps this shape</a><a href="#words">Two words and a separator</a><a href="#sweeps">Sweeps and an inner counter</a><a href="#family">What the siblings share and where they differ</a><a href="#front">The front section</a><a href="#siblings">Six siblings</a><a href="#halt">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#eras">A cascade of binary counters, in eras</a><a href="#open">What is left</a><a href="#visit">One visit of a stream</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -353,6 +354,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>left</td><td>645,244,842</td><td><code>E&gt;0 0 1 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0 1^2 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0^3 1 0 1^2 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0^3 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0 1 0 1 0 1 0 1 0^3 1 0^3 1 0 1 0 1 0^3 1 0^3 1 0 1</code></td></tr></tbody></table></div>
 <p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>
 </section>
+<section id="eras">
+  <span class="eyebrow">After the overflows</span>
+  <h2>A cascade of binary counters, in eras</h2>
+<p>After the first overflows of R a counter C appears between M and R. In its plain form an event reads</p><p style="text-align:center"><code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [Z] 1 1 [C] 0 1 [R] 0<sup>∞</sup></code></p><p>with N in base 3 as before, Z the counter called M above, a new binary counter C (4-cell digits <code>0001</code> = 0, <code>0101</code> = 1) and R as before. The rule becomes a cascade: every event adds 1 to N and to Z; when Z wraps, C gets 3; when C wraps, R gets 3. That is 162 cases, each a Lean theorem with its exact step count, and the same for all six siblings.</p>
+<p>From step 173,166,400 to the end of a 3·10<sup>8</sup>-step run every full event has this plain layout (Z of 10 digits, C of 4, R of 17), and each follows from the one before by the rule: 4,866,936 events, no mismatch.</p>
+<p>Before that the run passes through eras with one more short binary word X (<code>c a X</code> in tokens) between Z and C. Each change of era gives R a digit and takes one from C:</p>
+<table><tr><th>steps</th><th>Z</th><th>X</th><th>C</th><th>R</th></tr><tr><td>20,982&ndash;53,170</td><td>1</td><td>&ndash;</td><td>2</td><td>10</td></tr><tr><td>3,216,980&ndash;20,188,680</td><td>3</td><td>1</td><td>7</td><td>14</td></tr><tr><td>20,189,536&ndash;58,840,416</td><td>4</td><td>2</td><td>6</td><td>15</td></tr><tr><td>58,841,166&ndash;173,165,846</td><td>5</td><td>3</td><td>5</td><td>16</td></tr><tr><td>173,166,400&ndash;beyond 3·10<sup>8</sup></td><td>10</td><td>&ndash;</td><td>4</td><td>17</td></tr></table>
+<p>The law of X and of the era changes is not decoded yet. If C keeps losing a digit per era, the layout has to change within a few more eras. No rule of the cascade can halt.</p>
+</section>
 <section id="open">
   <span class="eyebrow">Open</span>
   <h2>What is left</h2>
@@ -368,7 +378,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 22 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -391,7 +401,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Visit.lean</code> (generated by <code>py/gen_visit.py</code> from <code>py/laws.py</code>)</div></div><div><b>Token rows of the visit law</b><p><code>Vis q x r x'</code>: the head enters the stream x from the left in state q and first leaves it to the left in state r, leaving x'. With tokens of two cells right of the event cell, 29 rows occur in 3·10<sup>7</sup> steps; each is a Lean theorem, conditional on the nested visits of the rest of the stream and valid for every stream.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Stream.lean</code></div></div><div><b>The a/z stream and M as a recursive visit law</b><p>Everything from R on, blank tape included, is one stream of a = <code>10</code> and z = <code>00</code>. A visit in state B turns the first z into a and every second a before it into z; it comes out in A when the first z is at an odd place (the binary increment of R, for every size: <code>vb_odd</code>, <code>ve_odd</code>) and in C when it is at an even place (<code>vb_even</code>). M + 1 without a wrap (<code>m_inc</code>) and with a wrap, where the stream gets three visits (<code>m_wrap</code>), for every size.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/laws.py</code>; a direct run</div></div><div><b>The overflow of R is the even case of the stream law</b><p>R has no end: when all its digits up to the blank tape are 1, the first z is at an even place and the visit comes out in C, leaving the digits shifted by one token. In the run of <code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code> this first happens at step 20,645 (stream a<sup>18</sup> then blank, left as (z a)<sup>9</sup> a). That the event rule fails only there is read off the rules, not a Lean theorem.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>After a visit that comes out in C</b><p>What the layer of c tokens (M) becomes after a visit of the a/z stream that comes out in C is given row by row in <code>Visit.lean</code> but not composed into a law; the left side is not yet in this form. The machine can halt only there (follows from the event rules, not itself a theorem).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Cascade.lean</code> (generated by <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events2.py</code>)</div></div><div><b>The cascade rule of the later layout, for every size</b><p>From an event <code>0^∞ 1 0 [N] A&gt; 0 [Z] 1 1 [C] 0 1 [R]</code> (N base 3 as before; Z, the former M, in 4-cell digits 0010/1010; C binary in 4-cell digits <code>0001</code> = 0, <code>0101</code> = 1; R as before; lowest digit first) the machine reaches the next event with N + 1, Z + 1, C + 3 when Z wraps and R + 3 when C wraps; 162 theorems, one per case, each with its exact step count.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/cascade_check.py</code></div></div><div><b>The run follows the cascade</b><p>Every one of the 4,866,936 full events (the tape left of the head exactly <code>0^∞ 1 0 [N]</code>) from step 173,166,400 to 3·10<sup>8</sup> has the plain layout with Z, C, R of 10, 4 and 17 digits, and each follows from the one before by the rule, with no mismatch; N grows from 14 to 15 digits at step 271,308,046.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/cascade_check.py</code></div></div><div><b>Eras with an extra word X</b><p>Before step 173,166,400 (and after step 53,170) the full events carry one more word, <code>c a X</code> in tokens with X a short binary word, between Z and C: Z, X, C, R of widths 3, 1, 7, 14 (steps 3,216,980 to 20,188,680), 4, 2, 6, 15 (to 58,840,416), 5, 3, 5, 16 (to 173,165,846); then X is gone and the plain layout has widths 10, 4, 17. From step 3.2 million each change of era takes a digit from C and gives one to R (their widths add up to 21).</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>What the eras hand on, and the shapes between</b><p>The law of the X layer and of the era changes (what each era hands to the next), and what happens when C runs out of digits. The only visit row of a 3·10<sup>7</sup>-step run that comes out in F (the state whose 1 halts) is a visit in state A of a <code>c</code> token, which no cascade rule uses.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -399,7 +412,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- 1000000000
-python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- 6   # from tools/py</code></pre>
+python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- 6   # from tools/py
+gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c &amp;&amp; ./cascade_events 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>
