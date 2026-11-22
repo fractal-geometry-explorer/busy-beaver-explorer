@@ -16,16 +16,16 @@ All 15 are open. This folder holds the tools and results of the attack of 21 Nov
 | table | machine | clock | accelerated run, no halt to |
 |---|---|---|---|
 | T20 | `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` | left end, +2 (before) | 5.79·10^176 (before) |
-| T20 | `1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---` | left end, +2 (before) | 3.63·10^18 (before) |
+| T20 | `1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---` | left end, +2 (before) | 3.63·10^18 (3-hour rerun stopped inside the next phase) |
 | T20 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | right end, +2 (**new**) | **2.72·10^177** (31 phases) |
 | T20 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | right end, +2 (**new**) | **3.91·10^162** (28 phases) |
 | T45 | `1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE` | left end, +2 (before) | 2.36·10^194 (before) |
 | T45 | `1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---` | right end, +2 (**new**) | **1.43·10^199** (27 phases) |
 | T45 | `1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---` | right end, +2 (**new**) | **3.64·10^202** (30 phases) |
 | T14 | `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF` | right end, +4 (before) | 2.39·10^248 (before) |
-| T14 | `1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD` | right end, +4 (before; simulator **new**) | see `out/` |
-| T14 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | right end, +4 (**new**) | see `out/` |
-| T65 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | left end, +3 (before) | see `out/` |
+| T14 | `1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD` | right end, +4 (before; simulator **new**) | 6.30·10^79 |
+| T14 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | right end, +4 (**new**) | 1.30·10^142 |
+| T65 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | left end, +3 (before) | 1.41·10^13 (3-hour run stopped inside the next phase) |
 | T88 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | left end, +3 (before) | 6.04·10^187 (before) |
 
 ("before": proved or run in the machine's own folder earlier.) The six machines marked new share a table with a
@@ -85,13 +85,14 @@ configurations. Results for T88, started at the visit `E>0 1^4 0` at step 471 wi
 | sizes (left x right) | result |
 |---|---|
 | 3x3 to 6x6 | UNSAT |
-| 8x4, 10x4, 12x4 | UNSAT |
-| larger | running (`out/forget_M88.txt`) |
+| 8x4, 10x4, 12x4 | UNSAT (about a minute each) |
+| 8x6 | UNSAT (80 minutes) |
+| 7x7 | no answer in 2 hours |
 
 and for the half-tape P-step alone (`--left 00011 --wall`): UNSAT to 6x6, 7x7 timed out. For the four tables whose
 generic words halt, small sizes are UNSAT as expected (`py/forget_sweep.py`).
 
-The P-step of T88 can itself contain whole inner clocks (the word holds blocks), so the invariant likely needs the
+At these sizes the search grows by a factor of about 70 per added state, so it was stopped here. The P-step of T88 can itself contain whole inner clocks (the word holds blocks), so the invariant likely needs the
 recursion inside the word as well; the next step is to find the five exits and the phase end as rules with an
 arbitrary word (Lean, `bbtools.symtm`), which would cut the problem to the trips alone.
 
