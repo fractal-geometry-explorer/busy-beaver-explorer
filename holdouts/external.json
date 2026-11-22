@@ -1,6 +1,6 @@
 {
- "_source": "Proofs and labels from outside this repository, as read on 19 November 2026; pull requests #43 to #68 compiled here on 21 November 2026 (pull requests up to #109; #98, #99 and #101 were closed unmerged: #98 and #99 were valu42 resubmitting of our own Coq proofs of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- and 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE, which we submitted ourselves as #108 and #109, and #101 is an earlier copy of #100). 'prs': pull requests open (not merged, not reviewed by the maintainer) on github.com/ccz181078/busycoq that contain a Rocq proof about the machine; none was compiled here unless the entry has 'compiled' (Coq version, busycoq BB6 commit it was built on, date, seconds, theorem, and the axioms Print Assumptions reports; [] means closed under the global context; 'note' says when the audit file bridges a second instance of busycoq's TM functor). 'spot_checked' (PR 60 only): its framework and sample jobs were compiled here, not the whole proof. 'merged': proved in busycoq's BB6 branch. 'tracker': the class the community's BB(6) tracker spreadsheet gives the machine and whether its 3 November 2026 edition lists it as a cryptid; heuristic labels, not results. 'deepmind': the machine's Lean file in google-deepmind/cryptids (BusyBeaver/BB6, commit 3647718, 12 November 2026), not compiled here; kind 'halts' or 'nonhalting' (a proof of the verdict), 'map' (a halts-iff theorem for an explicit map; 'here' says whether this repository proves one too: 'iff', 'conditional' or 'none'), 'reduction' (a structural stack, odometer or transducer reduction), 'acceleration' (a proved acceleration, halting left open) or 'cryptid' (classed as a hard cryptid); 'compiled': the file was built here (Lean version, module, theorem, axioms, seconds, date). 'rocq_pr' is the open busycoq pull request with a Rocq proof of the same verdict; 'rocq_relation' is 'same' when DeepMind's Alex Havrilla submitted it as a Rocq version of DeepMind's own Lean proof (pull requests 47-53, opened 3 November, before the Lean appeared in cryptids on 6 November) and 'different' when it is someone else's independent proof by another method (pull request 44, Alk). Merge status rechecked with git on 17 November 2026: busycoq's BB6 branch has not moved since 3 November, so none of these pull requests is merged. 'wiki_solved': the bbchallenge wiki export of 17 November 2026 lists the machine as solved. 'coq_here': Coq proofs in this repository, on busycoq's definitions. Edit by hand, then run python3 holdouts/build_pages.py.",
- "asof": "21 November 2026",
+ "_source": "Proofs and labels from outside this repository, as read on 19 November 2026; pull requests #43 to #68 compiled here on 21 November 2026 (pull requests up to #109; #98, #99 and #101 were closed unmerged: #98 and #99 were valu42 resubmitting of our own Coq proofs of 1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD--- and 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE, which we submitted ourselves as #108 and #109, and #101 is an earlier copy of #100). 'prs': pull requests open (not merged, not reviewed by the maintainer) on github.com/ccz181078/busycoq that contain a Rocq proof about the machine; none was compiled here unless the entry has 'compiled' (Coq version, busycoq BB6 commit it was built on, date, seconds, theorem, and the axioms Print Assumptions reports; [] means closed under the global context; 'note' says when the audit file bridges a second instance of busycoq's TM functor). 'merged': proved in busycoq's BB6 branch. 'tracker': the class the community's BB(6) tracker spreadsheet gives the machine and whether its 3 November 2026 edition lists it as a cryptid; heuristic labels, not results. 'deepmind': the machine's Lean file in google-deepmind/cryptids (BusyBeaver/BB6, commit 3647718, 12 November 2026), not compiled here; kind 'halts' or 'nonhalting' (a proof of the verdict), 'map' (a halts-iff theorem for an explicit map; 'here' says whether this repository proves one too: 'iff', 'conditional' or 'none'), 'reduction' (a structural stack, odometer or transducer reduction), 'acceleration' (a proved acceleration, halting left open) or 'cryptid' (classed as a hard cryptid); 'compiled': the file was built here (Lean version, module, theorem, axioms, seconds, date). 'rocq_pr' is the open busycoq pull request with a Rocq proof of the same verdict; 'rocq_relation' is 'same' when DeepMind's Alex Havrilla submitted it as a Rocq version of DeepMind's own Lean proof (pull requests 47-53, opened 3 November, before the Lean appeared in cryptids on 6 November) and 'different' when it is someone else's independent proof by another method (pull request 44, Alk). Merge status rechecked with git on 17 November 2026: busycoq's BB6 branch has not moved since 3 November, so none of these pull requests is merged. 'wiki_solved': the bbchallenge wiki export of 17 November 2026 lists the machine as solved. 'coq_here': Coq proofs in this repository, on busycoq's definitions. Edit by hand, then run python3 holdouts/build_pages.py.",
+ "asof": "22 November 2026",
  "busycoq": "https://github.com/ccz181078/busycoq",
  "prs": {
   "43": {
@@ -336,11 +336,16 @@
      "n": 60,
      "claim": "halts",
      "file": "verify/LopsidedCamper/Rules273.v",
-     "spot_checked": {
-      "date": "21 November 2026",
+     "compiled": {
       "coq": "8.20.1 with native compilation",
       "base": "33209bc",
-      "what": "framework files (Rules273, Kernel273, Final273) compile; sample jobs J0000 (2,584 s) and J0522, the last one, ending at the halt (224 s), pass with native_compute. The other 521 jobs (about 280 core-hours) were not run."
+      "date": "22 November 2026",
+      "theorem": "c273_halts : halts tm c0",
+      "axioms": [
+       "the 14 PrimInt63 / Uint63 primitive-integer axioms and specifications"
+      ],
+      "note": "Built from 523 native_compute jobs (about 300 core-hours here, split over 8 containers) plus Rules273, Kernel273, Final273, Chain and Halts273; the jobs use native_cast_no_check, so OCaml's native compiler is trusted along with the kernel.",
+      "core_hours": 300
      }
     }
    ],
@@ -2304,11 +2309,16 @@
      "n": 60,
      "claim": "halts",
      "file": "verify/Halt_1RB0LF_1RC1RA/Rules.v",
-     "spot_checked": {
-      "date": "21 November 2026",
+     "compiled": {
       "coq": "8.20.1 with native compilation",
       "base": "33209bc",
-      "what": "framework files (Rules, Map, Num to HTop, Cuts) compile; sample jobs JHalt (1 s) and J0202 (891 s) pass with native_compute. The other 311 jobs (about 275 core-hours) and Final.v were not run."
+      "date": "22 November 2026",
+      "theorem": "bb6_holdout_halts : halts tm c0",
+      "axioms": [
+       "the 41 PrimInt63 / Uint63 / PArray primitive-integer and primitive-array axioms and specifications"
+      ],
+      "note": "Built from 313 native_compute jobs (about 290 core-hours here, split over 8 containers) plus the framework files and Final.v; the jobs use native_cast_no_check, so OCaml's native compiler is trusted along with the kernel.",
+      "core_hours": 290
      }
     }
    ],

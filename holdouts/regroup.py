@@ -301,10 +301,9 @@ COLLATZ = dict(
     odds="very low for non-halting; occasional halts.")
 
 PENDING = dict(
-    id="R00", name="Outside proofs awaiting compilation (busycoq PR 60)",
-    technique="Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles "
-              "and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours "
-              "of native_compute jobs; sample jobs pass here, the full runs need a large machine.")
+    id="R00", name="Outside proofs awaiting compilation (busycoq PRs 43 to 68: all done)",
+    technique="Compiled on 21 and 22 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 "
+              "compiles, including PR 60's 836 native_compute jobs, and all 34 machines moved to decided.")
 
 # One line per family for the ranking table.
 SHORT = {
@@ -491,9 +490,8 @@ def write_md(out, rows):
     w("")
     w("## Recommended next attacks")
     w("")
-    w(f"1. **Finish the two PR 60 halts** ({len(out['pending'])} machines). All other proofs in busycoq PRs 43 to 68 were "
-      "compiled on 21 November and their 32 machines are decided; PR 60's two proofs need about 555 core-hours of "
-      "native_compute jobs, which needs a large machine (sample jobs pass here).")
+    w("1. **Done: the outside proofs of busycoq PRs 43 to 68.** All were compiled on 21 and 22 November 2026, "
+      "PR 60 included (836 native_compute jobs over 8 containers), and their 34 machines are decided.")
     n = {f["id"]: len(f["machines"]) for f in fams}
     w(f"2. **R01, the F05 core** ({n['R01']} machines). The largest family by far, with its whole macro structure already "
       "proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is "

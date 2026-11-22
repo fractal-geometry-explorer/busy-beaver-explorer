@@ -241,7 +241,7 @@ def elsewhere(M, decision="open"):
                                 f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
                                 f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). The pull request is open: "
                                 "not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch "
-                                f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in {c['seconds']} s: "
+                                f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in " + (f"about {c['core_hours']} core-hours" if c.get('core_hours') else f"{c['seconds']} s") + ": "
                                 f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
                                 f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
                                 + (html.escape(c["note"]) + " " if c.get("note") else "") +
