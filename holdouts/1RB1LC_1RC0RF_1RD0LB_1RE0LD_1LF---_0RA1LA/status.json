@@ -94,6 +94,12 @@
    "where": "<code>runs/classes_tail1.txt</code>, <code>runs/classes_tail2.txt</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>186095</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 8 cells, from blank tape for 1800 seconds and reached a step count of 186,096 digits (so at least 10<sup>186095</sup>) without a halt. With blocks of 4 cells the same engine stalls near 10<sup>9</sup>: the words <code>10110110</code> of length 8 split into two different 4-cell blocks, so every run of them is broken up; with blocks of 8 they become one long run, and the first and second level of the counter are both visible on the tape (<code>(11101110)^~10^771</code>, the second-level tail of about 10<sup>771</sup> words). It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 7 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA 8 1800</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Where the real run stands",
    "text": "Iterating the reset table (proved for all n; that the run reaches (17, 0, 6805) is measured) the first level ends after 2,176 phases from (17, 0, 6805) at r = 3 with three words left and n &equiv; 11 (mod 100), a number of 771 digits. For n &equiv; 1 (mod 10) the next phase and the reset after it build the second-level tail with 31(n&minus;1)/10 + 92 words (checked for n = 61 to 211). The second level then lasts about 10<sup>770</sup> phases, n roughly tripling in each, and how it ends (halt, loop or a third level) depends on n mod 10 and r at that moment, which nobody can compute. So the closed-set method does not apply: a halting class is reachable, and this is a Collatz-like question.",
@@ -125,8 +131,8 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "7.07&middot;10<sup>19,058</sup> steps",
-    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+    "value": "10<sup>186,095</sup> steps",
+    "text": "No halt in a region-memo run with 8-cell blocks (30 minutes)."
    },
    {
     "level": "kernel",
@@ -195,5 +201,5 @@
   ]
  },
  "family": "two blocks trading words, with resets (nested; a halting class exists on the second level)",
- "summary": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases. Accelerated run: no halt in 7.07e19058 steps."
+ "summary": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases. Accelerated run: no halt in 10^186095 steps (region-memo engine with 8-cell blocks)."
 }

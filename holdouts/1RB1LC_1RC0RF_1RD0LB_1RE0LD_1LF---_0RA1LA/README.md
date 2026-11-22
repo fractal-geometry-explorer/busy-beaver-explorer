@@ -105,6 +105,24 @@ Assumptions: the outcome of a class is taken from n = 60..69 only (plus the spot
 off at 2*10^9 steps; nothing in this section is proved in Lean except the generic rows (`lean/Resets.lean`).
 Conclusion: no closed set exists, the question is Collatz-like (the tracker's "cryptid" label is right).
 
+## Why the region-memo engine stalled, and the fix (21 Nov)
+
+In the hour-long runs of PR #328 the region-memo engine (`tools/py/bbtools/regaccel.py`) used blocks of 4 cells and
+got stuck near 10^9 steps. The reason is the word `d = 10110110`: it is 8 cells long, so with 4-cell blocks `d^m` reads
+as `1011 0110 1011 0110 ...`, two different blocks alternating, and no run is longer than 1. The tape then has tens of
+thousands of distinct runs, and the engine's recursion (one level per run) blows up. With blocks of 8 cells `d^m` is
+one run, and so are `c^n` and the tail `(1110)^t` (as `11101110`):
+
+    python3 tools/py/bbtools/regaccel.py 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA 8 1800
+
+reaches a step count of 186,096 digits (at least 10^186095) in 30 minutes without a halt, against 7.07·10^19058 for the
+earlier Quick_Sim run. The tape it ends on is `0^inf (00110011)^~10^93046 00110010 <F 10011010 (11101110)^~10^771 ...`:
+the first level runs in the block of about 10^93046 words, and the second-level tail of about 10^771 words is the one
+predicted by the reset table above (level 1 ends with n of about 770 digits). Its run agrees cell for cell with a
+direct run at all 7 points it was compared at, up to 2·10^9 steps (`tools/py/regcheck.py ... 8 2e9`). The bound is in
+`holdouts/regaccel.json`. This is a bounded run (trusted Python) and says nothing about later steps; the outcome still
+turns on the Collatz-like second level described above.
+
 ## Status
 
 Open.
@@ -117,6 +135,7 @@ Open.
   `native_decide` outside `blank_runs_native`.
 * No halt to 4.5*10^17 steps (exact, accelerated). From the phase end (17, 0, 6805) (reached at step 374,475,636,
   measured) none for 2177 phases, to about 10^1543 steps: a theorem (`level1_end'`).
+* No halt in 10^186095 steps (region-memo engine, blocks of 8 cells; trusted).
 * The only halting transition is E reading 1.
 
 ## For later

@@ -200,6 +200,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With an empty or nearly empty tail the other classes either enter a loop that adds five words <code>1100</code> per round without end (seen for 3,000 rounds; for example r = 1 with the tail <code>101</code>), or rebuild a tail of about 3.1 n words <code>1110</code> with the suffix <code>1001101011001</code>, or reach a short tail (<code>1</code>, <code>1001</code>, <code>1011101</code>). The tables list every class with 0 to 7 words left for both tails, n = 60 to 69.</p>
         <p class="where"><code>runs/classes_tail1.txt</code>, <code>runs/classes_tail2.txt</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>186095</sup> steps (region-memo accelerator)</h3>
+        <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 8 cells, from blank tape for 1800 seconds and reached a step count of 186,096 digits (so at least 10<sup>186095</sup>) without a halt. With blocks of 4 cells the same engine stalls near 10<sup>9</sup>: the words <code>10110110</code> of length 8 split into two different 4-cell blocks, so every run of them is broken up; with blocks of 8 they become one long run, and the first and second level of the counter are both visible on the tape (<code>(11101110)^~10^771</code>, the second-level tail of about 10<sup>771</sup> words). It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 7 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
+        <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA 8 1800</code>; <code>holdouts/regaccel.json</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">

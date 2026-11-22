@@ -16,6 +16,37 @@ without a halt.
 | E | 0LD | 1LC |
 | F | 1RD | --- |
 
+## The same counter as 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- (21 Nov)
+
+This machine is the table of [`1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---`](../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/README.md) in a mirror, its states A to F renamed D, B, C, A, E, F. So
+its run is that table's run from blank tape started in state D, and the deeper analysis of that folder applies here
+cell for cell:
+
+- **Lean, kernel** (`../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/Twin29537.lean`): `twin_halts_iff`: this machine halts from blank tape iff
+  1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- halts from blank tape started in D; `twin_reach157`: that run is at a left record after 157 steps;
+  `twin_halts_iff_record`: so this machine halts iff the table halts from that record.
+- **Exact macro machine**: that folder's block macro machine (`py/blockmm.py`) reproduces this machine's run record for
+  record from step 157: steps, head cell and blocks agree at all 15,228 records up to step 299,972,981
+  (`../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/twin.py`). Its macro run finds no halt in 300,000 records (1.20·10^11 steps). The 56 right and
+  175 left crossing rules it needs beyond that folder's own 387 are proved for all t and all tapes
+  (`../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/RulesTwin1.lean`, `RulesTwin2.lean`, kernel).
+- **The tape, in that folder's words**: at each left record (in the mirror) the tape is
+  `0^inf B> 0 (10)^D0 0 (10)^D1 x1 (10)^D2 x2 ...`, a countdown block D0 followed by a binary counter on blocks of
+  `10`s. The digits, blocks and reservoir described below are the same tape read from the other end.
+- **The countdown map, exactly**: at each reset (countdown used up) the long block X after it becomes the next
+  countdown, and the next reset has X' = floor(3X/2) + 1 (X even) or floor(3X/2) + 3 (X odd). Here X runs 7, 13, 22, 34, 52, 79,
+  121, 184, 277, 418, 628, 943, 1417, 2128, 3193, 4792, 7189, 10786, 16180, 24271 (all 19 transitions of the first
+  3·10^9 steps follow the rule, and so do all 33 of the macro run to 2·10^7 records, 2.5·10^14 steps, with no halt;
+  `../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/reset_map.py`). 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- is another orbit of the same map (142, 214, 322, ...).
+- **What decides halting** (heuristic, checked): the tail of the counter, right of the countdown and the long block,
+  is acted on by four operators whose sequence is fixed by that orbit: E0, E1 alternating inside each phase
+  (2,965 of 2,965 increments of the first 6,000 records), then E1 O0 O1 or E1 at a reset as X is even or odd (13 of 14
+  resets). See "The twin, and what the tail sees" in that folder's README. The tail is a mass of short blocks of
+  different lengths (190 blocks at 3·10^9 steps, in the mirror: `... 2 o o 1 i 1 i 9 i 1 o 2 o 4 o o o 3 i 1`), which
+  is why run-length engines find no long runs to compress.
+
+The sections below are the first pass on this machine, read from the right end; they remain correct.
+
 ## What it does
 
 **The tape.** Write `a = 10`. Apart from a short fixed start, the tape is made of runs of `a`s separated by
@@ -88,8 +119,12 @@ changes the tape near both ends, so it is no faster than plain simulation (10^8 
 
 **Heuristic**: the increment rule for all 2,282 clean increments of the first 3·10^7 steps (`py/check_increments.py`).
 
-**Open**: a proof needs the carry through higher separators, the reservoir refill and the `c` region as rules for
-all values, and then an invariant saying that C or E never stops on `1 C>0 (10)^k 11`.
+**Lean, kernel, in the twin's folder** (`../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/Twin29537.lean`,
+`RulesTwin1.lean`, `RulesTwin2.lean`): this machine is that table mirrored and started in D; the crossing rules of
+the exact macro machine for this machine's first 300,000 records.
+
+**Open**: whether it halts. Through the twin's macro machine, what is missing is the same as there: the composition of
+the crossing rules in Lean, and some invariant of the tail under the operator word that the 3/2 orbit fixes.
 
 ## Reproduce
 

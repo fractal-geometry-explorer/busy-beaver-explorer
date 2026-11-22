@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules."
+  "<b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules.",
+  "<b>One counter, two starts</b> (21 November): this machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> started in state D, proved in Lean, and that folder&rsquo;s exact block macro machine reproduces its run; the reset map and the tail operators found there hold here too, so it is open for the same reason."
  ],
  "claims": [
   {
@@ -40,6 +41,18 @@
    "where": "<code>half_sweep</code>, <code>inc_d0</code>, <code>inc_d1</code>, <code>lean/Rules.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The twin's table, started in D",
+   "text": "This machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> in a mirror with the states renamed: it halts from blank tape if and only if that table halts from blank tape started in state D, if and only if that table halts from the record it reaches after 157 steps (<code>twin_halts_iff</code>, <code>twin_reach157</code>, <code>twin_halts_iff_record</code>).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/Twin29537.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Crossing rules of its macro machine",
+   "text": "The crossing rules that the twin's block macro machine uses in this machine's first 300,000 records (387 shared with the twin's own run in its <code>Rules.lean</code>, 231 more), each for every value of its parameter and every surrounding tape.",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/RulesTwin1.lean</code>, <code>RulesTwin2.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 2·10<sup>11</sup> steps",
    "text": "The C simulator <code>tmrun</code> runs 2·10<sup>11</sup> steps without a halt; the tape is then 391,889 cells wide. The shared cycle accelerator finds no cycle rules for this machine.",
@@ -58,12 +71,6 @@
    "where": "<code>py/check_increments.py</code>"
   },
   {
-   "level": "trusted",
-   "title": "No halt in the first 3.14&times;10<sup>134</sup> steps (region-memo accelerator)",
-   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 602 seconds and reached step 3.14&times;10<sup>134</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
-   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- 4 602 mirror</code>; <code>holdouts/regaccel.json</code>"
-  },
-  {
    "level": "heuristic",
    "title": "A second region of <code>1100</code>s",
    "text": "Beyond the counter the machine builds runs of <code>1100</code> at the right end (half the tape at step 2·10<sup>9</sup>) and later turns them back into reservoir <code>10</code>s. Higher separators such as <code>1101</code>, <code>0101</code>, <code>000</code> appear between long blocks.",
@@ -77,6 +84,30 @@
   },
   {
    "level": "trusted",
+   "title": "An exact macro machine",
+   "text": "The twin's block macro machine reproduces this run from step 157: same step count, head cell and blocks at all 15,228 records up to step 299,972,981. Its run finds no halt in 300,000 records (1.20&middot;10<sup>11</sup> steps).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/twin.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 3.14&times;10<sup>134</sup> steps (region-memo accelerator)",
+   "text": "The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 4 cells, from blank tape for 602 seconds and reached step 3.14&times;10<sup>134</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 8 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- 4 602 mirror</code>; <code>holdouts/regaccel.json</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The reset map",
+   "text": "Seen in the mirror, a countdown block X is used up and the next block becomes the countdown; the next reset has X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or &lfloor;3X/2&rfloor; + 3 (X odd): 7, 13, 22, 34, 52, 79, &hellip;, 24271 at every one of the 19 transitions of the first 3&middot;10<sup>9</sup> steps; 33 in this machine&rsquo;s macro run (2&middot;10<sup>7</sup> records, 2.5&middot;10<sup>14</sup> steps, no halt) and 34 in the twin&rsquo;s (to 3.4&middot;10<sup>14</sup> steps).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/reset_map.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "What the tail sees",
+   "text": "The rest of the counter (the tail) is acted on by four operators fixed by the parity of the growing block: E0, E1 alternating inside each phase (2,965 of 2,965 increments of the first 6,000 records) and E1 O0 O1 or E1 at a reset (13 of 14 resets). Whether the machine halts is whether this word of operators, spelled out by the 3/2 orbit, ever drives the tail into the halting pattern.",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Related holdouts",
    "text": "The same table as 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.",
    "where": "<code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)"
@@ -86,7 +117,9 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/lean/check.sh",
   "python3 holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/py/gen_rules.py",
-  "python3 holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/py/check_increments.py 30000000"
+  "python3 holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---/py/check_increments.py 30000000",
+  "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check.sh      # the twin bridge and crossing rules",
+  "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/twin.py twin3e8.txt      # recp ... D output"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine counts in binary on its tape, writing each digit as a single cell between long runs of <code>10</code>, and pays for every count with cells from a reservoir. It has run 2·10<sup>11</sup> steps without stopping.",
@@ -131,6 +164,19 @@
      "<p>After 10<sup>9</sup> steps the tape spans 54,987 cells (20 left of the start, 40,988 right), with a density of 1s of 0.5.</p>",
      "<p>The tape (run-length coded, <code>1^5</code> is five 1s, <code>C&gt;0</code> the head in state C on a 0) at some of the last moments the head reached a new cell, cut to 400 characters:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>side</th><th>step</th><th>tape</th></tr></thead><tbody><tr><td>right</td><td>954,190,507</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr><tr><td>right</td><td>969,872,979</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr><tr><td>right</td><td>985,514,051</td><td><code>0 1^2 0 1 0 1 0 1 0^4 1 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0^2 1 0 1^2 0 1 0 1^2 0 1 0 1 0 1 0^2 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1^2 0 1 0 1 0 1 0 1 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1 0 1 0^2 1^2 0 1^2 0 1 0 1 0 1 0^2 1 0 1 0^2 1^2 0 1 0 1 0 1 0 1 0 1^2 0 1^2 0 1 0^3 1 0 1 0 1 0 1^2 0 1 0 1^2 0 1 0^2 1 0 1 0 1 0 1^2 0 1 0^2 1</code></td></tr></tbody></table></div>",
      "<p>These are measurements of one bounded run, sorted by <code>tools/py/bbtools/triage.py</code>; the macro structure behind them is the next thing to find.</p>"
+    ]
+   },
+   {
+    "id": "twin",
+    "eyebrow": "One counter, two starts",
+    "heading": "The same counter as its twin",
+    "html": [
+     "<p>This table, read in a mirror with its states renamed, is the table of the holdout <a href=\"../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/explainer.html\"><code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code></a>. So this run is that table&rsquo;s run from blank tape started in state D, proved in Lean (kernel, <code>twin_halts_iff</code> in that folder&rsquo;s <code>lean/Twin29537.lean</code>). Seen in the mirror, the tape at each left record is a countdown block followed by a binary counter on blocks of <code>10</code>s, exactly as there, and that folder&rsquo;s block macro machine reproduces this run record for record (15,228 records, to step 299,972,981). Its 231 crossing rules beyond the twin&rsquo;s own are proved in Lean for every block size (kernel).</p>",
+     "<p><b>The reset map, exactly.</b> When the countdown runs out, the long block X after it becomes the next countdown, and the next reset has X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or &lfloor;3X/2&rfloor; + 3 (X odd). Here X runs 7, 13, 22, 34, 52, 79, 121, 184, 277, 418, 628, 943, 1417, 2128, 3193, 4792, 7189, 10786, 16180, 24271 in the first 3&middot;10<sup>9</sup> steps, every step by the rule; 33 in this machine&rsquo;s macro run (2&middot;10<sup>7</sup> records, 2.5&middot;10<sup>14</sup> steps, no halt) and 34 in the twin&rsquo;s (to 3.4&middot;10<sup>14</sup> steps). The twin is another orbit of the same map.</p>",
+     "<p>At the records in the middle of a phase the tape is <code>B&gt;0 (10)^D0 0 0 (10)^Y x T</code>: the countdown D0, the growing block Y with its cell x, and the <b>tail</b> T, everything further on. From one such record to the next (one increment) the tail changes in a way that depends only on whether Y is even and on x &mdash; not on the countdown, and not on the size of Y. So there are just four things that can happen to a tail:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>operator</th><th>block before the tail</th><th>what it does to the tail&rsquo;s cells</th></tr></thead><tbody><tr><td>E0</td><td>Y even, x = 0</td><td>lengthens the tail&rsquo;s first block by one <code>10</code>, nothing else</td></tr><tr><td>E1</td><td>Y odd, x = 1</td><td>a carry: a few cells change, sometimes hundreds of cells deep</td></tr><tr><td>O0, O1</td><td>Y odd, x = 0 / Y even, x = 1</td><td>another carry (the two give the same cells)</td></tr></tbody></table></div>",
+     "<p>Checked on direct runs (<code>py/tail_ops.py</code> in the folder of <a href=\"../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/explainer.html\"><code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code></a>): inside every phase Y + x is even, so the tail goes E0, E1, E0, E1, &hellip; (2,965 of 2,965 increments in the first 6,000 records here, 1,467 of 1,467 in the twin; 13 of 14 resets here (the first, at X = 7, applies E1 O0), 13 of 13 in the twin); a reset applies E1 O0 O1 when X is even and E1 when X is odd. So the whole future of the tail is one fixed word of operators, spelled out by the orbit of the 3/2 map. Whether the machine halts is the question whether that word ever drives the tail into the halting pattern. The operators do not commute, so the tail is not simply a function of how many increments have happened; this is the Collatz-like core of the problem. All of this is heuristic: checked, not proved.</p>",
+     "<p>It also explains why run-length engines stall: the carries leave the tail as a mass of short blocks of different lengths (about 150 to 190 blocks at 3&middot;10<sup>9</sup> steps), with no long runs to compress beyond the first few blocks.</p>"
     ]
    },
    {

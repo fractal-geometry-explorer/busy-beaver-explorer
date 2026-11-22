@@ -435,10 +435,10 @@
    "set": "T19",
    "mates": 4,
    "stage": "gap",
-   "score": 68.8,
+   "score": 70.4,
    "route": "nonhalt",
    "work": "lean",
-   "kernel": 9,
+   "kernel": 11,
    "map": "",
    "bound": 7,
    "cryptid": false,
@@ -4960,6 +4960,28 @@
    "rank": 215
   },
   {
+   "m": "1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---",
+   "id": 129771,
+   "fam": "R15",
+   "famname": "Collatz-like maps and cryptids (parked)",
+   "set": "T92",
+   "mates": 2,
+   "stage": "decode",
+   "score": 15.0,
+   "route": "either",
+   "work": "research",
+   "kernel": 8,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Unknown",
+   "why": "A binary counter on blocks (10)^D x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39·10^14 steps. The resets follow a Collatz-like 3/2 map; no invariant excluding the halt is known.",
+   "next": "Prove soundness of composing the macro rules in Lean and derive a halts_iff reduction to the reset map (or find an invariant of reachable block lists).",
+   "folder": "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---",
+   "rank": 216
+  },
+  {
    "m": "1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
    "id": 55875,
    "fam": "R15",
@@ -4979,7 +5001,7 @@
    "why": "A Collatz-like map on C(e) = 0^inf 1 E> 0 (01)^e: odd e goes to (3e+7)/2 (proved in Lean for every odd e); even e takes a halving cascade, and e = 2^k - 6 halts. The blank run passes C(4), C(17), ..., C(70796) by step 9.4·10^9. Accelerated run: no halt in 6.56e16 steps.",
    "next": "Close the last row of the even branch: a 21 Nov simulation table (README) gives the second stage Y(i, j) for all i except i = 8m+3 (and 7); with that row in hand, prove the map in Lean and iterate the orbit far beyond C(70796).",
    "folder": "holdouts/1RB0RF_0LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
-   "rank": 216
+   "rank": 217
   },
   {
    "m": "1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
@@ -5001,7 +5023,7 @@
    "why": "The tape is a list of blocks a^x; each round halves blocks from the left with a carry and pours the halves to the right (a single block x goes to (3x+5)/2 when odd). It halts iff a first block reaches 1, i.e. x0+3 is a power of two at the start of a run of odd rounds. Exact round map computed and checked; no halt in 1,000,000 rounds (> 10^94,000 steps).",
    "next": "Prove the round map in Lean (the halving sweep with its carry and the small-block cases are missing) for a halts-iff.",
    "folder": "holdouts/1RB1RE_1LC1RE_---1LD_1LE0LB_0RF0LD_1RD1RA",
-   "rank": 217
+   "rank": 218
   },
   {
    "m": "1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB",
@@ -5023,7 +5045,7 @@
    "why": "A tape of 1s with a single hole: a bouncer carries the hole to the right end, and each time it gets there the hole jumps to (p-2)/3 if its position p is 2 mod 3, else the tape grows by about a third; it halts exactly when a run of such divisions ends at position 2 with a length divisible by 3. Doucette family (Lean): base 3, D -> D + a + v + 2 + rho.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB",
-   "rank": 218
+   "rank": 219
   },
   {
    "m": "1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD",
@@ -5045,7 +5067,7 @@
    "why": "A binary counter in the left word of a proved token model (Lean: rules, checked simulator, halts_iff); overflows double exactly, a marker walks a track of 0s, and a reset at the end of each epoch rewrites the tape; the reset is not proved.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD",
-   "rank": 219
+   "rank": 220
   },
   {
    "m": "1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA",
@@ -5067,7 +5089,7 @@
    "why": "The renamed twin of 1RB0RC_1LC0RE: the same proved token model (Lean rules, checked simulator, halts_iff), and frame by frame the twin's run with a shorter right end; the resets that start each epoch are not proved.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA",
-   "rank": 220
+   "rank": 221
   },
   {
    "m": "1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA",
@@ -5089,7 +5111,7 @@
    "why": "A 4/3 map on a run of 1s whose tail list holds a second counter that drains the main one: it halts exactly if that counter reaches four times the main run, which needs an astronomically long streak of m mod 3 ≠ 1; probviously non-halting, and no regular invariant can prove it. Accelerated run: no halt in 1.21e38782 steps.",
    "next": "Prove the round map with the tail runs in residue classes in Lean (no regular/pushdown certificate can work); the halting question is then number-theoretic.",
    "folder": "holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA",
-   "rank": 221
+   "rank": 222
   },
   {
    "m": "1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB",
@@ -5111,7 +5133,7 @@
    "why": "One block of n ones; each pass maps n to about n(1+2^-(j+1)), j the 2-adic valuation of n+2, and it halts iff n+2 is ever a power of two. Doucette family (Lean): D -> D + a + v + 2. Accelerated run: no halt in 1.54e25722 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB",
-   "rank": 222
+   "rank": 223
   },
   {
    "m": "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE",
@@ -5133,7 +5155,7 @@
    "why": "Two blocks of ones K(p, q): an odd p is halved ((p−3)/2, the second block absorbing the rest), an even p becomes 3p/2 + q; proved in Lean: it halts iff some p reached with q = 1 has p + 3 a power of two, and not before 2^2073 steps. Doucette family (Lean): D -> D + a + v. Accelerated run: no halt in 4.07e25927 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE",
-   "rank": 223
+   "rank": 224
   },
   {
    "m": "1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
@@ -5155,7 +5177,7 @@
    "why": "Proved in Lean (kernel), above the tape-level map: it halts iff a doubling map u ↦ 2u mod v (v grows by one at each doubling that does not wrap), with its odd pools and brackets, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket, e.g. from 2u = v at v = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open. Accelerated run: no halt in 4.44e10 steps.",
    "next": "Run the C map on past v ~ 2^37 (5x10^10 reached) to clear the next targets k = 36, 37; otherwise pure number theory.",
    "folder": "holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
-   "rank": 224
+   "rank": 225
   },
   {
    "m": "1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE",
@@ -5177,7 +5199,7 @@
    "why": "Moves numbers between binary counters (digits 1000/1100 counting down, 1100/1110 counting up) one unit per engine visit, in nested loops one level deeper each epoch (family X, reference).",
    "next": "Write the epoch as a recursive program on the list of counters (what each separator does to a carry or borrow, what is written at the ends), so that the epoch-to-epoch map is a formula; then ask whether A can ever land on a 1.",
    "folder": "holdouts/1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE",
-   "rank": 225
+   "rank": 226
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE",
@@ -5199,7 +5221,7 @@
    "why": "Sweeps between a dense form (blocks 1^4j+3 0) at the left end and a sparse form (words 0101, 0001) at the right end; the list of blocks changes chaotically from sweep to sweep. Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE",
-   "rank": 226
+   "rank": 227
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE",
@@ -5221,7 +5243,7 @@
    "why": "Sweeps between a dense form (blocks 1^4j+3 separated by single 0s) at the left end and a sparse form (words 0101, 0001) at the right end; the list of blocks is scrambled on every round trip. Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE",
-   "rank": 227
+   "rank": 228
   },
   {
    "m": "1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---",
@@ -5243,7 +5265,7 @@
    "why": "Sweeps between a sparse form (words 01 and 0001) at the left end and a dense form (blocks 1^4j+3 separated by single 0s) at the right end; the list of blocks is scrambled on every round trip. Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---",
-   "rank": 228
+   "rank": 229
   },
   {
    "m": "1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
@@ -5265,7 +5287,7 @@
    "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip rewrites the list in a cellular-automaton-like way; halting needs B on two adjacent 1s, never seen.",
    "next": "None yet.",
    "folder": "holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
-   "rank": 229
+   "rank": 230
   },
   {
    "m": "1RB1RE_1LC0LD_1RA0LD_1LA1LB_0RC1RF_1RC---",
@@ -5287,7 +5309,7 @@
    "why": "Keeps a list of blocks in two spellings, solid 1^n and sparse (10)^k with k = floor(n/2)+1, flipping between them on each pass, while an inner bouncer (a 00 marker moving through the 10-runs) reshuffles the block lengths; open.",
    "next": "Write the inner bouncer as a rule on the sparse list (where the marker enters, what it does at each 1 separator), which should give a map from one solid list to the next; then look for an invariant of that map that excludes the halting transition F1.",
    "folder": "holdouts/1RB1RE_1LC0LD_1RA0LD_1LA1LB_0RC1RF_1RC---",
-   "rank": 230
+   "rank": 231
   },
   {
    "m": "1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---",
@@ -5309,28 +5331,6 @@
    "why": "Nested run counter (x10/3 per epoch, mod-3 branching): the machine is twelve local rules on two stacks (Lean); for every left tape, every excursion from 'A at the right end' that reads at most 60 cells ends without halting (200,500,042 cases); 8,000 epochs (~10^8021 steps) simulated; no closed invariant found, open. Accelerated run: no halt in 1.84e103694 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RE_1LC0LE_1RD0LB_0RA1RC_0RC0RF_1RA---",
-   "rank": 231
-  },
-  {
-   "m": "1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---",
-   "id": 129771,
-   "fam": "R15",
-   "famname": "Collatz-like maps and cryptids (parked)",
-   "set": "T92",
-   "mates": 2,
-   "stage": "decode",
-   "score": 13.4,
-   "route": "either",
-   "work": "research",
-   "kernel": 6,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Unknown",
-   "why": "A binary counter on blocks (10)^D x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39·10^14 steps. The resets follow a Collatz-like 3/2 map; no invariant excluding the halt is known.",
-   "next": "Prove soundness of composing the macro rules in Lean and derive a halts_iff reduction to the reset map (or find an invariant of reachable block lists).",
-   "folder": "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---",
    "rank": 232
   },
   {
@@ -5950,6 +5950,28 @@
    "rank": 260
   },
   {
+   "m": "1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---",
+   "id": 29537,
+   "fam": "R15",
+   "famname": "Collatz-like maps and cryptids (parked)",
+   "set": "T92",
+   "mates": 2,
+   "stage": "decode",
+   "score": 12.6,
+   "route": "either",
+   "work": "research",
+   "kernel": 5,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Unknown",
+   "why": "A binary counter written in runs of 10s with one-cell digits; each increment spends two 10s of a reservoir at the right end and lengthens the blocks next to the carry; the basic increments are proved in Lean. Accelerated run: no halt in 7.04e12 steps.",
+   "next": "Turn carries through higher separators, reservoir refills and the 1100 region into proved rules, then seek an invariant excluding the halting pattern.",
+   "folder": "holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---",
+   "rank": 261
+  },
+  {
    "m": "1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---",
    "id": 112769,
    "fam": "R15",
@@ -5969,7 +5991,7 @@
    "why": "A row of counter levels W^x 11100 V^y; each sweep turns three 100s into four 110s, so a phase maps the front level y to about 4y/3 (y mod 3 decides the branch) and ticks the next level; no halt in 10^1000 steps.",
    "next": "Close the y = 1 mod 3 phase end and the deeper-level resets as proved rules to get a full level map.",
    "folder": "holdouts/1RB0RA_1LC0LE_1RA1LD_0LB1LF_1LD0RC_1LB---",
-   "rank": 261
+   "rank": 262
   },
   {
    "m": "1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE",
@@ -5991,7 +6013,7 @@
    "why": "The tape is a row of blocks of 10s; every sweep adds one 1 to the last block (a sweep counter n) and makes one small change further left whose place is set by the binary digits of n, like a binary counter whose digits are pairs of blocks; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1LC0RA_0LF0LD_1LE---_0LC0LB_1LA0RE",
-   "rank": 262
+   "rank": 263
   },
   {
    "m": "1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD",
@@ -6013,7 +6035,7 @@
    "why": "A bouncer whose right part is the word 1101 repeated, one more copy every sweep; it turns around at the left end on a short control word of blocks 110 and 100110 that keeps changing irregularly and grows very slowly; a block of 150 copies of 1101 stays frozen in between. Accelerated run: no halt in 6.60e10 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1RC1RF_1LD0LC_1RA1LE_1RA0LC_---0RD",
-   "rank": 263
+   "rank": 264
   },
   {
    "m": "1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB",
@@ -6035,7 +6057,7 @@
    "why": "Works in levels: a block (10111)^b is moved word by word to the left end, drained, and recycled as the next block, 2 to 6.6 times as long. For the four short tails the level map is exact (b' = (9b+c)/2 with the next tail chosen by b mod 4; proved visit by visit in Lean, composed symbolically for all b). Other levels count in binary between the blocks, and the next level then depends on the digits. No growth cycle; no halt in 5.6e15 steps (12 levels); open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB",
-   "rank": 264
+   "rank": 265
   },
   {
    "m": "1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB",
@@ -6057,7 +6079,7 @@
    "why": "A binary counter written twice, mirrored about a fixed cell, counts from 1 to 2^w - 1, then the right end block grows by 4 and it restarts one bit wider; slower counters on the left are driven by its carries. Increment rules proved in Lean; halting open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1LC1LF_1RD1LC_---1RE_0RC1RF_1RA0LB",
-   "rank": 265
+   "rank": 266
   },
   {
    "m": "1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---",
@@ -6079,7 +6101,7 @@
    "why": "A sea of 10s grows at the left end (6 cells per left turn) next to an irregular part that grows too (15,560 cells at 1e9 steps); it halts only from A>1 1, never seen in the run, but one flipped cell makes 14% of its tapes halt.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---",
-   "rank": 266
+   "rank": 267
   },
   {
    "m": "1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF",
@@ -6101,7 +6123,7 @@
    "why": "Family 3a: T, its shadow M1 and M3 (T started in B) are one machine (Lean); a hierarchy of binary counters in 3-cell digits with exactly doubling epochs; halts iff F0/B1 meets 0 1 0 (Lean); open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LE_1RC1LD_1RD0LF_0LA0RD_---1LB_0LD1LF",
-   "rank": 267
+   "rank": 268
   },
   {
    "m": "1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---",
@@ -6123,7 +6145,7 @@
    "why": "Twin 2a: three counters, one inside the next: a proved binary counter at the left end, a middle binary counter whose carry rules are proved in Lean, and an irregular gap list (the tail) that the middle counter reads at every count; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---",
-   "rank": 268
+   "rank": 269
   },
   {
    "m": "1RB1RF_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---",
@@ -6145,7 +6167,7 @@
    "why": "Twin 2b: three counters, one inside the next: a proved binary counter at the left end, a middle binary counter whose carry rules are proved in Lean, and an irregular gap list (the tail) that the middle counter reads at every count; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RF_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---",
-   "rank": 269
+   "rank": 270
   },
   {
    "m": "1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA",
@@ -6167,7 +6189,7 @@
    "why": "Sweeps back and forth over a period-10 background (1011011011 and its rightward form 0111101101); a clean zone of it at the left end grows, the rest is a soup of 011, 100, 1 1 0 0 pieces; a halt needs B to read the third of three 0s.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RF_1LC0RF_1LE0LD_1RC0LB_---1RA_1LB1RA",
-   "rank": 270
+   "rank": 271
   },
   {
    "m": "1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA",
@@ -6189,7 +6211,7 @@
    "why": "Two-word sweeper: a base-3 counter N and binary counters M and R; each event adds 1 to N and to M and, when M wraps, 3 to R (proved in Lean for every size); the overflows of R and the layered layout after them are not decoded.",
    "next": "Decode the middle first.",
    "folder": "holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA",
-   "rank": 271
+   "rank": 272
   },
   {
    "m": "1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD",
@@ -6211,7 +6233,7 @@
    "why": "A six-case map on two counters, (10)^x and 1^m, proved in Lean to describe the run exactly; the machine halts iff a doubling chain of the map lands on x = (m+7)(2^(k+1)-1)/2 - k - 1, a Collatz-like condition. Accelerated run: no halt in 4.84e772 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD",
-   "rank": 272
+   "rank": 273
   },
   {
    "m": "1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE",
@@ -6233,7 +6255,7 @@
    "why": "Collatz-like doubling counter: halts iff the remainder m of a doubling phase is ever exactly 0; the reduction to a map on numbers is proved in Lean. Accelerated run: no halt in 4.65e1516 steps.",
    "next": "None: pure number theory (optionally prove the closed form in Lean).",
    "folder": "holdouts/1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE",
-   "rank": 273
+   "rank": 274
   },
   {
    "m": "1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE",
@@ -6255,7 +6277,7 @@
    "why": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 32·2^k − 2k − 12 (or one of a few values below 40), and that has not happened. Accelerated run: no halt in 8.16e23 steps.",
    "next": "Prove the fatal-length list for every n (beyond 10^5); then only the number-theoretic question of all-ones lengths remains.",
    "folder": "holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE",
-   "rank": 274
+   "rank": 275
   },
   {
    "m": "1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE",
@@ -6277,7 +6299,7 @@
    "why": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 28·2^k − 2k − 13 (or 3, 29), and that has not happened. Accelerated run: no halt in 5.45e23 steps.",
    "next": "Prove the fatal all-ones list for all n in Lean (reducing to a 1-variable map on all-ones lengths), then iterate that map far.",
    "folder": "holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE",
-   "rank": 275
+   "rank": 276
   },
   {
    "m": "1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB",
@@ -6299,7 +6321,7 @@
    "why": "At the left end the tape is 1^n (01)^k 111; the next left-end state is an explicit map on (state, n, k): doubling n at the cost of (n+5)/2 pairs, draining pairs into ones. Lean proves the map and that it halts iff the orbit of D(3,0) reaches n odd, k = 1 (a doubling in D leaving one pair, 2k = n+7). No halt in 8,598 epochs (> 10^3,100 steps).",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB1RF_1LC---_1LE1RD_1RA0RC_0LF0LA_0LD0RB",
-   "rank": 276
+   "rank": 277
   },
   {
    "m": "1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA",
@@ -6321,7 +6343,7 @@
    "why": "Bouncer whose tape is (10)^x 1^y: each sweep trades two pairs for six 1s; when the pairs run out the block 1^t is recycled by an explicit map, and it is a Lean theorem that the machine halts iff the orbit of 44 hits t = 2^(j+1) - 2j - 7. Accelerated run: no halt in 3.33e1615 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA",
-   "rank": 277
+   "rank": 278
   },
   {
    "m": "1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA",
@@ -6343,7 +6365,7 @@
    "why": "Kernel-proved reduction to a map on two numbers: a block n grows like 8n/3 while a stack m of 1011s drains by 1 or 2 per phase; halts iff the stack runs out at m=1 with n ≡ 1 (mod 3). Two cycles pass without halting; the third needs about 10^2901 phases.",
    "next": "None: pure number theory (third cycle needs ~5x10^2901 phases).",
    "folder": "holdouts/1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA",
-   "rank": 278
+   "rank": 279
   },
   {
    "m": "1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD",
@@ -6365,7 +6387,7 @@
    "why": "A counter n multiplied by about 10/3 per phase, whose residue mod 3 edits a word P of blocks on the tape; no halting word found (a Collatz-type word dynamics, open).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_1RC1RE_1LD0LE_1RF0LC_0RD0RA_0RB1RD",
-   "rank": 279
+   "rank": 280
   },
   {
    "m": "1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC",
@@ -6387,7 +6409,7 @@
    "why": "A bouncer over segments of one six-cell periodic word in its different phases (110101, 011101, 101110, 111010, ...); each sweep shifts the segment boundaries, so counts flow from segment to segment while the right end grows.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1LC1RE_1LA1LD_0RB1LF_1LA0RC_---1LC",
-   "rank": 280
+   "rank": 281
   },
   {
    "m": "1RB0LF_1RC0RB_0RD0RA_1RE1LE_1RF---_1LA1LF",
@@ -6409,7 +6431,7 @@
    "why": "A big block (10)^B grows at the left end and is copied down a cascade of blocks of sizes about B/4, B/4, B/8, B/16, B/32, ..., which ends in an irregular region on the right that grows slowly.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LF_1RC0RB_0RD0RA_1RE1LE_1RF---_1LA1LF",
-   "rank": 281
+   "rank": 282
   },
   {
    "m": "1RB0RA_1RC0RF_1RD1LE_1RE---_1LF1LE_1RA0LE",
@@ -6431,7 +6453,7 @@
    "why": "A tape of hundreds of blocks of pairs 10 separated by short separators (0, 000, 110, 11 110). A few large blocks at the left roughly halve in size from one to the next (26719, 6670, 6669, 3334, 1683, 823, ...); hundreds of small ones fill the right. The width grows like the square root of the step count. Counter-like, not understood; halting open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1RC0RF_1RD1LE_1RE---_1LF1LE_1RA0LE",
-   "rank": 282
+   "rank": 283
   },
   {
    "m": "1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---",
@@ -6453,7 +6475,7 @@
    "why": "A bouncer whose tape is a periodic background (001 after a leftward sweep, 111110 after a rightward one) carrying sparse defects that drift at a few fixed speeds; it would halt only if a rightward sweep met two adjacent 1s at one phase, which no run has shown.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RC_1LC1LA_1RD0LB_1RE1RC_1RA0RF_1RC---",
-   "rank": 283
+   "rank": 284
   },
   {
    "m": "1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF",
@@ -6475,7 +6497,7 @@
    "why": "A bouncer over the background 10 with many short walls; the domains between walls are longest at the left end and shrink roughly by halves toward the right, where the tape is a dense mix of short periodic pieces. No rule for the walls is known.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RD_1RC1LE_1LD---_1RF0LE_1LD1LE_1RA0RF",
-   "rank": 284
+   "rank": 285
   },
   {
    "m": "1RB1LC_1RC---_1LD1LC_1RE0LC_1RF0RE_1RA0RD",
@@ -6497,7 +6519,7 @@
    "why": "A bouncer over the background 10 with many short walls; the domain lengths near the left end come close to halving (16674, 4137, 4135, 2065, 1065, 501, ...), suggesting a counter, but no rule for the walls is known.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LC_1RC---_1LD1LC_1RE0LC_1RF0RE_1RA0RD",
-   "rank": 285
+   "rank": 286
   },
   {
    "m": "1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC",
@@ -6519,7 +6541,7 @@
    "why": "Bouncer growing to the left: blocks of the word 10 separated by short separators (110, 0, 11 110, ...) that act as counter digits; the first block grows steadily, block lengths fall off to the right.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC",
-   "rank": 286
+   "rank": 287
   },
   {
    "m": "1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---",
@@ -6541,7 +6563,7 @@
    "why": "Open. No halt in 10^11 steps. A block of 1s at the left end grows by four cells per overflow while the gap between overflows doubles, and each overflow moves the place where the word on its right changes about two blocks to the right; the sweep is near the end of the word at 7.3·10^10 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RA_1LC1LE_1RA1LD_0LB0LC_1LF0RE_1LB---",
-   "rank": 287
+   "rank": 288
   },
   {
    "m": "1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE",
@@ -6563,7 +6585,7 @@
    "why": "A bouncer whose first block grows by one cell per sweep; behind it a region of defects in the 1010... background, moved one cell at a time by a zig-zagging head, grows about logarithmically and looks irregular. Accelerated run: no halt in 4.14e10 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC0RF_0RD0RA_1RE0LB_1LF0LE_1RC0LE",
-   "rank": 288
+   "rank": 289
   },
   {
    "m": "1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB",
@@ -6585,7 +6607,7 @@
    "why": "A list of numbers 1^(3m+2) 0 run in phases: each record doubles the time, a 0 is appended at the right and a carry walks left; each phase ends with a visit to the left end, where halting would have to happen.",
    "next": "Prove the clock: find how one tick decomposes (the counter inside the block, then the trips into the word) and write the induction for it, as lean/Clock.lean does for the machines of holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE; with it the accelerated simulator of that folder could follow the run. Before that:.",
    "folder": "holdouts/1RB---_1RC0LF_1RD1RD_1RE1RA_1LF0RC_1LC1LB",
-   "rank": 289
+   "rank": 290
   },
   {
    "m": "1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC",
@@ -6607,7 +6629,7 @@
    "why": "Two-sided bouncer with an irregular middle: a long run of the word 0001 grows on the left, a periodic tail grows by one period per cycle on the right, and a zone of mixed words between them changes from sweep to sweep; it halts only if C, moving right, reads 1 0 1.",
    "next": "Open. A separation argument (prove the 13-visit cycle of the right end for all K and show that the halting pattern can only come from there) does not work: in 10^9 steps every C>1 0 away from the right edge happened at the join between the run of x and the irregular middle (44 times, always followed by 0 0; c/evt.c), and at the right edge the next cell is blank. So the danger is next to the irregular middle. .",
    "folder": "holdouts/1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC",
-   "rank": 290
+   "rank": 291
   },
   {
    "m": "1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC",
@@ -6629,7 +6651,7 @@
    "why": "Bouncer in epochs A> (01111)^n S. For seven of eight tails the next epoch is known for every n (28 classes mod 4, n' = 8n + c or 9n/2 + c, none halts; symbolic run, not Lean). The tail S1 starts an epoch with a binary counter of about log n digits whose outcome depends on the digits: open.",
    "next": "What is left is S1. The other seven tails are settled by the 28 classes above (as a tool result; a Lean replay through the executor of holdouts/1RB0RC_0RC1RC_0LD0RA_1LE0LF_0LA1LC_---1LA/lean/Exec.lean is possible but was not done, because it would not decide the machine). For S1 a proof needs an invariant over all digit strings of the counter: what the eater leaves behind when it takes a number apart (step 3), as .",
    "folder": "holdouts/1RB0LA_1RC0RE_0LD0RF_1LA1LD_0RA1RE_---0LC",
-   "rank": 291
+   "rank": 292
   },
   {
    "m": "1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA",
@@ -6651,7 +6673,7 @@
    "why": "Two-sided bouncer whose tape is made of the short words 011, 110, 100 and 01 in no visible order; the sweeps rewrite one word into another. Open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA",
-   "rank": 292
+   "rank": 293
   },
   {
    "m": "1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA",
@@ -6673,7 +6695,7 @@
    "why": "A left bouncer over a 10 background carries a solid block of 1s that grows, splits and re-forms at irregular times (the staircase in the space-time diagram); the slow right end is a periodic 1111 0 1 0 1 0 pattern; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA",
-   "rank": 293
+   "rank": 294
   },
   {
    "m": "1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC",
@@ -6695,7 +6717,7 @@
    "why": "Bouncer whose tape is a long run of the word 1101101101, growing by one copy every seven sweeps, followed by an irregular zone of 270 to 560 cells that has not repeated; it halts only if A reads 1 with 0 0 on its left.",
    "next": "Open. The run of W is crossed uniformly, so the machine is a bounded zone Z driven by the sweeps. Next: glue bword and cback to the ends of the run (the turn at the left end and the entry into Z), check that one sweep pair acts on Z independently of K, and study Z as a finite system: if Z stays bounded it must eventually repeat, which would give a non-halting proof. Deep dive (the bounded-zone idea). A reduced .",
    "folder": "holdouts/1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC",
-   "rank": 294
+   "rank": 295
   },
   {
    "m": "1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD",
@@ -6717,7 +6739,7 @@
    "why": "Two-sided bouncer on blocks 1000 | 0001: each round trip adds 1000s on the left and the right end eats a 0001 on two trips of three; when the 0001s run out the tape is rebuilt with about three times as many (main regime proved for all sizes). Lean proves (native_decide, replaying a symbolic class search) that it halts iff two block counts hit the exact line Q = 3P - 16 or Q = 3P - 24 at one of two left-end shapes; not hit in about 1e111 steps.",
    "next": "The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question whether the orbit ever lands on one of the two lines. It looks like the Collatz-like (\"cryptid\") machines of family F12 rather than a closed-set candidate.",
    "folder": "holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD",
-   "rank": 295
+   "rank": 296
   },
   {
    "m": "1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB",
@@ -6739,7 +6761,7 @@
    "why": "The tape is a sea of 1010 holding trains of a second sea 1110; the head eats the nearest train one word per sweep and rare trips to the far end reload every stretch of sea as a full train; a halt needs A to step onto the front of a train.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LF_0RC1RD_0LD0RA_1RC0RE_1RF---_1LA0LB",
-   "rank": 296
+   "rank": 297
   },
   {
    "m": "1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---",
@@ -6761,7 +6783,7 @@
    "why": "A bouncer over the background 0111, written (0111)^2 after a sweep to the right and 01001111 after a sweep to the left; the tape is a few long domains of it separated by short defects, which drift and change length from sweep to sweep with no known rule. Accelerated run: no halt in 1.40e12 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LF_1RC1RB_1LD0RA_1LA0LE_0LC1LC_1LE---",
-   "rank": 297
+   "rank": 298
   },
   {
    "m": "1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---",
@@ -6783,7 +6805,7 @@
    "why": "A bouncer whose tail of 110 blocks grows by one block per sweep, crossing a fixed register of 331 three-cell digits (110 = 1, 010 = 0) whose low end it rewrites at every pass like a slowly growing counter; a small counter at the far left ticks rarely.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_0RC0RE_1LD1LF_1LE0LC_1RA0LD_0RA---",
-   "rank": 298
+   "rank": 299
   },
   {
    "m": "1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB",
@@ -6805,7 +6827,7 @@
    "why": "The mirror image of 1RB0LF_0RC0RB_1LC1LD_1RE0RD_---0RA_1LA0LF, started one step later: its run is that machine's run with one extra 1 at the far wall; a halt needs an E-run, which has only happened at the wall. Accelerated run: no halt in 2.42e15 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1LC0RA_0LD0LC_1RD1RE_1LF0LE_---0LB",
-   "rank": 299
+   "rank": 300
   },
   {
    "m": "1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB",
@@ -6827,7 +6849,7 @@
    "why": "A fixed gadget at the left end sends a marker 111 left through a block of 10s, 12 pairs per trip, leaving 15 pairs behind each time; the phase map grows the block by about 5/4 per phase until a remainder case breaks the pattern at step about 4.4e5, after which the tape is a row of a dozen or so units (10)^a 1110 (10)^b that change in an irregular way; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RA1LB",
-   "rank": 300
+   "rank": 301
   },
   {
    "m": "1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RD1LB",
@@ -6849,7 +6871,7 @@
    "why": "A bouncer over a 1010… background growing to the left, with defects (000, 00, 11, 111) collecting at the slow right end; chaotic, open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RA_1LC0RD_0LD0LB_1RA0LE_1LF---_0RD1LB",
-   "rank": 301
+   "rank": 302
   },
   {
    "m": "1RB0RC_1RC1RA_1LD0RA_0LE1RA_---1LF_1RB0LF",
@@ -6871,7 +6893,7 @@
    "why": "A bouncer whose tape is three parts: a left end that cycles through about ten prefixes, a middle of identical blocks 1010^8 that gains one block per cycle, and a right end of runs of 110 and 10 that changes irregularly; the machine halts as soon as C crosses an even run of 1s followed by a 0, which Lean proves.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RC_1RC1RA_1LD0RA_0LE1RA_---1LF_1RB0LF",
-   "rank": 302
+   "rank": 303
   },
   {
    "m": "1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF",
@@ -6893,7 +6915,7 @@
    "why": "A bouncer over a background of (100)^n that carries small defects (1010, 1110, 10101010, ...): each sweep shifts the background and flips the defects between two phases, new defects are born at the right end and drift left at different speeds; it halts if A ever lands on 11 or C on 01.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RD_0LC0LF_1RD1LB_0RE---_1RA0LC_0LA1LF",
-   "rank": 303
+   "rank": 304
   },
   {
    "m": "1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---",
@@ -6915,7 +6937,7 @@
    "why": "A bouncer over 3-cell words c = 100 and d = 101: the sweeps on the growing left part trade c for d and back, next to a small irregular wall and a frozen tail of 110100 words on the right.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RE_1LC0RA_1LD0LC_0LE0LB_1RA1RF_0LC---",
-   "rank": 304
+   "rank": 305
   },
   {
    "m": "1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---",
@@ -6937,7 +6959,7 @@
    "why": "A binary counter whose digits are pairs of 10-blocks, ticked once per sweep by an exact increment rule (checked on 24,787 sweeps, its first cases proved in Lean); rare merge and end events change the digit list.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA---",
-   "rank": 305
+   "rank": 306
   },
   {
    "m": "1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA---",
@@ -6959,7 +6981,7 @@
    "why": "A long bouncer over a 1010… background growing to the right (fastest of the batch), with a nearly frozen left end that is reached rarely and grows by single cells; defects (00, 11) sit in the background; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1LC0RA_0LD0LB_1RD1LE_0RC0RA_1RA---",
-   "rank": 306
+   "rank": 307
   },
   {
    "m": "1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA",
@@ -6981,7 +7003,7 @@
    "why": "Sweeps rewrite a word over 1 and 10. At the left end a doubling chain (x ones -> 2x+12 per item 1^7 0, proved in Lean) makes giant blocks of ones; the rest of the word is not decoded. No halt in 7.3e12 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA",
-   "rank": 307
+   "rank": 308
   },
   {
    "m": "1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC",
@@ -7003,7 +7025,7 @@
    "why": "Every sweep rewrites the whole tape between two codes for a list of numbers: at the right end it is runs 1^(3k+2) separated by single 0s, at the left end runs 1^(3a+1) separated by 0^(3b+2); the numbers look irregular.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC",
-   "rank": 308
+   "rank": 309
   },
   {
    "m": "1RB0RF_1LC1RD_1LA1LC_1RA1RE_1RB0RB_---0LC",
@@ -7025,7 +7047,7 @@
    "why": "Zigzag rewriting between blocks 1^a 0^b and blocks 1^(3k+2) 0; the left end grows in rare bursts of multiples of 1,065 cells that rebuild the leftmost structure further left.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RF_1LC1RD_1LA1LC_1RA1RE_1RB0RB_---0LC",
-   "rank": 309
+   "rank": 310
   },
   {
    "m": "1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE",
@@ -7047,7 +7069,7 @@
    "why": "Sweeps back and forth, rewriting period-5 words (00101, 10110 and their phases) and runs of 1s on every sweep; the tape is a soup of these pieces; a halt needs a leftward sweep to meet 0 0 1 just before a 1.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE",
-   "rank": 310
+   "rank": 311
   },
   {
    "m": "1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF",
@@ -7069,7 +7091,7 @@
    "why": "Family 3a: the shadow of T = 1RB1LE_1RC1LD_...: same run as long as no 0 sits within two cells left of A reading 1 (Lean), checked to 10^11; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF",
-   "rank": 311
+   "rank": 312
   },
   {
    "m": "1RB1LC_1LA0RE_0LD---_1LB1LD_1RB1RF_0LA0RB",
@@ -7091,7 +7113,7 @@
    "why": "Sweeps back and forth over a period-11 background (01010111101 and its rightward form 10101010010) with a soup of (01)^k, 1^3, 1^4 pieces; the clean zone at the left end grows; a halt needs B or F to read 0 just right of 1 1.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LC_1LA0RE_0LD---_1LB1LD_1RB1RF_0LA0RB",
-   "rank": 312
+   "rank": 313
   },
   {
    "m": "1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF",
@@ -7113,7 +7135,7 @@
    "why": "Family 3a: T = 1RB1LE_1RC1LD_... with states renamed, started in state B (Lean); same counter hierarchy; open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LC_1RC0LF_0LD0RC_1RA1LE_---1LA_0LC1LF",
-   "rank": 313
+   "rank": 314
   },
   {
    "m": "1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB",
@@ -7135,7 +7157,7 @@
    "why": "A bouncer at the right end running a countdown (j+1, a-1, b+3 every two visits, in Lean); when a runs out an erase sweep (in Lean) wipes the run of 1s into a gap of 0s and the head refills the gap, starting a countdown about three times longer; the refilling is not decoded; no halt in 1.09·10^19 steps (exact macro run). Accelerated run: no halt in 2.98e30 steps.",
    "next": "Decode the gap filling (inner loop at the gap's right edge with J symbolic) to get the epoch map, then try a CTL seeded with the rules.",
    "folder": "holdouts/1RB1LE_0RC1RC_0RD0RB_1RE0RF_1LA0LE_---1RB",
-   "rank": 314
+   "rank": 315
   },
   {
    "m": "1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD",
@@ -7157,7 +7179,7 @@
    "why": "The tape is an irregular word W and a run of 1s that counts the visits (Lean); it halts iff W eats the whole run between two visits (Lean: halt only at the right edge). Exact simulation with the run as a number: no halt in 3·10^7 visits (8.6·10^14 steps), the run gains 0.96 a visit, W eats at most 14 cells in a visit with a geometric tail. Mirror-image sibling of 1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB.",
    "next": "Decode W: it changes only near the foot of the run (the head enters it from the run in C and leaves in A), so its evolution is a sequence of local rewrites; find them (blocksim traces of each excursion) and the rate at which W eats the run.",
    "folder": "holdouts/1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD",
-   "rank": 315
+   "rank": 316
   },
   {
    "m": "1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---",
@@ -7179,7 +7201,7 @@
    "why": "A list of a few large blocks of 1110 separated by short defects (runs of 1s, 0s), which the sweeps rewrite into blocks of 10011110 and back. Block sizes change irregularly (3608, 11238, 1167, 526, 783 at step 4.8*10^9) and the width grows like the square root of the step count. Counter-like, not understood; halting open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---",
-   "rank": 316
+   "rank": 317
   },
   {
    "m": "1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB",
@@ -7201,7 +7223,7 @@
    "why": "Mirror image of 1RB1RA_0LC0RF_1LD1LC_1RE1LB_---0RA_1RF0RD started in another state (tables: exact). It halts iff the chaotic word W eats the whole run of 1s (Lean); no halt in 3·10^9 visits (8.6·10^18 steps), W eats at most 18 cells in a visit.",
    "next": "The same as for the sibling: a bound on what W can eat in one excursion (see its README).",
    "folder": "holdouts/1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB",
-   "rank": 317
+   "rank": 318
   },
   {
    "m": "1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE",
@@ -7223,7 +7245,7 @@
    "why": "Separators on a lattice of 10s move like particles (half of them one cell pair per bounce, walls at half speed) and collide; whole bounces proved in Lean for every list of blocks, no halt in 9.1·10^40 steps (exact accelerated simulation); open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RC_1LC0RC_0RA0LD_0LE---_0LF1LD_1LC1LE",
-   "rank": 318
+   "rank": 319
   },
   {
    "m": "1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC",
@@ -7245,7 +7267,7 @@
    "why": "Levels 1^X a 00 a^Y (a = 1111110): each cycle X+15, Y-1, then ones are rebuilt into words at about 7 per word (growth 15/7, remainders steer it); Lean proves it can halt only at the right edge, and an exact accelerated simulator with proved cycle jumps ran 2^17783 steps (about 10^5353) without a halt.",
    "next": "Write the level map as one exact function: the shape of the stacks at the start of each level (a few dozen shapes appear) and the affine map of its numbers, with the case split by the remainders mod 7 (and mod 6 for the tail); then show (or refute) that the tail 5 4 12 is always entered in a non-halting phase. The accelerator already lists the proved cycle rules (Acc.rules), so the map can be read off them; .",
    "folder": "holdouts/1RB1RD_1LC0RF_1LD0LB_1RE0RB_---1RA_0LA1RC",
-   "rank": 319
+   "rank": 320
   },
   {
    "m": "1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE",
@@ -7267,7 +7289,7 @@
    "why": "A rewriting system on the left end of a word of blocks a^n, x^n (a = 10, x = 1000) with a slow counter y^K at the right; each sweep turns one x into three a. Basic rules proved in Lean; the nested map not yet found.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RE_0LC0LF_0LA0LD_1LE1LC_1RA0LB_---0RE",
-   "rank": 320
+   "rank": 321
   },
   {
    "m": "1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD",
@@ -7289,7 +7311,7 @@
    "why": "Like its neighbour 1RB0RF_1LC1RD in this batch, every sweep rewrites the whole tape between two codes for a list of numbers: at the right end it is runs 1^(3k+2) separated by single 0s, at the left end runs 1^(3a+1) separated by 0^(3b+2); the numbers look irregular.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RE_1RC0RF_1LD1RA_1LB1LD_1RC0RC_---0LD",
-   "rank": 321
+   "rank": 322
   },
   {
    "m": "1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA",
@@ -7311,7 +7333,7 @@
    "why": "The tape is two periodic regions (00100101 and 11111010) with a few dozen defects; rightward sweeps convert one into the other a word at a time (proved in Lean), the region sizes oscillate, the tape grows like sqrt(steps). Halts only if D reads 1 1. No halt in 10^11 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RF_1LC0LF_1RD0LB_0RA1RE_1RD---_0RC0LA",
-   "rank": 322
+   "rank": 323
   },
   {
    "m": "1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB",
@@ -7333,7 +7355,7 @@
    "why": "The tape is two periodic regions (111010 and 111110) with one to three defects; rightward sweeps in every state convert one into the other a word at a time (proved in Lean), the region sizes swing, the tape grows like sqrt(steps). Halts only if D reads 0 0. No halt in 10^11 steps. Accelerated run: no halt in 3.28e12 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RF_1LC1RD_1RA1LD_1RE0LA_---0RC_0LC1RB",
-   "rank": 323
+   "rank": 324
   },
   {
    "m": "1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---",
@@ -7355,7 +7377,7 @@
    "why": "A single 0 (a marker) zig-zags between itself and the right end of a run of 1s until it catches the end; each such pass makes the tape about 4/3 times wider, and a short prefix at the left end records the residues: a Collatz-like 4/3 map. Accelerated run: no halt in 1.23e35914 steps.",
    "next": "Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.",
    "folder": "holdouts/1RB1RF_1RC0LD_1LB1RA_1RE1LE_0RC0LB_0RB---",
-   "rank": 324
+   "rank": 325
   },
   {
    "m": "1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE",
@@ -7377,7 +7399,7 @@
    "why": "Sweeps back and forth, rewriting period-5 words (00101, 10110 and their phases) and runs of 1s on every sweep; the tape is a soup of these pieces; a halt needs a leftward sweep to meet 0 0 1 just before a 1.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE",
-   "rank": 325
+   "rank": 326
   },
   {
    "m": "1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC",
@@ -7399,7 +7421,7 @@
    "why": "Chaotic two-sided bouncer: every sweep re-encodes the tape between solid blocks of 1s and alternating 1 0 1 0 stretches; all blocks stay odd and every 0 stays isolated, and a halt needs B or E to meet the wrong kind of 0.",
    "next": "The question is open. The natural route is a closed tape language built on the odd-block shape; it must also describe the stretch between the pair of 0s that the leftward fill drags along and the head. Next: learn the language from the run (the sides of the tape at every step, as a DFA by state merging) and check it with TM/CTL.lean; or find the exact map on block lengths per sweep and look for a counter in it.",
    "folder": "holdouts/1RB---_0RC1RD_1LD1LF_1LE0RB_1RF1LD_1LA0LC",
-   "rank": 326
+   "rank": 327
   },
   {
    "m": "1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB",
@@ -7421,7 +7443,7 @@
    "why": "A twin of 1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA: blocks of 1s with single holes, rounds of sweep and gliders that move a hole 3 cells at a time; the even rounds are the same and proved in Lean, the odd ones differ and can halt on a block of length 1.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB",
-   "rank": 327
+   "rank": 328
   },
   {
    "m": "1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA",
@@ -7443,7 +7465,7 @@
    "why": "Two-sided bouncer over short blocks of 1s (lengths 2 to 7) separated by single 0s, with runs of 0111/1110; the head works in local zig-zags and the content looks random. Open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA",
-   "rank": 328
+   "rank": 329
   },
   {
    "m": "1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA",
@@ -7465,7 +7487,7 @@
    "why": "Two-sided bouncer on a tape of alternating 1 0 1 0 stretches broken by short defects (00, 11, 111); the defects move and multiply irregularly. Open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA",
-   "rank": 329
+   "rank": 330
   },
   {
    "m": "1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB",
@@ -7487,7 +7509,7 @@
    "why": "A run of 011 on the left, of 10 on the right and an irregular word between; halts only from A> 01 or 1 F> 1, neither ever approached in 2·10^10 steps.",
    "next": "Look for the invariant behind the missing contexts: a closed tape language over the words 10, 110, 1000, 011 rather than fixed windows.",
    "folder": "holdouts/1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB",
-   "rank": 330
+   "rank": 331
   },
   {
    "m": "1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE",
@@ -7509,7 +7531,7 @@
    "why": "An alternating background 1010... sprinkled with defects (11, 111, 00) at a roughly constant density; the head moves through it in irregular zig-zags and the arrangement of defects looks disordered. Open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE",
-   "rank": 331
+   "rank": 332
   },
   {
    "m": "1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC",
@@ -7531,7 +7553,7 @@
    "why": "One engine (E on cell -134) alternates an 8-step event with one that turns a run of 1s on its left into 0s and rewrites 10-words into 1110-words on its right; 49 event rules proved for all sizes cover 99.98% of 6.6·10^7 events in 3·10^9 steps; 0 C> 0 (from it the machine halts) never occurs.",
    "next": "Read the rules as a macro machine (what the run of 1s and the right words count) and decode the uncovered events (left-end visits, layout changes).",
    "folder": "holdouts/1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC",
-   "rank": 332
+   "rank": 333
   },
   {
    "m": "1RB0LD_1RC0RB_1LA0RD_1LA0RE_1RF---_0LC0LF",
@@ -7553,7 +7575,7 @@
    "why": "A binary counter (digits 1100/1110) left of a fixed cell (A on cell 22) gets 1 at every visit, while each visit crosses a fixed word to a hierarchical counter on the right; 31 rules proved cover 44.7% of the events; D never meets 11 (every halt passes through it, from the table) in 3·10^9 steps.",
    "next": "Decode the nested right counter (which digits change after a carry of length n), give the miner its digit words, and prove the invariant that D never reads 1 1.",
    "folder": "holdouts/1RB0LD_1RC0RB_1LA0RD_1LA0RE_1RF---_0LC0LF",
-   "rank": 333
+   "rank": 334
   },
   {
    "m": "1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---",
@@ -7575,7 +7597,7 @@
    "why": "A halving cascade on a list of numbers (blocks of 1s): halve the first, carry half into the next while the halved value is even; Lean proves the machine halts iff a carry that runs past the last block is a power of 2. No such carry in 6*10^10 map steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA---",
-   "rank": 334
+   "rank": 335
   },
   {
    "m": "1RB1LA_1RC1RD_0LA0LD_1RE1LC_0RF0LF_---0RA",
@@ -7597,7 +7619,7 @@
    "why": "A bouncer over the 5-cell word 11100 grows to the right; the slow left side is a dense irregular mixture of runs of 1 to 6 ones; chaotic, open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LA_1RC1RD_0LA0LD_1RE1LC_0RF0LF_---0RA",
-   "rank": 335
+   "rank": 336
   },
   {
    "m": "1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA",
@@ -7619,7 +7641,7 @@
    "why": "A bouncer on a tape of 110-units: each round, a growth phase turns every four units into six and a stall phase re-reads the tape, so the length grows by about 3/2 per round, while a short zone of defects at the left end is rewritten; the zone's rule is not decoded. Accelerated run: no halt in 1.12e16374 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LD_0RC1RC_1RD0RE_0LA0LF_0RF---_1RA1LA",
-   "rank": 336
+   "rank": 337
   },
   {
    "m": "1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA",
@@ -7641,7 +7663,7 @@
    "why": "Phases in which a zero block z becomes about 3z/2 (z = 4k+1 gives 6k+1, z = 4k+3 gives 6k+7), while a stack of blocks on its left records z mod 4; the stack is rewritten only near its right end, and 900 phases (about 10^319 steps, reduced simulation) show no halt; open.",
    "next": "Prove that a phase depends on z only through z mod 4 and write the stack rewriting as explicit rules.",
    "folder": "holdouts/1RB1RA_1LC0RB_1LD0LB_1RA0LE_---1LF_1LB0LA",
-   "rank": 337
+   "rank": 338
   },
   {
    "m": "1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA",
@@ -7663,7 +7685,7 @@
    "why": "A countdown phase: x -> floor(3x/2)+7 while c counts down; at the end it halts for one residue class of x in four, else a new countdown of length about x. Step, resets and halts_iff proved in Lean; phases 0-2 do not halt (native); phase 3 is out of reach. Accelerated run: no halt in 5.62e27651 steps.",
    "next": "None: pure number theory (phase 3 halts iff the ((c-1)/2)-th iterate of x -> floor(3x/2)+7 from 6, c ~2.3e101, is 2 mod 4; no shortcut known).",
    "folder": "holdouts/1RB1LA_1LC0RE_1LF1LD_1RE0LC_1LB1RA_---0LA",
-   "rank": 338
+   "rank": 339
   },
   {
    "m": "1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE",
@@ -7685,7 +7707,7 @@
    "why": "A one-number map n → 3n − 2c_i + i + 3 between thresholds c_i = 10·2^i − i − 7; halts iff the orbit of 1 lands exactly on a threshold (reduction proved in Lean). Not hit in 1.25·10^6 map steps. Accelerated run: no halt in 3.26e1492 steps.",
    "next": "None: pure number theory (optionally prove the closed form equals ph in Lean).",
    "folder": "holdouts/1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE",
-   "rank": 339
+   "rank": 340
   },
   {
    "m": "1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD",
@@ -7707,7 +7729,7 @@
    "why": "Two counters a and b, tape 0 0 (10)^a 1^b 10; each pass doubles a against b with Euclid-like rebounds, and it halts only if a pass ends with b = 0, which the map has avoided for 10^8 passes. Accelerated run: no halt in 1.92e11 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD",
-   "rank": 340
+   "rank": 341
   },
   {
    "m": "1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB",
@@ -7729,7 +7751,7 @@
    "why": "Antihydra-like: a gap m grows by 4/3 per step while a counter a moves by +6, -1 or +4 with m mod 3; it can only halt if the counter, now drifting up by 3 per step, ever runs out.",
    "next": "None: pure number theory (random walk with drift +3).",
    "folder": "holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB",
-   "rank": 341
+   "rank": 342
   },
   {
    "m": "1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---",
@@ -7751,7 +7773,7 @@
    "why": "A wall of 0s is eaten three cells per sweep while a block of 10s grows by two; each wall maps (3k+r, y) to (4k+c, y+d) with (c, d) = (1, +4), (5, +6), (8, &minus;1), a Collatz-like map whose counter y drifts upward; proved in Lean that it never halts unless y ever reaches 0 at a z not divisible by 3.",
    "next": "None: pure number theory (Antihydra-like question on z in base 3).",
    "folder": "holdouts/1RB0LD_1RC1RF_1LA0RA_0LA0LE_1LD1LA_0RB---",
-   "rank": 342
+   "rank": 343
   },
   {
    "m": "1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
@@ -7773,7 +7795,7 @@
    "why": "An odometer that is exactly a doubling map: u ↦ 2u modulo v, v growing by one each operation, the left block counting the wrap-arounds allowed before a reset. Proved in Lean (kernel): it halts iff a reset happens with 2u = v. No halt in 10^11 operations (54 resets); heuristically about 10^-10 for a later halt; open. Accelerated run: no halt in 1.89e22 steps.",
    "next": "None: pure number theory (resets are logarithmically rare: reset k needs ~1.47^k operations).",
    "folder": "holdouts/1RB1RA_0LC0RE_1LF1LD_1LA0LA_1LC1RB_---1LC",
-   "rank": 343
+   "rank": 344
   },
   {
    "m": "1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE",
@@ -7795,7 +7817,7 @@
    "why": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 20·2^k − 2k − 12, and that has not happened. Accelerated run: no halt in 9.77e22 steps.",
    "next": "Prove the fatal-length list for every n (beyond 10^5); then only the number-theoretic question of all-ones lengths remains.",
    "folder": "holdouts/1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE",
-   "rank": 344
+   "rank": 345
   },
   {
    "m": "1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC",
@@ -7817,7 +7839,7 @@
    "why": "Provably (Lean, kernel) halts iff the orbit of an explicit map on C(k, a, b) = 0^&infin; (10101)^k C&gt; 0 1 0 1^a 0 1^b reaches a halting case; even blocks go n &#8614; 5n/2 + 1, odd blocks are divided by 6 in a digit recursion that halts only when it ends exactly; no halt in 1,000,000 rounds of the map. Accelerated run: no halt in 1.12e14319 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC",
-   "rank": 345
+   "rank": 346
   },
   {
    "m": "1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF",
@@ -7839,7 +7861,7 @@
    "why": "Hydra-like: each epoch eats a run of c ones 4 at a time while a block grows by X -> floor(3X/2)+5; c mod 4 and the last parity decide halt or a new, vastly longer epoch. Proved in Lean: halts iff this iteration reaches its halting case; epochs 0-3 computed, epoch 4 (c with ~2*10^13 digits) is out of reach and would halt at its end with heuristic chance 3/4. Accelerated run: no halt in 2.61e49522 steps.",
    "next": "None feasible: the epoch-4 end needs parities after 1.1x10^14 steps of X -> floor(3X/2)+5 on ~10^13-digit numbers (~10^27 bit operations).",
    "folder": "holdouts/1RB1RE_1LC1LD_---1LA_1LB1LE_0RF0RA_1LD1RF",
-   "rank": 346
+   "rank": 347
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD",
@@ -7861,7 +7883,7 @@
    "why": "A bouncer: the block at the left end grows by one word every two sweeps, and a chaotic, never-repeating wall in the middle eats the previous block (m = 1461 down to 1455 in 2·10^10 steps).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE0RF_1LF1LC_1LB0LD",
-   "rank": 347
+   "rank": 348
   },
   {
    "m": "1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC",
@@ -7883,7 +7905,7 @@
    "why": "A list of counters: the tape is runs of 001 (even lengths) separated by 0001, recoded into 110/1110 and back by every sweep; over a cycle every entry grows by 2 and new small entries are pushed at the left. Accelerated run: no halt in 1.29e10 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC0LF_1LD0RE_1RC0LB_1RD1RA_1LB0LC",
-   "rank": 348
+   "rank": 349
   },
   {
    "m": "1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA",
@@ -7905,7 +7927,7 @@
    "why": "A stack of counters at the right end: the top block is converted two or four cells per visit, and each pop starts a top about 2.5 times larger while the deeper blocks tick slowly (open).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC0RD_1LD0RF_0LE0LC_1RA0LC_1RC0RA",
-   "rank": 349
+   "rank": 350
   },
   {
    "m": "1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
@@ -7927,7 +7949,7 @@
    "why": "A counter on a periodic background: between rare rebuilds the right part of the tape is a row of four-valued digits separated by runs of the word 01011111, and every pass steps the lowest digit and sends a carry on two of its four steps, so each digit moves half as often as the one to its right.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC1RA_1RD1RF_1LE0LF_1RB0LD_0RE0LC",
-   "rank": 350
+   "rank": 351
   },
   {
    "m": "1RB---_0RC1RC_1RD0LE_1RE0RB_1LF0RA_1LC1LF",
@@ -7949,7 +7971,7 @@
    "why": "Bouncer: the right end gains 3 cells per sweep; the tape is long runs of the word 0111 separated by short junctions and solid runs of 1s, which are rewritten each time the head reaches the slowly growing left end (no regular pattern found).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_0RC1RC_1RD0LE_1RE0RB_1LF0RA_1LC1LF",
-   "rank": 351
+   "rank": 352
   },
   {
    "m": "1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC",
@@ -7971,7 +7993,7 @@
    "why": "Long runs of 4-cell and 2-cell words, converted run by run; at the end one 1011 becomes three 10 every five visits, and the runs left behind have nearly doubling lengths (991, 1981, 3966, 7939): a binary-like hierarchy, not decoded.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_1LC0LD_1RD0LB_0RF1RE_1RF0RA_0LE0RC",
-   "rank": 352
+   "rank": 353
   },
   {
    "m": "1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB",
@@ -7993,7 +8015,7 @@
    "why": "A list of (01)^n blocks separated by single 0s grows at the right end; markers (00, 10, 110) run through the list and move copies between neighbouring blocks, while the far part of the list freezes; the mirror image of 1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE--- up to the start state.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB",
-   "rank": 353
+   "rank": 354
   },
   {
    "m": "1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---",
@@ -8015,7 +8037,7 @@
    "why": "A list of (10)/(010) segments, the leftmost rewritten by 3/2-type rules whose parity decides whether the list grows; six exact rules are known (checked for all parameters below 40). Open.",
    "next": "Write down the rules for a general leftmost segment (10)^x (010)^y to close the block-list map and find the halting condition.",
    "folder": "holdouts/1RB0LA_0RC1RD_0LD1RE_1LA0RF_0RD0LD_1RD---",
-   "rank": 354
+   "rank": 355
   },
   {
    "m": "1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF",
@@ -8037,7 +8059,7 @@
    "why": "Each time the head is back at the left end the tape starts with (110)^p, and p has gone up by exactly 1 since the last time; a round costs about 10·p² steps, so p and the width grow like t^(1/3).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF",
-   "rank": 355
+   "rank": 356
   },
   {
    "m": "1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE",
@@ -8059,7 +8081,7 @@
    "why": "A list of counters, runs (01)^n separated by single 0s, swept end to end; only a zone near the right end changes, where neighbouring counters trade 4 or 10 per sweep in alternating directions; finished counters freeze on the left.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_0LC0RD_1LA1LB_0RE---_0RF1RD_1RB1RE",
-   "rank": 356
+   "rank": 357
   },
   {
    "m": "1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB",
@@ -8081,7 +8103,7 @@
    "why": "A bouncer over the background 1^8 00 / (011)^3 0 carrying gliders: each event at the slow right end makes the left end emit a glider, gliders drift right, merge, and trigger the next event; halting needs a C>1 at the left end.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB",
-   "rank": 357
+   "rank": 358
   },
   {
    "m": "1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF",
@@ -8103,7 +8125,7 @@
    "why": "A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF",
-   "rank": 358
+   "rank": 359
   },
   {
    "m": "1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF",
@@ -8125,7 +8147,7 @@
    "why": "A left-growing bouncer: next to the left end a block (10101001)^n grows by about 50 copies per long cycle, behind it a long irregular but slowly changing stretch of 10-based words; this machine and its twin (E0 = 1LE or 1RE) behave alike.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1RC1LC_1LD1RE_---0LA_1RE0RF_1RA0LF",
-   "rank": 359
+   "rank": 360
   },
   {
    "m": "1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF",
@@ -8147,7 +8169,7 @@
    "why": "The table of 1RB0LB_1RC0LA_1RD---_0RE1LD_1LF0RF_1LA1RB mirrored and renamed, started in that machine's state E: the same bouncer over 1^8 00 / (011)^3 0 with gliders from the gun at the right end to a slowly growing left end.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LB_1RC1LD_1LD0RD_1LE0RC_1LF---_0LA1RF",
-   "rank": 360
+   "rank": 361
   },
   {
    "m": "1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---",
@@ -8169,7 +8191,7 @@
    "why": "A growing list of frozen blocks: the last block of the tape grows by a factor of about 1.4 per sweep while the earlier blocks stay fixed, and from time to time a new level with a new word starts; the map and halting condition are not yet known.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---",
-   "rank": 361
+   "rank": 362
   },
   {
    "m": "1RB0LC_1LA0RD_0LD1LF_0RE0RA_1LB1RE_0LB---",
@@ -8191,7 +8213,7 @@
    "why": "A layered bouncer: (011) segments separated by markers (01)^3 10110; the head converts the first segment into (110)s three for one, then counts the next level down, so each layer is about three times the one before (13, 44, 51, ... 646, 1115).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LA0RD_0LD1LF_0RE0RA_1LB1RE_0LB---",
-   "rank": 362
+   "rank": 363
   },
   {
    "m": "1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB",
@@ -8213,7 +8235,7 @@
    "why": "A long staircase of runs of 001 separated by 0001: the run lengths form a slowly rising sequence of plateaus (4, 6, ..., 120 across the tape), each sweep rewriting it; a small counter of 0001s sits at the left end. The width grows like the square root of the step count. Not understood; halting open.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LA0RD_0RB0LF_1RA1RE_1RC---_1LC0LB",
-   "rank": 363
+   "rank": 364
   },
   {
    "m": "1RB0LC_1LA0RD_1LB1LF_0LA0RE_1RD0RA_1LD---",
@@ -8235,7 +8257,7 @@
    "why": "A bouncer over the period-3 background 100 whose tape is split by walls 000 into groups of three domains (100)^a (010)^b (001)^c with a ≈ b ≈ c; the group sizes form a staircase that shrinks toward one end, and the walls drift: a counter-like shape with no known rule.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LA0RD_1LB1LF_0LA0RE_1RD0RA_1LD---",
-   "rank": 364
+   "rank": 365
   },
   {
    "m": "1RB0LC_1LA0RE_0LD0LB_1RA1LD_0RC1RF_0RA---",
@@ -8257,7 +8279,7 @@
    "why": "A nested bouncer: a reservoir (010)^n at the right is consumed about 6 per pass while units U = (010)^17 (100)^16 1 are emitted at the left; when it is empty the next level, made of units V = (010)^55 (100)^54 1, takes over; three or more levels seen.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LA0RE_0LD0LB_1RA1LD_0RC1RF_0RA---",
-   "rank": 365
+   "rank": 366
   },
   {
    "m": "1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA",
@@ -8279,7 +8301,7 @@
    "why": "Bouncer over runs of 01 separated by single 0s (run lengths mostly 3, 5, 8, 11); at the left end an 11-cell word 01010010101 repeats up to a few hundred times, grows, and is then eaten back, again and again, while the rest of the tape changes irregularly. No regime proved.",
    "next": "The eating of the end block looks regular: a symtm rule for one left-end visit with the block as (01010010101)^m should be provable, once the right part of the tape is understood well enough to be a context the head crosses and comes back from.",
    "folder": "holdouts/1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA",
-   "rank": 366
+   "rank": 367
   },
   {
    "m": "1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---",
@@ -8301,7 +8323,7 @@
    "why": "A 3/2 Collatz-like map with nested phases; the nested phases are now exact for n = 4i+1 and 8i+7 (factors 9/4 and 27/8), and every nested phase from n < 400 returns without halting. Open. Accelerated run: no halt in 4.47e48268 steps.",
    "next": "Close the n = 8i+3 nested case (general recursion on 2-adic digits) to obtain the full map and its halting condition.",
    "folder": "holdouts/1RB0LC_1LA1RE_1LD1RE_1RE0LA_0RA1RF_0RB---",
-   "rank": 367
+   "rank": 368
   },
   {
    "m": "1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
@@ -8323,7 +8345,7 @@
    "why": "At the left end the tape is two to four blocks of 1s separated by single 0s, with lengths in ratios near 2:1 or halved again; at the right end it is an alternating stretch followed by a solid block. Width ~ t^(1/3).",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB",
-   "rank": 368
+   "rank": 369
   },
   {
    "m": "1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---",
@@ -8345,7 +8367,7 @@
    "why": "Bouncer whose tape is a list of segments (10)^x M (10)^y 1, with a marker M = 0 or 000: the sweeps toggle the markers like the digits of a binary counter, each toggle moving material between the two halves of a segment.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LC_1RC0RC_1LD0RB_1LA0LE_1LD1LF_1LD---",
-   "rank": 369
+   "rank": 370
   },
   {
    "m": "1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA",
@@ -8367,7 +8389,7 @@
    "why": "Bouncer whose tape is a sequence of a few dozen-cell words: on the left mainly 001010(01)^3 1^6, (00101)^3 1^4 and 0 1^7, on the right words built from 101, 01101 and 10110; the order of the words changes from sweep to sweep with no visible period. No regime proved.",
    "next": "List the words and how each is changed by a left-moving and a right-moving pass; if the set is finite and closed, a closed-language (CTL-style) argument on words rather than single cells might work where window-CTL with K <= 7 failed.",
    "folder": "holdouts/1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA",
-   "rank": 370
+   "rank": 371
   },
   {
    "m": "1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---",
@@ -8389,7 +8411,7 @@
    "why": "A bouncer: the head sweeps between a counter at the left and the right end, turning an 8-cell word P into Q and back. The counter is a row of groups 11 P^a s P^b s' P^c whose separators cycle through four 6-cell digits; how far left each sweep reaches is set by the counter, and a run of Q at the right is eaten a few words per trip until a new group is built.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LD_0RC1RA_1RD1RF_1LA0LE_0RA0LC_0RA---",
-   "rank": 371
+   "rank": 372
   },
   {
    "m": "1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB",
@@ -8411,7 +8433,7 @@
    "why": "Activity happens at the right end, where a block 1^u is converted into 10 pairs and back; each epoch leaves a record of blocks behind, so the tape is a growing stack of frozen records with a working counter on top.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LD_1RC---_0RD0RE_1LE0RF_0LA0LD_1RD0RB",
-   "rank": 372
+   "rank": 373
   },
   {
    "m": "1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---",
@@ -8433,7 +8455,7 @@
    "why": "A nested counter on blocks of (010)^n: at every visit of the head to the left end the first block loses 4 copies and the i-th loses 3*4^(i-1); when the first runs out, a wall phase turns the second block into the new first one, and a period-4 cycle at the right end keeps adding blocks.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA---",
-   "rank": 373
+   "rank": 374
   },
   {
    "m": "1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA",
@@ -8455,7 +8477,7 @@
    "why": "A marker walks left through groups 110, turning each group it passes into three at the right end; when it is used up, a carry turns the tail of q groups into about 5q/4 (q = 4k + r: 5k or 5k + 3), a Collatz-like map; exact hybrid simulation to 3.2e12 steps without a halt. Accelerated run: no halt in 1.41e89 steps.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LD_1RC1RE_1LA0RA_1LE1LC_1RF1RC_---1RA",
-   "rank": 374
+   "rank": 375
   },
   {
    "m": "1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC",
@@ -8477,7 +8499,7 @@
    "why": "The tape settles into a background of 0011 words carrying sparse defects, with a counter of 4-cell digits at its fixed left end; the head bounces between the growing right end and the defects. No macro machine yet; only bounded runs are proved.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LE_0RC---_1RD0LA_1RE0RA_1LC0LF_0RC1LC",
-   "rank": 375
+   "rank": 376
   },
   {
    "m": "1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---",
@@ -8499,7 +8521,7 @@
    "why": "A list of (01)^n blocks separated by single 0s grows at the left end; markers (00, 10, 110) run through the list and move copies between neighbouring blocks, while the far part of the list freezes; the mirror image of 1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB up to the start state.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LE_0RC0RA_1LC1RD_0LB0LE_1LA0LF_1LE---",
-   "rank": 376
+   "rank": 377
   },
   {
    "m": "1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE",
@@ -8521,7 +8543,7 @@
    "why": "The tape has a left part (100)^N, crossed by proved shift rules, and a right part of blocks 1^(6k+1) separated by 00, sorted into levels k = 1, 2, 3, ... with fewer blocks at each higher level: a counter-like hierarchy whose carry rule is not known.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LE_0RC1RA_1RD0RF_0LE1LD_1RA1LC_---0RE",
-   "rank": 377
+   "rank": 378
   },
   {
    "m": "1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD",
@@ -8543,7 +8565,7 @@
    "why": "The tape is the seven-cell word 0101111 repeated, cut into long runs in different phases by short defects; the sweeps carry runs across in one go and slowly move and lengthen them, and the run lengths look irregular.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0LF_0RC0LC_1LA1LD_1RE1LC_---1RA_0LC0RD",
-   "rank": 378
+   "rank": 379
   },
   {
    "m": "1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---",
@@ -8565,28 +8587,6 @@
    "why": "A stack of blocks of b = 10000 that a bouncer turns, one cell-block per two sweeps, into a = 11010 and back; each round adds a new block as long as all the others together, so the total doubles every round. Accelerated run: no halt in 2.81e33 steps.",
    "next": "Decode the left-end gadget and block merging to write an explicit round map, then find whether any round can make F read a 1.",
    "folder": "holdouts/1RB0RA_0RC0LB_1LD1RF_1LE1RA_1RD1RB_1LA---",
-   "rank": 379
-  },
-  {
-   "m": "1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---",
-   "id": 29537,
-   "fam": "R15",
-   "famname": "Collatz-like maps and cryptids (parked)",
-   "set": "T92",
-   "mates": 2,
-   "stage": "decode",
-   "score": 11.0,
-   "route": "either",
-   "work": "research",
-   "kernel": 3,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Unknown",
-   "why": "A binary counter written in runs of 10s with one-cell digits; each increment spends two 10s of a reservoir at the right end and lengthens the blocks next to the carry; the basic increments are proved in Lean. Accelerated run: no halt in 7.04e12 steps.",
-   "next": "Turn carries through higher separators, reservoir refills and the 1100 region into proved rules, then seek an invariant excluding the halting pattern.",
-   "folder": "holdouts/1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---",
    "rank": 380
   },
   {
@@ -11488,7 +11488,7 @@
    "cryptid": true,
    "name": "",
    "tc": "Bell-like",
-   "why": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases. Accelerated run: no halt in 7.07e19058 steps.",
+   "why": "Two blocks trade words (31 for 5, proved in Lean) with resets that depend on a remainder mod 5; the tail that the resets consume is rebuilt once it runs out, and on the second level some remainder classes halt and others loop forever, so the outcome turns on a Collatz-like question about a number with about 10^770 digits of phases. Accelerated run: no halt in 10^186095 steps (region-memo engine with 8-cell blocks).",
    "next": "Prove the reset rows in Lean (making the first level a theorem) and prove one halting and one looping second-level class with n symbolic.",
    "folder": "holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA",
    "rank": 512
