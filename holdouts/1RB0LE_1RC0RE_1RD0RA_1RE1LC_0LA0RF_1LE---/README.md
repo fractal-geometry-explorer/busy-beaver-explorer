@@ -50,6 +50,12 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
 of: B with 1 under the head, 1 right, 1 two right; D with 0 under the head, 1 right, 1 two right; F with 1 left, 0 under the head.
 
+## The round trip as an XOR rule
+
+The rewrite of the list of 4k+3 blocks is decoded on [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md#the-round-trip-as-an-xor-rule-leansweeplean-leanbulklean), whose tapes this machine shares: cut the tape into 4-cell letters s = `0111` (a block starts) and c = `1111` (it goes on); a round trip replaces the letter word by its running XOR, so backwards in time it is the XOR cellular automaton (rule 102), z_before(n) = z_after(n) XOR z_after(n-1). On the list of numbers: read in pairs (a, b), each pair becomes a zeros and then b + 1. Only a thin layer at the far end of the tape is not decoded, and a halt can only come from the ends. Its table is not a renaming of that one, so the Lean rules there are not about this machine.
+
+Checked on this machine's run with `python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---`: 4,073 round trips to 2·10^8 steps, 8,142,955 letters, no exception.
+
 ## Check
 
 ```sh
