@@ -105,16 +105,48 @@ class Leaf:
         return f"{s.kind}: {s.start}  ==>  {s.end if s.end else s.info}"
 
 
+# Machines whose runs of gaps 2 are crossed two gaps at a time (the head rewrites a pair `0 0 1 0 0 1` as a block
+# `1 1 1 1 1 0` and comes back): a run count is split by parity, and a run of even length `2v` is the repeat
+# `(001001)^v`, so that one copy is crossed by a shift rule (the inductive crossing rule).
+PAIRS = {"1RB1RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---"}
+TWO, PAIR = (0, 0, 1), (0, 0, 1, 0, 0, 1)
+_pairs = [False]
+
+
+def pair_toks(toks):
+    """`(001)^n` with every coefficient of n even: `0 0 1` (if the constant is odd) then `(001001)^(n/2)`."""
+    out = []
+    for t in toks:
+        if isinstance(t, Rep) and t.word == TWO and t.n.c and all(a % 2 == 0 for a in t.n.c.values()):
+            h = Lin(t.n.k // 2, {v: a // 2 for v, a in t.n.c.items()})
+            out.extend(list(TWO) * (t.n.k % 2))
+            out.append(Rep(PAIR, h))
+        else:
+            out.append(t)
+    return out
+
+
+def pair_cfg(cfg):
+    return Config(pair_toks(cfg.left), cfg.state, pair_toks(cfg.right), cfg.steps)
+
+
 def explore(m, start, expand, maxdepth=14, depth=0, fresh=None, max_moves=200000):
     if fresh is None:
         fresh = itertools.count()
+    pairs = _pairs[0]
     if depth > maxdepth:
         return [Leaf('deep', start, info='depth')]
     try:
         fin = run(m, start.copy(), is_q_end, max_moves=max_moves, rotate=True)
         return [Leaf('rule', start, fin)]
     except NeedSplit as e:
-        v = sorted(e.args[0].n.vars())[0]
+        r = e.args[0]
+        v = sorted(r.n.vars())[0]
+        if pairs and r.word == TWO and r.n.c.get(v, 0) % 2 == 1:
+            return (explore(m, pair_cfg(subst_cfg(start, v, 2 * Lin(v))), expand, maxdepth, depth + 1, fresh,
+                            max_moves) +
+                    explore(m, pair_cfg(subst_cfg(start, v, 2 * Lin(v) + 1)), expand, maxdepth, depth + 1, fresh,
+                            max_moves))
         return (explore(m, subst_cfg(start, v, Lin(0)), expand, maxdepth, depth + 1, fresh, max_moves) +
                 explore(m, subst_cfg(start, v, Lin(v) + 1), expand, maxdepth, depth + 1, fresh, max_moves))
     except TouchContext as e:
@@ -275,6 +307,8 @@ def segs_of(items):
     for it in items:
         if it[0] == 'g' and [str(b) for b in it[1]] == ['2']:
             out.append(('two', it[2]))
+        elif it[0] == 'g' and [str(b) for b in it[1]] == ['2', '2']:
+            out.append(('two', 2 * it[2]))
         elif it[0] == 'g' and [str(b) for b in it[1]] == ['5']:
             out.append(('five', it[2]))
         elif it[0] == 'v' and it[1] == Lin(5):
@@ -321,6 +355,7 @@ def tail_expr(tail):
 
 def leaves(machine):
     m = Machine.parse(machine)
+    _pairs[0] = machine in PAIRS
     out = []
     for hk, st in heads():
         todo = explore(m, Config.parse(st), expand)
@@ -346,8 +381,38 @@ def leaves(machine):
                 todo = (explore(m, subst_cfg(lf.start, v, Lin(0)), expand) +
                         explore(m, subst_cfg(lf.start, v, Lin(v) + 1), expand) + todo)
                 continue
+            if _pairs[0] and d['segs']:
+                d = canon_names(d)
             out.append(d)
     return out
+
+
+def canon_names(d):
+    """Rename the variables of the gap runs to `x0, x1, ...` (by run), so that the leaves of the two parities of a
+    run of 2s have the same names and can share one case of the decision function."""
+    ren = {}
+    for i, (kind, n) in enumerate(d['segs']):
+        for v in n.vars():
+            ren.setdefault(v, f"x{i}")
+    if not ren:
+        return d
+    lf = d['leaf']
+    tmp = {v: f"_t{j}" for j, v in enumerate(ren)}
+    st, en = lf.start, lf.end
+    for v, t in tmp.items():
+        st, en = subst_cfg(st, v, Lin(t)), subst_cfg(en, v, Lin(t))
+    for v, t in tmp.items():
+        st, en = subst_cfg(st, t, Lin(ren[v])), subst_cfg(en, t, Lin(ren[v]))
+    lf2 = Leaf(lf.kind, st, en, lf.info)
+    s, e = parse_q(st), parse_q(en)
+    d2 = dict(d, leaf=lf2, start=s, end=e)
+    hk = d['head']
+    if hk[0] == 'coll':
+        d2['segs'] = segs_of(s['gaps'][1 + hk[1] + 1:])
+    else:
+        d2['segs'] = segs_of(s['gaps'])
+        d2['c'] = s['items'][0]
+    return d2
 
 
 if __name__ == "__main__":
