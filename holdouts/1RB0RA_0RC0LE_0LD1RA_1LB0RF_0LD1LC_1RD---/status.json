@@ -108,6 +108,12 @@
   },
   {
    "level": "heuristic",
+   "title": "The tail is not safe by itself",
+   "text": "Steered runs of the real machine, with the countdown X replaced at each reset and the tail kept, halt when the phase lengths are irregular: 21 of 200 runs with X uniform in [36, 400] over 30 resets (20 of 100 for the twin), 25 of 100 with X in [2000, 4000], 4 of 40 with noise in [&minus;3, 3] on the true X. Constant X, a fixed growth ratio, and 400 single changes to the true orbit never halted. So the safety of the carries depends on the 3/2 orbit's phase lengths, not only on the head part.",
+   "where": "<code>c/perturb.c</code>, <code>c/branch.c</code> (in the folder of 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---)"
+  },
+  {
+   "level": "heuristic",
    "title": "What the tail sees",
    "text": "The rest of the counter (the tail) is acted on by four operators fixed by the parity of the growing block: E0, E1 alternating inside each phase (2,965 of 2,965 increments of the first 6,000 records) and E1 O0 O1 or E1 at a reset (13 of 14 resets). Whether the machine halts is whether this word of operators, spelled out by the 3/2 orbit, ever drives the tail into the halting pattern.",
    "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py</code>"
@@ -218,6 +224,16 @@
     "heading": "A counter that pays for itself",
     "html": [
      "<p>The number stored in the digits goes up by one per increment, and the runs grow with it: run <i>j</i> gains two <code>10</code>s every 2<sup><i>j</i></sup> increments, so the tape gets longer and each increment takes longer. The reservoir runs out regularly; the machine then refills it. Further right it also builds a second kind of region, made of the four-cell word <code>1100</code>: at step 2·10<sup>9</sup> about half the tape is <code>1100</code>s, and these are turned back into reservoir <code>10</code>s later. High in the counter the separators are not always single cells (<code>1101</code>, <code>0101</code>, <code>000</code> appear), a second layer of structure that the rules above do not cover.</p>"
+    ]
+   },
+   {
+    "id": "steer",
+    "eyebrow": "Experiment",
+    "heading": "Is the tail safe on its own?",
+    "html": [
+     "<p>The theorem above leaves one question: does every carry into the tail come back. One way to probe it is to run the real machine but <b>steer the head part</b>: at each reset, replace the countdown X by another value, keep the tail exactly as it is, and let the machine go on. If the tail were safe whatever came before, no choice of phase lengths could make the machine halt.</p>",
+     "<table><thead><tr><th>X at each reset</th><th>runs</th><th>halted</th></tr></thead><tbody><tr><td>the true X, with one change X + &delta; (&delta; = &minus;3 &hellip; 8) at one of the first 16 or 17 resets, then 2 true phases</td><td>400</td><td>0</td></tr><tr><td>fixed X (37 to 81), 200 resets</td><td>21</td><td>0</td></tr><tr><td>a fixed growth ratio of 1.25, 1.75 or 2 instead of 1.5</td><td>55</td><td>0</td></tr><tr><td>the true X plus random noise in [&minus;3, 3] at every reset, 10 resets</td><td>40</td><td>4</td></tr><tr><td>uniform at random in [36, 400], 30 resets (this machine / the twin)</td><td>200 / 100</td><td>21 / 20</td></tr><tr><td>uniform at random in [2000, 4000], 20 resets</td><td>100</td><td>25</td></tr></tbody></table>",
+     "<p>So the tail is <b>not</b> safe by itself. Steered runs halt deep in the tail, hundreds to thousands of cells from the head, during an ordinary carry of a phase. Regular schedules (constant X, a fixed ratio, a single change to the true orbit) never halted. Halts came when the phase lengths jumped around irregularly. Whatever keeps the true run alive comes from the way the 3/2 orbit's phase lengths shape the tail, and the random runs halt at roughly 0.3% to 1% per reset. If the true orbit had a hazard of that size, surviving its 28 known resets would not be surprising, and the machine would eventually halt. Nothing yet says whether it does (heuristic; <code>c/perturb.c</code>, <code>c/branch.c</code> (in the folder of 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---)).</p>"
     ]
    },
    {

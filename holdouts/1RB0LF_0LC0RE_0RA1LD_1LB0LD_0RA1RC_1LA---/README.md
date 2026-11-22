@@ -192,6 +192,44 @@ to a direct simulation and reads each excursion's signature off the real run: al
 machines in their first 4,000 records, and 11 resets and 12 phase ends (X from 40 to 727, both machines), have the
 signatures of the table. The signatures do not depend on X or on the tail in any instance seen.
 
+## Is the tail safe on its own? (22 Nov, heuristic)
+
+`reset_map` leaves one question: does every carry into the tail come back. Two C programs test whether the tail is
+safe **by itself**, or only for the phase lengths the 3/2 orbit actually produces. Both run the real machine; they
+change only the countdown X at a reset record `0^inf 1 B> 1 0 (10)^X T` and keep the tail T as it is.
+
+- `c/branch.c` follows the true run and, at each of its resets, branches with X + δ for δ = -3 ... 8 and runs each branch for two more
+  unchanged phases. It covered the first 17 resets here (X = 40 to 28,102) and the first 16 of the twin (X = 52 to
+  24,271), plus 4 branches at the twin's 17th. **None of the 400 branches halts.**
+- `c/perturb.c` changes X at every reset:
+
+| X at each reset | runs | halted |
+|---|---|---|
+| fixed X, each of 37 ... 48, 50, 52, 60, 61, 80, 81 (200 resets each) | 18 | 0 |
+| fixed X = 41, 50, 61, twin (200 resets) | 3 | 0 |
+| growth ratio 1.25, 1.75 or 2 per phase instead of 1.5 | 7 + 24 + 24 | 0 |
+| true X + δ, δ uniform in [-3, 3] (10 resets) | 40 | 4 |
+| true X + one of -δ, 0, δ, for δ = 1, 2, 3, 4, 6 (10 resets) | 50 each | 0, 0, 2, 4, 0 |
+| uniform in [36, 400] (30 resets) | 200 | 21 |
+| uniform in [36, 400], twin (30 resets) | 100 | 20 |
+| uniform in [2000, 4000] (20 resets) | 100 | 25 |
+
+So **the tail is not safe by itself**: a run of the real machine whose phase lengths are chosen differently can
+halt. Every halt seen is deep in the tail (hundreds to thousands of cells from the head), during an ordinary carry
+of a phase, often only a few dozen records after a reset. Phase lengths that follow a regular rule (constant, or a
+fixed growth ratio) never halted, and neither did a single change in the true orbit. Halts came when the lengths
+jump around irregularly from phase to phase. So whatever keeps the true run alive has to come from how the 3/2
+orbit's phase lengths shape the tail. It is not a property of every tape the head part can leave behind.
+
+The random runs halt at about 0.3% to 1% per reset. If the true orbit's tail had a constant hazard of that size,
+surviving its 28 known resets would not be surprising (about 75% to 90%). It would also mean the machine
+eventually halts with probability 1. Nothing here says whether the true orbit has such a hazard, or why the regular
+schedules avoid it. That is the open question, now stated sharply: which property of the phase-length sequence
+keeps every carry inside the tail returning.
+
+Reproduce: `gcc -O2 -o perturb c/perturb.c && ./perturb 5 36 400 30 1e10` (seed 5 halts after 23 resets);
+`gcc -O2 -o branch c/branch.c && ./branch 16 2 A 0 1 2 3 4 5 6 7 8 -1 -2 -3`.
+
 ## Where it could halt
 
 F is entered only by A reading 1 (A1 = 0LF), and F1 halts. So the machine halts exactly on `1 A>1`. Neither the
@@ -232,7 +270,7 @@ which lists the run can reach.
 - `py/twin.py`: the macro machine agrees with a direct run of the twin at all records up to step 299,972,981; its
   macro run finds no halt in 300,000 records (1.20·10^11 steps).
 
-**Heuristic**: that the tail excursions come back as `Good` asks (`py/gen_resetmap.py`), the tail operators (`py/tail_ops.py`), the three record
+**Heuristic**: that the tail excursions come back as `Good` asks (`py/gen_resetmap.py`); that the tail is not safe by itself, so steered runs with irregular phase lengths halt (`c/perturb.c`, `c/branch.c`); the tail operators (`py/tail_ops.py`), the three record
 patterns, and the 99.99% share of simple sweeps.
 
 **Open**: whether it halts. The Lean theorem `¬ Halts` is proved only under `∀ k, GoodN k` (`never_halts_own`), that is, if
@@ -272,6 +310,7 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
 | `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
+| `c/perturb.c`, `c/branch.c` | the real machine with the countdown replaced at resets: steered runs, and branches off the true run |
 
 ## For later
 

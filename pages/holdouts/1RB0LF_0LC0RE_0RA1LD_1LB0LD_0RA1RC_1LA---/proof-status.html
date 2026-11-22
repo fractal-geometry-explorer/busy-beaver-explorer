@@ -226,6 +226,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/gen_resetmap.py</code></p>
       </div>
       <div class="card">
+        <h3>The tail is not safe by itself</h3>
+        <p>Steered runs of the real machine, with the countdown X replaced at each reset and the tail kept, halt when the phase lengths are irregular: 21 of 200 runs with X uniform in [36, 400] over 30 resets (20 of 100 for the twin), 25 of 100 with X in [2000, 4000], 4 of 40 with noise in [&minus;3, 3] on the true X. Constant X, a fixed growth ratio, and 400 single changes to the true orbit never halted. So the safety of the carries depends on the 3/2 orbit's phase lengths, not only on the head part.</p>
+        <p class="where"><code>c/perturb.c</code>, <code>c/branch.c</code></p>
+      </div>
+      <div class="card">
         <h3>What the tail sees</h3>
         <p>Right of the countdown and the growing block Y, the tail changes at each increment by one of four operators fixed by Y mod 2 and Y's cell, independent of the countdown (checked on constructed tapes). Inside every phase they alternate E0, E1 (1,467 of 1,467 increments here, 2,965 of 2,965 in the twin), and a reset applies E1 O0 O1 or E1 as X is even or odd (13 of 13 resets here, 13 of 14 in the twin). So the tail's future is one word of operators spelled out by the orbit of the 3/2 map; they do not commute.</p>
         <p class="where"><code>py/tail_ops.py</code></p>
