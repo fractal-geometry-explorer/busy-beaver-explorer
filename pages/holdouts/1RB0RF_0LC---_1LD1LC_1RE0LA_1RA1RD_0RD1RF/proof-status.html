@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps of the plain simulator, none in 3&middot;10<sup>13</sup> steps of an accelerated one (not verified).</p>
+      <p><b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps of the plain simulator, none in 3&middot;10<sup>13</sup> steps of an accelerated one, nor in 1.8&middot;10<sup>17</sup> steps of another (neither verified).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 3&middot;10<sup>13</sup> steps (accelerated run)</h3>
         <p>The accelerated simulator runs 30,000,000,585,416 steps from blank tape without a halt (1,568,417 arrivals at the left end; 17 cycle rules, each proved by a symbolic run with its counts free and re-checked on numbers). The tool is not verified; it agrees with the plain simulator at 20 of 20 checkpoints up to 3.0&middot;10<sup>10</sup> steps.</p>
         <p class="where"><code>py/closure/screen.py rules 3e13 900</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.8&middot;10<sup>17</sup> steps (another accelerated run)</h3>
+        <p>The C++ port of the accelerated simulator <code>rsim.py</code> (tape equal to direct simulation at 4 points up to 1.1&middot;10<sup>10</sup>) runs 180,830,972,685,456,069 steps from blank tape without a halt (3 hours, 151 jumps; rules exact, tape-level jumps validated, not proved).</p>
+        <p class="where"><code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

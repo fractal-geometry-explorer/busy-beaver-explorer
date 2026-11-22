@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 9.8&middot;10<sup>17</sup> steps (accelerated simulator).</p>
+      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation) nor in 10<sup>18</sup> steps (accelerated simulator).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -148,14 +148,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 10<sup>12</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 1,000,000,500,000 steps from blank tape without a halt (about 70 minutes); 806,171 cells hold a 1 at the end.</p>
+        <p class="where"><code>tools/c/tmrun.c</code></p>
+      </div>
+      <div class="card">
         <h3>PR 93's engine does not carry over</h3>
         <p>Of PR 93's 18 basic rules, 14 hold unchanged (direct simulation, counts up to 4, random tape around), and none of the 18 has D reading 0 next to a 1, so a halt can only come where an engine steps cell by cell. But a collision now leaves <code>10 10</code> (PR 93's call <code>D_j 10 D0 D0 r</code> to <code>D_(j+1) D2 10 r</code> becomes <code>D_(j+1) D1 10 10 r</code>), and a call that meets <code>10 10</code> runs on into the tape beyond instead of returning. PR 93's batched calls have no counterpart, so its engine cannot be patched the way it was for T4.</p>
         <p class="where">README, section <em>PR 93's engine on this table</em></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 9.8&middot;10<sup>17</sup> steps</h3>
-        <p>The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 6 points up to 10<sup>10</sup> steps, runs 984,180,560,109,706,163 steps from blank tape without a halt (3 hours).</p>
-        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code></p>
+        <h3>No halt in the first 10<sup>18</sup> steps</h3>
+        <p>The accelerated simulator <code>rsim.py</code> runs 984,180,560,109,706,163 steps without a halt (3 hours). Its faster C++ port <code>c/rsim_fast.cpp</code> follows the same trajectory (same step counts, rules and jumps at 10<sup>6</sup> to 10<sup>13</sup>; tape equal to direct simulation at 8 points up to 3&middot;10<sup>10</sup>) and runs 1,000,000,000,008,656,179 steps without a halt (65 minutes). The rules it applies are exact; its jumps over repeated tape shapes are validated, not proved.</p>
+        <p class="where"><code>c/rsim_fast.cpp</code>, <code>py/rsim_fast_validate.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

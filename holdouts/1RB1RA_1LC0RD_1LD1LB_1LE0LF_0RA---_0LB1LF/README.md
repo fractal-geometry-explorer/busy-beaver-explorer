@@ -31,6 +31,8 @@ keeps growing while the rest churns.
 - Lean, kernel only (`lean/Blank.lean`, generated): the halting configurations (`step_none_iff`) and no halt in the first 10,000 steps; with `native_decide`, none in the first 10<sup>7</sup>.
 - Lean, kernel only (`lean/Rules.lean`, written by `py/rules.py`): the shift rules of the leftward sweep in B across `(01)^n` and `(011)^n` (`shift_l_B_01`, `shift_l_B_011`).
 - C (`tools/c/triage.c`, trusted): no halt in the first 10<sup>9</sup> steps.
+- C (`tools/c/tmrun.c`, trusted): no halt in the first 1,000,000,500,000 steps (10<sup>12</sup>; 22 November 2026,
+  about 70 minutes; 806,171 ones at the end).
 - Lean, kernel only (`lean/EngineRules.lean`, written by `py/engine_rules.py`): 11 of the macro rules of DeepMind's
   busycoq PR 93 engine as they hold for this machine, for every count, including the 5 that differ from PR 93's table
   (see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
@@ -79,6 +81,15 @@ whether the sweep acts on it as a finite transducer.
 - **Accelerated runs.** The accelerated simulator `rsim.py` (validated against direct simulation at 6 points up to
   10^10 steps) found no halt in 984,180,560,109,706,163 steps (9.8·10^17; 3 hours, 350 jumps). The recursive-rule simulator `tools/py/bbtools/rleaccel_rec.py` stalls
   near 10^8 steps (K = 2, 3, 6; 5 minutes each).
+- **A faster port (22 November 2026).** `c/rsim_fast.cpp` is `rsim.py` in C++ with the same decisions, about 15 to 25
+  times faster here (rules looked up by a running hash of the trailing cells, no string building in the rope
+  tidying). It follows the same trajectory as `rsim.py`: with `rsim_screen.py`'s targets both pass 10^6, …, 10^13 at
+  the same step counts with the same numbers of rules, learning calls, samples and jumps, and its tape matches direct
+  simulation at 8 points up to 3·10^10 (`py/rsim_fast_validate.py`). It passes the Python run's 3-hour reach after
+  212 seconds and found **no halt in 1,000,000,000,008,656,179 steps (10^18)** after 65 minutes; the decade after
+  that had not finished 5 hours later (no jump: the sweeps are crossed one rule at a time, 7·10^9 rules by 10^18).
+  The jumps are validated, not proved, so this bound rests on them. Progress comes in bursts and depends on where a
+  run pauses between targets: with targets ×1.5 apart the same program stalled near 8.4·10^13 for an hour.
 
 The same table from other starts: 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF (start B),
 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF (start C) and 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF (start D). The same
@@ -92,6 +103,10 @@ python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/rules.py          
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/engine_rules.py   # rewrites lean/EngineRules.lean
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 10800
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/rsim_fast_validate.py 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1e6,1e8,1e10,3e10
+g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp
+DECADES=1 ./rsim_fast 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF run 3900 out.json   # passes 10^18
+gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1000000500000   # about 70 minutes
 ```
 
 ## Pages

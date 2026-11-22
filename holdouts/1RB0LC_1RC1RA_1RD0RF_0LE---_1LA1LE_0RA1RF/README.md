@@ -62,9 +62,15 @@ the changed rules, are in [1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF](../1RB1RA_
 
 Run for a halt from this start: the accelerated simulator `rsim.py`, validated against direct simulation at 6 points up to 10^10 steps,
 went 225,538,757,990,671 steps from blank tape in 20 minutes without a halt (82 jumps).
+Its faster C++ port [`c/rsim_fast.cpp`](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp) (same trajectory as
+`rsim.py`; tape equal to direct simulation at 4 points up to 10^10) went **122,501,965,489,001,108,659 steps (1.2·10^20)**
+in 3 hours without a halt (136 jumps, 1.8·10^10 rules; 22 November 2026). It reached 1.2·10^20 after 11 minutes; after
+that no jump applied and the rest of the run crossed sweeps rule by rule. The jumps are validated, not proved.
 
 ```sh
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF 1200
+g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp
+DECADES=1 ./rsim_fast 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF run 10500 out.json
 ```
 
 <!-- related machines: written by holdouts/related.py -->
