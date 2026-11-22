@@ -59,6 +59,12 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 - Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4).
 - Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.
 
+## The round trip as an XOR rule
+
+The rewrite of the list of 4k+3 blocks is decoded on [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md#the-round-trip-as-an-xor-rule-leansweeplean-leanbulklean), whose tapes this machine shares: cut the tape into 4-cell letters s = `0111` (a block starts) and c = `1111` (it goes on); a round trip replaces the letter word by its running XOR, so backwards in time it is the XOR cellular automaton (rule 102), z_before(n) = z_after(n) XOR z_after(n-1). On the list of numbers: read in pairs (a, b), each pair becomes a zeros and then b + 1. Only a thin layer at the far end of the tape is not decoded, and a halt can only come from the ends. This machine sweeps the other way, so the check mirrors it first; its table is not a renaming of that one, so the Lean rules there are not about this machine.
+
+Checked on this machine's run with `python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000 1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE`: 4,072 round trips to 2·10^8 steps, 8,144,928 letters, no exception.
+
 ## Check
 
 ```sh

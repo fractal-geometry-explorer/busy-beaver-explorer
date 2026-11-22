@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 21 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one round trip of the head replaces each word by the XOR of it and its right neighbour (rule 102), in Lean for every length, with its Lucas closed form. A halt needs a <code>10</code> defect with <code>y</code> in front of it and only <code>y</code>s up to the next wall. Lean now proves what a deep sweep does at a defect: with <code>x</code> in front it is rule 102 on the whole line, with <code>y</code> in front the defect jumps to the end of the gap's first <code>x</code> block, and after a jump over m slots the next jump comes exactly m sweeps later. So a defect's whole life is one map on its gap, and the danger pattern is a jump with nothing to land on. The map does not rule that out by itself; a proof also needs to show that no new bulk <code>10</code> defect is born, which in the run has not happened since 8.5 million steps. No closed tape language has been found.</p>
+      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one round trip of the head replaces each word by the XOR of it and its right neighbour (rule 102), in Lean for every length, with its Lucas closed form. A halt needs a <code>10</code> defect with <code>y</code> in front of it and only <code>y</code>s up to the next wall. Lean now proves what a deep sweep does at a defect: with <code>x</code> in front it is rule 102 on the whole line, with <code>y</code> in front the defect jumps to the end of the gap's first <code>x</code> block, and after a jump over m slots the next jump comes exactly m sweeps later. So a defect's whole life is one map on its gap, and the danger pattern is a jump with nothing to land on. Lean also proves which gaps can get there: under shielded sweeps exactly the rows of Pascal's triangle mod 2, and at the next jump exactly one rest <code>C</code> for each jump length <code>L</code> (word <code>k</code> is y iff <code>k</code> and <code>L</code> share no binary 1). The map does not rule that out by itself; a proof also needs to show that no new bulk <code>10</code> defect is born, which in the run has not happened since 8.5 million steps. No closed tape language has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -156,6 +156,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>After a jump over <code>m = j + a + 1</code> slots the words before the defect are <code>Q y x<sup>m</sup></code>; each shielded sweep turns <code>Q y x<sup>k</sup></code> into <code>Q' y x<sup>k&minus;1</sup></code>. So exactly <code>m</code> shielded sweeps follow and then the word before the defect is <code>y</code> again: the next jump (or merge, or the danger pattern) comes <code>m</code> sweeps later, whatever the words further left.</p>
         <p class="where"><code>clock</code>, <code>lean/Hop.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Which gaps shielded sweeps can turn all y: Pascal rows</h3>
+        <p>Read the gap with the defect as constant term, <code>W = 1 + g<sub>0</sub> z + &hellip;</code> over GF(2). <code>t</code> shielded sweeps multiply it by <code>(1 + z)<sup>t</sup></code>, and the first <code>r</code> coefficients of the result are all y <b>iff</b> they were those of <code>mask t</code>, the series whose coefficient <code>k</code> is 1 exactly when <code>k</code> and <code>t</code> share no binary 1 (it is <code>(1 + z)<sup>&minus;(t+1)</sup></code>; Pascal's rule is the whole proof). <code>mask</code> has period <code>2<sup>b</sup></code> below <code>2<sup>b</sup></code>, so a gap of fewer than <code>2<sup>b</sup></code> words ever becomes all y iff it is one of the <code>2<sup>b</sup></code> series <code>mask t</code>, <code>t &lt; 2<sup>b</sup></code>: the rows of Pascal's triangle mod 2 found earlier (checked before in <code>py/pascal_gaps.py</code> for every gap up to 14 words), now proved for all lengths. The Lean file also proves that the shielded sweep of <code>Hop.lean</code> is multiplication by <code>1 + z</code> on every coefficient the old gap determines (<code>ser_shielded</code>).</p>
+        <p class="where"><code>reach_ones</code>, <code>mask_period</code>, <code>pascal_reach</code>, <code>ser_shielded</code>, <code>lean/Gaps.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Which gaps a jump can make dangerous</h3>
+        <p>At a jump over <code>y<sup>j</sup> x<sup>a+1</sup></code> with rest <code>C</code> (<code>L = j + a + 2</code>), the series at the next jump is <code>F(W) = (1 + z)<sup>L</sup> C</code>, and its first <code>r</code> coefficients are all y iff <code>C</code> agrees with <code>mask L</code> on its first <code>r</code> words: word <code>k</code> of <code>C</code> must be y exactly when <code>k</code> and <code>L</code> share no binary 1. So the run of y words at the next jump is one less than the length of the common prefix of <code>C</code> and <code>mask L</code>, and the danger pattern at the next jump (the run reaches the wall) needs <code>C = mask L</code> on every word: for each <code>(j, a)</code> exactly one gap, so at most about <code>n<sup>2</sup>/2</code> of the <code>2<sup>n</sup></code> gaps of <code>n</code> words (190 of 1,048,576 for <code>n = 20</code>). <code>ser_jump</code> ties this to the words of <code>jump</code> in <code>Hop.lean</code>: the gap it leaves is <code>(1 + z) C</code> on every coefficient the old gap determines.</p>
+        <p class="where"><code>next_jump_run</code>, <code>Fj_ones</code>, <code>ser_jump</code>, <code>ser_rest</code>, <code>lean/Gaps.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -178,9 +188,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/hop_rule.py</code></p>
       </div>
       <div class="card">
-        <h3>Which gaps can reach the danger pattern</h3>
-        <p>Read the gap after a <code>10</code> defect, with the defect as a fixed y, as a polynomial over GF(2): one sweep multiplies it by <code>1 + z</code>, and all y is <code>(1 + z)<sup>2<sup>b</sup>&minus;1</sup></code>. So a gap ever becomes all y exactly when it already is a row <code>s</code> of Pascal's triangle mod 2 (word <code>j</code> is y iff the digits of <code>j</code> lie inside those of <code>s</code>), and then at the sweeps <code>t &equiv; 2<sup>b</sup> &minus; 1 &minus; s</code>. Only <code>2<sup>b</sup> &le; 2n</code> of the <code>2<sup>n</sup></code> gaps of length <code>n</code> can. Checked for all 32,766 gaps of up to 14 words; the algebra is not in Lean, and the claim assumes the gap stays intact between walls, as observed.</p>
-        <p class="where"><code>py/pascal_gaps.py</code></p>
+        <h3>The next-jump rule, against the real run</h3>
+        <p><code>py/jump_gaps.py</code> checks the agreement rule on 163,800 cases (every <code>C</code> of up to 12 words, <code>L</code> up to 40) and reads the real run to 1.2&middot;10<sup>7</sup> steps: at all 10 jumps that have a successor in the same lifetime, the run at the next jump is the agreement with <code>mask L</code> minus one. The closest calls are at 2.53&middot;10<sup>6</sup> steps, where <code>C = yyxx</code> is <code>mask 6</code> on every word the old gap holds (the next run is 3 and the gap had grown to 7, so the words that entered at the wall decided it), and at 5.44&middot;10<sup>6</sup> steps (agreement 4 of 5, run 3 where 4 would have halted). So the jump map pins down the dangerous gaps exactly, but the words fed in at the wall between jumps are not yet controlled.</p>
+        <p class="where"><code>py/jump_gaps.py</code>, with <code>c/turns.c</code> and <code>py/defect_life.py</code></p>
       </div>
       <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
@@ -252,7 +262,8 @@ gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LB_1LC0RD_0LE1LA_0RF1
 python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/route.py        # rewrites lean/Route.lean
 python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/hop_rule.py
 gcc -O2 -o turns holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/c/turns.c &amp;&amp; ./turns 12000000 150 &gt; turns.txt &amp;&amp; python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/defect_life.py turns.txt
-python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/fmap.py</code></pre>
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/fmap.py
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/jump_gaps.py turns.txt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

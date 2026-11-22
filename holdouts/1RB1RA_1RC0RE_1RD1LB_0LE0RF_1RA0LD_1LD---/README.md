@@ -2,7 +2,7 @@
 
 bbchallenge id 54866. One of the six-state holdouts whose halting from blank tape is open (group G09: the visited tape grows like the square root of the step count on both sides).
 
-**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list, in a way that looks like a cellular automaton and has no known formula. It halts only if D reads two adjacent 1s, which no run has shown. Decision: open. It is the simplest member of a family of three: [1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md) differs from it only in A1 and has the same tapes, [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md) is this table with the states renamed, started in state C.
+**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list, in a way decoded below as a running XOR (rule 102 backwards in time). It halts only if D reads two adjacent 1s, which no run has shown. Decision: open. It is the simplest member of a family of three: [1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md) differs from it only in A1 and has the same tapes, [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md) is this table with the states renamed, started in state C.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -30,8 +30,7 @@ The leftward sweep (state D, rule `left_pairs`) turns each `11` of a block into 
 The rightward sweep zigzags: at every block boundary the head backs up a few cells, and inside a group it turns `001`, `010`, `100` into `110`, `101`,
 `011` (states E, A, B). A visit adds 1 to 4 cells at the left end and 3 to 8 at the right.
 
-The rewriting of the list is sequential with a finite carry, but the resulting map on lists has not been described: the first few numbers repeat a
-short cycle, the rest looks random.
+The rewriting of the list is decoded: see "The round trip as an XOR rule" below.
 
 ## Halting
 
@@ -91,6 +90,12 @@ of: C with 0 under the head, 1 right, 1 two right; F with 1 left, 0 under the he
 
 - [`pages/holdouts/1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/explainer.html`](../../pages/holdouts/1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/explainer.html)
 - [`pages/holdouts/1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/proof-status.html`](../../pages/holdouts/1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/proof-status.html)
+
+## The round trip as an XOR rule
+
+The rewrite of the list of 4k+3 blocks is decoded on [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md#the-round-trip-as-an-xor-rule-leansweeplean-leanbulklean), whose tapes this machine shares: cut the tape into 4-cell letters s = `0111` (a block starts) and c = `1111` (it goes on); a round trip replaces the letter word by its running XOR, so backwards in time it is the XOR cellular automaton (rule 102), z_before(n) = z_after(n) XOR z_after(n-1). On the list of numbers: read in pairs (a, b), each pair becomes a zeros and then b + 1. Only a thin layer at the far end of the tape is not decoded, and a halt can only come from the ends. This machine is that table with the states renamed (A, B, C, D, E, F there are C, D, E, A, B, F here), so the Lean rules there hold here after the renaming (not restated in Lean).
+
+Checked on this machine's run with `python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000 1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---`: 4,168 round trips to 2·10^8 steps, 8,493,263 letters, no exception.
 
 ## Check
 
