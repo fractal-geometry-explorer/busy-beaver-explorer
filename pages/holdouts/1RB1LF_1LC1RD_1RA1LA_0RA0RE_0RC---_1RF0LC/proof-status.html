@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -145,6 +145,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The first 40 steps of the orbit</h3>
         <p>Lean's kernel evaluates the step map along the orbit: it answers with a next step for each of the first 40 steps (no halt, never stuck); after five steps the wall is <code>1</code> and N = 468 (step 1,133,743 of the run).</p>
         <p class="where"><code>first_steps</code>, <code>orbit_5</code>, <code>lean/Reduction.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Closed empty counters stay in one pile</h3>
+        <p>For the counter-stack step <code>mstep</code> (proved to be the machine's step wherever <code>stepRes</code> answers): every K'(0) has only K'(0)s below it and every K(0) lies directly on that pile, and a step keeps this unless it makes a count 0 away from the pile (<code>mstep_good</code>; along any parity sequence: <code>good_iter</code>). On such walls an odd signal on K'(0) always has <code>1 K'(0)^a</code> below it (<code>good_c0</code>), the case <code>Stack.lean</code> covers, so the only gap left in the stack rules is a count reaching 0 or below.</p>
+        <p class="where"><code>lean/Pile.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -208,6 +213,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC 6 3600 mirror</code>; <code>holdouts/regaccel.json</code></p>
       </div>
       <div class="card">
+        <h3>Pairs made over the pile never reach 0 (start values below 2<sup>4000</sup>)</h3>
+        <p>While the top k of two open counters stays odd, k' = (3k &minus; 1)/2 + om(a, m) with om fixed by the orbit of the stack 'pile of height a, then K(0)'. For every pile height a &le; 4,000 the exact set of start values below 2<sup>4000</sup> whose run reaches a count below 1 is computed digit by digit; its largest element is 37,609, below the least start value 2<sup>a+2</sup> of a pair made over that pile (that bound is argued from the rules, and the least values seen are 7, 79, 727, 6,559 for a = 0 to 3). No start value below 2<sup>4000</sup> has a run of more than 4,064 odd steps. Pairs that start later, when a closed counter between them dissolves, are not covered: their failing start values reach about 0.24&middot;m times the lower count.</p>
+        <p class="where"><code>python3 py/pairs.py creation 4000 4000 3</code>, <code>python3 py/pairs.py table 40 80 1000</code>, <code>python3 py/pairs.py structure 30000</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1LE_1LC1RC_1LA1RD_1LD0RB_0LC0LF_0LB--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LB_1RC1LD_1LA1RE_1RD0LA_0RB0RF_0RA--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -255,7 +265,8 @@ python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py orbi
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py random 300
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 1e9
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 orbit 5000
-python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300</code></pre>
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
