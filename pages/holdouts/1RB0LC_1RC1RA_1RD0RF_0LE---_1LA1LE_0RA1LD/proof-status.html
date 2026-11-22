@@ -158,8 +158,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 10<sup>12</sup> steps (direct) and 1.9&middot;10<sup>13</sup> (accelerated)</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>12</sup> steps cell by cell without a halt (1,071,316 ones at the end). The C++ port <code>rsim_fast</code> of <code>rsim.py</code> runs 19,424,261,661,128 steps in one hour without a halt (7,491 tape-level jumps, validated, not proved).</p>
+        <p class="where"><code>tools/c/tmrun.c</code>; <code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp</code></p>
+      </div>
+      <div class="card">
         <h3>DeepMind's PR 93 engine does not carry over</h3>
-        <p>This is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE started in state B: up to renaming, DeepMind's busycoq PR 93 table T4 with E1 changed. Four of PR 93's 18 basic rules change (Lean proves the changed forms in that machine's folder), and the change breaks the engine for every start.</p>
+        <p>This is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE started in state B: up to renaming, DeepMind's busycoq PR 93 table T4 with E1 changed. Four of PR 93's 18 basic rules change (Lean proves the changed forms in that machine's folder), and the change breaks the engine for every start. Rechecked from scratch on 22 November 2026: PR 93's collision rule ends in its rule form for T4 in 40 of 40 random cases and in none for this table, where the head runs on into the tape on the right.</p>
         <p class="where"><code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/README.md</code></p>
       </div>
       <div class="card">
@@ -184,6 +189,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Epoch ends feed an irregular region</h3>
         <p>An epoch ends with a long pass that empties the blocks; afterwards a and b start small again and the irregular region on the right is larger: about 500 compressed words before the epoch that ends between 3.1 and 4.0·10<sup>8</sup> steps, 1,581 after it; 5,017 after the one that ends between 8.6·10<sup>8</sup> and 1.7·10<sup>9</sup>. Epochs get longer (they end between 1.1 and 1.6·10<sup>8</sup>, between 3.1 and 4.0·10<sup>8</sup>, between 8.6·10<sup>8</sup> and 1.7·10<sup>9</sup>, and none from 1.7·10<sup>9</sup> to 2·10<sup>9</sup>).</p>
         <p class="where">the same samples</p>
+      </div>
+      <div class="card">
+        <h3>A fuse sets the length of an epoch</h3>
+        <p>Inside an epoch the head's returns to the left end alternate between a short pass, which turns at the end of the <code>(011)^a</code> block, and a long pass, which turns at the left end of a run of 1s near the right end of the tape. Each long pass shortens that run by 3 cells (for example <code>1^29</code> at step 179,100 is used up by step 209,010); when it is gone, the next long pass runs to the right end and the epoch ends. The stretches of more than 10<sup>6</sup> steps that reach the right end end at 1.2&middot;10<sup>7</sup>, &hellip;, 4.0&middot;10<sup>8</sup>, 1.45&middot;10<sup>9</sup>, 4.03&middot;10<sup>9</sup> steps, then in clusters near 1.1&ndash;1.5&middot;10<sup>10</sup>, 1.7&middot;10<sup>10</sup>, 3.0&middot;10<sup>10</sup> and 3.7&middot;10<sup>10</sup>.</p>
+        <p class="where"><code>c/passes.c</code></p>
       </div>
       <div class="card">
         <h3>Never one step from a halt</h3>
