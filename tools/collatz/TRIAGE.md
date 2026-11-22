@@ -4,11 +4,11 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 
 | bucket | machines | meaning |
 |---|---|---|
-| Halt hunt | 13 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
+| Halt hunt | 12 | The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far. |
 | Outside proof | 2 | A busycoq pull request claims a decision. Compile it. |
 | Prove the map | 8 | The map is explicit but not yet a Lean halts-iff. Proof engineering would make the question exactly a question about the map. |
 | Decode | 29 | The round or phase map is not closed yet and has to be read off the machine first. |
-| Number theory | 46 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
+| Number theory | 47 | Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that. |
 
 ## Halt hunts run for this triage
 
@@ -16,10 +16,10 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 |---|---|---|---|
 | `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` | the E-pass map, 2-adic divide and conquer (holdouts/.../c/orbit.c), 2^33 passes | 2^32 passes (4.3e9); a halt then had probability 0.4% under the fair-bit model | 2^33 passes (8.6e9), no halt; 36 minutes, about 7.5 GB (memory caps this run; a halt is expected near 2^40 under the fair-bit model) |
 | `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | 10^12 visits, no halt; a, b reach 3.5e12, about 6.8e35 machine steps; values grow about linearly, so a hit b = a + 4 (a even) stays possible |
-| `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly |
+| `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly; then c/far.c on the proved map: 3.26e21 map steps, 7.03e32 machine steps, no sweep start on the halting line m = 3b+1 (16 near misses) |
 | `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | 10^12 operations, no halt: modulus about 4.8e11, past both targets 2^37 - 36 and 2^38 - 37; 36 odd events |
 
-## Halt hunt (13)
+## Halt hunt (12)
 
 The map is fixed (proved, or checked against the machine) and a halt, if there is one, might come early enough to compute. Run it far.
 
@@ -34,18 +34,6 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 - **Checked:** 10,000 passes kernel (10^1700 steps); 2^18 passes native_decide (10^45000 steps; 2^22 also checked outside check.sh); 2^32 = 4.3e9 passes C/GMP (c/orbit.c, n with 2.5e9 bits).
 - **Odds:** absorption rate 8.87e-13 per pass; halt expected after ~1.1e12 passes (~10^(7*10^10) steps); 0.4% chance it would have halted in the 4.3e9 passes checked
 - **Next step:** Extend c/orbit.c (divide and conquer on low bits of n) toward 10^11-10^12 passes, the only route to finding the expected halt.
-
-### [`1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---`](../../holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/README.md)
-
-*reduced, outlook unclear, table set T190*
-
-- **Map:** Only via DeepMind's cited map on C(m,k,b) = 0^inf 1^m (10)^k C> 1^b 0^inf: (m,k,0)->(m+1,0,2k+2); (0,k,1)->(2k+3,0,2); (0,k,b+2)->(2k+2,1,b); (1,0,b+1)->(0,0,b+3); (1,k+1,1)->(2k+7,0,2); (1,k+1,b+2)->(2k+6,1,b); (2,0,1)->(0,1,0); (2,1,b+1)->(0,1,b+1); (2,k+2,1)->(2k+7,0,2); (2,k+2,b+2)->(2k+6,1,b); (m+3,k,b+1)->(m,k+2,b). Repo's own decoding: two-part shape only.
-- **Halts when:** DeepMind map reaches none: state C(2,0,b) with b >= 2 (machine-level: E>1 1, E reading a 1 with a 1 to its right).
-- **From blank tape:** C(0,0,2) (DeepMind start; step not stated)
-- **Proved:** Repo Lean: only step_none_iff and 10^7 steps (lean/Blank.lean); halts-iff is deepmind_halts_iff in lean/DeepMindMap.lean, a cited axiom (DeepMind's theorem compiled here, translation unchecked).
-- **Checked:** 7.07e14 steps Quick_Sim and 10^9 steps C (trusted); 10^7 steps native_decide; DeepMind map run only 120 steps here (to compare with theirs).
-- **Odds:** not stated (width grows like t^(1/3), no heuristic for a halt)
-- **Next step:** Iterate the DeepMind map with big integers far beyond 120 steps and prove it on the repo's definitions (as done for 1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC).
 
 ### [`1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD`](../../holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/README.md)
 
@@ -646,9 +634,21 @@ The round or phase map is not closed yet and has to be read off the machine firs
 - **Next step:** Write and prove the exact pass map (pass end, left-end turn with prefix, launches at gap 0 or 2 mod 3) to get a 4/3 Collatz-like map with a halts-iff.
 
 
-## Number theory (46)
+## Number theory (47)
 
 Lean already reduces halting to the map. What is left is a Collatz-type question about one orbit, beyond current methods; only a lucky halt hunt could change that.
+
+### [`1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---`](../../holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/README.md)
+
+*reduced, outlook unclear, table set T190*
+
+- **Map:** DeepMind's map on C(m,k,b) = 0^inf 1^m (10)^k C> 1^b 0^inf, proved here: (m,k,0)->(m+1,0,2k+2); (0,k,1)->(2k+3,0,2); (0,k,b+2)->(2k+2,1,b); (1,0,b+1)->(0,0,b+3); (1,k+1,1)->(2k+7,0,2); (1,k+1,b+2)->(2k+6,1,b); (2,0,1)->(0,1,0); (2,1,b+1)->(0,1,b+1); (2,k+2,1)->(2k+7,0,2); (2,k+2,b+2)->(2k+6,1,b); (m+3,k,b+1)->(m,k+2,b) (the sweep).
+- **Halts when:** The map stops only at C(2,0,b) with b >= 2; halts iff the orbit visits a sweep start C(3B+1,k,B) (lean/Criterion.lean).
+- **From blank tape:** C(0,0,2) at step 2
+- **Proved:** Kernel, core Lean: deepmind_halts_iff (lean/DMMap.lean, 18 rules in lean/DMRules.lean by dmproof.py; was a cited axiom) and halts_iff_visits (lean/Criterion.lean: halts iff the orbit visits C(3B+1,k,B)).
+- **Checked:** Map iterated 3.26e21 steps (7.03e32 machine steps, sizes to 2.6e11) by c/far.c, and 10^12 accelerated steps by tools/collatz/c/dm9516.c (trusted); 7.07e14 steps Quick_Sim; 10^7 steps native_decide.
+- **Odds:** m-3b came within 2 of 1 at 16 sweep starts, about once per decade of steps; random-model chance of a halt per decade is a small constant (halts with probability 1, very late).
+- **Next step:** Find an invariant keeping sweep starts off m = 3b+1, or accelerate whole rounds between walls to hunt beyond sizes 10^12.
 
 ### [`1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB`](../../holdouts/1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB/README.md)
 
