@@ -146,6 +146,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>sweep</code>: for all k, L, J, R, <code>iter (2k) (e L (J+1+k) (R+1+2k)) = some (e (L+2k) (J+1) (R+1))</code>. Nearly every frame of the run is one of the two cases that make up this pair (cases <code>e l (j+2) (r+2)</code> and <code>h l (m+1) (r+2)</code>).</p>
         <p class="where"><code>lean/Sweep.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The rules are a tent map with drift</h3>
+        <p>For the rule map of the rule form, in n = 2x + y and d = 2x &minus; y: d &ge; 0 (y even) gives n + 4 and n &minus; 2d + 4; d &ge; 3 (y odd) gives n + 3 and n &minus; 2d + 9; d &le; &minus;3 gives n + 1 and n + 2d + 7; d = &minus;2 and d = 1 are one-off tapes; the halt is d = &minus;1 and nowhere else. The map is the one of <code>py/rules.py</code>, transcribed; it is checked against the machine there, not in Lean.</p>
+        <p class="where"><code>lean/Tent.lean</code> (<code>tent</code>, <code>op_none_iff</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -197,6 +202,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>c/framemap.c</code> iterates <code>next</code> exactly: its 66 cases are generated from <code>lean/Phases.lean</code> and the step counts from <code>lean/Pieces.lean</code> by <code>py/gen_c.py</code>, and whole sweeps are jumped by <code>sweep</code>. It agrees frame by frame with the Python reading of the Lean map for 300,000 frames, and without the jumps it reaches the same frame and step count at 10<sup>10</sup> frames. From <code>Ph.g 0 1</code> it ran 2,916,662,715,542,862,488,166 frames, 10<sup>11</sup> of them frames f (one per round of the rule form), to machine step 151,<wbr>234,<wbr>372,<wbr>263,<wbr>249,<wbr>191,<wbr>290,<wbr>395,<wbr>350,<wbr>829,<wbr>563 (counted exactly in 128 bits), without reaching a case where <code>next</code> is <code>none</code>. Variables reached 2.3&middot;10<sup>11</sup>.</p>
         <p class="where"><code>c/framemap.c</code>, log in <code>c/framemap_run.txt</code></p>
       </div>
+      <div class="card">
+        <h3>The binary digits of u predict only about log<sub>2</sub> n rounds</h3>
+        <p>The tent orbit of u = 2x/(2x + y), read from its binary digits, agrees with the real fold/double word for floor(log<sub>2</sub> n) &minus; 2 rounds at the median and never more than log<sub>2</sub> n + 6 (1,003 tapes from the first 10<sup>6</sup> rounds, exact rationals). The drift terms take over after that, so the digit reading cannot test the exact middle further than applying the rules.</p>
+        <p class="where"><code>py/tent.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The rules run further</h3>
+        <p>8&middot;10<sup>11</sup> rounds of the rule form applied one at a time, with exact step counts: no halt up to machine step 7.7&middot;10<sup>34</sup> (the frame map run reached 1.5&middot;10<sup>32</sup>). Closest tapes with y odd: 2 from the middle (B(144615683250, 289231366503) at step 2.3&middot;10<sup>33</sup>). The 16 even values 0 &lt; |d| &le; 16 had 50 hits, 3.1 each, d = 0 none (about 4.5% for a random orbit). The near-middle tapes and step counts of the frame map run are reproduced exactly.</p>
+        <p class="where"><code>c/rounds.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -231,7 +246,9 @@ holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30
 gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000
-gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000</code></pre>
+gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000
+python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/tent.py
+gcc -O2 -o rounds holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/rounds.c -lm &amp;&amp; ./rounds 100000000000 10000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
