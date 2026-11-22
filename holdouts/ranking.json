@@ -159,10 +159,10 @@
     "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---",
     "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---",
     "1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---",
+    "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
     "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB",
     "1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---",
-    "1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE",
-    "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---"
+    "1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE"
    ],
    "best": 18
   },
@@ -177,7 +177,7 @@
     "1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
     "1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---"
    ],
-   "best": 34
+   "best": 35
   },
   {
    "key": "countdown",
@@ -758,6 +758,28 @@
    "rank": 24
   },
   {
+   "m": "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
+   "id": 4320,
+   "fam": "R07",
+   "famname": "Up/down counters and two binary counters with rebuilds",
+   "set": "T232",
+   "mates": 1,
+   "stage": "finite",
+   "score": 49.2,
+   "route": "either",
+   "work": "lean",
+   "kernel": 7,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Shift-overflow counter",
+   "why": "Binary counter applying one list operation W per tick; W, the counter and the rebuild sub-round proved in Lean for all sizes, the list is the binary expansion of the time to the next single block (proved); left: the small gaps after each rebuild, which move counter cells into the list; no halt in 986 rebuilds (more than 10^31,896 steps); tapes of the same shape halt; open.",
+   "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
+   "folder": "holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
+   "rank": 25
+  },
+  {
    "m": "1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
    "id": 37401,
    "fam": "R02",
@@ -777,7 +799,7 @@
    "why": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 2.72·10^177 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
-   "rank": 25
+   "rank": 26
   },
   {
    "m": "1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
@@ -799,7 +821,7 @@
    "why": "Slowed-down twin of the Pascal machine: Lean (Twin.lean) proves it follows that machine step for step up to a break and neither halts if no break comes.",
    "next": "Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's).",
    "folder": "holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
-   "rank": 26
+   "rank": 27
   },
   {
    "m": "1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
@@ -821,7 +843,7 @@
    "why": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.91·10^162 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
-   "rank": 27
+   "rank": 28
   },
   {
    "m": "1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
@@ -843,7 +865,7 @@
    "why": "Same table as 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF (renamed): a clock at the right end, block +4 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 1.27·10^139 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
-   "rank": 28
+   "rank": 29
   },
   {
    "m": "1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
@@ -865,7 +887,7 @@
    "why": "A clock at the left end: the block 1^(4+3k) grows by 3 per tick and tick k applies one word map P 2^k times to the word on its right whenever the 2^k trips into the word all return (proved in Lean for every k); followed exactly through 65 phases to 6.04·10^187 steps without a halt.",
    "next": "Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next.",
    "folder": "holdouts/1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
-   "rank": 29
+   "rank": 30
   },
   {
    "m": "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB",
@@ -887,7 +909,7 @@
    "why": "Up/down counters (U+1, V-1 per tick, proved); at V = 0 a rebuild eats j low digits of U and refills V with 2^n' - delta; rebuild in closed form (checked, not proved); halts iff some rebuild gives delta = N'+1; no halt in 320,500 rebuilds of the map (more than 10^12,000,000 steps); long walks recur at about 9% of the counter; open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB",
-   "rank": 30
+   "rank": 31
   },
   {
    "m": "1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
@@ -909,7 +931,7 @@
    "why": "Two binary counters fed by one clock: L (the z zero digits at the left) and R (bits in fixed slots of the word W); each overflow of L adds 2^z to R, and when R overflows the word is rebuilt. A halt needs the right sweep to reach the end of the tape in F (Lean: last block of length 1 mod 3). Open; Lean (certificate checker, native_decide): no halt in 1.2·10^70 steps; the end never reached in F in the run to 1.6·10^45.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
-   "rank": 31
+   "rank": 32
   },
   {
    "m": "1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---",
@@ -931,7 +953,7 @@
    "why": "Binary counter applying one list operation W per tick; the block list is the binary expansion of the time to the next rebuild (checked, not proved); rebuild transients simulated directly; no halt in 3,792 rebuilds (more than 10^9,553 steps); open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---",
-   "rank": 32
+   "rank": 33
   },
   {
    "m": "1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
@@ -953,7 +975,7 @@
    "why": "Mirrored start of the Pascal table: every theorem there is about the table, so it applies after exchanging the tape sides; the 2-cell-letter invariant holds for 10^9 steps.",
    "next": "Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine.",
    "folder": "holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
-   "rank": 33
+   "rank": 34
   },
   {
    "m": "1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
@@ -975,7 +997,7 @@
    "why": "Binary counter with doublers: a tape with one defect cannot halt, and no halt in 100,000 rounds (and to 2^18264 steps for the variant pair).",
    "next": "Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean.",
    "folder": "holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF",
-   "rank": 34
+   "rank": 35
   },
   {
    "m": "1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---",
@@ -997,7 +1019,7 @@
    "why": "A two-level counter: blocks of 2 at the right end grow by one per round in doubling time while an 11 walks left through a list of 5s; rebuilt at 2e5, 1.1e7, 1.8e8 steps; open.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---",
-   "rank": 35
+   "rank": 36
   },
   {
    "m": "1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---",
@@ -1019,7 +1041,7 @@
    "why": "Binary counter with doublers, variant of 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: a tape with one defect cannot halt.",
    "next": "Prove that every travelling defect disappears before the next round, as for its variant.",
    "folder": "holdouts/1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---",
-   "rank": 36
+   "rank": 37
   },
   {
    "m": "1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE",
@@ -1041,7 +1063,7 @@
    "why": "Up/down counters; ticks and whole tick phases proved in Lean; macro map (copy/eat steps with a digit walk) in closed form (checked, not proved); with it no halt in 10^8 macro steps (more than 10^153,000,000 steps); open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE",
-   "rank": 37
+   "rank": 38
   },
   {
    "m": "1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE",
@@ -1063,28 +1085,6 @@
    "why": "A clock: at each visit of the left end in state E the block 1^(3+2k) has grown by 2, and the word to its right has gone through 2^k applications of one map P (one excursion of the head into the word) — proved in Lean for every k, for each tick whose 2^k trips all return; a phase ends when P fails to come back. Exact accelerated run: 30 phases to 2.363·10^194 steps, no halt. Halting needs C on a 1 with a 1 to its left (1 C>1).",
    "next": "Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next.",
    "folder": "holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE",
-   "rank": 38
-  },
-  {
-   "m": "1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
-   "id": 4320,
-   "fam": "R07",
-   "famname": "Up/down counters and two binary counters with rebuilds",
-   "set": "T232",
-   "mates": 1,
-   "stage": "finite",
-   "score": 46.0,
-   "route": "either",
-   "work": "lean",
-   "kernel": 3,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Shift-overflow counter",
-   "why": "Binary counter applying one list operation W per tick; the block list is the binary expansion of the time to the next rebuild (checked, not proved); rebuild transients simulated directly; no halt in 986 rebuilds (more than 10^31,896 steps); tapes of the same shape halt; open.",
-   "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
-   "folder": "holdouts/1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---",
    "rank": 39
   },
   {
