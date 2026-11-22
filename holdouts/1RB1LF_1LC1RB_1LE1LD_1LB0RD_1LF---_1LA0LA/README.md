@@ -280,9 +280,9 @@ ladder of levels only sets the clock. `py/lsa_*.py` turns that into arithmetic:
   hits that K super-cycles need from above, when the region below must still receive Z hits, are
   I_1 = a^(K−1)(aZ + b) + (aP + b)(a^(K−1) − 1)/(a − 1) (`blocks_closed` in `lean/Accel.lean`, for every K). The
   rest first takes its c·K hits in one `hpow`; if it has no event, the eater's leftover fuel and the new rest are
-  the next region (the next *phase*). Counts too large to write down are kept as sums of c·2^e (`lsa_sym.py`).
+  the next region (the next *phase*). Counts too large to write down are kept as a mantissa and an exact exponent (`BigF`).
 
-Kinds of eater met so far: ×256 (3,633 or 2,283 hits, 27 units of fuel, 5 hits down), ×64 (730 hits, 4 units,
+Kinds of eater met so far: ×1024 (on the twin), ×256 (3,633 or 2,283 hits, 27 units of fuel, 5 hits down), ×64 (730 hits, 4 units,
 21 down), ×16 (39 hits, 11 units, 1 down), ×1 (11 hits, 6 units, 2 down). A block that is not regular falls back to
 plain batches.
 
@@ -290,7 +290,32 @@ plain batches.
 10^1600 (between the sixth and the seventh event), the accelerator finds the seventh event at exactly wall visit
 6.354265240826449…·10^2236 (all 2,237 digits), the visit the digit engine found by running every visit. With the
 phase jumps off (`explicit`: only batches of hits) the same visit comes out in 128 s; with 7 nested phase jumps
-(×256, ×16, ×1) in 9 s. The ×64 kind has not been checked against plain batches yet; it uses the same code.
+(×256, ×16, ×1) in 9 s.
+
+*Second pass, the same day.* Four changes, all checked against the old results:
+
+* *Only the head of the word is read.* Each batch used to turn the whole bottom word into tokens and back (about
+  200,000 tokens for the twin); now a region segments and inspects only a prefix and shares the rest of the list.
+  A phase of the twin went from about 10 s to 2 s.
+* *Cached transitions* (`fast_next` in `lsa_phase.py`). After a phase the word is the eater with its leftover fuel,
+  then the rest. The way to the next phase reads only the rest up to the next big fuel F. It is computed once with
+  everything after F opaque (a token that only counts the r hits it receives), for six values of F with the same
+  residue mod 4 (F + 0, 4, 8, 12, 44, 4000), and is used only if all six agree with just F's count moving. The
+  real tail then gets its r hits in one `hpow`. Anything else (the opaque part read, an event in the
+  transition, a mismatch) takes the plain step. On the twin's first 700 phases the cached run and the plain run
+  give the same 701st phase and the same total (exponent exact, mantissa to 15 digits). It runs at about 5 phases a
+  second instead of one every 2 s.
+* *Counts too large to write down* are now a float mantissa with an exact integer exponent (`BigF`), instead of
+  sums c·2^e that grew with every phase. With the exact limit forced down to 1,000 bits, the seventh event comes
+  out as 2^7430·1.413…, which is the exact visit to 16 digits.
+* *A bug fixed in events below an eater:* one hit of the eater can pass several hits down, and the positions of
+  the passes inside a super-cycle counted it once. This only mattered when an event falls inside a phase.
+
+*The ×64 kind against plain batches* (`KMIN` raised so that no phase is jumped). Words cut from the twin's descent
+(80 tokens, fuels set to 150 to 3,149, the first 45 or 70 tokens of the twin's word at visit 10^3200 appended as a
+ladder) end in an event inside a ×64 phase of 107 super-cycles, after about 1.5·10^157 or 7.9·10^68 top hits. In
+all 6 cases the event comes at the same top hit with and without the jump. Words of 200 tokens (no phase) agree
+too.
 
 *The return sweep of the eighth event.* A hook that hands the engine's visits of the whole word to the ladder
 (`gpow` through a region) gave the same words and steps where it was sampled, but no real speedup in the return
@@ -316,4 +341,5 @@ cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF--
 gcc -O2 -o wv ../c/wv.c && ./wv 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 3e6 0 1 > ref.txt && python3 ./accel_check.py 1 ref.txt   # accelerator against direct simulation
 python3 ./calibrate.py 1 && python3 ./accel_run.py 1 100 100 8                 # step constants; the accelerated run
 python3 ./lsa_run.py 1 1600                                     # level-stripping accelerator: the seventh event in seconds
+LSA_CKPT=ck.pkl python3 ./lsa_run.py 2 3200                     # the twin from visit 10^3200 (checkpoints in ck.pkl, resumes from it)
 ```

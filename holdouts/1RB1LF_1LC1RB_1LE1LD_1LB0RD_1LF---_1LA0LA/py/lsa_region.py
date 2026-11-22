@@ -5,11 +5,38 @@ import geng
 from geng import show, to_tokens
 
 
+def prefix_tokens(T, n):
+    """the first n tokens of the word T and the cons cell after them (the shared tail)"""
+    out = []
+    while T is not None and len(out) < n:
+        t = T[0]
+        if type(t) is tuple and t[0] == 'E':
+            T = t[1]
+            continue
+        out.append(t); T = T[1]
+    return out, T
+
+
+def seg_prefix(T, op, head=(), n=256):
+    """segment head ++ T, looking only at a prefix: (levels, bottom word); the same as segmenting the whole word,
+    because segment looks at most JMAX tokens ahead"""
+    while True:
+        pt, tail = prefix_tokens(T, n)
+        toks = list(head) + pt
+        lv, ib = segment(toks, 0, op)
+        if tail is None or ib + JMAX + 2 < len(toks):
+            return lv, build(toks[ib:], tail)
+        n *= 4
+
+
 class Region:
-    def __init__(self, toks, op='h', Q=44, log=None):
+    def __init__(self, toks, op='h', Q=44, log=None, tail=None):
         self.top_op = op
-        self.levels, ib = segment(toks, 0, op)
-        self.B = build(toks[ib:], None)
+        if tail is None:
+            self.levels, ib = segment(toks, 0, op)
+            self.B = build(toks[ib:], None)
+        else:
+            self.levels, self.B = seg_prefix(tail, op, head=toks)
         self.Q = Q
         self.steps = 0          # machine steps of everything delivered
         self.used = 0           # hits that entered at the top
@@ -17,10 +44,8 @@ class Region:
         self.log = log
 
     def migrate(self, W):
-        tb = to_tokens(W)
-        nl, ib = segment(tb, 0, 'h' if self.levels else self.top_op)
+        nl, self.B = seg_prefix(W, 'h' if self.levels else self.top_op)
         self.levels += nl
-        self.B = build(tb[ib:], None)
 
     def _bottom(self, q):
         geng.C[0] = 0
