@@ -24,6 +24,10 @@ frame), from two loop lemmas (`loop_ba`, `loop_cd`) and single cases of `next`, 
 **`halts_iff_rules`: the machine halts from blank tape if and only if the orbit of (2, 9) under `op` reaches a
 pair with b = 3.**  `no_b3`: by `native_decide`, not in the first 10^8 visits (about 6.8·10^23 machine steps by the
 rules' step counts of `py/rules.py`; `c/abrun.c` follows the same orbit much further).
+
+`op_sum`: every rule adds at least 2 to a + b (3 or 4 for all but the rare restarts and short rule), so
+`orbit_sum`: after k visits a + b ≥ 2k + 11.  With s = a + b as a clock, the rules are a doubling map on a / s:
+the swap (a ≥ b) is a ↦ 2a - s + 1, the growing rules a ↦ 2a + 4 or 2a + 3.
 -/
 
 namespace H8084
@@ -331,6 +335,33 @@ theorem orbit (k : Nat) (a b : Nat) (h : opIter k (2, 9) = some (a, b)) :
       rw [ho, Option.some.injEq, Prod.mk.injEq] at h
       obtain ⟨rfl, rfl⟩ := h
       exact ⟨hd', n + m, by omega, by rw [iter_add, hi, Option.bind_some, hr]⟩
+
+
+/-! ## The sum a + b is a clock -/
+
+/-- Every rule adds at least 2 to a + b (3 for the growing rules, 4 for the swap, 6 or 7 for the restarts, 2 for the
+short rule), so a + b counts the visits: the orbit is a doubling map on a / (a + b) with a slowly growing modulus. -/
+theorem op_sum (a b a' b' : Nat) (hd : dom a b) (h : op (a, b) = some (a', b')) : a + b + 2 ≤ a' + b' := by
+  obtain ⟨ha, hb, h2, h3⟩ := hd
+  simp only [op] at h
+  repeat' split at h
+  all_goals first
+    | (obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj h); omega)
+    | exact absurd h (by simp)
+
+theorem orbit_sum (k a b : Nat) (h : opIter k (2, 9) = some (a, b)) : 11 + 2 * k ≤ a + b := by
+  induction k generalizing a b with
+  | zero => simp only [opIter, Option.some.injEq, Prod.mk.injEq] at h; omega
+  | succ k ih =>
+    cases hk : opIter k (2, 9) with
+    | none => rw [opIter_none k _ hk] at h; exact absurd h (by simp)
+    | some y =>
+      obtain ⟨a0, b0⟩ := y
+      rw [opIter_succ k _ _ hk] at h
+      have := op_sum a0 b0 a b (orbit k a0 b0 hk).1 h
+      have := ih a0 b0 hk
+      omega
+
 
 theorem iter_none_after (p q : Ph) (k : Nat) (h : iter k p = some q) (hn : next q = none) :
     ∀ j, iter (k + 1 + j) p = none := by

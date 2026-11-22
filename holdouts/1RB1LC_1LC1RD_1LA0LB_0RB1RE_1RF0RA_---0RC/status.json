@@ -120,6 +120,12 @@
    "where": "<code>lean/Rules.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "a + b is a clock",
+   "text": "<code>op_sum</code>: every rule adds at least 2 to a + b; <code>orbit_sum</code>: after k visits a + b &ge; 2k + 11. (In the run the growing rules add exactly 3, the swap 4, so a + b &asymp; 3.5 per visit.)",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps)",
    "text": "<code>tools/collatz/c/amap.c</code> iterates the rules from A(2, 9): 10<sup>12</sup> visits without b = 3, ending near a, b &asymp; 3.5&middot;10<sup>12</sup>; by the rules' exact step counts that is about 6.8&middot;10<sup>35</sup> machine steps. The steps grow like 0.68&nbsp;N<sup>3</sup> in the number N of visits. <code>c/abrun.c</code> (128-bit integers, exact step counts, every visit with 1 &le; b &minus; a &le; 8 logged) agrees over the first 1.4&middot;10<sup>11</sup> visits.",
@@ -130,6 +136,12 @@
    "title": "No congruence invariant excludes b = 3",
    "text": "The halt needs a visit A(a, a + 4) with a even. Over the visits with b &gt; a and b &minus; a &le; 10<sup>6</sup> among the first 3&middot;10<sup>9</sup>, the residues (a mod M, (b &minus; a) mod M) are far from uniform, yet for every M tried (2<sup>k</sup> up to 256; 48, 90, 120, 210, 252) the classes with a even and b &minus; a &equiv; 4 get the same share as any other even residue. The rules applied to residues mod every even M up to 128 also reach them.",
    "where": "<code>c/abres.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A doubling map in disguise",
+   "text": "With s = a + b as the clock, the swap is a &#8614; 2a &minus; s + 1 and the growing rules a &#8614; 2a + 4 or 2a + 3: x = a/s follows x &#8614; 2x mod 1 up to O(1/s). The swap/grow digits are its binary expansion; their blocks of 12 are equidistributed over the first 10<sup>9</sup> visits (chi-square 3,956 on 4,095 degrees of freedom). The halt asks for one exact point of this map.",
+   "where": "<code>c/abdig.c</code>"
   },
   {
    "level": "heuristic",
@@ -258,6 +270,7 @@
     "html": [
      "<p><code>lean/Rules.lean</code> proves each rule above for all sizes from the frame map (a zigzag of b/a frames, a sweep of d/c frames, a few single cases), and with it <code>halts_iff_rules</code>: <b>the machine halts from blank tape if and only if the rules lead from A(2, 9) to some A(a, 3)</b>. The only rule that can give b = 3 is the growing rule from A(a, a + 4) with a even. So the whole question is whether the orbit ever lands exactly on that diagonal.</p>",
      "<p>Following the orbit is cheap: one visit is a few integer operations, while the sizes grow only about linearly in the number of visits. <code>no_b3</code> checks the first 10<sup>8</sup> visits in Lean (about 6.8&middot;10<sup>23</sup> machine steps), and C runs the first 10<sup>12</sup> (<code>tools/collatz/c/amap.c</code>; about 6.8&middot;10<sup>35</sup> steps, a and b near 3.5&middot;10<sup>12</sup>). Half the visits are swaps and almost all the rest growing rules; restarts are rare (8 in the first 10<sup>7</sup> visits).</p>",
+     "<p><b>Why it looks random.</b> Every rule adds a fixed amount to s = a + b (3 for a growing rule, 4 for a swap; proved in Lean as <code>op_sum</code>), so s is a clock, about 3.5 per visit. Measured against it, the swap is a &#8614; 2a &minus; s + 1 and the growing rules are a &#8614; 2a + 4 or 2a + 3: the ratio x = a/s just doubles mod 1, the binary shift, with a little noise from the +3s and +4s. The sequence of swaps and growths is the binary expansion of x, and its blocks of 12 digits come out equidistributed. A halt needs the orbit to land on one exact point, a = (s &minus; 4)/2 with a even, which is the same kind of question as whether a Collatz orbit ever hits a given number.</p>",
      "<p><b>No congruence does it.</b> The residues of a and b &minus; a at the visits are far from uniform (when a is 2 or 3 mod 4, b is always odd), but for every modulus tried, the classes with a even and b &minus; a &equiv; 4 get their full share of visits, and the rules applied to residues reach them too.</p>",
      "<p><b>The halting visit looks like a rare random event.</b> For each small even g, visits with a even and b &minus; a = g come about 0.11 times per decade of the visit index, steadily from 10<sup>5</sup> to 10<sup>10</sup>. For g = 4 that predicts about 1.3 halts so far, so having seen none says little. Orbits from random starts of size 10<sup>9</sup> do halt by this rule (5 of 9,000 within 10<sup>6</sup> visits; for example A(264421744, 92483937) after 485,721 visits). If the orbit behaves like a random one, it halts with probability 1, but the median wait is about 2&middot;10<sup>18</sup> visits, about 10<sup>55</sup> machine steps, beyond any direct run. Proving that it never halts would need an argument that the visits always miss one exact diagonal, and nothing of that kind is in sight.</p>"
     ]
