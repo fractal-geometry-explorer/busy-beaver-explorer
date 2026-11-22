@@ -84,8 +84,14 @@
   {
    "level": "kernel",
    "title": "The return after a 00 pulse, word by word",
-   "text": "After a <code>00</code> pulse the head comes back over the images in one of three modes. 21 rules, each for every tape around: in mode C the images become words again; in mode E an image <code>11</code> stays <code>11</code>, so a stretch of <code>01</code> words becomes one run of 1s (a new fuse), and an image <code>100</code> switches to mode A; in mode A an image <code>11</code> becomes a run of two. Mode A on an image <code>100</code> sends the head right again; that excursion is not covered.",
+   "text": "After a <code>00</code> pulse the head comes back over the images in one of three modes. 21 rules, each for every tape around: in mode C the images become words again; in mode E an image <code>11</code> stays <code>11</code>, so a stretch of <code>01</code> words becomes one run of 1s (a new fuse), and an image <code>100</code> switches to mode A; in mode A an image <code>11</code> becomes a run of two. Mode A on an image <code>100</code> sends the head right again; that excursion is a new pulse (next claim). The starting pattern of every rule occurs on the run from blank tape (96 to 8.3&middot;10<sup>7</sup> times in its first 2&middot;10<sup>9</sup> steps, <code>c/return_count.c</code>).",
    "where": "<code>lean/Return.lean</code> (written by <code>py/ret_rules.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Mode A at a 011 word starts a new pulse",
+   "text": "When mode A reaches the image <code>100</code> of a word <code>011</code>, the head is in state A on a 0 that, with the carry after it, is a list of words, so the excursion is an ordinary pulse to the next defect. If that defect is a run of three or more 1s, the packet comes back, turns <code>10 111</code> into <code>11 011</code>, and the head goes on left in mode E (proved for the carry <code>110110</code> in full, 35 steps). If it is a <code>00</code>, a nested <code>00</code> pulse starts. So the return after a <code>00</code> pulse is recursive.",
+   "where": "<code>start_110110</code>, <code>after_w01</code>, <code>excursion_110110</code>, <code>lean/Excursion.lean</code>"
   },
   {
    "level": "heuristic",
