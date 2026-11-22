@@ -83,14 +83,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves the sweeps, the ticks of the two common families for chains of any length and blocks of any size, one rebuild for every length of its last block, and that every halt must come from <code>B&gt;0 1 1</code> (kernel). It also proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>). A C program checks the block form at all 30,932 right-end turns of the first 10<sup>10</sup> steps.</p>
       <p><b>What it does.</b> The tape is <code>1010&hellip;</code> cut into blocks <code>(10)<sup>n</sup></code> by single extra cells, the separators (1 or 0). A round trip from the right end, a <i>tick</i>, sweeps left over some separators, turns at one, and sweeps back, complementing everything it crosses. Which separator it turns at, and how the block lengths change, depends on the separators and the parities of the blocks; two families of rules cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps. The last block grows by one or two each tick, so the right edge grows smoothly.</p>
-      <p><b>The rebuilds.</b> 238 of those ticks reach the left end instead. There the head works for a long time and rebuilds the front of the list; the same sequences of lists then recur with more blocks on the right, on larger and larger scales.</p>
+      <p><b>The rebuilds.</b> 258 ticks of the first 10<sup>10</sup> steps need the left end of the list. Each is a front and a chain: the chain behaves as in an ordinary tick, and the front follows a small rule. For 198 of them (13 front shapes) Lean proves the whole tick for every chain length and all block sizes. The other 54 are <i>copy ticks</i>: the head shuttles between the left end and a block X and copies it into a new first block 2X &minus; c, where c and the rest of the front depend only on the blocks in front of X (checked on the machine for every copy tick of the run). After each copy the blocks in front of the new big block replay the run from blank tape.</p>
       <p><b>Where a halt would come from.</b> Only F reading a 1 halts. Two steps before a halt the machine must be at <code>B&gt;0 1 1</code> (<code>halt_route</code>): E is entered only from A reading a 1, which leaves a 0 to E's right, so <code>E&gt;1 1</code> never occurs. In block terms B would have to stand on the last 0 of a block followed by a separator 1; in the run F always reads a 0.</p>
     </div>
   </section>
@@ -150,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>rebuild_3_3_12_15_1_48</code>, <code>lean/Rebuild.lean</code> (written by <code>py/rebuild.py</code>)</p>
       </div>
       <div class="card">
+        <h3>The left-end ticks of 13 front shapes, for every chain length</h3>
+        <p>A left-end tick of <code>F . m<sub>1</sub> . &hellip; . m<sub>k</sub></code> (the m's even, k even) is the ordinary left pass over the m's, one piece at the left end, and the ordinary right pass. For each of the 13 front shapes F that occur in the first 10<sup>10</sup> steps the piece is proved for all block lengths, and with the passes the whole tick, from one right-end turn to the next, for every k. In block notation the rules are: <code>n<sub>0</sub> . C</code> becomes <code>3|n<sub>0</sub>&minus;1|C'</code> (C even) or <code>n<sub>0</sub>+3|C'</code> (C odd); <code>n<sub>0</sub>|g<sub>1</sub>|&hellip;|g<sub>j</sub>|x . C</code> becomes <code>n<sub>0</sub>+4|g<sub>1</sub>|&hellip;|g<sub>j</sub>|x&minus;1|C'</code>; and four more (README), where C' has every separator 1 and its blocks changed by +1, +1, &minus;1, +1, &hellip; from the right. They cover 198 of the 258 left-end ticks of the first 10<sup>10</sup> steps, and the rules agree with the run at all 198.</p>
+        <p class="where"><code>tick_&lt;shape&gt;</code>, <code>lean/Front.lean</code> (written by <code>py/front.py</code>); the check against the run: <code>py/front.py classify</code></p>
+      </div>
+      <div class="card">
         <h3>A first run 4 cells longer changes nothing else, for every way of entering it</h3>
         <p>In the table of 32883 the head can step onto the last cell of the first run of the tape in five states, on a 0 or a 1. For each of these ten entries the outcome for a run of n + 4 cells is the outcome for n cells with one more copy of a 4-cell word: same exit state, same cells left behind. Proved for every bounce with any tape further left, and for every sweep with n = 4a + 5 to 4a + 8, all a. It holds for the three sister machines after renaming the states (and mirroring).</p>
         <p class="where"><code>holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/lean/Shift4.lean</code> (generated by <code>py/shift4.py</code>)</p>
@@ -179,6 +184,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 1.26&middot;10<sup>17</sup> steps (accelerated run, blocks of 4)</h3>
         <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,688,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 1.26&middot;10<sup>17</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- 4 2688400000</code></p>
+      </div>
+      <div class="card">
+        <h3>The copy ticks depend on the copied block only through the new block</h3>
+        <p>54 left-end ticks read <code>P|1 . X . C</code>. The head loops between the left end and X and copies X into a new first block N. For each of the 52 ordinary ones, the same tick run on the machine with X + 2, X + 10, X + 100 and with two other chains changes only N, by twice the change of X: the tick gives <code>N|P'|C''</code> with N = 2X &minus; c(P), and c and P' depend only on P (33 different P occur; for example <code>3|1.X</code> gives <code>(2X&minus;1)|9</code> and <code>3|3|12|15|1.X</code> gives <code>(2X&minus;8)|6|2|13|21</code>). The two others copy the block between two 1s instead.</p>
+        <p class="where"><code>py/copy.py</code> with <code>c/tick.c</code></p>
       </div>
       <div class="card">
         <h3>The block form</h3>
@@ -219,6 +229,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
       <div class="card">
+        <h3>The front replays the blank run in front of each new big block</h3>
+        <p>After a copy tick, the blocks that grow in front of the new big block follow the lists of the run from blank tape (<code>4</code>, <code>3|5</code>, <code>3|3|6</code>, <code>3|3.8</code>, <code>2|5|9</code>, &hellip;), with the blank run's growing last block replaced by a shrinking one next to the big block; copies from further right interrupt the replay. The rework of P in a copy tick looks like a small transducer read from the right (README); it is read off the run, not derived.</p>
+        <p class="where">the README, section &ldquo;The left-end ticks decoded&rdquo;</p>
+      </div>
+      <div class="card">
         <h3>Recurrence on growing scales</h3>
         <p>The rebuild at step 22,986 (<code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>) recurs at step 778,692 with three blocks more on the right (<code>&hellip;1.48.212.258.468</code> to <code>88|6|2|13|21|210|259|469</code>), and likewise 81,286 / 1,452,208; the list has 8 blocks at 10<sup>6</sup> steps, 12 at 10<sup>9</sup>, 14 at 10<sup>10</sup>.</p>
         <p class="where"><code>c/blocks.c</code></p>
@@ -248,7 +263,10 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/route.py   # write
 gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c &amp;&amp; ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # writes lean/Chain.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # writes lean/Rebuild.lean
-python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300</code></pre>
+python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py lean   # writes lean/Front.lean
+./blocks 1e10 &gt; blocks.txt &amp;&amp; python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py classify &lt; blocks.txt &gt; classify.txt
+gcc -O2 -o tick holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/tick.c &amp;&amp; python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick &lt; classify.txt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>
