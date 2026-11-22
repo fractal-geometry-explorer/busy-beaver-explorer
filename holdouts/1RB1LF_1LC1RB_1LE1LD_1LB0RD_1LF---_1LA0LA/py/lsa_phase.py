@@ -239,7 +239,7 @@ FRAMES = []
 
 def save_state(path, R, frames, nph):
     st = dict(levels=R.levels, B=to_tokens(R.B), used=R.used, depth=R.depth, Q=R.Q, op=R.top_op,
-              seen=getattr(R, 'seen', {}), frames=frames, nph=nph, SCPOS=SCPOS, SCNEG=SCNEG, PFX=PFX)
+              seen=getattr(R, 'seen', {}), frames=frames, nph=nph, SCPOS=SCPOS, SCNEG=SCNEG, PFX=PFX, TCACHE=TCACHE)
     with open(path + '.tmp', 'wb') as f:
         pickle.dump(st, f, protocol=4)
     os.replace(path + '.tmp', path)
@@ -250,7 +250,7 @@ def load_state(path):
     R = PRegion([], Q=st['Q'], op=st['op'])
     R.levels = st['levels']; R.B = build(st['B'], None); R.used = st['used']; R.depth = st['depth']
     R.seen = st['seen']
-    SCPOS.update(st['SCPOS']); SCNEG.update(st['SCNEG']); PFX.update(st['PFX'])
+    SCPOS.update(st['SCPOS']); SCNEG.update(st['SCNEG']); PFX.update(st['PFX']); TCACHE.update(st.get('TCACHE', {}))
     return R, st['frames'], st['nph']
 
 
@@ -264,6 +264,7 @@ def load_state(path):
 # the transition, or any mismatch falls back to the plain step.
 TCACHE = {}
 FAST = [True]
+HOOK = [None]      # called with (phase number, sc, E, fuel index, rest, K) at each phase
 BIGF = 10 ** 6
 MODF = 4              # the transition may depend on F mod MODF (it does: the eater takes 4 units a round)
 SHIFTS = (0, 4, 8, 12, 44, 4000)
@@ -384,6 +385,8 @@ def run_to_event(R, ckpt=None, every=200, frames=None, nph=0):
         LOG[0]('%sPHASE %d: eater %s with fuel %s: K = %s super-cycles of %d hits (fuel -%d, %d hits down, block x%d%+d)' % (
             '  ' * min(depth, 20), nph, show(build(E[:fi], None)), short(E[fi][1]), short(K), P, sc['dm'], c, a, b))
         fr = (used, levels, P, a, b)
+        if HOOK[0]:
+            HOOK[0](nph, sc, E, fi, rest, K)
         # the rest gets c hits per super-cycle, whatever it does with them (the eater never looks at it)
         geng.C[0] = 0
         W, done = geng.hpow(c * K, rest)
