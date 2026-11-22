@@ -31,6 +31,9 @@ keeps growing while the rest churns.
 - Lean, kernel only (`lean/Blank.lean`, generated): the halting configurations (`step_none_iff`) and no halt in the first 10,000 steps; with `native_decide`, none in the first 10<sup>7</sup>.
 - Lean, kernel only (`lean/Rules.lean`, written by `py/rules.py`): the shift rules of the leftward sweep in B across `(01)^n` and `(011)^n` (`shift_l_B_01`, `shift_l_B_011`).
 - C (`tools/c/triage.c`, trusted): no halt in the first 10<sup>9</sup> steps.
+- Lean, kernel only (`lean/EngineRules.lean`, written by `py/engine_rules.py`): 11 of the macro rules of DeepMind's
+  busycoq PR 93 engine as they hold for this machine, for every count, including the 5 that differ from PR 93's table
+  (see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
 
 Everything else above is measured on runs (heuristic), not proved.
 
@@ -45,12 +48,50 @@ More than a day. Next: (1) follow the periodic block over time (how many copies 
 sweep across it with `symtm.prove`; (2) look at the irregular part as a list of numbers (runs 1^(3a+1)) and test
 whether the sweep acts on it as a finite transducer.
 
+## PR 93's engine on this table (22 November 2026)
+
+**Result: the engine does not carry over.** The question stays open; no halt was found.
+
+- **The table.** Exchange the names E and F, and replace the detour D0 `1LE`, E0 `0RA`, A1 `1RA` by the single step
+  `1RA`. The detour ends in the same configuration unless the cell left of D is 1, where the machine halts. The table
+  becomes G = `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1LE`. That is the table T3 of DeepMind's halting proof in
+  [busycoq PR 93](https://github.com/ccz181078/busycoq/pull/93) (`1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB---`) with
+  one transition changed, E1. T3 erases the 1 and steps left twice (E1 `0LF`, F0 `0LB`). G keeps the 1 and walks left
+  over 1s (E1 `1LE`). G has no halting transition. **This machine halts exactly when G's run from blank tape has D
+  reading 0 with a 1 on its left.**
+- **The rules.** PR 93's engine works with three configurations, `CfgR l r = l A> 0100 r`, `CfgL l r = l <B 1 r`
+  and `CfgJ l r = l <C 100 r`, and the digit words `D n = 1 (11)^n 00`. Of its 18 basic rules, 14 hold here
+  unchanged (direct simulation, counts up to 4, random tape around). The four that end in `CfgJ` (collision,
+  collide, defect0, finishP) still end in `CfgJ`, but where T3 writes the digit `D (k+1)`, this machine writes
+  `D k 10`. Lean proves 11 of the rules for every count, including all 5 changed forms (`lean/EngineRules.lean`). In
+  none of the 18 rules does D read 0 next to a 1, so a halt can only come where an engine steps cell by cell.
+- **Why PR 93's engine does not carry over.** For T4 (the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE) the
+  same four rules only moved a carry from one digit to the next, so the engine's counting of calls (one call: from
+  `CfgR l r` to `CfgL l s` without touching `l`) survived a patch. Here a call that collides leaves a `10 10`:
+  PR 93's `call (D_j 10 D0 D0 r) (D_(j+1) D2 10 r)` becomes `D_(j+1) D1 10 10 r` (checked for j = 0 to 3). The next
+  call that meets `10 10` does not return within the words it was given; it runs on into the tape beyond. In the run,
+  repeated calls add `D1 D2` once per two calls. PR 93's batched calls (`doCallsD`) have no counterpart, and a new
+  engine would need this machine's own call algebra.
+- **What the tape looks like** (left-end visits, direct run to 3·10^10 steps). The tape is a list of digits `D n`
+  with a few `10` defects. It holds halving chains, for example at step 12,537,719,512
+  `D5773 D0 D0 D2884 10 D1440 10 D0 D0 D0 D720 D1 D359 D1 D179 D1 D89 …`, and growing periodic blocks:
+  `(D2 D1)^15875`, `(D3 D0)^3841`, `(D0 D0 D3)^105`. The block `1^7 00 1 00` of the section above is `D3 D0 D0`.
+- **Accelerated runs.** The accelerated simulator `rsim.py` (validated against direct simulation at 6 points up to
+  10^10 steps) found no halt in 984,180,560,109,706,163 steps (9.8·10^17; 3 hours, 350 jumps). The recursive-rule simulator `tools/py/bbtools/rleaccel_rec.py` stalls
+  near 10^8 steps (K = 2, 3, 6; 5 minutes each).
+
+The same table from other starts: 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF (start B),
+1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF (start C) and 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF (start D). The same
+changed rules apply to all four.
+
 ## Reproduce
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/lean/check.sh
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/rules.py          # rewrites lean/Rules.lean
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/observe.py 1e7 B 6  # the tape at the last moments each end grew
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/engine_rules.py   # rewrites lean/EngineRules.lean
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 10800
 ```
 
 ## Pages

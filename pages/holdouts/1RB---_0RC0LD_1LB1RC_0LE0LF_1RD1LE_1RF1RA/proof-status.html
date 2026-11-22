@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. The tape is almost all 1s: blocks separated by single 0s, plus one double 0 near the left end. At the left end a zigzag cuts the first block down to two thirds of its length, over and over, a little like writing a number in base 3/2; at the right end the machine merges blocks back together.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, but it is now an exact arithmetic question.</b> Lean proves (kernel only) that the machine is a rewriting system on lists of block lengths, the <em>block map</em>, with 16 cases, and that it halts from blank tape if and only if the block map reaches one of three critical frames: <code>0 1 1 C&gt;0 1</code>, <code>0 1 B&gt;1 1 1</code> or <code>F&gt;1 1</code>. By <code>native_decide</code> none of the first 10<sup>8</sup> frames is critical (3.0·10<sup>11</sup> machine steps). Whether a critical frame is ever reached is not known.</p>
+      <p><b>The question is open, but it is now an exact question about one pattern.</b> Lean proves (kernel only) that the machine is a rewriting system on lists of block lengths, the <em>block map</em>, and that it halts from blank tape if and only if the block map reaches the frame <code>0 1 1 C&gt;0 1</code>. The other two critical frames, <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code>, are excluded by an invariant. That frame can only be reached in a sweep of the head to the right, and whether a sweep halts is read off the block list where it starts. By <code>native_decide</code> none of the first 10<sup>8</sup> frames is critical (3.0·10<sup>11</sup> machine steps). Whether a halting sweep ever starts is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -134,6 +134,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>It halts iff the block map reaches a critical frame</h3>
         <p>The block map is undefined exactly at three kinds of frames: C just after a block of exactly two 1s when the cell after the next is a 1 (<code>0 1 1 C&gt;0 1</code>); B on a block of at least three 1s just after a block of exactly one 1 (<code>0 1 B&gt;1 1 1</code>); F on a block of at least two 1s (<code>F&gt;1 1</code>). From each the machine halts within 8 steps. The run from blank tape reaches the frame <code>B [1] []</code> after one step, and the machine halts from blank tape if and only if the orbit of that frame under the block map reaches a critical frame.</p>
         <p class="where"><code>next_none_iff</code>, <code>none_halts</code>, <code>init_start</code>, <code>halts_iff_critical</code>, <code>lean/Blocks.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>An invariant of every frame: two of the three critical frames are never reached</h3>
+        <p>After the first frame, every E frame is <code>E L (m :: 0 :: R')</code> with m ≥ 1 and no other empty block (the tape <code>blk(L) E&gt;0 1^m 0 0 blk(R')</code> has exactly one double 0); every C frame has at least two blocks on its left, the second not empty, and an empty block on its right only first; every B frame has at least five 1s left of the head and no empty block; and no F frame is ever reached. So the critical frames <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code> never occur, and <b>the machine halts iff the block map reaches <code>C (2 :: L) (r+1 :: R)</code></b>, never straight from an E frame.</p>
+        <p class="where"><code>inv_next</code>, <code>inv_orbit</code>, <code>no_F</code>, <code>no_B_critical</code>, <code>halts_iff_C</code>, <code>critical_after_BC</code>, <code>lean/Invariant.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>It halts iff some sweep to the right starts on a bad block list</h3>
+        <p>While the head moves right through C frames, each step moves one block from the right list to the left list, until the first block of 0 or 1 cells: a 0 turns the head round, a 1 halts unless it is the last block. A sweep starts at a B frame (or at <code>E L (1 :: 0 :: R)</code>). The machine halts from blank tape iff the run reaches a sweep start whose right list r₀, r₁, … has r₀ = 3 and r₁ ≥ 1, or r₀ ≠ 2 and a block of exactly one 1, not the last, before the first block of 0.</p>
+        <p class="where"><code>bad</code>, <code>bad_reaches</code>, <code>safe_step</code>, <code>halts_iff_sweep</code>, <code>lean/Sweep.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A descent at the left end that ends after an even cut starts its sweep on 4u+1 cells</h3>
+        <p><code>E [] (18u+6 :: 0 :: j :: R)</code> reaches <code>B [8u+7] (4u+1 :: j+6u+1 :: R)</code> in 30u + 7 frames. After the first cut every value of a left-end descent is even, so a descent whose last cut is from a block divisible by 3 hands the sweep a first block of 1, 5, 9, 13, … cells, never 3. A first block of 3 needs the odd block of 15 of <code>halts_of_15</code>.</p>
+        <p class="where"><code>cut_even</code>, <code>lean/Cuts.lean</code></p>
       </div>
       <div class="card">
         <h3>How the cut is made</h3>
@@ -201,6 +216,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A C program runs the block map with every zigzag taken in one step (the rule above) and tests each frame for the three critical frames and for the left-end loop. From the first frame it runs 249,644,974,080 such steps without either; the tape then holds 53,495,934,532 ones. It gives the same frame as <code>py/blockmap.py</code> after the first 4·10<sup>7</sup> frames of the block map. The program counts its own steps, not machine steps; the earlier accelerated run reached 5.3·10<sup>7</sup> cells at 3.08·10<sup>21</sup> machine steps, and steps grow roughly like the cube of the width, so this is of the order of 10<sup>30</sup> machine steps (an estimate, not a count).</p>
         <p class="where"><code>c/series.c</code>: <code>./series 249644974080</code> (about 25 minutes)</p>
       </div>
+      <div class="card">
+        <h3>The sweep starts of the run</h3>
+        <p>In 10<sup>9</sup> frames of the block map with zigzags in one step (71,452,928 B frames, 2.1·10<sup>8</sup> ones at the end) no sweep start is bad. The first block of a sweep start, when it is not the last block, is below 32 only 140 times. The values are 1, 5, 8, 9, 13, 14, 15, 16, 17, 18, 21, 25, 28, 29, 30, 31, mostly 1 mod 4, and never 2, 3, 4, 6 or 7. The smallest later block a sweep reads before turning, away from the last block, is 2 once and otherwise at least 4.</p>
+        <p class="where"><code>c/sweeps.c</code>: <code>./sweeps 1000000000</code> (7 seconds)</p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -214,12 +234,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At the left end a block of m cells is cut to 2(m+1)/3 or 2m/3 cells, again and again, until m ≡ 1 mod 3, when the head leaves to the right. After the first cut the values are even, so 15 can only be the first value of such a descent. In 6·10<sup>10</sup> steps of the C program (1.3·10<sup>10</sup> ones) descents reach a block of at most 20 cells about five times per doubling of the tape, with no sign of dying out: the values cut were 4, 6, …, 20 (15 to 25 times each) and 7, 9, 19 once each, early in the run. In 2,000 restarts from the tape at 647,185 ones with every block of 100 cells or more changed by a random 0 to 99 cells, each run until the tape had grown fourfold, none reached a critical frame or the loop; random small tapes halt often. This suggests the non-halting is structural, but no invariant is known.</p>
         <p class="where"><code>c/series.c</code> built with <code>-DSTATS</code>: <code>./series 60000000000</code>; <code>c/mc.c</code>: <code>./mc 3000000 2000 100 4</code></p>
       </div>
+      <div class="card">
+        <h3>No finite pattern invariant of the two ends closes</h3>
+        <p>After the first 10<sup>5</sup> frames, blocks below 20 cells occur only among the leftmost five or six blocks, as the last block, or next to the head. An abstract block map that keeps up to 8 blocks at each end exactly, values below T exactly and larger ones as "at least k", started from the real frame 10<sup>8</sup>, still reaches the critical frame. Each path it finds makes the last block small and then several small blocks next to each other, which the real run has not produced. What keeps the blocks large is their size, which such a model cannot hold.</p>
+        <p class="where"><code>py/absint.py 30 8 8 START</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts iff the block map ever reaches one of the three critical frames. Two exact events are known that would settle it: cutting a block of exactly 15 cells at the left end (halts) and cutting a block of exactly 2 or 3 cells there (never halts). Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones, although small blocks keep being cut at the left end. No invariant is known that excludes the critical frames. The community tracker lists the machine as a "lottery": each round has a small chance of hitting a critical frame.</p>
+        <p>Not known. It halts iff some sweep to the right starts on a bad block list (in particular iff the block map reaches <code>0 1 1 C&gt;0 1</code>; the other two critical frames are excluded). Two exact events are known that would settle it: cutting a block of exactly 15 cells at the left end (halts) and cutting a block of exactly 2 or 3 cells there (never halts). Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones. The arithmetic of the left-end descents keeps 3 away from the first block of the sweeps they start, but blocks elsewhere are kept large only by their size, and no invariant is known that excludes the bad sweep starts. The community tracker lists the machine as a "lottery".</p>
       </div>
     </div>
   </section>
@@ -230,6 +255,8 @@ holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean/check.sh
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py &amp;&amp; git diff --exit-code holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
+gcc -O2 -o /tmp/sweeps holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/sweeps.c &amp;&amp; /tmp/sweeps 1000000000    # 7 seconds
+python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/absint.py 30 8 8 START    # START: a frame in three lines; prints an abstract path to the critical frame
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000
 gcc -O2 -o /tmp/series holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/series.c &amp;&amp; /tmp/series 249644974080    # about 25 minutes
 gcc -O2 -o /tmp/mc holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/mc.c &amp;&amp; /tmp/mc 3000000 2000 100 4    # about 2 minutes

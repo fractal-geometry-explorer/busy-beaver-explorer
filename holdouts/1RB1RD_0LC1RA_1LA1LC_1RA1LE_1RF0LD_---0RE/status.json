@@ -10,10 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, like its near-twin <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code>. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; an exact macro simulator finds no halt in the first 10<sup>15</sup> steps. Lean proves both phase rules (below) for all sizes.",
-  "<b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from A(0, 0) (the blank tape), reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). What is not proved: that this list holds for every n, and that the run never lands on it.",
+  "<b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from A(0, 0) (the blank tape), reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). <code>lean/Fatal.lean</code> proves that list for every n, by the kernel (<code>ones_fatal_all</code>, <code>ones_safe_all</code>), and <code>lean/Ones.lean</code> puts this together (<code>halt_needs_ones</code>, strong induction on the number of phases): the machine halts from blank tape if and only if its run reaches an all-ones tape of fatal length. What is not proved: that the run never lands on a fatal length.",
   "<b>Where a halt would come from.</b> F0 halts, and F is entered only from E0: the machine halts only when E stands at the left end with at most one 1 after the alternating block. Probing every two-block tape with x, y &lt; 150, a parity rule keeps that from happening except right after the tape has become all ones; from <code>1^n A&gt;0</code> it halts exactly for n = 3, 15, 29, 41, 95, 205 (n &le; 400), the list n = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 plus 3 and 29.",
   "<b>Why it has not halted.</b> All-ones moments are rare: in the first 10<sup>9</sup> steps the tape was <code>1^n A&gt;0</code> at n = 4, 10, 58, 81, 278 and 634, and between 10<sup>9</sup> and 10<sup>15</sup> steps only at n = 5881, 9702, 12113, 28074, 29561 and 405562. None is in the list. The machine very probably never halts, but nothing here proves it."
  ],
@@ -75,7 +75,7 @@
   {
    "level": "heuristic",
    "title": "Halting needs an all-ones tape from a sparse list",
-   "text": "From every two-block tape with x, y, z &lt; 150 the next one was computed. E(x,z) with z even &ge; 2 and A(x,y) with x &ge; 1, y even lead only to tapes of the same kind or to an all-ones tape <code>1^n A&gt;0</code>, never to a halt; the machine halts only from E(x,0) and E(x,1). From <code>1^n A&gt;0</code> the next tape is E(3, n&minus;2), the alternating block then goes 3, 10, 24, 52, &hellip; (x &#8614; 2x+4), and the run halts exactly when the ones run out leaving one: n = 15, 41, 95, 205, &hellip; = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13, plus 3 and 29 (all n &le; 400 checked directly). Not proved for all sizes.",
+   "text": "From every two-block tape with x, y, z &lt; 150 the next one was computed. E(x,z) with z even &ge; 2 and A(x,y) with x &ge; 1, y even lead only to tapes of the same kind or to an all-ones tape <code>1^n A&gt;0</code>, never to a halt; the machine halts only from E(x,0) and E(x,1). From <code>1^n A&gt;0</code> the next tape is E(3, n&minus;2), the alternating block then goes 3, 10, 24, 52, &hellip; (x &#8614; 2x+4), and the run halts exactly when the ones run out leaving one: n = 15, 41, 95, 205, &hellip; = 28&middot;2<sup>k</sup> &minus; 2k &minus; 13, plus 3 and 29 (all n &le; 400 checked directly). Proved for all sizes in Lean since (the parity classes, the fatal lengths for every n and <code>halt_needs_ones</code>, below).",
    "where": "<code>py/phases.py probe</code>, <code>py/phases.py ones</code>"
   },
   {
@@ -111,8 +111,20 @@
   {
    "level": "native",
    "title": "The fatal all-ones lengths below 10<sup>5</sup>",
-   "text": "<code>fatal_list</code>, by <code>native_decide</code>: for every n &lt; 10<sup>5</sup>, the run from the all-ones tape A(0, n) reaches a halting phase before an even phase or another all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;) (<code>ones_fatal</code>, <code>ones_safe</code>). That the list goes on this way for every n is not proved.",
+   "text": "<code>fatal_list</code>, by <code>native_decide</code>: for every n &lt; 10<sup>5</sup>, the run from the all-ones tape A(0, n) reaches a halting phase before an even phase or another all-ones tape exactly when n is 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;) (<code>ones_fatal</code>, <code>ones_safe</code>). For every n it is proved by the kernel in <code>lean/Fatal.lean</code>.",
    "where": "<code>lean/Phases.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The fatal all-ones lengths, for every n",
+   "text": "<code>ones_fatal_all</code>: for every n with n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 for some k, the machine halts from the all-ones tape A(0, n). <code>ones_safe_all</code>: for every other n, any iterate of <code>next</code> from A(0, n) that halts comes after another all-ones tape. The proof: from E(x, z) with z odd the run is a chain of doublings E(x, z) &rarr; E(2x+4, z&minus;2x&minus;6) that halts exactly when z = zHalt(x, k) (<code>e_fate</code>, strong induction), with zHalt(x, k) closed-form (<code>zHalt_closed</code>).",
+   "where": "<code>lean/Fatal.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A halt needs an all-ones tape of fatal length",
+   "text": "<code>halt_needs_ones</code>: the machine halts from blank tape <b>if and only if</b> some iterate of <code>next</code> from A(0, 0) (the blank tape) is an all-ones tape A(0, n) with n fatal (n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;)). <code>halt_passes_ones</code> says the same in machine steps: a halting run passes through the configuration A(0, n) for a fatal n. The proof is a strong induction on the number of phases: by <code>ones_safe_all</code> a halt after a non-fatal all-ones tape comes after a later all-ones tape, so the last all-ones tape before the halt is fatal; conversely a fatal one halts (<code>ones_fate</code>).",
+   "where": "<code>lean/Ones.lean</code>"
   },
   {
    "level": "trusted",
@@ -135,7 +147,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It would need an all-ones tape whose length is in a sparse list; nothing rules that out.",
+   "text": "Not known. Lean proves that it halts if and only if the run reaches an all-ones tape whose length is in an explicit sparse list (<code>halt_needs_ones</code>); nothing rules out that the run hits one.",
    "where": ""
   }
  ],
@@ -162,6 +174,11 @@
     "level": "kernel",
     "value": "<code>halts_iff</code>",
     "text": "It halts if and only if the phase map, iterated from the start, reaches E(x, 0) or E(x, 1)."
+   },
+   {
+    "level": "kernel",
+    "value": "<code>halt_needs_ones</code>",
+    "text": "It halts if and only if its run reaches an all-ones tape of fatal length: n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;)."
    },
    {
     "level": "trusted",
@@ -227,7 +244,7 @@
     "heading": "The phase map in Lean",
     "html": [
      "<p>Every configuration the run passes through at a phase boundary is one of three shapes: E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, A(x, y) = <code>(10)^x 1^y A&gt;0</code> and the bounce frame Q(m, j, t) = <code>(10)^m 1 D&gt;0 0 (1010)^j 1^t</code>. The function <code>next</code> in <code>lean/Phases.lean</code> sends each one to the next shape the machine reaches, and <code>next_sound</code> proves each of its 25 cases for all parameters, from symbolic runs generated by <code>py/pieces.py</code>. Nothing is left out: <code>next</code> is undefined only at E(x, 0) and E(x, 1), and those halt.</p>",
-     "<p>So the question is exactly whether the orbit of A(0, 0) (the blank tape) under <code>next</code> reaches E(x, 0) or E(x, 1) (<code>halts_iff</code>). The first 10<sup>8</sup> iterates do not (<code>native_decide</code>); by the step counts that is about 4.1&middot;10<sup>21</sup> machine steps. The even phases cannot reach a halt without an all-ones tape in between, and for all-ones tapes shorter than 10<sup>5</sup> cells Lean checks which ones lead to a halt first: n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). The last open step is to prove that list for every n and to show that the run never hits it.</p>"
+     "<p>So the question is exactly whether the orbit of A(0, 0) (the blank tape) under <code>next</code> reaches E(x, 0) or E(x, 1) (<code>halts_iff</code>). The first 10<sup>8</sup> iterates do not (<code>native_decide</code>); by the step counts that is about 4.1&middot;10<sup>21</sup> machine steps. The even phases cannot reach a halt without an all-ones tape in between, and for all-ones tapes shorter than 10<sup>5</sup> cells Lean checks which ones lead to a halt first: n = 3 or 28&middot;2<sup>k</sup> &minus; 2k &minus; 13 (15, 41, 95, 205, &hellip;). <code>lean/Fatal.lean</code> proves that list for every n. <code>lean/Ones.lean</code> puts the pieces together (<code>halt_needs_ones</code>): <b>the machine halts if and only if its run reaches an all-ones tape of fatal length</b>. The last open step is to show that the run never hits one.</p>"
     ]
    },
    {
@@ -255,5 +272,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; it halts only if an all-ones tape 1^n ever has n = 28·2^k − 2k − 13 (or 3, 29), and that has not happened. Accelerated run: no halt in 5.45e23 steps."
+ "summary": "Two blocks, (10)^x and 1^y, take turns doubling at each other's expense; Lean proves it halts if and only if an all-ones tape 1^n ever has n = 28·2^k − 2k − 13 (or 3, 29), and that has not happened. Accelerated run: no halt in 5.45e23 steps."
 }

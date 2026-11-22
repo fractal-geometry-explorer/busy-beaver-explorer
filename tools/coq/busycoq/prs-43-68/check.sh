@@ -20,7 +20,7 @@ for n in $PRS; do
   W=$(mktemp -d)/verify; cp -r verify "$W"
   files=$(git diff --name-only up/BB6...up/pr$n | grep '\.v$' | grep -v /jobs/ | sed 's|^verify/||')
   for p in $files; do mkdir -p "$W/$(dirname $p)"; git show up/pr$n:verify/$p > "$W/$p"; done
-  for p in $(cd "$W" && coqdep -Q . BusyCoq -sort $files | tr ' ' '\n' | sed 's/\.vo$//;s|^\./||'); do
+  for p in $(cd "$W" && coqdep -Q . BusyCoq -sort $files | tr ' ' '\n' | sed -E 's/\.vo?$//;s|^\./||'); do
     echo "$files" | grep -qx "$p.v" || continue
     t0=$(date +%s); (cd "$W" && coqc -Q . BusyCoq "$p.v" > "$p.log" 2>&1) && rc=0 || rc=$?
     echo "PR$n $p rc=$rc $(( $(date +%s) - t0 ))s"
