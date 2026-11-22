@@ -39,21 +39,21 @@ Each attack is one piece of work that would settle the machines listed with it. 
    - [`1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB`](1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/README.md)
    - [`1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF`](1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/README.md)
    - [`1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---`](1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/README.md)
-4. **Rule 102 machine: no danger pattern** (1 machine, non-halting, Lean proof). The round trip, the jump and its clock are in Lean, and so is which gaps can reach the danger pattern: under shielded sweeps the rows of Pascal's triangle mod 2, at the next jump one rest per jump length (mask L). Left: control the words that enter the gap at the wall between jumps, and show no new bulk 10 is born.
-   - [`1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB`](1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/README.md)
-5. **Stack invariant for the wall-stack machine** (1 machine, non-halting, Lean proof). Ranked first of the 40 map-reduced machines because no number theory is needed: the stack rules are in Lean, and an invariant that keeps each counter far above the one below would finish it.
+4. **Stack invariant for the wall-stack machine** (1 machine, non-halting, Lean proof). Ranked first of the 40 map-reduced machines because no number theory is needed: the stack rules are in Lean, and an invariant that keeps each counter far above the one below would finish it.
    - [`1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC`](1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/README.md)
+5. **Rule 102 machine: no danger pattern** (1 machine, non-halting, Lean proof). The round trip, the jump and its clock are in Lean, and so is which gaps can reach the danger pattern: under shielded sweeps the rows of Pascal's triangle mod 2, at the next jump one rest per jump length (mask L). Left: control the words that enter the gap at the wall between jumps, and show no new bulk 10 is born.
+   - [`1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB`](1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/README.md)
 6. **Automaton search on the clock-and-word maps (R02)** (15 machines, non-halting, solver search). The clock lemma is in Lean for six tables. Left is one finite-state question per machine: a regular language of words that the word map P keeps and that never triggers the halting rebuild. A SAT search on the word alone is far smaller than the whole-tape search that failed. *Resource:* Solver time (many CPU-hours of SAT, easy to parallelise).
    - [`1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF`](1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF/README.md)
    - [`1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD`](1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/README.md)
    - [`1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---`](1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---/README.md)
    - [`1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---`](1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---/README.md)
    - [`1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---`](1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---/README.md)
-   - [`1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB`](1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/README.md)
-   - [`1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB`](1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/README.md)
    - [`1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---`](1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---/README.md)
    - [`1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---`](1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---/README.md)
    - [`1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---`](1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---/README.md)
+   - [`1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB`](1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/README.md)
+   - [`1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB`](1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/README.md)
    - [`1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---`](1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---/README.md)
    - [`1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE`](1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/README.md)
    - [`1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB`](1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/README.md)
@@ -116,8 +116,8 @@ Each attack is one piece of work that would settle the machines listed with it. 
 | 9 | `1RB0RF_1LC---_1LF1LD_1RE0LD_0RC0RE_1LC1RA` | 82.0 | Halt reported elsewhere | halting | Run c/orbit.c to the reported halting pass with context counting, extend the table to those contexts, and evaluate a chunked (2-adic) check in Lean; or decode the general context rewrite (it looks like a counter with carries) to drop the table. |
 | 10 | `1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF` | 70.4 | One named gap | non-halting | Prove the two right-turn cases Lean does not cover yet: an even head block meeting a walled zone, and the crossing phase (the block-lengths-mod-4 summary that the abstraction in py/absz.py lacks). With them the observed 2-cell-letter invariant becomes a theorem and the machine never halts. |
 | 11 | `1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF` | 66.4 | One named gap | non-halting | Port Absorb.lean as Pascal.lean was ported, then the same two cases: prove the two right-turn cases Lean does not cover yet: an even head block meeting a walled zone, and the crossing phase (the block-lengths-mod-4 summary that the abstraction in py/absz.py lacks). With them the observed 2-cell-letter invariant becomes a theorem and the machine never halts. |
-| 12 | `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` | 52.4 | Finite or inequality question | non-halting | Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create. |
-| 13 | `1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC` | 51.7 | Finite or inequality question | non-halting | Prove an invariant on the stack (each counter far above the one below, e.g. at least 5 times), which with the Lean stack rules gives non-halting. |
+| 12 | `1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC` | 52.5 | Finite or inequality question | non-halting | Prove an invariant on the stack (each counter far above the one below, e.g. at least 5 times), which with the Lean stack rules gives non-halting. |
+| 13 | `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` | 52.4 | Finite or inequality question | non-halting | Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create. |
 | 14 | `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF` | 51.2 | Finite or inequality question | non-halting | Prove the tick of the second regime (1^N 0 1 0 at the end, the block N growing by 4: the same induction with the left context 1 0 in the mirror) and add it to the accelerated run; then describe what a phase end does to the word, where the halting context B> 1 0 1 would have to appear. |
 | 15 | `1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD` | 50.4 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 16 | `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` | 50.4 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next. |
@@ -129,15 +129,15 @@ Each attack is one piece of work that would settle the machines listed with it. 
 | 22 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | 49.4 | Finite or inequality question | non-halting | Prove the second-level tick (1^a 0 D>0 1^(3+3j) 0 W, the left context 1^a 0 instead of 0 0 0) the same way and add it to the accelerated run, to follow the run past 1.4·10^13 steps; then describe P in closed form. |
 | 23 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
 | 24 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 25 | `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` | 48.8 | Finite or inequality question | non-halting | Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's). |
-| 26 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | 48.6 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next. |
-| 27 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 28 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 29 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 30 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 31 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 32 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
-| 33 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 25 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 26 | `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` | 48.8 | Finite or inequality question | non-halting | Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's). |
+| 27 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 28 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 29 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | 48.6 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next. |
+| 30 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 31 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 32 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 33 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
 | 34 | `1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF` | 47.6 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean. |
 | 35 | `1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---` | 47.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 36 | `1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---` | 46.8 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round, as for its variant. |
