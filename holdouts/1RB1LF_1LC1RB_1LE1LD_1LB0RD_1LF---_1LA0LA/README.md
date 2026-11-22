@@ -474,19 +474,29 @@ L to the left and R to the right (Lean, `cascade<m>`):
 from blank tape gives the cascades of the first five events: m = ∞; 4, 6, 0, ∞; 0, 2, 6, ∞; 4, 4, 2, 0, 0, 2, 2,
 then 0 twenty-five times, ∞; 0, 4, 0, 16, 10, 16, 0, 138, ∞. All are even, so
 none halts. The first cascades are what the logged frames predict (4 at event 2, 0 at 3, 4, 4, 2 at 4, 0 at 5).
-From its frames (3, 0), (6, 0), (7, 0), (4, 2), ... the eighth event should start with m = 4 (frame (3, 0) passes
-the head on), then m = 10 in frame (6, 0): a shift that leaves that frame **5 blank cells**. If the next sub-visit
-of that frame ends in an event straight away (b ≤ 10, no deeper frame), the machine halts. Otherwise the frame
-uses its cells up and the pass goes on to frame (7, 0) with m = 12 (7 cells left). This is a prediction from the
-logged frames; the eighth event is too long to simulate on cells.
+From its frames (3, 0), (6, 0), (7, 0), (4, 2), ... the eighth event was predicted to give m = 4 (frame (3, 0)
+passes the head on), then m = 10 in frame (6, 0): a shift that leaves that frame **5 blank cells**, where an event
+straight away in its next sub-visit would halt.
+
+*The eighth event, logged* (`python3 py/cascadelog.py 8 1500`, summary in `py/cascadelog_8.txt`). The accelerated
+run is taken to the eighth event (33 s) and from there every block transition is simulated cell by cell, with every
+cascade and every hand-over of wall visits to the digit engine printed. The return starts with the cascades
+0, 4, 10, 12, 2, 0, 2, 0, 0, 6, .... After m = 10 the
+engine is offered the 3 sub-visits that fit in frame (6, 0)'s 5 blank cells and makes all 3 **without an event**,
+so the frame uses its cells up and does not halt. After m = 12 frame (7, 0) gets its 4 sub-visits, again without an
+event. In 28 minutes of the return: 16,518 cascades, all with even m (12,138 times 0, 2,539 times 6, 1,582 times 2,
+45 times 4, once 10, once 12; m inside long runs of equal blocks is read inside the block), and none of the 19,734
+hand-overs after the first cascade ends in an event. So the return so far has no second event, and without one no
+odd m and no halt.
 
 What this gives: the shifted case is one local rule with seven outcomes, all proved for every tape around them, and
 halting is one of them. Next steps:
 
 * Turn the cascade table into a recursion on words with a grid and a count of blank cells per frame (the 497 + 678
   visits with a second event show where it gets nested), and check it against the 18-pair data.
-* Follow the eighth event's return in the accelerated run with the cascades logged: the frames (6, 0) and (7, 0)
-  are left with an odd number of blank cells, where a second event with b ≤ 10 at 5 cells halts.
+* Log the rest of the eighth event's return (`cascadelog.py` with a longer time; the memo is off while logging, so
+  it is slower than `accel_run.py`). A halt needs a hand-over that ends in an event inside a frame with an odd
+  number of blank cells.
 
 ## Pages
 
