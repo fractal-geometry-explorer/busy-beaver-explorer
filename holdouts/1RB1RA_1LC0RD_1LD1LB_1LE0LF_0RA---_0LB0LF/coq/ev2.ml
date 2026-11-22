@@ -12,7 +12,7 @@ let rec digs k = function Nil -> "" | Cons (Pair (n, c), r) -> if k = 0 then " .
 let rec popn k l = if k = 0 then "" else match T4C.runs_pop l with Pair (b, r) -> (if b = S1 then "1" else "0") ^ popn (k-1) r
 let qs = function A->"A"|B->"B"|C->"C"|D->"D"|E->"E"|F->"F"
 let () =
-  let s = ref (match Sys.argv.(1) with "A" -> T4C.initFastA | _ -> T4C.initFastC) and i = ref 0 in
+  let s = ref (match Sys.argv.(1) with "A" -> T4C.initFastA | "B" -> T4C.initFastB | _ -> T4C.initFastC) and i = ref 0 in
   (if Array.length Sys.argv > 3 && Sys.file_exists Sys.argv.(3) then
      let ic = open_in_bin Sys.argv.(3) in let (st, n) : T4C.coq_FastState * int = Marshal.from_channel ic in close_in ic; s := st; i := n);
   let lim = int_of_string Sys.argv.(2) and fin = ref false and last = ref "" in

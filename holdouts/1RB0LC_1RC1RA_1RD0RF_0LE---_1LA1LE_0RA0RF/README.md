@@ -101,6 +101,8 @@ of 7, `1xN` = the counter).
 | trusted | **Neighbours and other starts.** The community tracker says “Several tables share one chaotic Bell orbit. The interior is chaotic.” (Direct runs of 3x10^7 steps of every table that differs in one transition, and of the six start states.) | `holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/c/neighbours.c` |
 | heuristic | **The epoch law.** Read off the recorded lists, not proved: with n the counter and c<sub>7</sub>, c<sub>13</sub>, … the numbers of runs, one epoch gives c<sub>7</sub>′ ≈ n/2, c<sub>6j+7</sub>′ ≈ c<sub>6j+1</sub>/2 (the half, or one or two less) and n′ ≈ (5/2)·c<sub>7</sub> (within 10^−4 at 10^14 steps). Hence the two interleaved geometric series in the table of counts, the factor 5 per +12 in length, growth by 5/4 every two epochs and step counts growing by 25/16. Between the groups sit a few odd runs that change from epoch to epoch without a visible rule; they are the chaotic part, and the halting pattern can only arise there. | `data/far_1e14.json` |
 | heuristic | **Where B reads 0 1 1.** In the first 10^9 steps of a2 state B reads `0 1 1` 20,972 times; in 20,941 of them the cells around are `111101[0]110101`, in 29 `001101[0]110101`, and twice (steps 104 and 1,264) something else; the next cell is always 0. a1 has 20,998 such events with the windows `111100[0]110101` and `001100[0]110101`. So after the first 1,300 steps the F-events seen are all of two harmless kinds; whether that holds for ever is the open question. | direct C runs (not kept in the repository) |
+| kernel | **A Coq halting proof with one assumption.** Built from DeepMind's proof in busycoq pull request 93 (this machine is that table with its halt replaced and a D0 detour); complete except `run_ok`, the claim that its accelerated engine stops. | `coq/README.md`, `coq/build.sh` |
+| trusted | **No halt in the first 10^1350 steps.** The engine of that proof file, extracted to OCaml and checked against direct simulation through 3·10^9 steps, ran 18,726,507 fast steps from blank tape without stopping; its tape then has more than 2^4486 cells. | `coq/README.md` |
 | open | **Does it halt from blank tape?.** Not known. It halts exactly if B ever reads `0 0 1`. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10^15 steps because those runs pile up at the right end. |  |
 
 ## Lean
@@ -120,6 +122,28 @@ Observed, not proved: the accelerated simulator `rsim.py` ran 6.63x10^13 steps f
 ```sh
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF 400
 ```
+
+## The DeepMind engine from start B (22 November 2026)
+
+Up to mirroring and renaming (A→B, B→C, C→D, D→F, E→A, F→E) this machine is the table
+U = `1RB1RA_1LC0RD_1LD1LB_1LF0LE_0LB0LE_0RA---` started in state B. U is the table of DeepMind's halting proof in
+busycoq pull request 93 with that machine's halting transition turned into a step (E keeps erasing to the left) and
+with D0 turned into a detour that halts exactly when D reads 0 with a 1 on its left. The same table, from starts A, C
+and D, gives the holdouts 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF, 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF and
+1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF.
+
+- *Proved (Coq 8.18.0, one assumption).* `coq/build.sh` writes a proof of `halts tm c0` for this machine from PR 93's
+  file; `Print Assumptions halt` lists only `run_ok`, the claim that the proof's accelerated engine stops. Every
+  engine step is proved to be a stretch of this machine's run, and a stop is proved to be a halt.
+- *Computed.* The engine, extracted from that file, agrees with direct simulation through 3·10^9 steps, and ran
+  18,726,507 fast steps from blank tape without stopping. Its tape then has more than 2^4486 cells, so **the machine
+  does not halt in its first 10^1350 steps**.
+- *Observed.* The engine leaves its macro rules only in 15 kinds of local situation (first 9.6 million fast steps).
+  One of them is the configuration where PR 93's machine halts; it recurs here and the machine erases three 1s and
+  goes on. None of the others can lead to the halting pattern.
+
+Details: [`coq/README.md`](coq/README.md). The method can only ever prove a halt; it cannot show that the machine
+runs forever.
 
 ## Pages
 

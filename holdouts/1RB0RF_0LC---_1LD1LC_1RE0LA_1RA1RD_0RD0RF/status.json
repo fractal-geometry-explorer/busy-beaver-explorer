@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves the word conversions for levels 1 to 3 (D going right turns <code>011(01)<sup>3k</sup></code> into <code>100 1<sup>6k</sup></code>, C going left turns it back for k = 1, 2) and the 3-cell shifts. The behaviour of the boundaries between levels, where new levels are made, was not derived."
+  "<b>The question is open.</b> Lean proves the word conversions for levels 1 to 3 (D going right turns <code>011(01)<sup>3k</sup></code> into <code>100 1<sup>6k</sup></code>, C going left turns it back for k = 1, 2) and the 3-cell shifts. The behaviour of the boundaries between levels, where new levels are made, was not derived.",
+  "<b>22 November 2026.</b> Up to mirroring and renaming, this machine is the table of a DeepMind halting proof (busycoq pull request 93) with that machine&rsquo;s halt replaced by a step and with a D0 detour, started in state D. A Coq proof built from that file needs only a stop of its accelerated engine, and the engine has not stopped in 15 million of its steps: no halt in the first 10<sup>1350</sup> steps."
  ],
  "claims": [
   {
@@ -82,6 +83,18 @@
    "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
   },
   {
+   "level": "kernel",
+   "title": "A Coq halting proof with one assumption",
+   "text": "Built from DeepMind&rsquo;s proof in busycoq pull request 93: mirrored and renamed, this machine is that proof&rsquo;s table with its halting transition turned into a step and D0 turned into a detour that halts exactly when D reads 0 with a 1 on its left, started in state D. <code>Print Assumptions halt</code> lists only <code>run_ok</code>, the claim that the proof&rsquo;s accelerated engine stops (Coq 8.18.0).",
+   "where": "<code>coq/README.md</code>, <code>coq/build.sh</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>1350</sup> steps",
+   "text": "The engine of that proof file, extracted to OCaml and checked against direct simulation through 3&times;10<sup>9</sup> steps, ran 14,971,979 fast steps from blank tape without stopping; its tape then has more than 2<sup>4487</sup> cells.",
+   "where": "<code>coq/README.md</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine stops only on <code>A&gt; 0 1</code>; inside a run of one level the proved conversions never produce it, so the question is about the boundaries between levels and the right end, where new levels form; their rules were not derived.",
@@ -103,6 +116,11 @@
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "10<sup>1350</sup> steps",
+    "text": "No halt: the accelerated engine of the Coq proof file has not stopped."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -155,7 +173,8 @@
     "eyebrow": "Can it stop?",
     "heading": "Only on A> 0 1",
     "html": [
-     "<p>Only B reading 1 stops the machine, and B is reached only from A reading 0 and stepping right, so it stops exactly when A stands on <code>0 1</code>. The proved conversions never produce that inside a run; it could only happen at a boundary between levels.</p>"
+     "<p>Only B reading 1 stops the machine, and B is reached only from A reading 0 and stepping right, so it stops exactly when A stands on <code>0 1</code>. The proved conversions never produce that inside a run; it could only happen at a boundary between levels.</p>",
+     "<p><b>22 November 2026.</b> Mirrored and with its states renamed, this machine is the table of a DeepMind halting proof (busycoq pull request 93) with that machine&rsquo;s halt turned into a step and D0 turned into a detour that halts exactly when D reads 0 with a 1 on its left, started in another state. A Coq proof built from the DeepMind file is complete except for a stop of its accelerated engine, which has run 15 million of its steps (more than 10<sup>1350</sup> machine steps) without stopping (<code>coq/README.md</code>).</p>"
     ]
    },
    {

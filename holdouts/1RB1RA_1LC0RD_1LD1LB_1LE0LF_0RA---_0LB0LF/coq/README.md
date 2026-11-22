@@ -73,6 +73,10 @@ lap the way it survived the first.
 - `ev2.ml`: `ev2 A MAXFAST [CHECKPOINT|none] [SAVE]`, the same with every raw C0, D0 and F1 printed with its context.
 - `ev3.ml`: `ev3 A MAXFAST`, every entry into raw mode, classified.
 - `pk2.ml`: `pk2 A FROM TO`, the compressed configuration at each fast step in a range.
+- `validateU.ml`: `validateU START MAXFAST MAXDIRECT`, the engine next to direct simulation of U (engine state F is U's E).
+- Other starts of the same table (22 November 2026): `START=B M=1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF build.sh ...`
+  and `START=D M=1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF build.sh ...` (wrappers in those machines' `coq/` folders,
+  with their runs); `mkU.py` has a branch for each of the four machines.
 
 PR 93's file: `verify/M_1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RDHHH.v`, sha256
 `63964df1e1da61d8d3497a0faa03ad1ffe0bf0a331dcd9da7f3957fea4930c78`, on busycoq's BB6 branch at 33209bc. Run the tools
