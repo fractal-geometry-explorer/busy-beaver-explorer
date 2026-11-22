@@ -156,6 +156,17 @@ closed under `G` and `split`, without `2j 1_0` in a first slot), and the same fo
 machine never halts. The reachable set is infinite (counters, frozen stretches), so this needs an abstraction of the
 counters and of the stretches of odd groups between defects.
 
+**The round trip as a recursion** (`py/endlaws.py`, `c/roundtrip.c`). Write a tail as `p y`, with `p` the front
+pattern (one group in a first slot, or an odd group and the next group) and `y` the rest. Then `G(p y)` is `h y[1:]`
+(*freeze*: the sweep turns back at `p`), `h G(y)` (*continue*) or `h G(G(y))[1:]` (*double*: the part right of `p` gets
+two round trips in one visit), with a head `h` whose sizes are affine in those of `p` and of the first token of `y`,
+`G(y)` or `G(G(y))`. For example `G(3_2 y) = 1 (a+1) rest`, where `a rest = G(G(y))`. The laws are in `law()`;
+`endlaws.py check 30000 I` finds them exact on 30,000 random front patterns for each of the six machines, with
+about a quarter not covered (an even group touching the next one, and `00` in a second slot before a single 1).
+Since short gaps nest and each doubles the speed of what follows, G is not a finite-state map, which is why no
+small automaton describes the reachable tails. `endlaws.py bfs 1500000` (the round trip in C) reaches 1,500,000
+tails, 46 round trips deep, with every parity input and no halt.
+
 ## Halting
 
 F1 is the only halting transition; F is entered only by B1 (write 0, move right), so the machine halts exactly when B reads a 1 followed by a
