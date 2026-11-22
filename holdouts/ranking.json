@@ -1242,6 +1242,28 @@
    "rank": 46
   },
   {
+   "m": "1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC",
+   "id": 8084,
+   "fam": "R15",
+   "famname": "Collatz-like maps and cryptids (parked)",
+   "set": "T258",
+   "mates": 1,
+   "stage": "hunt",
+   "score": 39.4,
+   "route": "halt",
+   "work": "compute",
+   "kernel": 6,
+   "map": "iff",
+   "bound": 7,
+   "cryptid": true,
+   "name": "",
+   "tc": "Cubic Mess",
+   "why": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. The wiki's rules are proved in Lean (halts iff they reach b = 3); no halt in 6.8e35 steps by the rules; no congruence rules the halt out.",
+   "next": "No congruence invariant excludes b = 3 (c/abres.c, c/abstat.c, c/abrand.c); a non-halting proof would need an argument that the orbit misses one exact diagonal. Otherwise run far: each decade of visits gives ~10% chance of a halt.",
+   "folder": "holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC",
+   "rank": 47
+  },
+  {
    "m": "1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---",
    "id": 173741,
    "fam": "R10",
@@ -1261,7 +1283,7 @@
    "why": "A rewriting system on streams (visit law, proved in Lean): the first four rules are those of the PR59 machines that halt on 1011 in round 161,211; this one rewrites 1011 to 1000 and runs on (computed: no halt up to round 200,000); it halts only if a visit meets 111; open.",
    "next": "Accelerated visit-law runs (PRs 55 and 59 compiled: four decided).",
    "folder": "holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---",
-   "rank": 47
+   "rank": 48
   },
   {
    "m": "1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---",
@@ -1283,7 +1305,7 @@
    "why": "A ternary counter: each round trip of the head decrements a base-3 counter whose digits sit between blocks of x = 1110, and every block the borrow passes loses one x. Proved in Lean (kernel): the machine halts from blank tape iff an explicit counter model halts, and a halt needs a 'charged' pair of blocks (lengths and digits mismatched mod 3). Observed: the run has carried one charged pair since round 49,668; no halt in 33,199,619 rounds of the counter model. Open, Collatz-like.",
    "next": "Exact macro simulators to the first top-level overflow.",
    "folder": "holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---",
-   "rank": 48
+   "rank": 49
   },
   {
    "m": "1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF",
@@ -1305,7 +1327,7 @@
    "why": "A chaotic Bell machine: the head sweeps over a counter (100)^n and a list of runs of 1s of lengths 6k+1; every epoch halves the number of runs of each length while moving them one length up, turns the counter into new runs of 7 and rebuilds the counter, and the whole grows by 5/4 every two epochs. It halts only if state B ever reads 0 0 1; not seen in 10^14 steps of an exact accelerated simulation.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF",
-   "rank": 49
+   "rank": 50
   },
   {
    "m": "1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD",
@@ -1327,7 +1349,7 @@
    "why": "A bouncer at the left end grows two blocks at fixed rates ((011) by 1 and (01) by 3 per two left visits) for an ever longer epoch; then a long pass empties them into an irregular region on the right, which grows from epoch to epoch.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD",
-   "rank": 50
+   "rank": 51
   },
   {
    "m": "1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF",
@@ -1349,7 +1371,7 @@
    "why": "Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF",
-   "rank": 51
+   "rank": 52
   },
   {
    "m": "1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD",
@@ -1371,7 +1393,7 @@
    "why": "A base-4 countdown on a list of blocks of 101110, now an exact map on (n, word) that reproduces every tick boundary of the first 6e9 steps and runs on to 1.0·10^19 steps; it has written the same tape as 1RB1LD_1RC1RF_1LA1RD_1RE0LB_---0RA_0LA1RC for 10^9 steps (observed, not proved). Accelerated run: no halt in 1.18e15 steps.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD",
-   "rank": 52
+   "rank": 53
   },
   {
    "m": "1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE",
@@ -1393,7 +1415,7 @@
    "why": "Left of the start, blocks of odd numbers of 1s separated by 00 change like a counter; right of the start a region of words 1 and 11 grows like a power of the step count; no halt in 10^10 steps; macro rules not yet found. The same table started in state D is proved in busycoq (this machine with one extra 1 on the tape); its closed tape language does not contain this run up to 10^11 steps.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE",
-   "rank": 53
+   "rank": 54
   },
   {
    "m": "1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD",
@@ -1415,7 +1437,7 @@
    "why": "A base-4 counter (digits a, b, ab, bb) between blocks of pairs ba, each block a countdown timer; digit rules proved in Lean, short-timer tapes of the same shape halt (Lean), no halt in 10^11 steps. Accelerated run: no halt in 3.31e12 steps.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB1RE_1LC0RC_1RA1LD_1RB0LA_0LC1RF_---1RD",
-   "rank": 54
+   "rank": 55
   },
   {
    "m": "1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF",
@@ -1437,7 +1459,7 @@
    "why": "Same mechanism as 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---: a 110101010 bouncer on the left, and on the slow right a sorted list of blocks 1^(6j+1) 00 (37, 41, 43, 47, 49, 53, …) rewritten by passing waves; open.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF",
-   "rank": 55
+   "rank": 56
   },
   {
    "m": "1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC",
@@ -1459,7 +1481,7 @@
    "why": "Two blocks (011)^n (01)^m at the left end grow by pumping three cells at a time out of a long run of ones further right (proved in Lean); when the run is used up a long irregular list of short words is rewritten, and that part is not decoded; no macro simulator tried accelerates it; open.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC",
-   "rank": 56
+   "rank": 57
   },
   {
    "m": "1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF",
@@ -1481,7 +1503,7 @@
    "why": "Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF",
-   "rank": 57
+   "rank": 58
   },
   {
    "m": "1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---",
@@ -1503,7 +1525,7 @@
    "why": "A nested ternary counter: the tape is a list of segments of 111-blocks drained by 3^j per event; segments run out one after another (collapses), and after each the counter settles into a new regime of the same kind. Exact runs pass collapses at 2.5×10^18, 2.06×10^35, 2.58×10^54 and 2.8&ndash;3.0×10^54 steps without halting 4.8×10^54 and about 87 more middle collapses, and reach 6.1×10^135.",
    "next": "Exact macro simulators to the first top-level overflow.",
    "folder": "holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---",
-   "rank": 58
+   "rank": 59
   },
   {
    "m": "1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---",
@@ -1525,7 +1547,7 @@
    "why": "A nested ternary counter: the tape is a list of segments of 111-blocks drained by 3^j per event; segments run out one after another (collapses), and after each the counter settles into a new regime of the same kind. Exact runs pass collapses at 2.5×10^18, 2.06×10^35, 2.58×10^54 and 2.8&ndash;3.0×10^54 steps without halting 4.8×10^54 and about 87 more middle collapses, and reach 6.1×10^135.",
    "next": "Exact macro simulators to the first top-level overflow.",
    "folder": "holdouts/1RB0LC_1LA0RD_1RA0LA_1RE1RD_1RA1RF_1LC---",
-   "rank": 59
+   "rank": 60
   },
   {
    "m": "1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---",
@@ -1547,7 +1569,7 @@
    "why": "A base-4 counter of walls in a sea of 100, incremented from the right end: one sweep turns the trailing S3 digits into S0 and steps the next digit; each digit's left run shrinks by one per cycle, so walls merge, and an overflow turns every digit to S0 and adds one; every edge event seen is a Lean rule for any carry chain, but no closed language is known.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---",
-   "rank": 60
+   "rank": 61
   },
   {
    "m": "1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE",
@@ -1569,7 +1591,7 @@
    "why": "A base-4 counter on the left; its overflows reach timer blocks on the right that lose 9, 24, 96, 384, … ones per visit (exact map when none runs out); halting needs an E-chain on a run of length 2 mod 3 (proved). Twin: 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD, which halts exactly when this machine started in state B halts (proved); two separate questions.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE",
-   "rank": 61
+   "rank": 62
   },
   {
    "m": "1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA",
@@ -1591,7 +1613,7 @@
    "why": "Wall visits iterate a recursion on digit words (levels (10)^n in base 4, fuel (100)^m, an eater that builds new levels); an accelerator validated on 2·10^10 steps passes the seventh right-end event (wall visit 4.1·10^148) and reaches wall visit about 10^25600 (step 1.7·10^51200) without a halt; events keep coming, so the question is open.",
    "next": "The carry is a visit of the rest (R' = G(X R)), so the whole run is the iteration of one map on words, and the levels only set the clock. An accelerator that strips the regular levels (each proved rule of the form \"p visits turn P(n) T into P(n + c) T' with T' a visit of T\") would reach the right-end events directly, exponentially faster than any step-by-step run; the frozen stretches between levels need the same .",
    "folder": "holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA",
-   "rank": 62
+   "rank": 63
   },
   {
    "m": "1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF",
@@ -1613,7 +1635,7 @@
    "why": "A chain of base-4 digits, each with a growing wall of 110101 words, that gains new top digits in front of a frozen last stretch of tape; block rules and the single halting pattern proved, the counter itself not yet.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB---_1LC0LC_1RD1LB_1LE1RD_0LA1LF_1LD0RF",
-   "rank": 63
+   "rank": 64
   },
   {
    "m": "1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
@@ -1635,7 +1657,7 @@
    "why": "A base-4 counter of walls in a sea of 110, incremented from the right end: one sweep turns the trailing W3 digits into W0 and steps the next digit; runs between walls shrink by 4 per cycle of the left wall, so walls merge, and overflows give birth to new digits; sweep, merger and top rules proved in Lean for any carry chain, digit model run to 8.6e15 steps.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA",
-   "rank": 64
+   "rank": 65
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB",
@@ -1657,7 +1679,7 @@
    "why": "A nested ternary counter like a draining odometer: segments of 111-blocks near the growing end lose 2·3^j blocks per cycle while new segments are made at the far end; it survives the collapses seen so far and does not halt in 10^19 steps (accelerated simulation).",
    "next": "Exact macro simulators to the first top-level overflow.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB",
-   "rank": 65
+   "rank": 66
   },
   {
    "m": "1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD",
@@ -1679,7 +1701,7 @@
    "why": "A nested ternary counter like a draining odometer: segments of 111-blocks near the growing end lose 2·3^j blocks per cycle while new segments are made at the far end; it survives the collapses seen so far and does not halt in 10^19 steps (accelerated simulation).",
    "next": "Exact macro simulators to the first top-level overflow.",
    "folder": "holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD",
-   "rank": 66
+   "rank": 67
   },
   {
    "m": "1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF",
@@ -1701,7 +1723,7 @@
    "why": "A bouncer of runs at growing levels: level k is a run of (6k+3)-cell words, dense 100 1^(6k) on one side of the head and sparse 011 (01)^(3k) on the other; D going right makes them dense, C going left makes them sparse, and new levels appear slowly on the right.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF",
-   "rank": 67
+   "rank": 68
   },
   {
    "m": "1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB",
@@ -1723,7 +1745,7 @@
    "why": "A cascade of registers made of the word 011101: the first grows about four units for each unit the second loses, then the list shifts; no halt in 10^11 steps; the rules are not decoded.",
    "next": "Halt hunting with exact odometer jumps (PR 83 / 89 method).",
    "folder": "holdouts/1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RB",
-   "rank": 68
+   "rank": 69
   },
   {
    "m": "1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF",
@@ -1745,7 +1767,7 @@
    "why": "Both sides grow by sweeps; the tape is an irregular list with one long periodic block inside it (the word 1^7 00 1 00 repeated, 3,766 times at 8.8·10^8 steps) that grows steadily.",
    "next": "Retarget the PR 93 engine and run to the halt (halting only).",
    "folder": "holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF",
-   "rank": 69
+   "rank": 70
   },
   {
    "m": "1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD",
@@ -1767,28 +1789,6 @@
    "why": "Its tape is an alternating block and a solid block whose lengths trade back and forth; each pass rewrites one block into the other. Accelerated run: no halt in 3.58e22 steps.",
    "next": "Derive a closed-form (z/w/W) frame map from the 78 cases and a heuristic for how often block sizes reach the small undefined cases; iterate it far beyond 10^8 frames.",
    "folder": "holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD",
-   "rank": 70
-  },
-  {
-   "m": "1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC",
-   "id": 8084,
-   "fam": "R15",
-   "famname": "Collatz-like maps and cryptids (parked)",
-   "set": "T258",
-   "mates": 1,
-   "stage": "hunt",
-   "score": 37.8,
-   "route": "halt",
-   "work": "compute",
-   "kernel": 4,
-   "map": "iff",
-   "bound": 7,
-   "cryptid": true,
-   "name": "",
-   "tc": "Cubic Mess",
-   "why": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. Accelerated run: no halt in 2.65e22 steps.",
-   "next": "Iterate the A(a,b) rules much further and look for an invariant excluding b = 3 (a quick 3x10^6-visit run done during this triage, not in the files, reached only ~22-bit values with no halt).",
-   "folder": "holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC",
    "rank": 71
   },
   {

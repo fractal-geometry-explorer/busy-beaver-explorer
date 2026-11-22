@@ -10,10 +10,11 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> followed by a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.",
-  "<b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open."
+  "<b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.",
+  "<b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, the rules give no halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades."
  ],
  "claims": [
   {
@@ -101,6 +102,42 @@
    "where": "<code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 4 1542400000</code>"
   },
   {
+   "level": "kernel",
+   "title": "The wiki's rules on A(a, b), for all sizes",
+   "text": "Each of the eight rules (start, three growing rules, two restarts, swap, short) is proved as a run of the frame map from the frame of A(a, b) to the frame of its target, for all sizes: a zigzag of <code>b</code>/<code>a</code> frames (<code>loop_ba</code>), for the growing rules a sweep of <code>d</code>/<code>c</code> frames (<code>loop_cd</code>), and single cases of <code>next</code>. <code>op_step</code> gathers them; the domain <code>dom</code> (a &ge; 1, b &ge; 2, not A(1, 2), A(1, 3), A(2, 2), A(3, 2)) is kept by every rule. Step counts are not part of these statements.",
+   "where": "<code>r_de</code> &hellip; <code>r_b2</code>, <code>op_step</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Halts if and only if the rules reach b = 3",
+   "text": "<code>halts_iff_rules</code>: the machine halts from blank tape if and only if some iterate of the wiki's map <code>op</code> from (2, 9) is a pair (a, 3).",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No b = 3 in the first 10<sup>8</sup> visits",
+   "text": "<code>no_b3</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates of <code>op</code> from (2, 9) have b &ne; 3. By the rules' step counts (checked in <code>py/rules.py</code>) that is about 6.8&middot;10<sup>23</sup> machine steps.",
+   "where": "<code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps)",
+   "text": "<code>tools/collatz/c/amap.c</code> iterates the rules from A(2, 9): 10<sup>12</sup> visits without b = 3, ending near a, b &asymp; 3.5&middot;10<sup>12</sup>; by the rules' exact step counts that is about 6.8&middot;10<sup>35</sup> machine steps. The steps grow like 0.68&nbsp;N<sup>3</sup> in the number N of visits. <code>c/abrun.c</code> (128-bit integers, exact step counts, every visit with 1 &le; b &minus; a &le; 8 logged) agrees over the first 1.4&middot;10<sup>11</sup> visits.",
+   "where": "<code>gcc -O2 -o amap tools/collatz/c/amap.c -lm && ./amap 1e12</code>; <code>c/abrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No congruence invariant excludes b = 3",
+   "text": "The halt needs a visit A(a, a + 4) with a even. Over the visits with b &gt; a and b &minus; a &le; 10<sup>6</sup> among the first 3&middot;10<sup>9</sup>, the residues (a mod M, (b &minus; a) mod M) are far from uniform, yet for every M tried (2<sup>k</sup> up to 256; 48, 90, 120, 210, 252) the classes with a even and b &minus; a &equiv; 4 get the same share as any other even residue. The rules applied to residues mod every even M up to 128 also reach them.",
+   "where": "<code>c/abres.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The halting visit looks like a rare random event",
+   "text": "Visits with a even and b &minus; a = g, for each small even g, come about 0.11 times per decade of visit index, steadily from 10<sup>5</sup> to 10<sup>10</sup> and flat in g (<code>c/abstat.c</code>). For g = 4 that predicts about 1.3 halts in the 12 decades run, so none is unremarkable. Of 9,000 orbits from random A(a, b) with a, b &lt; 10<sup>9</sup>, run 10<sup>6</sup> visits each, 5 halt by this rule (<code>c/abrand.c</code>; for example A(264421744, 92483937) reaches A(358606020, 3) after 485,721 visits). In that model the run halts with probability 1, with a median of about 2&middot;10<sup>18</sup> visits (about 10<sup>55</sup> steps).",
+   "where": "<code>c/abstat.c</code>, <code>c/abrand.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known.",
@@ -112,11 +149,22 @@
   "holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 1000000000",
   "python3 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/py/framemap.py verify 30",
-  "gcc -O2 -o mrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/mrun.c && ./mrun 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 2 1000000000000000"
+  "gcc -O2 -o mrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/mrun.c && ./mrun 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 2 1000000000000000",
+  "gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c && ./abrun 140000000000 10000000000"
  ],
  "explainer": {
   "lede": "Nobody knows. Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "6.8&middot;10<sup>35</sup> steps",
+    "text": "No halt in the first 10<sup>12</sup> visits of the wiki's rules."
+   },
+   {
+    "level": "kernel",
+    "value": "<code>halts_iff_rules</code>",
+    "text": "The wiki's rules are proved in Lean: it halts if and only if they lead from A(2, 9) to some A(a, 3). Not in the first 10<sup>8</sup> visits (<code>native_decide</code>)."
+   },
    {
     "level": "trusted",
     "value": "2.65&middot;10<sup>22</sup> steps",
@@ -200,7 +248,18 @@
     "html": [
      "<div class=\"col\"><p>The bbchallenge wiki page of this machine (analysis by Racheline) writes its recursion the way the wiki writes Antihydra's: one family of tapes, then rules. Here each rule also has the exact number of machine steps it takes. A visit is any moment at which the tape has the form</p><p><code>A(a, b) := 0<sup>∞</sup> 1<sup>a</sup> 0 C&gt; 1<sup>b</sup> 0<sup>∞</sup></code> (a ≥ 1)</p><p>The Lean map of the section above is finer: A(a, b) is the Lean frame b(a − 2, 1, b − 1) three steps earlier (for a = 1, the frame d(0, 2, b − 1) five steps earlier), so each rule below is the run of Lean cases from one such frame to the next: mostly a zigzag of b and a frames (2j + 5 and 2j + 4 steps each) and a sweep of d and c frames (5 and 1 steps each).</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>rule</th><th>from → to</th><th>steps</th><th>when</th></tr></thead><tbody><tr><td>start</td><td style=\"white-space:nowrap\">0<sup>∞</sup> A&gt; 0<sup>∞</sup> → A(2, 9)</td><td style=\"white-space:nowrap\">52</td><td></td></tr><tr><td>grow</td><td style=\"white-space:nowrap\">A(a, b) → A(2a + 4, b − a − 1)</td><td style=\"white-space:nowrap\">2a<sup>2</sup> + 12a − 1</td><td>a even, b ≥ a + 3</td></tr><tr><td>grow</td><td style=\"white-space:nowrap\">A(a, b) → A(2a + 3, b − a)</td><td style=\"white-space:nowrap\">2a<sup>2</sup> + 12a + 13</td><td>a odd, b ≥ a + 4</td></tr><tr><td>grow, b runs out</td><td style=\"white-space:nowrap\">A(a, a + 3) → A(2a + 1, 9)</td><td style=\"white-space:nowrap\">2a<sup>2</sup> + 12a + 39</td><td>a odd</td></tr><tr><td>restart</td><td style=\"white-space:nowrap\">A(a, a + 2) → A(1, 2a + 7)</td><td style=\"white-space:nowrap\">2a<sup>2</sup> + 9a + 23</td><td>a ≥ 2</td></tr><tr><td>restart</td><td style=\"white-space:nowrap\">A(a, a + 1) → A(4, 2a + 4)</td><td style=\"white-space:nowrap\">2a<sup>2</sup> + 5a + 7</td><td>a ≥ 3</td></tr><tr><td>swap</td><td style=\"white-space:nowrap\">A(a, b) → A(a − b + 1, 2b + 3)</td><td style=\"white-space:nowrap\">2b<sup>2</sup> + b + 5</td><td>a ≥ b ≥ 4</td></tr><tr><td>short</td><td style=\"white-space:nowrap\">A(a, 2) → A(a − 3, 7)</td><td style=\"white-space:nowrap\">25</td><td>a ≥ 4</td></tr><tr><td><b>halt</b></td><td style=\"white-space:nowrap\">A(a, 3) → <b>halt</b></td><td style=\"white-space:nowrap\">11</td><td>a ≥ 2; F reads 0</td></tr></tbody></table></div>",
-     "<p>The rules and their targets are the wiki's; the step counts and the bounds on a are added here (the wiki states the rules without them). The four tapes A(1, 2), A(1, 3), A(2, 2) and A(3, 2) are outside every rule, and no rule leads to them, nor to b ≤ 1.</p><p>The rules are not themselves stated in Lean. What is proved is the frame map they are made of: every case of <code>next</code> for all sizes (<code>next_sound</code> in <code>lean/Phases.lean</code>), with the step count of each case in the statement of its piece theorem in <code>lean/Pieces.lean</code> (<code>next_sound</code> itself only says that some number of steps exists), the halts (<code>none_halts</code>; the halt row is <code>.b l j 2</code>) and <code>halts_iff</code>. <code>python3 py/rules.py</code> checks each row three ways: direct simulation from 3,418 tapes A(a, b) (a, b &lt; 60) to the next visit or the halt, giving the target and the step count of the table; the Lean cases from the frame of A(a, b) to the next such frame, giving the same; and the run from blank tape, where the 238 visits of the first 10<sup>7</sup> steps are exactly the rules' orbit from A(2, 9) with the same step counts, and the same as the Lean map's frames. The Lean map followed for 5·10<sup>5</sup> frames (2.1·10<sup>8</sup> steps, 685 visits) agrees with the rules too. So if the rules hold for all sizes, as they do on every tape checked, the machine halts iff they lead from A(2, 9) to some A(a, 3).</p><p>For example A(1, 7) = <code>1 0 C&gt; 1<sup>7</sup></code>: A(5, 6) after 27 steps, A(4, 14) after 82, A(12, 9) after 79, A(4, 21) after 176, A(12, 16) after 79, A(28, 3) after 431, and the halt 11 steps later: 885 steps in all, which is what direct simulation gives.</p></div>"
+     "<p>The rules and their targets are the wiki's; the step counts and the bounds on a are added here (the wiki states the rules without them). The four tapes A(1, 2), A(1, 3), A(2, 2) and A(3, 2) are outside every rule, and no rule leads to them, nor to b ≤ 1.</p><p>The rules themselves are now proved in Lean for all sizes (<code>lean/Rules.lean</code>, next section). Below them is the frame map they are made of: every case of <code>next</code> for all sizes (<code>next_sound</code> in <code>lean/Phases.lean</code>), with the step count of each case in the statement of its piece theorem in <code>lean/Pieces.lean</code> (<code>next_sound</code> itself only says that some number of steps exists), the halts (<code>none_halts</code>; the halt row is <code>.b l j 2</code>) and <code>halts_iff</code>. <code>python3 py/rules.py</code> checks each row three ways: direct simulation from 3,418 tapes A(a, b) (a, b &lt; 60) to the next visit or the halt, giving the target and the step count of the table; the Lean cases from the frame of A(a, b) to the next such frame, giving the same; and the run from blank tape, where the 238 visits of the first 10<sup>7</sup> steps are exactly the rules' orbit from A(2, 9) with the same step counts, and the same as the Lean map's frames. The Lean map followed for 5·10<sup>5</sup> frames (2.1·10<sup>8</sup> steps, 685 visits) agrees with the rules too. Lean now proves that the rules hold for all sizes, so the machine halts iff they lead from A(2, 9) to some A(a, 3).</p><p>For example A(1, 7) = <code>1 0 C&gt; 1<sup>7</sup></code>: A(5, 6) after 27 steps, A(4, 14) after 82, A(12, 9) after 79, A(4, 21) after 176, A(12, 16) after 79, A(28, 3) after 431, and the halt 11 steps later: 885 steps in all, which is what direct simulation gives.</p></div>"
+    ]
+   },
+   {
+    "id": "invariant",
+    "eyebrow": "Can b = 3 be ruled out?",
+    "heading": "Looking for an invariant that excludes the halt",
+    "html": [
+     "<p><code>lean/Rules.lean</code> proves each rule above for all sizes from the frame map (a zigzag of b/a frames, a sweep of d/c frames, a few single cases), and with it <code>halts_iff_rules</code>: <b>the machine halts from blank tape if and only if the rules lead from A(2, 9) to some A(a, 3)</b>. The only rule that can give b = 3 is the growing rule from A(a, a + 4) with a even. So the whole question is whether the orbit ever lands exactly on that diagonal.</p>",
+     "<p>Following the orbit is cheap: one visit is a few integer operations, while the sizes grow only about linearly in the number of visits. <code>no_b3</code> checks the first 10<sup>8</sup> visits in Lean (about 6.8&middot;10<sup>23</sup> machine steps), and C runs the first 10<sup>12</sup> (<code>tools/collatz/c/amap.c</code>; about 6.8&middot;10<sup>35</sup> steps, a and b near 3.5&middot;10<sup>12</sup>). Half the visits are swaps and almost all the rest growing rules; restarts are rare (8 in the first 10<sup>7</sup> visits).</p>",
+     "<p><b>No congruence does it.</b> The residues of a and b &minus; a at the visits are far from uniform (when a is 2 or 3 mod 4, b is always odd), but for every modulus tried, the classes with a even and b &minus; a &equiv; 4 get their full share of visits, and the rules applied to residues reach them too.</p>",
+     "<p><b>The halting visit looks like a rare random event.</b> For each small even g, visits with a even and b &minus; a = g come about 0.11 times per decade of the visit index, steadily from 10<sup>5</sup> to 10<sup>10</sup>. For g = 4 that predicts about 1.3 halts so far, so having seen none says little. Orbits from random starts of size 10<sup>9</sup> do halt by this rule (5 of 9,000 within 10<sup>6</sup> visits; for example A(264421744, 92483937) after 485,721 visits). If the orbit behaves like a random one, it halts with probability 1, but the median wait is about 2&middot;10<sup>18</sup> visits, about 10<sup>55</sup> machine steps, beyond any direct run. Proving that it never halts would need an argument that the visits always miss one exact diagonal, and nothing of that kind is in sight.</p>"
     ]
    },
    {
@@ -218,5 +277,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. Accelerated run: no halt in 2.65e22 steps."
+ "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. The wiki's rules are proved in Lean (halts iff they reach b = 3); no halt in 6.8e35 steps by the rules; no congruence rules the halt out."
 }

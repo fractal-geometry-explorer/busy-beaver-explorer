@@ -83,13 +83,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> followed by a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.</p>
       <p><b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.</p>
+      <p><b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, the rules give no halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -140,6 +141,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>init_start</code>: the run from blank tape reaches <code>Ph.e 1 0</code> after 1 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from there is a frame where <code>next</code> is <code>none</code>.</p>
         <p class="where"><code>lean/Phases.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The wiki's rules on A(a, b), for all sizes</h3>
+        <p>Each of the eight rules (start, three growing rules, two restarts, swap, short) is proved as a run of the frame map from the frame of A(a, b) to the frame of its target, for all sizes: a zigzag of <code>b</code>/<code>a</code> frames (<code>loop_ba</code>), for the growing rules a sweep of <code>d</code>/<code>c</code> frames (<code>loop_cd</code>), and single cases of <code>next</code>. <code>op_step</code> gathers them; the domain <code>dom</code> (a &ge; 1, b &ge; 2, not A(1, 2), A(1, 3), A(2, 2), A(3, 2)) is kept by every rule. Step counts are not part of these statements.</p>
+        <p class="where"><code>r_de</code> &hellip; <code>r_b2</code>, <code>op_step</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Halts if and only if the rules reach b = 3</h3>
+        <p><code>halts_iff_rules</code>: the machine halts from blank tape if and only if some iterate of the wiki's map <code>op</code> from (2, 9) is a pair (a, 3).</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -152,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>8</sup> frames</h3>
         <p><code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined. By the step counts of the fitted map (<code>py/framemap.py run 100000000</code>) that is about 5.95&middot;10<sup>11</sup> machine steps.</p>
         <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No b = 3 in the first 10<sup>8</sup> visits</h3>
+        <p><code>no_b3</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates of <code>op</code> from (2, 9) have b &ne; 3. By the rules' step counts (checked in <code>py/rules.py</code>) that is about 6.8&middot;10<sup>23</sup> machine steps.</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -186,6 +202,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 4 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,542,400,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 2.65&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 4 1542400000</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps)</h3>
+        <p><code>tools/collatz/c/amap.c</code> iterates the rules from A(2, 9): 10<sup>12</sup> visits without b = 3, ending near a, b &asymp; 3.5&middot;10<sup>12</sup>; by the rules' exact step counts that is about 6.8&middot;10<sup>35</sup> machine steps. The steps grow like 0.68&nbsp;N<sup>3</sup> in the number N of visits. <code>c/abrun.c</code> (128-bit integers, exact step counts, every visit with 1 &le; b &minus; a &le; 8 logged) agrees over the first 1.4&middot;10<sup>11</sup> visits.</p>
+        <p class="where"><code>gcc -O2 -o amap tools/collatz/c/amap.c -lm && ./amap 1e12</code>; <code>c/abrun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -198,6 +219,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Doubling at the left end</h3>
         <p>At the moments the head reaches a new cell on the left between steps 9.85&middot;10<sup>7</sup> and 9.99&middot;10<sup>7</sup>, the tape is <code>(10)^x 1^y</code> with x = 85, 173, 349, 701 and y falling by the same amounts.</p>
         <p class="where"><code>tools/c/tmrun.c</code> records</p>
+      </div>
+      <div class="card">
+        <h3>No congruence invariant excludes b = 3</h3>
+        <p>The halt needs a visit A(a, a + 4) with a even. Over the visits with b &gt; a and b &minus; a &le; 10<sup>6</sup> among the first 3&middot;10<sup>9</sup>, the residues (a mod M, (b &minus; a) mod M) are far from uniform, yet for every M tried (2<sup>k</sup> up to 256; 48, 90, 120, 210, 252) the classes with a even and b &minus; a &equiv; 4 get the same share as any other even residue. The rules applied to residues mod every even M up to 128 also reach them.</p>
+        <p class="where"><code>c/abres.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The halting visit looks like a rare random event</h3>
+        <p>Visits with a even and b &minus; a = g, for each small even g, come about 0.11 times per decade of visit index, steadily from 10<sup>5</sup> to 10<sup>10</sup> and flat in g (<code>c/abstat.c</code>). For g = 4 that predicts about 1.3 halts in the 12 decades run, so none is unremarkable. Of 9,000 orbits from random A(a, b) with a, b &lt; 10<sup>9</sup>, run 10<sup>6</sup> visits each, 5 halt by this rule (<code>c/abrand.c</code>; for example A(264421744, 92483937) reaches A(358606020, 3) after 485,721 visits). In that model the run halts with probability 1, with a median of about 2&middot;10<sup>18</sup> visits (about 10<sup>55</sup> steps).</p>
+        <p class="where"><code>c/abstat.c</code>, <code>c/abrand.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -214,7 +245,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 1000000000
 python3 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/py/framemap.py verify 30
-gcc -O2 -o mrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/mrun.c &amp;&amp; ./mrun 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 2 1000000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/mrun.c &amp;&amp; ./mrun 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 2 1000000000000000
+gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c &amp;&amp; ./abrun 140000000000 10000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/status.json</code>; edit that file and rebuild rather than editing this page.</p>
