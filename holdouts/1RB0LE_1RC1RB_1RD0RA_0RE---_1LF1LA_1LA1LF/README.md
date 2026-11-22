@@ -68,9 +68,9 @@ Only the start is this machine's own (`lean/Start.lean`, kernel):
 * `not_halts_of_arun`: if `arun k (.EO [true, false, true, false, false, false] none true)` is defined for every `k`,
   the machine never halts from blank tape.
 
-So the holdout is the same list question as the other machine's, from a different start state. A proof of the
-remaining crossing-turn cases there that is stated for every reachable list state (an invariant closed under `astep`)
-settles this machine as well.
+So the holdout is the same list question as the other machine's, from a different start state. Any result there that
+is stated for every list state in some class (an invariant closed under `astep`) holds here too; a proof of
+non-halting needs such an invariant that also contains this start.
 
 Observed (`py/listrun.py`, which runs the other machine's `py/listmachine.py` and `py/race.py` from this start):
 
@@ -81,6 +81,14 @@ Observed (`py/listrun.py`, which runs the other machine's `py/listmachine.py` an
 * `race 40000`: 2,878 crossing turns with blank end, 2,874 with a witness. The other 4 are each the first bounce after
   A reads the last 1 during a crossing (list steps 19, 875, 1,646, 5,335), with frozen word `0`; the list machine gets
   past them. That is the same pattern as the other machine.
+
+**The windows (`lean/Window.lean`, ported).** The other machine's `window_W3` holds here: for every prefix and every
+clean far part, `EO (b a b a^6)` with a far part does not fail for 2 list steps and reaches a `Safe` state (the crossing
+is over, or the frozen word has a witness and the far part is clean). All 4 witness-less turns above come right after
+such an `EO` turn: at list steps 18, 874, 1,645 and 5,334 the near part is exactly `b a b a^6` and the far part is clean
+(observed). So in the first 40,000 list steps every crossing turn with blank end is covered by a Lean lemma about
+whole families of states. What stays open is the same as there: that witnesses never run out later in a crossing,
+which depends on the far parts the growing phase builds (`eo_W1_fails`: the near part alone is not enough).
 
 ## Notes for later
 

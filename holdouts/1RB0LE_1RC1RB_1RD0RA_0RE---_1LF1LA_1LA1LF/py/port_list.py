@@ -1,4 +1,4 @@
-"""Write lean/Absorb.lean, Wall.lean, Crossing.lean, End.lean and Race.lean of this machine from those of
+"""Write lean/Absorb.lean, Wall.lean, Crossing.lean, End.lean, Race.lean and Window.lean of this machine from those of
 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF.
 
 This machine has that machine's table with the states renamed A->C, B->D, C->E, D->F, E->A, F->B (it is that table
@@ -27,7 +27,7 @@ def port(text):
     return re.sub(r"(?<![\w.])\.([A-F])\b", lambda m: "." + REN[m.group(1)], text)
 
 
-for name in ("Absorb.lean", "Wall.lean", "Crossing.lean", "End.lean", "Race.lean"):
+for name in ("Absorb.lean", "Wall.lean", "Crossing.lean", "End.lean", "Race.lean", "Window.lean"):
     with open(os.path.join(SRC, name)) as f:
         src = f.read()
     if name == "End.lean":
