@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves that one bounce of the head turns the zone, a word in the 4-cell letters <code>u = 1110</code> and <code>v = 1111</code>, into the next row of Pascal's triangle mod 2 (the running XOR of the word with a 1 appended), for every word, and solves the rows in closed form by Lucas' theorem. It also proves that the machine halts as soon as a right turn meets a frozen block of odd length followed by <code>0 1</code>, whatever the zone. In 10<sup>10</sup> steps that never happens: at every right turn the tape right of the head is a word in the 2-cell letters <code>11</code> and <code>01</code> (observed). Proving that invariant would settle the machine; it is not proved."
  ],
@@ -118,10 +118,22 @@
    "where": "<code>lean/Race.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The ten crossing turns without a witness are safe for every clean far part",
+   "text": "The 10 crossing turns with blank end and no witness in the first 40,000 list steps all come right after E reads the last 1 during a crossing, in six windows with three near parts: <code>b a b a<sup>6</sup></code> (four windows), <code>b a b a<sup>12</sup></code> (one) and a 43-letter word (list step 28,450). For each, Lean proves that for every prefix and every clean far part (for the third, every far part starting <code>u v v</code>) the list machine does not fail for 2, 3 or 6 steps and then reaches a safe state: the crossing is over, or the frozen word has a witness and the far part is clean, so the next step exists too. The proofs keep the far part symbolic: the near side only reads the run of <code>a</code>s it absorbs after an odd bounce, and an even bounce turns the far part into its running XOR. Lean also proves that the near part alone is not enough: <code>EO (b a b a<sup>2</sup>)</code> fails at once for every far part, and the run avoids it only because the far part's first run is <code>u v v</code>.",
+   "where": "<code>window_W3</code>, <code>window_W6</code>, <code>window_W43</code>, <code>eo_W1_fails</code>, <code>witnessed_step</code>, <code>lean/Window.lean</code> (the 43-letter window from <code>py/window43.py</code>)"
+  },
+  {
    "level": "trusted",
-   "title": "40,000 list steps",
-   "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through.",
-   "where": "<code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code>"
+   "title": "40,000 list steps, and 10<sup>6</sup> in C++",
+   "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through. The C++ port runs 10<sup>6</sup> list steps without failing (zone 620,913 letters, of the order of 10<sup>11</sup> machine steps by an estimate from the zone size). E reads the last 1 during a crossing 8 times there, always with one of the three near parts that <code>lean/Window.lean</code> covers, and all 12 crossing turns without a witness are in those windows.",
+   "where": "<code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code>, <code>c/listmachine.cpp</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "With a free far part the near side can fail",
+   "text": "During a crossing the near part, the frozen word and the end evolve without looking at the far part, except for the run of <code>a</code>s the near part takes from it after each odd bounce. Letting those run lengths be anything, a breadth-first search finds failures of the list machine, both from crossing starts <code>a<sup>m</sup></code> (m = 1, 2, 3, the values the run has) and from real states of the run two bounces after E reads the last 1: a long run turns the near part into a zone that eats the whole frozen word. So a proof must use which run lengths the far parts of real crossings have, that is, the structure of the zone that the growing phase leaves.",
+   "where": "<code>py/game.py</code>"
   },
   {
    "level": "trusted",
@@ -199,6 +211,9 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh",
+  "g++ -O2 -o listmachine holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/listmachine.cpp && ./listmachine 1000000",
+  "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 game.py 3 14 123 && python3 game.py 2 13 101010000 010110010",
+  "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 window43.py     # the 43-letter window of lean/Window.lean",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py",
   "gcc -O2 -o twoletter holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/twoletter.c && ./twoletter 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 10000000000",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py > holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean",
