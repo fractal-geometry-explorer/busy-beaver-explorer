@@ -125,6 +125,15 @@ allows a tape such as `0 1 1 0 1 1 1 B>0` (B on a 0 with `0 1 1` to its left), w
 contain that tape. A working invariant has to summarise the rewritten word, which is made of blocks of three and
 nested clocks, and not just a window of it.
 
+## T88: the run reduces to a trip lemma (22 November)
+
+For `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` the halting question reduces to a lemma about one trip:
+from `0 0 0 1 1 A> W`, the head never halts and never leaves the five region cells in state A, D or F. With
+that lemma as a black box, an abstract search of the run from blank tape closes in 395 configurations with no
+halt (`py/bbrun.py`, `MODE=blank`). The lemma holds for all 2^30 words of up to 30 cells (`c/pexh.c`). The open
+part is proving it for every word. Details, and why the refinements tried so far stop short, are in the
+machine's README.
+
 ## Files
 
 - `py/clockx.py`, `py/runx.py`, `py/runall.sh`, `py/gen_clockx.py`: the six new clock registrations, checks, runs, Lean.
@@ -133,4 +142,9 @@ nested clocks, and not just a window of it.
 - `py/pstep_probe.py`, `py/stack_probe.py`, `py/cleanup_probe.py`: T88 trips, stacks and phase ends from random input.
 - `py/forget_sweep.py`, `../../tools/py/satctl_forget.py`: the forgetting invariant search.
 - `py/trip_tree.py`: T88 trips decided by a prefix of the word.
+- `py/bbrun.py`: T88 abstract search with inner trips as black boxes (one trip, or `MODE=blank` the run from blank
+  tape); `py/bbtrip.py`, `py/bbfix.py`: the same with exits tabled by the word's first cells or computed as a
+  least fixpoint; `py/blackbox.py`: the windowed first version; `c/pexh.c`, `c/pexp.c`: every trip from words of
+  up to N cells, by exit and by prefix; `py/backward.py`, `py/near_miss.py`: halting patterns and how close the
+  run comes to them.
 - `far/farsearch.c`, `far/farcheck.cpp`, `far/dfa_window.py`: finite-automata reduction with the word unknown.

@@ -70,6 +70,30 @@ or halts without reading further. The number of prefixes still undecided grows b
 exits are the five seen before. So "every trip returns or exits in one of five ways" is a statement about nested
 clocks of every depth, not a finite check.
 
+**The run reduces to one lemma about trips** (22 Nov). Call a *trip* the run from `0 0 0 1 1 A> W` (W any finite
+word) up to the moment the head steps left of those five cells. Take as a hypothesis the
+
+    trip lemma: no trip halts, and no trip leaves its region in state A, D or F.
+
+(A trip leaves in D when C reads a 1 on its first cell, in F when D does.) Then the machine never halts from blank
+tape. The check (`../R02-clock-word/py/bbrun.py`, `MODE=blank`) explores the run from blank tape abstractly. The
+left side is kept as runs: exact up to 9 cells, then counted mod 3. The right side is a window of 8 cells. Every
+configuration `0 0 0 1 1 A>` is replaced by everything the lemma allows: any exit in B, C or E, with any six cells
+and the rest of the tape to the right unknown. The search closes in 395 abstract configurations, none of which halts. With the six exits actually
+seen (B `111001`, `011011`, `111011`; E `111110`, `111101`, `111111`), it closes in 35. (If exits in A or in D are
+allowed as well, the search reaches a halt.) So the halting question is now the trip lemma alone, with no stack, block or phase
+bookkeeping.
+
+The trip lemma holds for every word of up to 30 cells, all 2^30 of them (`../R02-clock-word/c/pexh.c`): no halt, and
+only the six exits above. Proving it for every word is the open part. The same abstract search, run on one trip
+with its left wall, treats inner trips as black boxes. Its justification: in a shortest bad trip, the inner trips are
+shorter, so they are good. With the six exits it finds no halt, but it does find three exits not seen in any real
+trip (B `011110`, E `110101`, E `111010`). Adding them makes it find more. Two refinements do not remove them:
+a table of exits by the first 6 to 8 cells of the word, and a least-fixpoint table that records every cell a trip
+visits (`bbtrip.py`, `bbfix.py`). The traces show why. An inner clock's counter `0^(3c)` on the left decides how
+much the trip writes on the right. Once c is past the cap, the search loses that link. A proof has to carry c
+symbolically, as the nested-clock rule `nest` does.
+
 **Halting.** The only halting transition is F on 0 (`step_none_iff`); F is entered only from D on 1 (1LF, from the
 table), so the machine halts exactly when D reads a 1 whose left neighbour is a 0. A tick whose trips all return is
 proved to finish, so a halt can only come at a phase end. Open: a closed form for P^(2^k) on the words that occur,
@@ -99,6 +123,8 @@ Open.
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB tmcheck 1e10` — compare with `tmrun` at every visit (about a minute).
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB run 187` — the phases (about 25 minutes to 10^187).
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/gen_clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` — writes `lean/ClockRules.lean` and `lean/Clock.lean`.
+- `MODE=blank python3 holdouts/R02-clock-word/py/bbrun.py 9 4 2 8` (with `EXTRA` the extra exits allowed): the run from blank tape with every trip replaced by its allowed exits; `python3 holdouts/R02-clock-word/py/bbrun.py 9 4 2 8`: the same for one trip.
+- `holdouts/R02-clock-word/c/pexh.c` (`pexh N LIMIT`): every trip from words of N cells; `c/pexp.c`: exits by prefix.
 - `python3 holdouts/R02-clock-word/py/trip_tree.py 16`: trips decided by a prefix of the word, and how many prefixes stay undecided.
 - `python3 holdouts/1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/py/instance.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB 470 4` — writes `lean/Instance.lean`.
 - `py/phases.py LOG` prints the events of a `tmrun MACHINE T at E L 400 > LOG` log.
@@ -109,6 +135,7 @@ Open.
 
 ## Next steps
 
+Prove the trip lemma (no halt, no exit in A, D or F, for every word); the run from blank tape then never halts.
 A proof that doesn't depend on the word has to follow nested clocks: a trip is either short or a clock whose phases
 end in the same five exits. The next step is the phase end of a nested clock, with an arbitrary word after it and an
 arbitrary stack before it. Separately: describe P^(2^k) on the words of the run in closed form, accelerate a phase
