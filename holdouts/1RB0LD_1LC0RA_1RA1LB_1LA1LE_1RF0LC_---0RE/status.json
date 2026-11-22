@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 17 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>Open, and probably never halting.</b> Every so often the tape is P(n) = <code>(10)^n A&gt; 0</code>. Lean (kernel) proves a computable macro step from P(n) to P(n&prime;) or to a halt, for every n, from 21 symbolic rules, and proves that the machine halts from blank tape if and only if the orbit of this macro step from P(4) stops. Its value follows a closed form (checked, not proved, for every n &le; 200,000): with h<sub>k</sub> = 5&middot;2<sup>k</sup> &minus; k &minus; 6 (3, 12, 31, 70, 149, &hellip;) and h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub>, P(n) goes to P(3n &minus; 10&middot;2<sup>k</sup> + 3k + 14), and P(h<sub>k</sub>) halts. So the machine halts if and only if the orbit of 4 ever lands exactly on some h<sub>k</sub>. Lean checks that it does not for 200 map steps by the kernel (10<sup>86</sup> machine steps) and 2,000 by <code>native_decide</code> (10<sup>798</sup>); Python follows it for 10<sup>5</sup> map steps. A target is hit by chance about once in 2<sup>k</sup> tries while k grows by about two thirds of a bit per step, so the chance of a halt later on is about 10<sup>&minus;20,000</sup>."
  ],
@@ -66,7 +66,7 @@
   {
    "level": "trusted",
    "title": "The closed form of the macro step",
-   "text": "For h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub> with r = n &minus; h<sub>k</sub> &minus; 1: n&prime; = 5&middot;2<sup>k</sup> &minus; 1 + 3r in 12r&sup2; + (40&middot;2<sup>k</sup>+6)r + (100&middot;4<sup>k</sup>+23)/3 &minus; 10&middot;2<sup>k</sup> steps; P(h<sub>k</sub>) halts. A Python transcription of the Lean <code>pstep</code> agrees with this for every 1 &le; n &le; 200,000 (the closed form itself is not proved in Lean). Direct simulation agrees too: all 16 P-events of the run from blank tape up to 10<sup>10</sup> steps (n = 4, 9, 24, 52, 99, 163, 198, 303, 618, 1246, 2493, 4957, 9792, 19180, 37107, 70411; the last at step 9,108,900,940) match in n and step.",
+   "text": "For h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub> with r = n &minus; h<sub>k</sub> &minus; 1: n&prime; = 5&middot;2<sup>k</sup> &minus; 1 + 3r in 12r&sup2; + (40&middot;2<sup>k</sup>+6)r + (100&middot;4<sup>k</sup>+23)/3 &minus; 10&middot;2<sup>k</sup> steps; P(h<sub>k</sub>) halts. A Python transcription of the Lean <code>pstep</code> agrees with this for every 1 &le; n &le; 200,000; the position part of the closed form is proved in Lean for every n (<code>pstep_closed</code>, <code>pstep_halt</code>, <code>lean/Closed.lean</code>), the step count is not. Direct simulation agrees too: all 16 P-events of the run from blank tape up to 10<sup>10</sup> steps (n = 4, 9, 24, 52, 99, 163, 198, 303, 618, 1246, 2493, 4957, 9792, 19180, 37107, 70411; the last at step 9,108,900,940) match in n and step.",
    "where": "<code>py/macro.py check 200000</code>, <code>py/macro.py orbit 1e10</code>, <code>c/pevents.c</code>"
   },
   {
@@ -74,6 +74,18 @@
    "title": "10<sup>5</sup> macro steps without a halt",
    "text": "Python iterates the closed form (exact big integers) for 10<sup>5</sup> macro steps from P(4) without landing on an h<sub>k</sub>; n then has 66,605 bits and the step count is about 10<sup>40,100</sup>.",
    "where": "<code>py/macro.py far 1e5</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "No congruence can prove it never halts (moduli dividing 2<sup>16</sup>&middot;3<sup>9</sup>)",
+   "text": "A set of residue classes that holds the orbit, is kept by the map and misses every h<sub>k</sub> would prove non-halting. There is none for any modulus dividing 2<sup>16</sup>&middot;3<sup>9</sup> = 1,289,945,088 (so for every 2<sup>j</sup>&middot;3<sup>i</sup> with j &le; 16, i &le; 9). With v = n + k + 6 &minus; 5&middot;2<sup>k</sup> (zero exactly at h<sub>k</sub>) the step is v&prime; = 3v + 2 + 5&middot;2<sup>k</sup> + k&prime; &minus; 5&middot;2<sup>k&prime;</sup>; a congruence sees only (v, k, 2<sup>k</sup>) mod M, and at a high level every residue of v occurs both where the level stays and where it goes up by one (<code>realize</code>), so a congruence invariant has to survive both choices. A path of 34 choices leads from the residues of the run to v = 0, which rules out every invariant (<code>no_inv</code>, <code>no_inv_dvd</code>). The paths are found by <code>py/congruence.py</code> and checked by the kernel, for the starts of all three machines that iterate this map (n = 4, 10 and 1 after 40 map steps).",
+   "where": "<code>no_cong_4</code>, <code>no_cong_10</code>, <code>no_cong_1</code>, <code>no_inv</code>, <code>realize</code>, <code>lean/Congruence.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No congruence invariant for any modulus up to 20,000",
+   "text": "The same search by breadth-first search in Python, for every modulus 2 &le; M &le; 20,000 (primes 5, 7, &hellip; included) and every 2<sup>j</sup>&middot;3<sup>i</sup> up to 2<sup>12</sup>&middot;3<sup>7</sup>, from all three starts: each reaches v = 0, in at most 24 choices. Even allowing only the two common choices (the level rising by two happens only in the top ~k/3 values of a level), no residue class is safe.",
+   "where": "<code>py/congruence.py all 20000</code>, <code>py/congruence.py grid 12 7</code>"
   },
   {
    "level": "heuristic",
@@ -153,11 +165,24 @@
     ]
    },
    {
+    "id": "congruence",
+    "eyebrow": "Why the easy proofs fail",
+    "heading": "No congruence keeps the run away from the targets",
+    "html": [
+     "<p>The simplest proof that the orbit never lands on an h<sub>k</sub> would be a congruence: a set of residue classes, say of n mod 2<sup>j</sup>&middot;3<sup>i</sup>, that contains the run, is kept by the map, and contains no h<sub>k</sub>. Such proofs settle many Collatz-like machines. Here there is none.</p>",
+     "<p>Write v = n + k + 6 &minus; 5&middot;2<sup>k</sup>, so that n = h<sub>k</sub> exactly when v = 0. One step is v&prime; = 3v + 2 + 5&middot;2<sup>k</sup> + k&prime; &minus; 5&middot;2<sup>k&prime;</sup>, where the new level k&prime; is k or k + 1 (k + 2 only for a handful of n at the top of a level). Mod M the map sees only three residues: v, k and 2<sup>k</sup>. Whether the level goes up depends on the <i>size</i> of n, not on its residues: high up, every residue class has members of both kinds. So a congruence invariant would have to survive both choices at every step, and it is enough to find one sequence of choices that leads to v &equiv; 0 to rule it out.</p>",
+     "<p>Pick a modulus and a start (n = 10 is the start of 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE, n = 1 that of 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE); the panel searches for such a sequence (breadth first, in your browser). Lean checks one for the modulus 2<sup>16</sup>&middot;3<sup>9</sup>, which covers all its divisors, for all three starts (<code>lean/Congruence.lean</code>).</p>",
+     "<div class=\"panel\" id=\"congPanel\"><div style=\"display:flex;flex-wrap:wrap;gap:8px;align-items:center\">\n<label>M = 2^<select id=\"cgJ\"></select></label><label>&middot; 3^<select id=\"cgI\"></select></label>\n<label style=\"max-width:100%\">start <select id=\"cgS\" style=\"max-width:100%\"><option value=\"0\">n = 4 (this machine)</option><option value=\"1\">n = 10 (1RB1LC_1RC0LD_…)</option><option value=\"2\">n = 1 (1RB1RE_1LC0RA_…)</option></select></label>\n<button type=\"button\" class=\"primary\" id=\"cgGo\">Search</button></div>\n<div class=\"cap\" id=\"cgCap\" style=\"margin-top:8px\"></div><div style=\"overflow-x:auto\"><table class=\"tbl\" id=\"cgTab\"></table></div></div>",
+     "<script>\n(function(){\n  var S=[{n:432545740,k:26},{n:131603755,k:24},{n:6382008234,k:30}];\n  var J=document.getElementById('cgJ'),I=document.getElementById('cgI');\n  for(var a=0;a<=10;a++)J.add(new Option(a,a));for(var b=0;b<=6;b++)I.add(new Option(b,b));J.value=6;I.value=3;\n  function pm(e,M){var r=1%M,b=2%M;while(e>0){if(e&1)r=r*b%M;b=b*b%M;e=Math.floor(e/2);}return r;}\n  function md(x,M){return ((x%M)+M)%M;}\n  function step(M,s,d){var p2=(d?2*s[2]:s[2])%M;return [(3*s[0]+2+5*s[2]+s[1]+d+5*(M-p2))%M,(s[1]+d)%M,p2];}\n  function go(){\n    var M=Math.pow(2,+J.value)*Math.pow(3,+I.value),st=S[+document.getElementById('cgS').value];\n    var cap=document.getElementById('cgCap'),tab=document.getElementById('cgTab');tab.innerHTML='';\n    if(M<2){cap.textContent='Pick M > 1.';return;}\n    var v0=md(st.n%M+st.k%M+6-5*pm(st.k,M),M),s0=[v0,st.k%M,pm(st.k,M)];\n    var key=function(s){return s[0]+','+s[1]+','+s[2];},prev=new Map(),q=[s0],h=0,end=null;prev.set(key(s0),null);\n    if(v0===0)end=s0;\n    while(!end&&h<q.length){var s=q[h++];for(var d=0;d<2&&!end;d++){var t=step(M,s,d),kt=key(t);if(prev.has(kt))continue;prev.set(kt,[s,d]);if(t[0]===0)end=t;else q.push(t);}}\n    if(!end){cap.textContent='The reachable residues avoid v = 0: a congruence invariant mod '+M+' exists.';return;}\n    var path=[],u=end;while(prev.get(key(u))){var pr=prev.get(key(u));path.push([u,pr[1]]);u=pr[0];}path.reverse();\n    cap.innerHTML='M = '+M.toLocaleString('en-US')+': '+path.length+' choices lead from the residues of the run (n = '+st.n.toLocaleString('en-US')+', level '+st.k+') to v &equiv; 0, the residue of h<sub>k</sub>; '+prev.size.toLocaleString('en-US')+' residue states searched. So no set of classes mod '+M+' can keep the run away from the h<sub>k</sub>.';\n    var r='<thead><tr><th>step</th><th>level</th><th>v mod M</th><th>k mod M</th><th>2<sup>k</sup> mod M</th></tr></thead><tbody><tr><td>start</td><td></td><td>'+s0[0]+'</td><td>'+s0[1]+'</td><td>'+s0[2]+'</td></tr>';\n    path.forEach(function(e,i){r+='<tr><td>'+(i+1)+'</td><td>'+(e[1]?'+1':'same')+'</td><td>'+(e[0][0]===0?'<b>0</b>':e[0][0])+'</td><td>'+e[0][1]+'</td><td>'+e[0][2]+'</td></tr>';});\n    tab.innerHTML=r+'</tbody>';\n  }\n  document.getElementById('cgGo').addEventListener('click',go);go();\n})();\n</script>",
+     "<p>So any proof that this machine never halts has to use more than residues: for instance where n sits inside its level, which is what decides whether the level goes up. That is the same wall as for the Collatz problem.</p>"
+    ]
+   },
+   {
     "id": "proof",
     "eyebrow": "What is proved",
     "heading": "Proved in Lean: every round, and 10<sup>798</sup> steps",
     "html": [
-     "<ul><li><b>Kernel:</b> 21 symbolic rules (generated by <code>py/rules.py</code>), the counter loop and the final sweep by induction, and from them a function <code>pstep</code> giving the round from P(n) for <i>every</i> n, with its exact step count or a halt.</li><li><b>Kernel:</b> blank tape reaches P(4) in 31 steps; 200 rounds without a halt, more than 10<sup>86</sup> steps.</li><li><b>native_decide:</b> 2,000 rounds without a halt, more than 10<sup>798</sup> steps.</li><li><b>Checked by program, not proved:</b> the closed form above (for every n &le; 200,000), 16 rounds against the real machine up to 10<sup>10</sup> steps, and 10<sup>5</sup> rounds of the map.</li><li><b>Open:</b> whether the orbit ever hits an h<sub>k</sub>.</li></ul>"
+     "<ul><li><b>Kernel:</b> 21 symbolic rules (generated by <code>py/rules.py</code>), the counter loop and the final sweep by induction, and from them a function <code>pstep</code> giving the round from P(n) for <i>every</i> n, with its exact step count or a halt.</li><li><b>Kernel:</b> blank tape reaches P(4) in 31 steps; 200 rounds without a halt, more than 10<sup>86</sup> steps.</li><li><b>native_decide:</b> 2,000 rounds without a halt, more than 10<sup>798</sup> steps.</li><li><b>Kernel:</b> the closed form of the position (<code>pstep_closed</code>), and that no congruence mod any divisor of 2<sup>16</sup>&middot;3<sup>9</sup> keeps the run from the h<sub>k</sub> (<code>lean/Congruence.lean</code>).</li><li><b>Checked by program, not proved:</b> the step count of the closed form (for every n &le; 200,000), 16 rounds against the real machine up to 10<sup>10</sup> steps, and 10<sup>5</sup> rounds of the map.</li><li><b>Open:</b> whether the orbit ever hits an h<sub>k</sub>.</li></ul>"
     ]
    },
    {

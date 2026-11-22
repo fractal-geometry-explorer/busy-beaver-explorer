@@ -1,7 +1,10 @@
 /* The block list of 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB--- at every turn of the head at the right end.
 
    build:  gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c
-   usage:  ./blocks STEPS [EVERY]      prints  step  list   at every EVERY-th right-end turn
+   usage:  ./blocks STEPS [EVERY]      prints  step  list  low   at every EVERY-th right-end turn
+
+   low is the leftmost cell the head visited since the previous right-end turn, counted from the first 1 of the tape
+   at that turn (so low <= 0 means the tick reached the left end of the block list).
 
    At a right-end turn the head is in state A on the next-to-last cell, and the tape from its first 1 to the end
    reads (10)^n0 s1 (10)^n1 s2 ... sk (10)^nk 1 1 with single separator cells s_i.  The list is printed as
@@ -27,7 +30,7 @@ int main(int argc, char **argv) {
         }
     if (argc < 2) { fprintf(stderr, "usage: blocks STEPS [EVERY]\n"); return 1; }
     long long T = (long long)atof(argv[1]), every = argc > 2 ? atoll(argv[2]) : 1;
-    long h = N / 2, lo = h, hi = h;
+    long h = N / 2, lo = h, hi = h, mn = h, a0 = h;
     int st = 0, d = 0;
     long long t = 0, k = 0;
     while (t < T) {
@@ -37,13 +40,16 @@ int main(int argc, char **argv) {
         tape[h] = W[i]; h += D[i]; st = S[i]; t++;
         if (h < lo) lo = h;
         if (h > hi) hi = h;
+        if (h < mn) mn = h;
         if (h <= 1 || h >= N - 2) { printf("tape full at step %lld\n", t); return 1; }
         if (d == 1 && D[i] == -1 && h0 == hi) {
             k++;
             if (st != 0 || h != hi - 1 || !tape[hi] || !tape[hi - 1]) { printf("BAD %lld\n", t); return 1; }
-            if (k % every) { d = D[i]; continue; }
             long a = lo;
             while (!tape[a]) a++;
+            long low = mn - a0;
+            mn = h; a0 = a;
+            if (k % every) { d = D[i]; continue; }
             printf("%lld ", t);
             long start = a;
             for (long p = a; p < hi - 1; p++)
@@ -54,7 +60,7 @@ int main(int argc, char **argv) {
                     start = sep + 1;
                 }
             if ((hi - 1 - start) % 2) { printf("BAD %lld\n", t); return 1; }
-            printf("%ld\n", (hi - 1 - start) / 2);
+            printf("%ld %ld\n", (hi - 1 - start) / 2, low);
         }
         d = D[i];
     }

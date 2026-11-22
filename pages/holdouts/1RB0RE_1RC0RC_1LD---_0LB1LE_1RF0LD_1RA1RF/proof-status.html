@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> At 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps this machine's configuration is identical, cell for cell, to that of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> (it gets there about 1.5 times later); so it runs the same running-parity computation. Lean proves eleven shift rules over its 4-cell words. It halts only when B stands left of a cell holding 1.</p>
+      <p><b>The question is open, and now the same as its twin's.</b> This machine follows <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> step for step, about 1.5 times slower, until a <em>break</em> (the twin in B with a 1 in one of the two cells ahead). Lean proves that the twin's own reduction to a list program also rules out every break: if that list program never fails, neither machine halts. So one proof would now settle both. It halts only when B stands left of a cell holding 1.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>D runs left over <code>1111</code> leaving it (on a 0) or writing <code>0101</code> (on a 1); E runs left over 1111 writing 1010; E, F, A cross <code>0101</code>, <code>1010</code> going right, D and E going left.</p>
         <p class="where"><code>d_v0</code> ... <code>e_1010</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The twin's list question settles this machine too</h3>
+        <p>If the twin's list machine never fails from the first right turn (the hypothesis of the twin's <code>not_halts_of_arun</code>), then neither this machine nor the twin halts from blank tape. The proof runs the twin's own list-machine files, copied unchanged, on a <em>watched twin</em>: the twin's table with a seventh state G after <code>B&gt; 0</code> that halts on a 1, so it halts exactly at a break. With <code>Twin.lean</code> (this machine follows the twin until a break), no break means no halt for either.</p>
+        <p class="where"><code>not_halts_of_arun</code>, <code>noBreak_of_watched</code>, <code>lean/NoBreak.lean</code>; <code>lean/watch/*.lean</code> (written by <code>py/port_watch.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -172,6 +177,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
       </div>
       <div class="card">
+        <h3>No break in the first 3·10<sup>9</sup> steps of the twin</h3>
+        <p>The watched twin runs 3·10<sup>9</sup> steps (113,048 cells) without halting, so the twin's run has no break that far and this machine follows it all the way.</p>
+        <p class="where"><code>c/watch.c</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF goes through 4,995,966 configurations of 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF in its first 10<sup>7</sup> steps, in order, about 1.5 times slower. The same table as 1RB---_0RC1RD_1LA0LA_1LE0RB_1LF1LE_1LC0LD up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RB_1LC---_0LA1LD_1RE0LC_1RF1RE_1RA0RD up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LF_1RC1RB_1RD0RA_1RE0RE_1LF---_0LD1LA up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -194,7 +204,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The two twins agree at epoch starts; between them they take different routes (this one about 1.5 times slower), and each has its own halting pattern, so a proof for one would have to be redone for the other unless the agreement itself is proved.</p>
+        <p>Not known. Both machines now hang on one question: whether the twin's list machine (its <code>End.lean</code>) ever fails. A proof that it never fails settles both; a failure is where a halt or break could come from.</p>
       </div>
     </div>
   </section>

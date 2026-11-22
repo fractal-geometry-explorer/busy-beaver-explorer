@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is always blocks 1<sup>k</sup>&nbsp;0 separated by single zeros, and the machine halts exactly if B meets <code>0 0 1</code>: a double zero inside the tape (proved shape: Lean). In 10<sup>9</sup> steps B met a 0 followed by another 0 only at the blank right end of the tape. Whether a double zero can ever form is a question about a chaotic, cellular-automaton-like evolution."
+  "<b>The question is open.</b> The tape is always blocks 1<sup>k</sup>&nbsp;0 separated by single zeros, and the machine halts exactly if B meets <code>0 0 1</code>: a double zero inside the tape (proved shape: Lean). This is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> started in another state, and that machine's whole Lean reduction carries over: the holdout is now one question about one list program. If the list machine <code>astep</code> never fails from this run's first right turn (step 48), the machine never halts (<code>not_halts_of_arun</code>, Lean). It has not failed in 40,000 list steps (observed)."
  ],
  "claims": [
   {
@@ -100,9 +100,27 @@
    "where": "<code>bounce</code>, <code>closed_form</code>, <code>halts_of_odd</code>, <code>lean/Pascal.lean</code>, <code>lean/Lucas.lean</code> (written by the other machine's <code>py/port_pascal.py</code>)"
   },
   {
+   "level": "kernel",
+   "title": "Absorption, walls and crossings (ported)",
+   "text": "The Lean files <code>Absorb.lean</code>, <code>Wall.lean</code>, <code>Crossing.lean</code>, <code>End.lean</code> and <code>Race.lean</code> of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> hold here with the states renamed (A→C, B→D, C→E, D→F, E→A, F→B): even head blocks are absorbed or leave a wall, walls are 2-cell letters, one bounce is a running XOR for every zone, a crossing bounce is given on lists and a clean far part stays clean, and a frozen word with a witness (a 0, an odd run of 1s, then a 0 or the end) rules out both ways the list machine can fail.",
+   "where": "<code>absorb</code>, <code>turn_next</code>, <code>turn2_odd</code>, <code>turn2_even</code>, <code>far_even</code>, <code>astep_sim</code>, <code>astep_T2_witness</code>; written from the other machine's files by <code>py/port_list.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The holdout as a question about lists",
+   "text": "The first right turn from blank tape is at step 48: A on the last 1, zone <code>b a b a a a</code> (nearest letter first), prefix 1 (<code>start</code>). If the list machine <code>astep</code> never fails from that state, the machine never halts from blank tape (<code>not_halts_of_arun</code>). It can fail in only two ways: F reaching the blank end during a crossing, or an even crossing bounce blocked by its far part.",
+   "where": "<code>start</code>, <code>not_halts_of_arun</code>, <code>lean/Start.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The list machine has not failed",
+   "text": "The Python list machine agrees with the real machine at every one of the 17,546 right turns of the first 2&middot;10<sup>8</sup> steps (9,414 ordinary, 8,113 crossing, 19 with A on the last 1). Run on its own from step 48 it takes 40,000 list steps (16,600 ordinary turns, 23,381 crossing turns, 19 with A on the last 1) without failing; the far part is clean at every crossing turn and the zone grows to 22,714 letters. Of its 2,878 crossing turns with blank end, 2,874 have a witness in the frozen word; the other 4 are each the first bounce after A reads the last 1 during a crossing, with frozen word <code>0</code>, and the list machine gets past them.",
+   "where": "<code>py/listrun.py</code> (the other machine's <code>py/listmachine.py</code> and <code>py/race.py</code> from this start)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly if a double zero (followed by a 1) forms inside the tape and B reaches it. The local rules keep zeros single in every case seen, but the evolution looks chaotic, and no invariant explaining it is known.",
+   "text": "Not known. It halts exactly if a double zero (followed by a 1) forms inside the tape and B reaches it. By the ported Lean reduction, it suffices to show that the list machine never fails from step 48; the crossing-turn cases that would prove this are being worked on for <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a>, and a proof stated for every reachable list state would settle both machines.",
    "where": ""
   },
   {
@@ -136,6 +154,11 @@
     "level": "heuristic",
     "value": "CA-like",
     "text": "Sweeps rewrite the tape like a cellular automaton; zeros stay single."
+   },
+   {
+    "level": "kernel",
+    "value": "one list program",
+    "text": "Lean: it halts only if the list machine <code>astep</code> fails from step 48."
    }
   ],
   "presets": [
@@ -173,6 +196,16 @@
     "html": [
      "<p>The halting transition is D reading a 1, and D is entered only from C reading a 0, which is entered only from B reading a 0. So the machine halts exactly when B, moving right, meets <code>0 0 1</code>: two zeros side by side with a 1 after them. Lean checks that <code>B&gt; 0 0 1</code> halts three steps later.</p>",
      "<p>On the samples every zero is single, and in the first 10<sup>9</sup> steps B met a double zero only 42 times, all at the blank right end, where the cell after them is blank too. Proving that zeros stay single forever would prove that the machine never halts, but the rewriting is chaotic: short-window invariants (closed tape languages up to 6 cells, n-gram CPS up to 7) find nothing.</p>"
+    ]
+   },
+   {
+    "id": "lists",
+    "eyebrow": "What a proof needs",
+    "heading": "Pascal's triangle and one list program",
+    "html": [
+     "<p>Rename the states A→C, B→D, C→E, D→F, E→A, F→B and this table becomes that of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a>. The two machines differ only in the state they start in, so their runs are different, but every theorem about the table is shared. There, one bounce of the head is proved to turn the zone into the next row of Pascal's triangle mod 2, and the whole run is proved to follow a list program <code>astep</code> on three kinds of right-turn states.</p>",
+     "<p>All of those Lean files hold here word for word, with the states renamed. Only the start is this machine's own: the first right turn is at step 48, with A on the last 1 and the zone <code>b a b a a a</code> (2-cell letters <code>a = 11</code>, <code>b = 10</code>, nearest first). Lean proves that if the list program never fails from that state, the machine never halts.</p>",
+     "<p>Run from that start, the list program agrees with the real machine at all 17,546 right turns of the first 2&middot;10<sup>8</sup> steps and then takes 40,000 list steps without failing, with the zone growing to 22,714 letters. That is evidence, not proof. A proof that the list program never fails, stated for every state it can reach, would settle this machine and its sibling together.</p>"
     ]
    },
    {

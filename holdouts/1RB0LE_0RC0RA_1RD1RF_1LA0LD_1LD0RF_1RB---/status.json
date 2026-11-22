@@ -10,11 +10,11 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves the sweeps, the ticks of the two common families for chains of any length and blocks of any size, one rebuild for every length of its last block, and that every halt must come from <code>B&gt;0 1 1</code> (kernel). It also proves no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>). A C program checks the block form at all 30,932 right-end turns of the first 10<sup>10</sup> steps.",
   "<b>What it does.</b> The tape is <code>1010&hellip;</code> cut into blocks <code>(10)<sup>n</sup></code> by single extra cells, the separators (1 or 0). A round trip from the right end, a <i>tick</i>, sweeps left over some separators, turns at one, and sweeps back, complementing everything it crosses. Which separator it turns at, and how the block lengths change, depends on the separators and the parities of the blocks; two families of rules cover 30,528 of the 30,932 ticks of the first 10<sup>10</sup> steps. The last block grows by one or two each tick, so the right edge grows smoothly.",
-  "<b>The rebuilds.</b> 238 of those ticks reach the left end instead. There the head works for a long time and rebuilds the front of the list; the same sequences of lists then recur with more blocks on the right, on larger and larger scales.",
+  "<b>The rebuilds.</b> 258 ticks of the first 10<sup>10</sup> steps need the left end of the list. Each is a front and a chain: the chain behaves as in an ordinary tick, and the front follows a small rule. For 198 of them (13 front shapes) Lean proves the whole tick for every chain length and all block sizes. The other 54 are <i>copy ticks</i>: the head shuttles between the left end and a block X and copies it into a new first block 2X &minus; c, where c and the rest of the front depend only on the blocks in front of X (checked on the machine for every copy tick of the run). After each copy the blocks in front of the new big block replay the run from blank tape.",
   "<b>Where a halt would come from.</b> Only F reading a 1 halts. Two steps before a halt the machine must be at <code>B&gt;0 1 1</code> (<code>halt_route</code>): E is entered only from A reading a 1, which leaves a 0 to E's right, so <code>E&gt;1 1</code> never occurs. In block terms B would have to stand on the last 0 of a block followed by a separator 1; in the run F always reads a 0."
  ],
  "claims": [
@@ -83,6 +83,24 @@
    "title": "One rebuild, for every last block",
    "text": "The left-end tick at step 22,986, <code>3|3|12|15|1.48.94</code> to <code>88|6|2|13|21|94</code>, holds with the last block of any even length 2v+4 (8v + 16,500 steps). The rebuild reads the block 48 cell by cell, so that block cannot be made a variable this way.",
    "where": "<code>rebuild_3_3_12_15_1_48</code>, <code>lean/Rebuild.lean</code> (written by <code>py/rebuild.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The left-end ticks of 13 front shapes, for every chain length",
+   "text": "A left-end tick of <code>F . m<sub>1</sub> . &hellip; . m<sub>k</sub></code> (the m's even, k even) is the ordinary left pass over the m's, one piece at the left end, and the ordinary right pass. For each of the 13 front shapes F that occur in the first 10<sup>10</sup> steps the piece is proved for all block lengths, and with the passes the whole tick, from one right-end turn to the next, for every k. In block notation the rules are: <code>n<sub>0</sub> . C</code> becomes <code>3|n<sub>0</sub>&minus;1|C'</code> (C even) or <code>n<sub>0</sub>+3|C'</code> (C odd); <code>n<sub>0</sub>|g<sub>1</sub>|&hellip;|g<sub>j</sub>|x . C</code> becomes <code>n<sub>0</sub>+4|g<sub>1</sub>|&hellip;|g<sub>j</sub>|x&minus;1|C'</code>; and four more (README), where C' has every separator 1 and its blocks changed by +1, +1, &minus;1, +1, &hellip; from the right. They cover 198 of the 258 left-end ticks of the first 10<sup>10</sup> steps, and the rules agree with the run at all 198.",
+   "where": "<code>tick_&lt;shape&gt;</code>, <code>lean/Front.lean</code> (written by <code>py/front.py</code>); the check against the run: <code>py/front.py classify</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The copy ticks depend on the copied block only through the new block",
+   "text": "54 left-end ticks read <code>P|1 . X . C</code>. The head loops between the left end and X and copies X into a new first block N. For each of the 52 ordinary ones, the same tick run on the machine with X + 2, X + 10, X + 100 and with two other chains changes only N, by twice the change of X: the tick gives <code>N|P'|C''</code> with N = 2X &minus; c(P), and c and P' depend only on P (33 different P occur; for example <code>3|1.X</code> gives <code>(2X&minus;1)|9</code> and <code>3|3|12|15|1.X</code> gives <code>(2X&minus;8)|6|2|13|21</code>). The two others copy the block between two 1s instead.",
+   "where": "<code>py/copy.py</code> with <code>c/tick.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The front replays the blank run in front of each new big block",
+   "text": "After a copy tick, the blocks that grow in front of the new big block follow the lists of the run from blank tape (<code>4</code>, <code>3|5</code>, <code>3|3|6</code>, <code>3|3.8</code>, <code>2|5|9</code>, &hellip;), with the blank run's growing last block replaced by a shrinking one next to the big block; copies from further right interrupt the replay. The rework of P in a copy tick looks like a small transducer read from the right (README); it is read off the run, not derived.",
+   "where": "the README, section &ldquo;The left-end ticks decoded&rdquo;"
   },
   {
    "level": "kernel",
@@ -161,7 +179,10 @@
   "gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c && ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py",
   "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # writes lean/Chain.lean",
   "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # writes lean/Rebuild.lean",
-  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300"
+  "python3 holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---/py/shift4.py check 300",
+  "python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py lean   # writes lean/Front.lean",
+  "./blocks 1e10 > blocks.txt && python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py classify < blocks.txt > classify.txt",
+  "gcc -O2 -o tick holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/tick.c && python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick < classify.txt"
  ],
  "explainer": {
   "lede": "Nobody knows yet. This machine keeps an alternating tape cut into blocks, and its separators count like an odometer whose rules depend on the parities of the blocks. This page runs it in your browser and shows the counter.",
@@ -221,12 +242,16 @@
    {
     "id": "rebuilds",
     "eyebrow": "Macro structure",
-    "heading": "Rebuilds that recur",
+    "heading": "Rebuilds: a front rule, a copy loop, and a replay",
     "html": [
-     "<p>238 ticks reach the left end. The head then works there for a long time and rebuilds the front of the list. The striking thing is that the same rebuilds come back, later and with more blocks behind them:</p>",
+     "<p>Some ticks cannot turn at a separator and go all the way to the left end of the list: 258 of them in the first 10<sup>10</sup> steps. Each one is a <em>front</em> and a <em>chain</em>. The chain is the run of even blocks with separators 0 at the right; it changes exactly as in an ordinary tick: every separator becomes <code>|</code> and the blocks change by +1, +1, &minus;1, +1, &minus;1, &hellip; counted from the right. All the novelty is in the front.</p>",
+     "<p><b>Front rules.</b> 198 of these ticks have one of 13 front shapes, and each shape has a fixed rule, proved in Lean for every chain length and all block sizes. The common ones:</p>",
+     "<div style=\"overflow-x:auto\"><table><thead><tr><th>front</th><th>becomes</th><th>example</th></tr></thead><tbody><tr><td><code>n0 . C</code>, n0 even, C even</td><td><code>3|n0&minus;1|C'</code></td><td><code>2.6.10.24.46</code> &rarr; <code>3|1|7|9|25|47</code></td></tr><tr><td><code>n0 . C</code>, n0 even, C odd</td><td><code>n0+3|C'</code></td><td><code>92.6.4.8.38.128</code> &rarr; <code>95|5|5|7|39|129</code></td></tr><tr><td><code>n0|n1 . C</code>, both odd, C even</td><td><code>3|n0|n1&minus;1|C'</code></td><td><code>3|13.14.26</code> &rarr; <code>3|3|12|15|27</code></td></tr><tr><td><code>n0|g1|&hellip;|gj|x . C</code>, all even, C odd</td><td><code>n0+4|g1|&hellip;|gj|x&minus;1|C'</code></td><td><code>1760|94.8.6.6.42.188.338.1826</code> &rarr; <code>1764|93|7|7|5|43|187|339|1827</code></td></tr></tbody></table></div>",
+     "<p>So the left end of the list is a small counter of its own: the first block grows by 3 or 4, or a new block 3 splits off at the left.</p>",
+     "<p><b>Copy ticks.</b> The other 54 have a front ending in a block of length 1, <code>P|1 . X . C</code>. Here the head shuttles between the left end and the block X, moving one pair of X into a new first block on every round. The result is <code>N|P'|C''</code> with N = 2X &minus; c. Rerunning each of these ticks with X changed by 2, 10 or 100 changes nothing but N, so c and P' depend only on the blocks P in front: <code>3|1.X</code> always gives <code>(2X&minus;1)|9</code>, <code>3|3|12|15|1.X</code> always <code>(2X&minus;8)|6|2|13|21</code>. That is why the rebuilds recur with more blocks behind them:</p>",
      "<pre>   22,986  3|3|12|15|1.48.94               &rarr;  88|6|2|13|21|94\n  778,692  3|3|12|15|1.48.212.258.468      &rarr;  88|6|2|13|21|210|259|469\n   81,286  2|97|3|11|1.58.168              &rarr;  108|4|100|1|17|168\n1,452,208  2|97|3|11|1.58.174.370.692      &rarr;  108|4|100|1|17|172|371|693</pre>",
-     "<p>So the list behaves like a counter whose digits are themselves counters, recurring on growing scales; the list has only 14 blocks after 10<sup>10</sup> steps, but some of them are tens of thousands of cells long.</p>",
-     "<p>The only halt is <code>B&gt;0 1 1</code> two steps ahead (<code>halt_route</code>): B on the last 0 of a block followed by a separator 1. The open steps are the tick families for chains of any length, the rules of the rebuilds, and an invariant of the lists that rules this out.</p>"
+     "<p><b>The recursion.</b> After a copy, the new big block N sits at the left of the list, and the blocks that then grow in front of it replay the run from blank tape: in front of 9,340 the list reads <code>27</code>, <code>26</code>, <code>3|25</code>, <code>3|3|24</code>, <code>3|3.24</code>, <code>2|5|23</code>, <code>2.6|22</code>, &hellip;, the same as the blank run's <code>4</code>, <code>3|5</code>, <code>3|3|6</code>, <code>3|3.8</code>, <code>2|5|9</code>, <code>2.6|10</code>, &hellip;, except that the last block shrinks instead of growing. The list is a counter whose top digit restarts the whole run in front of every new big block, at every scale.</p>",
+     "<p>The only halt is <code>B&gt;0 1 1</code> two steps ahead (<code>halt_route</code>): B on the last 0 of a block followed by a separator 1. Still open: the copy loop and the rework of P in Lean, and an invariant of the lists that rules the halt out.</p>"
     ]
    },
    {
