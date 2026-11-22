@@ -358,6 +358,7 @@ halting 1.
 
 - `py/wordchain.py MACHINE check STEPS | jump ERAS SPOT [OUT.json]`: the chain law on a run, and the simulator that jumps over eras.
 - `py/handoff.py MACHINE ERAS`: follows ERAS changes of era and checks the three hand-over rules R1 to R3 at each.
+- `py/defects.py MACHINE check STEPS | run DIGITS [SPOT]`: the defect law of the E1 = 0RE siblings (an erased separator cell takes one unit of carry and is restored), checked on a run, and a simulator that uses it.
 - `py/prefixjump.py MACHINE JUMPS [SPOT]`: for chains with a defect (the E1 = 0RE siblings), jumps by the chain law on the longest grammar prefix, with the tail kept as it is.
 - `py/layers_gen.py MACHINE NAMESPACE > lean/Layers.lean` (with `py/Layers.lean.tpl`, `py/rowgen.py`, `py/layers_bounce.json`): the chain law in Lean, for the whole family.
 - `py/chain_page.py collect|write`: the chain law and the runs (`py/chain_runs.json`) into the five status.json files.

@@ -175,7 +175,12 @@ After the last of these changes of era the run reaches full events outside the c
 
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/prefixjump.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- 600 2`: 600 jumps, about 10^77 events from blank tape (so at least that many steps), no halt; jumps from a prefix with a defect after it: 457, from a chain wholly in the grammar: 145; 16,738 full events had no prefix that could jump and were run cell by cell; spot checks: 5,487 events, 0 mismatches.
 
-What a carry does when it crosses a defect, and why the defects keep coming back, is open.
+**What a carry does at a defect (trusted, `py/defects.py`).** Every defect met is one of two kinds. (1) One erased cell in a separator: after Z `d` = 11 read as `c` = 01, after a W `c` = 01 read as `z` = 00, after a U `ad` = 1011 read as `ac` = 1001. The law for these: carries follow the chain law up to the defect, and when a carry of c > 0 reaches it the separator is restored and the carry goes on as c − 3. So the defect takes exactly one unit, once, and then the chain is the plain chain again. (2) A half-digit shift: a separator missing altogether (a W running straight into its U), or a separator after Z read as `a`, `ad`, `zd` or `ac`. When a carry meets one, the words after it are read again with W and U swapped and the widths move by a digit, as at a change of era. This kind is not decoded.
+
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/defects.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- check 30000000`: 30,000,000 steps: 26,504 consecutive pairs of full events follow the law, 3 of them crossing a defect, 0 mismatches; 19 events are not covered (a carry leaves the chain or meets an undecoded defect).
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/defects.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- run 2000 2` (stopped by a time limit): about 10^927 events from blank tape (so at least that many steps), no halt; 6,844 jumps, 5,278 crossings by the defect law, about 1,700 events run cell by cell; self-checks (random events of each jump and a fifth of the crossings, rebuilt and run cell by cell): 14,729 events, 0 mismatches.
+
+Open: the half-digit shifts.
 
 A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 
