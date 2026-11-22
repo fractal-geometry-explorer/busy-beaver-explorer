@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -139,6 +139,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The shape of a halt</h3>
         <p>From <code>B&gt; 0 0 1</code> the machine reaches D on a 1 in 2 steps and halts on the next. Conversely (by reading the table, not formalized) D is entered only from C on a 0 and C only from B on a 0, so every halt comes this way.</p>
         <p class="where"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>One bounce is one row of Pascal's triangle mod 2</h3>
+        <p>This is the table of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> with its states renamed (A→C, B→D, C→E, D→F, E→A, F→B), and that machine's bounce theorem holds here word for word: at a right turn in A (that machine's E) with the zone a word in <code>u = 1110</code>, <code>v = 1111</code> and the frozen tape <code>1 1 1 ...</code>, one bounce maps the zone to the running XOR of <code>w 1</code> (the next row of Pascal's triangle mod 2), with the closed form by Lucas' theorem, and a right turn at a frozen block of odd length followed by <code>0 1</code> halts. In 10<sup>9</sup> steps of this run every right turn in A has a word in the 2-cell letters <code>11</code>, <code>01</code> right of the head (<code>c/twoletter.c</code> in the other folder), so that never happens (observed).</p>
+        <p class="where"><code>bounce</code>, <code>closed_form</code>, <code>halts_of_odd</code>, <code>lean/Pascal.lean</code>, <code>lean/Lucas.lean</code> (written by the other machine's <code>py/port_pascal.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>

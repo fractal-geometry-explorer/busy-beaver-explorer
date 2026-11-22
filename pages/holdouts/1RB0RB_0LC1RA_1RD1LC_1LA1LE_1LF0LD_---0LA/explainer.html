@@ -186,10 +186,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 21 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA</p>
-  <p class="stand pr"><b>Open here; an outside proof awaits review</b><span>A Rocq proof that it halts is in an open busycoq pull request, not merged and not compiled here. This page's own ledger treats halting as open.</span></p>
+  <p class="stand merged"><b>Decided by an outside Rocq proof: it halts</b><span>A Rocq proof in busycoq pull request 64 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
   <div class="col"><p class="lede">Nobody knows. The machine counts down in base 4, and each countdown is exponentially longer than the last: the third one, which starts at step 589,506, lasts about 10<sup>53</sup> steps, and the fourth about 4<sup>3·10<sup>25</sup></sup> excursions. It can only stop at the end of a countdown, and only if a remainder comes out right.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>0 0 D&gt; 1</b><span class="small">The only way to halt; it can happen only at the left end of the tape.</span></div>
@@ -198,7 +198,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev o">Open</span><b>epoch 5+</b><span class="small">Epoch 4 is predicted not to halt; nothing is known beyond it.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
-    <div class="report"><strong>An outside proof is waiting for review: it halts</strong><a href="https://github.com/ccz181078/busycoq/pull/64">busycoq pull request 64</a> (Dennis Koshta, 2026-11-09) contains a Rocq proof that this machine halts (<code>verify/Halt_1RB0RB_0LC1RA.v</code>). As of 19 November 2026 it was open: not merged, not reviewed by the maintainer, and not compiled here unless the ledger below says so. The verdict on this page does not rely on it.</div>
+    <div class="proof"><strong>An outside Rocq proof, compiled here: it halts</strong><a href="https://github.com/ccz181078/busycoq/pull/64">busycoq pull request 64</a> (Dennis Koshta, 2026-11-09) contains a Rocq proof that this machine halts (<code>verify/Halt_1RB0RB_0LC1RA.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 21 November 2026, in 511 s: the theorem <code>halt : halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. The verdict on this page rests on this proof.</div>
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Shift-overflow bouncer counter</b>. These are labels read off the run by others, not results.</div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
@@ -331,7 +331,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 21 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -352,6 +352,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/epochs.py law</code>, <code>py/epochs.py epoch3</code></div></div><div><b>The epoch-3 law on small counters</b><p>From <code>P (01)^m</code>, the number E(m) of excursions to the next left record satisfies E(m+12) = 4E(m)+2 for m = 12…87; for m = 4+12t, E = (14·4<sup>t</sup>−2)/3 and the epoch ends without a halt with E+1 trailing <code>10</code> pairs.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Epoch 3 lasts about 3.6·10<sup>26</sup> excursions and does not halt</b><p>The law extrapolated to m = 520 (t = 43): E = 361,065,844,791,569,246,845,577,898 excursions, roughly 10<sup>53</sup> steps, ending with N ≡ 7 (mod 12) trailing pairs.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/epochs.py epoch4</code></div></div><div><b>Epoch 4 does not halt</b><p>With the trailing pairs of an epoch-3 end replaced by N₂ pairs (N₂ ≤ 30, t = 1…4) the next epoch halts exactly when N₂ ≡ 2 (mod 12) (t ≥ 2); the real N is ≡ 7. Epoch 4 then lasts about 4<sup>N/12</sup> excursions.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>/mnt/project-files/busycoq-prs/64/verify/Halt_1RB0RB_0LC1RA.v</code>, <code>python3 py/pr64_sweep.py test</code></div></div><div><b>An outside proof claims a halt (busycoq PR 64); its sweep checked against the machine</b><p>busycoq PR 64 (<code>Halt_1RB0RB_0LC1RA.v</code>, 15,177 lines of Coq, not compiled here) claims that the machine halts from blank tape. Its mechanism: at records <code>0<sup>&infin;</sup> W 0 1 1 B&gt; 0<sup>&infin;</sup></code> (W a word over a = 11, b = 01) one sweep is a three-state right-to-left letter transducer; at the left edge the word grows, the machine halts (D on <code>0 1</code> next to the blank edge), or a level ends (the tape is rewritten by a shifted pass). Level 1 starts at step 589,507 with the tail b<sup>518</sup>; a level whose word starts with b<sup>12q+12+r</sup> behaves like the word with b<sup>r</sup>, slowed down by 4<sup>q+1</sup>; the file follows 25 levels with symbolic run lengths (residues modulo powers of 3) and the reduced word of level 25 halts. The halting step is a tower of 4s of height about 25 and is not computed. Checked here: <code>py/pr64_sweep.py test</code> transcribes the PR's sweep and finds it equal to direct simulation at all 766 records up to step 700,000, including the 10 level ends up to step 589,507 (the PR's start of level 1). The halting claim itself is the PR's, not checked here (21 November 2026).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. A proof of non-halting would need the excursion as a proved macro step, the countdown laws as theorems, and the residue test at every level of the tower; a halt, if any, would come after epoch 4, beyond 4<sup>10<sup>25</sup></sup> steps.</p></div></div>
 </section>
 <section id="check">
@@ -360,7 +361,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/lean/check.sh
 python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py law 12,16,20,24          # E(m+12) = 4E(m)+2
-python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt</code></pre>
+python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt
+python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/pr64_sweep.py test</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

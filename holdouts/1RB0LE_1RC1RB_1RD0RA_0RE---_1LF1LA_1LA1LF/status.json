@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The tape is always blocks 1<sup>k</sup>&nbsp;0 separated by single zeros, and the machine halts exactly if B meets <code>0 0 1</code>: a double zero inside the tape (proved shape: Lean). In 10<sup>9</sup> steps B met a 0 followed by another 0 only at the blank right end of the tape. Whether a double zero can ever form is a question about a chaotic, cellular-automaton-like evolution."
  ],
@@ -92,6 +92,12 @@
    "title": "Regular-language deciders tried (F11)",
    "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 24, history 1 up to width 24, history 2 up to width 24, history 3 up to width 24, LRU history up to width 4 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 20, p = 3 up to width 20, p = 4 up to width 20, p = 6 up to width 20. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.",
    "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
+  },
+  {
+   "level": "kernel",
+   "title": "One bounce is one row of Pascal's triangle mod 2",
+   "text": "This is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> with its states renamed (A→C, B→D, C→E, D→F, E→A, F→B), and that machine's bounce theorem holds here word for word: at a right turn in A (that machine's E) with the zone a word in <code>u = 1110</code>, <code>v = 1111</code> and the frozen tape <code>1 1 1 ...</code>, one bounce maps the zone to the running XOR of <code>w 1</code> (the next row of Pascal's triangle mod 2), with the closed form by Lucas' theorem, and a right turn at a frozen block of odd length followed by <code>0 1</code> halts. In 10<sup>9</sup> steps of this run every right turn in A has a word in the 2-cell letters <code>11</code>, <code>01</code> right of the head (<code>c/twoletter.c</code> in the other folder), so that never happens (observed).",
+   "where": "<code>bounce</code>, <code>closed_form</code>, <code>halts_of_odd</code>, <code>lean/Pascal.lean</code>, <code>lean/Lucas.lean</code> (written by the other machine's <code>py/port_pascal.py</code>)"
   },
   {
    "level": "open",

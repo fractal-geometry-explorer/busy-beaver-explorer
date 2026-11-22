@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 64 (Dennis Koshta, 2026-11-09) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the moves an excursion is made of, the only way the machine can halt (<code>0 0 D&gt; 1</code>, reached at the left end when a pass meets an odd lead block), and that step 589,506 starts the third epoch on the tape <code>P (01)^520</code>. Simulator laws, checked on small counters and extrapolated, give epoch 3 a length of about 3.6·10<sup>26</sup> excursions (10<sup>53</sup> steps) and predict that neither epoch 3 nor epoch 4 ends in a halt; beyond epoch 4 nothing is known."
  ],
  "claims": [
@@ -88,6 +89,12 @@
    "where": "<code>py/epochs.py epoch4</code>"
   },
   {
+   "level": "trusted",
+   "title": "An outside proof claims a halt (busycoq PR 64); its sweep checked against the machine",
+   "text": "busycoq PR 64 (<code>Halt_1RB0RB_0LC1RA.v</code>, 15,177 lines of Coq, not compiled here) claims that the machine halts from blank tape. Its mechanism: at records <code>0<sup>&infin;</sup> W 0 1 1 B&gt; 0<sup>&infin;</sup></code> (W a word over a = 11, b = 01) one sweep is a three-state right-to-left letter transducer; at the left edge the word grows, the machine halts (D on <code>0 1</code> next to the blank edge), or a level ends (the tape is rewritten by a shifted pass). Level 1 starts at step 589,507 with the tail b<sup>518</sup>; a level whose word starts with b<sup>12q+12+r</sup> behaves like the word with b<sup>r</sup>, slowed down by 4<sup>q+1</sup>; the file follows 25 levels with symbolic run lengths (residues modulo powers of 3) and the reduced word of level 25 halts. The halting step is a tower of 4s of height about 25 and is not computed. Checked here: <code>py/pr64_sweep.py test</code> transcribes the PR's sweep and finds it equal to direct simulation at all 766 records up to step 700,000, including the 10 level ends up to step 589,507 (the PR's start of level 1). The halting claim itself is the PR's, not checked here (21 November 2026).",
+   "where": "<code>/mnt/project-files/busycoq-prs/64/verify/Halt_1RB0RB_0LC1RA.v</code>, <code>python3 py/pr64_sweep.py test</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. A proof of non-halting would need the excursion as a proved macro step, the countdown laws as theorems, and the residue test at every level of the tower; a halt, if any, would come after epoch 4, beyond 4<sup>10<sup>25</sup></sup> steps.",
@@ -98,7 +105,8 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/lean/check.sh",
   "python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py law 12,16,20,24          # E(m+12) = 4E(m)+2",
-  "python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt"
+  "python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/epochs.py epoch4 16,28 1,2,7,14     # which epoch-4 counters halt",
+  "python3 holdouts/1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA/py/pr64_sweep.py test"
  ],
  "explainer": {
   "lede": "Nobody knows. The machine counts down in base 4, and each countdown is exponentially longer than the last: the third one, which starts at step 589,506, lasts about 10<sup>53</sup> steps, and the fourth about 4<sup>3·10<sup>25</sup></sup> excursions. It can only stop at the end of a countdown, and only if a remainder comes out right.",
@@ -195,6 +203,7 @@
   ]
  },
  "family": "Tower of base-4 countdowns with a residue test at each epoch end",
- "summary": "Each epoch is a base-4 countdown on the excursion depth whose length is exponential in the counter it starts with (epoch 3: P (01)^520, about 3.6·10^26 excursions); halting is only possible at an epoch end, when the lead block is odd. Simulator laws predict epochs 3 and 4 end without halting; epoch 4 already has about 4^(3·10^25) excursions.",
- "decision": "open"
+ "summary": "Each epoch is a base-4 countdown on the excursion depth whose length is exponential in the counter it starts with (epoch 3: P (01)^520, about 3.6·10^26 excursions); halting is only possible at an epoch end, when the lead block is odd. Simulator laws predict epochs 3 and 4 end without halting; epoch 4 already has about 4^(3·10^25) excursions. Decided outside: busycoq PR 64 proves in Rocq that it halts (compiled here).",
+ "decision": "halts",
+ "decision_level": "outside"
 }

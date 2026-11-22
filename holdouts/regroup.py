@@ -32,7 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build_pages as bp  # noqa: E402
 
-ASOF = "20 November 2026"
+ASOF = "21 November 2026"
 
 # ---------------------------------------------------------------- table distance
 
@@ -104,13 +104,20 @@ FAMILIES = [
                    "(the detour through F) that reads a 1.",
          known="Lean proves the visit law, its closed form and a conservation law for all 40 on each machine's own "
                "table (`Family.lean` in each folder); the exact block-list map ran 37 of them to 10^200 steps, every "
-               "F-event reading 0.",
+               "F-event reading 0. The same-run step is done: ten twin pairs and seven start-twin pairs "
+               "(`EQUIVALENCES.md`; `Twin.lean`, `StartTwin.lean`) put 31 of the 40 into 14 classes, so the 40 are "
+               "23 questions, and a recheck of all 40 block lists at every left-end event to 10^30 steps "
+               "(21 November) found no further pair: the twelve start-E machines part from each other and from "
+               "the start-A ones by the sixth left-end event.",
          technique="One invariant on the shared core: show that an F-event never reads 1, i.e. that the drift "
-                   "b(i+1) - 5·b(i) is never near 0 when its block runs out. A proof on the core settles all 40 at once; "
-                   "even without it, Lean proofs that variants with the same block list are the same run cut the 40 "
-                   "questions to about 10.",
-         odds="medium-low: halting needs two rare events to coincide, and nothing found so far bounds the drift; "
-              "but the payoff is the largest of any single argument."),
+                   "b(i+1) - 5·b(i) is never within a few hundred of 0 when block i runs out. Clean visits keep every "
+                   "drift fixed, so only the drifts made at merges matter. A proof on the core settles all 40 at once.",
+         odds="low: the drifts made at merges behave like differences of unrelated large numbers. To 10^100 steps "
+              "the 599 drifts of 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- are all even but take every residue "
+              "mod 9 and mod 25 (122 of 125 mod 125), and |b(i+1) - 5·b(i)| / b(i) gets as low as 0.015, so "
+              "neither a congruence nor a ratio bound is kept. A proof would have to show that a chaotic integer "
+              "process misses a thin set, a Collatz-type statement. Heuristically they do not halt: every drift "
+              "made after the 30th left-end event is above 8·10^6 in size, against the few hundred a halt needs."),
     dict(id="R02", name="Clock and word: a block grows in doubling time while a word map runs 2^k times",
          pattern=(r"\bclock\b|doubling time|2\^k applications|2<sup>k</sup> applications", "Shift-overflow"),
          mechanism="A block at one end grows by 2, 3 or 4 cells per tick and tick k applies one word map P (one trip "
@@ -152,7 +159,7 @@ FAMILIES = [
                "and `1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---` Lean proves that tapes of the same shape with short "
                "timers halt. `1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD` halts iff its twin "
                "`1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE` halts from state B (Lean). "
-               "`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` has a halting proof in busycoq PR 64 (not compiled here).",
+               "`1RB0RB_0LC1RA_1RD1LC_1LA1LE_1LF0LD_---0LA` was decided by busycoq PR 64 (halts; compiled here 21 November).",
          technique="Halt hunting with exact odometer jumps (the PR 83 / PR 89 method: b^k ticks in one operation, "
                    "then an exact executor to the halt). In the week of 13 November this kind of family (F06) gave half of all decisions, "
                    "all of them halting.",
@@ -166,8 +173,15 @@ FAMILIES = [
                    "parity, so the space-time diagram is Pascal's triangle mod 2; "
                    "`1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102 (XOR); the others draw Sierpinski-like "
                    "triangles on blocks of 1s.",
-         known="Two pairs run through the same tapes (observed); for the XOR machine the bulk-merge trigger is known "
-               "and was last seen at 4.07·10^6 steps in a 10^11 run.",
+         known="Lean proves for `1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF` (and, renamed, "
+               "`1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`) that one bounce maps the zone to the next row of "
+               "Pascal's triangle mod 2 for every zone word, solves the rows by Lucas' theorem, and that a right "
+               "turn at a frozen block of odd length halts whatever the zone; so halting depends on the parities of "
+               "the frozen blocks, not on the zone's digits. At every right turn of the four runs on that table "
+               "(10^10 steps for the first, 10^9 for the others) the tape right of the head is a word in the 2-cell "
+               "letters 11, 01, which rules that out (observed, not proved). Two pairs run through the same tapes "
+               "(observed); for the XOR machine the bulk-merge trigger is known and was last seen at 4.07·10^6 steps "
+               "in a 10^11 run.",
          technique="For the parity machines, prove in Lean that sweep n writes row n of Pascal's triangle mod 2 in "
                    "4-cell letters. Lucas' theorem then gives every cell in closed form, and the halting condition "
                    "becomes a statement about binary digits that may be provable outright. The same template "
@@ -193,10 +207,10 @@ FAMILIES = [
                    "digits of the other and refills it. A halt needs one exact rebuild (for example a walk that "
                    "crosses the whole counter).",
          known="Ticks are proved in Lean for every size; the rebuilds are known in closed form (checked, not proved) "
-               "and iterated past 10^150,000,000 steps. Two members have outside non-halting proofs: busycoq PR 57 "
+               "and iterated past 10^150,000,000 steps. Two former members were decided by outside non-halting proofs compiled here on 21 November: busycoq PR 57 "
                "(`1RB1LE_1RC0RB_1LD1RC_1LA1LE_1LF0LA_1LC---`) and PR 58 "
-               "(`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`), neither compiled here.",
-         technique="Compile PRs 57 and 58, then prove the closed rebuild recursions in Lean and extend the PR 57/58 wall "
+               "(`1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC`); their wall invariants are the model for the rest.",
+         technique="Prove the closed rebuild recursions in Lean and extend the PR 57/58 wall "
                    "invariant to the case where a rebuild reads only part of the counter (that is where it failed "
                    "for the three siblings).",
          odds="medium: the rebuilds are already explicit maps; the last step is a number-theoretic inequality."),
@@ -235,11 +249,11 @@ FAMILIES = [
                    "are those of the PR 59 machines.",
          known="Busycoq PR 59 claims halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD0LC_0RC---`, "
                "`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---` and `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---`, and "
-               "PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; none compiled here. The three "
+               "PR 55 non-halting for `1RB0LB_0RC0LD_1LD1RE_0LA0RB_0RD1RF_1LA---`; all four compiled here on 21 November, so they are decided. The three "
                "open members rewrite 1011 differently and run past round 200,000 (visit law in Lean).",
-         technique="Compile PRs 55 and 59 (four machines). For the three open members, continue the accelerated "
+         technique="For the three open members, continue the accelerated "
                    "visit-law run: our two halting proofs from 13 November came from this law.",
-         odds="high for the four pending, low to medium for the three open."),
+         odds="low to medium."),
     dict(id="R11", name="Nested ternary counters (draining odometers)",
          pattern=(r"ternary|base-3 countdown", "Skelet"),
          mechanism="Segments of 111-blocks (or digits between blocks) drained by 3^j per event; segments run out one "
@@ -287,23 +301,23 @@ COLLATZ = dict(
     odds="very low for non-halting; occasional halts.")
 
 PENDING = dict(
-    id="R00", name="Outside proofs awaiting compilation (busycoq PRs 43 to 68)",
-    technique="Compile each pull request on busycoq's BB6 branch with Print Assumptions appended, as was done for "
-              "PRs 78 to 109 (`holdouts/external.json`), and record it. No research, and it can move every one of "
-              "these machines from 'awaiting review' to decided here.")
+    id="R00", name="Outside proofs awaiting compilation (busycoq PR 60)",
+    technique="Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles "
+              "and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours "
+              "of native_compute jobs; sample jobs pass here, the full runs need a large machine.")
 
 # One line per family for the ranking table.
 SHORT = {
-    "R01": "one drift invariant on the shared core (first: same-run equivalences, 40 questions to about 10)",
+    "R01": "one drift invariant on the shared core (same-run step done: 40 machines, 23 questions)",
     "R02": "automaton invariant for the word map P alone, plus the clock lemma in Lean",
     "R03": "shared Lean library for the core, then exact block-list runs to hunt halts",
     "R04": "halt hunting with exact odometer jumps (PR 83 / 89 method)",
     "R05": "prove each sweep is one CA step; closed form by Lucas' theorem for the parity pair",
     "R06": "retarget the PR 93 engine and run to the halt (halting only)",
-    "R07": "compile PRs 57 and 58; prove the closed rebuild maps; extend the wall invariant",
+    "R07": "prove the closed rebuild maps; extend the PR 57/58 wall invariant",
     "R08": "Lean leftmost-zone reduction, then a two-zone model",
     "R09": "port the one-map reduction to the siblings; invariant of the map",
-    "R10": "compile PRs 55 and 59; accelerated visit-law runs for the rest",
+    "R10": "accelerated visit-law runs (PRs 55 and 59 compiled: four decided)",
     "R11": "exact macro simulators to the first top-level overflow",
     "R12": "decode the middle first",
     "R13": "transfer theory for the shifted run",
@@ -477,13 +491,13 @@ def write_md(out, rows):
     w("")
     w("## Recommended next attacks")
     w("")
-    w(f"1. **Compile the outside proofs of busycoq PRs 43 to 68** ({len(out['pending'])} machines). They are the only "
-      "machines on the list whose proofs exist but have not been checked here, and checking them is mechanical "
-      "(the same procedure as for PRs 78 to 109). Ten of them also belong to families below (R04, R07, R10 and R15).")
+    w(f"1. **Finish the two PR 60 halts** ({len(out['pending'])} machines). All other proofs in busycoq PRs 43 to 68 were "
+      "compiled on 21 November and their 32 machines are decided; PR 60's two proofs need about 555 core-hours of "
+      "native_compute jobs, which needs a large machine (sample jobs pass here).")
     n = {f["id"]: len(f["machines"]) for f in fams}
     w(f"2. **R01, the F05 core** ({n['R01']} machines). The largest family by far, with its whole macro structure already "
-      "proved in Lean on all 40 core tables. One invariant on the drift settles all of them; the equivalence proofs "
-      "that cut 40 questions to about 10 are a safe first step.")
+      "proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is "
+      "done (the 40 are 23 questions); the invariant itself looks like a Collatz-type statement, so the odds are low.")
     w(f"3. **R02, clock and word** ({n['R02']} machines on six tables). The clock lemma is in Lean for six; what is left is "
       "a finite-state question about one word map per machine, which an automaton search on the word alone "
       "can answer far more cheaply than the whole-tape search that failed.")
@@ -494,8 +508,7 @@ def write_md(out, rows):
       "proof that each sweep is one row of Pascal's triangle mod 2 turns halting into a statement about binary "
       "digits (Lucas' theorem).")
     w("")
-    w("Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted). "
-      "R07 and R10 start with the compiles in step 1.")
+    w("Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 93 engine retargeted).")
     w("")
     w("## The families")
     for f in fams:

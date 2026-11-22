@@ -73,11 +73,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 .stand b { font-family: var(--font-display); font-size: 0.9rem; }
 .stand.here { border-left-color: var(--kernel); } .stand.here b { color: var(--kernel); }
 .stand.merged, .stand.pr { border-left-color: var(--native); } .stand.cryptid { border-left-color: var(--comp); } .stand.open { border-left-color: var(--open); }
-
-:root { --cited: #0E6E78; --cited-bg: #DFF2F4; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cited: #6FD0D8; --cited-bg: #11302F; } }
-:root[data-theme="dark"] { --cited: #6FD0D8; --cited-bg: #11302F; }
-.t-cited { color: var(--cited); background: var(--cited-bg); }
 </style>
 </head>
 <body>
@@ -88,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LB_1LC0RE_1LA1LD_0LC---_0RB0RF_1RE1RB</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -118,7 +113,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="legend" aria-label="Legend">
       <span><span class="tag t-kernel">kernel</span> checked by Lean's kernel alone</span>
       <span><span class="tag t-native">native</span> evaluated by compiled code</span>
-      <span><span class="tag t-cited">cited</span> an axiom here; proved in DeepMind's Lean, compiled here</span>
       <span><span class="tag t-comp">trusted</span> C or Python in the repository, exhaustive</span>
       <span><span class="tag t-heur">heuristic</span> sampling, extrapolation, patterns</span>
       <span><span class="tag t-open">open</span> not known</span>
@@ -150,6 +144,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The counter stays positive for the first 1,000 E-steps, evaluated by the kernel; the step count reached has more than 250 digits.</p>
         <p class="where"><code>orbit_kernel</code>, <code>no_halt_kernel</code>, <code>kernel_bound</code>, <code>lean/Orbit.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halts if and only if DeepMind's map stops</h3>
+        <p>The machine halts from blank tape if and only if the orbit of DeepMind's map <code>DM.next</code> from <code>DM.start</code> stops. Proved here on this repository's machine semantics with core Lean (it used to be a cited axiom from google-deepmind/cryptids): each clause of the map is one of 32 symbolic rules taking the configuration of its left side to that of its right side, or to a halt (<code>lean/DMRules.lean</code>, written by <code>tools/deepmind/dmproof.py</code> from DeepMind's configuration templates), and <code>TM.halts_iff_orbit</code> turns them into the halts-iff statement.</p>
+        <p class="where"><code>deepmind_halts_iff</code>, <code>lean/DMMap.lean</code>, <code>lean/DMRules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -162,14 +161,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 20,000 map steps (more than 10<sup>5000</sup> machine steps)</h3>
         <p>The same check for 20,000 E-steps with <code>native_decide</code>; the counter is then 60,462.</p>
         <p class="where"><code>orbit_native</code>, <code>no_halt_native</code>, <code>native_bound</code>, <code>lean/Orbit.lean</code></p>
-      </div>
-    </div>
-    <h3><span class="tag t-cited">cited</span> Cited axiom: an outside Lean proof, assumed here</h3>
-    <div class="cards">
-      <div class="card">
-        <h3>Available in Lean here as a cited axiom: DeepMind's halts-iff map</h3>
-        <p><code>deepmind_halts_iff</code> states on this repository's definitions what DeepMind's compiled theorem proves: the machine halts from blank tape if and only if the orbit of their map <code>next</code> from <code>start</code> reaches <code>none</code>. The map is copied from their file unchanged, and running the copy and theirs for 120 steps gives the same states. It is an axiom: nothing in this repository proves it, and the translation from DeepMind's definitions (Mathlib's Turing machines) to ours is not checked by Lean. <code>#print axioms</code> names it in every theorem that uses it.</p>
-        <p class="where"><code>deepmind_halts_iff</code>, <code>DM.next</code>, <code>lean/DeepMindMap.lean</code> (from <code>tools/deepmind/axioms.py</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>

@@ -85,7 +85,9 @@ Adding up the costs of the sub-phases gives, with thresholds c_i = 10·2^i − i
 
 Writing n = c_i + d with 0 < d < 10·2^i − 1, the offset d becomes 3d + i + 3, so the position in the current level
 roughly triples and wraps into the next level or the one after. `py/orbit.py cmp 10000` checks that this closed form
-equals Lean's `next` for all n < 10,000 (the closed form itself is not proved in Lean). The orbit of 1:
+equals Lean's `next` for all n < 10,000, and the closed form is now proved in Lean for every n (`lean/Closed.lean`,
+kernel only: with h_k = 5·2^k − k − 6 = c_{k−1}, `next_closed` gives `next n = some (3n + 3k + 14 − 10·2^k)` for
+h_k < n < h_{k+1}, and `next_halt` gives `next (h k) = none` for k ≥ 1). The three holdouts 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE, 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE and 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE iterate the same function f(n) = 3n − 10·2^k + 3k + 14 (h_k < n < h_{k+1}, halt at n = h_k), the second in the coordinate N = 2n + 2, from different starts (n = 4, 10, 1); the three orbits share no value in their first 20,000 steps (checked in Python). The orbit of 1:
 
 | k | n | level i (c_i < n ≤ c_{i+1}) |
 |---|---|---|
@@ -131,7 +133,8 @@ tape **if and only if** `orbit k = none` for some k, where `orbit 0 = some 1` an
 ## Status
 
 Open, reduced to the map. Lean (kernel): the halting configurations, no halt in 10,000 steps (10^7 with
-`native_decide`), every rule of a round, and `halts_iff_orbit`. Trusted: the closed form of the map, its match
+`native_decide`), every rule of a round, `halts_iff_orbit`, and the closed form of the map (`next_closed`,
+`next_halt`, `lean/Closed.lean`). Trusted: the match of the map
 with 10^9 simulated steps, and 1,250,000 map steps without a halt. Heuristic: a halt is not expected.
 
 ## Long orbit run (16 November 2026)

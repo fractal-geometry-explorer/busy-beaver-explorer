@@ -253,7 +253,7 @@ theorem no_halt_phases : ∀ j, j < 100000000 → ∀ x z, iter j (.a 0 0) = som
 only to `Even` phases or to all-ones tapes `PA 0 n` (`even_next`), so from an `Even` phase the machine cannot halt
 before the tape is next all ones (`even_safe`).  From an all-ones tape `PA 0 n` the run reaches, within a few
 phases, either a halting phase, an `Even` phase or another all-ones tape; `fate` follows it there, and
-`fatal_list` checks by `native_decide`, for every `n < 100000`, that it halts first exactly when `n = 1` or
+`fatal_list` checks by `native_decide`, for every `n < 100000`, that it halts first exactly when `n = 3` or
 `n = 28 * 2^k - 2k - 13` (`n = 3, 15, 41, 95, 205, ...`).  `ones_safe` and `ones_fatal` turn that into statements
 about the machine. -/
 

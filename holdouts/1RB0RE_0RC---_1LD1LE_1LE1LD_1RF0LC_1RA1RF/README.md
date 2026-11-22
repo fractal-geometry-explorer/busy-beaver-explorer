@@ -106,6 +106,207 @@ Regular-language deciders tried here (all fail, i.e. their closed sets contain a
 says anything about halting): see "Deciders tried" below.
 
 - No halt in 10^10 steps (`c/turns.c`).
+- See "Pascal's triangle and Lucas' theorem" below: Lean now proves that an odd frozen block at a right turn halts,
+  whatever the zone, and the 2-cell-letter invariant (observed to 10^10 steps) is what rules it out.
+
+## Pascal's triangle and Lucas' theorem (21 November 2026)
+
+**One bounce is one row of Pascal's triangle mod 2 (Lean, every zone).** At a right turn the head is in E just right of
+the zone, on the first cell of the frozen tape. The zone is a word `w` in `u = 1110` (1) and `v = 1111` (0) after a
+prefix that is empty or one 1. If the frozen tape starts `1 1 1`, then for **every** word `w` (`bounce`,
+`lean/Pascal.lean`) the machine is back at a right turn after 8|w| + 6 or 8|w| + 8 steps, with
+
+- the zone `T(w)`: write a 1 after the last letter, then replace each letter by the XOR of it and all letters to its
+  right (the running XOR of `w 1` from the right), so the zone grows by one letter;
+- the prefix kept if `w` has an odd number of `u`, toggled otherwise;
+- the frozen tape two cells shorter.
+
+The pieces: the left sweep in C (odd) / D (even) writes `0101` / `1111` (`sweep`), the left end toggles the prefix
+(`lend`), F rewrites `0101` as `1011` going right (`rsweep`), and `1011 1011 ... 11` regroups as `11 1110 1110 ...`
+(`regroup`). A frozen block of `2k + 1` cells gives `k` bounces (`bounces`).
+
+**The rows in closed form (Lean, Lucas' theorem).** Number the letters from the right end of the zone (0 next to the
+frozen tape) and flip letter 0; then a bounce is "running XOR, then shift by one", so the space-time diagram obeys
+Pascal's rule (`diagram`, `lean/Lucas.lean`). After `j` bounces letter `i` of the flipped zone is the XOR of the
+flipped starting letters `d_k` with `C(i - k - 1, j - 1)` odd, and by Lucas' theorem that coefficient is odd exactly
+when `i - k >= j` and the binary digits of `j - 1` and `i - k - j` are disjoint (`closed_form`; `pascal_rule` proves
+Pascal's rule for the bit test from scratch, without Mathlib). Every Sierpinski triangle in the space-time diagram is
+an instance.
+
+**What it says about halting: the zone does not matter, the frozen tape does.** Let `m` be the length of the block of
+1s under the head at a right turn.
+
+| frozen tape from the head | next | where |
+|---|---|---|
+| `1^m 0 ...`, m >= 3 | one bounce, m - 2 | `bounce` (Lean) |
+| `1 0 1 ...` (m = 1) | halt, F reads `0 0 1`; so any odd m followed by `0 1` halts, whatever the zone | `halts_of_odd` (Lean) |
+| blocks `2, b, c, ...` | the zone absorbs `2` and `b`; frozen blocks `c - 1, ...` (if c = 1 the next pair goes too) | `py/frozen.py` (20,000 random zones and frozen tapes) |
+
+So inside a growing phase halting depends only on the parities of the frozen blocks, never on the binary digits of
+the zone; those digits matter only through what the crossing phase writes into the frozen tape.
+
+**The invariant that would settle it (observed).** At all 139,833 right turns in E of the first 10^10 steps, the tape
+from the head to the last 1 is a word in the 2-cell letters `11` and `01` starting at the head (`c/twoletter.c`).
+Then the block under the head has even length and every later block odd length, so the odd case never comes up.
+The block under the head had 2 to 4, 6 to 8, 10 to 16 or 18 to 32 cells (dyadic bands, once 62 and once more than 64),
+the Sierpinski pattern once more:
+
+| m | 2 | 4 | 6 | 8 | 10 to 16 | 18 to 32 | more |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| right turns with tape after the block | 36,458 | 46,426 | 19,254 | 20,280 | 14,830 | 2,546 | 2 |
+
+A proof of non-halting would follow from showing that this invariant is preserved. That needs the crossing phase:
+there about 60% of right turns happen inside old zone material rather than at the edge of a clean zone, and the frozen tape
+is written by the sweeps, so the zone's digits enter. Not proved.
+
+**Even head blocks and walls, in Lean (21 November 2026, `lean/Absorb.lean`).** All for every zone word and prefix:
+
+* `absorb`: frozen tape `1 1 0 1^(4k+1) 0 1 R`: the head block and the next block are absorbed; the next right turn has
+  the clean zone `tmap ws`, `v^k`, `u` and E on `R` (the third block, one cell shorter).
+* `absorb3`: frozen tape `1 1 0 1^(4k+3) 0 1 R`: the same, but the zone comes out `tmap ws`, `v^(k+1)` and then a *wall*
+  `1 0` next to the head, two cells out of step with the letters.
+* `wbounce`: a bounce against a walled zone is the running XOR of the word with a `0` appended (`smap`), the wall stays
+  and the head block loses two cells. `halts_of_odd_wall`: an odd head block followed by `0 1` still halts.
+
+With `bounce` and `halts_of_odd` from `Pascal.lean` this covers every right turn in a clean or walled zone except two:
+a 2-cell head block followed by an even block (which the observed invariant rules out), and an even head block
+meeting a walled zone. That case is settled below ("Walls are letters"): with 2-cell letters a wall is an ordinary
+letter and the sweep does not turn back early. The crossing phase is what a non-halting proof still needs. The halting shape itself is now known in both zone kinds: an odd head block.
+
+**Walls are letters (21 November 2026, `lean/Wall.lean`).** Cut the tape into 2-cell letters, aligned with the head at
+a right turn: `a = 11` and `b = 10` left of the head, `a = 11` and `c = 01` right of it (read from the head outwards,
+`b` and `c` are the same two cells `0 1`). A clean zone is a word in `ab` (= `u`) and `aa` (= `v`), and the wall `1 0`
+is a single `b`, so a zone with walls anywhere is just a word in `a` and `b`. A frozen tape whose head block is even
+and whose later blocks are odd (the observed invariant) is a word in `a` and `c`. All of the following is proved for
+every such zone, prefix and frozen word:
+
+| pass | what it does | Lean |
+|---|---|---|
+| left sweep, C (odd) / D (even) | running XOR of the zone from the right (`b` = 1), writes `a` (even) or `c` (odd); never turns early, always reaches the left end | `sweep2` |
+| left end | adds one `a`, toggles the prefix in C | `lend` |
+| right sweep, F (even) / E (odd) | running XOR from the left (`c` = 1), writes `b` (odd) or `a` (even); stops at a new right turn at the first place the XOR is odd twice in a row (E reading `a`) | `rsweep2`, `rsw2` |
+
+* `bounce2`: one bounce is the composition, for any zone in `a`, `b` (walls anywhere) and any frozen word in `a`, `c`.
+* `wall_even`: the case left open above, an even head block (`1 1 0 ...`) meeting a walled zone, is the instance with
+  zone `b` followed by the zone's letters. The sweep does not turn back early; the next turn is given by `rsw2`, and its zone
+  is again a word in `a` and `b` (possibly with walls inside, which is harmless now).
+* `turn_next`, `not_halts_of_closed`: the next right turn has the same shape, computed on lists by `nxt`, unless the right
+  sweep runs past the end of the frozen word into the rest of the tape `R`. So the machine cannot halt before that
+  happens, and a set of (zone, prefix, frozen word) closed under `nxt` is a proof of non-halting. Halting needs F on
+  `0 0 1`, which this shape never contains.
+
+What this leaves is the right end of the frozen word and the crossing phase. In the first 10^9 steps, 22,747 of the
+44,837 right turns have this shape all the way to the left end of the tape; at the others (the crossing phase) the left
+side also holds `c` letters left behind by earlier sweeps. There the left sweep stops at the first `c`: C on it turns
+right at once, D on it goes on in E, which turns `a` into `b` until it meets a `b` and turns right.
+
+**Every right turn, with the crossing phase (observed, `py/turnshape.py`).** Read the tape at a right turn (E
+reading 1 and stepping left) in the 2-cell letters above, plus `o`, a lone 1 that shifts the letter grid by one cell.
+Then all 17,758 right turns of the first 2·10^8 steps have one of three shapes:
+
+| left of the head (far to near) | head and right of it | right turns |
+|---|---|---:|
+| `[o] Z`, `Z` in `a`, `b` (the `o` is the prefix `p = 1`) | `a`, a word in `a`, `c`, then one lone 1 or nothing | 9,005 |
+| `[o] Z o Z'`: the same with one more `o` inside the zone | the same | 8,735 |
+| as above | E on a lone 1, the last cell of the tape | 18 |
+
+So the rest of the tape `R` in `Turn w p s R` is always blank or a single 1, no part of the zone has two `b` next to each
+other, and a crossing is the time between a turn where `nxt` is `none` and the next turn with no `o` inside the zone.
+At every turn with no `o` inside the zone the next right turn is the one `nxt` predicts, with the same `R` (8,988
+times), or `nxt` is `none` (17 times, and each of those starts a crossing). During a crossing the inner `o` is
+the far edge of a short new zone. The old zone beyond it is eaten a few letters per bounce, and the frozen word grows
+by as many letters. Most crossings take the zone from hundreds of letters down to about ten.
+So halting is possible only inside a crossing (`turn_next` covers every other turn).
+
+What does not close, at this level:
+
+* *Turn-to-turn n-grams.* Use the exact map from one right turn to the next (the machine is run, so nothing is
+  approximated between turns). Take as the closed-set candidate every turn whose string of letters (prefix, zone,
+  head, frozen word, end) has only length-`k` factors seen at reachable turns. For `k` = 3 to 6, a few hundred short
+  members map to turns outside the three shapes (several lone 1s in the frozen tape). Writing the frozen side in
+  cells instead of letters and growing the factor set to a fixed point (`k` = 6) reaches an odd head block, which
+  halts. The factor sets can't see that a short zone never meets a long frozen word whose blocks have the wrong
+  phase.
+* *Bounded look at the crossing.* Where a crossing goes is not decided by any bounded number of zone letters next to
+  the head (`py/turnshape.py`, part 3). Out of all zones of up to 12 letters, 216 of the 1,024 classes fixed by the 8
+  letters nearest the head (plus the state and the end) still contain both outcomes. The crossing reads the whole
+  zone, because it sweeps it over and over.
+
+So a proof needs an invariant that ties the zone's digits to the frozen word's, which is the Pascal-triangle structure
+again, not a regular language over letters.
+
+**The left sweep of a crossing, in Lean (`lean/Crossing.lean`).** At a crossing turn the zone is `O o N`: a near
+part `N`, a lone 1, and a far part `O`. Every letter ends in a 1, so `o` followed by `O` is again `O` in letters,
+one cell further out. `Turn2 N O p s R` is this shape. For every `N`, `O`, prefix and frozen word:
+
+* `cross_near`: the left sweep over `N` is `sweep2` (running XOR, no early turn) and reaches `o` in C (odd) or D (even).
+* `cross_even`: if the parity is even, D writes 1 over `o` and sweeps `O` in letters to the left end, as in a clean zone.
+* `cross_odd`: if the parity is odd, C turns into E on `o`. E turns each `a` of `O` before its first `b` into the
+  misaligned pair `1 0` (`erun`), then turns right on that `b`, which becomes `a` (`eturn`).
+
+So one bit, the parity of `N`, decides whether a crossing bounce reaches the left end. Observed at all 2,590
+crossing turns of the first 2·10^7 steps: the letter of `O` next to `o` is always `b`, so in the odd case E turns at
+once. Neither that fact nor the other observed ones (no `bb` in any part of the zone, `b` next to the head) is kept by
+one exact turn-to-turn step on all small shapes. A zone of one or two letters meeting a frozen word of `c`s can put
+a lone 1 into the frozen side; the run never builds that combination, but nothing local says why. That is where this
+attempt stops.
+
+**Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
+sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
+(blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
+to the next turn with no lone 1 inside the zone, is a function of `(W, p, r)`. The function `crossing` runs it, and it
+matches the real run at all 13 crossings of the first 2·10^7 steps. The machine is therefore an iterated map on
+crossing starts: a crossing writes a short zone and a frozen word, then `nxt` runs until the next crossing starts.
+It can halt only if some crossing leaves the three shapes.
+
+Write `W` (nearest letter first) as runs of `a` between its `b`s. The 17 crossing starts of the first 2·10^8 steps
+(|W| from 19 to 12,192) have these features:
+
+* The last run (at the prefix) is always odd.
+* Every inner run is odd except at most two even runs among the first five (lengths 2, 4 or 8). So past the first few
+  letters the zone is a clean 4-cell zone.
+* The first run is 0, 1, 2 or 3.
+
+The run never breaks a crossing, but these features do not rule a break out:
+
+* In the small-word table (`crossing.py table`: inner runs 1, 3 or 5, up to 5 `b`s), an even last run breaks about a
+  third of the time. Odd last runs are safe when the first run is 2 or 3. With first run 0 or 1, 28 words still
+  break, for example `(0, 1, 3, 5, 3)` with `r = 1`.
+* Allowing inner runs up to 9, 440 of 18,744 cases with first run 2 or 3 and odd last run break, for example
+  `(2, 1, 7, 1, 1)` with `r = 0`.
+
+Which zones are safe therefore depends on run lengths modulo higher and higher powers of 2. That is the dyadic
+pattern of Lucas' theorem again. A proof would have to show that the zones built by `nxt` from a crossing's output
+avoid these words, and no candidate statement for that is known.
+
+A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
+(`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
+and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture
+between turns: no `00`, and the parity of the offsets of the 0s switches at most once on each side of the head. An
+abstract interpretation built on that (`py/absz.py`: K cells each side kept exactly, the rest summarized by its first cell,
+the parity of its first 0 and the number of parity switches; K = 2 to 8, up to 3 switches) does not close: it lets the
+head reach configurations with a second switch near the right end, or with a `00` that the real run only makes
+for a moment in D. Closing it needs the letter structure (block lengths mod 4) in the summary.
+
+**The other machines of R05.**
+
+- Same table, other start (`1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF`, and the mirrored
+  `1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB` and `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---`): every theorem above is
+  about the table, for any surrounding tape, so it holds for them after renaming the states. Lean checks it for
+  `1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF` (`lean/Pascal.lean`, `lean/Lucas.lean` in its folder, written by
+  `py/port_pascal.py`); the mirrored two would need the tape sides exchanged. The 2-cell-letter invariant holds at
+  every right turn of all three runs for 10^9 steps.
+- The slower twin `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` follows this machine step for step up to a break
+  (`lean/Twin.lean` there), so the bounce applies to it through that simulation; the four other holdouts on the twin's
+  table are that table started in B, C, E and F. The invariant holds at every right turn in E for 10^9 steps of the
+  twin table started in A, B, C and E; started in F (`1RB1RA_1RC0RF_1RD0RD_1LE---_0LC1LF_1RA0LE`) it fails at 12 right
+  turns near step 2.6·10^7, each within 30 cells of the right end. The twin halts only on `F> 0 0 1 1`, so a failure
+  is not a halt there.
+- `1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB` runs rule 102, whose `j`-th power is `v[i] = XOR_k C(j, k) w[i + k]`,
+  odd exactly when the binary digits of `k` are among those of `j` (the same theorem of Lucas); its danger pattern is
+  a gap of words reaching all `y` under that map. Done there (`lean/Xor.lean`, `lean/XorLucas.lean`): the round trip
+  is proved to be rule 102 for every length, with the same Lucas lemmas, and a gap can reach all `y` only if it is
+  already a row of Pascal's triangle mod 2.
 
 ## Notes for later
 
@@ -123,6 +324,22 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 - n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets.
 - Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4).
 - Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..8; n = 9 not finished in 150 s.
+
+- Run lengths mod 4 with memory beyond the window (21 November 2026, `py/rlcps.py`): each side is its K nearest runs
+  (1-runs exact up to T, longer ones by length mod 4; 0-runs exact) plus an n-gram summary of the runs beyond, grown
+  to a fixed point as in n-gram CPS. K = 2..6, T = 4..8, n = 2..4: every closing parameter set reaches a halt in the
+  abstraction, the others exceed 2·10^6 configurations. The spurious paths all go the same way: F walks right far past
+  the window, and the summary it built on earlier walks offers block sequences that never occur in the frozen tape
+  (even blocks, `0 0`). The summary does not know that the tape right of the zone is a word in `11` and `01`.
+- A fixed feature automaton read from the far end of each side (`py/dfactl.py`: open run and its length mod 4, the
+  number of even blocks and of `0 0` gaps seen, capped): halts in the abstraction after about 2,200 abstract
+  configurations, through a `0 0` created at the right end early in the run and carried to the head. Counting
+  features cannot tell "a `0 0` at the right end" from "a `0 0` in the bulk".
+
+What a proof needs instead is the phase structure: the growing phase is now in Lean for clean and walled zones
+(`lean/Absorb.lean`), and in the crossing phase the run looks like the wall of `absorb3` moving left through the old
+zone one block per few bounces (block lists at turns, steps 7,484 to 7,800 above). Writing the wall's step as a block
+rule, and the right end's two events per epoch, would give a macro-machine whose states are these phases.
 
 ## Pages
 

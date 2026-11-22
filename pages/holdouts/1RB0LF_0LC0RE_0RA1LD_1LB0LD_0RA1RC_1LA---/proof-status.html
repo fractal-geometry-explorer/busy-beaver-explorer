@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -141,6 +141,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The twin is this table started in D</h3>
+        <p><code>1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD---</code> is this table in a mirror with the states renamed: it halts from blank tape if and only if this table halts from blank tape started in state D (<code>twin_halts_iff</code>), and that run is at a left record <code>B&gt;0 (10)^3 0 0 (10) 1 (10) 1 (10) 1 (10)</code> after 157 steps (<code>twin_reach157</code>, <code>twin_halts_iff_record</code>).</p>
+        <p class="where"><code>lean/Twin29537.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The crossing rules of the twin's run</h3>
+        <p>The 56 right and 175 left crossing rules that the macro machine uses in the twin's first 300,000 records and that this machine's own first 300,000 do not, each for every value of its parameter and every surrounding tape.</p>
+        <p class="where"><code>lean/RulesTwin1.lean</code>, <code>lean/RulesTwin2.lean</code> (from <code>py/gen_rules_twin.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -173,6 +183,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/rec18.c</code></p>
       </div>
       <div class="card">
+        <h3>The macro machine is exact on the twin</h3>
+        <p>From the twin's record at step 157 the macro machine gives the same step count, head cell and blocks as a direct run at all 15,228 records up to step 299,972,981. Its run then finds no halt in 300,000 records (1.20&middot;10<sup>11</sup> steps).</p>
+        <p class="where"><code>py/twin.py</code></p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 9.48&times;10<sup>134</sup> steps (region-memo accelerator)</h3>
         <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 4 cells, from blank tape for 602 seconds and reached step 9.48&times;10<sup>134</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 5 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- 4 602</code>; <code>holdouts/regaccel.json</code></p>
@@ -186,11 +201,6 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>The reset map</h3>
-        <p>At each of the 28 resets found, the countdown block X becomes X' = 3X/2 + 1 (X even) or (3X + 5)/2 (X odd) at the next one: 142, 214, 322, 484, 727, 1093, &hellip;, 8,204,530. The next block follows Y' &asymp; 3Y/2 + c with c slowly growing (8 to 40). Each phase takes about 2.25 times as many steps as the last.</p>
-        <p class="where"><code>README.md</code></p>
-      </div>
-      <div class="card">
         <h3>Shape of the records</h3>
         <p>In the first 10<sup>5</sup> records: no block (0, 1) after the first; after a 0-block the next block has D + x even; the first block has D + x odd (or, right after a reset, <code>1 B&gt;1</code> then (0, 0) then a block with D + x odd). 99.99% of macro steps are a single sweep: crossings right, one turn, crossings left.</p>
         <p class="where"><code>README.md</code></p>
@@ -199,6 +209,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>These patterns are not an invariant</h3>
         <p><code>py/random_check.py</code>: one macro step from 20,000 random block lists. 2 of the 14,742 lists that obey the record patterns halt (and 2 of the 5,258 that do not), so the patterns alone do not exclude the halt.</p>
         <p class="where"><code>py/random_check.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The reset map</h3>
+        <p>At every reset seen the countdown X becomes X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or &lfloor;3X/2&rfloor; + 3 (X odd) at the next one: 13 transitions in the direct run to 3&middot;10<sup>7</sup> steps, 19 in the twin's to 3&middot;10<sup>9</sup>, 34 in this machine&rsquo;s macro run (to 3.4&middot;10<sup>14</sup> steps) and 33 in the twin&rsquo;s (2&middot;10<sup>7</sup> records, 2.5&middot;10<sup>14</sup> steps). 142, 214, 322, 484, 727, 1093, &hellip; here; the twin is another orbit of the same map. Each phase takes about 2.25 times as many steps as the last.</p>
+        <p class="where"><code>py/reset_map.py</code></p>
+      </div>
+      <div class="card">
+        <h3>What the tail sees</h3>
+        <p>Right of the countdown and the growing block Y, the tail changes at each increment by one of four operators fixed by Y mod 2 and Y's cell, independent of the countdown (checked on constructed tapes). Inside every phase they alternate E0, E1 (1,467 of 1,467 increments here, 2,965 of 2,965 in the twin), and a reset applies E1 O0 O1 or E1 as X is even or odd (13 of 13 resets here, 13 of 14 in the twin). So the tail's future is one word of operators spelled out by the orbit of the 3/2 map; they do not commute.</p>
+        <p class="where"><code>py/tail_ops.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -216,7 +236,10 @@ holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check.sh
 python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_rules.py 3e5      # rewrites lean/Rules.lean
 python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_sweep.py      # rewrites lean/Sweep.lean
 gcc -O2 -o recp holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/c/recp.c &amp;&amp; ./recp 4000000 3e8 1 100000 &gt; r3e8.txt &amp;&amp; python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/check_macro.py r3e8.txt
-python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/run_macro.py 2e7 1e6      # long macro run, prints resets</code></pre>
+python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/run_macro.py 2e7 1e6      # long macro run, prints resets
+./recp 4000000 3e8 1 100000 D &gt; twin3e8.txt &amp;&amp; python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/twin.py twin3e8.txt      # the twin, record by record
+python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/reset_map.py twin3e8.txt      # the reset map
+python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py r3e7.txt 400      # the tail operators (recp output of 3e7 steps)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

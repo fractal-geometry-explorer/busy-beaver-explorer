@@ -40,6 +40,56 @@ them into the full e ≡ 0 (mod 4) map is not done.
 Blank orbit (C(4) at step 67): 4, 17, 29, 47, 74, 101, 155, 236, 357, 539, 812, 1221, 1835, 2756, 4137, 6209,
 9317, 13979, 20972, 31461, 47195, 70796 (step 9,357,982,502).
 
+## Even branch, second stage (simulation, 21 November 2026)
+
+With `Y(i, j) = 0^inf E> 110 (10)^i 1100 (10)^j 0^inf` (so `C(2i+4)` reaches `Y(i, i+4)`, `even_start`), the next
+`C` or `Y` configuration, found by direct simulation and checked for every 2 <= i <= 120 and j in {0, 1, 2, 5, 8, 13,
+30, 61} (`tools/collatz/` triage, not proved):
+
+| Y(i, j) | next |
+|---|---|
+| i = 2w, j = 2u | C(3w + 3u + 3) |
+| i = 2w, j = 2u + 1 | Y(w + u + 1, w + u + 1) |
+| i = 4w + 1 | Y(2w, j + 2w + 2) |
+| i = 8m + 7, m >= 1 | C(12m + 14 + j) |
+| i = 8m + 3 | recursive (another halving); i = 2^k - 5 (3, 11, 27, 59, ...) halts for every j |
+
+So every even e is decided by these rows except when the cascade reaches i = 8m + 3 (or the exception i = 7), which is
+where the 2-adic recursion of the e = 2 (mod 8) branch lives. Closing that row would give the whole map, and with it a
+big-integer iteration of the orbit far past C(70796).
+
+## The even branch is a stack machine (simulation, 21 November 2026)
+
+The recursive row above is a push. Write a tail as a list τ = (c₀, c₁, …) of counters and
+
+* `X(a; τ) = 0^inf E> 1 (10)^a [0 (10)^c₀] [0 (10)^c₁] … 1 0^inf`,
+* `Y(a, b; τ) = 0^inf E> 1 (10)^a 1100 (10)^b [0 (10)^c₀] … 1 0^inf`
+
+(so `C(e)` reaches `X(e + 1; ())`, and the table's `Y(i, j)` is `Y(i + 1, j − 1; ())`). Each step below goes from one
+of these configurations to the next one with the head at the left end; every rule was checked by direct simulation
+on 16 random points of its class (a ≥ 4, b ≥ 4, c ≥ 6; `fast.py` / `fit4.py` style sampling, not proved):
+
+| from | condition | to |
+|---|---|---|
+| `X(a; ())` | a even | `C(3a/2 + 2)` |
+| `X(a; ())` | a odd | `Y((a − 3)/2, (a + 1)/2; ())` |
+| `X(a; c::τ)` | a even | `Y(a/2 − 2, a/2 + c + 1; τ)` |
+| `X(a; (c))` | a odd | `C((3a + 3)/2 + c)` |
+| `Y(a, b; τ)` | a even | `Y(a/2 − 2, a/2; (b + 2)::τ)`: **push** |
+| `Y(a, b; ())` | a odd, b even | `Y((a + b + 3)/2, (a + b − 1)/2; ())` |
+| `Y(a, b; ())` | a odd, b odd | `C(3(a + b)/2 + 3)` |
+| `Y(a, b; c::τ)` | a odd, b odd | `Y((a + b)/2 + 1, (a + b)/2 + c; τ)`: **pop** |
+| `Y(a, b; (c))` | a odd, b even | `C((3a + 3b + 5)/2 + c)` |
+| `Y(0, 2; τ)` | any τ | **halts** (17 steps) |
+
+So halving a pushes a counter, and the counters come back one at a time when a is odd. The cases where an odd a meets a
+tail of two or more counters and b is even (or X, odd a, two or more counters) are not closed: there the run crosses
+several counters in one pass, and the outcome depends on their parities (for `X(a; (c₀, c₁))`, a odd: c₁ odd gives
+`C(3a/2 + c₀ + 3c₁/2 + 2)`, c₁ even gives `Y((a + 1)/2 + c₀ + c₁/2, (a − 1)/2 + c₁/2; ())`). The small cases a < 4 are
+not tabulated either. Halting configurations reached from blank-like starts are `Y(0, 2; (8, 16, 32, …))`, the
+2^k − 6 values above. Next step for a halts-iff: close the multi-counter pass (an induction over τ), then prove each
+row with symtm, with τ as an abstract tape where it is passed through.
+
 ## Halting
 
 Only C0 halts; C is entered only from B0 (0LC): halts iff `0 B> 0`. CTL K = 3..6: halts remain; n-gram CPS fails;

@@ -42,14 +42,29 @@ from the bbchallenge wiki.
 4. `python3 holdouts/build_pages.py M` rebuilds that machine's pages and the index; `python3 holdouts/test_holdouts.py`
    checks that everything is current. The index is generated, so on a merge conflict in it rebuild it with
    `python3 holdouts/build_pages.py --index-only`.
+5. When a result changes what is known, add an entry at the top of [`recent.json`](recent.json) (date, PR numbers,
+   kind, what it rests on, a plain-language title and text, the machines by full name). `build_pages.py` then writes
+   it to `pages/holdouts/recent.html`, the latest-results page, through `build_overview.py`.
 
 ## Families of the undecided machines
 
-[`FAMILIES.md`](FAMILIES.md) (20 November 2026) groups the 554 machines not yet decided here into families that one
+[`FAMILIES.md`](FAMILIES.md) (21 November 2026) groups the 522 machines not yet decided here into families that one
 proof technique could settle together, from table distance (tables one transition apart, up to renaming and mirror)
-and shared mechanism, and ranks them; the first recommendations are to compile the 34 outside proofs of busycoq PRs
-43 to 68, then the F05 core (45 machines), the clock-and-word counters (15) and halt hunts on the base-4 and ternary
-countdown counters (23). `regroup.py` writes it and `families.json`, which the holdout map uses for its family filter.
+and shared mechanism, and ranks them. The outside proofs of busycoq PRs 43 to 68 were compiled on 21 November
+(`tools/coq/busycoq/prs-43-68`, 32 machines decided; PR 60's two long runs are left); the next recommendations are
+the F05 core (45 machines), the clock-and-word counters (15) and halt hunts on the base-4 and ternary countdown
+counters (22). `regroup.py` writes it and `families.json`, which the holdout map uses for its family filter;
+`build_overview.py` (run by `build_pages.py`) turns both into the page `pages/holdouts/families.html`, showing each
+machine's standing today.
+
+## Closest to being solved
+
+[`RANKING.md`](RANKING.md) ranks every undecided machine by how close it is to a decision and gives the next concrete
+step for each, with the top ten recommended attacks; the sortable version is
+[`pages/holdouts/ranking.html`](../pages/holdouts/ranking.html). `rank.py` writes both and `ranking.json` from what the
+repository records (index rows, `status.json`, `families.json`, the Collatz triage, the number-theory ranking), and
+`build_pages.py` reruns it, so a machine drops off the ranking when it is decided. The score is a judgement, not a
+result.
 
 ## Related machines
 
@@ -122,3 +137,9 @@ contains the run from blank tape and excludes every halt; a solution becomes a L
   open machines with the same first four rules rewrite `1011` differently and run past round 200,000.
 - Every open machine that shares a table with an upstream-proved machine (another start or a mirror) is itself
   already in an upstream pull request.
+
+## Standard deciders rerun on the 257 unfamilied holdouts (21 November 2026)
+
+Cyclers and translated cyclers to 2·10^9 steps, backward reasoning to depth 3,000, n-gram CPS up to 30-cell windows
+(with histories, LRU and asymmetric windows) and RepWL with blocks up to 48 cells: none of the 257 machines in no
+family of `FAMILIES.md` was decided. Details and per-machine results: [`deciders_rerun/`](deciders_rerun/README.md).

@@ -201,6 +201,40 @@ the scripts there take `b2` for this machine. For this machine:
   tape, which will have more bottom digits by then). The details are in the other machine's README.
 * `lean/Digits.lean`: the 8 most used sweeps of the direct run to 2x10^6 steps (1,225 of 5,128 sweeps), proved for
   all run lengths (`python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/digits_lean.py b2`).
+* **Through the oldest-segment collapse, to 7.2x10^196 steps (22 November 2026)**, with no halt. The oldest
+  segment ran out near 3.6x10^192, as forecast; the empty digit was absorbed, the next segment (335 blocks) became
+  the oldest, and the usual far-end cycle was back by 1.2x10^194 (`data/b2_lean4.log` in the other machine's
+  folder).
+* **A short rule table, and the generic sweep for every carry length (21 November 2026).** Every exact sweep rule
+  of a run over one cycle (296 from 7x10^175, `data/rule_table_b2.txt` in the other machine's folder) is a stop rule
+  plus a carry chain that does not depend on its length, the same table as for the other machine. `lean/Chain.lean`
+  proves the generic sweep (carry over any list of T digits, stop on Z or O) for every list and all run lengths
+  (`sweepZ`, `sweepO`; `python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/chain_lean.py b2`). The
+  details are in the other machine's README.
+
+## Two more cycles, to 4.96x10^137 steps (21 November 2026)
+
+**Result: no halt in the first 4.96·10^137 steps** (trusted, exact, step count included), up from 6.1·10^135:
+step 495,961,341,062,022,070,820,955,557,186,228,633,466,085,083,016,309,334,064,238,288,272,484,319,140,315,034,308,152,384,660,157,737,491,524,498,421,462,153,919,475,695,173,266,305,330.
+Halting is still open. The run is `py/lean.py` of `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/` (unchanged rules), continued from
+`data/b2_lean_last.txt`, with the new option of keeping learned periods in a file (below).
+
+* Two more cycles of the law of 20 November: the far end went `[0]b2_3 [118]T` -> `[0]b2_3 [116]T` (5.51·10^136)
+  -> `[0]b2_3 [114]T` (4.96·10^137). So the oldest segment loses exactly 2 blocks per cycle, and the step count
+  grows by a factor of 9 per cycle.
+* **The next deciding event is unchanged.** The oldest segment runs out after 57 more cycles, near 10^192 steps.
+  `py/probe.py` already ran that collapse ahead of time without a halt (section of 20 November).
+* **Why it is slow.** Each cycle needs a long period of the low system: 4,257,468 sweeps, then 4,799,484 sweeps. A
+  period that is not in the cache costs 45 to 60 minutes of exact sweeps, because Brent's search needs about three
+  times the period. The cache lived only in memory, so every new run learned its periods again. `lean.py` now
+  saves the cache when `LCACHE_FILE` is set (`PYTHONHASHSEED` must be fixed, since the cache is indexed by Python's
+  `hash()`; a cache file written with another seed is ignored). The cache of this run was 271 MB.
+  With the cache, a cycle whose periods are known takes minutes; reaching the 10^192 collapse still needs every
+  new period to be learned once.
+
+Reproduce: `cd holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py; PYTHONHASHSEED=0 LCACHE_FILE=/tmp/b2cache.pkl STATELOG=/tmp/b2state.log
+python3 lean.py run ../data/b2_lean_last.txt 7000 /tmp/b2.pkl b2` (the log of this run is `data/b2_lean3.log`; the
+end state is `data/b2_lean_last.txt`).
 
 ## What is proved, and how firmly
 
@@ -222,8 +256,11 @@ the scripts there take `b2` for this machine. For this machine:
 | trusted | **No halt in the first 2.58x10^54 steps, through the middle collapse.** The middle collapse comes at about 2.06x10^35 steps; the run stops at 2.58x10^54 steps, out of memory, where the next collapses come due. | `py/tacc.py run ... b2` |
 | trusted | **No halt in the first 3.09x10^54 steps, through the middle collapse at 2.58x10^54 and the oldest-segment collapse at 2.8x10^54 to 3.0x10^54.** The lean accelerator reproduces 482 logged states of the counter-macro run (3.8x10^14 to 1.3x10^53 steps), steps included, and its jumps equal plain sweeps where tested; every sweep outside the jumped periods is exact. | `py/lean.py run ... b2`, `py/lean.py verify ...` (other machine's folder) |
 | trusted | **No halt in the first 6.1x10^135 steps, through the end counter running out at 4.8x10^54 and about 87 more middle collapses.** The lean accelerator with cycle reuse reproduces the logged states of the counter-macro run and of the slower lean runs (all 47 states from 5.1x10^55 to 2.8x10^59 with the cycle cache), step counts included. | `py/lean.py run ... b2` (other machine's folder) |
+| trusted | **No halt in the first 7.2x10^196 steps, through the oldest-segment collapse near 3.6x10^192.** The empty digit is absorbed as forecast, the next segment (335 blocks) becomes the oldest, and the usual cycle returns by 1.2x10^194. | `py/lean.py run`, `data/b2_lean4.log` in the other machine's folder |
 | heuristic | **The collapse near 10^192 does not halt (tried ahead of time).** On today's tape with the oldest segment set to 0, the exact run absorbs it, the next segment takes over and the usual cycle resumes. | `py/probe.py` and `data/probes/` (other machine's folder) |
 | kernel | **8 sweeps of the digit model, for all run lengths.** | `lean/Digits.lean`, generated by `py/digits_lean.py b2` |
+| kernel | **The generic counter sweep, for every number of carry digits.** Carry over any list of T digits, stop on Z or O, all run lengths. | `sweepZ`, `sweepO`, `lean/Chain.lean`, generated by `py/chain_lean.py b2` |
+| trusted | **The sweep rules form a short table.** Every exact rule over one cycle is a stop rule plus a length-independent carry chain. | `py/ruletable.py table b2`, `data/rule_table_b2.txt` in the other machine's folder |
 | open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts), which the law never produces. The first collapse did not produce it either (exact run). Whether a later collapse can needs a rule for the collapses, which is not known yet. |  |
 
 ## Lean

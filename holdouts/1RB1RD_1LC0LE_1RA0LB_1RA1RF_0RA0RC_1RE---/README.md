@@ -69,6 +69,20 @@ k), which would make the map exact; then look for an invariant of the prefix tha
 - **No halting class among 5,000 contexts** (heuristic). Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 5,440 found, to depth 43. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- R D 1 bfs 5000`
 - **A halting class is reachable, 107 rounds away** (heuristic). The same search restricted to contexts of at most 26 cells runs to the end: 10,061 contexts (1,649 longer ones are reached but not expanded), and **5 of their classes halt**. The nearest is 107 rounds from the starting context: after the remainders 1 2^2 1 2 1^2 2 1^3 2^2 1 2^2 1^2 2^2 1 2 1^2 2^2 1 2^2 1^3 2^2 1 2^2 1 2^2 1^2 2^2 1^3 2^2 1 2 1^3 2^2 1 2^2 1^2 2^2 1 2 1^2 2^2 1 2^2 1^3 2^2 1 2^2 1 2^2 1^2 2^2 1 2 1^2 2^2 1 2^2 1^3 2^2 1 2^2 1 2 (mod 3) the tail is `01011011`, and with m ≡ 1 (mod 3) the machine halts before the next event (all six simulated values of m halt). So, granted the class map, a halt is possible, but only through one prescribed sequence of 107 remainders or a longer one; with remainders like fair dice that is one chance in 3^107 per try. The orbit computed has not come near it. Command: `python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE--- R D 1 bfs 100000 26`
 
+## The phase map, proved on the twin table (21 November 2026)
+
+This table is 1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---'s with left and right swapped and the states renamed; this machine's run from blank tape is
+that table's run from blank tape in its state C (`halts_of_map` with `mirrorCfg` of `tools/lean/TM/Insert.lean`).
+That run reaches the phase start PS(15, []) (that machine's notation `0^inf F> 0 1^M T`, T a list of blocks) at step 92.
+`holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/Map.lean` proves the phase map `phi` on (M, list of blocks) for every tail but one shape (two
+ones left over and a block `0 1 1` that is not the last block, where all halts lie), and
+`holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/lean/Twins.lean` (with this table copied from `lean/Machine.lean`) proves
+
+    not_halts58362 : (∀ n, ∃ s, orbit phi (15, []) n = some s) → ¬ Halts (this table) (blank tape)
+
+(kernel). So if the orbit of `phi` from PS(15, []) never meets the uncovered shape, this machine does not halt; the orbit
+stays covered for 30,000 phases (`holdouts/1RB0RE_1LC0RA_1LA1LD_1LC1LF_0LC0LB_1LE---/py/phimap.py`). The condition is not proved.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/explainer.html`](../../pages/holdouts/1RB1RD_1LC0LE_1RA0LB_1RA1RF_0RA0RC_1RE---/explainer.html)

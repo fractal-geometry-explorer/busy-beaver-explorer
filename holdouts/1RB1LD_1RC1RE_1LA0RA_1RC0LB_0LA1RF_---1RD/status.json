@@ -94,6 +94,12 @@
    "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB1LD_1RC1RE_1LA0RA_1RC0LB_0LA1RF_---1RD 6 3600</code>; <code>holdouts/regaccel.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.24&times;10<sup>73459</sup> steps, in step with its twin (product run)",
+   "text": "The lockstep product of this machine and its twin, <code>1RB1LE_1RC1RF_1LA---_---0RA_1RD0LB_0LA1RG_---1RE</code> (states AA BB CC CE DD EF FC; its only halting transitions are the three breaks), was run from blank tape by the region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> with blocks of 6 cells to step 2.2470778089&times;10<sup>73459</sup> without a halt (exact, step counts included; the decoded snapshots up to 2&times;10<sup>9</sup> steps agree with a direct run). So neither machine halts in these steps and the two stay twins. On the way the run passed the top-level reset: near 1.55&times;10<sup>26352</sup> steps the last block of the list (the far-end countdown, 1,002 at 10<sup>19</sup>; 146,770 just before) ran out, after a middle block had run out near 10<sup>26330</sup>; the far end changed shape and nothing halted. A bounded run; it says nothing about later steps.",
+   "where": "<code>py/ratrack.py</code> (<code>run</code>, <code>test</code>, <code>twin</code>); <code>/mnt/project-files/countdown-hunt/A.md</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The far end cannot halt while the last block lasts",
    "text": "A borrow arriving at the far end halts the machine when the far end reads <code>01</code>, <code>101</code>, <code>1101</code> and a few similar words. The 102 far ends seen in 6&middot;10<sup>9</sup> steps close under borrow arrivals into 128 far ends, none of which halts. All of them fall into the cycle <code>11</code> &rarr; overflow &rarr; <code>0011</code> &rarr; <code>11</code>, where the last block loses one per overflow. This assumes that a far end behaves the same behind any block of 10 or more copies.",

@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 13 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 21 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -208,7 +208,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A word in two 4-cell letters</a><a href="#xor">Every leftward sweep computes a running parity</a><a href="#epochs">Epochs, each about 1.75 times longer</a><a href="#halt">Only on F&gt; 0 0 1</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#tape">A word in two 4-cell letters</a><a href="#xor">Every leftward sweep computes a running parity</a><a href="#pascal">One bounce, one row of Pascal&#x27;s triangle mod 2</a><a href="#epochs">Epochs, each about 1.75 times longer</a><a href="#halt">Only on F&gt; 0 0 1</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -298,6 +298,106 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Going left, the head is in state D ("even so far") or C ("odd so far"). Each time it crosses a letter: if the letter is <code>u</code> the parity flips. It writes <code>1111</code> behind it when the new parity is even and <code>0101</code> when it is odd. These four cases (and the long runs over <code>1111</code>) are proved in Lean.</p>
 <p>Worked example: the word <code>v u u v u</code> (bits 0 1 1 0 1) swept from the right, starting even: <code>u</code> → odd, <code>v</code> → odd, <code>u</code> → even, <code>u</code> → odd, <code>v</code> → odd: the new bits, left to right, are 1 1 0 1 1. The next rightward sweep turns <code>0101</code> back into a letter; repeating "replace by running XOR" is the rule that generates Pascal's triangle modulo 2, which is why the space-time diagram is full of Sierpinski triangles.</p>
 </section>
+<section id="pascal">
+  <span class="eyebrow">Pascal's triangle</span>
+  <h2>One bounce, one row of Pascal's triangle mod 2</h2>
+<p><b>One bounce is one row of Pascal's triangle mod 2</b> (Lean, <code>bounce</code> in <code>lean/Pascal.lean</code>). Read the zone, the stretch the head sweeps, as a word in <code>u = 1110</code> (bit 1) and <code>v = 1111</code> (bit 0) at the left end of the tape. At a right turn the head is in E just right of the zone, on the frozen tape. If the frozen tape starts <code>1 1 1</code>, then for <i>every</i> word <code>w</code> the machine comes back to a right turn after 8|w| + 6 or 8|w| + 8 steps with the zone <code>T(w)</code>: write a 1 after the last letter and replace each letter by the XOR of it and everything to its right. The frozen tape is two cells shorter. The left sweep computes the running XOR (states D = even, C = odd, writing <code>1111</code> or <code>0101</code>), the left end toggles a one-cell prefix, and the right sweep in F rewrites <code>0101</code> as <code>1011</code>, which regroups into the new letters.</p>
+<p><b>Closed form by Lucas' theorem</b> (Lean, <code>closed_form</code> in <code>lean/Lucas.lean</code>). Number the letters from the right end, 0 next to the frozen tape, and flip letter 0. Then a bounce is "running XOR, then shift by one", and after <code>j</code> bounces letter <code>i</code> is the XOR over <code>k</code> of the starting letters <code>d<sub>k</sub></code> for which <code>C(i − k − 1, j − 1)</code> is odd. Lucas' theorem decides that from binary digits: odd exactly when <code>i − k ≥ j</code> and <code>j − 1</code> and <code>i − k − j</code> have no 1 in the same place (<code>pascal_rule</code> proves the rule that makes this work). Try it: pick a starting zone, then click any cell. A single <code>u</code> is the fixed point (it stays <code>v…v u</code>); a zone of <code>v</code>s flips only its last letter, and the triangle it grows is Pascal's triangle mod 2 itself, read with the bounce count downwards and the distance from the right end across.</p>
+<div class="panel" id="pzPanel">
+  <div class="controls">
+    <label for="pzWord" class="small">start zone (u = 1, v = 0)</label>
+    <input type="text" id="pzWord" value="000000000000000000000000000000000000000000000000" spellcheck="false" autocomplete="off">
+    <button type="button" data-pz="000000000000000000000000000000000000000000000000">48 v</button>
+    <button type="button" data-pz="1">one u</button>
+    <button type="button" data-pz="101101">u v u u v u</button>
+    <button type="button" data-pz="100000000000000000000000000000000000000000000000">u, then 47 v</button>
+    <button type="button" data-pz="rand">random</button>
+  </div>
+  <div class="controls" style="margin-top:10px">
+    <label for="pzJ" class="small">bounces</label>
+    <input type="range" id="pzJ" min="1" max="96" value="64" style="flex:1 1 180px">
+    <b id="pzJv" style="font-family:var(--mono)">64</b>
+  </div>
+  <div class="stwrap"><canvas id="pzCanvas" aria-label="The zone after each bounce, one row per bounce"></canvas></div>
+  <div class="cap">Row <code>j</code> is the zone after <code>j</code> bounces, left end of the tape on the left; dark is <code>u</code>. The zone grows by one letter per bounce, on the right, against the frozen tape.</div>
+  <div class="config" id="pzOut">Click a cell.</div>
+</div>
+<p><b>What it means for halting: the zone does not matter, the frozen tape does.</b> Call <code>m</code> the length of the block of 1s under the head at a right turn. Each bounce with <code>m ≥ 3</code> takes 2 of its cells. If <code>m</code> is odd and the block is followed by <code>0 1</code>, the last bounce ends with F on <code>0 0 1</code> and the machine halts, whatever the zone (Lean, <code>halts_of_odd</code>). If <code>m</code> is even, it comes down to 2 and the zone absorbs the next blocks: frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code> (brute force over random zones and frozen tapes, <code>py/frozen.py</code>). So during a growing phase halting depends only on the parities of the frozen blocks, never on the binary digits in the zone; those matter only through what the crossing phase writes.</p>
+<p><b>The invariant that would settle it (observed, not proved).</b> At every right turn of the run from blank tape, the tape from the head to the last 1 is a word in the 2-cell letters <code>11</code> and <code>01</code>, starting at the head (<code>c/twoletter.c</code>, every right turn in E for 10<sup>10</sup> steps). Then every frozen block but the first has odd length and the first has even length, so the odd case above never arises. The lengths <code>m</code> fall in dyadic bands (2 to 4, 6 to 8, 10 to 16, 18 to 32, ...), the Sierpinski pattern again. A proof needs the crossing phase, where right turns happen inside old zone material and the frozen tape is written by the sweeps.</p>
+<script>
+(function () {
+  var cv = document.getElementById("pzCanvas"), inp = document.getElementById("pzWord"), js = document.getElementById("pzJ"),
+      jv = document.getElementById("pzJv"), out = document.getElementById("pzOut");
+  if (!cv) return;
+  var rows = [], CELL = 6, start = [];
+  function tmap(w) { // w left to right; append 1, running XOR from the right
+    var v = w.concat([1]), r = new Array(v.length), s = 0;
+    for (var i = v.length - 1; i >= 0; i--) { s ^= v[i]; r[i] = s; }
+    return r;
+  }
+  function parse() {
+    var t = (inp.value || "").replace(/[^01uv]/g, "").replace(/u/g, "1").replace(/v/g, "0");
+    if (!t.length) t = "000000000000000000000000000000000000000000000000";
+    return t.split("").map(Number);
+  }
+  function col(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || "#000"; }
+  function draw(sel) {
+    start = parse();
+    var J = +js.value; jv.textContent = J;
+    rows = [start];
+    for (var j = 1; j <= J; j++) rows.push(tmap(rows[j - 1]));
+    var W = rows[J].length;
+    CELL = Math.max(2, Math.min(10, Math.floor(Math.min(640, (cv.parentNode.clientWidth || 640)) / W)));
+    cv.width = W * CELL; cv.height = (J + 1) * CELL;
+    var g = cv.getContext("2d"), ink = col("--ink"), bg = col("--cell0"), hd = col("--head");
+    g.fillStyle = bg; g.fillRect(0, 0, cv.width, cv.height);
+    for (var r = 0; r <= J; r++) {
+      g.fillStyle = ink;
+      for (var i = 0; i < rows[r].length; i++) if (rows[r][i]) g.fillRect(i * CELL, r * CELL, CELL, CELL);
+    }
+    if (sel) {
+      g.fillStyle = hd;
+      sel.ks.forEach(function (k) { var x = start.length - 1 - k; g.fillRect(x * CELL, 0, CELL, CELL); });
+      g.strokeStyle = hd; g.lineWidth = 2;
+      g.strokeRect(sel.x * CELL + 1, sel.r * CELL + 1, CELL - 2, CELL - 2);
+    }
+  }
+  function bin(n) { return n.toString(2); }
+  function explain(x, r) {
+    if (r < 1 || r >= rows.length || x >= rows[r].length) return;
+    var n = rows[r].length, i = n - 1 - x, d = start.slice().reverse(); // d[k], k from the right
+    d[0] ^= 1;
+    var lines = [], acc = 0, ks = [];
+    for (var k = 0; k < d.length; k++) {
+      if (!d[k]) continue;
+      var t = i - k - r, on = t >= 0 && (((r - 1) & t) === 0);
+      if (on) { acc ^= 1; ks.push(k); }
+      lines.push("k = " + k + ": i − k − j = " + t + (t >= 0 ? " = " + bin(t) + "b, j − 1 = " + bin(r - 1) + "b, " + (on ? "disjoint: C(" + (i - k - 1) + ", " + (r - 1) + ") odd" : "share a 1: even") : ": no contribution"));
+    }
+    var val = acc ^ (i === 0 ? 1 : 0);
+    out.innerHTML = "Row j = " + r + ", letter i = " + i + " from the right end. Flipped start d has 1s at k = " + (d.map(function (b, k) { return b ? k : -1; }).filter(function (k) { return k >= 0; }).join(", ") || "none") + ".<br>" +
+      lines.slice(0, 12).join("<br>") + (lines.length > 12 ? "<br>…" : "") + "<br>XOR = " + acc + (i === 0 ? ", unflip letter 0" : "") + " → <b>" + (val ? "u" : "v") + "</b>; the row says <b>" + (rows[r][x] ? "u" : "v") + "</b>.";
+    draw({x: x, r: r, ks: ks});
+  }
+  cv.addEventListener("click", function (e) {
+    var b = cv.getBoundingClientRect(), sx = cv.width / b.width, sy = cv.height / b.height;
+    explain(Math.floor((e.clientX - b.left) * sx / CELL), Math.floor((e.clientY - b.top) * sy / CELL));
+  });
+  document.querySelectorAll("[data-pz]").forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      var v = bt.getAttribute("data-pz");
+      if (v === "rand") { v = ""; for (var i = 0; i < 24; i++) v += Math.random() < 0.5 ? "1" : "0"; }
+      inp.value = v; out.textContent = "Click a cell."; draw();
+    });
+  });
+  inp.addEventListener("input", function () { draw(); });
+  js.addEventListener("input", function () { draw(); });
+  window.addEventListener("resize", function () { draw(); });
+  draw();
+})();
+</script>
+
+</section>
 <section id="epochs">
   <span class="eyebrow">The emergent behavior</span>
   <h2>Epochs, each about 1.75 times longer</h2>
@@ -350,7 +450,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 13 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 21 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -367,6 +467,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/turns.c</code></div></div><div><b>Every turn of F is at a block of odd length, except at the right end (10<sup>10</sup> steps)</b><p>In the first 10<sup>10</sup> steps F turned 139,833 times. The block it turned at had odd length every time (3 cells 36,463 times, 5 cells 46,436, 7 cells 19,254, 9 cells 20,280, and longer), except 22 turns at a block of exactly two cells, each of which was the last block of the tape. A turn at a block of two with another block after it would leave <code>0 0 1</code> (<code>turn_two</code>). F met two 0s in a row 42 times, each time at the right end with only blank cells beyond. No halt.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/blocks.py</code></div></div><div><b>Two phases in an epoch</b><p>Followed turn by turn through one epoch (steps 4,104 to 7,890): first the head bounces between the left end and a turning place that moves right, eating the blocks beyond it two cells at a time; at each right turn the zone is a list of blocks <code>1<sup>4k+3</sup></code>, at each left turn blocks <code>1<sup>4k+1</sup></code> separated by odd numbers of one-cell blocks. When the turning place reaches the right end the head crosses back to the left end in short bounces, leaving blocks of 3 and pairs 1, 5 (the words <code>1110</code> and <code>1011</code>) for the next epoch to eat. Observed on that epoch, not proved.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halt_F</code>, <code>lean/Blocks.lean</code>; <code>halt_route</code>, <code>lean/Route.lean</code> (from <code>py/route.py</code>)</div></div><div><b>Where it can halt</b><p>Only B reading 1 halts; B is entered only from A reading 0, and A only from F reading 0. So the machine halts exactly on <code>F&gt; 0 0 1</code>: F on that pattern halts within two steps (<code>halt_F</code>), and two steps before any halt the machine is in F on <code>0 0 1</code> (<code>halt_route</code>). An earlier version of this page gave the pattern as <code>F&gt; 1 0 1</code>, which was wrong.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>bounce</code>, <code>bounces</code>, with <code>sweep</code>, <code>lend</code>, <code>rsweep</code>, <code>regroup</code>, <code>lean/Pascal.lean</code></div></div><div><b>One bounce is one row of Pascal's triangle mod 2</b><p>At a right turn the head is in E just right of the zone, a word <code>w</code> in <code>u = 1110</code> (1) and <code>v = 1111</code> (0) after a prefix that is empty or one 1. If the frozen tape starts <code>1 1 1</code>, then for every word the machine reaches the next right turn with the zone <code>T(w)</code>, the running XOR from the right of <code>w 1</code>, the prefix kept or toggled by the parity of <code>w</code>, and the frozen tape two cells shorter. A block of <code>2k + 1</code> frozen cells gives <code>k</code> such bounces.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>closed_form</code>, <code>diagram</code>, <code>pascal_rule</code>, <code>Q_rule</code>, <code>lean/Lucas.lean</code></div></div><div><b>The zone after j bounces, by Lucas' theorem</b><p>Number the letters from the right end of the zone and flip letter 0. After <code>j</code> bounces letter <code>i</code> is the XOR of the starting letters <code>d<sub>k</sub></code> with <code>C(i − k − 1, j − 1)</code> odd, and that binomial coefficient is odd exactly when <code>i − k ≥ j</code> and <code>j − 1</code>, <code>i − k − j</code> share no binary 1 (Lucas). Proved for every word and every <code>j</code>, with Pascal's rule for the bit test proved from scratch.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>halts_of_odd</code>, <code>halt_turn</code>, <code>lean/Pascal.lean</code></div></div><div><b>A right turn at an odd frozen block halts</b><p>Whatever the zone and prefix, a right turn with the frozen tape <code>1<sup>2k+1</sup> 0 1 ...</code> leads to a halt: <code>k</code> bounces, then F reads <code>0 0 1</code>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>absorb</code>, <code>absorb3</code>, <code>wbounce</code>, <code>halts_of_odd_wall</code>, <code>lean/Absorb.lean</code></div></div><div><b>Even head blocks: absorption and walls</b><p>For every zone: a head block of 2 cells followed by a block of 4k+1 cells is absorbed and leaves a clean zone (<code>tmap w</code>, v<sup>k</sup>, u) with the third block one cell shorter under the head; with 4k+3 cells the zone gets a wall <code>1 0</code> next to the head. A bounce against a walled zone is the running XOR with a 0 appended, and the wall stays; an odd head block still halts with a wall. The case of an even head block meeting a walled zone is settled by the 2-cell letters below.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>bounce2</code>, <code>wall_even</code>, <code>turn_next</code>, <code>not_halts_of_closed</code>, <code>lean/Wall.lean</code></div></div><div><b>Walls are letters: one bounce for every zone</b><p>Cut the tape into 2-cell letters: <code>a = 11</code>, <code>b = 10</code> in the zone, <code>c = 01</code> in the frozen tape. A clean zone is a word in <code>ab</code> and <code>aa</code>, a wall is one <code>b</code>, so walls anywhere in the zone are just letters. For every zone in <code>a</code> and <code>b</code> and every frozen word in <code>a</code> and <code>c</code>: the left sweep is the running XOR from the right and always reaches the left end; the right sweep is the running XOR from the left and turns at the first place where it is odd twice in a row. The next right turn has the same shape, so an even head block meeting a walled zone is one instance (<code>wall_even</code>), and the machine cannot halt before the right sweep runs past the end of the frozen word: any set of shapes closed under the list map <code>nxt</code> gives a proof of non-halting.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>cross_even</code>, <code>cross_odd</code>, <code>lean/Crossing.lean</code></div></div><div><b>The left sweep of a crossing</b><p>For a zone with one lone 1 between a near part <code>N</code> and a far part <code>O</code> (2-cell letters), the left sweep takes the running XOR over <code>N</code>. If the parity at the lone 1 is even it goes on over <code>O</code> to the left end. If it is odd, E turns the <code>a</code>s of <code>O</code> before its first <code>b</code> into <code>1 0</code> and turns right on that <code>b</code>. This holds for every <code>N</code>, <code>O</code>, prefix and frozen word.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/crossing.py</code></div></div><div><b>Crossings as one map</b><p>A crossing depends only on the swept zone, the prefix and the end cell, so the machine is an iterated map on crossing starts; the simulated map matches the run at all 13 crossings of the first 2·10<sup>7</sup> steps. The 17 crossing starts up to 2·10<sup>8</sup> steps have an odd last run of <code>a</code>s and odd inner runs apart from at most two near the head, but small words of that kind can still break a crossing, depending on run lengths modulo higher powers of 2.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/frozen.py</code></div></div><div><b>An even frozen block: absorption</b><p>With a block of 2 under the head the zone swallows it and the next block, and the block after that loses one cell (frozen blocks <code>2, b, c, ...</code> become <code>c − 1, ...</code>; if <code>c = 1</code> the next pair goes too). Checked on 20,000 random zones (up to 8 letters, both prefixes) and frozen tapes; the zone never changes the outcome.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/twoletter.c</code></div></div><div><b>Right of every right turn: 2-cell letters (10<sup>10</sup> steps)</b><p>At all 139,833 right turns in E in 10<sup>10</sup> steps, the tape from the head to the last 1 is a word in <code>11</code> and <code>01</code> starting at the head, so the block under the head has even length and every later block odd length. The block under the head had 2 to 4, 6 to 8, 10 to 16 or 18 to 32 cells (dyadic bands; once 62 and once more than 64). The same holds for 10<sup>9</sup> steps of this table started in C, D and E (the three holdouts with this table).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/turnshape.py</code></div></div><div><b>Every right turn has one of three shapes; halting needs a crossing (2·10<sup>8</sup> steps)</b><p>In 2-cell letters plus a lone 1 <code>o</code>, all 17,758 right turns of the first 2·10<sup>8</sup> steps are a zone in <code>a</code>, <code>b</code> with at most one <code>o</code> inside it, E on <code>a</code>, a frozen word in <code>a</code>, <code>c</code> and then one lone 1 or nothing; or, 18 times, E on a lone 1 at the right end. At every turn with no <code>o</code> inside the zone the next right turn is exactly the one Lean's <code>nxt</code> predicts (8,988 times), or <code>nxt</code> is <code>none</code> and a crossing starts (17 times). Turn-to-turn n-gram closures (k = 3 to 6) do not close, and no bounded number of zone letters decides where a crossing goes.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/epochs.c</code> (copy of the tool in the first machine of this batch)</div></div><div><b>Epochs to 3·10<sup>9</sup> steps</b><p>Sweeps across 80% of the tape begin epochs at steps 2,284, 5,873, 13,248, 47,799, 145,962, 487,979, 1,427,948, 4,277,179, 13,419,889, 40,483,837, 124,076,294, 383,276,545 and 1,162,585,978, with the left end at 56, 103, 172, 374, 703, 1,319, 2,265, 4,020, 7,237, 12,641, 22,085, 38,918 and 68,091 cells; the right end grows by about 10 cells per epoch (130 at the end). Ratio per epoch: about 1.75 in length, 3 in time.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/c/dump.c</code></div></div><div><b>A twin machine</b><p>The holdout <a href="../1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF/explainer.html">1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF</a> has exactly this machine's configuration (tape, head position, state) at 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps, reaching each about 1.5 times later.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/ctl.py</code>, <code>invariants.py</code></div></div><div><b>No closed tape language with small windows</b><p><code>bbtools.ctl</code> with K = 3, 4, 5, 6 leaves abstract halting configurations; the n-gram CPS decider (widths 3 to 7, with history and LRU) fails; no conserved quantity a·ones + b·pos + W[state] mod 2..12 (<code>bbtools.invariants</code>).</p></div></div>
@@ -381,6 +491,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh
+python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py
+gcc -O2 -o twoletter holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/twoletter.c &amp;&amp; ./twoletter 1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF 10000000000
 python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/blocks_rules.py &gt; holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/Blocks.lean
 python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/route.py        # rewrites lean/Route.lean
 gcc -O2 -o turns holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/turns.c &amp;&amp; ./turns 10000000000

@@ -99,10 +99,123 @@ So, by the data, a halt needs a `10` far from both ends, and none has formed sin
 lines would show that `y 0 x^k 0` (a y word, a wall, only x words, a wall) never forms again in the bulk. The right end itself runs through four phases (`x 0 0 y 10 x`,
 `x y 0 y 10 x`, `x 0 y x 0 x`, `0 x x 0 10 x`), and none of them contains the pattern.
 
+## Rule 102 in Lean, and Lucas' theorem (21 November 2026)
+
+* `lean/Xor.lean`, `epoch`: for **every** word string `w ++ [y]` followed by a 0, B on its first cell, the right sweep
+  (`x -> 000`, `y -> 011`, B zigzagging `B 1 1 -> 0 B 1`), the turn (B on 0 writes 1, steps left in C) and the left sweep
+  (C = "the word to the right is y", E = "it is x") leave the string `x102 (w ++ [y]) y`: word `i` becomes
+  `w[i] xor w[i+1]`, with `y` after the end (`x102_getD`). The last word becomes `x`, and the 0 after the string becomes
+  a 1. This replaces the exhaustive check in `py/xor_epoch.py` (strings up to 16 words) by a proof for all lengths.
+* `lean/XorLucas.lean`, `closed_form`: iterating rule 102 with a fixed value after the end, word `i` after `t` sweeps is
+  the XOR of the starting words `i + k` over the `k <= t` with `C(t, k)` odd, and by Lucas' theorem that is "the binary
+  digits of `k` and `t - k` are disjoint" (`disj`, `pascal_rule`, shared with the Pascal-triangle machine
+  1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF).
+* `allx`: a gap of `n` `x`s next to the fixed `y` has word `j` (counted from the `y`) equal to `y` after `t` sweeps iff
+  `C(t, j)` is odd. So the whole gap is `y` exactly when the binary digits of `t` contain those of `1, ..., n`, i.e.
+  `t = -1 mod 2^b` with `2^b > n`: first after `2^b - 1` sweeps, then every `2^b`.
+
+**What it says about the danger pattern.** In the gap `10 W 0` after a `10` defect the words follow the same rule with
+the defect side fixed at `y` (section above). Write the gap with the defect cell as the polynomial
+`W(z) = 1 + sum w_j z^j` over GF(2), mod `z^(n+1)`. One sweep multiplies it by `1 + z`; all `y` is
+`1 + z + ... + z^n = (1 + z)^(2^b - 1)`; and `(1 + z)^(2^b) = 1` mod `z^(n+1)`. So:
+
+* a gap of `n` words ever becomes all `y` **iff it already is a row of Pascal's triangle mod 2**: `w_j = 1` exactly when
+  the binary digits of `j` lie inside those of some `s < 2^b`; it then becomes all `y` at sweeps `t = 2^b - 1 - s mod 2^b`;
+* only `2^b <= 2n` of the `2^n` gaps of length `n` can ever reach the danger pattern, and every gap is periodic with period `2^b`.
+
+`py/pascal_gaps.py` checks both statements for every gap of up to 14 words (all 32,766). The algebra is not in Lean. A
+halt still needs, at such a sweep, a `y` or `0` before the `10` (in the data it was `x` all 131 times). So the open
+question is now about binary digits: which gaps the right end hands to a newborn `10`, and what word stands before the
+defect at the sweeps `t = 2^b - 1 - s mod 2^b`.
+
+## The danger pattern in Lean (21 November 2026, `lean/Danger.lean`)
+
+* `danger_halts`: B at the start of `y 10 y^n 0` halts, for every `n`. The `y` is a run `1 1 0` (B leaves it as
+  `0 1 1`); on the defect B goes into token mode (`B 1 -> 0 D`, `D 0 -> 0 F`); F crosses each `y` turning it into `000`
+  (`token_y`); F reads the wall's 0 and halts.
+* `shield`: with `x` before the defect, `x 10` is the single run `1 1 1 1 0`, which B rewrites to `0 0 0 1 1` and leaves
+  in B at the start of the gap, the ordinary way.
+
+So the danger pattern found in the data is a real halting shape, and the word in front of the defect decides whether
+the right sweep reaches it in token mode.
+
+## In the frame of a `10` defect (21 November 2026)
+
+`c/defect10.c` prints, at every new left cell up to 9·10^6 steps, each bulk `10` (more than 30 tokens from the right end)
+with the 80 tokens before it and the gap after it; `py/defect_frame.py` reads the sweeps where something near the defect
+changed (59 of them, in the three long lifetimes starting near 2.2, 4.1 and 6.6 million steps, gap closed by a `0` wall):
+
+* **When the word before the `10` is `x`, everything is linear.** Keep the defect in place and index words left to right.
+  Then the words before it go from `l` to `l'[i] = l[i-1] xor l[i]`, and the gap goes from `g` to
+  `g'[j] = g[j-1] xor g[j]` with a `y` in place of the defect. That is one rule-102 line, information flowing to the
+  right, with the defect a cell pinned at `y`: it swallows the word before it each sweep and emits `y` into the gap.
+  All 50 sweeps with `x` before the defect follow it, on both sides (45 of 45 gap updates of unchanged length).
+* **So the word before the defect is a Lucas sum**: `t` sweeps after a start, it is the XOR of the words `L_(1+k)`
+  (the `k`-th word left of the defect at the start) over the `k` whose binary digits lie inside those of `t`. At a
+  birth (`y 0 x^k 0 -> x^(k+1) 10`) the defect has `k + 1` `x`s before it, so the word before stays `x` for at least
+  `k` sweeps. The prediction holds for 36 sweeps in total, each time up to the first sweep with `y` before the defect.
+* **When the word before is `y`, the defect hops**: the 9 other sweeps are exactly the ones with `y` before the `10`. The
+  defect moves and the gap shrinks, and the linear picture restarts (the exact rule is the jump of the next section). If the gap were all `y`
+  at such a sweep it would be `y 10 y^n 0`, the danger pattern.
+
+So the danger pattern is a coincidence of two Lucas sums: the gap, whose all-`y` times are `t = 2^b - 1 - s` (mod
+`2^b`) for a gap that is Pascal row `s`, and the word before the defect, which is `y` at the `t` where the digit-masked XOR
+of the left words is 1. In the data the two never coincide: all 93 snapshots with an all-`y` gap have `x` before the defect, and
+every `y` before the defect came with a gap that was not all `y`. A proof along these lines would have to control the left words that a newborn defect sees, which are rule-102 images of
+the bulk, and the hops.
+
+## The defect's jump, and one map for a whole lifetime (21 November 2026, `lean/Hop.lean`)
+
+A deep sweep is a round trip that reaches a bulk `10` defect `T` and turns at the wall after its gap. Lean proves what
+it does in both cases, for all word strings `P`, `G`, `C` and all `j`, `a` (x102 is rule 102, `x102(w, q)` has `q` after
+the end):
+
+* `shielded` (`x` before `T`): `P x T G y 0` becomes `x102(P, x) T x102(y G y, y) 1`. The defect moves one slot left.
+  Counting `T` as a `y`, that is rule 102 on the whole line `P x T G y` (`x102_shielded`): the left words and the gap
+  are one rule-102 line, and the defect sits in the slot whose new value is `x xor y = y`.
+* `jump` (`y` before `T`): `P y T y^j x^(a+1) C y 0`, with `C` empty or starting with `y`, becomes
+  `x102(P y, x) x^(j+a+1) T x102(C y, y) 1`. In token mode the right sweep crosses the `y`s; the first `x` throws B back
+  into ordinary mode one cell late, so the defect **jumps forward to the last slot of the gap's first `x` block**, and
+  the `j + a + 1` slots it jumped over become `x`.
+* With no `x` before the wall the jump has nowhere to land: `P y T y^n 0` is the danger pattern and halts
+  (`danger_halts`). If the first `x` block runs into the wall, the defect and the wall cancel (a merge).
+* `clock`: after a jump over `m = j + a + 1` slots the words before `T` are `Q y x^m`. Each shielded sweep turns
+  `Q y x^k` into `Q' y x^(k-1)`, so exactly `m` shielded sweeps follow and then the word before `T` is `y` again: **the
+  next jump comes exactly `m` sweeps later**, whatever the words further left.
+
+`py/hop_rule.py` checks the three rules with the machine's table (8,001 shielded and 40,320 jump cases, 504 danger
+cases, all agree). `c/turns.c` and `py/defect_life.py` follow every deep sweep of the real run to 1.2·10^7 steps: 54
+shielded sweeps, 10 jumps and 3 merges (one per lifetime), all as the rules say; the gap matches the series model below
+on every word the old gap determines (63 of 63), and all 10 jumps and merges after a first jump came exactly `m` sweeps
+after the previous one.
+
+**The two Lucas sums, side by side.** Read the gap with the defect as the constant term, `W = 1 + g0 z + g1 z^2 + ...`
+over GF(2). Then every sweep of a defect's life is one map:
+
+* shielded sweep: `W -> (1 + z) W`;
+* jump: `W = (1 + z + ... + z^j) + z^L C` with `L = j + a + 2` (a run of `j + 1` ones, then `a + 1` zeros, then `C`,
+  which starts with 1) becomes `(1 + z) C`; with the `j + a + 1` shielded sweeps that the clock then forces, jump to jump
+  is **`F(W) = (1 + z)^L C`**: strip the leading run of ones and the run of zeros after it, multiply by `(1 + z)^L`.
+
+The words left of the defect enter only once: they fix the first jump, at the first sweep `s` where their Lucas sum
+(the XOR of the `k`-th left words over the `k` whose binary digits lie inside those of `s`) is `y`; the gap is then
+`(1 + z)^s W_birth`. From the first jump on, the left words never matter again (the clock), and the lifetime is the
+orbit of `F`. It halts exactly when, at some jump, the leading run of ones of `W` reaches the wall (the gap is all
+`y`), and it ends quietly when the first run of zeros reaches the wall first. So "the gap is all `y` while a `y` stands
+before the defect" is now a statement about one sequence of power series.
+
+What this does not settle: `F` alone does not keep the run of ones short. For random gaps the run length `j` at a jump
+is geometric (`py/fmap.py`: `j = 0, 1, 2, 3` in 50, 25, 12, 6 percent of 171,912 jumps), so a halt is a matter
+of which gaps are born, not something the map rules out. In the real run `j` was 0 or 1 at all 10 jumps and 3 at two
+merges. The no-halt argument therefore still needs the births: that `y 0 x^k 0` (the only way a bulk `10` forms) never
+appears again after 8.5·10^6 steps, which is about the walls and the right end, not about the defect.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
-search over all words of 1-3 cells, each for every n and every tape around.
+search over all words of 1-3 cells, each for every n and every tape around. `lean/Xor.lean` and `lean/XorLucas.lean`:
+the rule 102 epoch and its closed form (section above). `lean/Danger.lean`: the danger pattern halts. `lean/Hop.lean`:
+the shielded sweep, the jump and the jump clock (section above).
 
 ## Halting
 
@@ -111,8 +224,7 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 
 ## Notes for later
 
-* Done: the sweep pair is the XOR rule (above). Next: prove it in Lean for all lengths (two per-word transducer
-  lemmas and an induction over the word list; the toolchain was not available in the 16 November container).
+* Done: the sweep pair is the XOR rule, proved in Lean for all lengths (`lean/Xor.lean`), with its Lucas closed form.
 * The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
 * Done: how `10` defects are made (walls as particles, above). Next: prove that `y 0 x^k 0` never forms after 10^7 steps (no
   local rule found: the word before a wall and the gap after it are correlated only through the XOR history), and write the right end's four phases as rules.

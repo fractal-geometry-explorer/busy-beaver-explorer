@@ -44,14 +44,18 @@ of 3, and recurses (O(M(T) log T)). It agrees with plain iteration on epochs up 
 * Trusted: the rules (`py/macro.py check`, all even 2 ≤ n < 60, m < 12, against direct simulation); the first
   three epochs (`py/macro.py epochs`, `py/epoch.py`).
 * Lean (`lean/Blank.lean`): the halting configurations, no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
+* Lean (`lean/DMMap.lean`, kernel): **the machine halts iff the orbit of DeepMind's map stops**
+  (`deepmind_halts_iff`; it used to be a cited axiom). Each clause of the map is a rule of `lean/DMRules.lean`,
+  written by `tools/deepmind/dmproof.py` from DeepMind's configuration templates. Axioms: propext, Classical.choice,
+  Quot.sound.
 * Heuristic: with fair-coin parities an epoch halts with probability 1/3, so the machine halts with probability 1,
   after about 10^(10^7.39) macro steps or more.
 * Open: the fourth epoch's end.
 
 ## Next steps
 
-Lean proofs of the macro rules (fill pass and the two end rules with symtm and induction, as in Antihydra's
-`Macro.lean`); a Lean statement "halts iff the epoch game halts". Deciding the machine is out of reach.
+Done: "halts iff DeepMind's map stops" is a kernel theorem (`lean/DMMap.lean`). Still open: a Lean link from that map
+to the epoch game above. Deciding the machine is out of reach.
 
 ## Pages
 
