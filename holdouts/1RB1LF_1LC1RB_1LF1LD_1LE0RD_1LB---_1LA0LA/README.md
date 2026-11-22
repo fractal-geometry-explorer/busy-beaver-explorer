@@ -296,7 +296,17 @@ described there): 42,000 phases in about 3 h, in 233 descents, with no event. Ki
 `(1 0 0)^F` with 23,132 digits in all. After 233 descents it holds 269, with 24,688 digits: each descent leaves about
 one new fuel behind. The fuels that start a descent only shrink slowly, from about 10^146 to about 10^115 over those
 233 descents. The bottom is itself a counter, one level above the descents. Reaching the event needs that counter
-as a rule: a descent as one step on the list of fuels. The run goes on in the background meanwhile.
+as a rule: a descent as one step on the list of fuels.
+
+*Descents of descents.* The fuels that start the descents follow the same law one level up. In the 42,000 phases,
+after a few irregular starts (146, 144, 146, ..., 142 digits), the starting fuels go 120, 120, 120, 119, 119, 119,
+..., 35, 34, 34, 34 digits: three descents per digit, so they too shrink by a factor of about 2.1 from one descent to
+the next. Then a fuel of 125 digits starts the next such run. So the bottom is a hierarchy of the same shape at every
+level: a descent is about 3·D phases on a fuel of D digits, a second-level descent is about 3·D descents, and so on.
+The number of phases to the event grows like a power of the fuel sizes with as many factors as there are levels,
+far beyond what any run of phases can reach. The next step is to prove the self-similarity: that a descent of level
+k on a fuel F acts on the rest of the word like one phase of level k − 1, with its round count and block map as
+functions of F. Then the levels could be jumped like the phases are now.
 
 Trust: computations, exact by construction. The phase jumps reproduce the twin's seventh event exactly
 (kinds ×256, ×16 and ×1) and agree with plain batches on 6 words with a ×64 phase; the cached transitions agree
