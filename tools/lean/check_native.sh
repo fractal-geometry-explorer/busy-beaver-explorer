@@ -26,7 +26,7 @@ cc() {  # cc SRC_DIR FILE NAME
   (cd "$1" && $LEAN "$2" -c "$NAT/$3.c")
   "$LEANC" -c -O3 -DLEAN_EXPORTING -fvisibility=default "$NAT/$3.c" -o "$NAT/$3.o"
 }
-for f in Basic Fin CTL ListFrame Sync Insert Resync Rounds RLE; do cc "$HERE" "TM/$f.lean" "TM_$f"; done
+for f in Basic Fin CTL ListFrame Sync Insert Resync Rounds RLE RSim; do cc "$HERE" "TM/$f.lean" "TM_$f"; done
 cc "$HERE" TM.lean TM_all
 for f in $MODS; do cc "$DIR" "$f" "M_${f%.lean}"; done
 "$LEANC" -shared -o "$NAT/lib.so" "$NAT"/*.o -Wl,--no-gc-sections
