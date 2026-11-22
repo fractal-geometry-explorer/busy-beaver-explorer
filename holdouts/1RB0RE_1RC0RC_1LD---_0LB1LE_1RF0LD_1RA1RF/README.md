@@ -30,7 +30,8 @@ machines have **identical configurations** (tape, head position, state), this on
 (all 12 listed in `status.json`; the epoch near 2·10^7 was sampled at different turns). So it computes the same
 thing: a word in `u = 1110`, `v = 1111` replaced by its running XOR on each leftward sweep, epochs x1.75.
 
-**Proved** (`lean/Rules.lean`): eleven shift rules over `1111`, `0101`, `1010`.
+**Proved** (`lean/Rules.lean`): eleven shift rules over `1111`, `0101`, `1010`. **Proved** (`lean/NoBreak.lean`): if
+the twin's list machine never fails, neither machine halts (see "No break" below).
 
 ## Halting
 
@@ -39,7 +40,8 @@ Only C1 halts; C is entered only from B (moving right): halts iff `B> x 1`. CTL 
 
 ## Notes for later
 
-- Prove the agreement with the twin as a simulation (a map from this machine's sweep configurations to the twin's).
+- The agreement with the twin is proved as a simulation up to the first break (`lean/Twin.lean`), and the twin's list
+  hypothesis rules out every break (`lean/NoBreak.lean`). What is left is the twin's list question.
 
 ## Deciders tried (F11, 13 November 2026)
 
@@ -55,6 +57,33 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 
 `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
 of: A with 0 under the head, 1 two right.
+
+## No break: the twin's list question decides this machine too (22 November 2026)
+
+`lean/Twin.lean` proves that this machine follows the twin step for step until the first **break**, the twin in B
+with a 1 in one of the two cells ahead, and that neither halts if no break comes. A break is not the twin's halt:
+the twin halts on `F> 0 0 1`, this machine on `F> 0 0 1 1` and `F> 0 0 0 1` (in the twin's terms; the second is a
+configuration the twin crosses without stopping, its rule `f_three_zeros`). So a proof that the twin never halts
+did not by itself settle this machine.
+
+The twin's non-halting is now one question about a list program (`not_halts_of_arun` in the twin's `End.lean`: if
+`arun` never fails from the first right turn, the twin never halts). Lean now proves that **the same hypothesis also
+rules out every break**, so it settles this machine as well (`not_halts_of_arun`, `lean/NoBreak.lean`, kernel):
+
+* `lean/watch/Machine.lean` is the twin's table with a seventh state G watching the cell after `B> 0`: B on 0 goes
+  to G instead of C, G on 0 acts as C (`1LD`), G on 1 halts. It runs the twin's run cell for cell (`wsteps`) and
+  halts exactly at a break.
+* `lean/watch/Pascal.lean` ... `Race.lean` are the twin's own files, copied unchanged except for the namespace by
+  `py/port_watch.py`, and they check for the watched table: none of their lemmas passes B except on `B> 0 0`, where G
+  does what C does. So the twin's `not_halts_of_arun` holds for the watched twin with the same list program.
+* `noBreak_of_watched`: if the watched twin never halts, the twin's run has no break; with `not_halts_of_noBreak`
+  neither machine halts.
+
+So the two machines now stand or fall together: whatever proves that the twin's list machine never fails (lead 5 of
+the plan) proves both. If the twin's files change, rerun `python3 py/port_watch.py` and `lean/check.sh`.
+
+The watched twin runs 3·10^9 steps (113,048 cells) without a halt, i.e. the twin has no break in that run
+(`c/watch.c`).
 
 ## Pages
 

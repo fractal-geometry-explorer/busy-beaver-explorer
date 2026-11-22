@@ -305,7 +305,9 @@ checked against the transition table only by `c/zvis.cpp`. `Link.lean` proves th
 
 So everything except one statement is now in the kernel: that the defect `x` put in front by each round is gone
 when the round's visit of A ends. That is the inequality of the earlier passes, and it is still about pseudo-random
-digits.
+digits. **[Correction, seventh pass: as stated, counting rounds from blank tape, this hypothesis is false (round 2's
+defect survives), so `nonhalt_of_clean` is vacuous. `lean/Fuel.lean` proves that and gives the reduction from round 9
+on, `nonhalt_of_need`.]**
 
 **The twin's round law on any tape (trusted).** The correspondence with the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---
 is not tied to the run: started in E on `0 0 0 1 0 S` with blank tape to the left, the twin reaches `0 0 0 1 0 S'`
@@ -317,11 +319,79 @@ instead of `1 0`, and A after `0 1` gives E on `0 S` without its first cell. Wit
 machine is a run of the twin (forms checked on random tapes, rules run symbolically: `py/twinforms.py`; not in
 Lean). The twin
 works the defect rule `x L` differently (through E on the tail), so a Lean proof needs its own token rules or a
-bridge between the two derivations.
+bridge between the two derivations. **Update (later on 22 November 2026):** done, without new rules. The twin's
+`lean/Link.lean` (`../1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---/lean/Link.lean`) proves every token rule `TV` of this folder as a run of the twin's own table from those entry forms;
+the `x L` rule runs this machine's way after all (the twin meets B after `1 0` on `x W` four cells in). With
+`Total.lean` the twin never halts under the same hypothesis as `nonhalt_of_clean` here
+(`K83189.nonhalt_of_clean`).
 
 **Checkpoints for the engine.** `c/toksim.cpp` now writes its state every `TOKSIM_CKPT_EVERY` rounds (default 50,000)
 to the file named by `TOKSIM_CKPT`, and `TOKSIM_RESUME=FILE` continues from such a file, appending to the record file. A run to
 2,000,000 rounds is under way.
+
+## Seventh pass (22 November 2026, evening): what a defect needs, and a correction
+
+**Correction: the old reduction was vacuous.** `nonhalt_of_clean` (sixth pass) assumes that in every round counted
+from blank tape the defect is gone when the round's visit of A ends. That is false in round 2: `S_2 = x L O I` and
+`A(x L O I) = L I x I`, so round 3 starts with two defects. `lean/Fuel.lean` proves this (`old_hyp_false`). The
+early rounds are not one-defect tapes (round 8's defect survives too); the token picture of the earlier passes
+starts at round 9, where `py/tokz.py` and the machine agree. The twin's `K83189.nonhalt_of_clean` (pull request 416) assumes the same
+hypothesis and is vacuous for the same reason; it needs the same correction from a later round.
+
+**The corrected reduction (Lean, kernel), `lean/Fuel.lean`.**
+
+- `round9`: from blank tape the machine reaches the start of round 9, `0 x a9` with blank tape to the right in state
+  A, at step 5,848; `a9 = L L L L O L L L I L I L I L O O I O I I` is the clean tape round 8 leaves (the list
+  simulator of `tools/lean/TM/Fin.lean`, evaluated by the kernel).
+- `nx`, `ne`, `n0`, and `fuel`: **the fuel a defect needs.** `nx W` is a number of visits of A after which `x W` (W
+  clean) has no defect left; `ne W` and `n0 W` are the same for the tapes `Eh W` and `E0 W` leave. They are a plain
+  recursion over the words of W, read from the token rules:
+
+      nx [] = 1      nx (O W) = 2 nx W + 1      nx (L W) = ceil(nx W / 2)      nx (I W) = ne W + 1
+      ne [] = 0      ne (O W) = 2 ne W + 1      ne (L W) = ceil(ne W / 2)      ne (I W) = n0 W
+      n0 [] = 0      n0 (O W) = 0               n0 (L W) = 2 (nx W - 1)         n0 (I W) = 2 (2 ne W + 1)
+
+  `fuel` proves (induction on W, using that n visits on `L r` are 2n visits on r and n visits on a digit in front of
+  r are floor(n/2) or ceil(n/2) visits on r) that this many visits always leave a clean tape, for `x W`, `1 W`
+  (`2 ne W + 1` visits), `Eh W` and `E0 W`.
+- `dies`: if `nx W <= 1`, the round's single visit kills the defect of `x W`. `nonhalt_of_need`: **if `nx W <= 1` for
+  the round tape `x W` of every round from 9 on, the machine never halts from blank tape.** `need_a9`: round 9 is
+  fine.
+
+So the open statement is now a property of each round's starting tape alone, decided by one pass of a recursion
+over its words, without running any visit.
+
+**The margin.** Normalized, a round tape is `L^m x U` (or `L^m z U`), so `nx (L^m U) = ceil(nx U / 2^m)` and the
+defect dies as soon as `nx U <= 2^m`. Measured (`py/fuel.py`): the need is 3 or 4 visits in every round from 13 to
+3,000 (26 in round 12, the smallest margin: m = 6), and 3 at rounds 20,000, 50,000 and 300,000 (dumps of
+`c/toksim.cpp`), while the defect gets 2^m visits with m = k/2. The defect is pushed about 2^(k/2) times harder than
+it needs to be.
+
+**Why the irregular layer is not the question.** The defect's path is fixed by the words ahead of it: the fuel only
+decides when it stops, never where it turns or which words it rewrites. Among digits it crosses `O` and pairs `I I`
+and dies at the first odd run of `I` followed by `O`, or at the blank end. It can only stop for lack of fuel after
+crossing words of small height b (b = L's minus digits before the word): the potential fuel·2^(-b) starts at 1 and
+drops by at most 2·2^(-b) per step of the defect (`py/potential.py`, exact fractions, all 329,061 defect steps of
+rounds 6 to 1,500), so it reaches 0 only after the sum of 2^(-b) over the crossed words is at least 1/2. Up to where it dies
+every height is at least m (the smallest is the word right after the defect), and the words of Z have heights from
+|Z| down to 0 at the far end. A defect that crossed the whole irregular layer (about 0.27 k words) would still carry
+about 2^(1.5 k) visits and would die in the frozen or period-4 layers above it, which contain `I O`. So item 9 of the
+lead list ("no defect crosses the irregular layer in one round") is not needed for the defect to die: crossing it
+only costs words of Z. What a proof needs is that the heights in front of the death point never collapse.
+
+**Heights never drop over two rounds (observed, not proved).** Let h_k(p) be the height at token index p at the
+start of round k. In every round k from 40 to 3,000, h_(k+2)(p) >= h_k(p) for every index p up to where round k's
+defect died, and the same holds for 19,991 random tapes `L^m x W` (`py/fuel.py`). One pass alone moves the height
+at every index it crosses by exactly 1, up or down. If this monotonicity is a theorem, the words near the front keep
+their heights forever, and what is left is how high new words enter the part the defect crosses, that is the depth
+of Z where the defect dies. A rough count then asks only that Z keeps a fixed fraction of the tape (loss of Z below
+4 − ε words per round on average, against 2.11 measured), weaker than the third pass's |Z| >= k + 2 log2 k + 20
+(loss below 3). That count is a sketch, and Z's loss is still a statement about the irregular digits, so the
+machine stays open.
+
+    python3 py/fuel.py 3000 20000          # margins, and the two-round height check (about 40 s)
+    python3 py/fuel.py --dump dump.txt     # the margin of one round-start tape written by c/toksim.cpp
+    python3 py/potential.py 800            # fuel against height, every defect step
 
 ## Status
 
@@ -344,6 +414,12 @@ to the file named by `TOKSIM_CKPT`, and `TOKSIM_RESUME=FILE` continues from such
 - Lean (kernel), 22 November 2026: `Link.lean`, the four visit functions are runs of the transition table, the round
   law `0 S -> 0 1 0 A(S)`, and the conditional theorem: if every round's defect dies in its round, the machine never
   halts. Open: that hypothesis.
+- Lean (kernel), 22 November 2026 (evening): `Fuel.lean`. The hypothesis of `nonhalt_of_clean` is false (round 2),
+  so that theorem is vacuous; `nonhalt_of_need` replaces it: the machine reaches round 9 at step 5,848, and if from
+  there on every round's defect needs at most one visit (`nx W <= 1`, a recursion over the round tape), it never
+  halts. Trusted: the need is 3 or 4 visits against 2^(k/2) in rounds 13 to 3,000 and at rounds 20,000, 50,000 and
+  300,000; heights before the death point never drop over two rounds (rounds 40 to 3,000, 19,991 random tapes).
+  Open: `nx W <= 1` in every round.
 
 ## Scripts
 
@@ -359,6 +435,10 @@ to the file named by `TOKSIM_CKPT`, and `TOKSIM_RESUME=FILE` continues from such
 - `c/toksim.cpp`: the fast token engine (see the fifth pass); `py/rounds_stats.py REC`: the defect's statistics
   from its record file; `py/vasym.py ROUNDS`: the value to second order with exact fractions;
   `py/layers.py DUMP DUMP2`: the layers of the digit end in two dumps of the engine 56·j rounds apart.
+
+- `py/fuel.py ROUNDS [TRIALS]`: the fuel each round's defect needs (`nx` of `lean/Fuel.lean`) against the 2^m visits
+  it gets, and the two-round height check on the run and on random tapes; `py/potential.py ROUNDS`: fuel against
+  height at every defect step.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 

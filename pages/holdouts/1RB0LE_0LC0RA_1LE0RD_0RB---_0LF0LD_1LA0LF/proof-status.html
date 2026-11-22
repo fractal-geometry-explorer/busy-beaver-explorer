@@ -92,6 +92,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.</p>
       <p><b>New, 22 November 2026.</b> Lean now proves that a tape with at most one defect cannot halt, so a halt needs a defect that survives its round. A new engine followed the defect word by word through 500,000 rounds (more than 2<sup>944,371</sup> steps): every defect died about halfway into the tape. The top of the counter is now understood exactly: its layers are the binary expansions predicted by the conserved value, 1/15 &minus; c&middot;2<sup>&minus;k/2</sup>/127. The defect only ever eats the irregular bottom layer; whether it can cross all of it in one round is the open question.</p>
       <p><b>Later on 22 November 2026.</b> Lean now also proves that the four visit functions are runs of the real transition table, and the round law. So the machine never halts from blank tape <i>if</i> every round's defect dies in its round; that one statement is all that is left.</p>
+      <p><b>Evening, 22 November 2026.</b> A correction and a sharper statement. The hypothesis of the Lean theorem of the afternoon is false as stated: counted from blank tape, the defect of round 2 survives, so that theorem was vacuous. Lean now proves the corrected reduction: the machine reaches round 9 at step 5,848, and from there it never halts if each round's defect needs at most one visit of A, a number computed by a short recursion over the round's starting tape. In the run the defect needs 3 or 4 visits and gets 2<sup>k/2</sup>. Whether that margin holds in every round is the open question.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -151,8 +152,28 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>If every defect dies, it never halts</h3>
-        <p>If in every round from blank tape the visit of A leaves a tape without defect, the machine never halts from blank tape. This hypothesis is now the whole open question.</p>
+        <p>If in every round from blank tape the visit of A leaves a tape without defect, the machine never halts from blank tape. <b>Correction (evening):</b> that hypothesis is false, because the defect of round 2 survives (<code>old_hyp_false</code>, <code>lean/Fuel.lean</code>), so this theorem says nothing. It is replaced by <code>nonhalt_of_need</code>, which starts at round 9.</p>
         <p class="where"><code>nonhalt_of_clean</code>, <code>lean/Link.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The twin's rounds on any tape</h3>
+        <p>Started in E on <code>0 0 0 1 0 S</code>, the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- reaches <code>0 0 0 1 0 1 0 A(S)</code> for all 1,517 of 2,000 random tapes S (up to 30 cells) on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule is a run of the twin through them (symbolically). Since 22 November 2026 this is in Lean on the twin's own table: every token rule is a run of the twin from five entry forms, and the twin never halts under this machine's hypothesis (<code>K83189.nonhalt_of_clean</code>). <b>Evening:</b> that hypothesis is false (see "The old reduction was vacuous"), so the twin's theorem needs the same correction, starting from a later round.</p>
+        <p class="where"><code>python3 py/twinforms.py 2000</code>; <code>../1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---/lean/Link.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The fuel a defect needs</h3>
+        <p><code>nx W</code>, <code>ne W</code>, <code>n0 W</code>: a recursion over the words of a clean tape W (<code>nx (O W) = 2 nx W + 1</code>, <code>nx (L W) = &lceil;nx W / 2&rceil;</code>, <code>nx (I W) = ne W + 1</code>, &hellip;). That many visits of A always leave <code>x W</code> without a defect, and the same for <code>1 W</code> and the tapes that <code>Eh</code> and <code>E0</code> leave. So whether a round's defect dies is decided by the round's starting tape alone.</p>
+        <p class="where"><code>fuel</code>, <code>dies</code>, <code>lean/Fuel.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The old reduction was vacuous</h3>
+        <p>From blank tape, <code>S<sub>2</sub> = x L O I</code> and <code>A(x L O I) = L I x I</code>: the defect of round 2 survives, so the hypothesis of <code>nonhalt_of_clean</code> is false.</p>
+        <p class="where"><code>old_hyp_false</code>, <code>lean/Fuel.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The corrected reduction</h3>
+        <p>The machine reaches the start of round 9, <code>0 x a9</code> with <code>a9 = L L L L O L L L I L I L I L O O I O I I</code>, at step 5,848 (list simulator evaluated by the kernel). If for the round tape <code>x W</code> of every round from 9 on <code>nx W &le; 1</code>, the machine never halts from blank tape. Round 9 itself satisfies it.</p>
+        <p class="where"><code>round9</code>, <code>nonhalt_of_need</code>, <code>need_a9</code>, <code>lean/Fuel.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -221,9 +242,19 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/layers.py dump50000 dump50056</code> (dumps written by <code>c/toksim.cpp</code>)</p>
       </div>
       <div class="card">
-        <h3>The twin's rounds on any tape</h3>
-        <p>Started in E on <code>0 0 0 1 0 S</code>, the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- reaches <code>0 0 0 1 0 1 0 A(S)</code> for all 1,517 of 2,000 random tapes S (up to 30 cells) on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule is a run of the twin through them (symbolically). Not in Lean.</p>
-        <p class="where"><code>python3 py/twinforms.py 2000</code></p>
+        <h3>The margin</h3>
+        <p>A round tape is <code>L<sup>m</sup> x U</code>, so the defect gets 2<sup>m</sup> visits (m = k/2) and dies if <code>nx U &le; 2<sup>m</sup></code>. In every round from 13 to 3,000 the defect needs 3 or 4 visits (26 in round 12, with m = 6, the smallest margin), and 3 at rounds 20,000, 50,000 and 300,000.</p>
+        <p class="where"><code>python3 py/fuel.py 3000</code>; <code>py/fuel.py --dump</code> on dumps of <code>c/toksim.cpp</code></p>
+      </div>
+      <div class="card">
+        <h3>Fuel against height</h3>
+        <p>The defect's path is fixed by the words ahead of it; its fuel only decides when it stops. At every one of the 329,061 defect steps of rounds 6 to 1,500, fuel&middot;2<sup>&minus;b</sup> (b the doubler height of the defect's word) is at least 1 minus twice the sum of 2<sup>&minus;b</sup> over the steps before, with exact fractions. So a defect can only run out after crossing words of small height, which before the death point never happens (all heights there are at least m).</p>
+        <p class="where"><code>python3 py/potential.py 1500</code></p>
+      </div>
+      <div class="card">
+        <h3>Heights never drop over two rounds</h3>
+        <p>With h<sub>k</sub>(p) the doubler height at token index p at the start of round k: h<sub>k+2</sub>(p) &ge; h<sub>k</sub>(p) for every p up to where round k's defect died, in every round from 40 to 3,000, and the same for 19,991 random tapes <code>L<sup>m</sup> x W</code>. One pass moves every height it crosses by exactly 1. Not proved; if it is a theorem, what is left is only how deep into Z the defect dies, and a rough count asks just that Z keeps a fixed fraction of the tape.</p>
+        <p class="where"><code>python3 py/fuel.py 3000 20000</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
@@ -264,7 +295,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card open">
         <h3>The one missing lemma</h3>
-        <p>With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts. It follows if the digit-only end Z keeps at least k + 2 log<sub>2</sub> k + 20 words, which needs the defect to reach Z in fewer than about half of the rounds; measured, a third. <b>22 November 2026:</b> the digit end has four layers (see "Four layers of the digit end"), and only the bottom one, about 0.27 k irregular digits, is ever eaten. The three regular layers above it are about 1.6 k digits, so the lemma would follow from two statements: that the layers are always as observed (they come from the first two terms of the value), and that no defect crosses the whole irregular layer in one round. The second is still a statement about pseudo-random digits. Neither is proved.</p>
+        <p>With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts. It follows if the digit-only end Z keeps at least k + 2 log<sub>2</sub> k + 20 words, which needs the defect to reach Z in fewer than about half of the rounds; measured, a third. <b>22 November 2026:</b> the digit end has four layers (see "Four layers of the digit end"), and only the bottom one, about 0.27 k irregular digits, is ever eaten. The three regular layers above it are about 1.6 k digits, so the lemma would follow from two statements: that the layers are always as observed (they come from the first two terms of the value), and that no defect crosses the whole irregular layer in one round. The second is still a statement about pseudo-random digits. Neither is proved. <b>Evening:</b> crossing the irregular layer would not save a defect: it would still carry about 2<sup>1.5 k</sup> visits and die in the layers above. What a proof needs is that the doubler heights in front of the death point never collapse (see "Heights never drop over two rounds").</p>
+      </div>
+      <div class="card open">
+        <h3>Every round's defect needs at most one visit</h3>
+        <p><code>nx W &le; 1</code> for the round tape <code>x W</code> of every round from 9 on. By <code>nonhalt_of_need</code> this is all that is left; it is equivalent to every defect dying, now as a property of each round's starting tape.</p>
       </div>
     </div>
   </section>
@@ -273,6 +308,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/check.sh
 python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/twinforms.py 2000
+python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/fuel.py 3000 20000   # margins, height check (40 s)
+python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/potential.py 1500
 g++ -O2 -o toksim holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cpp &amp;&amp; ./toksim 100000 10000 -1 rec.bin   # 2 minutes
 python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py rec.bin
 cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py &amp;&amp; python3 vasym.py 420
