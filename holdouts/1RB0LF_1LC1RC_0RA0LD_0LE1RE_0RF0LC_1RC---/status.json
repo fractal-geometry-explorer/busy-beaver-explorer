@@ -15,7 +15,8 @@
  "verdict": [
   "<b>The question is open.</b> The machine can halt only from <code>1 C&gt; 1 1</code> (both directions proved in Lean); in 20,000,000,000 steps that never happens. In the first 10<sup>9</sup> steps C had <code>1 C&gt; 1 0</code> about 2.9·10<sup>7</sup> times and <code>0 C&gt; 1 1</code> about 8.8·10<sup>7</sup> times, but never <code>1 C&gt; 1 1</code>: two of the three cells match all the time, the third never.",
   "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.",
-  "<b>New, 22 November 2026.</b> For the shared rounds Lean now proves that a tape with at most one defect cannot halt, and a new engine followed the defect through 500,000 rounds (more than 2<sup>944,371</sup> steps of the twin) without one surviving its round. Open: that this always holds, and the correspondence of the two runs."
+  "<b>New, 22 November 2026.</b> For the shared rounds Lean now proves that a tape with at most one defect cannot halt, and a new engine followed the defect through 500,000 rounds (more than 2<sup>944,371</sup> steps of the twin) without one surviving its round. Open: that this always holds, and the correspondence of the two runs.",
+  "<b>Later on 22 November 2026.</b> The correspondence with the twin holds on random tapes, not only along the run, and this machine's visits close up on the same token words. On the twin Lean now proves everything except that each round's defect dies; for this machine the correspondence itself is still to be put in Lean."
  ],
  "claims": [
   {
@@ -149,6 +150,12 @@
    "title": "The one missing lemma",
    "text": "With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts. <b>22 November 2026:</b> on the twin the digit end has four layers, and only the bottom, irregular one (about 0.27 k digits) is ever eaten; the lemma would follow if no defect ever crossed all of it in one round. Not proved.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The correspondence on any tape",
+   "text": "Started in E on <code>0 0 0 1 0 S</code>, this machine reaches <code>0 0 0 1 0 1 0 A(S)</code>, with A the visit function of the twin, for all 1,517 of 2,000 random tapes S on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule of the twin is a run of this machine through them (symbolically). On the twin, Lean now proves that its visit functions are its machine and that it never halts if every round's defect dies. Not in Lean for this machine.",
+   "where": "<code>python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/twinforms.py 2000</code>"
   }
  ],
  "check": [

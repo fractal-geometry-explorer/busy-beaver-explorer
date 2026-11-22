@@ -286,6 +286,43 @@ Statement 2 is still about pseudo-random digits (the defect crosses `O` and pair
 run of `I` followed by `O`; on random digits it survives n words with chance about 0.809^n, and the most it ever
 ate is 60 words). Neither statement is proved, so the machine and its twin stay open.
 
+## Sixth pass (22 November 2026, later): the machine itself, in Lean
+
+**The four visit functions are the machine (Lean, kernel), `lean/Link.lean`.** Until now `BV` was a definition,
+checked against the transition table only by `c/zvis.cpp`. `Link.lean` proves the link on the generated table
+`H36869.trans`:
+
+- `link`: every computation of the four visit functions is a run of the machine. A visit of `X` on the half tape
+  `S` (the tape from the head leftwards, head cell first) starts with the head on `S 0` in state `X` and ends with
+  the head one cell to the right of `S` in state B, for any tape to the right, which it never reads. P is the visit
+  of B entered with the cell under the head already 0. Each of the nine equations is a short run (one to six steps)
+  around the visits it calls.
+- `round`: from `0 S` with blank tape to the right, in state A, the machine reaches `0 1 0 A(S)`, again with blank
+  tape to the right, in state A (six steps, the visit E(0 0 S), one step). From blank tape `S = []`.
+- `nonhalt_of_clean`: if in every round from blank tape the visit of A leaves a tape without defect, the machine
+  never halts from blank tape. The rounds are `Reach` (`S_0 = []`, `S_(k+1) = x A(S_k)`); the step from a round to
+  the next uses `total` of `Total.lean`.
+
+So everything except one statement is now in the kernel: that the defect `x` put in front by each round is gone
+when the round's visit of A ends. That is the inequality of the earlier passes, and it is still about pseudo-random
+digits.
+
+**The twin's round law on any tape (trusted).** The correspondence with the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---
+is not tied to the run: started in E on `0 0 0 1 0 S` with blank tape to the left, the twin reaches `0 0 0 1 0 S'`
+with `S' = 1 0 A(S)` at its second visit of E to a new leftmost cell, for every one of 2,000 random tapes S of up to
+30 cells on which A(S) is defined, and it halts on exactly the 483 tapes on which A(S) reaches `E(1 1 ...)`. Its own
+visits close up on the token words with five entry forms (state and the two cells to the left): B after `1 0`
+computes A, C after `1 0` computes E, B after `0 0` computes E on `0 S`, C after `1 1` gives E with `0 0` in front
+instead of `1 0`, and A after `0 1` gives E on `0 S` without its first cell. With these every token rule of this
+machine is a run of the twin (forms checked on random tapes, rules run symbolically: `py/twinforms.py`; not in
+Lean). The twin
+works the defect rule `x L` differently (through E on the tail), so a Lean proof needs its own token rules or a
+bridge between the two derivations.
+
+**Checkpoints for the engine.** `c/toksim.cpp` now writes its state every `TOKSIM_CKPT_EVERY` rounds (default 50,000)
+to the file named by `TOKSIM_CKPT`, and `TOKSIM_RESUME=FILE` continues from such a file, appending to the record file. A run to
+2,000,000 rounds is under way.
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -304,6 +341,9 @@ ate is 60 words). Neither statement is proved, so the machine and its twin stay 
 - Lean (kernel), 22 November 2026: `Total.lean`, a tape with at most one defect cannot halt (the token rules are
   deterministic and total on such tapes). Trusted: `c/toksim.cpp` followed every defect for 500,000 rounds; the value
   to second order (`py/vasym.py`) and the four layers of the digit end (`py/layers.py`).
+- Lean (kernel), 22 November 2026: `Link.lean`, the four visit functions are runs of the transition table, the round
+  law `0 S -> 0 1 0 A(S)`, and the conditional theorem: if every round's defect dies in its round, the machine never
+  halts. Open: that hypothesis.
 
 ## Scripts
 
@@ -314,6 +354,7 @@ ate is 60 words). Neither statement is proved, so the machine and its twin stay 
 - `py/reach.py ROUNDS`: how often the defect reaches the digit end Z, and how far it gets there.
 - `py/zeval.py ROUNDS`: the round words S_k from the seven window rules. `py/tokz.py ROUNDS [FILE]`: the token rules.
   `py/twinchk.py STEPS FILE`: the same words on the twin's tape. `py/tokv.py ROUNDS`: the conserved value.
+  `py/twinforms.py [N]`: the twin's round law on random tapes, its entry forms, and the token rules as twin runs.
 
 - `c/toksim.cpp`: the fast token engine (see the fifth pass); `py/rounds_stats.py REC`: the defect's statistics
   from its record file; `py/vasym.py ROUNDS`: the value to second order with exact fractions;

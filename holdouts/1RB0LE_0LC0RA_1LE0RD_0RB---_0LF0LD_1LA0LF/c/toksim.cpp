@@ -261,8 +261,16 @@ int main(int argc,char**argv){
   ll reach=0, cnt=0; double losssum=0; ll maxe=-1, maxe_k=0;
   double minmargin=1e18; ll minmargin_k=0; double minzk=1e9; ll minzk_k=0;
   ll lastreach=0, lr_runmax=0, lr_run=0;
-  auto t0=chrono::steady_clock::now(); FILE*rec=argc>4?fopen(argv[4],"wb"):nullptr;
-  for(ll k=6;k<=R;k++){
+  // checkpoints: TOKSIM_CKPT=FILE writes the tape every TOKSIM_CKPT_EVERY rounds (default 50,000);
+  // TOKSIM_RESUME=FILE starts from such a file (the record file is then appended to)
+  const char*ck=getenv("TOKSIM_CKPT"); ll CKE=getenv("TOKSIM_CKPT_EVERY")?atoll(getenv("TOKSIM_CKPT_EVERY")):50000;
+  ll k0=6; const char*rs=getenv("TOKSIM_RESUME");
+  if(rs){ FILE*f=fopen(rs,"r"); if(!f){ fprintf(stderr,"cannot read %s\n",rs); return 1; }
+    ll kk; if(fscanf(f,"%lld\n",&kk)!=1) return 1; T.clear(); int c;
+    while((c=fgetc(f))!=EOF && c!='\n') T.push_back((char)c);
+    fclose(f); absorb(); k0=kk+1; printf("resumed at round %lld, %zu tokens + %lld digits\n",k0,T.size(),Z.len); }
+  auto t0=chrono::steady_clock::now(); FILE*rec=argc>4?fopen(argv[4],rs?"ab":"wb"):nullptr;
+  for(ll k=k0;k<=R;k++){
     ll sz=T.size(), zs=sz; while(zs>0 && (T[zs-1]=='O'||T[zs-1]=='I')) zs--;
     ll zlen=sz-zs+Z.len;
     dies.clear(); maxbits=0; ncross=0;
@@ -284,6 +292,9 @@ int main(int argc,char**argv){
       if((double)zlen/k<minzk){minzk=(double)zlen/k;minzk_k=k;}
     }
     if(rec){ int rr[4]={(int)k,(int)zlen,dies.empty()?INT_MIN:(int)(dies[0].pos-zs),dies.empty()?-1:dies[0].kind}; fwrite(rr,4,4,rec); if(k%EVERY==0) fflush(rec); }
+    if(ck && k%CKE==0){ string tmp=string(ck)+".tmp"; FILE*f=fopen(tmp.c_str(),"w"); fprintf(f,"%lld\n",k);
+      fwrite(T.data(),1,T.size(),f); for(ll j=0;j<Z.len;j++) fputc(Z.get(j)?'I':'O',f); fputc('\n',f); fclose(f);
+      rename(tmp.c_str(),ck); if(rec) fflush(rec); }
     if(k==DUMP){ FILE*f=fopen("dump.txt","w"); fwrite(T.data(),1,T.size(),f); for(ll j=0;j<Z.len;j++) fputc(Z.get(j)?'I':'O',f); fputc('\n',f); fclose(f); }
     if(k%EVERY==0){
       double el=chrono::duration<double>(chrono::steady_clock::now()-t0).count();
