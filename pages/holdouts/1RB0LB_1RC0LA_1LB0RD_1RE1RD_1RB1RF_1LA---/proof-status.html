@@ -188,6 +188,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/lean.py run</code>, <code>py/lean.py verify</code>; logs in <code>data/b1_lean.log</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 6.5&times;10<sup>197</sup> (b1) and 7.2&times;10<sup>196</sup> (b2) steps, through b2&rsquo;s oldest-segment collapse</h3>
+        <p>The same lean accelerator runs on from 3.0&times;10<sup>121</sup> without a halt (logs <code>data/b1_lean4.log</code>, <code>data/b2_lean4.log</code>). For b2 the oldest segment runs out near 3.6&times;10<sup>192</sup>, as forecast: a few odd walls appear (<code>[0]b1_1 [0]Z</code>, <code>[0]O [0]b1_1</code>, <code>[0]b1_2</code>) and are absorbed, the next segment (335 blocks) becomes the oldest, and the usual <code>[0]b2_3</code> cycle is back by 1.2&times;10<sup>194</sup>. This is what the ahead-of-time probe showed. b1&rsquo;s next event, its second segment running out, is forecast near 10<sup>228</sup>.</p>
+        <p class="where"><code>py/lean.py run</code>, <code>data/b1_lean4.log</code>, <code>data/b2_lean4.log</code></p>
+      </div>
+      <div class="card">
         <h3>The sweep rules form a short table</h3>
         <p>Every exact sweep rule the long runs derive (about 295 over a cycle, the same table for both machines) is a stop rule plus a carry chain whose changes and step cost do not depend on its length. Besides the generic Z and O stops there are about 20 stop rules: 3 borrows when the top carry digit has 0 or 1 blocks (they start odd walls), the cascades of odd walls that merge back into the counter, and the end rule that adds a digit at the bottom.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/ruletable.py table</code>, <code>data/rule_table_b1.txt</code>, <code>data/rule_table_b2.txt</code></p>

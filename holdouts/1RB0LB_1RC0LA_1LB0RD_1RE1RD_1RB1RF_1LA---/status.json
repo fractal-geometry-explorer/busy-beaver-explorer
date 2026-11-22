@@ -124,6 +124,12 @@
    "where": "<code>py/lean.py run</code>, <code>py/lean.py verify</code>; logs in <code>data/b1_lean.log</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 6.5&times;10<sup>197</sup> (b1) and 7.2&times;10<sup>196</sup> (b2) steps, through b2&rsquo;s oldest-segment collapse",
+   "text": "The same lean accelerator runs on from 3.0&times;10<sup>121</sup> without a halt (logs <code>data/b1_lean4.log</code>, <code>data/b2_lean4.log</code>). For b2 the oldest segment runs out near 3.6&times;10<sup>192</sup>, as forecast: a few odd walls appear (<code>[0]b1_1 [0]Z</code>, <code>[0]O [0]b1_1</code>, <code>[0]b1_2</code>) and are absorbed, the next segment (335 blocks) becomes the oldest, and the usual <code>[0]b2_3</code> cycle is back by 1.2&times;10<sup>194</sup>. This is what the ahead-of-time probe showed. b1&rsquo;s next event, its second segment running out, is forecast near 10<sup>228</sup>.",
+   "where": "<code>py/lean.py run</code>, <code>data/b1_lean4.log</code>, <code>data/b2_lean4.log</code>"
+  },
+  {
    "level": "heuristic",
    "title": "The next collapse does not halt (tried ahead of time)",
    "text": "Each cycle the oldest segment loses exactly 2 blocks and the j-th exactly 3<sup>j</sup> (all 71 logged cycles). The first digit to run out is the second segment (999 blocks at 3.3&times;10<sup>120</sup>, 9 fewer per cycle), near 10<sup>228</sup> steps. Setting it to 0 on today's tape and running on exactly, the collapse passes without a halt and the run returns to patterns already seen. The real tape will have more bottom digits by then.",
@@ -158,8 +164,8 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "6.1&times;10<sup>135</sup> steps",
-    "text": "No halt (exact whole-tape run with closed-form jumps), through four collapses."
+    "value": "6.5&times;10<sup>197</sup> steps",
+    "text": "No halt (exact whole-tape run with closed-form jumps), through every collapse so far."
    },
    {
     "level": "trusted",
