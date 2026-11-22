@@ -215,6 +215,20 @@ lowest digits: 124,490 + 1 = 9·13,832 + 3 and 54,958 + 1 = 9·6,106 + 5, and th
 6,107, so those two digits went into the words on the right. How the new Z, X, C and R are made from the old
 values and N's two digits is the open part.
 
+**An era change is one event (trusted, `py/era_sweep.py`).** Each of the last three changes of era in the run is a single step from one
+full event to the next, of 554 to 856 steps. Built by hand from the values before it, the tape of step 173,165,846
+reaches the next event in 554 steps with exactly the values of the run (`python3 py/era_sweep.py demo`). With
+everything else fixed, the outcome depends on N's lowest base-3 digits: for k = 3, X = 0, Z = 111, C = 11101,
+R = 01111111 (lowest digit first) and N from 999 to 1008, N mod 9 = 1, 2, 4, 5 give the X layout again with N's
+two lowest digits gone and Z = 1000, 0100, 0100, 0010; N mod 9 = 3, 6, 7, 8 take three digits of N and give
+shapes outside both layouts; N mod 9 = 0 takes four or five. So at an era change N's base-3 digits are
+turned into the binary words on the right, and the result depends on X, on C's and R's low bits and on N mod 9
+or more. This mixing of base 3 into base 2 is what a proof still has to control.
+
+**A search for a halt near the era changes (heuristic).** `python3 py/era_sweep.py sweep` builds every era change
+with Z of 2 to 4 digits, X of 0 to 3 digits (every value), C of 5 digits about to wrap, R of 6 digits about to
+overflow and N from 81 to 107, 20,412 tapes, and follows each for 12 events: none halts.
+
 **Where it can halt.** Every cascade rule is a run that never reads the 1 under F, so no event of the plain layout can
 halt. Among the 38 visit rows of a 3·10^7-step run (tokens on the whole tape), the only one that comes out in F is
 a visit in state A of a `c` token; no cascade rule uses it. If C keeps losing one digit per era (4 digits left from
@@ -240,6 +254,7 @@ step 173 million), the layout must change within a few more eras; what happens t
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 - `py/laws.py MACHINE STEPS ORIGIN W [OUT.json]`: the token rows of the visit law that occur in a run; `py/gen_visit.py MACHINE NAMESPACE OUT.json > lean/Visit.lean` proves them; `py/Stream.lean.tpl` is `lean/Stream.lean` with MACHINE and NS to fill in (shared by the family; the relabelled relative has E, A renamed F, E).
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events2.py MACHINE NAMESPACE > lean/Cascade.lean`: the cascade rules of the later layout (shared by the family).
+- `py/era_sweep.py demo|sweep`: era changes built by hand and run to the next events; the dependence on N mod 9; a search for a halt near them.
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events3.py MACHINE NAMESPACE PART > lean/XlayerPART.lean` (PART = 1, 2, 3): the rules of the X layout; `py/xlayer_check.py` checks a run against them (piped from `c/cascade_events.c`, as below) and lists the changes of era.
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c` and `py/cascade_check.py`: `gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c && ./cascade_events MACHINE 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py` checks a run against the cascade rule.
 
