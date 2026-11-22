@@ -71,6 +71,8 @@ PASCAL_GAP = ("Prove the two right-turn cases Lean does not cover yet: an even h
               "the crossing phase (the block-lengths-mod-4 summary that the abstraction in py/absz.py lacks). With "
               "them the observed 2-cell-letter invariant becomes a theorem and the machine never halts.")
 
+R08_NEXT = ('Prove a bound on the speed of the front of the cascade (measured: about 3.3 cells per doubling of the time); that would turn the window bounds into astronomically large no-halt bounds, but a decision needs a new idea about what the old zone does once the disturbance from the new zone reaches it.')
+
 # Machine-specific judgements, read from each machine's README and the latest pull requests (up to #348).
 OVERRIDES = {
     # Vampire family orbit O2 (its triage record predates the outside report).
@@ -117,23 +119,25 @@ OVERRIDES = {
         stage="finite", route="nonhalt", work="lean",
         why="Binary counter with doublers, variant of 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: a tape with one defect cannot halt.",
         next="Prove that every travelling defect disappears before the next round, as for its variant."),
-    # R08, the four leftmost-zone machines.
+    # R08, the four leftmost-zone machines. The zone reduction and the two-zone cascade are proved (halts_iff_zone,
+    # Cascade.lean, Window.lean; Shield.lean for 1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA), so what is left is the
+    # orbit of an explicit, pseudo-random cascade of one-bit cells.
     "1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA": dict(
-        stage="finite", route="either", work="lean",
-        why="One of the four leftmost-zone machines: a model of the leftmost zone reproduces every real left-end arrival, and the zone model alone halts for three of the four.",
-        next="Prove the leftmost-zone reduction in Lean, then model two zones with the block between them; that can settle the four in either direction."),
+        stage="number", route="either", work="research",
+        why="Leftmost-zone machine: Lean proves the zone reduction (the block of words enters only mod 3), halts iff the zone orbit halts, and that the orbit is a cascade of one-bit cells; windows of the cascade give no halt in 1.5·10^39 steps. The disturbance from the new zone reaches the old zone only after about 10^860 sweeps (extrapolated), and nothing predicts what it does there.",
+        next=R08_NEXT),
     "1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA": dict(
-        stage="finite", route="either", work="lean",
-        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA).",
-        next="Prove the leftmost-zone reduction in Lean, then the two-zone model."),
+        stage="number", route="either", work="research",
+        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA): the zone reduction and the two-zone cascade are proved in Lean.",
+        next=R08_NEXT),
     "1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA": dict(
-        stage="finite", route="either", work="lean",
-        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA).",
-        next="Prove the leftmost-zone reduction in Lean, then the two-zone model."),
+        stage="number", route="either", work="research",
+        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA): the zone reduction and the two-zone cascade are proved in Lean. Lean also proves the stranded block shields the old zone (Shield.lean).",
+        next=R08_NEXT),
     "1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB": dict(
-        stage="finite", route="either", work="lean",
-        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA).",
-        next="Prove the leftmost-zone reduction in Lean, then the two-zone model."),
+        stage="number", route="either", work="research",
+        why="One of the four leftmost-zone machines (see 1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA): the zone reduction and the two-zone cascade are proved in Lean.",
+        next=R08_NEXT),
 }
 
 # The recommended attacks, each a group of machines one piece of work would settle. 'pick' selects members.
@@ -183,12 +187,13 @@ ATTACKS = [
               "and this kind of family gave half the decisions of the week of 13 November. Exact odometer jumps (the "
               "PR 83 / 89 method) to the first top-level overflow; the collapse pair has an exact cycle law already.",
          need="Long CPU runs, one machine each."),
-    dict(key="r08", title="Leftmost-zone reduction for the four R08 machines",
+    dict(key="r08", title="Front speed of the cascade for the four R08 machines",
          pick=lambda r: r["m"] in ("1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA", "1RB0RB_1LC1RA_1LF0LD_0LE1LD_1RA1LC_---1LA",
                                    "1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA", "1RB1LD_1RC0RC_1LD1RB_1LF0LE_0LA1LE_---1LB"),
-         route="either", work="lean",
-         what="A model of the leftmost zone reproduces every real left-end arrival of all four. Prove that reduction in "
-              "Lean, then model two zones with the block between them; it could settle the four in either direction.",
+         route="either", work="research",
+         what="The leftmost-zone reduction and the two-zone cascade are proved in Lean; halting is one explicit cascade "
+              "of one-bit cells. A bound on the speed of the front (measured: 3.3 cells per doubling) would give huge "
+              "no-halt bounds; deciding needs a new idea about the old zone once the front reaches it.",
          need=""),
     dict(key="xor", title="Rule 102 machine: no danger pattern",
          pick=lambda r: r["m"] == "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
