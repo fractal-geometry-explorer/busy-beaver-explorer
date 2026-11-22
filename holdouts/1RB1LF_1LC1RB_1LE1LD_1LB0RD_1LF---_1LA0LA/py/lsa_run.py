@@ -5,7 +5,7 @@ The macro simulator with the digit engine (msim.py, geng.py) runs from blank tap
 10^e; from the word there the level-stripping accelerator (lsa_*.py) finds the visit of the next right-end event:
 the ladder is a mixed-radix counter (lsa_ladder, lsa_region), and an eater's K super-cycles are jumped at once
 (lsa_eater: the super-cycle law, derived with the fuel symbolic; lsa_phase: the hits above a run of K blocks in
-closed form, lsa_sym: numbers sum c_i 2^(e_i) for the ones too large to write down).  Prints the phases met and
+closed form, counts too large to write down are kept as BigF: a mantissa and an exact exponent).  Prints the phases met and
 the event's visit: exact, or as that closed form.  'explicit' turns the phase jumps off (only batches of hits:
 the same answer, slower, for a cross-check).  'file': save the starting word (pickle) or read it if it exists.
 """
@@ -16,7 +16,6 @@ import msim, geng
 from msim import Macro
 import lsa_phase
 from lsa_phase import PRegion, run_to_event
-from lsa_sym import Sym
 MS = {'1': "1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA", '2': "1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA"}
 
 
@@ -46,6 +45,9 @@ def start_word(which, e):
 def main():
     which, e = sys.argv[1], int(sys.argv[2])
     args = sys.argv[3:]
+    if 'bigf' in args:            # test: keep only small numbers exact
+        lsa_phase.EXACT_BITS = 1000
+        args.remove('bigf')
     if 'explicit' in args:
         lsa_phase.KMIN = 10 ** 30
         args.remove('explicit')
@@ -58,14 +60,21 @@ def main():
             pickle.dump(d, open(args[0], 'wb'))
     print("start: wall visit %s, step %s, %d tokens (%.1fs)" % (num(d['visit']), num(d['steps']), len(d['toks']),
                                                                time.time() - t0), flush=True)
-    R = PRegion(d['toks'], op='G')
+    R = PRegion(d['toks'], op='G', Q=int(os.environ.get('LSA_Q', '200')))
     print("%d levels on top of a bottom word" % len(R.levels), flush=True)
-    z = run_to_event(R)
-    if isinstance(z, Sym):
-        print("next right-end event at wall visit  %d + (%s)  ~ 10^(%.10g)" % (d['visit'], z, z.log10()))
-        print("closed form (all terms):")
-        for ex, c in sorted(z.t.items(), reverse=True):
-            print("   %s * 2^%d" % (c, ex))
+    ck = os.environ.get('LSA_CKPT')
+    if ck and os.path.exists(ck):
+        R, frames, nph = lsa_phase.load_state(ck)
+        print("resumed from %s at phase %d" % (ck, nph), flush=True)
+    else:
+        frames, nph = None, 0
+    z = run_to_event(R, ckpt=ck, every=int(os.environ.get('LSA_EVERY', '200')), frames=frames, nph=nph)
+    if isinstance(z, lsa_phase.BigF):
+        z = z.add(d['visit'] - 1)
+        print("next right-end event at wall visit about 2^%d (%.15g * 2^%d), about 10^%.12g;  %d phases" % (
+            z.E, z.m, z.E, z.log10(), len(lsa_phase.FRAMES)))
+        pickle.dump([(f[0], f[2], f[3], f[4], f[5]) for f in lsa_phase.FRAMES],   # (used, P, a, b, K) per phase
+                    open('lsa_frames_%s.pkl' % which, 'wb'))
     else:
         print("exact: visit %d   (the next visit is the event)" % (d['visit'] + z - 1))
     print("%.1fs" % (time.time() - t0))

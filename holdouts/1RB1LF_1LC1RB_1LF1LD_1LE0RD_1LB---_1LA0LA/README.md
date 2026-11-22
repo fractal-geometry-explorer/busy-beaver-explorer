@@ -265,8 +265,8 @@ They were not re-derived independently.
 
 ## Level-stripping accelerator (22 November 2026)
 
-**No right-end event, and so no halt, before wall visit 256^(2.394·10^146), about 10^(5.77·10^146)**, against
-10^25600 for the run above. The accelerator is described in the twin's README (section "Level-stripping
+**No right-end event, and so no halt, before wall visit 10^(8.73·10^146)**, against 10^25600 for the run above
+(the first phase alone gives 256^(2.394·10^146), about 10^(5.77·10^146)). The accelerator is described in the twin's README (section "Level-stripping
 accelerator"; code `py/lsa_*.py` there, arithmetic in `lean/Accel.lean` there): the ladder of levels is a
 mixed-radix counter, and an eater's K super-cycles are jumped at once with a closed form.
 
@@ -280,14 +280,27 @@ block of four base-4 levels. It runs K = 2.394·10^146 super-cycles. The region 
 its K blocks multiplies the hits needed from above by 256. Every hit at the top of that region is at least one wall
 visit, which gives the bound above.
 
-*After it.* The sink becomes fuel 3.99·10^146 for a ×16 eater, then come ×64 eaters (730 hits, 4 units of fuel,
-21 hits down) on fuels that shrink by a factor of 2 to 4 per phase, down to single digits; then a new fuel of about
-10^147 appears from a higher level and the descent starts again. After 2 h 30 min the run had done 688 phases
-(two ×256, one ×16, the rest ×64) in three such descents, with no event. It was still running when this was
-written; the event, if it comes, is a count far too large to write down and is kept as a sum of c·2^e.
+*After it.* The sink becomes fuel 3.99·10^146 for a ×16 eater. Then come ×64 eaters (730 hits, 4 units of fuel,
+21 hits down) on runs of the 20-digit rung `1 0 4 0 0 0 1 0 1 0 4 3 1 0 4 0 3 0 0 0`, in all its rotations. Each
+fuel is an affine function of the round count before it: 5K/3 after the ×256 phase, 10K/11 after the ×16 phase,
+(21K + δ)/11 between ×64 phases, with δ small. So a fuel shrinks by a factor of about 2.1 per phase, down to single
+digits. That is one *descent*: about 3 phases per decade of the fuel `(1 0 0)^F` that started it. Then the next fuel
+`(1 0 0)^F` of the bottom word starts the next descent.
+
+*The long run* (`LSA_CKPT=ck.pkl python3 lsa_run.py 2 3200` in the twin's `py` folder, with the cached transitions
+described there): 42,000 phases in about 3 h, in 233 descents, with no event. Kinds: 41,494 ×64,
+424 ×1024, 58 ×16, 23 ×256. Composing the phases gives the top hits needed to get that far:
+2^(2.899·10^147), so **no right-end event, and no halt, before wall visit 10^(8.73·10^146)**.
+
+*Why the event is still out of reach.* The bottom word does not run down. At visit 10^3200 it held 259 fuels
+`(1 0 0)^F` with 23,132 digits in all. After 233 descents it holds 269, with 24,688 digits: each descent leaves about
+one new fuel behind. The fuels that start a descent only shrink slowly, from about 10^146 to about 10^115 over those
+233 descents. The bottom is itself a counter, one level above the descents. Reaching the event needs that counter
+as a rule: a descent as one step on the list of fuels. The run goes on in the background meanwhile.
 
 Trust: computations, exact by construction. The phase jumps reproduce the twin's seventh event exactly
-(kinds ×256, ×16 and ×1); the ×64 kind has not been checked against plain batches.
+(kinds ×256, ×16 and ×1) and agree with plain batches on 6 words with a ×64 phase; the cached transitions agree
+with the plain steps over the first 700 phases.
 
 ## Pages
 
