@@ -50,6 +50,13 @@ On the twin ([fifth pass](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md
   (288/127 and 2^-(k+1)/2 for odd k), so the far end of the tape is layers of period 4 and 28 and then frozen
   digits, about 1.6 k digits in all. Only the irregular bottom layer, about 0.27 k digits, is ever eaten by a defect.
   The missing lemma would follow if no defect ever crossed all of it in one round; not proved.
+- Later the same day, on the twin: Lean proves that its four visit functions are runs of its transition table and that
+  it never halts if every round's defect dies (`lean/Link.lean` there). For this machine the correspondence turned out
+  not to depend on the run: started in E on `0 0 0 1 0 S`, this machine reaches `0 0 0 1 0 1 0 A(S)` on every one of
+  2,000 random tapes S on which A(S) is defined, and halts on the rest. Its own visits close up on the token words
+  with five entry forms (state and the two cells to its left), through which every token rule is a run of this
+  machine (`py/twinforms.py` there). Not in Lean yet: this machine works the rule for `x L` another way, so it needs
+  its own token rules or a bridge to the twin's.
 
 ## The rule of the middle (14 November 2026)
 
