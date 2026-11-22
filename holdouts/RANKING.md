@@ -47,11 +47,11 @@ Each attack is one piece of work that would settle the machines listed with it. 
    - [`1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---`](1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---/README.md)
    - [`1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---`](1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---/README.md)
    - [`1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---`](1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---/README.md)
-   - [`1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB`](1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/README.md)
-   - [`1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB`](1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/README.md)
    - [`1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---`](1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---/README.md)
    - [`1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---`](1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---/README.md)
    - [`1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---`](1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---/README.md)
+   - [`1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB`](1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/README.md)
+   - [`1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB`](1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB/README.md)
    - [`1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---`](1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---/README.md)
    - [`1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE`](1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/README.md)
    - [`1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB`](1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB/README.md)
@@ -129,15 +129,15 @@ Each attack is one piece of work that would settle the machines listed with it. 
 | 22 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | 49.4 | Finite or inequality question | non-halting | Prove the second-level tick (1^a 0 D>0 1^(3+3j) 0 W, the left context 1^a 0 instead of 0 0 0) the same way and add it to the accelerated run, to follow the run past 1.4·10^13 steps; then describe P in closed form. |
 | 23 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
 | 24 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 25 | `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` | 48.8 | Finite or inequality question | non-halting | Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's). |
-| 26 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | 48.6 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next. |
-| 27 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 28 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 29 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 30 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 31 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 32 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
-| 33 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | 48.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 25 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 26 | `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` | 48.8 | Finite or inequality question | non-halting | Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's). |
+| 27 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 28 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 29 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | 48.6 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next. |
+| 30 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 31 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 32 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 33 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
 | 34 | `1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF` | 47.6 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean. |
 | 35 | `1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---` | 47.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 36 | `1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---` | 46.8 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round, as for its variant. |
