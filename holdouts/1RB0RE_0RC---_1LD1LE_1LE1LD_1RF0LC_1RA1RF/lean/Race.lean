@@ -1,0 +1,83 @@
+import End
+
+/-!
+# Odd runs stop the sweep
+
+`astep` fails in only two ways (`End.lean`).  The second, an even bounce blocked by the far part, cannot happen when
+the far part is clean (`far_even`).  The first is a crossing bounce whose right sweep from F reads the whole of
+`(sx true N).reverse ++ true :: s` without stopping and ends in F, while the tape ends in blank (`r = false`).
+
+A sweep from F stops at the first `0` it reads in E, so it gets through a word without stopping and ends in F only if
+the word is in `(0 | 11)*`.  `rswL_witness`: a word with a `0` followed by an odd run of 1s that is followed by a `0`
+or by the end of the word is never read that way.  Call such a run a *witness*.  `astep_T2_witness`: a crossing turn
+with a clean far part and a witness in the frozen word `s` always has a next turn.
+
+In the run (`py/race.py`) every crossing turn with blank end has a witness in `s` except the first one or two after
+each time E reads the last 1 during a crossing, when `s` is `0` or empty.
+-/
+
+namespace H75625
+
+open TM
+
+theorem rswL_trues (k : Nat) (W xs : List Bool) :
+    ∃ W', rswL false W (List.replicate (2 * k) true ++ xs) = rswL false W' xs := by
+  induction k generalizing W with
+  | zero => exact ⟨W, rfl⟩
+  | succ k ih =>
+    obtain ⟨W', h⟩ := ih (false :: true :: W)
+    have e : List.replicate (2 * (k + 1)) true ++ xs = true :: true :: (List.replicate (2 * k) true ++ xs) := by
+      rw [show 2 * (k + 1) = 2 * k + 2 by omega]; rfl
+    exact ⟨W', by rw [e]; exact h⟩
+
+theorem rswL_witness (k : Nat) (v : List Bool) (hv : v.head? ≠ some true) (u : List Bool) :
+    ∀ (e : Bool) (W : List Bool),
+      (rswL e W (u ++ false :: (List.replicate (2 * k + 1) true ++ v))).2 ≠ (false, none) := by
+  induction u with
+  | nil =>
+    intro e W
+    cases e with
+    | true => simp [rswL]
+    | false =>
+      have e : List.replicate (2 * k + 1) true ++ v = List.replicate (2 * k) true ++ true :: v := by
+        rw [List.replicate_succ', List.append_assoc, List.singleton_append]
+      obtain ⟨W', h⟩ := rswL_trues k (false :: W) (true :: v)
+      have h2 : rswL false W ([] ++ false :: (List.replicate (2 * k + 1) true ++ v)) = rswL false W' (true :: v) := by
+        rw [e, ← h]; rfl
+      rw [h2]
+      cases v with
+      | nil => simp [rswL]
+      | cons x v =>
+        cases x with
+        | true => exact absurd rfl hv
+        | false => simp [rswL]
+  | cons x u ih =>
+    intro e W
+    simp only [List.cons_append, rswL]
+    split
+    · simp
+    · exact ih _ _
+
+theorem astep_T2_witness (N ws : List Bool) (p : Bool) (u : List Bool) (k : Nat) (v : List Bool)
+    (hv : v.head? ≠ some true) (r : Bool) :
+    (astep (.T2 N (dbl (true :: ws)) p (u ++ false :: (List.replicate (2 * k + 1) true ++ v)) r)).isSome := by
+  have hw := rswL_witness k v hv ((sx true N).reverse ++ true :: u) false []
+  simp only [List.append_assoc, List.cons_append] at hw
+  have hf := far_even ws
+  simp only [astep, dbl, two, List.cons_append, List.nil_append, coreO]
+  simp only [dbl, two, List.cons_append, List.nil_append] at hf
+  split
+  · revert hw
+    generalize rswL false [] _ = x
+    obtain ⟨W, e, o⟩ := x
+    intro hw
+    cases o <;> cases e <;> cases r <;> simp_all [fromSweep, endS]
+  · rw [hf]
+    simp only
+    revert hw
+    generalize rswL false [] _ = x
+    obtain ⟨W, e, o⟩ := x
+    intro hw
+    cases o <;> cases e <;> cases r <;> simp_all [fromSweep, endS]
+
+end H75625

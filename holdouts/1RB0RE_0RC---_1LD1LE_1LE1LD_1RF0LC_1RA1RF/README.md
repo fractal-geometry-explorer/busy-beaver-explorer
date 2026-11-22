@@ -292,6 +292,26 @@ version (`py/listmachine.py`) agrees with the real machine at every one of the 1
 2·10^8 steps. Evaluating the Lean `arun` with `#eval` gives the same tapes as the Python version after 300 and 2,000
 list steps, and neither case occurs in that run.
 
+**40,000 list steps (`py/listmachine.py run 40000`, about 25 minutes).** Run on its own from `start`, the list machine
+takes 40,000 steps without reaching case 1 or case 2: 17,897 `T` turns, 22,084 `T2` turns and 19 `EO` turns. The far
+part is clean (`dbl (true :: ws)`) at every one of the `T2` turns, and the zone grows to 21,395 letters.
+
+**Odd runs stop the sweep (`lean/Race.lean`).** A right sweep from F stops at the first 0 it reads in E, so it reads
+a whole word without stopping and ends in F only if the word is in `(0 | 11)*`. Call a 0 followed by an odd run of 1s,
+followed in turn by a 0 or by the end of the word, a *witness*. Proved in Lean:
+
+* `rswL_witness`: a sweep never gets through a word with a witness and ends in F.
+* `astep_T2_witness`: a crossing turn whose far part is clean and whose frozen word `s` has a witness always has a
+  next list state. That covers both failure cases at once.
+
+So case 1 needs a crossing turn with blank end whose frozen word has no witness. In the 40,000 list steps
+(`py/race.py 40000`) there are 18,062 crossing turns with blank end, and 18,052 of them have a witness. The other 10
+come right after the 7 times that E reads the last 1 during a crossing. Six of those times, `s` is `0` (and once then
+empty) for one or two bounces. Once, after list step 28,414, it lacks a witness for bounces 1, 3, 4 and 5 (`s` is
+`0`, `10`, `0110011110000110`, `110011110000110`). The list machine gets past all of them, but only because of the
+near part. What is left for case 1 is to show that those first few bounces after E reads the last 1 are safe, and
+that the witnesses never run out after that.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
