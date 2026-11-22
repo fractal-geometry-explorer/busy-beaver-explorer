@@ -58,6 +58,10 @@ reads `0 (011)^(a+1) 001101 ...`); every visit adds one word to the left block a
 * **The accelerated simulator** `py/closure/accel.py` (the engine of 1RB0RD_1RC0LF with words up to 32 cells).
   `screen.py checkpoints ./at 3e10 20`: 20 of 20 checkpoints up to step 30,001,084,280 (six cycle-rule jumps before the last ones) agree with the plain C simulator `c/at.c`: state, head, tape, step count.
   `screen.py rules 3e13 900`: no halt in the first 30,000,000,585,416 steps (1,568,417 events; 17 cycle rules, each proved by a symbolic run and each passing the numeric re-check; 17 jumps).
+* **A second accelerated simulator (22 November 2026).** The C++ port
+  [`c/rsim_fast.cpp`](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp) of the generic `rsim.py` (tape
+  equal to direct simulation at 4 points up to 1.1·10^10) ran **180,830,972,685,456,069 steps (1.8·10^17)** without a
+  halt in 3 hours (151 jumps, 1.8·10^10 rules; rules exact, tape-level jumps validated, not proved).
 
 But the recipe "closed set of (tail, block size mod m)" does not apply as it stands:
 
@@ -104,6 +108,7 @@ List the phases (which word, which blocks, what a visit does to the counts) and 
 python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py cycle                      # 10 s
 python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py rules 3e13 900             # the accelerated run (stops at 3e13 steps or after 900 s; 15 min here)
 gcc -O2 -o at holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/c/at.c && python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py checkpoints ./at 3e10 20     # 5 min
+g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp && DECADES=1 ./rsim_fast 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF run 10500 out.json   # 3 h
 ```
 
 <!-- related machines: written by holdouts/related.py -->

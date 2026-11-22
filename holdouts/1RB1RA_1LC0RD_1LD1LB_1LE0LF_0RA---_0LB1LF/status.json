@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 9.8&middot;10<sup>17</sup> steps (accelerated simulator)."
+  "<b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation) nor in 10<sup>18</sup> steps (accelerated simulator)."
  ],
  "claims": [
   {
@@ -38,6 +38,12 @@
    "title": "No halt in the first 10<sup>9</sup> steps",
    "text": "The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,938 cells have been visited and 35,128 of them hold a 1.",
    "where": "<code>holdouts/triage.json</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>12</sup> steps",
+   "text": "The C simulator <code>tools/c/tmrun.c</code> runs 1,000,000,500,000 steps from blank tape without a halt (about 70 minutes); 806,171 cells hold a 1 at the end.",
+   "where": "<code>tools/c/tmrun.c</code>"
   },
   {
    "level": "heuristic",
@@ -83,9 +89,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 9.8&middot;10<sup>17</sup> steps",
-   "text": "The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 6 points up to 10<sup>10</sup> steps, runs 984,180,560,109,706,163 steps from blank tape without a halt (3 hours).",
-   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>"
+   "title": "No halt in the first 10<sup>18</sup> steps",
+   "text": "The accelerated simulator <code>rsim.py</code> runs 984,180,560,109,706,163 steps without a halt (3 hours). Its faster C++ port <code>c/rsim_fast.cpp</code> follows the same trajectory (same step counts, rules and jumps at 10<sup>6</sup> to 10<sup>13</sup>; tape equal to direct simulation at 8 points up to 3&middot;10<sup>10</sup>) and runs 1,000,000,000,008,656,179 steps without a halt (65 minutes). The rules it applies are exact; its jumps over repeated tape shapes are validated, not proved.",
+   "where": "<code>c/rsim_fast.cpp</code>, <code>py/rsim_fast_validate.py</code>"
   },
   {
    "level": "open",
@@ -112,13 +118,13 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "9.8&middot;10<sup>17</sup> steps",
-    "text": "No halt in the accelerated simulator (checked against direct runs to 10<sup>10</sup>)."
+    "value": "10<sup>18</sup> steps",
+    "text": "No halt in the accelerated simulator (checked against direct runs to 3&middot;10<sup>10</sup>)."
    },
    {
     "level": "trusted",
-    "value": "10<sup>9</sup> steps",
-    "text": "No halt in the C simulator; 51,938 cells visited."
+    "value": "10<sup>12</sup> steps",
+    "text": "No halt in the C simulator, cell by cell."
    },
    {
     "level": "native",
