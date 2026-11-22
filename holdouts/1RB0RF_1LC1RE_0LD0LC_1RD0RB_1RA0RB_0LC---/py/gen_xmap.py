@@ -8,6 +8,9 @@ each proved for all values of its parameters, and the closed-form macro map `bst
   the run-length form `rl` of the gap list, the anomaly inside the word (`inner_step`), and `bstep` = `astep`,
   else these rules, with `bstep_sound` and `not_halts_of_brun`.
 
+For a machine of `xleaves.PAIRS` the case split leaves a run of 2s as `2x + K` or `2x + K + 1` gaps (the crossing
+rule); the two leaves share one case `.two (x + K)` of the decision function, answered by `xpar` (even or odd).
+
 usage (from the repository root):
   python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/gen_xmap.py MACHINE
 """
@@ -77,26 +80,44 @@ class TrieErr(Exception):
     pass
 
 
+def par_norm(leaves_):
+    """Runs of 2s of `2x + K` and `2x + K + 1` gaps (the two parities) become one run `x + K` marked 'par'."""
+    out = []
+    for segs, ctx in leaves_:
+        j = par_seg(segs)
+        if j is None:
+            out.append(([(k, n, False) for k, n in segs], ctx))
+            continue
+        n = segs[j][1]
+        v = [w for w, a in n.c.items() if a == 2][0]
+        ks = [s2[j][1].k for s2, c2 in leaves_ if par_seg(s2) == j and s2[j][1].c == n.c
+              and [str(x) for x in s2[:j]] == [str(x) for x in segs[:j]]]
+        K = min(ks)
+        out.append(([(k, m, False) for k, m in segs[:j]] + [('two', Lin(v) + K, True)] +
+                    [(k, m, False) for k, m in segs[j + 1:]], ctx))
+    return out
+
+
 def build_trie(leaves_):
     root = {}
-    for segs, ctx in leaves_:
+    for segs, ctx in par_norm(leaves_):
         node = root
-        for kind, n in segs:
-            node = node.setdefault((kind, str(n), n), {})
+        for kind, n, par in segs:
+            node = node.setdefault((kind, str(n), n, par), {})
         node[('S',) if ctx else ('end',)] = None
     return root
 
 
-def trie_alts(node, prefix, prev, out):
+def trie_alts(node, prefix, prev, out, par=False):
     """Patterns (prefix list of segment patterns) with 'leaf' or 'bad' (okS false)."""
     keys = list(node)
     if ('S',) in keys:
         if len(keys) != 1:
             raise TrieErr(f"wildcard with siblings at {prefix}")
-        out.append((prefix + ["S"], 'leaf'))
+        out.append((prefix + ["S"], 'leafp' if par else 'leaf'))
         return
     if ('end',) in keys:
-        out.append((prefix + ["[]"], 'leaf'))
+        out.append((prefix + ["[]"], 'leafp' if par else 'leaf'))
     else:
         raise TrieErr(f"no blank-tape case at {prefix}")
     for kind in ('two', 'five', 'big', 'odd'):
@@ -113,7 +134,7 @@ def trie_alts(node, prefix, prev, out):
             for k in ks:
                 if not (len(k[2].c) == 1 and k[2].k == 0):
                     raise TrieErr(f"split big gap at {prefix}")
-                trie_alts(node[k], prefix + [f".big {ln(k[2])}"], kind, out)
+                trie_alts(node[k], prefix + [f".big {ln(k[2])}"], kind, out, par)
             continue
         consts = sorted(k[2].k for k in ks if k[2].is_const())
         vark = [k for k in ks if not k[2].is_const()]
@@ -126,7 +147,7 @@ def trie_alts(node, prefix, prev, out):
                     raise TrieErr(f"{kind} count {c} missing at {prefix}")
                 out.append((prefix + [f".{kind} 0", "_"], 'bad'))
         for k in ks:
-            trie_alts(node[k], prefix + [f".{kind} {ln(k[2])}"], kind, out)
+            trie_alts(node[k], prefix + [f".{kind} {ln(k[2])}"], kind, out, par or k[3])
 
 
 def total_thm(name, args, concl, leaves_by_head):
@@ -142,6 +163,8 @@ def total_thm(name, args, concl, leaves_by_head):
                 pre += ", _, _"
             if kind == 'leaf':
                 lines.append(f"  | {pre}, _ => rfl")
+            elif kind == 'leafp':
+                lines.append(f"  | {pre}, _ => xpar_isSome _ _ _ (fun _ => rfl) (fun _ => rfl)")
             else:
                 lines.append(f"  | {pre}, h => by simp [okS, notTwo, notFive] at h")
     if any(h is not None for h in leaves_by_head):
@@ -150,6 +173,86 @@ def total_thm(name, args, concl, leaves_by_head):
         lines.append("  | _, 1, _ + 2, _, _, hg, _ => absurd hg (by omega)")
     vs = args.replace("(", "").replace(")", "")
     return f"theorem {name} : ∀ {args}, {concl}\n" + "\n".join(lines) + "\n"
+
+
+def par_seg(segs):
+    """The index of a run of 2s whose count is `2 x + K` (a parity case of the crossing rule), or None."""
+    idx = [i for i, (kind, n) in enumerate(segs) if kind == 'two' and any(a == 2 for a in n.c.values())]
+    if len(idx) > 1:
+        raise PErr(f"two parity runs {segs}")
+    return idx[0] if idx else None
+
+
+def par_bullets(bodies):
+    """One bullet after `split at h`: the body, or (a parity case) `rcases xpar_cases` and the two bodies."""
+    if len(bodies) == 1:
+        return "  · " + indent(bodies[0], 4)[4:]
+    return ("  · rcases xpar_cases h with ⟨_, rfl, hx⟩ | ⟨_, rfl, hx⟩\n" +
+            "\n".join("    · replace h := hx\n" + indent(b, 6) for b in bodies))
+
+
+def indent(txt, k):
+    return "\n".join(" " * k + l for l in txt.split("\n"))
+
+
+def merge_par(recs):
+    """Match alternatives, proof bullets (for `split at h`) and invariant data of the leaves of one head.  Two leaves
+    whose patterns differ only in a run of 2s of `2x + K` and `2x + K + 1` gaps share one alternative `.two (x + K)`
+    whose answer is `xpar x (even case) (odd case)`."""
+    alts, pfs, invs, done = [], [], [], set()
+    for i, r in enumerate(recs):
+        if i in done:
+            continue
+        j = par_seg(r['segs'])
+        if j is None:
+            alts.append(r['key'] + seg_pat(r['segs'], r['tail']) + " => " + r['rhs'])
+            pfs.append(par_bullets([r['pf']]))
+            invs.append([r.get('inv')])
+            continue
+        kind, n = r['segs'][j]
+        v = [w for w, a in n.c.items() if a == 2][0]
+        mates = []
+        for k2, r2 in enumerate(recs):
+            j2 = par_seg(r2['segs'])
+            if k2 == i or j2 != j or r2['key'] != r['key']:
+                continue
+            n2 = r2['segs'][j][1]
+            if (n2.c == n.c and abs(n2.k - n.k) == 1 and
+                    seg_pat(r2['segs'][:j] + r2['segs'][j + 1:], r2['tail']) ==
+                    seg_pat(r['segs'][:j] + r['segs'][j + 1:], r['tail'])):
+                mates.append(k2)
+        if len(mates) != 1:
+            raise PErr(f"no parity mate for {seg_pat(r['segs'], r['tail'])}")
+        k2 = mates[0]
+        done |= {i, k2}
+        ev, od = (r, recs[k2]) if r['segs'][j][1].k < recs[k2]['segs'][j][1].k else (recs[k2], r)
+        K = ev['segs'][j][1].k
+        segs = list(ev['segs'])
+        segs[j] = ('two', Lin(v) + K)
+        alts.append(r['key'] + seg_pat(segs, ev['tail']) +
+                    f" => xpar {v} (fun {v} => {ev['rhs']}) (fun {v} => {od['rhs']})")
+        pfs.append(par_bullets([ev['pf'], od['pf']]))
+        invs.append([ev.get('inv'), od.get('inv')])
+    return alts, pfs, invs
+
+
+XPAR = """/-- The two parities of a run of 2s: `x = 2u` and `x = 2u + 1`. -/
+@[irreducible] def xpar {α : Type} (x : Nat) (e o : Nat → Option α) : Option α := if x % 2 = 0 then e (x / 2) else o (x / 2)
+
+theorem xpar_cases {α : Type} {x : Nat} {e o : Nat → Option α} {r : α} (h : xpar x e o = some r) :
+    (∃ u, x = 2 * u ∧ e u = some r) ∨ (∃ u, x = 2 * u + 1 ∧ o u = some r) := by
+  unfold xpar at h
+  split at h
+  · exact Or.inl ⟨x / 2, by omega, h⟩
+  · exact Or.inr ⟨x / 2, by omega, h⟩
+
+theorem xpar_isSome {α : Type} (x : Nat) (e o : Nat → Option α) (he : ∀ u, (e u).isSome = true)
+    (ho : ∀ u, (o u).isSome = true) : (xpar x e o).isSome = true := by
+  unfold xpar
+  split
+  · exact he _
+  · exact ho _
+"""
 
 
 def binders(vs, extra=""):
@@ -167,6 +270,7 @@ def main():
     rules, qlem, words = [], [], set()
     coll_alts, anu_alts, coll_pf, anu_pf = [], [], [], []
     inner = {}
+    coll_rec, anu_rec = [], []
     counters = {}
     coll_leaves, anu_leaves, coll_inv = {}, [], []
     for x in lv:
@@ -213,12 +317,11 @@ def main():
                     f"some (qx {a2} ({C}) (rep {jn} [true] L) ({G2}))")
             qlem.append(f"theorem xq_{rid} {bnd} :\n    {stmt} := by\n  have e := {call}\n"
                         f"  simp only [NF] at e ⊢\n  exact e\n")
-            coll_alts.append(f"  | {p}, {g}, {pat} => some ({C}, {a2}, {G2}, {jn})")
             coll_leaves.setdefault((p, g), []).append((x['segs'], isinstance(tail, Ctx)))
-            coll_inv.append((C, jn))
             nargs = len(vs) + (1 if isinstance(tail, Ctx) else 0) + 1
-            coll_pf.append(f"  · simp only [Option.some.injEq, Prod.mk.injEq] at h\n    obtain ⟨rfl, rfl, rfl, rfl⟩ := h\n"
-                           f"    exact ⟨_, by omega, xq_{rid} {' '.join(['_'] * nargs)}⟩")
+            coll_rec.append(dict(key=f"  | {p}, {g}, ", segs=x['segs'], tail=tail, rhs=f"some ({C}, {a2}, {G2}, {jn})",
+                                 pf=f"simp only [Option.some.injEq, Prod.mk.injEq] at h\nobtain ⟨rfl, rfl, rfl, rfl⟩ := h\n"
+                                    f"exact ⟨_, by omega, xq_{rid} {' '.join(['_'] * nargs)}⟩", inv=(C, jn)))
         elif hk[0] == 'anu':
             X = s['items'][0][1]
             if [str(i[1]) for i in s['items'][1:]] != ['1']:
@@ -236,12 +339,12 @@ def main():
             qlem.append(f"theorem xq_{rid} {bnd} :\n    {stmt} := by\n  subst hx\n  have e := {call}\n"
                         f"  simp only [NF] at e ⊢\n  exact e\n")
             cp = cpat.lean() if cpat.is_const() or len(cpat.c) == 1 else None
-            anu_alts.append(f"  | {cp}, {pat} => some ⟨{W2}, {a2}, {G2}⟩")
+            anu_rec.append(dict(key=f"  | {cp}, ", segs=x['segs'], tail=tail, rhs=f"some ⟨{W2}, {a2}, {G2}⟩"))
             if cp != "c":
                 raise PErr("anu with a split block")
             anu_leaves.append((x['segs'], isinstance(tail, Ctx)))
             nargs = len(vs) + (1 if isinstance(tail, Ctx) else 0) + 1
-            anu_pf.append(f"  · cases h\n    exact ⟨_, by omega, xq_{rid} {' '.join(['_'] * nargs)} (by omega)⟩")
+            anu_rec[-1]['pf'] = f"cases h\nexact ⟨_, by omega, xq_{rid} {' '.join(['_'] * nargs)} (by omega)⟩"
         else:
             X = s['items'][1][1]
             A = s['a']
@@ -255,6 +358,8 @@ def main():
             qlem.append(f"theorem xq_inner{tag} {bnd} :\n    {stmt} := by\n  subst hx hA\n  have e := {call}\n"
                         f"  simp only [NF] at e ⊢\n  exact e\n")
             inner[tag] = (X, A, C, G2)
+    coll_alts, coll_pf, coll_inv = merge_par(coll_rec)
+    anu_alts, anu_pf, anu_inv = merge_par(anu_rec)
     if sorted(inner) != ['00', '01', '10', '11']:
         sys.exit(f"inner anomaly cases {sorted(inner)}")
     for w in [(0, 0, 1), (0, 0, 0, 0, 0, 1), (1, 0), (1, 1, 1, 1, 1, 0), (1, 1, 1), (0, 0, 0), (1, 1), (0, 1)]:
@@ -285,6 +390,8 @@ def main():
     gen = []
     gen.append("\n".join(lem))
     gen.append("\n".join(q.replace("[NF]", f"[{nf}]") for q in qlem))
+    if any("xpar" in a for a in coll_alts + anu_alts):
+        gen.append(XPAR)
     gen.append("/-- The collisions: `t = 2s + p` gaps of 2, the misaligned gap `g`, then the gaps `flat S`.  The "
                "answer is the blocks added in front of the word (last first), the new counter low part, the new gaps "
                "and how much the word's last block grows. -/\n"
@@ -309,19 +416,24 @@ def main():
     rg.append(total_thm("xanu_total", "(c : Nat) (S : List Sg)", "okS S = true → (xanu c S).isSome = true",
                         {None: anu_leaves}))
     pf = []
-    for C, jn in coll_inv:
-        hd = "all_goals trivial" if C == "[]" else ("refine ⟨by omega, ?_⟩\n      intro b hb\n      simp only [" + MEM +
-                                          "] at hb\n      all_goals omega")
-        pf.append("  · simp only [Option.some.injEq, Prod.mk.injEq] at h\n    obtain ⟨rfl, rfl, rfl, rfl⟩ := h\n"
-                  f"    refine ⟨by omega, ?_, by decide, ?_⟩\n    · simp only [hd1]\n      {hd}\n    · {NMIS}")
+
+    def coll_inv_pf(C, jn):
+        hd = "all_goals trivial" if C == "[]" else ("refine ⟨by omega, ?_⟩\n  intro b hb\n  simp only [" + MEM +
+                                          "] at hb\n  all_goals omega")
+        return ("simp only [Option.some.injEq, Prod.mk.injEq] at h\nobtain ⟨rfl, rfl, rfl, rfl⟩ := h\n"
+                f"refine ⟨by omega, ?_, by decide, ?_⟩\n· simp only [hd1]\n  {hd}\n· " + NMIS.replace("\n      ", "\n  "))
+
+    for grp in coll_inv:
+        pf.append(par_bullets([coll_inv_pf(C, jn) for C, jn in grp]))
     rg.append("theorem xcoll_inv (s p g : Nat) (S : List Sg) {C : List Nat} {a' : Nat} {G' : List Nat} {j : Nat}\n"
               "    (h : xcoll s p g S = some (C, a', G', j)) :\n"
               "    1 ≤ a' ∧ hd1 C ∧ j % 2 = 0 ∧ nmis G' ≤ 1 + nmis (flat S) := by\n  unfold xcoll at h\n  split at h\n" +
               "\n".join(pf) + "\n  · cases h\n")
     pf = []
-    for _ in anu_leaves:
-        pf.append("  · cases h\n    refine ⟨goodH_last2 _ _ (by omega) ?_, by (try dsimp only); omega, ?_⟩\n    · intro b hb\n"
-                  f"      simp only [{MEM}] at hb\n      all_goals omega\n    · {NMIS}")
+    anu_one = ("cases h\nrefine ⟨goodH_last2 _ _ (by omega) ?_, by (try dsimp only); omega, ?_⟩\n· intro b hb\n"
+               f"  simp only [{MEM}] at hb\n  all_goals omega\n· " + NMIS.replace("\n      ", "\n  "))
+    for grp in anu_inv:
+        pf.append(par_bullets([anu_one] * len(grp)))
     rg.append("theorem xanu_inv (c : Nat) (S : List Sg) {c' : AC} (h : xanu c S = some c') :\n"
               "    goodH c'.W ∧ 1 ≤ c'.a ∧ nmis c'.G ≤ 1 + nmis (flat S) := by\n  unfold xanu at h\n  split at h\n" +
               "\n".join(pf) + "\n  · cases h\n")
