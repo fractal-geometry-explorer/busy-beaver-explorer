@@ -97,6 +97,18 @@
    "best": 10
   },
   {
+   "key": "xor",
+   "title": "Rule 102 machine: no danger pattern",
+   "route": "nonhalt",
+   "work": "lean",
+   "what": "The round trip, the jump and its clock are in Lean, and so is which gaps can reach the danger pattern: under shielded sweeps the rows of Pascal's triangle mod 2, at the next jump one rest per jump length (mask L). Left: control the words that enter the gap at the wall between jumps, and show no new bulk 10 is born.",
+   "need": "",
+   "machines": [
+    "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB"
+   ],
+   "best": 12
+  },
+  {
    "key": "wallstack",
    "title": "Stack invariant for the wall-stack machine",
    "route": "nonhalt",
@@ -106,7 +118,7 @@
    "machines": [
     "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC"
    ],
-   "best": 12
+   "best": 13
   },
   {
    "key": "r02",
@@ -131,18 +143,6 @@
     "1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB",
     "1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---",
     "1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---"
-   ],
-   "best": 13
-  },
-  {
-   "key": "xor",
-   "title": "Rule 102 machine: no danger pattern",
-   "route": "nonhalt",
-   "work": "lean",
-   "what": "The round trip is rule 102 in Lean and the danger pattern is proved to halt. A gap can reach all y only if it is a row of Pascal's triangle mod 2, so what is left is to bound the gaps that the defect jumps make.",
-   "need": "",
-   "machines": [
-    "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB"
    ],
    "best": 14
   },
@@ -472,6 +472,28 @@
    "rank": 11
   },
   {
+   "m": "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
+   "id": 696,
+   "fam": "R05",
+   "famname": "Cellular-automaton sweeps: running parity and Sierpinski triangles",
+   "set": "T247",
+   "mates": 1,
+   "stage": "finite",
+   "score": 52.4,
+   "route": "nonhalt",
+   "work": "lean",
+   "kernel": 11,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Chaotic 1dCA-like in bouncer",
+   "why": "Rule 102 machine: Lean proves the round trip is rule 102 for every length, its Lucas closed form, and that the danger pattern y 10 y^n 0 halts (PR 348).",
+   "next": "Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create.",
+   "folder": "holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
+   "rank": 12
+  },
+  {
    "m": "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC",
    "id": 3292,
    "fam": "R15",
@@ -491,7 +513,7 @@
    "why": "Wall stack: the stack rules are proved in Lean (PR 344); a negative count needs a 2-adic coincidence, and the reachable walls get at most 10% of the way there.",
    "next": "Prove an invariant on the stack (each counter far above the one below, e.g. at least 5 times), which with the Lean stack rules gives non-halting.",
    "folder": "holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC",
-   "rank": 12
+   "rank": 13
   },
   {
    "m": "1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF",
@@ -513,28 +535,6 @@
    "why": "A clock at the right end: at each visit the block 1^(1+4k) has grown by 4 and the word beside it has gone through 2^k applications of one map P (one trip of the head) — proved in Lean for every k whenever the 2^k trips all return, on the mirror image of the machine. Between clock phases a second clock runs one block further in. Exact accelerated run to 2.39·10^248 steps, no halt; halting needs B&gt; 1 0 1.",
    "next": "Prove the tick of the second regime (1^N 0 1 0 at the end, the block N growing by 4: the same induction with the left context 1 0 in the mirror) and add it to the accelerated run; then describe what a phase end does to the word, where the halting context B> 1 0 1 would have to appear.",
    "folder": "holdouts/1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF",
-   "rank": 13
-  },
-  {
-   "m": "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
-   "id": 696,
-   "fam": "R05",
-   "famname": "Cellular-automaton sweeps: running parity and Sierpinski triangles",
-   "set": "T247",
-   "mates": 1,
-   "stage": "finite",
-   "score": 50.8,
-   "route": "nonhalt",
-   "work": "lean",
-   "kernel": 9,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "Rule 102 machine: Lean proves the round trip is rule 102 for every length, its Lucas closed form, and that the danger pattern y 10 y^n 0 halts (PR 348).",
-   "next": "Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create.",
-   "folder": "holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
    "rank": 14
   },
   {

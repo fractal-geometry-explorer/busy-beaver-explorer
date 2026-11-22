@@ -198,8 +198,9 @@ ATTACKS = [
     dict(key="xor", title="Rule 102 machine: no danger pattern",
          pick=lambda r: r["m"] == "1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB",
          route="nonhalt", work="lean",
-         what="The round trip is rule 102 in Lean and the danger pattern is proved to halt. A gap can reach all y only if "
-              "it is a row of Pascal's triangle mod 2, so what is left is to bound the gaps that the defect jumps make.",
+         what="The round trip, the jump and its clock are in Lean, and so is which gaps can reach the danger pattern: under "
+              "shielded sweeps the rows of Pascal's triangle mod 2, at the next jump one rest per jump length (mask L). "
+              "Left: control the words that enter the gap at the wall between jumps, and show no new bulk 10 is born.",
          need=""),
     dict(key="r07", title="Rebuild maps and the wall invariant (R07)",
          pick=lambda r: r["fam"] == "R07",
