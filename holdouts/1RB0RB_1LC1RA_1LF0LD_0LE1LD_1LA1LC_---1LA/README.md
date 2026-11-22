@@ -252,6 +252,39 @@ old zone has had about 3,800 background events. Alone it first lets a sweep thro
 so the disturbance arrives first, and what happens then is beyond this computation. These are extrapolations over
 about 40 doublings to about 2,900.
 
+## Can the front speed be bounded for every stream? (22 Nov 2026)
+
+A proof of the front speed would turn the extrapolation above into a huge no-halt bound. The simplest kind of
+proof would ignore what the new zone sends and bound the speed for *every* stream of events entering the stranded
+block. `c/worst.c` checks how far that can go: it searches all streams, breadth first over the states of `k` cells
+of the block (bits `1 0 1` repeated, as at zone step 3·10^7), for the shortest one that gets an event out of the
+last cell that is not the next event of the background (trusted, exhaustive):
+
+| cells `k` | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33 | 36 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| fewest events | 3 | 6 | 9 | 12 | 18 | 25 | 34 | 41 | 50 | 60 | 73 | 88 |
+| events at the measured 3.3 cells per doubling | 2 | 4 | 7 | 12 | 23 | 44 | 83 | 155 | 290 | 550 | 1,000 | 1,900 |
+
+`lean/FrontWorst.lean` (kernel) checks the 88-event stream for 36 cells (`fast36_gets_through`) and that the block
+passes the background on unchanged (`block_passes_background`). So:
+
+* **No bound of the measured kind holds for all streams.** A chosen stream crosses 36 cells with 88 events, where
+  the real stream needs about 1,900. A proof of the 3.3 cells per doubling has to use what the new zone actually
+  sends, and no structure in that stream is known (the hash-consing runs of `f08-zone-orbits` found none).
+* **The worst case still looks exponential, only slower.** From `k` = 24 on, the fewest events grow by about 1.2
+  per 3 cells: about 11 cells per doubling of the events, a third of the measured speed. If that held for every
+  `k` (not proved: the search stops at 36 cells, 2.7·10^8 states), crossing the 9,357 cells of the block would take
+  at least about 10^248 events into it, that is about 10^255 sweeps (463,753 events enter it per 3·2^40 sweeps).
+  Proving it needs a law that composes over stretches of the block, and the obvious one fails: background events
+  cross a stretch for free, so the cost of a stream is not the sum over stretches.
+* **The front is only half of it.** The old zone alone lets a sweep through (a reset) at its tick 12,059, so a
+  no-halt bound from the front also needs fewer than 12,059 background events to reach the old zone in that time.
+  A worst-case bound cannot give that (the background itself crosses the whole block), so this part too needs the
+  real stream.
+
+So the lead "bound the front speed" does not reduce to a finite check on the block; it needs a description of the
+stream that comes out of the new zone.
+
 ## Status
 
 Open. Proved in Lean (kernel): the halting pattern, the pass over a block and its stop, the two crossings of the
@@ -287,6 +320,8 @@ being a lone 1 when a pass arrives, and nothing that forces it.
 | one period at a time: the window method (`wfold`) | kernel | `wfold_run`, `window_quiet`, `window_of_check`, `lean/Window.lean` |
 | nothing leaves the word for `3 · 2^63` sweeps from zone step 3·10^7; no halt in the first 1.5·10^39 steps | native | `window_runs`, `blank_runs_window`, `lean/WindowRun.lean` |
 | nothing leaves the word for `3 · 2^77` sweeps (cut after 161 cells); the front moves about 3.3 cells per doubling; the old zone gets only background events (79 so far, about 1.35 per doubling) | trusted | `c/window.c`, `c/passtimes.c` in the folder of `1RB0RB_1LC1RA_1LF0LD_0LE1LD_1LA1LC_---1LA` |
+| the block passes the background on unchanged; a stream of 88 events gets an `F` through 36 cells of the block | kernel | `block_passes_background`, `fast36_gets_through`, `lean/FrontWorst.lean` |
+| over all streams, the fewest events that get a disturbance through `k` cells of the block: 3, 6, 9, 12, 18, 25, 34, 41, 50, 60, 73, 88 for `k` = 3, 6, …, 36; no stream-independent bound matches the measured front speed | trusted (exhaustive search) | `c/worst.c` |
 
 ### Exact reduction (Lean)
 
