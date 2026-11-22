@@ -60,6 +60,55 @@ thousands of runs of blocks (24,000 at 5*10^10 steps with blocks of 6). A simula
 rules (as for 1RB1RF_1LC1LB_1RD1LD_1RE0RA_---0LB_0LF0RC) would need rules that act on a window of the list, not on
 the whole tape.
 
+## Phases to 5·10^11 steps (22 November 2026)
+
+Observed with the plain simulator `c/snap.c` (no halt in the first 5·10^11 steps; trusted computation, not checked
+by Lean) and summarised by `py/phases.py` (`evidence/phases-5e11.txt`: the tape every 10^9 steps as its big blocks).
+Seen from far away the tape is
+
+    (100)^a   [ 1^X  or  (011)^n / (101)^n  or  (11100)^m ]   (5-word)^K   irregular stretch   (10)^c  tail
+
+where "5-word" is one of the rotations of `00111` or `01011` (the run rewrites a block between rotations each time
+it crosses it). The run alternates between two kinds of phase:
+
+- **S (left end fixed).** The zone `(100)^a` shrinks and the block of 5-words grows, from left to right; the
+  irregular stretch is unchanged or grows.
+- **G (left end moving left).** The pump of `lean/Rules.lean` (`eat`): the zone `(100)^a` grows, eating a run of
+  ones `1^X` (with X close to 6a) or a stretch of `(011)`/`(101)`. In the early G phases the irregular stretch is
+  also eaten, and the 5-word block is turned into a new irregular stretch.
+
+| phase | steps | left end | a | K (5-words) | irregular stretch (cells) |
+|---|---|---|---|---|---|
+| G | 1e9 to 1e10 | -41,271 to -135,272 | 6,706 to 27,576 | 0 to 5,745 | 11,920 to 27,176 |
+| S | 1e10 to 1.8e10 | fixed | 27,576 to 4,850 | 5,745 to 316 | 27,176 to 129,270 |
+| G | 1.8e10 to 4.2e10 | to -243,033 | 4,850 to 71,841 | | 129,270 to 27,173 |
+| S | 4.2e10 to 6.3e10 | fixed | 71,841 to 1,457 | to 37,416 | 27,173 to 66,306 |
+| G | 6.3e10 to 8.3e10 | to -303,307 | 1,457 to 40,183 | | to 122,605 |
+| S | 8.3e10 to 1.04e11 | fixed | 40,183 to 1,402 | to 38,605 | about 123,000 |
+| G | 1.04e11 to 1.46e11 | to -468,024 | 1,402 to 27,452 | | about 124,000 |
+| S | 1.46e11 to 1.49e11 | fixed | | | 124,573 to 222,919 |
+| G | 1.49e11 to 2.53e11 | to -702,414 | 27,452 to 58,378 | | 222,919 to 120,574 |
+| S | 2.53e11 to 2.82e11 | fixed | 58,378 to 0 | to 66,452 | 120,574 |
+| G | 2.82e11 to 5e11+ | to -1,125,275 | 0 to 70,476 | 66,518 | 120,574 |
+
+(The K column comes from one summary per 10^9 steps. A block caught halfway through a rewrite is counted only in
+part, so blank cells and the smaller values are not exact.)
+
+**The current phase (since 2.82·10^11) is very regular.** The tape is
+
+    (100)^a  ~7 cells  1^X  (5-word)^66518  1^Y  (0110110101011)^63  [120,574 cells, unchanged]  (10)^3212  tail
+
+In this phase K = 66,518 does not change, the irregular stretch is not touched, and the right end has stayed at
+cell 24,097 since 4.6·10^10 steps. Over one long round the head turns `1^X` into `(01)^(X/2)` and back (crossing
+the 5-word block, which changes rotation), while X tracks 6a + 9 (for example a = 69,856 and X = 419,145 at 4.97·10^11).
+Y goes down slowly, from 261,805 at 2.84·10^11 to 54,641 at 5·10^11. When Y runs out, the head will reach the
+13-word block and the irregular stretch again. No phase so far needed anything from the irregular stretch except at
+these hand-overs, so a halt (C reading 1 next to six 1s, per the CTL search below) would have to happen there.
+
+Next: time the end of the current phase (Y = 0, probably near 10^12 steps) with an accelerated simulator for this
+one shape (three counters a, X, Y and a fixed middle). Then decode the hand-over that follows, which is the first
+place the irregular stretch matters.
+
 ## Where it could halt
 
 The machine halts only on C reading 1. The CTL search of `bbtools.ctl` (K = 6) allows it only with six 1s to the
