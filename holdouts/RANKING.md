@@ -135,11 +135,11 @@ Each attack is one piece of work that would settle the machines listed with it. 
 | 28 | `1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 29 | `1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 30 | `1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` | 48.6 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next. |
-| 31 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 32 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
-| 33 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 34 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
-| 35 | `1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF` | 47.6 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean. |
+| 31 | `1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF` | 48.4 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean. |
+| 32 | `1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB` | 48.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 33 | `1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB` | 48.3 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
+| 34 | `1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---` | 48.0 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 35 | `1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---` | 48.0 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
 | 36 | `1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---` | 47.0 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 37 | `1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---` | 46.8 | Finite or inequality question | non-halting | Prove that every travelling defect disappears before the next round, as for its variant. |
 | 38 | `1RB1LE_1RC0RB_1RD1LF_1LA0LC_1LD0LA_---0RE` | 46.8 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
