@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(TOOLS, "py"))
 sys.path.insert(0, os.path.join(TOOLS, "pages"))
 
 from bbtools.machine import Machine, Run, run_blank, records, STATES  # noqa: E402
-from bbtools import symtm, leangen, invariants, ctl, ngramcps  # noqa: E402
+from bbtools import symtm, symframe, leangen, invariants, ctl, ngramcps  # noqa: E402
 from bbtools.macro import MacroRun  # noqa: E402
 from bbtools import cycles  # noqa: E402
 from bbtools.explore import blocks, parse_words, tokenize, token_str, token_events, turns  # noqa: E402
@@ -390,6 +390,24 @@ class TestParts(unittest.TestCase):
         subprocess.run([run_parts, "5", "3", os.path.join(d, "p")] + [ws] + args, check=True, capture_output=True)
         with open(os.path.join(d, "p", "times.txt")) as f:
             self.assertEqual(f.read(), before)
+
+
+class TestSymFrame(unittest.TestCase):
+    """The framed proofs (symframe.py): the same runs as symtm.prove, the pieces stated once in a shared library."""
+
+    def test_same_run(self):
+        lib = symframe.Library("p_")
+        for name, a, b in TestSymbolic.RULES:
+            t, fin = symframe.prove_framed(THIS, name, a, b, lib=lib)
+            self.assertEqual(str(fin), str(symtm.prove(THIS, name, a, b)[1]))
+            self.assertIn("steps_seq trans" if "steps_seq" in t else "exact steps_congr", t)
+        self.assertTrue(lib.items)
+
+    @unittest.skipUnless(shutil.which("lean") or os.environ.get("LEAN"), "no Lean installed")
+    def test_lean_checks(self):
+        lib = symframe.Library("p_")
+        ths = [symframe.prove_framed(THIS, n, a, b, lib=lib, max_seg=3)[0] for n, a, b in TestSymbolic.RULES]
+        check_rules_lean(self, THIS, [lib.text()] + ths)
 
 
 class TestSymbolic(unittest.TestCase):
