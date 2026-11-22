@@ -13,7 +13,7 @@ bbchallenge id 83189. One of the six-state holdouts whose halting from blank tap
 
 ## Status
 
-Open. Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `1 C> 1 1` and 8 shift rules (`lean/Rules.lean`, kernel); the converse, that every halt passes through `1 C> 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 20,000,000,000 steps.
+Open. Lean (on the twin's rounds, 22 November 2026): a tape with at most one defect cannot halt. Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `1 C> 1 1` and 8 shift rules (`lean/Rules.lean`, kernel); the converse, that every halt passes through `1 C> 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 20,000,000,000 steps.
 
 ## What it does
 
@@ -36,6 +36,20 @@ The twin's README now has a fourth pass on the missing lemma
 its token rules and conserved value are proved in Lean from the four visit functions, and the lemma turns out not to
 be about biased digits but about how often the round's defect reaches the digit end of the tape (about one round in
 three, independently from round to round). Still open for both machines.
+
+## Update, 22 November 2026
+
+On the twin ([fifth pass](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#fifth-pass-22-november-2026-one-defect-in-lean-a-fast-engine-and-the-layers-of-the-counter)):
+
+- Lean (kernel) now proves that a tape of the shared round system with at most one defect cannot halt
+  (`lean/Total.lean` there). It applies to this machine through the correspondence `0 0 0 1 0 S_k`, which is
+  still only observed (up to k = 18).
+- A fast token engine (`c/toksim.cpp` there) followed the defect of every round for 500,000 rounds (more than
+  2^944,371 steps of the twin): every defect died inside the tape, about halfway in.
+- The top of the counter is understood exactly: the conserved value is 1/15 - (290/127) 2^-(k+2)/2 + O(2^-k)
+  (288/127 and 2^-(k+1)/2 for odd k), so the far end of the tape is layers of period 4 and 28 and then frozen
+  digits, about 1.6 k digits in all. Only the irregular bottom layer, about 0.27 k digits, is ever eaten by a defect.
+  The missing lemma would follow if no defect ever crossed all of it in one round; not proved.
 
 ## The rule of the middle (14 November 2026)
 

@@ -204,6 +204,88 @@ infinite 0/1 sequences, `BV`) and proves:
 Not in Lean: that the machine's visits are these four functions (found and checked by `c/zvis.cpp`), and that the
 token rules apply to every tape with one defect (the hand argument that such a tape cannot halt).
 
+## Fifth pass (22 November 2026): one defect in Lean, a fast engine, and the layers of the counter
+
+**A tape with at most one defect cannot halt (Lean, kernel), `lean/Total.lean`.** On top of `Tokens.lean`:
+
+- `det`: the token rules are deterministic.
+- `total`: on every token tape with at most one defect (`Good`: words `L`, `O`, `I` and at most one of `x`, `1`, `z`,
+  anywhere), any number of visits of A in a row are derived by the token rules, and every tape in between has at
+  most one defect again. The proof is an induction on the length of the tape behind the defect, with the counter
+  rules lifted over the words in front of it (`run_L`, `run_O`, `fine_cons`).
+- `total_bits`: the same at the bit level: each of these visits is a computation of the four visit functions,
+  none of which is the halting case `E(1 1 T)`.
+
+This replaces the hand argument of the 14 November notes. Within a round a halt therefore needs two defects, that
+is a defect that survived its own round. Still not in Lean: the link between the four functions and the transition
+table (checked by `c/zvis.cpp`), and that every defect dies in its round.
+
+**The fast engine, `c/toksim.cpp`.** The same token rules as `py/tokz.py`, with three changes that make a round
+cost about the length of the tape: each carry (a number of visits) is a run-length coded bit string, lowest bit
+first, so a doubler, a digit or a defect step is O(1) whatever its size, and a run of L's is skipped at once; the
+digit-only end Z is one big number to which an arriving carry is added in one addition; and once the defect has
+died, the carries still on their way are walked to the end together (on a tape without defects carries commute).
+It gives the same tape as `py/tokz.py` after every round (compared token for token at round 3,000, and with the
+plain version of the engine at rounds 8,000 and 30,000), about a thousand times faster: 100,000 rounds in two
+minutes.
+
+    g++ -O2 -o toksim c/toksim.cpp && ./toksim ROUNDS 10000 -1 rec.bin && python3 py/rounds_stats.py rec.bin
+
+**The run (500,000 rounds).** In every round from 13 on the defect died at `1 I O -> O L` inside the tape, and no
+two defects ever met. The largest carry of the last round has 944,371 bits, so the run covers more than
+2^944,371 (about 10^284,283) steps of the machine (the visit engine had reached 100,000 rounds). From round 100 on
+(`py/rounds_stats.py`):
+
+    rounds 100..500000 (499901 rounds); rounds whose defect did not end at 1 I O -> O L: 0
+    defect gets into Z: 153998 of 499901 rounds (0.3081)
+      after 1  : 0.2988 (153998 cases)
+      after 0  : 0.3122 (345902 cases)
+      after 11 : 0.2877 (46011 cases)
+      after 00 : 0.3141 (237915 cases)
+      after 111: 0.2712 (13236 cases)
+    e when it gets in: mean 4.853, largest 60 (round 475184); tail ratio (count e+1)/(count e), e = 0..20:
+      0.89 1.00 0.85 0.85 0.84 0.83 0.81 0.80 0.82 0.82 0.81 0.83 0.79 0.77 0.81 0.79 0.83 0.79 0.82 0.88 0.76
+    mean loss of Z per round: 2.1110 (gain 4)
+      largest mean loss over     10 rounds in a row: 8.700 (from round 475175)
+      largest mean loss over    100 rounds in a row: 2.880 (from round 218376)
+      largest mean loss over   1000 rounds in a row: 2.325 (from round 426942)
+      largest mean loss over  10000 rounds in a row: 2.188 (from round 420813)
+      largest mean loss over 100000 rounds in a row: 2.124 (from round 151)
+    smallest |Z|/k from round 1000: 1.7289 (round 1066); |Z|/k at the end: 1.8888
+    smallest |Z| - (k + 2 log2 k + 20): -8 (round 109); from round 1000: 699
+
+So the picture of the fourth pass holds over a run more than 60 times longer. The coin is not quite independent:
+after a round in which the defect got into Z it gets in a little less often, which helps.
+
+**The value, term by term (`py/vasym.py`, exact fractions to round 420).**
+
+    v_k = 1/15 - (290/127) 2^-(k+2)/2 + r_k   (k even),     v_k = 1/15 - (288/127) 2^-(k+1)/2 + r_k   (k odd),
+
+with |r_k| < 64 * 2^-k from round 80 on. r_k 2^k settles to -33.68959699240... (even k) and -42.12560163496...
+(odd k), which are not small fractions, and still moves by about 2^(-k/2) from one round to the next: the next term
+is of size 2^(-3k/2), and there the value stops being regular.
+
+**Four layers of the digit end (`py/layers.py`).** The far end of the tape holds the largest digits of v, so it is
+the binary expansion of these terms. Read lowest digit first, Z is four layers (round 50,000; round 8,000 alike):
+
+| layer (from the top) | digits | ratio to k |
+|---|---|---|
+| period 4: the expansion of 1/15 | 24,996 | 0.50 |
+| period 28: 1/15 minus a multiple of 1/127 | 24,997 | 0.50 |
+| frozen: the same digits in round 50,056 (and from round 8,000 to 16,008) | 29,782 | 0.60 |
+| irregular | 13,402 | 0.27 |
+
+The defect only ever eats the irregular layer at the bottom. The three regular layers are about 1.6 k digits, far
+more than the k + 2 log2 k + 20 the third pass needs, so the missing lemma would follow from two statements:
+
+1. the regular layers are always as observed (they should follow from the first two terms of the value, which
+   would need the value to 2^(-3k/2), that is control of the irregular digits' contribution to v), and
+2. no defect crosses the whole irregular layer, about 0.27 k words, in a single round.
+
+Statement 2 is still about pseudo-random digits (the defect crosses `O` and pairs `I I` and stops at the first odd
+run of `I` followed by `O`; on random digits it survives n words with chance about 0.809^n, and the most it ever
+ate is 60 words). Neither statement is proved, so the machine and its twin stay open.
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -213,11 +295,15 @@ token rules apply to every tape with one defect (the hand argument that such a t
 - Trusted (14 November 2026): the visit functions and the round law S' = 1 0 A(S) (`c/zvis.cpp`, checked against direct
   simulation); no halt in 100,000 rounds; the token rules agree with the exact evaluation and every round from 13 to
   4,500 ends with a single defect (`py/tokz.py`).
-- By hand, not in Lean: the token rules, and that a tape with one defect cannot halt.
+- By hand, not in Lean: the token rules, and that a tape with one defect cannot halt (both are in Lean now: `Tokens.lean`,
+  18 November, and `Total.lean`, 22 November).
 - Lean (kernel), 18 November 2026: `Tokens.lean`, the token rules follow from the four visit functions, and every
   visit of A they derive adds 1 to the conserved value. Measured (`py/reach.py`): the defect reaches the digit end Z in
   about a third of the rounds, independently from round to round, and eats there what random digits give. Open: a lower bound on b in the part rich in
   L's, which would give that every round's defect disappears; halting.
+- Lean (kernel), 22 November 2026: `Total.lean`, a tape with at most one defect cannot halt (the token rules are
+  deterministic and total on such tapes). Trusted: `c/toksim.cpp` followed every defect for 500,000 rounds; the value
+  to second order (`py/vasym.py`) and the four layers of the digit end (`py/layers.py`).
 
 ## Scripts
 
@@ -228,6 +314,10 @@ token rules apply to every tape with one defect (the hand argument that such a t
 - `py/reach.py ROUNDS`: how often the defect reaches the digit end Z, and how far it gets there.
 - `py/zeval.py ROUNDS`: the round words S_k from the seven window rules. `py/tokz.py ROUNDS [FILE]`: the token rules.
   `py/twinchk.py STEPS FILE`: the same words on the twin's tape. `py/tokv.py ROUNDS`: the conserved value.
+
+- `c/toksim.cpp`: the fast token engine (see the fifth pass); `py/rounds_stats.py REC`: the defect's statistics
+  from its record file; `py/vasym.py ROUNDS`: the value to second order with exact fractions;
+  `py/layers.py DUMP DUMP2`: the layers of the digit end in two dumps of the engine 56·j rounds apart.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 
