@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a word of blocks of 1s on the left and a binary counter on the right; the head rewrites the word by a fixed map and counts. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 12 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean (kernel) proves the six regular macro steps and the two main shapes of the anomaly for all parameter values, and no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>). Lean also shows that the pattern of the word and of the gaps is not an invariant by itself: a short Q configuration of the same form halts after 190 steps. Non-halting therefore depends on sizes: every collision cascade must end before the word runs out. In the simulated run it is always won, by at least 9.3 bits. <b>Update, 12 November.</b> Lean now also proves this machine's own form of the anomaly with a one-unit counter, 6 collision rules, and a partial macro map (a function from one word-and-counter configuration to the next, proved to be followed by the machine wherever it is defined). The map is far from complete: of the 238 collisions in the simulated run, 88 follow a proved rule. For the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC--- the map is complete; here the collisions have many more cases, and they keep a misaligned gap alive instead of clearing it."
+  "<b>The question is open.</b> Lean (kernel) proves the six regular macro steps and the two main shapes of the anomaly for all parameter values, and no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>). Lean also shows that the pattern of the word and of the gaps is not an invariant by itself: a short Q configuration of the same form halts after 190 steps. Non-halting therefore depends on sizes: every collision cascade must end before the word runs out. In the simulated run it is always won, by at least 9.3 bits. <b>Update, 12 November.</b> Lean now also proves this machine's own form of the anomaly with a one-unit counter, 6 collision rules, and a partial macro map (a function from one word-and-counter configuration to the next, proved to be followed by the machine wherever it is defined). The map is far from complete: of the 238 collisions in the simulated run, 88 follow a proved rule. For the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC--- the map is complete; here the collisions have many more cases, and they keep a misaligned gap alive instead of clearing it. <b>Update, 22 November.</b> The macro map is now complete. Where no proved closed form applies, a checked cell-by-cell simulation of the irregular stretch takes over, and Lean proves: if this map can be applied for ever from the configuration at step 27, the machine never halts. That is the reduction already proved for the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---, so all six machines of the family are now questions about one map each, with the same regular part. The map does not fail in 10<sup>7</sup> steps (Lean, compiled evaluation) nor at any of 300 anomalies and collisions of the accelerated run, of which 140 are proved closed forms and 160 simulated stretches."
  ],
  "claims": [
   {
@@ -72,14 +72,26 @@
   {
    "level": "kernel",
    "title": "A partial macro map",
-   "text": "A function <code>astep</code> that sends a word-and-counter configuration (word, low part, list of gap lengths) to the next one. It is defined for the regular steps, for the anomaly when the low part is wide enough, and for the collisions above; elsewhere it answers &lsquo;no rule&rsquo;. Lean proves that wherever it is defined the machine really goes from the first configuration to the second, in at least 17 steps. It does not cover the anomaly with a one-unit counter, and the very first configuration of the run from blank tape (step 27) is one, so this map cannot yet follow the run from the start: it is a building block, not a bound.",
+   "text": "A function <code>astep</code> that sends a word-and-counter configuration (word, low part, list of gap lengths) to the next one. It is defined for the regular steps, for the anomaly when the low part is wide enough, and for the collisions above; elsewhere it answers &lsquo;no rule&rsquo;. Lean proves that wherever it is defined the machine really goes from the first configuration to the second, in at least 17 steps. It does not cover the anomaly with a one-unit counter, and the very first configuration of the run from blank tape (step 27) is one, so on its own this map cannot follow the run from the start; <code>mstep</code> (next item) completes it.",
    "where": "<code>astep</code>, <code>astep_sound</code>, <code>lean/Full.lean</code> (generated by <code>py/gen_full.py</code> in 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---); notation in <code>lean/Abstract.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The complete macro map, and non-halting reduced to it",
+   "text": "<code>mstep</code> sends every word-and-counter configuration to the next one: by the closed form of <code>astep</code> where one applies, and otherwise by <code>tstep</code>, which writes the configuration as a finite tape, runs the machine on it cell by cell until the next configuration of the same form (at most 10<sup>8</sup> steps), reads that configuration back and checks that its tape is the one the machine reached. Only the check is trusted, so the reading-back code needs no proof. Lean proves that each step of <code>mstep</code> is taken by the machine, and: if <code>mstep</code> can be applied any number of times starting from the configuration reached at step 27, the machine never halts. As for the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---, the halting question is now a question about one function on lists of numbers; here part of that function is a bounded simulation rather than a formula.",
+   "where": "<code>tstep_sound</code>, <code>mstep_sound</code>, <code>not_halts_of_mrun</code>, <code>lean/Sim.lean</code> (generated by <code>py/gen_sim.py</code> in 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---)"
   },
   {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "10<sup>7</sup> steps of the complete map",
+   "text": "The complete macro map is applied 10<sup>7</sup> times from the step-27 configuration by compiled evaluation and never fails; 4 of these steps are simulated stretches, the rest proved closed forms. (With the theorem above the machine does not halt in its first 27 + 10<sup>7</sup> steps; the true count is far larger, since a regular step takes at least 33.)",
+   "where": "<code>mrun_native</code>, <code>blank_runs_mmacro</code>, <code>lean/Bound.lean</code>"
   },
   {
    "level": "trusted",
@@ -124,6 +136,12 @@
    "where": "<code>python3 py/coverage.py</code> in 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---"
   },
   {
+   "level": "trusted",
+   "title": "The complete map follows the accelerated run",
+   "text": "Along the accelerated run from blank tape, the configuration before each of the 300 anomalies and collisions was given to Lean&rsquo;s <code>mstep</code> (evaluated by <code>lean --run</code>). It never fails, and its answer is the configuration that the cell-by-cell simulation reaches, every time: 140 times by a closed form, 160 times by a simulated stretch.",
+   "where": "<code>python3 py/check_mstep.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC--- run 300</code> in 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/fixed",
    "text": "Left of the start, the visited part of the tape stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.037).",
@@ -144,7 +162,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. What is missing, in order: (1) the remaining collision cases as Lean rules. Unlike in the 0LC machine, a collision here does not clear the misaligned gap: it shortens the next gap by 3 to 7 cells, which is misaligned in turn, so gaps of every small length occur and each needs its own case; in several cases the head also goes back into the word. A finer description (the configurations with an empty low part that follow an F event) would probably replace this case list by a few rules. (2) the one-unit anomaly and those rules inside the macro map, so that it follows the run from step 27. (3) the size argument: every cascade of collisions ends before the word runs out. For the 0LC machine, where (1) and (2) are done, (3) is the open part and looks like a Collatz-type question; the same is to be expected here.",
+   "text": "Not known. By the Lean reduction it is enough to show that the complete macro map never fails on the run. Two steps stand between this and a proof. (1) Closed forms for the irregular stretches that <code>mstep</code> still simulates (160 of the 300 in the accelerated run). Unlike in the 0LC machine, a collision here does not clear the misaligned gap: it shortens the next gap by 3 to 7 cells, which is misaligned in turn, so gaps of every small length occur and each needs its own case; in several cases the head also goes back into the word. A finer description (the configurations with an empty low part that follow an F event) would probably give a few rules; each rule moves cases from <code>tstep</code> to <code>astep</code> without changing the reduction. (2) The size argument: every cascade of collisions ends before the word runs out. For the 0LC machine this is the only open part and it looks like a Collatz-type question; the same is to be expected here.",
    "where": ""
   },
   {
@@ -163,7 +181,9 @@
   "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/gen_transients.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---   # regenerates lean/Transients.lean",
   "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/gen_collide.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC--- > holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---/lean/Collide.lean   # regenerates; likewise gen_collideq.py (CollideQ.lean), gen_full.py (Full.lean)",
   "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/coverage.py",
-  "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/collision_table.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---"
+  "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/collision_table.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC---",
+  "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/check_mstep.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC--- run 300",
+  "python3 holdouts/1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---/py/gen_sim.py 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_1RC--- 10000000 4   # regenerates lean/Sim.lean and lean/Bound.lean"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this machine keeps a word of blocks of 1s on the left and a binary counter on the right, and rewrites the word by a fixed map at every count. The regular steps and the reset of the word are proved in Lean. Whether it halts comes down to a race: the gaps left behind by each reset have to be cleared before the word runs out again.",
@@ -182,6 +202,11 @@
     "level": "trusted",
     "value": "&ge; 9 bits",
     "text": "Smallest margin of the race in 300 simulated transients."
+   },
+   {
+    "level": "kernel",
+    "value": "one map",
+    "text": "If the complete macro map never fails from step 27, the machine never halts."
    }
   ],
   "presets": [
@@ -260,6 +285,15 @@
     ]
    },
    {
+    "id": "map",
+    "eyebrow": "Proved in Lean",
+    "heading": "One map for the whole run",
+    "html": [
+     "<p>The regular Q-steps, the anomaly with a wide counter and some collisions are closed forms proved in Lean. The other irregular steps have too many cases for a table, so here Lean handles them by a checked simulation: it writes the configuration out as a finite tape, runs the machine on it to the next Q configuration, and checks that the configuration it reads back has exactly that tape. Together they make one function <code>mstep</code> from Q configuration to Q configuration, defined wherever the run can go.</p>",
+     "<p>Lean proves that the machine follows <code>mstep</code>, and that if <code>mstep</code> never fails from the configuration at step 27 the machine never halts. The same holds, with a map made only of closed forms, for the sister machine 1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---. In the accelerated run 140 of 300 irregular steps were closed forms and 160 were simulated; none failed.</p>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Halting",
     "heading": "Where it could stop",
@@ -281,5 +315,5 @@
   ]
  },
  "family": "G12 word-and-counter family 1RB?RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_?---",
- "summary": "Word map phi twice per counter step and the anomaly proved in Lean for all parameters; the word-and-gap pattern alone is not invariant (a short Q configuration halts, Lean); non-halting hinges on a race between the word and the collision cascade; open. Added 12 Nov: 15 more Lean rules (this machine's one-unit anomaly, some collisions) and a partial macro map; 88 of 238 simulated collisions follow a proved rule."
+ "summary": "Word map phi twice per counter step and the anomaly proved in Lean for all parameters; the word-and-gap pattern alone is not invariant (a short Q configuration halts, Lean); non-halting hinges on a race between the word and the collision cascade; open. Added 12 Nov: 15 more Lean rules (this machine's one-unit anomaly, some collisions) and a partial macro map; 88 of 238 simulated collisions follow a proved rule. Added 22 Nov: the complete macro map (closed forms plus a checked simulation of the other irregular steps); Lean: if it never fails from step 27 the machine never halts."
 }
