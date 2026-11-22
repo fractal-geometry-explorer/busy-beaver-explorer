@@ -148,6 +148,28 @@ agrees with the machine at all 2,000 overflows of strings of at most 9 bits (and
 - `halts_iff_stuck` (`Converse.lean`): the orbit stays in the good region until it meets the family, so it gets stuck
   only right after the family, from which the machine halts; the other direction is `not_halts_of_orbit`.
 
+**Where the family can be entered, and no congruence blocks it (`lean/Landing.lean`, kernel; `py/congruence.py`).**
+The event branch of `phase` adds 2^(d+1) to Y and 1 to d, so it keeps Y - 2^(d+1) fixed: a family point is preceded,
+back to the last overflow, by points (d, M, 2^(d+1) + 1) with d + 2 <= M. So
+
+> **`halts_iff_lands`: the machine halts from blank tape if and only if some overflow phase of the orbit returns
+> (d, M, 2^(d+1) + 1) with d + 2 <= M**
+
+(axioms propext, Classical.choice, Quot.sound). In event terms (X = Y - 2, j = d + 1) the overflow must leave the
+string X = 2^j - 1, j ones under a counter of length j. Lead 27 asked for a congruence that excludes this. A residue
+invariant on (X mod q, j, M), with any moduli for j and M, can exclude it only if no overflow output has
+X = 2^j - 1 (mod q), because every family point shares its residues with such an output. `py/congruence.py 20000 1500 24`
+(18 s) counts them over overflows 6 to 20,000: every q <= 1,500 is hit (the fewest relative to 1/q is q = 1,237,
+4 hits), mod 3 the six classes of (X mod 3, j mod 2) each hold about a sixth of the outputs, and outputs whose low a
+bits are all ones occur for every a <= 31, with frequency close to 2^-a (13,371, 6,856, 3,264, 1,538, ... for
+a = 1, 2, 3, 4). **So there is no congruence invariant mod 3, mod any q <= 1,500, or mod 2^a with a <= 31.** The
+reason is the shift: an overflow divides R by 4^k, so the low bits of the new string come from higher bits of the
+old one and no fixed modulus closes up (the blockers above carry the information down). Every one of these outputs
+has X < 2^j (the string is shorter than the counter; the family is the largest string allowed by this), but that
+bound is not closed under the map by residues either: from an overflow start (M - 1, M, Y) whose top bits are ones
+(Y = Y0 + 2^M - 2^(d0+1), Y0 < 2^(d0+1), d0 < M - 1) the output breaks it exactly when Y0 mod 32 is 1, 9, 17, 23,
+25 or 31 (all 16,320 such starts with M = 14, by `phase`).
+
 So the whole halting question is now a question about the integer map `phase`: does its orbit from (0, 2, 2) ever
 reach (m, m + 2, 2^(m+1) + 1)? In the README's event terms that is the all-ones string with j = M, the pattern of
 `Shapes.lean`. The map behaves like a random process on growing strings; a halt needs k >= M/2 and the k seen thin
@@ -183,6 +205,7 @@ Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`); 100,000 phases of the m
 - `py/phasemap.py machine 9 | macro 300 | stuck 12 | orbit K`: the proved phase map (`lean/Orbit.lean`) in
   Python, against the machine, against `py/macro.py`, where it is stuck, and iterated.
 - `py/blockers.py 20000`: the blockers at the overflows of the map (see above).
+- `py/congruence.py 20000 1500 24`: the congruence search of lead 27 (see above).
 - `py/leanfiles.py` writes `lean/Rules.lean` and `lean/Shapes.lean` (shared by the batch; spec as JSON, see its
   docstring).
 
