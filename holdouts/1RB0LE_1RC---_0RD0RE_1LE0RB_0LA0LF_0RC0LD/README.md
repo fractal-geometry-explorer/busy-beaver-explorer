@@ -152,14 +152,28 @@ chunks, the arrival, `pre`) are `native_decide`, so they also trust Lean's compi
 lists only `propext`, `Classical.choice`, `Quot.sound` and the `native_decide` axioms of those checks. The whole
 check takes about 7 minutes with 4 parallel jobs.
 
+## The closed (P, Q) map; no congruence misses the lines (22 November 2026)
+
+`py/closure/pqmap.py` composes away the 160 one-count classes of the certificate (each has a single piece for large
+P, so the run through them is determined) and leaves an explicit map on 16 classes with two counts (P, Q):
+2,313 affine pieces, 45 of them two-dimensional, listed in [`py/closure/PQMAP.md`](py/closure/PQMAP.md). It agrees
+with the node map on every step of the first 10^5 nodes of the run. The halting pieces are exactly the two lines,
+at shape A and shape B with P, Q odd.
+
+A congruence argument does not work. For every modulus m = 2 ... 64 the smallest set of (class, P mod m, Q mod m)
+closed under the map and containing the start contains a halting piece. And the exact orbit itself (2·10^6 nodes,
+1,819 visits of A with P and Q odd) has, for every m < 343, a visit with Q − 3P + 16 = 0 mod m, so no condition
+modulo such an m separates it from the A line. The same holds for the mirror machine (closed sets for m ≤ 24, the
+orbit on its line for every m < 67). Programs only, not Lean.
+
 ## Open, and next steps
 
 - The machine is a two-register process on (P, Q) with one halting shape. Halting from blank tape is the question
   whether the orbit ever lands on one of the two lines. It looks like the Collatz-like ("cryptid") machines of
   family F12 rather than a closed-set candidate.
 - ~~Prove that B is only visited with Q even~~: false, the run visits B with Q odd from node 3,693 on (above).
-- Write the node map as an explicit map on (shape, P, Q) from the certificate and iterate it with big integers; the
-  certificate has every piece as affine forms, so this is mechanical.
+- Done: the node map as an explicit map on (shape, P, Q) (`py/closure/PQMAP.md`); no congruence keeps the orbit off
+  the lines (above).
 - Done: the Lean replay of the certificate (above), with `native_decide`. A kernel-only check would need a faster
   executor or much more time.
 - The class search engine of `py/closure/` now has a variant with cycle rules inside a round (`paccel_inner.py`,
@@ -182,6 +196,7 @@ python3 $D/pvalidate.py $D/classes_mod2.json.gz pieces && python3 $D/pvalidate.p
 python3 $D/hline.py plain
 python3 $D/hline.py run 120 $D/classes_mod2.json.gz
 python3 $D/nodemap.py $D/classes_mod2.json.gz 1000000          # the node map, exact, about 8 minutes
+python3 $D/pqmap.py table $D/classes_mod2.json.gz               # the closed (P, Q) map; more in py/closure/PQMAP.md
 ```
 
 <!-- related machines: written by holdouts/related.py -->
