@@ -83,13 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. It belongs to a family of four holdouts that share their first four states, and works as two binary counters, one counting down in the blocks left of the head and one counting up in the gaps right of it. This page lists what is established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean now proves the counter itself: read the tape as two binary numbers, E in the odd blocks left of the head and N in the gaps right of it, and every countdown of E, for every size of E and N, runs as the counter says (<code>run3</code>, <code>run5</code>). Lean also proves that the blank-tape run enters this counter after 256 steps and runs its first countdown. The pass rules (including the halting one) are proved too.</p>
-      <p>Coq now reduces the machine to the round map F of busycoq pull request 40 and proves that a halt needs an <em>unmarked</em> round (X odd, every 1 bit of X at an even position). Whether F ever reaches one is open: no invariant keeps the marker. F was iterated 160,000 rounds with no halt and never fewer than 8 marker bits.</p>
+      <p>Coq now reduces the machine to the round map F of busycoq pull request 40 and proves that a halt needs an <em>unmarked</em> round (X odd, every 1 bit of X at an even position). Whether F ever reaches one is open: no invariant keeps the marker. F was iterated 10<sup>9</sup> rounds (exact integers, X up to 8.56 billion bits) with no halt and never fewer than 8 marker bits; from round 100 on the marker count is at least 0.294 times the round number. Each round behaves as a queue: it reads p = 2k+1 bits at the bottom of X and sets a new top bit 7k+4 above the old one, so k odd leaves a marker at the top.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -174,9 +174,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>MON=1</code> in <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps.c</code></p>
       </div>
       <div class="card">
-        <h3>The marker survives 160,000 rounds</h3>
-        <p>F iterated from (8, 145) for 160,000 rounds with exact integers: no halt, X odd in every round, and after the fifth round div2 X always has at least 8 one bits at even positions (an unmarked round needs all of them gone at once). L, the length of the left counter, reaches 1.36 million digits. The longest run of rounds whose top gap is odd is 28.</p>
-        <p class="where"><code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/py/F25.py</code></p>
+        <h3>The marker survives 10<sup>9</sup> rounds</h3>
+        <p>F iterated from (8, 145) for 10<sup>9</sup> rounds with exact integers by <code>c/fq.c</code>, which keeps X as a bit queue (a round costs time in proportion to the bits it reads and rewrites, not to the length of X; 10<sup>9</sup> rounds take 3 minutes). It agrees with <code>py/F25.py</code>, the transcription of F, on L and X in every one of the first 3,000 rounds from six starts (<code>c/check.sh</code>). Result: no halt, X odd in every round, L reaches 8.56 billion. From round 7 on, div2 X always has at least 8 one bits at even positions (the fewest, at round 25), and the count grows linearly: at least 36,312,853 in rounds 10<sup>8</sup> to 10<sup>9</sup> (3,630,409 from 10<sup>7</sup>, 362,997 from 10<sup>6</sup>); from round 100 on it is never below 0.294 times the round number (the lowest ratio at round 299).</p>
+        <p class="where"><code>gcc -O2 -o fq holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/c/fq.c && ./fq 8 145 1000000000</code></p>
+      </div>
+      <div class="card">
+        <h3>The queue law</h3>
+        <p>For X odd, let p be the lowest odd position of a 1 bit of X (the 1 bit closing the first even gap of div2 X, where F stops). Then p = 2k+1, and the round gives L' = L + 5k + 3 (this part is plain algebra on F's definition: each odd gap g of div2 X adds 5(g+1)/2 to L and the last, even gap g adds 5g/2 + 2). Moreover X' = 2<sup>L'</sup> + (X &gt;&gt; p) &minus; V with V a correction of about 3.5p bits: X loses its p lowest bits, a short zone above them is rewritten, the rest of X moves down unchanged, and a new top bit is set 7k+4 above the old top bit. Checked in every round of the 10<sup>9</sup>-round run except the first 3 rounds, where X is still short. So the two top bits of X' have different parities exactly when k is odd, which happened in 354,095,785 rounds (35.4%), and a marker made this way stays in X until the bottom has read up to it. The bottom read at most p = 3,035 bits in one round and never rewrote more than 10,589 bits above the bottom, while X grows by 5k+3 &ge; 3 bits each round: at round t the bottom has read about 38% of the queue, so the pushes of roughly the last 62% of rounds are still unread.</p>
+        <p class="where"><code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/c/fq.c</code> (counts printed at the end of every run)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
@@ -191,12 +196,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>When E reaches 0 the floor block <code>1^(2s)</code> under it is popped into the top block, the next pass pushes s single 1s, and a new countdown starts with E = 2<sup>s</sup> &minus; 1 (s one bits; floor <code>1^2</code>) in the other mode (3 and 5 alternate); N stays on the right, but the cut leaves a gap of irregular size in front of it. Irregular gaps then act in a cascade of short sub-phases: a gap one too long (for 1a/1b; the analogous residue mod 5 for 1c/1d) collapses into a block <code>1^2</code>, a gap one too short followed by a single 1 is cut down and passes its defect on to the next gap; sometimes the whole of N is pulled to the left and N restarts at 0. The floor grows by 2 whenever E passes a power of two, so it is about twice the bit length of the largest E so far. Seen at every transition of the runs above; not proved, and no closed formula for the new (E, N) as a function of the old one is known.</p>
         <p class="where"><code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/jump2.py</code> (log of the tapes at each counter start)</p>
       </div>
+      <div class="card">
+        <h3>Why an unmarked round looks out of reach</h3>
+        <p>By the queue law, the unread part of X at round t is a row of 1 bits pushed in earlier rounds, each 7k+4 above the one before. An unmarked round needs every such gap to be even, that is, k even in every round whose push is still unread: a run of about 0.6&middot;t consecutive rounds with k even, together with an unmarked rewritten zone at the bottom. In 10<sup>9</sup> rounds the longest run of consecutive rounds with k even was 378 rounds. A proof would need to show that the bottom, which reads the pushes and decides the next k, can never produce such a run.</p>
+        <p class="where"><code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/c/fq.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. Coq reduces the question to the round map F: the machine halts exactly when F returns None, and that needs a round with X odd and div2 X unmarked (all 1 bits of X at even positions). Each round rewrites the low bits of X, so the marker is not obviously preserved; no invariant proving that it survives every round is known. In 160,000 rounds it never came close (at least 8 marker bits).</p>
+        <p>Not known. Coq reduces the question to the round map F: the machine halts exactly when F returns None, and that needs a round with X odd and div2 X unmarked (all 1 bits of X at even positions). Each round rewrites the low bits of X and sets one new top bit, so the marker is not obviously preserved; no invariant proving that it survives every round is known. In 10<sup>9</sup> rounds it never came close (at least 8 marker bits, and more than 36 million from round 10<sup>8</sup> on).</p>
       </div>
     </div>
   </section>
@@ -212,7 +222,8 @@ python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/gen_init.py 1RB1LA
 gcc -O2 -o holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps.c
 GB=4 GP=5 K5=56,4,10 K3=26,4,10 MON=1 VAL=100000000 timeout 1500 python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/jump2.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA--- 100000 12 /tmp/log.txt
 sh holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/coq/build.sh /path/to/busycoq   # BB6 branch; fetches PR 40&#x27;s SOC25_Iter.v; prints Closed under the global context
-python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/py/F25.py 8 145 160000</code></pre>
+sh holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/c/check.sh     # c/fq.c against py/F25.py, 3,000 rounds from six starts, then 10^7 rounds
+gcc -O2 -o fq holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/c/fq.c &amp;&amp; ./fq 8 145 1000000000 100000000     # 3 minutes; the counts of the queue law at the end</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

@@ -83,7 +83,10 @@ in the orbit gives a halt (`halts_of_orbit`) and an orbit that never ends gives 
 
 ## Status
 
-Open; reduced to the orbit of the step map. Lean, all by the kernel:
+Open; reduced to the orbit of the step map, and (22 November) to a statement about integers only: **if the integer
+counter-stack recursion from `(K(2), 48)` never makes a count negative, or zero anywhere but directly on the pile,
+the machine never halts** (`not_halts_of_model`, `lean/Model.lean`; see "Non-halting from integers alone" below).
+Lean, all by the kernel:
 
 * `lean/Blank.lean` (generated): the halting configurations (`step_none_iff`); no halt in 10,000 steps by the
   kernel, in 10,000,000 by `native_decide`.
@@ -100,6 +103,10 @@ Open; reduced to the orbit of the step map. Lean, all by the kernel:
   counters for every stack, `stack_step` (see "The stack rules in Lean" below).
 * `lean/Pile.lean`: closed empty counters stay in one pile at the bottom unless a count reaches 0
   (`mstep_good`, `good_iter`; see "Odd runs of a pair" below).
+* `lean/Model.lean`: the cell-level rules cover the integer model on every good wall (`res_complete`,
+  `stepRes_complete`), so non-halting follows from the integer orbit alone (`not_halts_of_model`); the first 50,000
+  steps of that orbit satisfy the hypothesis (`model_first`, kernel evaluation); the bound "each counter at least 5
+  times the one below" is not kept by the rules (`ratio5_not_enough`).
 
 Computed: `py/zonemap.py` is the Lean step map in Python: `check 4000` compares it with the plain step map
 (`py/stepmap.py`, one step simulated in C by `c/stepc.c`, three values of `N` per case) for 4,000 steps from
@@ -109,8 +116,8 @@ steps.
 
 ## For later
 
-* Remove the hypothesis of `halts_iff`: prove that the simulator never answers `stuck` (the head meets the block
-  only in the three ways listed, and the buffers of one wall length are enough).
+* ~~Remove the hypothesis of `halts_iff`~~: done another way. `not_halts_of_model` goes through the stack rules
+  instead of the zone simulator, and needs only the integer statement (no count fails).
 * Describe the walls as a list of counters and prove the step map on that list (done in `lean/Stack.lean`
   except for an odd signal on `K'(0)` under other items); then either a halting wall appears
   in the description, or a closed language of walls without `A> 0 111` would prove non-halting. The zone simulator
@@ -272,6 +279,40 @@ python3 py/pairs.py table 40 80 1000
 python3 py/pairs.py rho 0 3000
 ```
 
+## Non-halting from integers alone (22 November)
+
+`lean/Model.lean` closes the two gaps between the machine and the integer model `mstep` of `py/stackmodel.py`:
+
+- **The rules cover the model** (`res_complete`). `res` of `Stack.lean` (the rules proved on the tape) answers on
+  every good wall (`Pile.lean`: all K'(0) in one pile at the bottom, K(0) only directly on it) whenever `mstep`
+  answers and the block it hands back is not empty. Its buffer conditions (`rebR`: the new count is at least 0 and
+  fewer copies are used up than the block above has) are exactly the model's own checks one level up, so the rules
+  never run out of room where the model does not. `stepRes_complete` is the whole step for `N >= 5`.
+- **Non-halting** (`not_halts_of_model`). `morbit` iterates `mstepN` from `(K(2), 48)`, the step start
+  `11101101111101 A> 0 b^48 1` that blank tape reaches in 10,206 steps. If every `morbit i` exists, has `N >= 5`
+  and is `okO` (no K(0) off the pile), then the machine does not halt from blank tape. This replaces the
+  hypothesis of `halts_iff` (the zone simulator never stuck): no tape, no simulator, just a recursion on a list of
+  integers.
+- **Checked.** The kernel checks the hypothesis for the first 50,000 steps (`model_first`, 40 seconds; N then has
+  29,255 bits). `python3 py/modelorbit.py 3000000` runs the same recursion for 3,000,000 steps (30 minutes; N has
+  1,754,894 bits, at most 10 items in the wall): the hypothesis holds throughout. Each step takes more than N
+  machine steps (`part1`), so this run means no halt in the first 10^528,274 steps.
+
+**The 5x bound.** Along those 3,000,000 steps every open counter is at least 5 times the open counter under it
+(the least ratio, exactly 5, is the pair K(2) K(10)), as in the free-parity walls. If that held forever no count
+could fail. But it is not an inductive invariant, and not a sufficient local condition either:
+
+- Along an odd run of the top counter k over an open counter j, both grow by 3/2 but k pays about j/2 per step,
+  so k/j falls by about 1/3 per step; every bound of the form k >= c j breaks after about 3c steps of such a run.
+- `ratio5_not_enough` (kernel): the wall `1 K(0) K(114520) K(596629)` satisfies the bound, falls below it after one
+  odd signal, and 16 odd signals in a row make a count negative. (`K(0) K(114520)` is the lower stack after 26 odd
+  signals; for 657 of the 880 orbit positions (a <= 10, m <= 80) of `py/pairs.py` there is such a failing start
+  value of at least 5 j_m.)
+
+So the statement left for a proof is not the 5x bound but the one of "What the 2-adic condition says": for every
+pair that occurs, the top count is not in the sparse residue classes that fail. With `not_halts_of_model` that
+statement, about integers only, is now exactly what non-halting needs.
+
 ## Regular invariants tried (21 November)
 
 The machine halts only through A0 → B1 → D1 → E1, so a halt needs the head in state A on a 0 with 111 to its right.
@@ -302,12 +343,13 @@ So the remaining step is still the invariant on counts (no count goes negative),
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/lean/check.sh   # about 2 minutes
+. /etc/profile.d/lean.sh && holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/lean/check.sh   # about 2.5 minutes
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py check 1500
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py orbit 20000   # 1 minute; 40000 takes 15
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py graph 80
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stack.py random 3000
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/modelorbit.py 100000   # 20 seconds
 ```
 
 <!-- related machines: written by holdouts/related.py -->

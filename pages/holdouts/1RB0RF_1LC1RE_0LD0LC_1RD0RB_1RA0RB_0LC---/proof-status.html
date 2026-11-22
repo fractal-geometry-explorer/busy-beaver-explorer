@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RF_1LC1RE_0LD0LC_1RD0RB_1RA0RB_0LC---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a word of blocks of 1s on the left and a binary counter on the right; the head rewrites the word by a fixed map and counts. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -161,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run from blank tape reaches the configuration <code>W = 2 1</code>, <code>a = 1</code>, no gaps at step 27. Lean proves: if the macro map can be applied any number of times starting there, the machine never halts; and if it can be applied <code>k</code> times, the machine does not halt in its first <code>27 + 17k</code> steps. So the halting problem of this machine is now the question whether a short explicit function on lists of numbers ever returns nothing.</p>
         <p class="where"><code>start_reached</code>, <code>not_halts_of_arun</code>, <code>runs_of_arun</code>, <code>lean/Full.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halting needs a lost race</h3>
+        <p>Call a gap of the counter aligned when its length is 3p+2, and say a race is lost at a Q configuration whose word has run out (one block, or one block and a single 1, so that an anomaly comes next) while a misaligned gap is still pending. Lean proves an invariant of the macro map: the word is valid (first block even, the others odd), the counter's low part is at least 1 and at most one gap is misaligned. From every configuration with this invariant that is not a lost race, the macro map is defined and keeps the invariant; the start configuration has it. So the map can fail only after a lost race, and: <b>if no configuration on the orbit of the macro map from step 27 is a lost race, the machine never halts</b>. The converse is not true of the map as it stands: some lost races halt (the short configuration above), others go on, and after one the counter can hold several misaligned gaps, which the head works through in a computation of its own. So, unlike 1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD, this machine has no &ldquo;halts if and only if the map gets stuck&rdquo; statement yet, only this direction.</p>
+        <p class="where"><code>Inv</code>, <code>inv_step</code>, <code>not_halts_of_races</code>, <code>lean/Race.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -217,6 +222,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>After an anomaly from a one-block word, with the new word <code>B</code> bits long (see the explainer) and the counter's low part <code>a</code> units, the first collision comes after exactly 2<sup>a</sup> &minus; 2 regular steps if <code>a &le; B &minus; 1</code>; if <code>a &ge; B</code> the word runs out first (checked for <code>B</code> = 2&hellip;8, <code>a</code> = 1&hellip;9 with the macro map). In the simulated run <code>a</code> is at most 18 while <code>B</code> grows from 7 to over 1200; the smallest <code>B &minus; a</code> after the first three anomalies is 6, and the counter is never longer than <code>B</code> bits.</p>
         <p class="where"><code>python3 py/amodel.py race</code>, <code>python3 py/check_amodel.py 300</code></p>
       </div>
+      <div class="card">
+        <h3>A lost race need not halt</h3>
+        <p>From 400 random configurations just before an anomaly (one block, small low part, aligned gaps), 325 orbits of the macro map lose a race. The map fails on 53 of them (each time after a lost race, as Lean says it must); the machine halts within 10<sup>6</sup> steps from 25 of these failures and not from the other 28, and on the remaining 272 the map goes on. So a lost race is necessary for a halt but not sufficient.</p>
+        <p class="where"><code>python3 py/lostrace.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -232,7 +242,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Gap alignment</h3>
-        <p>In every run the gaps behind the first misaligned gap have length &equiv; 2 (mod 3), at least 2, so every collision meets a next gap of at least 5 cells, a run of gaps of 2, or blank tape: the cases the macro map covers.</p>
+        <p>In every run the gaps behind the first misaligned gap have length &equiv; 2 (mod 3), at least 2, so every collision meets a next gap of at least 5 cells, a run of gaps of 2, or blank tape: the cases the macro map covers. As long as no race is lost this is now proved (<code>inv_step</code>, <code>lean/Race.lean</code>); that no race is ever lost is observed over all simulated transients, not proved.</p>
         <p class="where">observed over all simulated transients; not proved</p>
       </div>
     </div>
@@ -240,7 +250,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. By the Lean reduction it is enough to show that the macro map never fails on the run. It can fail only if a misaligned gap is still there when the word runs out (the race is lost) and the gaps then line up badly. Winning every race needs, at each anomaly, that the counter's value is not divisible by a power of two about as large as the value itself (<code>a &le; B &minus; 1</code>). That value is the sum of the previous epochs' contributions, shifted and truncated by the collisions; we found no invariant that controls its low digits, and the situation resembles the Collatz-like problems where such digit questions are out of reach. A size bound alone (cascade length against word length) is not preserved from one epoch to the next: the counter may be as long as the word, and only its last digits decide.</p>
+        <p>Not known. By the Lean reduction it is enough to show that the macro map never fails on the run, and by <code>not_halts_of_races</code> it is enough to show that no race is lost: that at every anomaly every gap is aligned. It can fail only if a misaligned gap is still there when the word runs out (the race is lost) and the gaps then line up badly. Winning every race needs, at each anomaly, that the counter's value is not divisible by a power of two about as large as the value itself (<code>a &le; B &minus; 1</code>). That value is the sum of the previous epochs' contributions, shifted and truncated by the collisions; we found no invariant that controls its low digits, and the situation resembles the Collatz-like problems where such digit questions are out of reach. A size bound alone (cascade length against word length) is not preserved from one epoch to the next: the counter may be as long as the word, and only its last digits decide.</p>
       </div>
     </div>
   </section>
