@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 21 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean (kernel) proves the halting configurations, no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>) and three shift rules. Direct C runs find no halt in 2&middot;10<sup>10</sup> steps and show the word-and-counter structure described below; the map of the left-end rebuilds, which is where a halt could happen, is not known."
+  "<b>The question is open.</b> Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.91·10<sup>162</sup> steps, no halt. A halt can only come at a phase end."
  ],
  "claims": [
   {
@@ -68,6 +68,18 @@
    "title": "Halting only at the left end",
    "text": "A reads a 1 (the only way to F) only while the left end of the word is rebuilt, after the moving rewrite has reached it (some of these rebuilds are restarts of the last block).",
    "where": "F events of the direct run"
+  },
+  {
+   "level": "kernel",
+   "title": "Clock: 2^k trips per tick, for every k",
+   "text": "The table is the table of 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- renamed (A→D, B→E, C→B, D→C, E→A, F→F, mirrored). At the right end a block grows by 2 per tick, and tick k applies one word map P (one trip of the head into the word) 2<sup>k</sup> times, for every k and every word, whenever the 2<sup>k</sup> trips all return; with the exact step count.",
+   "where": "<code>tick</code>, <code>tick_right_end</code>, <code>lean/MirrorBridge.lean</code> (<code>MirrorClock.lean</code>, written by <code>holdouts/R02-clock-word/py/gen_clockx.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "Clock run: no halt to 3.91·10<sup>162</sup> steps",
+   "text": "The exact accelerated clock simulator agrees with tools/c/tmrun.c at all 90 visits of the clock end in the first 2&middot;10<sup>9</sup> steps and follows the run past 3.91·10<sup>162</sup> steps (28 phases) without a halt. A halt can only come at a phase end, when a trip does not return.",
+   "where": "<code>holdouts/R02-clock-word/py/runx.py</code>, <code>out/run_1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---.txt</code>"
   },
   {
    "level": "open",
@@ -167,5 +179,5 @@
   ]
  },
  "family": "G12 word with two counters, 1RB?RF_1RC0RA_1LD1RB_1LE0LD_?L?0LB_0RB---",
- "summary": "At every record a word of blocks with a last block growing by 2 and doubling time; halting only possible at rare rebuilds of the left end; open."
+ "summary": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.91·10<sup>162</sup> steps, no halt. A halt can only come at a phase end."
 }

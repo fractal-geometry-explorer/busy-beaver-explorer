@@ -133,11 +133,11 @@
     "1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---",
     "1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---",
     "1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---",
-    "1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
-    "1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
     "1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
     "1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
     "1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
+    "1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
+    "1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
     "1RB1RF_1LC0RE_1LE1LD_1RE0LC_1RA1RA_1RD---",
     "1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE",
     "1RB1LD_1LC0RE_1LA1RC_0LC0LA_0RF0RC_---0RB",
@@ -554,7 +554,7 @@
    "cryptid": false,
    "name": "",
    "tc": "Shift-overflow counter",
-   "why": "A clock at the right end: the last block of 1s is a binary counter with 4-cell digits, and the tick that lengthens it from 5+4j to 9+4j cells makes exactly 2^j excursions into the rest of the tape (one word map P per excursion), in E + 51·2^j − 4 steps: proved in Lean for every j, and followed on the run from blank tape for 4 ticks. Whether P always returns is open.",
+   "why": "Same table as 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF (renamed): a clock at the right end, block +4 per tick, 2^k trips of one word map P per tick; exact accelerated run past 6.30·10^79 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD",
    "rank": 15
@@ -758,6 +758,28 @@
    "rank": 24
   },
   {
+   "m": "1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
+   "id": 37401,
+   "fam": "R02",
+   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
+   "set": "T20",
+   "mates": 4,
+   "stage": "finite",
+   "score": 48.8,
+   "route": "nonhalt",
+   "work": "search",
+   "kernel": 4,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Shift-overflow counter",
+   "why": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 2.72·10^177 steps, no halt. A halt can only come at a phase end.",
+   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
+   "folder": "holdouts/1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
+   "rank": 25
+  },
+  {
    "m": "1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
    "id": 121862,
    "fam": "R05",
@@ -777,7 +799,51 @@
    "why": "Slowed-down twin of the Pascal machine: Lean (Twin.lean) proves it follows that machine step for step up to a break and neither halts if no break comes.",
    "next": "Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's).",
    "folder": "holdouts/1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF",
-   "rank": 25
+   "rank": 26
+  },
+  {
+   "m": "1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
+   "id": 29824,
+   "fam": "R02",
+   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
+   "set": "T20",
+   "mates": 4,
+   "stage": "finite",
+   "score": 48.8,
+   "route": "nonhalt",
+   "work": "search",
+   "kernel": 4,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Shift-overflow counter",
+   "why": "Same table as 1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC--- (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.91·10^162 steps, no halt. A halt can only come at a phase end.",
+   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
+   "folder": "holdouts/1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
+   "rank": 27
+  },
+  {
+   "m": "1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
+   "id": 20489,
+   "fam": "R02",
+   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
+   "set": "T14",
+   "mates": 4,
+   "stage": "finite",
+   "score": 48.8,
+   "route": "nonhalt",
+   "work": "search",
+   "kernel": 4,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Shift-overflow counter",
+   "why": "Same table as 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF (renamed): a clock at the right end, block +4 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 1.27·10^139 steps, no halt. A halt can only come at a phase end.",
+   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
+   "folder": "holdouts/1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
+   "rank": 28
   },
   {
    "m": "1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
@@ -799,7 +865,7 @@
    "why": "A clock at the left end: the block 1^(4+3k) grows by 3 per tick and tick k applies one word map P 2^k times to the word on its right whenever the 2^k trips into the word all return (proved in Lean for every k); followed exactly through 65 phases to 6.04·10^187 steps without a halt.",
    "next": "Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one phase to the next.",
    "folder": "holdouts/1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB",
-   "rank": 26
+   "rank": 29
   },
   {
    "m": "1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB",
@@ -821,7 +887,7 @@
    "why": "Up/down counters (U+1, V-1 per tick, proved); at V = 0 a rebuild eats j low digits of U and refills V with 2^n' - delta; rebuild in closed form (checked, not proved); halts iff some rebuild gives delta = N'+1; no halt in 320,500 rebuilds of the map (more than 10^12,000,000 steps); long walks recur at about 9% of the counter; open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB",
-   "rank": 27
+   "rank": 30
   },
   {
    "m": "1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
@@ -843,51 +909,7 @@
    "why": "Two binary counters fed by one clock: L (the z zero digits at the left) and R (bits in fixed slots of the word W); each overflow of L adds 2^z to R, and when R overflows the word is rebuilt. A halt needs the right sweep to reach the end of the tape in F (Lean: last block of length 1 mod 3). Open; Lean (certificate checker, native_decide): no halt in 1.2·10^70 steps; the end never reached in F in the run to 1.6·10^45.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB1LC_1LA1RE_0RD0LA_---1LB_1LD0RF_0RE1RB",
-   "rank": 28
-  },
-  {
-   "m": "1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
-   "id": 37401,
-   "fam": "R02",
-   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
-   "set": "T20",
-   "mates": 4,
-   "stage": "finite",
-   "score": 48.0,
-   "route": "nonhalt",
-   "work": "search",
-   "kernel": 3,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Shift-overflow counter",
-   "why": "A two-level counter on words 0 1^(odd): the run of 1s at the right end grows by 2 per round in doubling time while a carry moves left through the word; full rewrites at 1.4e7 and 5.2e8 steps; open.",
-   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
-   "folder": "holdouts/1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---",
-   "rank": 29
-  },
-  {
-   "m": "1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
-   "id": 29824,
-   "fam": "R02",
-   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
-   "set": "T20",
-   "mates": 4,
-   "stage": "finite",
-   "score": 48.0,
-   "route": "nonhalt",
-   "work": "search",
-   "kernel": 3,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Shift-overflow counter",
-   "why": "At every record a word of blocks with a last block growing by 2 and doubling time; halting only possible at rare rebuilds of the left end; open.",
-   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
-   "folder": "holdouts/1RB0RF_1RC0RA_1LD1RB_1LE0LD_1LB0LB_0RB---",
-   "rank": 30
+   "rank": 31
   },
   {
    "m": "1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---",
@@ -909,7 +931,7 @@
    "why": "Binary counter applying one list operation W per tick; the block list is the binary expansion of the time to the next rebuild (checked, not proved); rebuild transients simulated directly; no halt in 3,792 rebuilds (more than 10^9,553 steps); open.",
    "next": "Prove the closed rebuild maps; extend the PR 57/58 wall invariant.",
    "folder": "holdouts/1RB0RF_1RC1LB_1LD1RE_1LB0LD_1RF0RC_1RA---",
-   "rank": 31
+   "rank": 32
   },
   {
    "m": "1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
@@ -931,28 +953,6 @@
    "why": "Mirrored start of the Pascal table: every theorem there is about the table, so it applies after exchanging the tape sides; the 2-cell-letter invariant holds for 10^9 steps.",
    "next": "Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine.",
    "folder": "holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---",
-   "rank": 32
-  },
-  {
-   "m": "1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
-   "id": 20489,
-   "fam": "R02",
-   "famname": "Clock and word: a block grows in doubling time while a word map runs 2^k times",
-   "set": "T14",
-   "mates": 4,
-   "stage": "finite",
-   "score": 48.0,
-   "route": "nonhalt",
-   "work": "search",
-   "kernel": 3,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Shift-overflow counter",
-   "why": "A two-level counter: the last block grows by 4 per round in doubling time while walkers cross a list of 1s and 5s; rebuilt at 1e6, 3.7e6, 1.75e9 steps; open.",
-   "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
-   "folder": "holdouts/1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---",
    "rank": 33
   },
   {
@@ -1117,16 +1117,16 @@
    "set": "T45",
    "mates": 3,
    "stage": "finite",
-   "score": 44.8,
+   "score": 45.6,
    "route": "nonhalt",
    "work": "search",
-   "kernel": 4,
+   "kernel": 5,
    "map": "",
    "bound": 7,
    "cryptid": true,
    "name": "",
    "tc": "Shift-overflow counter",
-   "why": "A two-level counter on words 0 1^(odd): the run of 1s at the right end grows by 2 per round in doubling time while a carry moves left through the word; full rewrites at 1.7e6 and 2.6e7 steps; open. One entry (D0) away from machines proved in busycoq; the entry is used again and again, so that proof does not transfer.",
+   "why": "Same table as 1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 1.43·10^199 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---",
    "rank": 41
@@ -1139,16 +1139,16 @@
    "set": "T45",
    "mates": 3,
    "stage": "finite",
-   "score": 44.8,
+   "score": 45.6,
    "route": "nonhalt",
    "work": "search",
-   "kernel": 4,
+   "kernel": 5,
    "map": "",
    "bound": 7,
    "cryptid": true,
    "name": "",
    "tc": "Shift-overflow counter",
-   "why": "At every record a word of blocks with a last block growing by 2 and doubling time; halting only possible at rare rebuilds of the left end; open. One entry (E0) away from machines proved in busycoq; the entry is used again and again, so that proof does not transfer.",
+   "why": "Same table as 1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.64·10^202 steps, no halt. A halt can only come at a phase end.",
    "next": "Automaton invariant for the word map P alone, plus the clock lemma in Lean.",
    "folder": "holdouts/1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---",
    "rank": 42
@@ -2408,6 +2408,28 @@
    "rank": 99
   },
   {
+   "m": "1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
+   "id": 15414,
+   "fam": "F10",
+   "famname": "",
+   "set": "T130",
+   "mates": 1,
+   "stage": "model",
+   "score": 31.4,
+   "route": "either",
+   "work": "lean",
+   "kernel": 11,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Cubic Mess",
+   "why": "Solid blocks of 1s separated by 0s; Lean proves the machine is an explicit map on lists of block lengths and halts iff it reaches 0 1 1 C>0 1 (an invariant excludes the other two critical frames), which only happens in a rightward sweep that starts on a bad block list; none among the first 10^8 frames. Also proved: cutting a block of exactly 15 cells at the left end halts, of exactly 2 or 3 never halts; neither seen while the tape grew to 5.3·10^10 ones.",
+   "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
+   "folder": "holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
+   "rank": 100
+  },
+  {
    "m": "1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA",
    "id": 129887,
    "fam": "F11",
@@ -2427,7 +2449,7 @@
    "why": "Decoded completely: a stack machine on words over 110 and 111 that reproduces the run step for step; the conjecture that every such word leads to a word again is false (a 19-token word halts, Lean), the run itself has not halted in 2,097,152 visits (1.3·10^13 steps), and a halt needs a rare coincidence at one of the few visits that reach the right end; open, probably halting far beyond any run.",
    "next": "In Lean the model is proved sound (lean/Sim.lean); not proved: that mstep is never stuck on the states of a run (it never is in the computations), and that the fast program c/wrun.c is the same function.",
    "folder": "holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA",
-   "rank": 100
+   "rank": 101
   },
   {
    "m": "1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---",
@@ -2449,7 +2471,7 @@
    "why": "The same counter as 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- under renamed states: digits are blocks of 3d+2 ones, one sweep per increment, and a carry into an even leftmost block starts a nested run of the counter inside the tape. Lean gives no halt in 2.66·10^11 steps, up to the start of the third nested run.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---",
-   "rank": 101
+   "rank": 102
   },
   {
    "m": "1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
@@ -2471,7 +2493,7 @@
    "why": "A binary counter whose bits sit between blocks of 10s, each block paying one copy when its bit is cleared; a halt needs two neighbouring blocks to run out together, which depends on the block lengths themselves.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
-   "rank": 102
+   "rank": 103
   },
   {
    "m": "1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB",
@@ -2493,7 +2515,7 @@
    "why": "A few huge blocks of 1s. An exact event map is proved in Lean: an even block is split, a quarter to the left and three quarters to the right; an odd block at the left end is folded, 2 for 3. The machine halts iff the orbit of this map leaves the rules and stops; no halt in the first 10^130 steps (kernel), 10^13179 (compiled). Open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB",
-   "rank": 103
+   "rank": 104
   },
   {
    "m": "1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---",
@@ -2515,7 +2537,7 @@
    "why": "A Collatz-like map on the number of 1s with remnants left on the tape: S(3j) → S(10j+12), S(3j+1) → S(10j+14), S(3j+2) → S(10j−2) plus a remnant 0(10)^6 1111; the map on (m, remnants) is proved in Lean through 61,963 phases from blank tape (a halt would take over 2^6953 steps), then hits an unproved nested-remnant case. Accelerated run: no halt in 5.29e102641 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---",
-   "rank": 104
+   "rank": 105
   },
   {
    "m": "1RB1LA_1LC0RE_---0LD_1LA0LF_1RA1RE_1LA0LB",
@@ -2537,7 +2559,7 @@
    "why": "Blocks of 1s on both sides of the head; a long block next to an empty one is dismantled, half to each neighbour, ending in 2 or 3 ones by parity. Lean proves that the machine halts iff the orbit of an explicit map on the two block lists uses up the left list (a lone block of 3(2^m - 1) ones, or a run of blocks 111 to the left end); no halt in 1.5·10^24 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LA_1LC0RE_---0LD_1LA0LF_1RA1RE_1LA0LB",
-   "rank": 105
+   "rank": 106
   },
   {
    "m": "1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB",
@@ -2559,7 +2581,7 @@
    "why": "Blocks of 1s on both sides of the head; a long block next to an empty one is dismantled, half to each neighbour, ending in 2 or 3 ones by parity. Lean proves that the machine halts iff the orbit of an explicit map on the two block lists uses up the left list (a lone block of 3(2^m - 1) ones, or a run of blocks 111 to the left end); no halt in 1.5·10^24 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB",
-   "rank": 106
+   "rank": 107
   },
   {
    "m": "1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC",
@@ -2581,7 +2603,7 @@
    "why": "A binary counter at the left end (+39 or +42 every 8 sweeps) facing a base-3 counter written over the growing block; Lean proves a halt can only come in a B-overflow transient (not the first); the transient is now fully decoded and followed exactly to 1.1*10^17 steps (16 transients, no halt), but its end state depends number-theoretically on the width and the proof that it always recovers is missing: open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC",
-   "rank": 107
+   "rank": 108
   },
   {
    "m": "1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
@@ -2603,7 +2625,7 @@
    "why": "Two binary counters: a right counter in 3-cell digits and a bit string in the left separators that gains 4 per count, 2^(d+1) per phase (proved in Lean for all sizes); overflows follow an explicit map (with a recursive constant C), checked not proved, iterated for 100,000 phases (about 10^153,000 steps) without reaching the halting case.",
    "next": "Port the one-map reduction to the siblings; invariant of the map.",
    "folder": "holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
-   "rank": 108
+   "rank": 109
   },
   {
    "m": "1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RD1LF_0LA---",
@@ -2625,7 +2647,7 @@
    "why": "Counter list with two regimes. Lean proves the right-end regime's round trip for every list of blocks, and the left-end phase as a local rewriting system: one round trip rewrites only the first unit and a short frontier word, for every size, every list of units and every rest (41 rules). The boundary trips between these and the map from one regime to the next are observed only.",
    "next": "A non-halting proof needs:.",
    "folder": "holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RD1LF_0LA---",
-   "rank": 109
+   "rank": 110
   },
   {
    "m": "1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE",
@@ -2647,7 +2669,7 @@
    "why": "A regular left part, the 10-cell word 1011011011 repeated, grows by one copy every few round trips, while an irregular right part of 300 to 430 cells keeps roughly the same size and feeds it. Open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0LF_1LC0LA_---1RD_1RF1RE_1LF1RD_1LB0RE",
-   "rank": 110
+   "rank": 111
   },
   {
    "m": "1RB0LF_1RC0LB_1RD1RB_1RE1RF_1LA---_0RC1LA",
@@ -2669,7 +2691,7 @@
    "why": "",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "bb6-1RB0LF_1RC0LB",
-   "rank": 111
+   "rank": 112
   },
   {
    "m": "1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC",
@@ -2691,28 +2713,6 @@
    "why": "The table of 74982 in a mirror: a counter ticked by a carry automaton, where every overflow adds a digit, turns the units into digits, or halts (proved in Lean for every counter). The machine halts exactly when the event system does from a one-digit counter; the eight overflows so far did not halt, the last (step 5.07·10^11) made a counter of 410,984 digits, and the next is ~21.3·10^5 sweeps away.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC",
-   "rank": 112
-  },
-  {
-   "m": "1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
-   "id": 15414,
-   "fam": "F10",
-   "famname": "",
-   "set": "T130",
-   "mates": 1,
-   "stage": "model",
-   "score": 29.0,
-   "route": "either",
-   "work": "lean",
-   "kernel": 8,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Cubic Mess",
-   "why": "Solid blocks of 1s separated by 0s; Lean proves the machine is an explicit map on lists of block lengths and halts iff that map reaches one of three critical frames; none among the first 10^8 frames. Also proved: cutting a block of exactly 15 cells at the left end halts, of exactly 2 or 3 never halts; neither seen while the tape grew to 5.3·10^10 ones.",
-   "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
-   "folder": "holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
    "rank": 113
   },
   {
@@ -4586,6 +4586,50 @@
    "rank": 198
   },
   {
+   "m": "1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
+   "id": 175628,
+   "fam": "R15",
+   "famname": "Collatz-like maps and cryptids (parked)",
+   "set": "T320",
+   "mates": 1,
+   "stage": "number",
+   "score": 18.8,
+   "route": "either",
+   "work": "research",
+   "kernel": 9,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Bell-like",
+   "why": "Exact reduced map, proved in Lean (halts_iff): read as runs of 1s, the tape changes between visits of the left end by an explicit map on lists, and the machine halts iff the orbit of [12, 1^9] reaches a list with only even runs; a 3/2 counter whose parities drive a stack of slower counters, no halt in 260,000 epochs (about 10^91568 steps).",
+   "next": "None: pure number theory (an invariant keeping some run odd would decide it; none known beyond the parity of the count of even runs).",
+   "folder": "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
+   "rank": 199
+  },
+  {
+   "m": "1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD",
+   "id": 70770,
+   "fam": "R15",
+   "famname": "Collatz-like maps and cryptids (parked)",
+   "set": "T134",
+   "mates": 1,
+   "stage": "number",
+   "score": 18.6,
+   "route": "either",
+   "work": "research",
+   "kernel": 5,
+   "map": "conditional",
+   "bound": 16000,
+   "cryptid": false,
+   "name": "",
+   "tc": "Bell-like",
+   "why": "A Collatz-like map n -> 3n/2 or 9n/8 with a second counter k in the tail word that moves by -2..+1 or is multiplied by 3/2; the map is proved in Lean for every n, and inside the region Z_k, n < 12k+12 (where a halt starts) Lean proves it halts in the pass iff k is odd and n = 12k+9; reaching the region needs k to catch up with n (orbit checked in Lean for 10^5 passes; probviously non-halting).",
+   "next": "None: pure number theory (a bound k <= f(n) along the orbit is a Collatz-type statement); optionally prove the uncovered Z_k small-n cases.",
+   "folder": "holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD",
+   "rank": 200
+  },
+  {
    "m": "1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---",
    "id": 25702,
    "fam": "R01",
@@ -4605,7 +4649,7 @@
    "why": "Marker counter (class II): a base-5 counter of markers between 0010-blocks, whose markers drift and merge; halting needs two merges close together. No halt in 10^16 steps.",
    "next": "One drift invariant on the shared core (same-run step done: 40 machines, 23 questions).",
    "folder": "holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0LC---",
-   "rank": 199
+   "rank": 201
   },
   {
    "m": "1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LB---",
@@ -4627,7 +4671,7 @@
    "why": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows.",
    "next": "One drift invariant on the shared core (same-run step done: 40 machines, 23 questions).",
    "folder": "holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LB---",
-   "rank": 200
+   "rank": 202
   },
   {
    "m": "1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---",
@@ -4649,7 +4693,7 @@
    "why": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows.",
    "next": "One drift invariant on the shared core (same-run step done: 40 machines, 23 questions).",
    "folder": "holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0RD---",
-   "rank": 201
+   "rank": 203
   },
   {
    "m": "1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---",
@@ -4671,7 +4715,7 @@
    "why": "A base-5 counter: the tape is runs of the block 1000 split by walls that each cycle through five shapes; a bouncer sweeps from the left end to the first wall, walls drift right and merge, and the right end grows only when every digit overflows.",
    "next": "One drift invariant on the shared core (same-run step done: 40 machines, 23 questions).",
    "folder": "holdouts/1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_1LB---",
-   "rank": 202
+   "rank": 204
   },
   {
    "m": "1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---",
@@ -4693,50 +4737,6 @@
    "why": "A base-5 counter: five-phase gadgets between blocks of 1000s count the passes of the head, each tick paid for by moving 1000s between blocks; passes and carries proved in Lean, round ends follow radix-5 decrements 18·5^(j−1); no halt in 2.4·10^14 steps; open.",
    "next": "One drift invariant on the shared core (same-run step done: 40 machines, 23 questions).",
    "folder": "holdouts/1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE---",
-   "rank": 203
-  },
-  {
-   "m": "1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
-   "id": 175628,
-   "fam": "R15",
-   "famname": "Collatz-like maps and cryptids (parked)",
-   "set": "T320",
-   "mates": 1,
-   "stage": "number",
-   "score": 18.0,
-   "route": "either",
-   "work": "research",
-   "kernel": 8,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Bell-like",
-   "why": "Exact reduced map, proved in Lean (halts_iff): read as runs of 1s, the tape changes between visits of the left end by an explicit map on lists, and the machine halts iff the orbit of [12, 1^9] reaches a list with only even runs; a 3/2 counter whose parities drive a stack of slower counters, no halt in 260,000 epochs (about 10^91568 steps).",
-   "next": "None: pure number theory (an invariant keeping some run odd would decide it; none known beyond the parity of the count of even runs).",
-   "folder": "holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA",
-   "rank": 204
-  },
-  {
-   "m": "1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD",
-   "id": 70770,
-   "fam": "R15",
-   "famname": "Collatz-like maps and cryptids (parked)",
-   "set": "T134",
-   "mates": 1,
-   "stage": "number",
-   "score": 17.8,
-   "route": "either",
-   "work": "research",
-   "kernel": 4,
-   "map": "conditional",
-   "bound": 16000,
-   "cryptid": false,
-   "name": "",
-   "tc": "Bell-like",
-   "why": "A Collatz-like map n -> 3n/2 or 9n/8 with a second counter k in the tail word that moves by -2..+1 or is multiplied by 3/2; the map is proved in Lean for every n except where the tail Z_k meets n < 12k+12, which needs k to catch up with n (orbit checked in Lean for 10^5 passes; probviously non-halting).",
-   "next": "None: pure number theory (a bound k <= f(n) along the orbit is a Collatz-type statement); optionally prove the uncovered Z_k small-n cases.",
-   "folder": "holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD",
    "rank": 205
   },
   {

@@ -83,13 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean (kernel) proves the halting configurations, no halt in the first 10,000 steps (10<sup>7</sup> with <code>native_decide</code>) and three shift rules. Direct C runs find no halt in 2&middot;10<sup>10</sup> steps and show the word-and-counter structure described below; the map of the left-end rebuilds, which is where a halt could happen, is not known.</p>
-      <p><b>Round 6, the proved neighbours.</b> busycoq (pull request 36) proves the machines that differ from this one only in the entry E0. That entry is used from the first steps of this run and again and again (24 times in the first 10<sup>10</sup> steps (10 in the first 10<sup>3</sup>, 18 in 10<sup>4</sup>, 20 in 10<sup>5</sup>, 22 in 10<sup>6</sup>, 23 in 10<sup>7</sup>, 24 in 10<sup>9</sup>)), and each use leaves a different left end than in the neighbours, so their proof does not carry over. No transfer; the question stays open.</p>
+      <p><b>The question is open.</b> Same table as 1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE (renamed, mirrored): a clock at the right end, block +2 per tick, 2^k trips of one word map P per tick (Lean, every k); exact accelerated run past 3.64·10<sup>202</sup> steps, no halt. A halt can only come at a phase end.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The entry fires when D, erasing 1s leftwards, reads a 0 with another 0 on its left: four steps later (D0, E0, A1, F0) the cells read <code>0 1 0</code> and B is on the next cell to the right. The machine halts from exactly two local patterns, each proved in Lean to halt whatever else is on the tape: C reading a 0 with two 0s on its left (<code>0 0 C&gt;0</code>) and B reading <code>1 1 1</code>. That there is no other way to halt is read backwards from the table (an argument on paper, not in Lean).</p>
         <p class="where"><code>e0_event</code>, <code>halt_c</code>, <code>halt_b</code>, <code>lean/Halt.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Clock: 2^k trips per tick, for every k</h3>
+        <p>The table is the table of 1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE renamed (A→D, B→E, C→A, D→F, E→B, F→C, mirrored). At the right end a block grows by 2 per tick, and tick k applies one word map P (one trip of the head into the word) 2<sup>k</sup> times, for every k and every word, whenever the 2<sup>k</sup> trips all return; with the exact step count.</p>
+        <p class="where"><code>tick</code>, <code>tick_right_end</code>, <code>lean/MirrorBridge.lean</code> (<code>MirrorClock.lean</code>, written by <code>holdouts/R02-clock-word/py/gen_clockx.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -161,6 +165,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The entry E0 is used from the start and keeps being used</h3>
         <p>In the run from blank tape the entry E0 is first used at step 6; 24 times in the first 10<sup>10</sup> steps (10 in the first 10<sup>3</sup>, 18 in 10<sup>4</sup>, 20 in 10<sup>5</sup>, 22 in 10<sup>6</sup>, 23 in 10<sup>7</sup>, 24 in 10<sup>9</sup>). The proved neighbours use their version of the entry too (the neighbour with <code>1LB</code> in the first machine's lettering: 11 times in 10<sup>10</sup> steps), so the difference is not an unused entry: it changes the run.</p>
         <p class="where"><code>c/transcount.cpp</code> of 1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---: <code>transcount MACHINE 10000000000 E0</code></p>
+      </div>
+      <div class="card">
+        <h3>Clock run: no halt to 3.64·10<sup>202</sup> steps</h3>
+        <p>The exact accelerated clock simulator agrees with tools/c/tmrun.c at all 132 visits of the clock end in the first 2&middot;10<sup>9</sup> steps and follows the run past 3.64·10<sup>202</sup> steps (30 phases) without a halt. A halt can only come at a phase end, when a trip does not return.</p>
+        <p class="where"><code>holdouts/R02-clock-word/py/runx.py</code>, <code>out/run_1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---.txt</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
