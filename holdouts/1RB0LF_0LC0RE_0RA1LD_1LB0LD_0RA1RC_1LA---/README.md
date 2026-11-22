@@ -249,6 +249,24 @@ hazard per rough turn stayed near 1 in 10^4 and the count kept growing like this
 would grow without bound, but only over a hundred or more phases. Nothing here rules that out, and nothing proves
 it. A proof would have to show that the rough tail the carries reach never contains a fatal context.
 
+**The tail is a binary counter of blocks.** Within a phase, compare the tail at consecutive `o o` records
+(the first 3·10^9 steps, 23,785 increments with a change). One increment in two (E0) changes only the first block.
+The others (E1, the carries) change the first d blocks with frequency halving in d: 5,939 / 2,975 / 1,480 / 739
+/ 372 / 187 / 93 / 46 for d = 2 ... 9, and 56 blocks once. Write a block's *shape* as its x and D (D capped at
+8 + D mod 2). After a transient following each reset, the shapes of the first w blocks repeat with period
+**exactly 2^w carries**. In the eight phases of more than 500 records in the first 3·10^9 steps, this holds for w ≤ 4 in all of them. It
+holds up to w = 7 (128 carries) in the five longest, and for w = 8 in the last one. It is not seen for w = 5 in
+the second phase, and the phases are too short to test larger w (`py/tail_counter.py`). So block w is a digit touched once per 2^w carries, and the rough tail is reached only by the
+rare deep carries and by the transient after a reset.
+
+This suggests how a halt hunt could go much further than the 28 phases of `py/run_macro.py`, which steps through
+every record. A carry-skipping simulator would keep the tail as blocks with big-integer D. It would advance block w
+by its number of touches in a phase (about m / 2^w for m carries), using the per-touch rule of its regular shape.
+It would step the macro machine only through the post-reset transient and through carries that reach a rough or
+irregular block. The cost per phase would then be about (tail blocks) × (transient length) instead of X, which
+makes phase 100 a matter of bookkeeping. This is not built yet. The per-touch rules for regular blocks are the
+crossing rules of `py/blockmm.py`.
+
 Reproduce: `gcc -O2 -o perturb c/perturb.c && ./perturb 5 36 400 30 1e10` (seed 5 halts after 23 resets);
 `gcc -O2 -o branch c/branch.c && ./branch 16 2 A 0 1 2 3 4 5 6 7 8 -1 -2 -3`.
 
@@ -332,6 +350,7 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
 | `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
+| `py/tail_counter.py` | the tail as a binary counter of blocks: depth of each carry, periods of the first w blocks |
 | `c/perturb.c`, `c/branch.c` | the real machine with the countdown replaced at resets: steered runs, and branches off the true run |
 
 ## For later
