@@ -102,8 +102,8 @@
   {
    "level": "kernel",
    "title": "Absorption, walls and crossings (ported)",
-   "text": "The Lean files <code>Absorb.lean</code>, <code>Wall.lean</code>, <code>Crossing.lean</code>, <code>End.lean</code> and <code>Race.lean</code> of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> hold here with the states renamed (A→C, B→D, C→E, D→F, E→A, F→B): even head blocks are absorbed or leave a wall, walls are 2-cell letters, one bounce is a running XOR for every zone, a crossing bounce is given on lists and a clean far part stays clean, and a frozen word with a witness (a 0, an odd run of 1s, then a 0 or the end) rules out both ways the list machine can fail.",
-   "where": "<code>absorb</code>, <code>turn_next</code>, <code>turn2_odd</code>, <code>turn2_even</code>, <code>far_even</code>, <code>astep_sim</code>, <code>astep_T2_witness</code>; written from the other machine's files by <code>py/port_list.py</code>"
+   "text": "The Lean files <code>Absorb.lean</code>, <code>Wall.lean</code>, <code>Crossing.lean</code>, <code>End.lean</code> and <code>Race.lean</code> and <code>Window.lean</code> of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> hold here with the states renamed (A→C, B→D, C→E, D→F, E→A, F→B): even head blocks are absorbed or leave a wall, walls are 2-cell letters, one bounce is a running XOR for every zone, a crossing bounce is given on lists and a clean far part stays clean, and a frozen word with a witness (a 0, an odd run of 1s, then a 0 or the end) rules out both ways the list machine can fail. The windows after A reads the last 1 during a crossing are covered too: <code>window_W3</code> holds for every prefix and clean far part, and all 4 crossing turns with blank end and no witness in this run's first 40,000 list steps come right after such a window (near part <code>b a b a<sup>6</sup></code>, observed).",
+   "where": "<code>absorb</code>, <code>turn_next</code>, <code>turn2_odd</code>, <code>turn2_even</code>, <code>far_even</code>, <code>astep_sim</code>, <code>astep_T2_witness</code>, <code>window_W3</code>; written from the other machine's files by <code>py/port_list.py</code>"
   },
   {
    "level": "kernel",
@@ -120,7 +120,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly if a double zero (followed by a 1) forms inside the tape and B reaches it. By the ported Lean reduction, it suffices to show that the list machine never fails from step 48; the crossing-turn cases that would prove this are being worked on for <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a>, and a proof stated for every reachable list state would settle both machines.",
+   "text": "Not known. It halts exactly if a double zero (followed by a 1) forms inside the tape and B reaches it. By the ported Lean reduction, it suffices to show that the list machine never fails from step 48; the same question is being worked on for <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a>, where what remains is to show that witnesses never run out later in a crossing; an invariant closed under the list machine that contains both start states would settle both machines.",
    "where": ""
   },
   {
