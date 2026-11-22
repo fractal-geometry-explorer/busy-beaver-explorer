@@ -981,10 +981,10 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Map:** Phases E(x,z) = E>0 (10)^x 1^z, R(x,y) = (10)^x 1^y C>0, Q(m,k,t) = (10)^m 1 A>0 0 (10)^k 1^t; 18-case map next, main moves E(x,z) -> E(2x+4, z-2x-6) (z >= 2x+7), R(x,y) -> R(x - floor(y/2) - 2, 2y+5), Q bounces (m,k,t) -> (m-b, k+2b, t-2b), R(0,y) -> E(0,y+1) (all ones).
 - **Halts when:** Orbit reaches E(x,0) or E(x,1); only possible right after an all-ones tape 1^n C>0 with n fatal: for n < 10^5 exactly n = 0, 6 or 32*2^k - 2k - 12 (20, 50, 112, 238, ...).
 - **From blank tape:** R(0,2) at step 2
-- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); no_halt_phases (10^8 phases) and fatal_list for n < 10^5 by native_decide; even_next/even_safe (kernel).
+- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); no_halt_phases (10^8 phases) and fatal_list for n < 10^5 by native_decide; even_next/even_safe (kernel); ones_fatal_all / ones_safe_all in lean/Fatal.lean (kernel); halt_needs_ones in lean/Ones.lean (kernel): halts iff the orbit reaches an all-ones tape of fatal length.
 - **Checked:** 10^11 phases in C (~4.1e30 steps, 30 all-ones tapes, none fatal, trusted); 10^8 phases native_decide (~4.1e21 steps).
 - **Odds:** not quantified; needs an all-ones length to land exactly in a sparse list (about one value per doubling)
-- **Next step:** Prove the fatal-length list for every n (beyond 10^5); then only the number-theoretic question of all-ones lengths remains.
+- **Next step:** none in Lean: pure number theory (do the all-ones lengths of the orbit ever hit the fatal list?)
 
 ### [`1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA`](../../holdouts/1RB1LF_0RC1RD_1LA1LD_1LE0RA_---1LC_0LA1LA/README.md)
 
@@ -1089,10 +1089,10 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Map:** E(x,z) = E> 0 (10)^x 1^z, A(x,y) = (10)^x 1^y A> 0, bounce frame Q(m,j,t): left phase E(x,z) -> E(2x+4, z-2x-6) (z >= 2x+7); right phase A(x,y) -> A(x-y/2, 2y+2) (y even, 2x >= y+2); 21 cases in Lean's next. Halts only right after an all-ones tape 1^n A> 0.
 - **Halts when:** Halts iff next from A(0,0) reaches E(x,0) or E(x,1); this happens only from an all-ones tape A(0,n) with n = 1 or n = 12*2^k - 2k - 9 (3, 13, 35, 81, 175, ...).
 - **From blank tape:** A(0,0) = blank tape
-- **Proved:** halts_iff, next_sound, even_next in lean/Phases.lean (kernel); ones_fatal_all / ones_safe_all in lean/Fatal.lean (kernel).
+- **Proved:** halts_iff, next_sound, even_next in lean/Phases.lean (kernel); ones_fatal_all / ones_safe_all in lean/Fatal.lean (kernel); halt_needs_ones in lean/Ones.lean (kernel): halts iff the orbit reaches an all-ones tape of fatal length.
 - **Checked:** 10^8 phases native_decide (~4.1x10^21 steps); 10^11 phases in C (~4.1x10^30 steps), all-ones lengths up to 44,891,446 (+5 later), none fatal.
 - **Odds:** 'very probably never halts': all-ones moments get rarer (~1/w) and must hit a doubling list; no number given
-- **Next step:** none: pure number theory
+- **Next step:** none in Lean: pure number theory (do the all-ones lengths of the orbit ever hit the fatal list?)
 
 ### [`1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE`](../../holdouts/1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE/README.md)
 
@@ -1101,10 +1101,10 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Map:** 25-case phase map next on E(x,z) = E>0 (10)^x 1^z, A(x,y) = (10)^x 1^y A>0, Q(m,j,t) = (10)^m 1 D>0 0 (1010)^j 1^t; main cases E(x,z) -> E(2x+4, z-2x-6) (z >= 2x+7), A(x,y) -> A(x-y/2-2, 2y+6) (y even, 2x >= y+4). Coarse: all-ones tape 1^n A>0 -> E(3, n-2), x -> 2x+4 until the ones run out.
 - **Halts when:** Iterate reaches E(x,0) or E(x,1); in practice an all-ones tape 1^n with n = 3 or 28*2^k - 2k - 13 (15, 41, 95, 205, ...) (native-checked n < 10^5; README probes also list 29).
 - **From blank tape:** A(0,0) (blank tape)
-- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); even_next/even_safe parity classes (kernel); fatal_list for n < 10^5 (native_decide).
+- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); even_next/even_safe parity classes (kernel); fatal_list for n < 10^5 (native_decide); ones_fatal_all / ones_safe_all in lean/Fatal.lean (kernel); halt_needs_ones in lean/Ones.lean (kernel): halts iff the orbit reaches an all-ones tape of fatal length.
 - **Checked:** 10^8 phases native_decide (~4.1x10^21 steps); 10^11 phases in C (~4.1x10^30 steps); all-ones moments up to n = 23880729, none fatal.
 - **Odds:** 'very probably never halts' (not quantified)
-- **Next step:** Prove the fatal all-ones list for all n in Lean (reducing to a 1-variable map on all-ones lengths), then iterate that map far.
+- **Next step:** none in Lean: pure number theory (do the all-ones lengths of the orbit ever hit the fatal list?)
 
 ### [`1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE`](../../holdouts/1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE/README.md)
 
@@ -1113,10 +1113,10 @@ Lean already reduces halting to the map. What is left is a Collatz-type question
 - **Map:** Phases E(x,z) = E>0 (10)^x 1^z, R(x,y) = (10)^x 1^y 0 B>0, Q(m,k,t) = (10)^m 1 D>0 0 (10)^k 1^t; 24-case map next, main moves E(x,z) -> E(2x+4, z-2x-6) (z >= 2x+7), R(x,y) -> R(x - (y+3)/2, 2y+5) (y odd), all-ones 1^n 0 B>0 -> E(1, n+1).
 - **Halts when:** Orbit reaches E(x,0) or E(x,1); only right after an all-ones tape 1^n 0 B>0 with n fatal: for n < 10^5 exactly n = 0 or 20*2^k - 2k - 12 (8, 26, 64, 142, 300, ...).
 - **From blank tape:** R(0,2) at step 6
-- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); no_halt_phases (10^8 phases) and fatal_list for n < 10^5 by native_decide; even_next/even_safe (kernel).
+- **Proved:** halts_iff and next_sound in lean/Phases.lean (kernel); no_halt_phases (10^8 phases) and fatal_list for n < 10^5 by native_decide; even_next/even_safe (kernel); ones_fatal_all / ones_safe_all in lean/Fatal.lean (kernel); halt_needs_ones in lean/Ones.lean (kernel): halts iff the orbit reaches an all-ones tape of fatal length.
 - **Checked:** 10^11 phases in C (~4.1e30 steps, 8 more all-ones tapes after the Lean bound, none fatal, trusted); 10^8 phases native_decide (~4.1e21 steps).
 - **Odds:** not quantified; needs an all-ones length to land exactly in a sparse list (about one value per doubling)
-- **Next step:** Prove the fatal-length list for every n (beyond 10^5); then only the number-theoretic question of all-ones lengths remains.
+- **Next step:** none in Lean: pure number theory (do the all-ones lengths of the orbit ever hit the fatal list?)
 
 ### [`1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC`](../../holdouts/1RB1RD_1LC0RD_1RF1RB_1LE0RA_0LB0LE_---0RC/README.md)
 
