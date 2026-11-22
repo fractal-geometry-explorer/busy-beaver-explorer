@@ -3,8 +3,9 @@
 bbchallenge id 129771, a six-state holdout of group G05. **Open.** The tape is a binary counter on blocks
 `(10)^D x`. Its phases grow by a Collatz-like 3/2 map. An exact block-level macro machine reproduces direct
 simulation record for record. Every crossing rule it used in the first 300,000 records is proved in Lean (kernel), for
-all block sizes and all surrounding tapes. The macro run finds no halt in 338,536,834,271,065 (3.39·10^14) steps. No invariant that excludes
-the halt is known.
+all block sizes and all surrounding tapes. The macro run finds no halt in 338,536,834,271,065 (3.39·10^14) steps. The reset map
+X' = floor(3X/2) + 1 or + 3 is proved in Lean for the head part of the tape (`lean/ResetMap.lean`), so both this
+machine and its twin halt only if a carry into the tail fails to come back. No invariant that excludes the halt is known.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -153,6 +154,44 @@ thousands of distinct runs beyond the first few blocks, which is what made the r
 The method that works here is the one of this folder: keep the countdown and the long blocks symbolic (the macro
 machine), and treat the tail as data acted on by the operators above.
 
+## The reset map in Lean (22 Nov)
+
+**The head part follows the 3/2 map exactly, whatever the tail holds.** `lean/ResetMap.lean` (kernel) proves, for
+both machines at once:
+
+- `reset_map`: from a reset `Reset X T = 0^inf 1 B> 1 0 (10)^X T` with X ≥ 36, if the phase's tail excursions are
+  as in `Good X T K`, the run reaches `Reset (f X) T'`, where f X = floor(3X/2) + 1 (X even) or + 3 (X odd).
+  Nothing about the tail T is assumed beyond `Good`.
+- `orbit`: k phases in a row (`GoodN k X T`) take the run to `Reset (f^k X) T'`, in at least k steps.
+- `reach_own`, `reach_twin`: from blank tape this machine is at `Reset 40 T0own` after 8,577 steps, and this table
+  started in state D (the twin, `Twin29537.lean`) is at `Reset 52 T0twin` after 14,638 steps.
+- `never_halts_own`, `never_halts_twin`: if `GoodN k` holds for every k, the machine never halts (the twin via
+  `twin_halts_iff`).
+
+**What `Good` says.** The tail is used only by *excursions*: the head reads the first cell of the tail in a state q
+with four known cells u on its left, and later leaves to the left of those four cells in a state q', with four known
+cells v written where u was. `Exc u q q' v T T'` says this happens for every tape on the left; T' is what is left of
+the tail. A phase makes these excursions, in this order (cells left to right):
+
+| piece | where | excursions |
+|---|---|---|
+| `re` | reset, X even | `0100` A→B `1001`, `0010` E→C `0101` twice, `1100` A→D `0101` twice |
+| `ro` | reset, X odd | `1001` B→D `1011`, `0101` C→A `1010`, `1001` B→D `1011`, `1100` A→D `0101` twice |
+| `g` | each two increments of the phase | `1100` A→D `0010` (the carry, one per two increments) |
+| `e0`, `e1` | end of the phase, countdown 5 or 7 | `1100` A→D `0010`, and for `e1` then `0100` A→B `1010` |
+
+Everything between excursions is a proved run (`lean/ResetMapRuns.lean`, 19 theorems for all values of the
+parameters and every tail, written by `py/gen_resetmap.py` with `bbtools.symtm.prove`). So the countdown, the
+growing block, the arithmetic of f and the parities that pick `e0` or `e1` are all in Lean, and **whether either
+machine halts is now exactly the question whether some tail excursion fails to come back with the signature
+above** (a halt can only happen inside an excursion, because everything outside them is a proved run without a
+halt).
+
+**Checked, not proved**: that the excursions do come back. `py/gen_resetmap.py` runs the symbolic head part next
+to a direct simulation and reads each excursion's signature off the real run: all 1,888 phase double-steps of both
+machines in their first 4,000 records, and 11 resets and 12 phase ends (X from 40 to 727, both machines), have the
+signatures of the table. The signatures do not depend on X or on the tail in any instance seen.
+
 ## Where it could halt
 
 F is entered only by A reading 1 (A1 = 0LF), and F1 halts. So the machine halts exactly on `1 A>1`. Neither the
@@ -176,6 +215,9 @@ which lists the run can reach.
   iff it halts from the twin's record at step 157;
 - `twin_right0` ... `twin_right55`, `twin_left0` ... `twin_left174` (`lean/RulesTwin1.lean`, `lean/RulesTwin2.lean`, from
   `py/gen_rules_twin.py`): the further crossing rules used in the twin's first 300,000 records.
+- `reset_map`, `orbit`, `reach_own`, `reach_twin`, `never_halts_own`, `never_halts_twin` (`lean/ResetMap.lean`, with
+  the runs of `lean/ResetMapRuns.lean` from `py/gen_resetmap.py`): the reset map X' = f X for the head part of the
+  tape, for both machines, given the tail excursions (`Good`).
 
 **Lean, native_decide**: `blank_runs_native`, no halt in 10^7 steps.
 
@@ -190,10 +232,11 @@ which lists the run can reach.
 - `py/twin.py`: the macro machine agrees with a direct run of the twin at all records up to step 299,972,981; its
   macro run finds no halt in 300,000 records (1.20·10^11 steps).
 
-**Heuristic**: the reset map (now exact: `py/reset_map.py`), the tail operators (`py/tail_ops.py`), the three record
+**Heuristic**: that the tail excursions come back as `Good` asks (`py/gen_resetmap.py`), the tail operators (`py/tail_ops.py`), the three record
 patterns, and the 99.99% share of simple sweeps.
 
-**Open**: whether it halts. The Lean theorem `¬ Halts` is not proved, and no `halts_iff` reduction is stated.
+**Open**: whether it halts. The Lean theorem `¬ Halts` is proved only under `∀ k, GoodN k` (`never_halts_own`), that is, if
+every tail excursion comes back the observed way.
 
 ## Reproduce
 
@@ -205,6 +248,7 @@ python3 $D/py/gen_sweep.py                  # rewrites lean/Sweep.lean
 gcc -O2 -o recp $D/c/recp.c && ./recp 4000000 3e8 1 100000 > r3e8.txt && python3 $D/py/check_macro.py r3e8.txt
 python3 $D/py/run_macro.py 2e7 1e6          # the long macro run, about 40 minutes
 python3 $D/py/random_check.py SEED 20000     # random block lists, one macro step each
+python3 $D/py/gen_resetmap.py               # rewrites lean/ResetMapRuns.lean and the generated parts of lean/ResetMap.lean (a minute)
 python3 $D/py/gen_rules_twin.py 3e5          # rewrites lean/RulesTwin1.lean, lean/RulesTwin2.lean (a few minutes)
 ./recp 4000000 3e8 1 100000 D > twin3e8.txt && python3 $D/py/twin.py twin3e8.txt   # the twin, record by record
 python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset (also: reset_map.py own|twin N)
@@ -226,6 +270,7 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `lean/Twin29537.lean` | the twin is this table, mirrored, started in D (kernel) |
 | `lean/RulesTwin1.lean`, `lean/RulesTwin2.lean`, `py/gen_rules_twin.py`, `py/gen_rules_lib.py` | crossing rules of the twin's run (generated) |
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
+| `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
 
 ## For later

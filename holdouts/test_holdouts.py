@@ -62,31 +62,25 @@ class TestHoldouts(unittest.TestCase):
         import related
         self.assertEqual(related.apply(False), [])
 
-    def test_index_current(self):
-        with open(os.path.join(build_pages.PAGES, "index.html")) as f:
-            old = f.read()
-        build_pages.build_index()
-        with open(os.path.join(build_pages.PAGES, "index.html")) as f:
-            self.assertEqual(f.read(), old)
+    def test_shared_pages_build(self):
+        """The shared pages (index, families, recent, ranking) build, and every recent result names real holdouts.
 
-
-    def test_overview_current(self):
-        """families.html and recent.html are what build_overview.py writes, and recent.json names real holdouts."""
+        They are not committed (see .gitignore): the Pages workflow builds them on main, so pull requests from
+        parallel threads do not conflict on them."""
         import build_overview
+        import rank
         names = {n for n, _ in build_pages.specs()}
-        with open(os.path.join(build_pages.HERE, "recent.json")) as f:
-            for e in json.load(f)["entries"]:
-                for M in e.get("machines", []):
-                    self.assertIn(M, names, e["title"])
-        pages = ("families.html", "recent.html")
-        old = {}
-        for p in pages:
-            with open(os.path.join(build_pages.PAGES, p)) as f:
-                old[p] = f.read()
+        _, entries = build_overview.recent_entries()
+        for e in entries:
+            for k in ("date", "kind", "title", "text", "rests"):
+                self.assertIn(k, e, e.get("title", e))
+            for M in e.get("machines", []):
+                self.assertIn(M, names, e["title"])
+        build_pages.build_index()
         build_overview.build()
-        for p in pages:
-            with open(os.path.join(build_pages.PAGES, p)) as f:
-                self.assertEqual(f.read(), old[p], p)
+        rank.main()
+        for p in ("index.html", "families.html", "recent.html", "ranking.html"):
+            self.assertTrue(os.path.getsize(os.path.join(build_pages.PAGES, p)) > 1000, p)
 
 
 if __name__ == "__main__":

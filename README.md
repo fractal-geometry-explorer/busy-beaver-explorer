@@ -37,12 +37,17 @@ Explorations of six-state Busy Beaver machines.
   ([`README.md`](bb6-vampire-family/README.md)).
 - [`holdouts/FAMILIES.md`](holdouts/FAMILIES.md): the 554 undecided holdouts regrouped (20 November 2026) into
   families that one proof technique could settle together, ranked, with the technique recommended for each.
-- [`holdouts/RANKING.md`](holdouts/RANKING.md): every undecided holdout ranked by how close it is to a decision, with
-  the next concrete step for each and the top ten recommended attacks; sortable page
-  [`pages/holdouts/ranking.html`](pages/holdouts/ranking.html).
+- [Ranking](https://fractal-geometry-explorer.github.io/busy-beaver-explorer/holdouts/ranking.html): every undecided
+  holdout ranked by how close it is to a decision, with the next concrete step for each and the top ten recommended
+  attacks (`holdouts/rank.py`; the page, `RANKING.md` and `ranking.json` are built on main by the Pages workflow and
+  not committed, like the holdout map, families and recent results: see
+  [`holdouts/README.md`](holdouts/README.md#shared-pages-are-built-on-main-not-committed)).
 - [`tools/collatz/TRIAGE.md`](tools/collatz/TRIAGE.md): the 98 Collatz-like holdouts (family R15) sorted by their next
   step (halt hunt, outside proof, prove the map, decode, number theory), with long halt-hunt runs; interactive version
   with an in-browser map runner: [`pages/holdouts/collatz-family.html`](pages/holdouts/collatz-family.html).
+- [`crosscheck/`](crosscheck/README.md): an independent cross-check of the 85 decided holdouts (22 November 2026): an
+  explicit table check of every name against busycoq's parser, every Rocq proof restated on busycoq's own definitions
+  and rebuilt, a scan of all Coq and Lean files, and a new simulator. No discrepancy.
 - [`holdouts/recent-proofs/`](holdouts/recent-proofs/): the methods of the 32 proofs of 17 to 19 November 2026 and four attempts to reuse them.
 - [`holdouts/`](holdouts/): every other machine of bbchallenge's list of 608 BB(6) holdouts (30 October 2026), one
   folder each: a first bounded run (10^9 steps) sorted by the growth shape of each side of the tape, the machine in

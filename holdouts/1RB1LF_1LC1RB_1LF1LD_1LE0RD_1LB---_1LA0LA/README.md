@@ -263,6 +263,32 @@ needs the frame integers shared or dropped too, or the carry through the levels 
 Trust: computations, exact by construction, validated only as far as direct simulation reaches (about 10^11 steps).
 They were not re-derived independently.
 
+## Level-stripping accelerator (22 November 2026)
+
+**No right-end event, and so no halt, before wall visit 256^(2.394·10^146), about 10^(5.77·10^146)**, against
+10^25600 for the run above. The accelerator is described in the twin's README (section "Level-stripping
+accelerator"; code `py/lsa_*.py` there, arithmetic in `lean/Accel.lean` there): the ladder of levels is a
+mixed-radix counter, and an eater's K super-cycles are jumped at once with a closed form.
+
+*The word at wall visit 10^3200* (`python3 lsa_run.py 2 3200` in the twin's `py` folder): 5,316 levels at the top,
+then the eater `6 0^1 3 0^3 (1 0)^1 4 0^4 3` on a fuel `(1 0 0)^m` with m = 6.46·10^147, and below it about 300
+smaller fuels, each about a half to a third of the one before.
+
+*The first phase.* That eater is of the ×256 kind: 3,633 hits burn 27 units of fuel, pass 5 hits down and leave a
+block of four base-4 levels. It runs K = 2.394·10^146 super-cycles. The region below takes all
+5K = 1.2·10^147 hits in one `hpow` without an event: its first level is a sink. So the phase ends, and each of
+its K blocks multiplies the hits needed from above by 256. Every hit at the top of that region is at least one wall
+visit, which gives the bound above.
+
+*After it.* The sink becomes fuel 3.99·10^146 for a ×16 eater, then come ×64 eaters (730 hits, 4 units of fuel,
+21 hits down) on fuels that shrink by a factor of 2 to 4 per phase, down to single digits; then a new fuel of about
+10^147 appears from a higher level and the descent starts again. After 2 h 30 min the run had done 688 phases
+(two ×256, one ×16, the rest ×64) in three such descents, with no event. It was still running when this was
+written; the event, if it comes, is a count far too large to write down and is kept as a sum of c·2^e.
+
+Trust: computations, exact by construction. The phase jumps reproduce the twin's seventh event exactly
+(kinds ×256, ×16 and ×1); the ×64 kind has not been checked against plain batches.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)

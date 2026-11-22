@@ -39,12 +39,24 @@ from the bbchallenge wiki.
    top of `tools/pages/build_explainer.py`, and the folders of 32641, 65826 and 11019 for examples).
 3. Add Lean files next to `Blank.lean` and list them in `lean/check.sh`; machine-specific scripts go in `py/` or `c/`
    in the folder.
-4. `python3 holdouts/build_pages.py M` rebuilds that machine's pages and the index; `python3 holdouts/test_holdouts.py`
-   checks that everything is current. The index is generated, so on a merge conflict in it rebuild it with
-   `python3 holdouts/build_pages.py --index-only`.
-5. When a result changes what is known, add an entry at the top of [`recent.json`](recent.json) (date, PR numbers,
-   kind, what it rests on, a plain-language title and text, the machines by full name). `build_pages.py` then writes
-   it to `pages/holdouts/recent.html`, the latest-results page, through `build_overview.py`.
+4. `python3 holdouts/build_pages.py M` rebuilds that machine's pages (and, locally, the shared pages);
+   `python3 holdouts/test_holdouts.py` checks that everything is current. Commit the machine's own pages only: the
+   shared pages are not in git (see below).
+5. When a result changes what is known, add a new file `recent.d/YYYY-MM-DD-short-name.json` holding one entry
+   (date, PR numbers, kind, what it rests on, a plain-language title and text, the machines by full name; the fields
+   of an entry of [`recent.json`](recent.json)). Do not edit `recent.json` itself: a file per result means parallel
+   pull requests never touch the same lines. `build_overview.py` merges both into `pages/holdouts/recent.html`.
+
+## Shared pages are built on main, not committed
+
+`pages/holdouts/index.html`, `families.html`, `recent.html`, `ranking.html`, `holdouts/RANKING.md` and
+`holdouts/ranking.json` are written from every machine folder at once, so when they were committed every merge made
+every other open pull request conflict. They are now in `.gitignore`, and the Pages workflow
+(`.github/workflows/pages.yml`) builds them with `python3 holdouts/build_pages.py --index-only` on each push to
+main. On the site they are at https://fractal-geometry-explorer.github.io/busy-beaver-explorer/holdouts/ (with
+`RANKING.md` and `ranking.json` beside `ranking.html`). Build them locally to look at them; never `git add -f` them.
+A branch made before this change that still edits them gets a modify/delete conflict once when it merges main:
+resolve it with `git rm --cached <file>` for each (the deletion wins) and carry on.
 
 ## Families of the undecided machines
 
@@ -59,9 +71,9 @@ machine's standing today.
 
 ## Closest to being solved
 
-[`RANKING.md`](RANKING.md) ranks every undecided machine by how close it is to a decision and gives the next concrete
+`RANKING.md` (built by CI, not committed; on the site beside the ranking page) ranks every undecided machine by how close it is to a decision and gives the next concrete
 step for each, with the top ten recommended attacks; the sortable version is
-[`pages/holdouts/ranking.html`](../pages/holdouts/ranking.html). `rank.py` writes both and `ranking.json` from what the
+`pages/holdouts/ranking.html`. `rank.py` writes both and `ranking.json` from what the
 repository records (index rows, `status.json`, `families.json`, the Collatz triage, the number-theory ranking), and
 `build_pages.py` reruns it, so a machine drops off the ranking when it is decided. The score is a judgement, not a
 result.

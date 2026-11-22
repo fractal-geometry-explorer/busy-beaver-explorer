@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, with exact step counts, and the counter phases are proved in Lean. An accelerated simulator that finds its own rules, checked against direct simulation at every one of 1,399 wall visits (word and step number), runs to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>) without a halt. It is exact by construction but has not been re-derived independently. The right-end events do not stop, each one can in principle leave a halting word (such words exist, proved in Lean), and no invariant is known."
  ],
@@ -98,6 +98,18 @@
    "title": "Accelerated run: no halt up to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>)",
    "text": "The digit engine finds cycle, run and recursion rules by symbolic execution and the macro simulator does the right-end events on cells. The run passes the events after wall visits 3, 14, 23, 114, 117, 107,452 and 6.354&middot;10<sup>2236</sup> and stops at the event after 4.233&middot;10<sup>2237</sup>, where a fuel run of more than 10<sup>14</sup> units needed a rule the engine did not have. That rule (frozen words emitted by cycle rules, 16 November 2026) now exists, and the run of 16 November 2026 gets past that point and well into the return sweep of the event, with no halt: after 2 h 35 min, 14,635 runs of cells are left of the head, from 18,141 when the stall point was passed. It is slow there, not stuck. Each wall visit costs about 200,000 explicit operations of the recursion, and rule discovery is not the bottleneck. Exact by construction, validated only on the range direct simulation can reach, not re-derived independently: read it as strong evidence, not as a proof.",
    "where": "<code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py</code>, numbers in <code>accel_run_1.txt</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The counting laws of the level-stripping accelerator",
+   "text": "<code>first_pass_correct</code>: a level with cycle length p that passes one hit per cycle at position t makes its m-th pass at its hit p(m &minus; 1) + t. <code>blocks_closed</code>: the hits that K super-cycles of an eater need from above, when each block maps x &#8614; (c + 1)x + b, are a geometric sum in closed form, for every K. Arithmetic only: the constants come from symbolic runs of the digit engine.",
+   "where": "<code>lean/Accel.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "From a wall visit straight to the next right-end event",
+   "text": "The level-stripping accelerator treats the ladder of levels as a mixed-radix counter and jumps an eater's K super-cycles at once (h<sup>P</sup>(E[m] X) = Blk E[m &minus; dm] h<sup>c</sup>(X), derived with the fuel m symbolic). From the word at visit 10<sup>1600</sup> it finds the seventh event at exactly wall visit 6.354265240826449&hellip;&middot;10<sup>2236</sup>, all 2,237 digits as the digit engine found them by running every visit: in 128 s with plain batches of hits, in 9 s with 7 nested jumps (eaters &times;256, &times;16, &times;1).",
+   "where": "<code>py/lsa_run.py 1 1600</code>, <code>py/lsa_*.py</code>"
   },
   {
    "level": "open",
@@ -201,6 +213,7 @@
      "<ul><li>a <b>level</b>, <code>(1 0)^n</code> with a small digit word behind it that cycles through four shapes; four hits add two units and pass one hit on, so each level is four times slower than the one before;</li><li><b>fuel</b>, a run <code>(1 0 0)^m</code>, made when an old level is taken apart;</li><li>an <b>eater</b> at the bottom of the ladder of levels, which burns three units of fuel every eleven hits and leaves new small levels behind;</li><li>a <b>right-end event</b>, when a hit gets through everything and reaches the last digit. Then the head runs to the blank end of the tape and comes back in a different way; some events crush every level into a single digit (a reset), others only turn the newest levels back into fuel.</li></ul>",
      "<svg viewBox='0 0 640 96' width='100%' role='img' aria-label='wall, ladder of levels, eater, fuel, right end'><rect x='4' y='30' width='10' height='36' fill='#555'/><text x='4' y='84' font-size='11'>wall</text><rect x='22' y='30' width='150' height='36' fill='#9bc' stroke='#345'/><text x='30' y='52' font-size='12'>(10)^n&#8321;</text><rect x='178' y='30' width='90' height='36' fill='#9bc' stroke='#345'/><text x='184' y='52' font-size='12'>(10)^n&#8322;</text><rect x='274' y='30' width='50' height='36' fill='#9bc' stroke='#345'/><text x='278' y='52' font-size='12'>&#8230;</text><rect x='330' y='30' width='44' height='36' fill='#e9a' stroke='#933'/><text x='334' y='52' font-size='12'>eater</text><rect x='380' y='30' width='150' height='36' fill='#fd8' stroke='#a80'/><text x='390' y='52' font-size='12'>fuel (100)^m</text><rect x='536' y='30' width='70' height='36' fill='#ddd' stroke='#777'/><text x='540' y='52' font-size='12'>old tape</text><text x='22' y='20' font-size='11'>each level is 4 times shorter and 4 times slower</text><text x='500' y='84' font-size='11'>a hit that gets here: event</text></svg>",
      "<p>A program that works on the digits, finds the repeating patterns by itself and jumps over them (it keeps the counts as big numbers) was checked against a plain simulation of the machine at 1,399 wall visits: the same tape and the same step number every time. It then runs on: past the reset, through 10<sup>2236</sup> quiet wall visits in which the ladder grows to 3,713 levels, through one more event, and up to the event after wall visit 4.233&middot;10<sup>2237</sup>, at step 3.1&middot;10<sup>4475</sup>. No halt. There it meets a run of fuel too long for the patterns it knows, and stops.</p>",
+     "<p>The ladder can also be treated as arithmetic: each level is a counter digit with a known cycle, and an eater that burns its fuel a few units at a time builds the same block of levels again and again, so K of its rounds can be jumped at once with a geometric sum (proved in Lean for every K). With that, the program goes from wall visit 10<sup>1600</sup> straight to the seventh event, at exactly the visit found before by running every visit, in 9 seconds instead of hours.</p>",
      "<p>Why this does not settle the question: the events never stop coming, each one rewrites the far end of the tape in a way that is only known by running it, and there are words on which the machine halts. Nothing so far says that such a word can never be left behind.</p>"
     ]
    }

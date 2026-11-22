@@ -1,0 +1,74 @@
+"""Rules of the X layout  0^inf 1 0 [N] A> 0 [Z] 1 1 0 1 1 0 [X] 1 1 [C] 0 1 [R] ...  (two-word sweeper family).
+
+X: a binary word of k digits (k = 1, 2, 3 in the run), 4-cell digits 0010 = 0, 1010 = 1 (like Z), lowest digit first.
+An event in which Z wraps does: X + 1 (mod 2^k), C + 24/2^k, and 3 more when X wraps; R + 3 when C wraps.  It is cut
+in two parts, glued by steps_add:
+  - xw_k<k>_x<X>_<C case>: from the event, with Z = 1...1 (i+1 digits), to D on the last cell of N with the right
+    side in its new form:   L 0 A> 0 [Z] ...   ->   L D> 0 0 [Z'] ...
+  - xn_<N case>: from there to the next event, N + 1, for every tape T right of the event cell:
+    L [N] D> 0 0 T  ->  L [N + 1] A> 0 T   (the last cell of N is always 0)
+(Events in which Z does not wrap are the rules cv_*_z0 and cv_*_zk of Cascade.lean, which hold for any tape after Z.)
+usage (from the repository root), PART = 1 (the end of an event, and k = 1), 2 or 3 (k = 2, 3), one file each
+so that Lean checks each in its own process:
+  python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events3.py MACHINE NAMESPACE PART > holdouts/MACHINE/lean/XlayerPART.lean"""
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'tools', 'py'))
+from bbtools.symtm import prove, ProofError, rules_file
+D3 = {0: "1 0 0", 1: "1 1 0", 2: "0 1 0"}
+ZD = {0: "0 0 1 0", 1: "1 0 1 0"}
+CD = {0: "0 0 0 1", 1: "0 1 0 1"}
+RD = {0: "1 0 0 0", 1: "1 0 1 0"}
+def nparts():
+    out = []
+    for x in (0, 1):
+        out.append((f"n{x}t0", f"L {D3[x]}", f"L {D3[x+1]}", f"N's lowest digit {x} becomes {x+1}"))
+        out.append((f"n{x}t1", f"L {D3[x]} {D3[2]}", f"L {D3[x+1]} {D3[0]}", f"N ends in {x}2: becomes {x+1}0"))
+        out.append((f"n{x}tk", f"L {D3[x]} (010)^k {D3[2]} {D3[2]}", f"L {D3[x+1]} (100)^k {D3[0]} {D3[0]}", f"N ends in {x} and k+2 digits 2: carry"))
+    out.append(("nov1", f"0^inf 1 0 {D3[2]}", f"0^inf 1 0 {D3[0]} {D3[0]}", "N = 2: wraps to 00 (one digit more)"))
+    out.append(("nov2", f"0^inf 1 0 {D3[2]} {D3[2]}", f"0^inf 1 0 {D3[0]} {D3[0]} {D3[0]}", "N = 22: wraps to 000"))
+    out.append(("novk", f"0^inf 1 0 (010)^k {D3[2]} {D3[2]}", f"0^inf 1 0 {D3[0]} {D3[0]} (100)^k {D3[0]}", "N = 2...2 (k+2 digits): wraps to k+3 zeros"))
+    return out
+def word(D, bits):
+    return " ".join(D[b] for b in bits)
+def bitsof(v, n):
+    return [(v >> i) & 1 for i in range(n)]
+def rplus3():
+    return [("r00", f"{RD[0]} {RD[0]}", f"{RD[1]} {RD[1]}", "R's low bits 00 become 11"),
+            ("r10", f"{RD[1]} {RD[0]} (1010)^l {RD[0]}", f"{RD[0]} {RD[0]} (1000)^l {RD[1]}", "R (10, l ones, 0) gets 3"),
+            ("r01", f"{RD[0]} {RD[1]} (1010)^l {RD[0]}", f"{RD[1]} {RD[0]} (1000)^l {RD[1]}", "R (01, l ones, 0) gets 3"),
+            ("r11", f"{RD[1]} {RD[1]} (1010)^l {RD[0]}", f"{RD[0]} {RD[1]} (1000)^l {RD[1]}", "R (11, l ones, 0) gets 3")]
+def cparts(v):
+    """C + v: (name, start, end, doc), C's low b digits written out, then the carry."""
+    b = v.bit_length(); out = []
+    for low in range(1 << b):
+        s = low + v; ls = "".join(map(str, bitsof(low, b))); w0 = word(CD, bitsof(low, b)); w1 = word(CD, bitsof(s % (1 << b), b))
+        if s < (1 << b):
+            out.append((f"c{ls}", f"{w0} R", f"{w1} R", f"C's low digits {ls}, no carry"))
+        else:
+            out.append((f"c{ls}j", f"{w0} (0101)^j {CD[0]} R", f"{w1} (0001)^j {CD[1]} R", f"C's low digits {ls}, carry over j ones"))
+            for rn, rs, re_, rd in rplus3():
+                out.append((f"c{ls}w{rn}", f"{w0} (0101)^j 0 1 {rs} R", f"{w1} (0001)^j 0 1 {re_} R", f"C's low digits {ls} then j ones: C wraps; {rd}"))
+    return out
+def xrules(k):
+    out = []
+    for x in range(1 << k):
+        x1 = (x + 1) % (1 << k); v = (24 >> k) + (3 if x1 == 0 else 0)
+        xs = "".join(map(str, bitsof(x, k)))
+        for cn, cs, ce, cd in cparts(v):
+            s = f"L 0 A> 0 {ZD[1]} (1010)^i 1 1 0 1 1 0 {word(ZD, bitsof(x, k))} 1 1 {cs}"
+            e = f"L D> 0 0 {ZD[0]} (0010)^i 1 1 0 1 1 0 {word(ZD, bitsof(x1, k))} 1 1 {ce}"
+            out.append((f"xw_k{k}_x{xs}_{cn}", s, e, f"Z = 1...1 (i+1 digits) wraps; X = {xs} (k = {k}) gets 1; C + {v}: {cd}"))
+    return out
+def nrules():
+    return [(f"xn_{nn}", f"{ns[:-2]} D> 0 0 T", f"{ne} A> 0 T", f"the end of an event in which Z wraps: {nd}") for nn, ns, ne, nd in nparts()]
+if __name__ == "__main__":
+    M, NS = sys.argv[1], sys.argv[2]
+    part = int(sys.argv[3])
+    ths = []
+    for name, s, e, doc in (nrules() if part == 1 else []) + xrules(part):
+        try:
+            t, _ = prove(M, name, s, e, doc=doc + ".", rotate=True, count_first=True, max_seg=40)
+            ths.append(t); print('OK', name, file=sys.stderr)
+        except ProofError as ex:
+            print('FAIL', name, ex, file=sys.stderr)
+    sys.stdout.write(rules_file("Machine", NS, ths, f"X-layer event rules of {M} (the layout N | Z | 11 01 10 | X | 11 | C | 01 | R of the eras with a word X), generated by `py/events3.py` (part {part} of 3: {'the end of an event, and k = 1' if part == 1 else f'k = {part}'}); do not edit by hand."))
