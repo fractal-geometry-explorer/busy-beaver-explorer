@@ -12,11 +12,11 @@ Each machine is put on one rung of a ladder of *what is left*, which sets the ba
 | Halt reported elsewhere | 80 | 7 | Another group reports the halting step; a checked proof of it is left. |
 | One named gap | 62 | 2 | A Lean reduction covers every case but one or two named ones. |
 | Finite or inequality question | 46 | 31 | The macro model is proved; what is left is one invariant or inequality with no number theory in sight. |
-| Halt hunt | 36 | 41 | An exact macro simulator exists and halting looks plausible; a long run could find the halt. |
+| Halt hunt | 36 | 40 | An exact macro simulator exists and halting looks plausible; a long run could find the halt. |
 | Model partly proved | 25 | 75 | Part of the macro structure is proved; the rule that decides halting is not. |
 | Collatz-type question | 14 | 57 | Halting is reduced to an orbit of an explicit map that behaves like a Collatz problem. |
 | Not decoded yet | 10 | 249 | The behaviour is described but its rules are not decoded. |
-| Cryptid | 5 | 58 | A community cryptid: an open number-theory problem. |
+| Cryptid | 5 | 59 | A community cryptid: an open number-theory problem. |
 
 ## Top 10 recommended attacks
 

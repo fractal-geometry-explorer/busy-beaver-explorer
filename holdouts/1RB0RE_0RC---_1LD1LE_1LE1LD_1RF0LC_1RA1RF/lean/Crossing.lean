@@ -14,6 +14,10 @@ running XOR over `N` as in `sweep2` and then:
 
 So whether a crossing bounce reaches the left end is one bit, the parity of the `b`s in `N`, and where it turns
 otherwise is the first `b` of `O`.  Observed in `py/turnshape.py`; proved here for every `N`, `O`, prefix, frozen word.
+
+Then the whole bounce on lists (`turn2_odd`, `turn2_even`), and the far part in 4-cell letters (`clean_odd`,
+`clean_even`): a clean far part `u ws` loses its first `u` in an odd bounce and becomes `u (sx true ws)` in an even one,
+so it stays clean and never blocks a bounce (`far_even`).
 -/
 
 namespace H75625
@@ -91,5 +95,143 @@ theorem cross_odd (N : List Bool) (k : Nat) (O' : List Bool) (p : Bool) (s : Lis
   have h4 := eturn (zl2 O' (pre p))
     (rep k [true, false] (cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R)))))
   exact steps_seq trans (steps_seq trans (steps_seq trans h1 h2) h3) h4
+
+/-! ## One crossing bounce, on lists
+
+After the left sweep the right sweep runs from the left end (even case) or from the turned `b` (odd case).  F steps
+over the lone 1 (`f_lone`), so the lone 1 survives one cell further out, and the sweep goes on over the near part's
+output as in `turn_next`. -/
+
+/-- F steps over a lone 1. -/
+theorem f_lone (X R : Tape) : steps 1 ⟨X, cons true R, .F⟩ = some ⟨cons true X, R, .F⟩ := rfl
+
+/-- The right sweep past the lone 1, over the near part's output, `c` and the frozen word, to the next right turn. -/
+theorem tail_sweep (N s : List Bool) (Z R : Tape) (W2 : List Bool) (e : Bool) (r : List Bool)
+    (hr : rswL false [] ((sx true N).reverse ++ true :: s) = (W2, e, some r)) : ∃ n,
+    steps n ⟨Z, cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R))), .F⟩ =
+      some ⟨zl2 W2 (cons true Z), app (lt2 false) (zl2 r R), .E⟩ := by
+  have h1 := f_lone Z (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R)))
+  obtain ⟨n, h2⟩ := rsweep2 ((sx true N).reverse ++ true :: s) false (cons true Z) R
+  have e1 : zl2 ((sx true N).reverse ++ true :: s) R = zl2 (sx true N).reverse (app (lt2 true) (zl2 s R)) := by
+    rw [zl2_append]; rfl
+  rw [e1] at h2
+  have e2 := rsw2_eq ((sx true N).reverse ++ true :: s) false [] (cons true Z) R
+  rw [hr] at e2
+  have e3 : rsw2 false (cons true Z) ((sx true N).reverse ++ true :: s) R =
+      ⟨zl2 W2 (cons true Z), app (lt2 false) (zl2 r R), .E⟩ := e2
+  rw [e3] at h2
+  exact ⟨1 + n, steps_seq trans h1 h2⟩
+
+/-- **Odd crossing bounce.**  The far part loses its first `b` (it becomes `a`, now on the near side of the lone 1);
+the near part is rebuilt by the right sweep as in `turn_next`. -/
+theorem turn2_odd (N O' : List Bool) (p : Bool) (s : List Bool) (R : Tape) (W2 : List Bool) (e : Bool) (r : List Bool)
+    (h : par true N = true) (hr : rswL false [] ((sx true N).reverse ++ true :: s) = (W2, e, some r)) : ∃ n,
+    steps n (Turn2 N (true :: O') p s R) = some (Turn2 W2 (false :: O') p r R) := by
+  have h1 := cross_odd N 0 O' p s R h
+  obtain ⟨n, h2⟩ := tail_sweep N s (app [true, true] (zl2 O' (pre p))) R W2 e r hr
+  exact ⟨_, steps_seq trans h1 h2⟩
+
+/-- **Even crossing bounce.**  If the right sweep runs over the far part's output without turning and arrives in F
+(`h1`), the far part becomes `W1` and the near part is rebuilt as in `turn_next`. -/
+theorem turn2_even (N O : List Bool) (p : Bool) (s : List Bool) (R : Tape) (W1 W2 : List Bool) (e : Bool)
+    (r : List Bool) (h : par true N = false) (h1 : rswL false [false] (sx false O).reverse = (W1, false, none))
+    (hr : rswL false [] ((sx true N).reverse ++ true :: s) = (W2, e, some r)) : ∃ n,
+    steps n (Turn2 N O p s R) = some (Turn2 W2 W1 (bne p (par false O)) r R) := by
+  have g1 := cross_even N O p s R h
+  have g2 := lend p (par false O)
+    (zl2 (sx false O).reverse (cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R)))))
+  obtain ⟨n, g3⟩ := rsweep2 (sx false O).reverse false (app [true, true] (pre (bne p (par false O))))
+    (cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R))))
+  have e2 := rsw2_eq (sx false O).reverse false [false] (pre (bne p (par false O)))
+    (cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R))))
+  rw [h1] at e2
+  have e3 : rsw2 false (app [true, true] (pre (bne p (par false O)))) (sx false O).reverse
+      (cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R)))) =
+      ⟨zl2 W1 (pre (bne p (par false O))), cons true (zl2 (sx true N).reverse (app (lt2 true) (zl2 s R))), .F⟩ := e2
+  rw [e3] at g3
+  obtain ⟨m, g4⟩ := tail_sweep N s (zl2 W1 (pre (bne p (par false O)))) R W2 e r hr
+  exact ⟨_, steps_seq trans (steps_seq trans (steps_seq trans g1 g2) g3) g4⟩
+
+/-! ## A clean far part never blocks a bounce
+
+Write the far part in the 4-cell letters of `Pascal.lean` (`u = 1110`, `v = 1111`, `dbl`) with a `u` next to the lone 1:
+`O = dbl (true :: ws)`.  This is the far part at every crossing turn of the run (all 2,590 in the first 2·10^7 steps).
+Then the even bounce's right sweep over the far part's output never turns and ends in F (so `turn2_even` applies),
+and the new far part is `a` followed by `dbl (true :: sx true ws)`, with the extra `a` moving to the near side:
+on the 4-cell word the even bounce is the running XOR `ws ↦ sx true ws`, Pascal's rule again.  The odd bounce
+(`turn2_odd`) just drops the first letter `u` and the `v`s after it.  So the far part stays clean for ever. -/
+
+/-- Each bit twice. -/
+def dd : List Bool → List Bool
+  | [] => []
+  | x :: xs => x :: x :: dd xs
+
+theorem sx_dbl (ws : List Bool) : ∀ q, sx q (dbl ws) = dd (sx q ws) := by
+  induction ws with
+  | nil => intro q; rfl
+  | cons x ws ih =>
+    intro q
+    cases x <;> simp only [dbl, two, List.cons_append, List.nil_append, sx, dd, ih] <;> simp
+
+theorem dd_append (xs ys : List Bool) : dd (xs ++ ys) = dd xs ++ dd ys := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [dd, ih]
+
+theorem dd_reverse (xs : List Bool) : (dd xs).reverse = dd xs.reverse := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [dd, ih, dd_append]
+
+/-- The right sweep from F over doubled bits never turns and stays in F; each pair `z z` writes `z` then `a`. -/
+theorem rswL_dd (l : List Bool) : ∀ W : List Bool,
+    rswL false W (dd l) = ((l.reverse.flatMap fun z => [false, z]) ++ W, false, none) := by
+  induction l with
+  | nil => intro W; rfl
+  | cons z l ih =>
+    intro W
+    have h2 : rswL false W (dd (z :: l)) = rswL false (false :: z :: W) (dd l) := by
+      cases z <;> rfl
+    rw [h2, ih]
+    simp [List.flatMap_append]
+
+theorem flatMap_dbl (Z : List Bool) : (Z.flatMap fun z => [false, z]) ++ [false] = false :: dbl Z := by
+  induction Z with
+  | nil => rfl
+  | cons z Z ih =>
+    simp only [List.flatMap_cons, List.cons_append, List.nil_append, List.append_assoc] at ih ⊢
+    rw [ih]
+    cases z <;> rfl
+
+/-- **A clean far part passes the even bounce**: the sweep over its output ends in F with no turn, and the new far
+part is `a` then the clean word `dbl (true :: sx true ws)`. -/
+theorem far_even (ws : List Bool) :
+    rswL false [false] (sx false (dbl (true :: ws))).reverse = (false :: dbl (true :: sx true ws), false, none) := by
+  rw [sx_dbl, dd_reverse, rswL_dd, List.reverse_reverse, flatMap_dbl]
+  rfl
+
+/-- The lone 1 commutes with an `a`: `1 | 1 1` and `1 1 | 1` are the same three cells. -/
+theorem shift_a (N O : List Bool) (p : Bool) (s : List Bool) (R : Tape) :
+    Turn2 N (false :: O) p s R = Turn2 (N ++ [false]) O p s R := by
+  simp only [Turn2, zl2_append]
+  rfl
+
+/-- **Even bounce, clean far part.**  The far part `u ws` (4-cell letters) becomes `u (sx true ws)`; one `a` moves to the
+near side. -/
+theorem clean_even (N ws : List Bool) (p : Bool) (s : List Bool) (R : Tape) (W2 : List Bool) (e : Bool)
+    (r : List Bool) (h : par true N = false) (hr : rswL false [] ((sx true N).reverse ++ true :: s) = (W2, e, some r)) :
+    ∃ n, steps n (Turn2 N (dbl (true :: ws)) p s R) =
+      some (Turn2 (W2 ++ [false]) (dbl (true :: sx true ws)) (bne p (par false (dbl (true :: ws)))) r R) := by
+  rw [← shift_a]
+  exact turn2_even N _ p s R _ W2 e r h (far_even ws) hr
+
+/-- **Odd bounce, clean far part.**  The first `u` of the far part goes; its `b` becomes `a` on the near side. -/
+theorem clean_odd (N ws : List Bool) (p : Bool) (s : List Bool) (R : Tape) (W2 : List Bool) (e : Bool)
+    (r : List Bool) (h : par true N = true) (hr : rswL false [] ((sx true N).reverse ++ true :: s) = (W2, e, some r)) :
+    ∃ n, steps n (Turn2 N (dbl (true :: ws)) p s R) = some (Turn2 (W2 ++ [false, false]) (dbl ws) p r R) := by
+  have e1 : Turn2 (W2 ++ [false, false]) (dbl ws) p r R = Turn2 W2 (false :: false :: dbl ws) p r R := by
+    rw [shift_a, shift_a, List.append_assoc]; rfl
+  rw [e1]
+  exact turn2_odd N (false :: dbl ws) p s R W2 e r h hr
 
 end H75625
