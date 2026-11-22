@@ -169,9 +169,15 @@ exactly 1 per event, as long as no carry leaves the last word.
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- check 50000000`: 42,877 pairs of consecutive full events in one layout follow the law, 0 mismatches; 12 changes of layout, 15 full events in no layout.
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- jump 60 10`: 60 changes of era, 8.0·10^29 events from blank tape (so at least that many steps), no halt; 20,232,708 steps run cell by cell; at the end the chain has 17 words with 124 digits in all; spot checks: 20,803 events, 0 mismatches.
 
-After the last of these changes of era the run reaches full events outside the chain grammar: at one place the separator blocks between two words do not follow the grammar above (in tokens, for example `... a c W ...` where the grammar has `... a d W ...`), and the run stays in such shapes for as long as it was followed, so the simulator cannot jump there. Their law is open.
+After the last of these changes of era the run reaches full events outside the chain grammar: somewhere along the chain the tape is out of phase by half a digit. Seen so far: `... U a c W ...` where the grammar has `... U a d W ...`; a W followed by U digits with no `c` between them; a half digit (`z` or `a`) at the end of Z before its `d`; and a stock of `c z` tokens after the last W, which the last W takes one digit at a time, one per overflow, until the stock is used up.
 
-A halt can only come during a change of era (a carry leaving the last word). What a change of era hands on is open.
+**The law up to a defect (Lean, every layout).** `lean/Layers.lean` now proves the chain law with any tape after the last word (`encT B`): no visit reads past the last word unless a carry leaves it. So the chain law holds on the longest prefix of the chain that is in the grammar, whatever defect comes after it, until a carry leaves that prefix. `py/prefixjump.py` jumps with this and runs only the crossings of a defect cell by cell:
+
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/prefixjump.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_0LC--- 600 2`: 600 jumps, about 10^77 events from blank tape (so at least that many steps), no halt; jumps from a prefix with a defect after it: 457, from a chain wholly in the grammar: 145; 16,738 full events had no prefix that could jump and were run cell by cell; spot checks: 5,487 events, 0 mismatches.
+
+What a carry does when it crosses a defect, and why the defects keep coming back, is open.
+
+A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 
 ## Status
 
