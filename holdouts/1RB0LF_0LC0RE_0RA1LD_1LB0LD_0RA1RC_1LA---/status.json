@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd); this reset map is proved in Lean for the head of the tape, for this machine and its twin, given that every carry into the tail comes back (<code>lean/ResetMap.lean</code>), so the long run is a Collatz-like question about the tail; random block lists that look like records can halt, so no simple invariant is available."
+  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd); this reset map is proved in Lean for the head of the tape, for this machine and its twin, given that every carry into the tail comes back (<code>lean/ResetMap.lean</code>); every carry of the first 36 phases of both runs is checked in Lean (<code>lean/ResetExcLong.lean</code>), so there the map holds with no assumption, so the long run is a Collatz-like question about the tail; random block lists that look like records can halt, so no simple invariant is available."
  ],
  "claims": [
   {
@@ -68,6 +68,24 @@
    "title": "The reset map, for the head of the tape",
    "text": "From a reset <code>0^inf 1 B&gt;1 0 (10)^X T</code> with X &ge; 36 the run reaches the reset with X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or + 3 (X odd), for every tail T whose carries come back with the signatures listed in <code>Good</code> (<code>reset_map</code>); k phases in a row by induction (<code>orbit</code>). The run from blank tape is at <code>Reset 40 T0own</code> after 8,577 steps (<code>reach_own</code>) and the twin at <code>Reset 52 T0twin</code> after 14,638 (<code>reach_twin</code>); if every phase's carries come back, neither halts (<code>never_halts_own</code>, <code>never_halts_twin</code>). The runs between carries are 19 theorems for all parameters and tails.",
    "where": "<code>lean/ResetMap.lean</code>, <code>lean/ResetMapRuns.lean</code> (<code>py/gen_resetmap.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "Excursions, checked for every tape on the left",
+   "text": "A run-length simulator whose left side ends in an arbitrary tape: no move reads past the end of the left side, and every move (a crossing of a run, or one step) is proved for every tape on the left in a number of steps that does not depend on it, so a successful run proves a tail excursion exactly as <code>Good</code> states it (<code>exc_spec</code>). A checker runs the excursions of each phase in order on the real tail; its success for k phases proves <code>GoodN k</code> (<code>cOrbit_spec</code>), so the reset map then holds with no hypothesis (<code>reach_of_check</code>).",
+   "where": "<code>lean/ExcSim.lean</code>, <code>lean/ResetExc.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The reset map without hypotheses: 26 phases",
+   "text": "Every carry of the first 26 phases of both runs checked: this machine's run from blank tape reaches the reset with X = 1,620,646 (about 1.3&middot;10<sup>13</sup> steps) and the twin's the reset with X = 2,099,734, with no halt on the way (<code>reach_own_phases</code>, <code>reach_twin_phases</code>). The checker runs as native code (<code>lean/check_native.sh</code>), about 1 minute per machine.",
+   "where": "<code>lean/ResetExcRuns.lean</code> (in <code>check.sh</code>)"
+  },
+  {
+   "level": "native",
+   "title": "The reset map without hypotheses: 36 phases",
+   "text": "The same for the first 36 phases: this machine's run reaches the reset with X = 93,454,756 (about 4&middot;10<sup>16</sup> steps) and the twin's the reset with X = 121,081,390 (<code>reach_own_phases36</code>, <code>reach_twin_phases36</code>). Checked by hand (59 min and 76 min); the cost grows by about 1.5 per phase, since a phase has about X/4 carries.",
+   "where": "<code>lean/check_native.sh ResetExcLong.lean</code>"
   },
   {
    "level": "native",
@@ -144,7 +162,7 @@
   {
    "level": "heuristic",
    "title": "The carries come back",
-   "text": "Every carry into the tail seen on the direct runs has the signature <code>reset_map</code> assumes: 1,888 phase double steps of both machines in their first 4,000 records, and 11 resets and 12 phase ends with X from 40 to 727. The signatures never depend on X or on the tail in the instances seen.",
+   "text": "Every carry into the tail seen on the direct runs has the signature <code>reset_map</code> assumes: 1,888 phase double steps of both machines in their first 4,000 records, and 11 resets and 12 phase ends with X from 40 to 727. The signatures never depend on X or on the tail in the instances seen. For the first 36 phases of both runs this is now proved (<code>lean/ResetExcLong.lean</code>).",
    "where": "<code>py/gen_resetmap.py</code>"
   },
   {
@@ -169,6 +187,7 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check.sh",
+  "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check_native.sh ResetExcLong.lean      # 36 phases of both runs, about an hour each",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_rules.py 3e5      # rewrites lean/Rules.lean",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_sweep.py      # rewrites lean/Sweep.lean",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_resetmap.py      # rewrites lean/ResetMapRuns.lean and the generated parts of lean/ResetMap.lean",
@@ -179,7 +198,7 @@
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py r3e7.txt 400      # the tail operators (recp output of 3e7 steps)"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps. The 3/2 reset map itself is proved in Lean, as long as every carry into the far part of the tape comes back.",
+  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps. The 3/2 reset map is proved in Lean for the head of the tape, and every carry into the far part of the tape is checked in Lean for the first 36 phases; whether the carries always come back is the open part.",
   "facts": [
    {
     "level": "kernel",
@@ -195,6 +214,11 @@
     "level": "kernel",
     "value": "X &rarr; &lfloor;3X/2&rfloor;+1 or +3",
     "text": "The reset map, proved in Lean for the head of the tape, for this machine and its twin; only the carries into the tail are assumed."
+   },
+   {
+    "level": "native",
+    "value": "36 phases",
+    "text": "Every carry of the first 36 phases checked in Lean, so the reset map holds there with no hypothesis (to X = 93,454,756, about 4&middot;10<sup>16</sup> steps)."
    }
   ],
   "presets": [
@@ -277,6 +301,17 @@
     ]
    },
    {
+    "id": "carries",
+    "eyebrow": "Lean, phase by phase",
+    "heading": "Every carry checked, for 36 phases",
+    "html": [
+     "<p>The reset map in Lean assumes one thing: that each carry the counter sends into the far part of the tape (the <em>tail</em>) comes back to the head with the expected cells and state. A carry is an <em>excursion</em>: it starts with four known cells on the left of the head, does whatever it does in the tail, and ends when the head steps back past those four cells. Its proof has to hold for <b>every</b> tape further left, because the head part of the phase is still arbitrary there.</p>",
+     "<p>The new simulator keeps the tape as runs of repeated words, like the run-length simulator of the shared library, but its left side ends in an unknown tape. It never looks at that tape: when the head would step onto it, the excursion is over. Each move is proved once, for every left tape, so running a carry to its end proves that carry. A checker then runs a whole phase this way (the reset's five carries, about X/4 counter carries, the phase end) on the real tail, and the next phase on the tail that is left, and so on.</p>",
+     "<table class=\"tbl\"><thead><tr><th>machine</th><th>phases checked</th><th>last reset (X)</th><th>where</th></tr></thead><tbody><tr><td>this machine</td><td>26</td><td>1,620,646</td><td>CI</td></tr><tr><td>its twin</td><td>26</td><td>2,099,734</td><td>CI</td></tr><tr><td>this machine</td><td>36</td><td>93,454,756</td><td>by hand, 59 min</td></tr><tr><td>its twin</td><td>36</td><td>121,081,390</td><td>by hand, 76 min</td></tr></tbody></table>",
+     "<p>So the first 36 phases (about 4&middot;10<sup>16</sup> steps here) are now proved with no assumption at all. This does not decide the machine: a phase has about X/4 carries and X grows by 3/2, so the check of each phase costs 1.5 times the last, and the steered runs below show that no property of the tail alone can make every carry come back. What is missing is a reason why the tails the true 3/2 orbit produces stay safe.</p>"
+    ]
+   },
+   {
     "id": "steer",
     "eyebrow": "Experiment",
     "heading": "Is the tail safe on its own?",
@@ -318,6 +353,6 @@
   ]
  },
  "family": "binary counter on (10)^D x blocks with a countdown block; Collatz-like 3/2 reset map",
- "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map, proved in Lean for the head of the tape given that the carries into the tail come back; no invariant excluding the halt is known.",
+ "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map, proved in Lean for the head of the tape given that the carries into the tail come back, and without that assumption for the first 36 phases (every carry checked in Lean); no invariant excluding the halt is known.",
  "decision": "open"
 }

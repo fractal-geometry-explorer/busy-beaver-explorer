@@ -5,7 +5,9 @@ bbchallenge id 129771, a six-state holdout of group G05. **Open.** The tape is a
 simulation record for record. Every crossing rule it used in the first 300,000 records is proved in Lean (kernel), for
 all block sizes and all surrounding tapes. The macro run finds no halt in 338,536,834,271,065 (3.39·10^14) steps, and a record-skipping version of it (`py/run_accel.py`) none in 8.86·10^40 steps (phase 106 of the reset map; the twin: phase 101, 2.59·10^39 steps). The reset map
 X' = floor(3X/2) + 1 or + 3 is proved in Lean for the head part of the tape (`lean/ResetMap.lean`), so both this
-machine and its twin halt only if a carry into the tail fails to come back. No invariant that excludes the halt is known.
+machine and its twin halt only if a carry into the tail fails to come back. Every carry of the first 36 phases of both runs
+is now checked in Lean (`lean/ResetExcLong.lean`, `native_decide`): this machine's run reaches the reset with X = 93,454,756
+(about 4·10^16 steps), with no hypothesis. No invariant that excludes the halt in later phases is known.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -192,6 +194,52 @@ to a direct simulation and reads each excursion's signature off the real run: al
 machines in their first 4,000 records, and 11 resets and 12 phase ends (X from 40 to 727, both machines), have the
 signatures of the table. The signatures do not depend on X or on the tail in any instance seen.
 
+## The carries checked in Lean, phase by phase (22 Nov)
+
+**For the first 36 phases the reset map holds without hypotheses**, for this machine and for the twin.
+`reset_map` (previous section) assumes `Good`: that every tail excursion of a phase comes back with the listed
+signature. Those assumptions are now discharged, one phase after the other, by running the excursions themselves on
+the actual tail inside Lean:
+
+- `lean/ExcSim.lean` is the run-length simulator of `tools/lean/TM/RLE.lean`, rebuilt for excursions. Its left side
+  ends in an **arbitrary** tape `L` instead of blank tape. No move ever reads past the end of the left side, and a
+  left step off that end is the excursion's exit. Every move (a crossing of a run of `1010`-like words on the right
+  or on the left, by `cross_r`/`cross_l`, or one ordinary step) is proved for every `L`, in a number of steps that
+  does not depend on `L` (`xmove_spec`). So a successful run proves `Exc u q q' v T T'` exactly as `ResetMap.lean`
+  states it (`exc_spec`).
+- `lean/ResetExc.lean` runs the excursions of a phase in the order `Good` lists them (reset piece, the X/4 or so
+  carries, phase end), with the tail kept as runs (`Side`), and proves `cOrbit k X T = true → GoodN k X T`
+  (`cOrbit_spec`). Together with `orbit` this is `reach_of_check`: k checked phases take the run from the reset of
+  `X` to the reset of `f^k X`.
+- `native_decide` evaluates `cOrbit` on the two runs' first resets (`Reset 40 T0own` after 8,577 steps here,
+  `Reset 52 T0twin` after 14,638 steps for this table started in D):
+
+| file | machine | phases | reset reached (X) | approx. steps | check time |
+|---|---|---|---|---|---|
+| `lean/ResetExcRuns.lean` (in CI) | this one | 26 | 1,620,646 | 1.3·10^13 | ~1 min |
+| | twin 1RB0RA_0RC0LE_0LD1RA_1LB0RF_0LD1LC_1RD--- | 26 | 2,099,734 | | ~1.5 min |
+| `lean/ResetExcLong.lean` (by hand) | this one | 36 | 93,454,756 | 4·10^16 | 59 min |
+| | twin | 36 | 121,081,390 | | 76 min |
+
+`reach_own_phases36` says that this machine's run from blank tape reaches `Reset 93454756 T` for some tail `T`, so
+it does not halt before; `reach_twin_phases36` says the same for the twin (through `twin_halts_iff`). The step
+counts in the table are not part of the Lean statements (they come from the macro run's reset table above and the
+2.25 growth per phase); the old Lean bound was `blank_runs_native`, 10^7 steps.
+
+**How it is run.** The checker is ordinary Lean code. Interpreted, 22 phases take 170 s; `lean/check_native.sh`
+compiles it and the modules it uses to C, links one shared library and loads it with `lean --load-dynlib` (what
+Lake's `precompileModules` does), which is about 12 times faster. The trust is that of `native_decide`, the Lean
+compiler. A wrong claim fails: `cOrbit 22 41 ...` and a tail with one extra cell are evaluated to `false`.
+
+**Why this is not the whole answer.** Each phase has about X/4 carries and X grows by 3/2, so the check costs about
+1.5 times more per phase (36 phases: about an hour per machine). The halting question is whether every phase passes.
+That cannot follow from any property of the tail alone: the steered runs of the next section halt. A proof for all
+phases needs a property of the tails that the true 3/2 orbit produces, which is still open.
+
+**Further compute.** The lead asked for the halt hunt to go past phase 106. That had already happened: the
+region-memo accelerator (`tools/py/bbtools/regaccel.py`, see the status page) reached about 10^135 steps for both
+machines in 10 minutes, about phase 370 of the reset map at 2.25 per phase.
+
 ## Is the tail safe on its own? (22 Nov, heuristic)
 
 `reset_map` leaves one question: does every carry into the tail come back. Two C programs test whether the tail is
@@ -321,6 +369,12 @@ which lists the run can reach.
   tape, for both machines, given the tail excursions (`Good`).
 
 **Lean, native_decide**: `blank_runs_native`, no halt in 10^7 steps.
+- `ExcSim.lean`, `ResetExc.lean` (kernel): a run-length simulator for excursions, proved for every tape on the left
+  (`exc_spec`), and the phase checker: a successful check of k phases proves `GoodN k` (`cOrbit_spec`, `reach_of_check`).
+- `reach_own_phases`, `reach_twin_phases` (`lean/ResetExcRuns.lean`, in CI): every carry of the first 26 phases is checked;
+  the runs reach the resets with X = 1,620,646 (this machine) and X = 2,099,734 (the twin) without a halt.
+- `reach_own_phases36`, `reach_twin_phases36` (`lean/ResetExcLong.lean`, by hand): the same for 36 phases, X = 93,454,756
+  and X = 121,081,390. Both files run with the checker compiled to native code (`lean/check_native.sh`).
 
 **Computed (trusted)**:
 - `py/run_accel.py` (record skipping, checked against `py/run_macro.py`): no halt through phase 106, 8.86·10^40
@@ -338,13 +392,14 @@ which lists the run can reach.
 **Heuristic**: that the tail excursions come back as `Good` asks (`py/gen_resetmap.py`); that the tail is not safe by itself, so steered runs with irregular phase lengths halt (`c/perturb.c`, `c/branch.c`); the tail operators (`py/tail_ops.py`), the three record
 patterns, and the 99.99% share of simple sweeps.
 
-**Open**: whether it halts. The Lean theorem `¬ Halts` is proved only under `∀ k, GoodN k` (`never_halts_own`), that is, if
+**Open**: whether it halts. `GoodN 36` is proved for both runs; the Lean theorem `¬ Halts` is proved only under `∀ k, GoodN k` (`never_halts_own`), that is, if
 every tail excursion comes back the observed way.
 
 ## Reproduce
 
 ```sh
 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check.sh
+holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check_native.sh ResetExcLong.lean   # 36 phases, about an hour per machine
 D=holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---
 python3 $D/py/gen_rules.py 3e5              # rewrites lean/Rules.lean (a few minutes)
 python3 $D/py/gen_sweep.py                  # rewrites lean/Sweep.lean
@@ -374,6 +429,8 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `lean/RulesTwin1.lean`, `lean/RulesTwin2.lean`, `py/gen_rules_twin.py`, `py/gen_rules_lib.py` | crossing rules of the twin's run (generated) |
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
 | `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
+| `lean/ExcSim.lean`, `lean/ResetExc.lean` | the excursion simulator (any tape on the left) and the phase checker |
+| `lean/ResetExcRuns.lean`, `lean/ResetExcLong.lean`, `lean/check_native.sh` | the checks of 26 (CI) and 36 (by hand) phases, run as native code |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
 | `py/accel.py`, `py/run_accel.py` | the carry-skipping run (Hashlife over records on the block macro machine) |
 | `py/tail_counter.py` | the tail as a binary counter of blocks: depth of each carry, periods of the first w blocks |
