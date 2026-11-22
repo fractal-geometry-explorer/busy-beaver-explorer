@@ -26,16 +26,19 @@ crosses runs of pairs in one go (`lean/Rules.lean`, four rules, kernel).
 
 ## Status
 
-Open. Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the four crossing rules, and the walk of the
-reflector Q (`lean/Walk.lean`). Halting needs F to read a 1, which happens only as `D> 1 0 1 1`. CTL (K = 2..5) and
-NGramCPS (widths 2-8, -H, -U) fail. What happens when the last run is used up is decoded below.
+Open. Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the four crossing rules, the walk of the
+reflector Q (`lean/Walk.lean`), and the movers: the head crosses any run of them unchanged, so every bounce of a drain
+or a rebuild is a lemma except where the head turns (`lean/Movers.lean`). On these lemmas an exact simulator reaches
+10^15 steps without a halt (below). Halting needs F to read a 1, which happens only as `D> 1 0 1 1`, and only a
+collision run cell by cell could do that. CTL (K = 2..5) and NGramCPS (widths 2-8, -H, -U) fail.
 
 ## For later
 
 1. Prove the drain step (one pair per round trip) as a rule with r and m as variables.
 2. Done 22 November: the end of a drain starts a rebuild (see below).
-3. Prove the collisions of Q (with a separator, a mover reaching the right end, a scar) with `bbtools.symtm`, and write
-   the rebuild as an exact list-to-list map; then look for an invariant of the lists that keeps `D> 1 0 1 1` out.
+3. Partly done 22 November: the movers are proved (`lean/Movers.lean`) and the simulator on them is exact. Still to
+   do: prove each family of collisions with its gaps as variables, or find an invariant of the lists that keeps
+   `D> 1 0 1 1` out of every collision.
 
 ## Reproduce
 
@@ -121,6 +124,71 @@ gcc -O2 -o sweeps holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/c/sweeps.c 
 gcc -O2 -o parts holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/c/parts.c && ./parts 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE--- $(./sweeps 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE--- 1793600000 1793910000 40 | awk '$4=="min"{print $1}' | paste -sd,) 54200
 gcc -O2 -o fwatch holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/c/fwatch.c && ./fwatch 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE--- 3000000000
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_walk.py     # writes lean/WalkRules.lean
+```
+
+## Movers: an exact simulator to 10^15 steps (22 November 2026)
+
+**Short answer.** The rebuilds are now simulated exactly, not just watched: every bounce is a Lean lemma except the
+few cells where something collides, and those cells are run one machine step at a time. From step 273,791 this
+reaches 10^15 steps in two and a half minutes without a halt, through the drain ends at 6.5·10^12 and 6.0·10^14
+and into the rebuild that follows. The lists it finds at the drain ends are exactly those of the accelerated run
+above, which rested on unproved jumps. Whether a later collision can halt is still open.
+
+**Everything is a mover.** Read at a right-end turn (head in E on the blank), the tape is
+
+    Y | movers g_k ... g_1 | E>        a mover at rest = 0 0 1 1 0 (01)^g   (g pairs of gap on its right)
+
+The separators of the list, the separators Q has passed, and the reservoir's words (`g = 1`) are all movers; only
+Q, the scars and the few cells at the left end are not. `lean/Movers.lean` (kernel):
+
+* `left_all`: the left sweep, in state E on a 0, crosses any movers (gaps of at least one pair) and comes out on
+  their left in state E on a 0;
+* `right_gen`: the right sweep crosses them all again and comes out in state D, every mover four cells further
+  right. After a one-pair gap it runs in state F for a while (`rm1`, `fm1`, `fm`), which changes only the first cell
+  it writes;
+* `bounce_gen`: so **any** bounce is the same, whatever happens left of the movers, as long as the head, sent in
+  from the right in state E on a 0, comes back out in state D or F without looking right. The gaps between movers
+  stay the same and the last gap shrinks by one pair;
+* `bounce0m`, `bounce1m`, `walkm`: with Q on the left, Q's walk with movers in closed form (Q's gap grows by
+  three pairs per bounce).
+
+In a drain the same lemmas apply with the left end of the tape in place of Q: the whole list and the reservoir move
+four cells right per trip while the left end grows by one word. So the drains and the rebuilds are one system,
+and a bounce needs work only where the head turns: at Q (or the left end) and at the right end when the last gap
+is under two pairs.
+
+**The simulator.** `py/mover_sim.py` keeps the tape as `Y | movers | Z` (runs of pairs as counts, movers as a list
+of gaps) and moves it a bounce at a time: k bounces at once by `walk` or `walkm` when Q is in a clean background;
+`bounce_gen` when only the left end of the bounce is unusual (that end run cell by cell); and all cells one step at a
+time otherwise, crossing runs of pairs with the four rules of `lean/Rules.lean`. Its only unproved part is its own
+bookkeeping. Checked against direct simulation (`c/dump.c`), the whole tape and state are equal after 20,000
+bounces (step 438,724,239) and after 203,633 bounces (step 29,361,299,373, 441,628 cells, past four drain ends).
+To 10^15 it makes 25.8 million bounces: 18.0 million inside 1.3 million jumps, 7.8 million with a collision run
+cell by cell, and 5.7 million times it opens up the rightmost mover to run it cell by cell.
+
+| drain end (last gap down to one pair) at step | reservoir | list |
+|---|---|---|
+| 142,241,195 | 2,415 | `10 (11 43)^16 11 19 18 (101 61)^2 130 541 269 821 1` |
+| 1,793,081,823 | 9,643 | `... (893 565)^2 1162 6 1` |
+| 2,229,667,575 | 11,195 | `... (893 565)^2 1` |
+| 6,481,607,828,757 | 468,863 | `10 (5 13)^388 5 37 (19 35)^5209 19 90 (107 379)^9 107 774 739 24448 6659 5707 81162 (19709 98389)^2 19709 158069 1` |
+| 604,987,560,783,867 | 5,205,978 | `... 5707 563005 177397 4764477 1` |
+
+(The steps differ from the table above by part of a round trip: there a drain end is the last left-end record,
+here the right-end turn where the last gap reaches one pair.)
+
+**Where a halt could still come from.** Inside the lemmas F always reads the first cell of a gap or the 0 that
+starts the next mover, so the lemmas never halt. A halt can only come from a collision run cell by cell. To 10^13
+steps there are 57 different such runs, all made of the same few pieces: the left sweep crossing a gap (`E0 <`) or
+a mover (`C0 D1 A1 C0 D1 A1 C0 D0 ~ E0 <`), the right sweep passing a mover (`E1 D1 A0 B1 F0 ~`) or turning at
+one (`E1 D1 A0 B0 A1 C0 D0 ~`, `D1 A1`), and the turns at Q and at the ends. In every one F reads a 0. What is left
+is to show that no future collision is different: either an invariant of the lists, or a proof of each collision
+family with its gaps as variables.
+
+```sh
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py check 203633   # compares with c/dump.c
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py run 1e15       # drain ends, no halt
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_movers.py              # writes lean/MoverRules.lean
 ```
 
 ## Pages
