@@ -112,6 +112,18 @@
    "where": "<code>not_halts_of_arun</code>, <code>lean/End.lean</code>; <code>py/listmachine.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Odd runs in the frozen word rule out both failure cases",
+   "text": "A right sweep from F reads a word to the end and finishes in F only if the word is in <code>(0|11)*</code>. Call a 0 followed by an odd run of 1s, which is followed by a 0 or by the end of the word, a witness. A crossing turn whose far part is clean and whose frozen word has a witness always has a next list state (<code>astep_T2_witness</code>).",
+   "where": "<code>lean/Race.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "40,000 list steps",
+   "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through.",
+   "where": "<code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code>"
+  },
+  {
    "level": "trusted",
    "title": "Crossings as one map",
    "text": "A crossing depends only on the swept zone, the prefix and the end cell, so the machine is an iterated map on crossing starts; the simulated map matches the run at all 13 crossings of the first 2·10<sup>7</sup> steps. The 17 crossing starts up to 2·10<sup>8</sup> steps have an odd last run of <code>a</code>s and odd inner runs apart from at most two near the head, but small words of that kind can still break a crossing, depending on run lengths modulo higher powers of 2.",

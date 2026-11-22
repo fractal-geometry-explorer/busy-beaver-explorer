@@ -184,6 +184,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A list machine <code>astep</code> on three kinds of right-turn states (ordinary, crossing, E on the last 1) covers the right end of the tape too. Each list step is at least one machine step (<code>astep_sim</code>), and the first right turn is at step 12 (<code>start</code>). If the list machine never fails from there, the machine never halts from blank tape (<code>not_halts_of_arun</code>). It can fail in only two ways: F reaching the blank end during a crossing, or an even crossing bounce blocked by its far part. Neither has happened: the list machine matches all 17,758 right turns of the first 2·10<sup>8</sup> steps.</p>
         <p class="where"><code>not_halts_of_arun</code>, <code>lean/End.lean</code>; <code>py/listmachine.py</code></p>
       </div>
+      <div class="card">
+        <h3>Odd runs in the frozen word rule out both failure cases</h3>
+        <p>A right sweep from F reads a word to the end and finishes in F only if the word is in <code>(0|11)*</code>. Call a 0 followed by an odd run of 1s, which is followed by a 0 or by the end of the word, a witness. A crossing turn whose far part is clean and whose frozen word has a witness always has a next list state (<code>astep_T2_witness</code>).</p>
+        <p class="where"><code>lean/Race.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -199,6 +204,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Every turn of F is at a block of odd length, except at the right end (10<sup>10</sup> steps)</h3>
         <p>In the first 10<sup>10</sup> steps F turned 139,833 times. The block it turned at had odd length every time (3 cells 36,463 times, 5 cells 46,436, 7 cells 19,254, 9 cells 20,280, and longer), except 22 turns at a block of exactly two cells, each of which was the last block of the tape. A turn at a block of two with another block after it would leave <code>0 0 1</code> (<code>turn_two</code>). F met two 0s in a row 42 times, each time at the right end with only blank cells beyond. No halt.</p>
         <p class="where"><code>c/turns.c</code></p>
+      </div>
+      <div class="card">
+        <h3>40,000 list steps</h3>
+        <p>The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through.</p>
+        <p class="where"><code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code></p>
       </div>
       <div class="card">
         <h3>Crossings as one map</h3>
