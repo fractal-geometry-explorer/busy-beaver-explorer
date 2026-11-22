@@ -64,6 +64,38 @@ F1 at which PR 93's run stops. In U it is the same nearest cells every time (`0 
 depends on anything beyond those cells, so the sibling's halting point gives no halting point for U: U survives each
 lap the way it survived the first.
 
+## The fast engine (22 November 2026)
+
+Almost all of the extracted engine's time went into Coq's binary numbers: in the extracted OCaml a number is a list of
+bits, and at 2^6000 cells every addition walks thousands of list cells. `ExtT4CZ.v` extracts the same definitions
+(`T4C.v` as built by `build.sh`, nothing changed) with `positive`, `N` and `Z` realized by Zarith's integers: Coq's
+standard `ExtrOcamlZBigInt`, plus `N.eqb`, `N.leb`, `N.ltb`, `Pos.eqb`, `N.double`, `N.succ_double` and `N.div2` written
+as the Zarith functions with the same meaning. This is a change of number representation in the extracted code only;
+`run_ok` in Coq is untouched. `buildz.sh OUTDIR` (after `build.sh`) builds `runz` and `zdigest` from it, and `cksdigest`
+for the old engine.
+
+- **Same states (computed).** `zdigest S N` prints an MD5 of the whole compressed state (every run, word, counter and
+  digit list, with numbers in decimal) at fast step N, and `cksdigest CK` prints the same digest of a checkpoint of the
+  old engine (`run.ml`). They agree at fast steps 10^3, 10^4, 10^5, 3·10^5 and 10^6 from start B, at fast step
+  35,227,304 from start B (`fa3c4a9a98e3015d560c6619c6275d80`) and at fast step 29,077,778 from start D
+  (`584e46fced19ef4fef6aec291f47d321`), the last checkpoints of the old runs. The new engine reaches those two points in
+  under 3 minutes; the old one took several hours.
+- **Speed.** About 27 times faster at 10^6 fast steps and far more on larger tapes: in one hour each of the three runs below
+  went from blank tape to about 3·10^8 fast steps and 2^17800 cells.
+- `runz START MAXFAST CHECKPOINT` runs from blank tape (or resumes), saves every 3 minutes, and classifies every entry
+  into raw mode like `ev3` (state, direction, 8 cells on each side), printing a kind when it is first seen.
+
+| start | machine | fast steps, no stop | tape then | so no halt in the first | kinds of raw entry |
+|---|---|---|---|---|---|
+| A | 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF | 309,343,765 | > 2^17817 cells | 10^5363 steps | 19 |
+| B | 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF | 286,000,000 | > 2^17816 cells | 10^5363 steps | 17 |
+| D | 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF | 305,000,000 | > 2^17855 cells | 10^5374 steps | 23 |
+
+The new kinds of raw entry (more of the 8 neighbouring cells, the same situations) are all in the classes of the table
+above: D moving right with a 0 on its left, D moving left onto a 1, B moving right, and C reading 0 moving left with
+`1 1 1` on its left, the sibling's halting event. That event came 73 times from start A (55+5 from B, 75+1 from D)
+and was survived every time. Every raw step is checked for the halt by the engine itself.
+
 ## Files
 
 - `mkU.py PR93.v OUT.v MACHINE START K [fast]`: the proof for this machine (`... A K`); `fast` admits `run_ok`.
@@ -73,6 +105,8 @@ lap the way it survived the first.
 - `ev2.ml`: `ev2 A MAXFAST [CHECKPOINT|none] [SAVE]`, the same with every raw C0, D0 and F1 printed with its context.
 - `ev3.ml`: `ev3 A MAXFAST`, every entry into raw mode, classified.
 - `pk2.ml`: `pk2 A FROM TO`, the compressed configuration at each fast step in a range.
+- `ExtT4CZ.v`, `buildz.sh`, `runz.ml`, `zdigest.ml`, `sdigest.ml`, `cksdigest.ml`: the fast engine (Zarith numbers),
+  its runner and the state digests that compare it with the plain engine (section above).
 - `validateU.ml`: `validateU START MAXFAST MAXDIRECT`, the engine next to direct simulation of U (engine state F is U's E).
 - Other starts of the same table (22 November 2026): `START=B M=1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF build.sh ...`
   and `START=D M=1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF build.sh ...` (wrappers in those machines' `coq/` folders,
