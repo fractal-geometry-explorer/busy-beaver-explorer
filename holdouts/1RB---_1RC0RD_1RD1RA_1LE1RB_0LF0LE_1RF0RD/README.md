@@ -51,7 +51,7 @@ overflows.
   fewer, N = 1). C(01) = 43, C(11) = 104, and for k >= 2, with t the number of trailing `11` pairs of r,
   C(r) = C(r >> 2) + c_t 8^(k-1), c_0 = 42, c_t = 248·4^(t-1) - 21 (2 c_(k-1) + 21 if all k pairs are `11`).
 
-This map was read off runs of the machine. It agrees with every overflow of the run to 4·10^11 steps, with all
+This map was first read off runs of the machine (it is now proved in another form, below). It agrees with every overflow of the run to 4·10^11 steps, with all
 1,950 overflows of strings of at most 9 bits (run directly), and the recursion for C with all 126 patterns of k <= 6
 and 12 random ones of k = 7, 8 (`py/macro.py`). The overflows of the run (bits, then M and j):
 
@@ -84,34 +84,63 @@ by 2k keeps pairs aligned, so blockers above the lowest one move down unchanged 
 overflow 39 (M = 155), 639 at overflow 2,000 (M = 10,075), 3,302 at 10,000 (M = 50,724), 5,901 at 18,000
 (M = 91,490), about one blocker gained per three overflows, and only 56 of the 20,000 overflows (all among the first
 ones) have fewer than 20. So under the map a halt would need thousands of blockers to disappear at once; this is
-evidence, not a proof: no invariant that keeps one blocker is proved, and the map itself is still trusted. The
+evidence, not a proof: no invariant that keeps one blocker is proved. The
 recursive visit law that settled the corresponding point for the two-word sweepers
 (`holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/lean/Stream.lean`) was not found here: in this machine every turn
 of the head erases back into the left string, so a visit of the right side is not a function of the right side
 alone.
 
-**What non-halting reduces to.** Proved: the machine runs from blank to `P 0 [0,1]` and from each `P` to the next
-whenever the addition stays inside the string. So it never halts if and only if every overflow phase ends in a new
-`P` configuration. The overflow map above (trusted) says which one, and that the machine halts exactly when the map
-reaches a string whose odd pairs fill it. Two things are open: (1) the overflow map for all sizes; (2) that the
-iterated map never fills a string with odd pairs.
+**The overflow, proved (`lean/Overflow.lean`, `lean/Junction.lean`, `lean/Phase.lean`, `lean/Orbit.lean`,
+kernel).** Write a post-event configuration with numbers, `PN d M Y` = `P d (bitsOf M Y)` (Y = X + 2 the string as
+an M-bit number, lowest bit nearest the head). In an overflowing phase, i0 counts bring the string to `b1 1^(M-1)`;
+the next count carries into the blank left of the string, F writes two new 1s there and D comes back over the
+shifted block (`overflow_true`, `overflow_false`). The string is reset (to `0^M`, or to `1 0^M` when b1 = 0) and the
+head comes back one cell out of phase with the counter: the right side is `ctr(low) J`, where the *junction* J is
+`h ctr(H)` (a K junction, after b1 = 1) or `0 h ctr(H)` (a J junction, after b1 = 0) and H is the rest of the
+incremented counter. From there the machine is a small *junction machine* with one proved rule per step
+(`Junction.lean`):
 
-For (1): at an overflow the carry walks into the blank left of the string, the string is reset, and the head comes
-back one cell out of phase with the counter (B reads the cell before a group, e.g. step 6,585:
-`11.1.1.1.1.1.1.1.1.1 B> ..1.....1..1...........1`). In that phase the machine eats the counter's lowest digits two
-at a time (k pairs, the counter loses 2k - 1 digits, the string gains 3k + 1 bits), which is where C(r) comes from.
-Proving it means writing that phase as rules with variable lengths plus an induction on k, as `Count.lean` does for
-the counts. For (2): the map behaves like a random process on growing strings; a halt needs k >= M/2 and the k seen
-thin out geometrically (above). No invariant excluding the halting case is known; this looks like a Collatz-type
-question, not something a finite certificate will settle.
+- a count adds 1 to `low` (and 2 to the string), as before;
+- `low` full, next digit 0 (`carry0`): `low` becomes `0^l 1`, one digit longer;
+- `low` full, J junction, next digit 1 (`carryJ1`): the head crosses the ones `1^s 0` that follow and `low` becomes
+  `0^(l+s+1) 1`;
+- `low` full, K junction, next digit 1 (`absorb_even`, `absorb_odd`): `low` is absorbed into the string: l = 2n
+  gives the new low bits `0^(3n) 1` and a J junction, l = 2n + 1 gives `1 0^(3n+1) 1` and a K junction;
+- H used up: the counter is `0^d 1` again, a post-event configuration.
+
+`astep` and `arun` (`Phase.lean`) are this machine on numbers and lists, with side conditions where the left string
+could overflow (`stuck`); `astep_next`, `arun_done` prove every step. `phase d M Y` (`Orbit.lean`) is one whole
+phase: the event rule, or i0 counts, the overflowing count and `arun` (fuel 2d + 12). `phase_sound`: whenever
+`phase` returns `(d', M', Y')` the machine goes from `PN d M Y` to `PN d' M' Y'`. With `blank_to_P` (step 69 is
+`PN 0 2 2`), `orbit_reach` and
+
+> **`not_halts_of_orbit`: if the orbit of `phase` from (0, 2, 2) never gets stuck, the machine never halts**
+
+(axioms propext, Classical.choice, Quot.sound; no `sorry`). `lean/OrbitCheck.lean` checks with `#guard` that the
+first 9 overflows of `orbit` are those of the table above. `py/phasemap.py` is a line-for-line transcription: it
+agrees with the machine at all 2,000 overflows of strings of at most 9 bits (and is stuck at the 8 that halt), with
+`py/macro.py` (the old trusted map, C(r)) at the first 1,000 overflows of the orbit (M up to 4,788), and Lean's
+`#eval` of `phase` agrees with it at the first 300. The map is stuck exactly at (d, M, Y) = (M - 2, M, 2^(M-1) + 1)
+(the all-ones halting pattern) for M <= 12, apart from degenerate inputs (Y <= 1 or d >= M - 1) that the orbit does
+not reach.
+
+**What non-halting reduces to.** Proved in the kernel: the machine never halts if the iterated `phase` map never
+gets stuck. So the overflow map is no longer trusted: the problem is now a question about a computable function on
+numbers. Open: (1) the converse (that a stuck phase does halt, which would make it an "if and only if"; checked for
+M <= 9, proved for M = 4, 5, 6 in `Shapes.lean`); (2) that the orbit never gets stuck. The map behaves like a random
+process on growing strings; a halt needs k >= M/2 and the k seen thin out geometrically (above). No invariant
+excluding the halting case is known; this looks like a Collatz-type question, not something a finite certificate
+will settle.
 
 ## Status
 
 Open. Lean: `lean/Blank.lean` (halting configurations; no halt in 10^7 steps), `lean/Rules.lean` (shift rules
 `erase`, `fill`, `pairs`, `shift`, kernel), `lean/Shapes.lean` (`allones_4/5/6`: the halting pattern halts, kernel),
-`lean/Count.lean` (the event rule for every size, kernel; halting only at an overflow follows from it and `blank_to_P`).
-Trusted: the overflow map (`py/macro.py`), checked as above; no halt in 4·10^11 steps (`tools/c/tmrun.c`).
-Heuristic: 100,000 phases of the map without a halt.
+`lean/Count.lean` (the event rule for every size, kernel), `lean/Bits.lean` (bit strings as numbers),
+`lean/Junction.lean`, `lean/Overflow.lean`, `lean/Phase.lean`, `lean/Orbit.lean` (the overflow phase for every
+size and **`not_halts_of_orbit`**, kernel), `lean/OrbitCheck.lean` (the first 9 overflows, `#guard`).
+Not proved: that the orbit of the map never gets stuck. Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`);
+100,000 phases of the map (`py/macro.py`, which agrees with `phase`) without getting stuck, about 10^153,000 steps.
 
 ## Scripts
 
@@ -127,6 +156,8 @@ Heuristic: 100,000 phases of the map without a halt.
 - `py/overflows.py MACHINE B MMAX`: every overflowing phase with at most MMAX bits, run to the next P configuration.
 - `py/macro.py 100000` iterates the map; `py/macro.py 9 check LOG` compares it with the overflows of a log;
   `py/macro.py 0 checkO 9` runs every overflow of at most 9 bits; `py/macro.py 0 checkC 6` checks C.
+- `py/phasemap.py machine 9 | macro 300 | stuck 12 | orbit K`: the proved phase map (`lean/Orbit.lean`) in
+  Python, against the machine, against `py/macro.py`, where it is stuck, and iterated.
 - `py/blockers.py 20000`: the blockers at the overflows of the map (see above).
 - `py/leanfiles.py` writes `lean/Rules.lean` and `lean/Shapes.lean` (shared by the batch; spec as JSON, see its
   docstring).
