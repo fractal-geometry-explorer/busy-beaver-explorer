@@ -1,0 +1,38 @@
+[
+ [
+  "def UD (y y' : Tape) : Prop := ∃ y1 y2, Vis .B y .E y1 ∧ Vis .A y1 .E y2 ∧ Vis .B y2 .C y'",
+  "def UD (y y' : Tape) : Prop := ∃ y1 y2, Vis .B y .E y1 ∧ Vis .E y1 .C y1 ∧ Vis .A y1 .E y2 ∧ Vis .B y2 .C y'"
+ ],
+ [
+  "  obtain ⟨y1, y2, h1, h2, h3⟩ := h\n  exact ⟨l_a_E h1 h2 h3, l_a_B h1 h2 h3⟩",
+  "  obtain ⟨y1, y2, h1, hb, h2, h3⟩ := h\n  exact ⟨l_a_E h1 hb h2 h3, l_a_B h1 hb h2 h3⟩"
+ ],
+ [
+  "theorem ud_d {Y Y1 Y2 Y3 : Tape} (h1 : Vis .A Y .D Y1) (hb1 : Vis .E Y1 .C Y1) (h2 : Vis .A Y1 .D Y2)\n    (hb : Vis .E Y2 .C Y2) (h3 : Vis .A Y2 .D Y3) : UD (cons true (cons true Y)) (cons true (cons true Y3)) :=\n  ⟨_, _, l_d_B_dd h1 hb1 h2, l_d_A_d hb h3, l_d_B_01⟩",
+  "theorem ud_d {Y Y1 Y2 Y3 : Tape} (hb0 : Vis .E Y .C Y) (h1 : Vis .A Y .D Y1) (hb1 : Vis .E Y1 .C Y1) (h2 : Vis .A Y1 .D Y2)\n    (hb : Vis .E Y2 .C Y2) (h3 : Vis .A Y2 .D Y3) : UD (cons true (cons true Y)) (cons true (cons true Y3)) :=\n  ⟨_, _, l_d_B_dd hb0 h1 hb1 h2, l_d_E_01, l_d_A_d hb h3, l_d_B_01⟩"
+ ],
+ [
+  "theorem ud_cd {Y Y1 Y2 Y3 : Tape} (h1 : IAcd Y Y1) (hb1 : Vis .E Y1 .C Y1) (h2 : IAcd Y1 Y2)\n    (hb : Vis .E Y2 .C Y2) (h3 : IAcd Y2 Y3) : UD (cons true (cons true Y)) (cons true (cons true Y3)) := by",
+  "theorem ud_cd {Y Y1 Y2 Y3 : Tape} (hb0 : Vis .E Y .C Y) (h1 : IAcd Y Y1) (hb1 : Vis .E Y1 .C Y1) (h2 : IAcd Y1 Y2)\n    (hb : Vis .E Y2 .C Y2) (h3 : IAcd Y2 Y3) : UD (cons true (cons true Y)) (cons true (cons true Y3)) := by"
+ ],
+ [
+  "  exact ⟨_, _, l_d_B_cdcd a2 a3 hb1 b2 b3, l_d_A_cd hb c2 c3, l_d_B_01⟩",
+  "  exact ⟨_, _, l_d_B_cdcd hb0 a2 a3 hb1 b2 b3, l_d_E_01, l_d_A_cd hb c2 c3, l_d_B_01⟩"
+ ],
+ [
+  "      have hb1 : Vis .E (QT te x.1 x.2.1 x.2.2)",
+  "      have hb0 : Vis .E (QT te q p s) .C (QT te q p s) := q_bounce _ _\n      have hb1 : Vis .E (QT te x.1 x.2.1 x.2.2)"
+ ],
+ [
+  "exact ud_cd (s1.2 rfl) hb1 (s2.2 ex) hb (s3.2 ey)",
+  "exact ud_cd hb0 (s1.2 rfl) hb1 (s2.2 ex) hb (s3.2 ey)"
+ ],
+ [
+  "exact ud_d (s1.1 (List.cons_ne_nil b w)) hb1 (s2.1 ex) hb (s3.1 ey)",
+  "exact ud_d hb0 (s1.1 (List.cons_ne_nil b w)) hb1 (s2.1 ex) hb (s3.1 ey)"
+ ],
+ [
+  "        obtain ⟨y1, y2, u1, u2, u3⟩ := h1 rfl\n        exact l_z_B_1u u1 u2 u3",
+  "        obtain ⟨y1, y2, u1, ub, u2, u3⟩ := h1 rfl\n        exact l_z_B_1u u1 ub u2 u3"
+ ]
+]

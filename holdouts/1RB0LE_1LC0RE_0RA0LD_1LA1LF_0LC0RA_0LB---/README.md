@@ -232,7 +232,73 @@ overflow and N from 81 to 107, 20,412 tapes, and follows each for 12 events: non
 **Where it can halt.** Every cascade rule is a run that never reads the 1 under F, so no event of the plain layout can
 halt. Among the 38 visit rows of a 3·10^7-step run (tokens on the whole tape), the only one that comes out in F is
 a visit in state A of a `c` token; no cascade rule uses it. If C keeps losing one digit per era (4 digits left from
-step 173 million), the layout must change within a few more eras; what happens then is the next question.
+step 173 million), the layout must change within a few more eras; what happens then is the next question. (Answered below: C keeps its 4 digits and the chain of words grows instead.)
+
+## One law for every era: a chain of binary counters (November 2026)
+
+**The layout.** Every layout the run has shown (the plain cascade, the X layout and all the later eras) is one shape.
+At a full event, the cells right of the head read
+
+    A> 0 [Z] 11 [W1] 01 [U1] 1011 [W2] 01 [U2] ... 1011 [Wm] 01 [Um] 0^inf
+
+with Z in digits `0010` = 0, `1010` = 1, each W in digits `0001` = 0, `0101` = 1 and each U in digits `1000` = 0,
+`1010` = 1, all lowest digit first, of any width, and any W or U possibly empty. In tokens (z = 00, a = 10, c = 01,
+d = 11) this is `Z d W1 c U1 a d W2 c U2 ... a d Wm c Um`. The plain cascade is the single pair (C, R). The X layout is
+two pairs, (empty, X) and (C, R), because X's digits `za`/`aa` are the cells of `az`/`aa` digits read one token later.
+
+**The chain law (Lean, every layout).** Every word is a binary counter, and every wrap sends 3 to the next word. Each
+event adds 1 to Z. When Z wraps, W1 gets 3; each wrap of a W gives the U after it 3; each wrap of a U gives the next W 3.
+An empty word wraps at once, so it passes on 3 times what it got. In one number,
+
+    Z + 2^|Z|/3 · (W1 + 2^|W1|/3 · (U1 + 2^|U1|/3 · (W2 + ...)))
+
+grows by exactly 1 per event. The rules of `Cascade.lean` and `Xlayer*.lean` are special cases. For example, in the X
+layout the empty W turns the 3 into 9, X of k digits keeps 9 mod 2^k and passes on 3·⌊(X + 9)/2^k⌋, which is the
+C + 24/2^k (+3 when X wraps) found before. `lean/Layers.lean` proves the law for any number of pairs and any widths:
+`layer_event`, and `layer_event_n0t0` … `layer_event_novk` with the 9 cases of N. It is built from 23 visit rows of
+blocks of 1, 2 and 4 cells, composed by induction over the digits of each word and over the list of pairs, as long as
+no carry leaves the last word. The generator `py/layers_gen.py` (with `py/Layers.lean.tpl` and `py/rowgen.py`) is this
+family's copy of the one first written for `1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA`, which has the same layout and
+law. Its rows use E where that machine uses F and A where that machine leaves P in E, and the first visit of a unit
+bounces once in E. For the siblings with E1 = 0RE, a further bounce comes before every increment of a W
+(`py/layers_bounce.json`). All five 1RB0LE machines have their own kernel-checked copy.
+
+**A change of era is a carry leaving the last word.** Inside a layout the words are the unique digits of
+S = Σ w_i · 2^(p_i) · 3^(m−i) (p_i the total width of the words before w_i, m + 1 words in all). Every lower word is
+fixed by S modulo a power of 2, because 3 is invertible mod 2. S gains 3^m per event. So the only events the law does
+not cover are those in which the last word would overflow. Those are the changes of era, and they are the only place
+a halt could come from: every event that follows the law is a run of the machine that never reads the halting 1.
+C never "runs out of digits". From step 173 million it keeps its 4 digits, and instead the chain gains words.
+
+**Jumping over eras (trusted).** `py/wordchain.py MACHINE jump ERAS SPOT` runs the machine cell by cell from blank tape.
+At each full event in a layout it computes, from S, the last event before a carry would leave the last word, writes
+that tape, and runs on cell by cell through the change of era to the next full event in a layout. Before each jump it
+checks the law on SPOT random events of the era: each is rebuilt from S and run cell by cell for up to 40 events,
+and every event is compared with the law. `py/wordchain.py MACHINE check STEPS` checks every pair of consecutive full
+events of a plain run. Results for `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`:
+
+- `wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- check 200000000`: 5,386,399 pairs of consecutive full events in one layout follow the law, 0 mismatches; 10 changes of layout, 32 full events in no layout.
+- `wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- jump 510 5`: 510 changes of era, 2.4·10^297 events from blank tape (so at least that many steps), no halt; 7,770,361 steps run cell by cell; at the end the chain has 25 words with 1024 digits in all; spot checks: 101,238 events, 0 mismatches.
+
+**What a change of era does (trusted, from these runs; no rule yet).** At the end of an era all words are at or near
+their largest values. After the change they hold small values (mostly 0, 1, 2), the boundaries between words have
+moved by a digit, and the last word has one digit more, with value 2^(width−1) plus a few. N has either gained 1, in
+which case the change is a single event and two words disappear, or lost 2 to 9 of its lowest base-3 digits, which
+become new words. Which one happens depends on N mod 9 and more. Kinds in the first 199 changes of era:
+
+| N | words | changes |
+|---|---|---|
+| + 1 | − 2 | 58 |
+| loses 2 digits | ± 0 | 65 |
+| loses 3 digits | + 2 or ± 0 | 38 |
+| loses 4 digits | + 2 | 18 |
+| loses 5 digits | + 2 or + 4 | 12 |
+| loses 6 to 9 digits | + 4 or + 6 | 6 |
+| loses 1 digit | ± 0 | 2 |
+
+So the chain grows by about 2 digits per era and gains words slowly, and the number of events per era grows by a
+factor of about 3.5. What remains for a decision is a rule for this hand-over, and whether a change of era can ever put
+the head on the halting 1.
 
 ## Status
 
@@ -244,7 +310,10 @@ step 173 million), the layout must change within a few more eras; what happens t
 - Lean (kernel): `Xlayer1.lean`, `Xlayer2.lean`, `Xlayer3.lean`, the X layer (X + 1, C + 24/2^k, 3 more when X wraps, R + 3 when C wraps) in 441 theorems; trusted: all 4,349,409 X-layout events of a 3·10^8-step run follow it (`py/xlayer_check.py`).
 - Lean (kernel): `Cascade.lean`, the cascade rule of the later layout (N + 1, Z + 1, C + 3 when Z wraps, R + 3 when C wraps) in 162 theorems for every size.
 - Trusted: the 4,866,936 full events of a 3·10^8-step run from step 173,166,400 on follow the cascade rule, no mismatch (`py/cascade_check.py`); the eras before carry one more word X between Z and C.
-- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"), the left side in the same form; halting.
+- Lean (kernel): `Layers.lean`, the chain law for every layout (any number of words, any widths), which contains the cascade and the X layer as special cases.
+- Trusted: `py/wordchain.py`, the run checked against the chain law and followed through many changes of era with no halt (see "One law for every era").
+- Open: a rule for the changes of era (a carry leaving the last word); halting.
+- (Earlier note) Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"), the left side in the same form; halting.
 
 ## Scripts
 
@@ -257,6 +326,10 @@ step 173 million), the layout must change within a few more eras; what happens t
 - `py/era_sweep.py demo|sweep`: era changes built by hand and run to the next events; the dependence on N mod 9; a search for a halt near them.
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events3.py MACHINE NAMESPACE PART > lean/XlayerPART.lean` (PART = 1, 2, 3): the rules of the X layout; `py/xlayer_check.py` checks a run against them (piped from `c/cascade_events.c`, as below) and lists the changes of era.
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c` and `py/cascade_check.py`: `gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c && ./cascade_events MACHINE 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py` checks a run against the cascade rule.
+
+- `py/wordchain.py MACHINE check STEPS | jump ERAS SPOT [OUT.json]`: the chain law on a run, and the simulator that jumps over eras.
+- `py/layers_gen.py MACHINE NAMESPACE > lean/Layers.lean` (with `py/Layers.lean.tpl`, `py/rowgen.py`, `py/layers_bounce.json`): the chain law in Lean, for the whole family.
+- `py/chain_page.py collect|write`: the chain law and the runs (`py/chain_runs.json`) into the five status.json files.
 
 ## Pages
 
