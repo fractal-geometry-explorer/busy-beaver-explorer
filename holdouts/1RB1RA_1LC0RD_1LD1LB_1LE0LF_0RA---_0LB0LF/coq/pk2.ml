@@ -11,7 +11,7 @@ let rec runs k = function Nil -> "" | Cons (Pair (w, c), r) -> if k = 0 then " .
 let rec digs k = function Nil -> "" | Cons (Pair (n, c), r) -> if k = 0 then " ..." else " D" ^ small n ^ "^" ^ small c ^ digs (k-1) r
 let mname s = match T4C.fs_mode s with T4C.RAW (q, d) -> "RAW " ^ (match q with A->"A"|B->"B"|C->"C"|D->"D"|E->"E"|F->"F") ^ (if d = L then "L" else "R") | T4C.MR -> "MR" | T4C.ML -> "ML" | T4C.MJ -> "MJ"
 let () =
-  let s = ref (match Sys.argv.(1) with "A" -> T4C.initFastA | _ -> T4C.initFastC) and i = ref 0 in
+  let s = ref (match Sys.argv.(1) with "A" -> T4C.initFastA | "B" -> T4C.initFastB | "D" -> T4C.initFastD | _ -> T4C.initFastC) and i = ref 0 in
   let a = int_of_string Sys.argv.(2) and b = int_of_string Sys.argv.(3) in
   while !i < b do
     if !i >= a then begin

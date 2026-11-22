@@ -1,6 +1,7 @@
 """mkU.py PR93.v OUT.v MACHINE START K [fast]
 Proof that MACHINE halts, where MACHINE is (up to renaming / mirroring) U = 1RB1RA_1LC0RD_1LD1LB_1LF0LE_0LB0LE_0RA---,
-i.e. PR 93's table T3 = 1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB--- with
+started in A, B, C or D (the four holdouts 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF, 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF,
+1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF, 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF), i.e. PR 93's table T3 = 1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB--- with
   (1) F merged into E (E1 = 0LE: T3's E1 0LF and F's 0LB/0L. are the same moves) and
   (2) D0 = 1RA replaced by the detour D0 1LF, F0 0RA, A1 1RA, which ends where 1RA ends, or halts (F1) when the cell left of
       the head is 1.
@@ -41,6 +42,36 @@ Lemma haltsU_iso : halts ut (C;; tape0) -> halts tm c0.
 Proof.
   intros H. apply flip_halts in H.
   change (flip_conf (C;; tape0)) with (C;; tape0) in H.
+  exact (perm_halts _ _ _ _ _ perm_U H).
+Qed.
+'''
+elif M=='1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF':  # U from B, mirrored
+    ISO='''Definition permU (q : Q) : Q := match q with A => E | B => A | C => B | D => C | E => F | F => D end.
+Lemma perm_U : Perm (flip ut) tm permU.
+Proof.
+  split.
+  - intros q s H. destruct q, s; cbv in H |- *; try discriminate; reflexivity.
+  - intros q s s' d q' H. destruct q, s; cbv in H |- *; inversion H; subst; reflexivity.
+Qed.
+Lemma haltsU_iso : halts ut (B;; tape0) -> halts tm c0.
+Proof.
+  intros H. apply flip_halts in H.
+  change (flip_conf (B;; tape0)) with (B;; tape0) in H.
+  exact (perm_halts _ _ _ _ _ perm_U H).
+Qed.
+'''
+elif M=='1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF':  # U from D, mirrored
+    ISO='''Definition permU (q : Q) : Q := match q with A => C | B => D | C => E | D => A | E => F | F => B end.
+Lemma perm_U : Perm (flip ut) tm permU.
+Proof.
+  split.
+  - intros q s H. destruct q, s; cbv in H |- *; try discriminate; reflexivity.
+  - intros q s s' d q' H. destruct q, s; cbv in H |- *; inversion H; subst; reflexivity.
+Qed.
+Lemma haltsU_iso : halts ut (D;; tape0) -> halts tm c0.
+Proof.
+  intros H. apply flip_halts in H.
+  change (flip_conf (D;; tape0)) with (D;; tape0) in H.
   exact (perm_halts _ _ _ _ _ perm_U H).
 Qed.
 '''
