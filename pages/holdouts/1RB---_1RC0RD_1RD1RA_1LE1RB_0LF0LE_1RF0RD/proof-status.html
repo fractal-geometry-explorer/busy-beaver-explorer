@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The whole phase is now proved in Lean for every size, overflow included: the machine goes from one post-event configuration to the next exactly as an explicit, computable map <code>phase</code> on three numbers says, and <code>not_halts_of_orbit</code> proves (kernel) that if the iterated map never gets stuck the machine never halts. What is left is a question about that map alone: iterated for 100,000 phases (about 10<sup>153,000</sup> steps) it never gets stuck, but no proof that it never does is known.</p>
+      <p><b>The question is open, and it is now exactly a question about an integer map.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> the orbit of an explicit, computable map <code>phase</code> on three numbers gets stuck, which happens exactly when the orbit meets (m, m + 2, 2<sup>m+1</sup> + 1), the all-ones pattern (<code>halts_iff_stuck</code>, <code>halts_iff_family</code>). Iterated for 100,000 phases (about 10<sup>153,000</sup> steps) the orbit never meets it, but no proof that it never does is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -156,6 +156,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>phase d M Y</code> computes the next post-event configuration from the counter length d and the M-bit string Y: the event rule, or a whole overflow run by <code>arun</code>; it returns nothing (stuck) when a side condition fails, the only place where the machine can halt. <code>phase_sound</code>: whenever it returns (d′, M′, Y′) the machine goes from <code>PN d M Y</code> to <code>PN d′ M′ Y′</code>. With step 69 at <code>PN 0 2 2</code>, <code>not_halts_of_orbit</code>: if the orbit of <code>phase</code> from (0, 2, 2) is never stuck, the machine never halts from blank tape (no <code>sorry</code>; axioms propext, Classical.choice, Quot.sound). <code>lean/OrbitCheck.lean</code> checks with <code>#guard</code> that its first 9 overflows are those of the run.</p>
         <p class="where"><code>phase_sound</code>, <code>orbit_reach</code>, <code>not_halts_of_orbit</code>, <code>lean/Orbit.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Halting is exactly the map getting stuck</h3>
+        <p><code>halts_iff_stuck</code>: the machine halts from blank tape if and only if the orbit of <code>phase</code> from (0, 2, 2) gets stuck; <code>halts_iff_family</code>: if and only if the orbit meets (d, M, Y) = (m, m + 2, 2<sup>m+1</sup> + 1) for some m. The proof: an invariant <code>Inv</code> of the junction machine bounds the left string by what the counts still to come will add, so from a state with <code>Inv</code> the machine never gets stuck and ends within its fuel (<code>step_inv</code>, <code>arun_inv</code>); every overflow outside the family starts in <code>Inv</code> (<code>phase_some</code>); and the family halts for every m: after the junction machine has carried through the counter's zeros, the left string overflows a second time, the counter is left in front of <code>0 1 1</code>, and the carry reads B0, C1, A1 (<code>fam_halts</code>). No <code>sorry</code>; axioms propext, Classical.choice, Quot.sound.</p>
+        <p class="where"><code>lean/Invariant.lean</code>, <code>lean/Start.lean</code>, <code>lean/Family.lean</code>, <code>lean/Converse.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -174,7 +179,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The map checked against the machine</h3>
-        <p><code>py/phasemap.py</code>, a line-for-line transcription of <code>phase</code>, agrees with the machine at all 2,000 overflows of strings of at most 9 bits and is stuck at exactly the 8 that halt. For M ≤ 12 it is stuck only at (d, M, Y) = (M − 2, M, 2<sup>M−1</sup> + 1), the all-ones halting pattern, apart from inputs the orbit never reaches. That a stuck phase always halts (the converse, which would make this an if and only if) is not proved for all M.</p>
+        <p><code>py/phasemap.py</code>, a line-for-line transcription of <code>phase</code>, agrees with the machine at all 2,000 overflows of strings of at most 9 bits and is stuck at exactly the 8 that halt. (That the map is stuck only at the family, and that the family halts, is now proved for every size: see below.)</p>
         <p class="where"><code>py/phasemap.py machine 9</code>, <code>py/phasemap.py stuck 12</code></p>
       </div>
       <div class="card">
@@ -194,7 +199,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Where it can halt</h3>
-        <p>In every case run with at most 9 bits, the machine halts only when the bit string is all ones and j = M (9 cases); the other 67 overflows whose odd pairs reach the top bit do not halt. The map covers everything else.</p>
+        <p>In every case run with at most 9 bits, the machine halts only when the bit string is all ones and j = M (9 cases); the other 67 overflows whose odd pairs reach the top bit do not halt. The map covers everything else. Now proved for every size: see <code>halts_iff_family</code>.</p>
         <p class="where"><code>py/macro.py 0 checkO 9</code></p>
       </div>
       <div class="card">
@@ -220,7 +225,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>A proof</h3>
-        <p>The whole phase is proved for all sizes (kernel), so non-halting is now the statement that the orbit of the computable map <code>phase</code> never gets stuck. That is open: the map looks like a random process on growing strings (a halt needs about M/2 odd pairs in a row), and no invariant that excludes the stuck case is in sight. Also open, for an if and only if: that every stuck phase halts.</p>
+        <p>Everything about the machine is proved for all sizes (kernel): it halts exactly when the orbit of the computable map <code>phase</code> meets (m, m + 2, 2<sup>m+1</sup> + 1). What is open is that question about the map: it looks like a random process on growing strings (meeting the family needs about M/2 odd pairs in a row), and no invariant that excludes it is in sight.</p>
       </div>
     </div>
   </section>
