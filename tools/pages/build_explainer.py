@@ -613,7 +613,7 @@ UI = r"""
       S.rules.forEach(function (r, i) {
         var lv = spec.levels[r.level || "trusted"], can = ok(r);
         h += '<div class="rule"><div><span class="ev ' + lv[0] + '">' + lv[1] + "</span> <b>" + r.name + "</b><p>" + r.text + "</p>" +
-          (can ? "" : '<p class="small">Does not apply now: needs ' + (r.guard || []).map(function (g) { return g.text; }).filter(function (x) { return x; }).join(" and ") + ".</p>") + "</div>" +
+          (can ? "" : '<p class="small">Does not apply now: needs ' + (r.guard || []).map(function (g) { return g.text; }).join(" and ") + ".</p>") + "</div>" +
           '<div class="controls">' + [1, 10, 1000].map(function (k) { return '<button type="button" data-r="' + i + '" data-k="' + k + '"' + (can ? "" : " disabled") + ">" + (k === 1 ? "Apply" : "&times;" + show(k)) + "</button>"; }).join("") + "</div></div>";
       });
       h += '<div class="controls" style="margin-top:8px"><button type="button" data-reset="1">Start over</button></div>';
