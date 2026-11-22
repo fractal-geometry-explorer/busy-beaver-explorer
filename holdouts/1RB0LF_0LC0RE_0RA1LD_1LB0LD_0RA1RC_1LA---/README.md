@@ -227,6 +227,28 @@ eventually halts with probability 1. Nothing here says whether the true orbit ha
 schedules avoid it. That is the open question, now stated sharply: which property of the phase-length sequence
 keeps every carry inside the tail returning.
 
+**Where the carries die, and how often the true run goes there.** Each sweep from a left record turns at some
+block, the rightmost one it reaches. `CTX=1 ./perturb ...` prints that turning block with its neighbours (D capped
+at 9) at every record. In the true run (the first 2·10^10 steps, 126,293 records here, 123,155 in the twin)
+99.3% of the turns are at four contexts: the head's `(0, o)` or a long o-block, followed by a long block. The other
+0.7% (892 here, 972 in the twin) turn further out, in the **rough part of the tail**, where short blocks follow
+each other. In the steered runs with X uniform in [36, 400], 14.4% of all turns are rough (180,471 of 1,252,308).
+That is 20 times more often.
+
+Every halt of a steered run happens at a rough turn: a short block followed by small blocks such as `1i 1i 1o 1i`,
+`1i 1o 1i` or `1o 2o`. Most of these contexts never occur as a turn of the true run. Per rough turn, the steered
+runs halt about once in 8,600 (21 of 180,471). At that rate the true run's 1,864 rough turns (both machines)
+would give about 0.2 halts, so its survival so far fits the same hazard per rough turn. **What keeps the true run
+safe so far is mainly that its carries rarely reach the rough tail.**
+
+In the true run the rough turns of a phase come in two groups. The first group is the first 8 or so records after
+each reset. The second is a regular train of turns later in the phase, at records 4, 8, 12, ... or 16, 32, 48, ...
+into it, like the carries of a binary counter reaching a fixed depth. Their number per phase grows slowly: about
+20 to 40 in phases 1 to 6, and 45 to 85 in phases 14 to 18, much slower than the phase lengths (×1.5 each). If the
+hazard per rough turn stayed near 1 in 10^4 and the count kept growing like this, the expected number of halts
+would grow without bound, but only over a hundred or more phases. Nothing here rules that out, and nothing proves
+it. A proof would have to show that the rough tail the carries reach never contains a fatal context.
+
 Reproduce: `gcc -O2 -o perturb c/perturb.c && ./perturb 5 36 400 30 1e10` (seed 5 halts after 23 resets);
 `gcc -O2 -o branch c/branch.c && ./branch 16 2 A 0 1 2 3 4 5 6 7 8 -1 -2 -3`.
 
