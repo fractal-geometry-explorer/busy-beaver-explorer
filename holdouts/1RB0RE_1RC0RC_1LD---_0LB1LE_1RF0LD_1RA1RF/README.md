@@ -73,7 +73,7 @@ rules out every break**, so it settles this machine as well (`not_halts_of_arun`
 * `lean/watch/Machine.lean` is the twin's table with a seventh state G watching the cell after `B> 0`: B on 0 goes
   to G instead of C, G on 0 acts as C (`1LD`), G on 1 halts. It runs the twin's run cell for cell (`wsteps`) and
   halts exactly at a break.
-* `lean/watch/Pascal.lean` ... `Race.lean` are the twin's own files, copied unchanged except for the namespace by
+* `lean/watch/Pascal.lean` ... `Race.lean`, `Window.lean` are the twin's own files, copied unchanged except for the namespace by
   `py/port_watch.py`, and they check for the watched table: none of their lemmas passes B except on `B> 0 0`, where G
   does what C does. So the twin's `not_halts_of_arun` holds for the watched twin with the same list program.
 * `noBreak_of_watched`: if the watched twin never halts, the twin's run has no break; with `not_halts_of_noBreak`
