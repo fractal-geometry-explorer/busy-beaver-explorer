@@ -29,7 +29,7 @@ crosses runs of pairs in one go (`lean/Rules.lean`, four rules, kernel).
 Open. Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the four crossing rules, the walk of the
 reflector Q (`lean/Walk.lean`), and the movers: the head crosses any run of them unchanged, so every bounce of a drain
 or a rebuild is a lemma except where the head turns (`lean/Movers.lean`). On these lemmas an exact simulator reaches
-10^15 steps without a halt (below). Halting needs F to read a 1, which happens only as `D> 1 0 1 1`, and only a
+1.5·10^18 steps without a halt (below). Halting needs F to read a 1, which happens only as `D> 1 0 1 1`, and only a
 collision run cell by cell could do that. CTL (K = 2..5) and NGramCPS (widths 2-8, -H, -U) fail.
 
 ## For later
@@ -126,13 +126,14 @@ gcc -O2 -o fwatch holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/c/fwatch.c 
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_walk.py     # writes lean/WalkRules.lean
 ```
 
-## Movers: an exact simulator to 10^15 steps (22 November 2026)
+## Movers: an exact simulator to 1.5·10^18 steps (22 November 2026)
 
 **Short answer.** The rebuilds are now simulated exactly, not just watched: every bounce is a Lean lemma except the
 few cells where something collides, and those cells are run one machine step at a time. From step 273,791 this
-reaches 10^15 steps in two and a half minutes without a halt, through the drain ends at 6.5·10^12 and 6.0·10^14
-and into the rebuild that follows. The lists it finds at the drain ends are exactly those of the accelerated run
-above, which rested on unproved jumps. Whether a later collision can halt is still open.
+reaches 1.57·10^18 steps in five minutes without a halt, through the drain ends at 6.5·10^12 and 6.0·10^14. Its tape
+equals that of the accelerated run above at 1.0·10^12 and 7.0·10^14 steps (57,654,285 cells), so its unproved jumps
+were right that far. The rebuild that starts at 6.0·10^14 has not finished at 1.57·10^18. Whether a later collision
+can halt is still open.
 
 **Everything is a mover.** Read at a right-end turn (head in E on the blank), the tape is
 
@@ -163,8 +164,12 @@ of gaps) and moves it a bounce at a time: k bounces at once by `walk` or `walkm`
 time otherwise, crossing runs of pairs with the four rules of `lean/Rules.lean`. Its only unproved part is its own
 bookkeeping. Checked against direct simulation (`c/dump.c`), the whole tape and state are equal after 20,000
 bounces (step 438,724,239) and after 203,633 bounces (step 29,361,299,373, 441,628 cells, past four drain ends).
-To 10^15 it makes 25.8 million bounces: 18.0 million inside 1.3 million jumps, 7.8 million with a collision run
-cell by cell, and 5.7 million times it opens up the rightmost mover to run it cell by cell.
+Checked against the accelerated simulator `rsim` (`rsim MACHINE dump T`), the tapes are equal at steps
+1,008,073,404,791 (2,227,034 cells) and 695,788,802,905,521 (57,654,285 cells, inside the rebuild that converts the
+reservoir of 5.2 million words). To 10^15 it makes 25.8 million bounces: 18.0 million inside 1.3 million jumps, 7.8 million with a collision run
+cell by cell, and 5.7 million times it opens up the rightmost mover to run it cell by cell. To 1.57·10^18 it makes
+1.57 billion bounces, nearly all inside 3.8 million jumps: after 1.6·10^15 the rebuild is a long series of walks,
+each Q walking left across the clean stretch the walk before it left behind, and passing a few movers.
 
 | drain end (last gap down to one pair) at step | reservoir | list |
 |---|---|---|
@@ -187,7 +192,7 @@ family with its gaps as variables.
 
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py check 203633   # compares with c/dump.c
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py run 1e15       # drain ends, no halt
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py run 1.5e18     # drain ends, no halt (5 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_movers.py              # writes lean/MoverRules.lean
 ```
 

@@ -16,6 +16,7 @@ Moves:
          steps right onto the movers in D or F, then Movers.right_gen (bounce_gen);
   cells  everything else, one machine step at a time, runs of pairs crossed by Rules.lean's crossing rules.
 """
+from collections import deque
 T={}
 MACH="1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---"
 for s_,part in enumerate(MACH.split('_')):
@@ -28,17 +29,17 @@ class Boundary(Exception): pass
 class MacroPoint(Exception): pass
 
 class Movers:
-    def __init__(self): self.r=[]; self.G=0; self.m=0
+    def __init__(self): self.r=deque(); self.G=0; self.m=0
     def __bool__(self): return self.m>0
     def first(self): return self.r[0][0]
     def add_first(self,k):
         g,c=self.r[0]
         if c==1: self.r[0][0]=g+k
-        else: self.r[0][1]=c-1; self.r.insert(0,[g+k,1])
+        else: self.r[0][1]=c-1; self.r.appendleft([g+k,1])
         self.G+=k
     def pop_first(self):
         g,c=self.r[0]
-        if c==1: self.r.pop(0)
+        if c==1: self.r.popleft()
         else: self.r[0][1]=c-1
         self.G-=g; self.m-=1; return g
     def append(self,g):

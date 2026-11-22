@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> cut by single <code>1</code>s, after a reservoir of the word <code>1010101</code> at the left end. In a <em>drain</em> each round trip moves one pair of the last block into the reservoir; when it is down to one pair a <em>rebuild</em> starts, in which a reflector Q walks left and triples the part of the list it passes. Every separator and every reservoir word is a <em>mover</em>, and Lean proves that the head crosses any run of movers unchanged, so every bounce is a lemma except the few cells where the head turns. On these lemmas an exact simulator runs 10<sup>15</sup> steps without a halt. Every halt would be the head in D, moving right, on <code>1 0 1 1</code>, inside one of those collisions, and nothing yet shows that no collision ever does that.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> cut by single <code>1</code>s, after a reservoir of the word <code>1010101</code> at the left end. In a <em>drain</em> each round trip moves one pair of the last block into the reservoir; when it is down to one pair a <em>rebuild</em> starts, in which a reflector Q walks left and triples the part of the list it passes. Every separator and every reservoir word is a <em>mover</em>, and Lean proves that the head crosses any run of movers unchanged, so every bounce is a lemma except the few cells where the head turns. On these lemmas an exact simulator runs 1.5&times;10<sup>18</sup> steps without a halt. Every halt would be the head in D, moving right, on <code>1 0 1 1</code>, inside one of those collisions, and nothing yet shows that no collision ever does that.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -163,8 +163,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where">the table; <code>c/fwatch.c</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 10<sup>15</sup> steps of an exact simulator</h3>
-        <p><code>py/mover_sim.py</code> moves the tape a bounce at a time: k bounces at once by <code>walk</code>/<code>walkm</code>, a bounce by <code>bounce_gen</code> when only its left end is unusual (that end run cell by cell), and every other bounce one machine step at a time, runs of pairs crossed by the rules of <code>lean/Rules.lean</code>. Only its bookkeeping is unproved; its tape and state equal those of direct simulation (<code>c/dump.c</code>) after 203,633 bounces at step 29,361,299,373 (441,628 cells). From step 273,791 it reaches 10<sup>15</sup> steps (25.8 million bounces, 7.8 million collisions run cell by cell) without a halt. Its drain ends at 6.48&times;10<sup>12</sup> and 6.05&times;10<sup>14</sup> give exactly the lists of the accelerated run, for example <code>... 5707 563005 177397 4764477 1</code> with a reservoir of 5,205,978 words.</p>
+        <h3>No halt in the first 1.5&times;10<sup>18</sup> steps of an exact simulator</h3>
+        <p><code>py/mover_sim.py</code> moves the tape a bounce at a time: k bounces at once by <code>walk</code>/<code>walkm</code>, a bounce by <code>bounce_gen</code> when only its left end is unusual (that end run cell by cell), and every other bounce one machine step at a time, runs of pairs crossed by the rules of <code>lean/Rules.lean</code>. Only its bookkeeping is unproved; its tape and state equal those of direct simulation (<code>c/dump.c</code>) after 203,633 bounces at step 29,361,299,373 (441,628 cells). Its tape also equals that of the accelerated simulator <code>rsim</code> at steps 1,008,073,404,791 and 695,788,802,905,521 (57,654,285 cells). From step 273,791 it reaches 1.57&times;10<sup>18</sup> steps (1.57 billion bounces, 12 million collisions run cell by cell) without a halt; the rebuild that starts at 6.05&times;10<sup>14</sup> has not finished by then. Its drain ends at 6.48&times;10<sup>12</sup> and 6.05&times;10<sup>14</sup> give exactly the lists of the accelerated run, for example <code>... 5707 563005 177397 4764477 1</code> with a reservoir of 5,205,978 words.</p>
         <p class="where"><code>py/mover_sim.py</code>, <code>c/dump.c</code></p>
       </div>
       <div class="card">
@@ -210,7 +210,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The machine halts only when F reads a 1, and that happens only as <code>D&gt; 1 0 1 1</code> (see below). Every bounce is a proved mover lemma except the cells where the head turns, so a halt would have to come from one of those collisions; none of the 57 kinds seen to 10<sup>13</sup> steps halts, and an exact simulator finds none to 10<sup>15</sup>, but no invariant yet rules out a different collision later. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
+        <p>Not known. The machine halts only when F reads a 1, and that happens only as <code>D&gt; 1 0 1 1</code> (see below). Every bounce is a proved mover lemma except the cells where the head turns, so a halt would have to come from one of those collisions; none of the 57 kinds seen to 10<sup>13</sup> steps halts, and an exact simulator finds none to 1.5&times;10<sup>18</sup>, but no invariant yet rules out a different collision later. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
       </div>
     </div>
   </section>
