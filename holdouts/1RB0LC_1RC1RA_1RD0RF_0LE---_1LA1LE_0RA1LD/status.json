@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The run is a sequence of epochs. Within an epoch a bouncer grows <code>(011)^a (101)^3 (01)^b</code> at the left end at fixed rates; at the end of an epoch the blocks are emptied into an irregular region that holds the rest of the tape and grows from epoch to epoch (about 1,600 compressed words at 4·10<sup>8</sup> steps, 5,000 at 1.7·10<sup>9</sup>). Measured, not proved. Halting needs D on a 1, entered from C on a 0 or F on a 1; never one step away in the first 3·10<sup>6</sup> steps."
  ],
@@ -80,6 +80,18 @@
    "title": "Regular-language deciders tried (F11)",
    "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 14, history 1 up to width 13, history 2 up to width 12, history 3 up to width 12, LRU history up to width 5 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 12, p = 3 up to width 12, p = 4 up to width 12, p = 6 up to width 12. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..9; n = 10 not finished in 150 s.",
    "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 6.2&middot;10<sup>9</sup> steps",
+   "text": "The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 5 points up to 3&middot;10<sup>9</sup> steps, runs 6,232,238,054 steps from blank tape without a halt (20 minutes, 199 jumps; tape-level jumps validated, not proved).",
+   "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "DeepMind's PR 93 engine does not carry over",
+   "text": "This is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE started in state B: up to renaming, DeepMind's busycoq PR 93 table T4 with E1 changed. Four of PR 93's 18 basic rules change (Lean proves the changed forms in that machine's folder), and the change breaks the engine for every start.",
+   "where": "<code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/README.md</code>"
   },
   {
    "level": "open",
