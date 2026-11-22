@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>Partly checked here (21 November 2026).</b> We compiled the framework of busycoq pull request 60 for this machine (rule map, checker and cut points) with Coq 8.20.1 on busycoq's BB6 branch, and ran two of its 313 <code>native_compute</code> jobs: <code>JHalt</code>, the stretch that ends in the halt, and <code>J0202</code>; both pass. The other 311 jobs (about 275 core-hours) need a large machine, so the machine stays open here until they are run.",
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 60 (Yeyito, 2026-11-07) proves this in Rocq (its map orbit reaches the halting case at a = 28&middot;2<sup>85</sup> &minus; 6), and we compiled all of it here on 21 and 22 November 2026: Coq 8.20.1 with native compilation on busycoq's BB6 branch, all 313 <code>native_compute</code> jobs (split over 8 containers) and the final chaining file. <code>Print Assumptions</code> lists only the 41 axioms and specifications of Coq's primitive integers and arrays, and its transition table is this machine (an audit file restates it on busycoq's own <code>halts</code>). The jobs run under <code>native_compute</code>, so OCaml's native compiler is trusted along with the kernel, as in Coq-BB5. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
   "<b>Reported to halt: an external Rocq proof exists (busycoq pull request 60, by Yeyito, 7 November 2026), which we have not compiled.</b> It proves a map on tapes A(a, b) from the raw machine and checks, with 313 compiled jobs (275 core-hours by its README), that the orbit from blank tape reaches the halting case at a = 28&middot;2<sup>85</sup> &minus; 6, about 10<sup>55</sup> steps. We cross-checked it against our own Lean map: its state (a, b) is our round P((a&minus;6)/2, b), its first 2,000,000 map steps all appear in order in our orbit, and both maps halt from the same final round. The middle of the orbit (about 10<sup>25</sup> returns) rests on that proof alone. Until it is compiled here or merged upstream, this page keeps the machine as open. ",
   "<b>Our own result: reduced in Lean to a question about an explicit map.</b> It is a Lean theorem (kernel-checked, no <code>native_decide</code>) that the machine halts from blank tape if and only if the orbit of the reset configuration S(13) = <code>0^inf 1^13 1110 B&gt; 0^inf</code> under an explicit map F on four kinds of tape (the reset S(x), the doubling round P(k, m), and two leftover shapes Q(u, n), T(u, v)) reaches a doubling round P(k, 0) that finds no 1s at all (<code>halts_iff_H</code>, <code>lean/Map.lean</code>). F is written as a Lean function and every one of its cases is a proved rule of the machine. The orbit does not halt in its first 10<sup>7</sup> nodes (Lean, compiled evaluation; 10<sup>5</sup> by the kernel) and, iterated in C, in its first 10<sup>8</sup> returns to S (X up to 1.5&middot;10<sup>10</sup>); our own runs stop there."
  ],
@@ -253,7 +253,8 @@
    }
   ]
  },
- "summary": "Reported to halt after about 10^55 steps by an external Rocq proof (busycoq PR 60, not compiled by us); our Lean theorem reduces halting to the same map (the orbit of S(13) reaching a doubling round with no 1s left), and the two maps agree where we could check. Accelerated run: no halt in 4.23e22 steps.",
+ "summary": "Reported to halt after about 10^55 steps by an external Rocq proof (busycoq PR 60, not compiled by us); our Lean theorem reduces halting to the same map (the orbit of S(13) reaching a doubling round with no 1s left), and the two maps agree where we could check. Accelerated run: no halt in 4.23e22 steps. Decided outside: busycoq PR 60 proves in Rocq that it halts (compiled here, 836 native jobs).",
  "family": "doubling zig-zag, Collatz-like reset map",
- "decision": "open"
+ "decision": "halts",
+ "decision_level": "outside"
 }

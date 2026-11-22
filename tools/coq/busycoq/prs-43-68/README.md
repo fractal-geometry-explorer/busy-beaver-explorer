@@ -16,23 +16,20 @@ nixpkgs. PR #65 decides no holdout and was skipped.
 - PR #58 proves the mirror image and transfers it with `flip_halts_c0`; the audit uses the 608 name directly.
 - PR #59's three halts rest on one `vm_cast_no_check` computation, checked by the kernel at `Qed`.
 - 32 of these machines were open here and are now decided (outside); the other 12 were already decided by
-  DeepMind's compiled Lean proofs or by our own Coq proof.
+  DeepMind's compiled Lean proofs or by our own Coq proof. With PR #60 (below), 34 in all.
 
-## PR #60: framework and sample jobs only
+## PR #60: compiled in full (22 November 2026)
 
-PR #60's two halting proofs are 523 jobs (Lopsided Camper, `1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE`, about
-280 core-hours) and 313 jobs (`1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA`, about 275 core-hours) of
-`native_compute`. We built Coq 8.20.1 with `-native-compiler yes` (nixpkgs override, OCaml 4.14.5, no flambda),
-compiled both frameworks and ran four jobs:
-
-| job | seconds here | seconds in the PR's evidence |
-|---|---|---|
-| LopsidedCamper J0000 | 2584 | 1962 |
-| LopsidedCamper J0522 (ends at the halt) | 224 | 155 |
-| Halt_1RB0LF_1RC1RA JHalt (ends at the halt) | 1 | 1.25 |
-| Halt_1RB0LF_1RC1RA J0202 | 891 | 743 |
-
-All pass. The full runs would take about 7 days on this 4-core container, so both machines stay open here.
+PR #60's two halting proofs are 523 jobs (Lopsided Camper, `1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE`) and 313 jobs
+(`1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA`) of `native_compute`. We built Coq 8.20.1 with `-native-compiler yes`
+(nixpkgs override, OCaml 4.14.5, no flambda), compiled both frameworks once, and shipped that exact build and framework
+to 8 containers, each running one shard of the jobs (`pr60_run_shard.sh`; job .vo files are only valid against the
+same framework). All 836 jobs passed (about 300 and 290 core-hours here, against 280 and 275 in the PR's evidence).
+With every job's .vo in place, `Chain.v`, `Halts273.v` and `Final.v` compile, and the audit files
+`audit/Audit_60_*.v` restate `c273_halts` and `bb6_holdout_halts` on Individual62's `halts` and `c0` with
+`TM_from_str` of the 608 names. `Print Assumptions`: 14 and 41 items, all primitive-integer (PrimInt63, Uint63) and
+primitive-array (PArray) axioms and specifications. Because the jobs use `native_cast_no_check`, OCaml's native
+compiler is trusted along with the kernel, as in Coq-BB5. `coqchk` was not run.
 
 ## Reproduce
 

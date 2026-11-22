@@ -63,7 +63,7 @@ resolve it with `git rm --cached <file>` for each (the deletion wins) and carry 
 [`FAMILIES.md`](FAMILIES.md) (21 November 2026) groups the 522 machines not yet decided here into families that one
 proof technique could settle together, from table distance (tables one transition apart, up to renaming and mirror)
 and shared mechanism, and ranks them. The outside proofs of busycoq PRs 43 to 68 were compiled on 21 November
-(`tools/coq/busycoq/prs-43-68`, 32 machines decided; PR 60's two long runs are left); the next recommendations are
+(`tools/coq/busycoq/prs-43-68`, 34 machines decided, PR 60's 836 native jobs included); the next recommendations are
 the F05 core (45 machines), the clock-and-word counters (15) and halt hunts on the base-4 and ternary countdown
 counters (22). `regroup.py` writes it and `families.json`, which the holdout map uses for its family filter;
 `build_overview.py` (run by `build_pages.py`) turns both into the page `pages/holdouts/families.html`, showing each

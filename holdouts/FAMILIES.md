@@ -1,6 +1,6 @@
 # Families of the undecided holdouts (21 November 2026)
 
-Of the 608 holdouts, **522** are undecided here: open, cryptid, or covered only by an outside proof that has not been compiled here (2 machines). This note regroups them into families where one proof technique could settle several machines at once, and ranks the families. It replaces the ranking of the 13 November plan (F01 to F12, kept in `families.json` as each machine's `old` family). The machine-readable version is [`families.json`](families.json), written with this note by [`regroup.py`](regroup.py); the [holdout map](../pages/holdouts/index.html) can filter by family.
+Of the 608 holdouts, **520** are undecided here: open, cryptid, or covered only by an outside proof that has not been compiled here (0 machines). This note regroups them into families where one proof technique could settle several machines at once, and ranks the families. It replaces the ranking of the 13 November plan (F01 to F12, kept in `families.json` as each machine's `old` family). The machine-readable version is [`families.json`](families.json), written with this note by [`regroup.py`](regroup.py); the [holdout map](../pages/holdouts/index.html) can filter by family.
 
 ## How the families were made
 
@@ -13,7 +13,7 @@ Of the 608 holdouts, **522** are undecided here: open, cryptid, or covered only 
 
 | rank | family | machines | of which awaiting review | technique | odds |
 |---|---|---|---|---|---|
-| 0 | **R00** Outside proofs awaiting compilation (busycoq PR 60) | 2 (all) | 2 | compile and record | high |
+| 0 | **R00** Outside proofs awaiting compilation (busycoq PRs 43 to 68: all done) | 0 (all) | 0 | compile and record | high |
 | 1 | **R01** Base-5 marker counter on one five-state core (F05) | 45 |  | one drift invariant on the shared core (same-run step done: 40 machines, 23 questions) | low |
 | 2 | **R02** Clock and word: a block grows in doubling time while a word map runs 2^k times | 15 |  | automaton invariant for the word map P alone, plus the clock lemma in Lean | medium |
 | 3 | **R03** Blocks of 10s split by 01100: one table core with cursors that triple blocks | 15 |  | shared Lean library for the core, then exact block-list runs to hunt halts | medium |
@@ -28,12 +28,12 @@ Of the 608 holdouts, **522** are undecided here: open, cryptid, or covered only 
 | 12 | **R12** Two-word sweepers: base-3 and binary counters side by side | 11 |  | decode the middle first | low |
 | 13 | **R13** Shifted-run quartet (F09) | 4 |  | transfer theory for the shifted run | medium-low |
 | 14 | **R14** Block lists rewritten like a cellular automaton (blocks of 4k+3 ones) | 6 |  | none yet | low |
-| parked | **R15** Collatz-like maps and cryptids (parked) | 96 | 1 | halt hunts on proved maps only | very low |
+| parked | **R15** Collatz-like maps and cryptids (parked) | 95 |  | halt hunts on proved maps only | very low |
 | - | the rest of F01 to F11 | 257 | | no shared technique found | |
 
 ## Recommended next attacks
 
-1. **Finish the two PR 60 halts** (2 machines). All other proofs in busycoq PRs 43 to 68 were compiled on 21 November and their 32 machines are decided; PR 60's two proofs need about 555 core-hours of native_compute jobs, which needs a large machine (sample jobs pass here).
+1. **Done: the outside proofs of busycoq PRs 43 to 68.** All were compiled on 21 and 22 November 2026, PR 60 included (836 native_compute jobs over 8 containers), and their 34 machines are decided.
 2. **R01, the F05 core** (45 machines). The largest family by far, with its whole macro structure already proved in Lean on all 40 core tables. One invariant on the drift settles all of them. The equivalence step is done (the 40 are 23 questions); the invariant itself looks like a Collatz-type statement, so the odds are low.
 3. **R02, clock and word** (15 machines on six tables). The clock lemma is in Lean for six; what is left is a finite-state question about one word map per machine, which an automaton search on the word alone can answer far more cheaply than the whole-tape search that failed.
 4. **R04 and R11, base-4 and ternary countdown counters** (22 machines). Halt hunting with exact odometer jumps; this kind of family (F06) produced half of the decisions of the week of 13 November, all halting, and short-timer tapes of the same shape are proved to halt.
@@ -393,7 +393,7 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---`](1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md) | open | Chaotic 1dCA-like in bouncer | T6 (6) | F11 |  |
 | [`1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---`](1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md) | open | Chaotic 1dCA-like in bouncer | T6 (6) | F11 |  |
 
-### R15. Collatz-like maps and cryptids (parked) (96 machines)
+### R15. Collatz-like maps and cryptids (parked) (95 machines)
 
 **Mechanism.** The run is (provably, for many) the orbit of an explicit Collatz-like map: 3/2 and 4/3 growth with a parity- or residue-driven counter (Antihydra-like), doubling maps modulo a growing number, Euclid-like two-counter games, halving cascades.
 
@@ -468,7 +468,6 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---`](1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/README.md) | cryptid | Cubic Mess | - | F12 | DeepMind: map |
 | [`1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---`](1RB0LE_1RC0RF_0RD0RB_1RE0RC_1LA0LA_1RA---/README.md) | open | Bell-like | - | F04 |  |
 | [`1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA`](1RB0LF_1LC1RA_0RE0RD_---1LE_1LF1RC_1LC1LA/README.md) | cryptid | Quadratic Mess | - | F01 | halts-iff map in Lean; DeepMind: map |
-| [`1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA`](1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/README.md) | awaiting review | Cubic Mess | - | - | busycoq PR 60; halts-iff map in Lean; DeepMind: map |
 | [`1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB`](1RB0RB_1LB0LC_1RD1LC_1RE0RA_0RF1RA_---1LB/README.md) | cryptid | Quadratic Mess | - | F12 | halts-iff map in Lean; DeepMind: map |
 | [`1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD`](1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/README.md) | cryptid | Cubic Mess | - | F12 | halts-iff map in Lean; DeepMind: map |
 | [`1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA`](1RB0RD_0RC1RE_1RD0LA_1LE1LC_1RF0LD_---0RA/README.md) | cryptid | Bell-like | - | F12 | halts-iff map in Lean; DeepMind: map |
@@ -502,14 +501,12 @@ Next in line: R03 (one table core, a shared library as for F05) and R06 (the PR 
 | [`1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE`](1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/README.md) | cryptid | Cubic Mess | - | F12 | halts-iff map in Lean; DeepMind: map |
 | [`1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE`](1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/README.md) | open | Bell-like | - | F04 |  |
 
-### R00. Outside proofs awaiting compilation (busycoq PR 60) (2 machines)
+### R00. Outside proofs awaiting compilation (busycoq PRs 43 to 68: all done) (0 machines)
 
-Compiled on 21 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles and 32 machines moved to decided. Left: the two halts of PR 60, whose proofs are about 275 and 280 core-hours of native_compute jobs; sample jobs pass here, the full runs need a large machine. Machines here that also belong to a family above are listed there too.
+Compiled on 21 and 22 November 2026 (`tools/coq/busycoq/prs-43-68`): every machine proof in PRs 43 to 68 compiles, including PR 60's 836 native_compute jobs, and all 34 machines moved to decided. Machines here that also belong to a family above are listed there too.
 
 | machine | standing | community class | table set | 13 Nov family | notes |
 |---|---|---|---|---|---|
-| [`1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE`](1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE/README.md) | awaiting review | Cubic Mess | - | - | busycoq PR 60 |
-| [`1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA`](1RB0LF_1RC1RA_0RD0RB_1LE---_0LA1LE_1RD1LA/README.md) | awaiting review | Cubic Mess | - | - | busycoq PR 60; halts-iff map in Lean; DeepMind: map |
 
 ## The rest, by their 13 November family
 
