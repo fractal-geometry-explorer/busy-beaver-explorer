@@ -2,7 +2,7 @@
 
 bbchallenge id 139962. One of the six-state holdouts whose halting from blank tape is open (group G09: the visited tape grows like the square root of the step count on both sides).
 
-**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list, in a way that looks like a cellular automaton and has no known formula. It halts only if D reads two adjacent 1s, which no run has shown. Decision: open. Twin of [1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md), which differs only in A1 (1RA there, 0RD here). In this run A reads a 1 only when a 0 follows (all 409,996 times in the first 2·10^7 steps), and then 0RD, 0LE, 1RA put the 1 back and leave A on the 0 after 3 steps, where the twin gets in 1 (rule `a_one`): the two machines write the same tapes, this one 2 steps slower each time (the first 2,000 tapes at visits to the right end are identical).
+**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list, in a way decoded below as a running XOR (rule 102 backwards in time). It halts only if D reads two adjacent 1s, which no run has shown. Decision: open. Twin of [1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md), which differs only in A1 (1RA there, 0RD here). In this run A reads a 1 only when a 0 follows (all 409,996 times in the first 2·10^7 steps), and then 0RD, 0LE, 1RA put the 1 back and leave A on the 0 after 3 steps, where the twin gets in 1 (rule `a_one`): the two machines write the same tapes, this one 2 steps slower each time (the first 2,000 tapes at visits to the right end are identical).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -30,8 +30,7 @@ The leftward sweep (state D, rule `left_pairs`) turns each `11` of a block into 
 The rightward sweep zigzags: at every block boundary the head backs up a few cells, and inside a group it turns `001`, `010`, `100` into `110`, `101`,
 `011` (states E, A, B). A visit adds 1 to 4 cells at the left end and 3 to 8 at the right.
 
-The rewriting of the list is sequential with a finite carry, but the resulting map on lists has not been described: the first few numbers repeat a
-short cycle, the rest looks random.
+The rewriting of the list is decoded: see "The round trip as an XOR rule" below.
 
 ## Halting
 
@@ -91,6 +90,12 @@ of: A with 1 under the head, 1 right, 1 two right; C with 0 under the head, 1 ri
 
 - [`pages/holdouts/1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/explainer.html`](../../pages/holdouts/1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/explainer.html)
 - [`pages/holdouts/1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/proof-status.html`](../../pages/holdouts/1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/proof-status.html)
+
+## The round trip as an XOR rule
+
+The rewrite of the list of 4k+3 blocks is decoded on [1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---](../1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/README.md#the-round-trip-as-an-xor-rule-leansweeplean-leanbulklean), whose tapes this machine shares: cut the tape into 4-cell letters s = `0111` (a block starts) and c = `1111` (it goes on); a round trip replaces the letter word by its running XOR, so backwards in time it is the XOR cellular automaton (rule 102), z_before(n) = z_after(n) XOR z_after(n-1). On the list of numbers: read in pairs (a, b), each pair becomes a zeros and then b + 1. Only a thin layer at the far end of the tape is not decoded, and a halt can only come from the ends. Its table is not a renaming of that one (it differs from the twin 1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD--- in A1), so the Lean rules there are not about this machine.
+
+Checked on this machine's run with `python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000 1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---`: 4,081 round trips to 2·10^8 steps, 8,143,510 letters, no exception.
 
 ## Check
 

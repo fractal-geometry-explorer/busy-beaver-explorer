@@ -60,6 +60,14 @@ gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0L
 
 Pages: [`explainer.html`](../../pages/holdouts/1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---/explainer.html), [`proof-status.html`](../../pages/holdouts/1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---/proof-status.html).
 
+## The clock (21 November 2026)
+
+This table is the table of `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF` with the states renamed (A→F, B→A, C→B, D→C, E→D, F→E), so this machine runs the same clock from another start: a block at the right end grows by 4 per tick, and tick k makes 2^k trips (one word map P each) into the word beside it. Family R02, see [`../R02-clock-word/README.md`](../R02-clock-word/README.md).
+
+- Lean, kernel: the clock for every k and every word, for each tick whose 2^k trips all return, with its exact step count (`tick`, `tick_right_end` in `lean/MirrorBridge.lean`; proved on the mirror image in `lean/MirrorMachine.lean`, `MirrorRules.lean`, `MirrorClock.lean`, written by `holdouts/R02-clock-word/py/gen_clockx.py`).
+- Trusted computation: the exact accelerated simulator (`clock.py` with `R02-clock-word/py/clockx.py`) agrees with `tools/c/tmrun.c` at all 84 visits of the clock end in the first 2·10^9 steps, and follows the run past 1.27·10^139 steps without a halt (`R02-clock-word/out/run_1RB1RE_1LC1RD_1LA1LC_0RA0RB_1RF0LE_1RA---.txt`).
+- A halt can only come at a phase end, when a trip does not return.
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

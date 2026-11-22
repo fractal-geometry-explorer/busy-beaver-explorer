@@ -251,6 +251,34 @@ one exact turn-to-turn step on all small shapes. A zone of one or two letters me
 a lone 1 into the frozen side; the run never builds that combination, but nothing local says why. That is where this
 attempt stops.
 
+**Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
+sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
+(blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
+to the next turn with no lone 1 inside the zone, is a function of `(W, p, r)`. The function `crossing` runs it, and it
+matches the real run at all 13 crossings of the first 2·10^7 steps. The machine is therefore an iterated map on
+crossing starts: a crossing writes a short zone and a frozen word, then `nxt` runs until the next crossing starts.
+It can halt only if some crossing leaves the three shapes.
+
+Write `W` (nearest letter first) as runs of `a` between its `b`s. The 17 crossing starts of the first 2·10^8 steps
+(|W| from 19 to 12,192) have these features:
+
+* The last run (at the prefix) is always odd.
+* Every inner run is odd except at most two even runs among the first five (lengths 2, 4 or 8). So past the first few
+  letters the zone is a clean 4-cell zone.
+* The first run is 0, 1, 2 or 3.
+
+The run never breaks a crossing, but these features do not rule a break out:
+
+* In the small-word table (`crossing.py table`: inner runs 1, 3 or 5, up to 5 `b`s), an even last run breaks about a
+  third of the time. Odd last runs are safe when the first run is 2 or 3. With first run 0 or 1, 28 words still
+  break, for example `(0, 1, 3, 5, 3)` with `r = 1`.
+* Allowing inner runs up to 9, 440 of 18,744 cases with first run 2 or 3 and odd last run break, for example
+  `(2, 1, 7, 1, 1)` with `r = 0`.
+
+Which zones are safe therefore depends on run lengths modulo higher and higher powers of 2. That is the dyadic
+pattern of Lucas' theorem again. A proof would have to show that the zones built by `nxt` from a crossing's output
+avoid these words, and no candidate statement for that is known.
+
 A stronger form holds at every right turn in E, on all nine machines of the two tables, for 10^9 steps each
 (`c/evenblocks.c`): every block of 1s between the two ends of the tape has odd length, except the block under the head
 and at most one "wall" block to its left, and there is no `00` between the ends of the tape. Sampling every step shows the same picture

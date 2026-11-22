@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open, and reduced to an orbit.</b> A step takes <code>W A&gt; 0 b^N 1</code> (b = 110) to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2, where the new wall W' and c are computed from the wall W and the parity of N. Lean proves the transfer loop behind the 3/2, the step map for every wall on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting step. The map has been iterated for 40,000 steps without a halt (the plain-simulation map for 300,000), and no wall with a halting step has been found in a search of the wall graph: no halting mechanism is known for this machine, but no invariant excluding one is proved."
  ],
@@ -148,6 +148,18 @@
    "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 530</code>"
   },
   {
+   "level": "kernel",
+   "title": "Closed empty counters stay in one pile",
+   "text": "For the counter-stack step <code>mstep</code> (proved to be the machine's step wherever <code>stepRes</code> answers): every K'(0) has only K'(0)s below it and every K(0) lies directly on that pile, and a step keeps this unless it makes a count 0 away from the pile (<code>mstep_good</code>; along any parity sequence: <code>good_iter</code>). On such walls an odd signal on K'(0) always has <code>1 K'(0)^a</code> below it (<code>good_c0</code>), the case <code>Stack.lean</code> covers, so the only gap left in the stack rules is a count reaching 0 or below.",
+   "where": "<code>lean/Pile.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Pairs made over the pile never reach 0 (start values below 2<sup>4000</sup>)",
+   "text": "While the top k of two open counters stays odd, k' = (3k &minus; 1)/2 + om(a, m) with om fixed by the orbit of the stack 'pile of height a, then K(0)'. For every pile height a &le; 4,000 the exact set of start values below 2<sup>4000</sup> whose run reaches a count below 1 is computed digit by digit; its largest element is 37,609, below the least start value 2<sup>a+2</sup> of a pair made over that pile (that bound is argued from the rules, and the least values seen are 7, 79, 727, 6,559 for a = 0 to 3). No start value below 2<sup>4000</sup> has a run of more than 4,064 odd steps. Pairs that start later, when a closed counter between them dissolves, are not covered: their failing start values reach about 0.24&middot;m times the lower count.",
+   "where": "<code>python3 py/pairs.py creation 4000 4000 3</code>, <code>python3 py/pairs.py table 40 80 1000</code>, <code>python3 py/pairs.py structure 30000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. By the reduction it halts iff the orbit of the step map reaches a halting step (given that the map keeps answering). No halting step is known at all. In the observed stack model a halt could only come from a counter running below zero, which needs the counts in the wall to overtake N; a proof of non-halting would need the stack rules proved for every wall and a bound that keeps the wall below N.",
@@ -171,7 +183,8 @@
   "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py random 300",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 1e9",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 orbit 5000",
-  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300"
+  "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300",
+  "python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine moves a block of N copies of 110 across a junction two in, three out, so N grows by 3/2 each step, while a wall on the left keeps a tower of smaller counters driven by the parity of N. No halting wall has been found.",
@@ -243,8 +256,20 @@
      "<div class=\"tw\"><table><tr><th>item</th><th>cells</th><th>role</th></tr><tr><td>K(k)</td><td><code>b<sup>k</sup> 1<sup>3</sup> b 1</code></td><td>an open counter holding k</td></tr><tr><td>K'(k)</td><td><code>b<sup>k</sup> 1<sup>6</sup></code></td><td>a closed counter holding k</td></tr></table></div>",
      "<p>The item nearest the block is the top of the stack. A step sends one bit into the wall, the parity of N, and the wall answers with a number of copies of b that are added to the block:</p>",
      "<div class=\"tw\"><table><tr><th>top of the stack</th><th>parity</th><th>what happens</th></tr><tr><td>empty wall <code>1</code></td><td>even</td><td>nothing; 2 copies go to the block</td></tr><tr><td>empty wall <code>1</code></td><td>odd</td><td>a new open counter K(0)</td></tr><tr><td>open K(k)</td><td>even</td><td>it closes: K'(k); 2 copies go to the block</td></tr><tr><td>open K(k)</td><td>odd</td><td>k becomes &lfloor;3k/2&rfloor; plus what the stack below answers to the parity of k; the block pays for the growth</td></tr><tr><td>closed K'(0)</td><td>odd</td><td>a new open counter K(0) on top of it</td></tr><tr><td>closed K'(k), otherwise</td><td>either</td><td>it is dissolved: the stack below receives the parity of k (plus one if odd came in), and about 3k/2 copies go back to the block</td></tr></table></div>",
-     "<p>So every level is a counter that multiplies by 3/2, like the block itself, and a level only moves when the level above it sends it a bit. The exact amounts are in <code>py/stackmodel.py</code>. This rule was read off the data and then tested: it gives the same next wall and the same next N as the step map proved in Lean on all 100,000 steps of the orbit computed (walls of up to 7 items) and on 2,563 random walls. It is an observation, not a theorem.</p>",
+     "<p>So every level is a counter that multiplies by 3/2, like the block itself, and a level only moves when the level above it sends it a bit. The exact amounts are in <code>py/stackmodel.py</code>. This rule was read off the data and then tested: it gives the same next wall and the same next N as the step map proved in Lean on all 100,000 steps of the orbit computed (walls of up to 7 items) and on 2,563 random walls. It was first an observation; <code>lean/Stack.lean</code> now proves it (<code>stack_step</code>) for every step where its rule simulator answers.</p>",
      "<p>The model has no rule that halts. What it leaves open is what happens when a counter would have to give more than it holds, which requires the counts in the wall to overtake N. Along the orbit N grows by 3/2 every step while the wall is repeatedly emptied into it, and nothing of the kind has come close. Standard deciders (n-gram closed sets, and pushdown closures with one side of the tape kept exactly) were tried with scratch tools and did not find a certificate; random and exhaustive small configurations of the same shape (about 200,000 in all) did not produce a halt either. Those runs are not in the repository.</p>"
+    ]
+   },
+   {
+    "id": "pairs",
+    "eyebrow": "Where a count could fail",
+    "heading": "Odd runs of a pair of counters",
+    "html": [
+     "<p>The stack model has no halting rule; the one thing it cannot handle is a count running down to 0 or below. That can only happen to an open counter k sitting directly on another open counter j, while k stays odd step after step: each odd step multiplies both by about 3/2 but takes about j/2 from k, so the ratio k/j drops by about 1/3 per step.</p>",
+     "<p><b>Closed empty counters form one pile.</b> Every K'(0) lies in a single pile at the bottom of the wall, and new items are only ever put directly on that pile. Lean proves this for every step that does not itself make a count 0 (<code>lean/Pile.lean</code>, <code>mstep_good</code>). So the lower counter j of a pair has only ever received odd signals since it was made, and the whole stack from j down is one of a single family of orbits: the stack &ldquo;pile of height a, then K(0)&rdquo; after m odd signals.</p>",
+     "<p><b>The run of k is one affine map.</b> While k is odd, k becomes (3k &minus; 1)/2 plus an amount fixed by that orbit, the same for every k. So k stays odd for J steps exactly when k agrees with one 2-adic number in its last J binary digits, and the exact set of start values that ever reach a count below 1 can be computed digit by digit, with no search over k.</p>",
+     "<p><b>Pairs made over the pile never fail.</b> For every pile height up to 4,000 and every start value below 2<sup>4000</sup>, the start values that fail are all at most 37,609, while a pair made over a pile of height a starts with at least 2<sup>a+2</sup> (the least seen: 7, 79, 727, 6,559 for a = 0 to 3). That covers every pair at the moment it is made, with counts up to about 1,200 digits.</p>",
+     "<p><b>What is left.</b> A pair can also start later, when a closed counter between k and j dissolves and k lands on j with a new count. There the failing start values reach about 0.24&middot;m times j (at most 19 j for a &le; 40, m &le; 80). A proof needs a lower bound on k/j at such starts that beats this range, which is an inequality and not a statement about digits, plus the tail of start values of 2<sup>4000</sup> or more.</p>"
     ]
    },
    {
