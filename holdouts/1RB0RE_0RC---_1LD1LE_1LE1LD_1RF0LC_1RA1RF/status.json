@@ -137,6 +137,18 @@
   },
   {
    "level": "trusted",
+   "title": "The next crossing depends on a short deep window",
+   "text": "The next crossing start (near part and the first 30 letters of its far part) depends only on the last 200 or so letters of the frozen word: randomizing everything else gives the same next crossing in 13 of 13 runs; keeping only 30 letters does not.",
+   "where": "<code>c/locality.cpp</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Perturbed orbits halt",
+   "text": "1000 orbits that agree with the real one on the last 10 letters of the frozen word at list step 186 give 67 <code>astep</code> failures in 9 crossings, 47 of them real halts of the machine within 10<sup>9</sup> steps: about 0.5 to 1% per crossing. From list step 12240 the rate is lower (1 failure in 476 crossings). The machine looks like a probabilistic halter; a non-halting proof would need structure that makes the real far parts special.",
+   "where": "<code>c/perturb.cpp</code>"
+  },
+  {
+   "level": "trusted",
    "title": "Crossings as one map",
    "text": "A crossing depends only on the swept zone, the prefix and the end cell, so the machine is an iterated map on crossing starts; the simulated map matches the run at all 13 crossings of the first 2·10<sup>7</sup> steps. The 17 crossing starts up to 2·10<sup>8</sup> steps have an odd last run of <code>a</code>s and odd inner runs apart from at most two near the head, but small words of that kind can still break a crossing, depending on run lengths modulo higher powers of 2.",
    "where": "<code>py/crossing.py</code>"
@@ -212,6 +224,7 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh",
   "g++ -O2 -o listmachine holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/listmachine.cpp && ./listmachine 1000000",
+  "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c && g++ -O2 -o locality locality.cpp && ./locality 12240 200 12 7 && g++ -O2 -o perturb perturb.cpp && ./perturb 186 10 1000 9 11 1000000000   # about 10 minutes",
   "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 game.py 3 14 123 && python3 game.py 2 13 101010000 010110010",
   "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 window43.py     # the 43-letter window of lean/Window.lean",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py",
