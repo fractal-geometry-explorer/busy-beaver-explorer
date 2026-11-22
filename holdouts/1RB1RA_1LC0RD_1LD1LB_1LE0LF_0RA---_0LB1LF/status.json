@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation) nor in 10<sup>18</sup> steps (accelerated simulator)."
+  "<b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation), nor in 10<sup>18</sup> steps (accelerated simulator); an exact engine with no jumps and proved rules reaches 2&middot;10<sup>17</sup> (halving-chain engine, 22 November 2026)."
  ],
  "claims": [
   {
@@ -94,9 +94,27 @@
    "where": "<code>c/rsim_fast.cpp</code>, <code>py/rsim_fast_validate.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "The halving-chain engine's rules",
+   "text": "Lean proves, for every count and every tape around, the two moves by which the halving-chain engine <code>c/hce.cpp</code> crosses a digit <code>D n</code> to the right (<code>pr93_rightD0</code>, <code>pr93_rightD</code>), and the 100 rules it learned and used most on the way to 10<sup>13</sup> steps (74% of the uses of learned rules). symtm proves all 3,481 learned rules; the kernel check of the rest is not done (some proofs exceed the kernel's time limit).",
+   "where": "<code>lean/EngineRules.lean</code>, <code>lean/LearnedRules.lean</code> (written by <code>py/prove_prules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 2&middot;10<sup>17</sup> steps, without jumps",
+   "text": "The halving-chain engine <code>c/hce.cpp</code>, exact and with no jumps over repeated tape shapes, runs 200,000,000,629,086,925 steps of the reduced table without a halt (27 minutes). It crosses digits by the Lean-proved rules, simulates everything else cell by cell or by its learned rules (proved by symtm), and its tape equals direct simulation at four points up to 3&middot;10<sup>8</sup> steps.",
+   "where": "<code>c/hce.cpp</code> (<code>hce export</code>, <code>hce check</code>)"
+  },
+  {
+   "level": "heuristic",
+   "title": "A left-end counter",
+   "text": "Near 10<sup>12</sup> steps the left end of the tape is exactly periodic: every 83 far passes it eats 4 copies of <code>D7 D0 D0 D2</code> and the right end gains 166 <code>D0</code>. By 10<sup>13</sup> it has become an aperiodic, growing counter that eats <code>(D3 D0 D0)^58372</code> one copy per two far passes; the middle of the tape (mostly <code>D0</code>) passes through unchanged.",
+   "where": "README, section <em>A halving-chain engine</em>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The periodic block is a clean counter, but the irregular rest of the list, where a halt would have to happen, is not understood.",
+   "text": "Not known. The halving-chain engine runs it exactly to 2&middot;10<sup>17</sup> steps, but a proof needs the left-end counter, which is not understood.",
    "where": ""
   },
   {
@@ -111,7 +129,9 @@
   "holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/lean/check.sh",
   "python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/rules.py && holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/lean/check.sh      # regenerate and check the rules",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1000000000",
-  "python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/observe.py 1e7 B 6      # the tape at the last moments each end grew"
+  "python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/observe.py 1e7 B 6      # the tape at the last moments each end grew",
+  "g++ -O2 -std=c++17 -o hce holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/hce.cpp && NOBLK=1 ./hce check 1e5 1e7 1e8 3e8",
+  "NOBLK=1 NOCYC=1 ./hce export 1e13 rules13.txt && python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/prove_prules.py rules13.txt LearnedRules.lean 100"
  ],
  "explainer": {
   "lede": "Nobody knows. This machine's tape is an irregular list of runs with one long, regular, growing block in the middle. This page shows them and what is proved.",
@@ -119,7 +139,7 @@
    {
     "level": "trusted",
     "value": "10<sup>18</sup> steps",
-    "text": "No halt in the accelerated simulator (checked against direct runs to 3&middot;10<sup>10</sup>)."
+    "text": "No halt in the accelerated simulator; an exact engine with proved rules and no jumps reaches 2&middot;10<sup>17</sup>."
    },
    {
     "level": "trusted",
@@ -164,6 +184,15 @@
      "<p>Rename two states and this machine is, step for step, the table that DeepMind proved halts in busycoq pull request 93, except for one entry: when the head meets a 1 in state E, DeepMind's table erases it and steps left, and this one keeps it and keeps walking left over 1s. A halt here happens exactly when D reads a 0 with a 1 on its left.</p>",
      "<p>DeepMind's proof runs a fast engine that treats the tape as a list of numbers, the digits <code>D n = 1 (11)^n 00</code>, and does many sweeps (calls) at once by counting. Of its 18 basic rules, 14 hold here unchanged. In the other four, where DeepMind's table writes the digit <code>D (k+1)</code>, this one writes <code>D k</code> followed by a stray <code>10</code>. Lean proves these rules for every size.</p>",
      "<p>The stray <code>10</code> is what breaks the engine. Two of them side by side send the next sweep all the way to the right end instead of back to the left, so the engine's shortcut of counting calls no longer holds. The tape still looks like a list of digits, now with halving chains (<code>D5773 &hellip; D2884 &hellip; D1440 &hellip; D720</code>) and long periodic blocks (<code>(D2 D1)^15875</code>), but it needs an engine of its own.</p>"
+    ]
+   },
+   {
+    "id": "hce",
+    "eyebrow": "A new engine",
+    "heading": "An engine of its own",
+    "html": [
+     "<p>The halving-chain engine keeps the tape as lists of digits, with long stretches of digits stored as runs of repeated patterns and crossed in one move. Crossing a digit uses rules Lean proves for every size. Every other move is simulated cell by cell on a few digits, or, when a digit is large, by a rule the engine learns from five trial runs. Each learned rule is then proved for every size by symbolic simulation, and Lean checks the 100 used most.</p>",
+     "<p>It runs the machine exactly, with no guessed jumps, to 2&middot;10<sup>17</sup> steps without a halt. On the way it shows where the action is: the middle of the tape, mostly <code>D0</code> digits, is passed through unchanged, and the left end holds a counter. Near 10<sup>12</sup> steps the counter cycles exactly every 83 sweeps; by 10<sup>13</sup> it no longer repeats. A proof would have to understand that counter.</p>"
     ]
    },
    {
