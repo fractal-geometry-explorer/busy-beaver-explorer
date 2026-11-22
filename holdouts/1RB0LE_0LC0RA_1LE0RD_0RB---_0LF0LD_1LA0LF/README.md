@@ -317,7 +317,11 @@ instead of `1 0`, and A after `0 1` gives E on `0 S` without its first cell. Wit
 machine is a run of the twin (forms checked on random tapes, rules run symbolically: `py/twinforms.py`; not in
 Lean). The twin
 works the defect rule `x L` differently (through E on the tail), so a Lean proof needs its own token rules or a
-bridge between the two derivations.
+bridge between the two derivations. **Update (later on 22 November 2026):** done, without new rules. The twin's
+`lean/Link.lean` (`../1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---/lean/Link.lean`) proves every token rule `TV` of this folder as a run of the twin's own table from those entry forms;
+the `x L` rule runs this machine's way after all (the twin meets B after `1 0` on `x W` four cells in). With
+`Total.lean` the twin never halts under the same hypothesis as `nonhalt_of_clean` here
+(`K83189.nonhalt_of_clean`).
 
 **Checkpoints for the engine.** `c/toksim.cpp` now writes its state every `TOKSIM_CKPT_EVERY` rounds (default 50,000)
 to the file named by `TOKSIM_CKPT`, and `TOKSIM_RESUME=FILE` continues from such a file, appending to the record file. A run to
