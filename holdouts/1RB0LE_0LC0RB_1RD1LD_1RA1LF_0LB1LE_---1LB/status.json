@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape is a block of 1s at the left end and a word of short blocks on its right. The block is a clock: each tick makes it 3 cells longer and sends the head into the word twice as many times as the tick before; every trip rewrites the word by one fixed map P. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The clock is proved in Lean for every k: tick k applies P 2<sup>k</sup> times whenever the 2<sup>k</sup> trips all return (a hypothesis met by the actual run, checked in Lean for its first 15 trips). An exact accelerated simulator built on it follows the run through 65 phases to 6.04·10<sup>187</sup> steps without a halt; what happens at a phase end (a trip that does not return) is not described by a formula."
  ],
@@ -64,6 +64,12 @@
    "where": "<code>run_ticks</code>, <code>lean/Instance.lean</code> (written by <code>py/instance.py</code>)"
   },
   {
+   "level": "kernel",
+   "title": "A clock inside the word",
+   "text": "A trip into a word that starts <code>0 1^(4+3k) 0 Z</code> becomes a second clock. Its first pass leaves exactly the tape the sweep of tick k leaves, with the trip's own <code>0 0 0</code> as the zeros left of the block. If the 2<sup>k</sup> nested trips into Z return (total time E), <code>L 0 0 0 1 1 A&gt; 0 1^(4+3k) 0 Z</code> reaches <code>L 0 0 0 E&gt; 1^(7+3k) 0 Z'</code>, the start of tick k+1, in exactly E + 19&middot;2<sup>k</sup> &minus; 8 steps. This holds for every k, Z and L, and agrees with plain simulation on 1,117 random cases. The nested clock then ticks on in the trip's place.",
+   "where": "<code>nest</code>, <code>nest_then_tick</code>, <code>lean/Nest.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "Accelerated simulator agrees with the plain run",
    "text": "<code>clock.py</code> (the tick done at once, P computed by running the machine and memoized) gives the same time, block and word as <code>tools/c/tmrun.c</code> at all 50 visits of the left end in the first 10<sup>10</sup> steps.",
@@ -76,6 +82,18 @@
    "where": "<code>clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB run …</code>"
   },
   {
+   "level": "trusted",
+   "title": "Trips cannot be listed",
+   "text": "Read words cell by cell, stopping a prefix once the trip returns, exits or halts without reading further. The prefixes still undecided grow by about 1.7 per cell: 129, 2,956 and 70,941 at lengths 10, 16 and 22. The decided trips return or leave the region in one of five ways, and none halts.",
+   "where": "<code>holdouts/R02-clock-word/py/trip_tree.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No small invariant that forgets the word",
+   "text": "These searches start from the clock with every word at once, using a left automaton and the least right automaton derived from it (finite-automata reduction). No left DFA with up to 7 states closes. Windows of the last 10 cells plus the position mod 3 (3,073 states) do not close either, nor do windows on the trip alone. In every counterexample the automaton has forgotten the far end of the part of the word the head walks back over.",
+   "where": "<code>holdouts/R02-clock-word/far/</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth",
    "text": "Phase after phase the block at a phase end and the word grow (blocks 34, 82, 139, 208, … at the ends of the first phases); a phase end shortens the block only a little. Nothing suggests a halt, but there is no formula for the phase end.",
@@ -84,7 +102,7 @@
   {
    "level": "open",
    "title": "The phase end",
-   "text": "What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known.",
+   "text": "What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Because trips can hold nested clocks, a proof that doesn't depend on the word needs the phase end of a nested clock, with an arbitrary word after it and an arbitrary stack before it.",
    "where": ""
   },
   {
@@ -117,6 +135,11 @@
     "level": "trusted",
     "value": "6.04·10<sup>187</sup>",
     "text": "Steps followed exactly (65 phases), no halt."
+   },
+   {
+    "level": "kernel",
+    "value": "nested",
+    "text": "A word block 1<sup>4+3k</sup> after a 0 turns a trip into a clock of its own (Lean)."
    }
   ],
   "presets": [
@@ -155,6 +178,17 @@
      "<p>A <em>phase</em> lasts as long as every trip comes back. It ends when one trip runs off the left end of its region: the unfinished ticks are abandoned, the block is partly taken apart, and a new phase begins with a somewhat shorter block and a longer word. An exact accelerated simulator that does each tick at once (checked against the plain C simulator at every visit in the first 10<sup>10</sup> steps) gives:</p>",
      "<table><tr><th>phase starts at step</th><th>block</th><th>last tick at step</th><th>block</th><th>word cells</th></tr><tr><td>471</td><td>1<sup>4</sup></td><td>68,467</td><td>1<sup>34</sup></td><td>31</td></tr><tr><td>121,828</td><td>1<sup>10</sup></td><td>4.187·10<sup>9</sup></td><td>1<sup>82</sup></td><td>66</td></tr><tr><td>5.655·10<sup>9</sup></td><td>1<sup>52</sup></td><td>2.332·10<sup>15</sup></td><td>1<sup>139</sup></td><td>109</td></tr><tr><td>2.378·10<sup>15</sup></td><td>1<sup>121</sup></td><td>1.541·10<sup>22</sup></td><td>1<sup>208</sup></td><td>140</td></tr><tr><td>2.332·10<sup>22</sup></td><td>1<sup>205</sup></td><td>2.612·10<sup>23</sup></td><td>1<sup>220</sup></td><td>148</td></tr><tr><td>3.495·10<sup>23</sup></td><td>1<sup>184</sup></td><td>5.516·10<sup>29</sup></td><td>1<sup>283</sup></td><td>195</td></tr><tr><td>7.590·10<sup>29</sup></td><td>1<sup>271</sup></td><td>4.226·10<sup>33</sup></td><td>1<sup>322</sup></td><td>216</td></tr><tr><td>5.305·10<sup>33</sup></td><td>1<sup>319</sup></td><td>7.069·10<sup>34</sup></td><td>1<sup>334</sup></td><td>224</td></tr><tr><td>9.524·10<sup>34</sup></td><td>1<sup>319</sup></td><td>3.762·10<sup>37</sup></td><td>1<sup>361</sup></td><td>248</td></tr><tr><td>5.294·10<sup>37</sup></td><td>1<sup>349</sup></td><td>2.833·10<sup>41</sup></td><td>1<sup>400</sup></td><td>267</td></tr><tr><td>3.549·10<sup>41</sup></td><td>1<sup>397</sup></td><td>1.345·10<sup>42</sup></td><td>1<sup>406</sup></td><td>273</td></tr><tr><td>1.799·10<sup>42</sup></td><td>1<sup>373</sup></td><td>6.846·10<sup>45</sup></td><td>1<sup>442</sup></td><td>315</td></tr></table>",
      "<p>It followed the run through 65 phases to 6.04·10<sup>187</sup> steps; no halt. The block at a phase end keeps growing (1<sup>1858</sup> at the last one followed).</p>"
+    ]
+   },
+   {
+    "id": "nest",
+    "eyebrow": "Inside a trip",
+    "heading": "A clock inside the word",
+    "html": [
+     "<p>A trip is the head's excursion from <code>0 0 0 1 1 A&gt;</code> into the word and back. Most trips are short. But when the word starts with a 0 and then a block <code>1^(4+3k)</code>, the trip's first pass does to that block exactly what the sweep does to the main clock's block. It turns the block into <code>0^(3+3k)</code>, puts <code>1 1</code> after it, and sends the head on into the rest of the word Z.</p>",
+     "<svg viewBox=\"0 0 560 120\" role=\"img\" aria-label=\"a trip becomes a clock\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><text x=\"6\" y=\"22\" fill=\"var(--fg2)\">trip:</text><text x=\"70\" y=\"22\" fill=\"var(--fg)\">L 0 0 0 1 1 A&gt; 0 1^(4+3k) 0 Z</text><text x=\"6\" y=\"58\" fill=\"var(--fg2)\">pass:</text><text x=\"70\" y=\"58\" fill=\"var(--fg)\">L 0 0 0 1 1 1 0^(3+3k) 1 1 A&gt; Z</text><text x=\"330\" y=\"58\" fill=\"var(--fg2)\">= after the sweep of tick k</text><text x=\"6\" y=\"94\" fill=\"var(--fg2)\">then:</text><text x=\"70\" y=\"94\" fill=\"var(--fg)\">L 0 0 0 E&gt; 1^(7+3k) 0 Z'</text><text x=\"330\" y=\"94\" fill=\"var(--fg2)\">= start of tick k+1</text></svg>",
+     "<p>From then on the trip <em>is</em> a clock. Its own trips go into Z, and if those 2<sup>k</sup> return, it reaches the start of tick k+1 with the trip's <code>0 0 0</code> as its left-end zeros. This takes E + 19&middot;2<sup>k</sup> &minus; 8 steps, E being the time of the nested trips. It is proved in Lean for every k, every Z and every tape to the left (<code>nest</code>). After that the same tick theorem drives it on, and it eats the zeros to its left three at a time, as the main clock eats the blank tape.</p>",
+     "<p>So the word can hold clocks, and those clocks can hold clocks in turn. That is why no finite list of trip outcomes exists. Read words cell by cell and stop as soon as the trip is decided: the prefixes still undecided grow by about 1.7 per cell (129 at length 10, 70,941 at length 22). It is also why the small automata that try to forget the word fail. The head walks back over the part of the word it has rewritten, and that part has no length bound. A proof for every word has to follow nested clocks to their phase ends.</p>"
     ]
    },
    {

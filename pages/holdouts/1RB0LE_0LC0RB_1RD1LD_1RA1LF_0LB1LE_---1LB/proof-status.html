@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its tape is a block of 1s at the left end and a word of short blocks on its right. The block is a clock: each tick makes it 3 cells longer and sends the head into the word twice as many times as the tick before; every trip rewrites the word by one fixed map P. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From step 470, where the run from blank tape is <code>E&gt; 1^4 0 W</code>, the 15 P-steps of the next four ticks are proved for the actual words, and the tick theorem then takes the run to step 2,964, <code>E&gt; 1^16 0 W'</code>, exactly the configuration of the plain run there: the hypothesis of the tick is not vacuous.</p>
         <p class="where"><code>run_ticks</code>, <code>lean/Instance.lean</code> (written by <code>py/instance.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>A clock inside the word</h3>
+        <p>A trip into a word that starts <code>0 1^(4+3k) 0 Z</code> becomes a second clock. Its first pass leaves exactly the tape the sweep of tick k leaves, with the trip's own <code>0 0 0</code> as the zeros left of the block. If the 2<sup>k</sup> nested trips into Z return (total time E), <code>L 0 0 0 1 1 A&gt; 0 1^(4+3k) 0 Z</code> reaches <code>L 0 0 0 E&gt; 1^(7+3k) 0 Z'</code>, the start of tick k+1, in exactly E + 19&middot;2<sup>k</sup> &minus; 8 steps. This holds for every k, Z and L, and agrees with plain simulation on 1,117 random cases. The nested clock then ticks on in the trip's place.</p>
+        <p class="where"><code>nest</code>, <code>nest_then_tick</code>, <code>lean/Nest.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -168,6 +173,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB run …</code></p>
       </div>
       <div class="card">
+        <h3>Trips cannot be listed</h3>
+        <p>Read words cell by cell, stopping a prefix once the trip returns, exits or halts without reading further. The prefixes still undecided grow by about 1.7 per cell: 129, 2,956 and 70,941 at lengths 10, 16 and 22. The decided trips return or leave the region in one of five ways, and none halts.</p>
+        <p class="where"><code>holdouts/R02-clock-word/py/trip_tree.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No small invariant that forgets the word</h3>
+        <p>These searches start from the clock with every word at once, using a left automaton and the least right automaton derived from it (finite-automata reduction). No left DFA with up to 7 states closes. Windows of the last 10 cells plus the position mod 3 (3,073 states) do not close either, nor do windows on the trip alone. In every counterexample the automaton has forgotten the far end of the part of the word the head walks back over.</p>
+        <p class="where"><code>holdouts/R02-clock-word/far/</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1LB_1RC1LE_1RD0LF_0LA0RD_---1LD_0LD1LF up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -184,7 +199,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>The phase end</h3>
-        <p>What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known.</p>
+        <p>What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Because trips can hold nested clocks, a proof that doesn't depend on the word needs the phase end of a nested clock, with an arbitrary word after it and an arbitrary stack before it.</p>
       </div>
     </div>
   </section>
