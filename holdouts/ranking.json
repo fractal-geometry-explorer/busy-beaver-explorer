@@ -2276,6 +2276,28 @@
    "rank": 93
   },
   {
+   "m": "1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
+   "id": 140108,
+   "fam": "R09",
+   "famname": "Word map phi with a counter: one table, a race between word and collisions",
+   "set": "T5",
+   "mates": 7,
+   "stage": "model",
+   "score": 31.8,
+   "route": "either",
+   "work": "lean",
+   "kernel": 9,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Shift-overflow counter",
+   "why": "Two binary counters: a right counter in 3-cell digits and a bit string in the left separators that gains 4 per count; the event rule and the overflow are proved in Lean for every size, so the machine never halts if the computable phase map never gets stuck (not_halts_of_orbit); iterated for 100,000 phases (about 10^153,000 steps) it never does.",
+   "next": "Port the one-map reduction to the siblings; invariant of the map.",
+   "folder": "holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
+   "rank": 94
+  },
+  {
    "m": "1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---",
    "id": 103746,
    "fam": "R13",
@@ -2295,7 +2317,7 @@
    "why": "An alternating tape cut into blocks by single separator cells. Each round trip from the right end is a tick that flips separators by a few rules depending on the parities of the blocks, like an odometer; now and then a tick reaches the left end and rebuilds the front of the list, and the whole pattern recurs on larger scales. Open. Accelerated run: no halt in 1.26e17 steps.",
    "next": "Transfer theory for the shifted run.",
    "folder": "holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---",
-   "rank": 94
+   "rank": 95
   },
   {
    "m": "1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
@@ -2317,7 +2339,7 @@
    "why": "An exact ternary counter, least significant digit at the left end, whose digits are pairs of long runs of alternating cells read mod 4; the increment is proved in Lean for every carry depth, and so is the shuttle that moves a run to the right end when a shrinking run runs out. Open: the whole transfer (it nests) and an invariant; tapes with the same residues and short runs do halt.",
    "next": "Transfer theory for the shifted run.",
    "folder": "holdouts/1RB0RA_1LC0RE_0LD0LB_1LA1LF_1RA0LF_1LC---",
-   "rank": 95
+   "rank": 96
   },
   {
    "m": "1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---",
@@ -2339,7 +2361,7 @@
    "why": "",
    "next": "Transfer theory for the shifted run.",
    "folder": "bb6-1RB1RF_1LC0LB",
-   "rank": 96
+   "rank": 97
   },
   {
    "m": "1RB1RE_0RC---_1RD0RD_1LE0LF_1RA0LD_1LC1RB",
@@ -2361,7 +2383,7 @@
    "why": "One drain mechanism at every scale: a block of 1s is drained into pairs, the same sweep runs a ternary counter, and a drain of the wrong parity wipes its block into a gap where a copy of the whole run restarts; it halts only if a gap has one of a sparse set of fatal sizes (3, 29, 75, 115, 289, ...), open and Collatz-like. Accelerated run: no halt in 2.37e28 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1RE_0RC---_1RD0RD_1LE0LF_1RA0LD_1LC1RB",
-   "rank": 97
+   "rank": 98
   },
   {
    "m": "1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---",
@@ -2383,7 +2405,7 @@
    "why": "A counter whose digits are blocks of 3d+2 ones, incremented by one sweep of the head; a carry into an even leftmost block starts a nested run of the same counter inside the tape. Lean proves every sweep but the nested run as a whole, crosses the one nested run of the run so far, and gives no halt in 4·10^14 steps (C: 1.8·10^19).",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD---",
-   "rank": 98
+   "rank": 99
   },
   {
    "m": "1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC",
@@ -2405,7 +2427,7 @@
    "why": "A binary counter in six-cell units whose overflows rewrite an irregular left part; rarely an overflow reaches the left end, the old counter freezes into blocks and the wall becomes a far longer counter. Lean proves the run through the first such event (no halt in the first 8^(p0+1) steps, p0 about 3.2e23); the next three are computed, and the left part behaves chaotically, so the question stays open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0LE_0RC0RA_1LD0LC_1LA0LB_1RA1LF_---0LC",
-   "rank": 99
+   "rank": 100
   },
   {
    "m": "1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
@@ -2427,7 +2449,7 @@
    "why": "Solid blocks of 1s separated by 0s; Lean proves the machine is an explicit map on lists of block lengths and halts iff it reaches 0 1 1 C>0 1 (an invariant excludes the other two critical frames), which only happens in a rightward sweep that starts on a bad block list; none among the first 10^8 frames. Also proved: cutting a block of exactly 15 cells at the left end halts, of exactly 2 or 3 never halts; neither seen while the tape grew to 5.3·10^10 ones.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA",
-   "rank": 100
+   "rank": 101
   },
   {
    "m": "1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA",
@@ -2449,7 +2471,7 @@
    "why": "Decoded completely: a stack machine on words over 110 and 111 that reproduces the run step for step; the conjecture that every such word leads to a word again is false (a 19-token word halts, Lean), the run itself has not halted in 2,097,152 visits (1.3·10^13 steps), and a halt needs a rare coincidence at one of the few visits that reach the right end; open, probably halting far beyond any run.",
    "next": "In Lean the model is proved sound (lean/Sim.lean); not proved: that mstep is never stuck on the states of a run (it never is in the computations), and that the fast program c/wrun.c is the same function.",
    "folder": "holdouts/1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA",
-   "rank": 101
+   "rank": 102
   },
   {
    "m": "1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---",
@@ -2471,7 +2493,7 @@
    "why": "The same counter as 1RB0LC_1RC1RE_1RD0RA_0LE0RF_1RA0LD_1LD--- under renamed states: digits are blocks of 3d+2 ones, one sweep per increment, and a carry into an even leftmost block starts a nested run of the counter inside the tape. Lean gives no halt in 2.66·10^11 steps, up to the start of the third nested run.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0LE_1RC0LD_1RD1RA_1RE0RB_0LA0RF_1LE---",
-   "rank": 102
+   "rank": 103
   },
   {
    "m": "1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
@@ -2493,7 +2515,7 @@
    "why": "A binary counter whose bits sit between blocks of 10s, each block paying one copy when its bit is cleared; a halt needs two neighbouring blocks to run out together, which depends on the block lengths themselves.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD",
-   "rank": 103
+   "rank": 104
   },
   {
    "m": "1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB",
@@ -2515,7 +2537,7 @@
    "why": "A few huge blocks of 1s. An exact event map is proved in Lean: an even block is split, a quarter to the left and three quarters to the right; an odd block at the left end is folded, 2 for 3. The machine halts iff the orbit of this map leaves the rules and stops; no halt in the first 10^130 steps (kernel), 10^13179 (compiled). Open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LD_1LC0RC_0RF1RA_0LE1LA_1RC0LA_---0RB",
-   "rank": 104
+   "rank": 105
   },
   {
    "m": "1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---",
@@ -2537,7 +2559,7 @@
    "why": "A Collatz-like map on the number of 1s with remnants left on the tape: S(3j) → S(10j+12), S(3j+1) → S(10j+14), S(3j+2) → S(10j−2) plus a remnant 0(10)^6 1111; the map on (m, remnants) is proved in Lean through 61,963 phases from blank tape (a halt would take over 2^6953 steps), then hits an unproved nested-remnant case. Accelerated run: no halt in 5.29e102641 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---",
-   "rank": 105
+   "rank": 106
   },
   {
    "m": "1RB1LA_1LC0RE_---0LD_1LA0LF_1RA1RE_1LA0LB",
@@ -2559,7 +2581,7 @@
    "why": "Blocks of 1s on both sides of the head; a long block next to an empty one is dismantled, half to each neighbour, ending in 2 or 3 ones by parity. Lean proves that the machine halts iff the orbit of an explicit map on the two block lists uses up the left list (a lone block of 3(2^m - 1) ones, or a run of blocks 111 to the left end); no halt in 1.5·10^24 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LA_1LC0RE_---0LD_1LA0LF_1RA1RE_1LA0LB",
-   "rank": 106
+   "rank": 107
   },
   {
    "m": "1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB",
@@ -2581,7 +2603,7 @@
    "why": "Blocks of 1s on both sides of the head; a long block next to an empty one is dismantled, half to each neighbour, ending in 2 or 3 ones by parity. Lean proves that the machine halts iff the orbit of an explicit map on the two block lists uses up the left list (a lone block of 3(2^m - 1) ones, or a run of blocks 111 to the left end); no halt in 1.5·10^24 steps.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1LA_1LC0RE_---0LD_1RE0LF_1RA1RE_1LA0LB",
-   "rank": 107
+   "rank": 108
   },
   {
    "m": "1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC",
@@ -2603,28 +2625,6 @@
    "why": "A binary counter at the left end (+39 or +42 every 8 sweeps) facing a base-3 counter written over the growing block; Lean proves a halt can only come in a B-overflow transient (not the first); the transient is now fully decoded and followed exactly to 1.1*10^17 steps (16 transients, no halt), but its end state depends number-theoretically on the width and the proof that it always recovers is missing: open.",
    "next": "Find the rule that decides halting inside the proved macro model, prove it in Lean, and run the model exactly (accelerated) to test it.",
    "folder": "holdouts/1RB1RF_1LC0LB_1RE1LD_1RE0LB_1RA0RE_---0RC",
-   "rank": 108
-  },
-  {
-   "m": "1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
-   "id": 140108,
-   "fam": "R09",
-   "famname": "Word map phi with a counter: one table, a race between word and collisions",
-   "set": "T5",
-   "mates": 7,
-   "stage": "model",
-   "score": 29.4,
-   "route": "either",
-   "work": "lean",
-   "kernel": 6,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Shift-overflow counter",
-   "why": "Two binary counters: a right counter in 3-cell digits and a bit string in the left separators that gains 4 per count, 2^(d+1) per phase (proved in Lean for all sizes); overflows follow an explicit map (with a recursive constant C), checked not proved, iterated for 100,000 phases (about 10^153,000 steps) without reaching the halting case.",
-   "next": "Port the one-map reduction to the siblings; invariant of the map.",
-   "folder": "holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD",
    "rank": 109
   },
   {
