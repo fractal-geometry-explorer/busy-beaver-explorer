@@ -197,8 +197,21 @@ image and six-cell carry to its right that occurs on random returns, each for ev
 | E | stays `11`, so the 1s join the run on the right; stays E | becomes `110`, second carry cell cleared; to A |
 | A | stays `11`, first carry cell cleared (a run of two); stays A | the head goes right past the carry: a new excursion (open) |
 
-So in mode E a stretch of `01` words becomes one run of 1s: one way a `00` pulse writes a new fuse. Mode A on a
-`011` word starts a new excursion to the right, which is what is left to decode.
+So in mode E a stretch of `01` words becomes one run of 1s: one way a `00` pulse writes a new fuse. All 21 rules
+occur on the run from blank tape: in its first 2·10^9 steps the starting pattern of each is met between 96 and
+8.3·10^7 times (`c/return_count.c`).
+
+**Mode A at a `011` word starts a new pulse** (`lean/Excursion.lean`, kernel only). The head is then in state A on
+the last cell of the image `100`, a 0, and that 0 with the carry after it is a list of words: `011 011` for the carry
+`110110`, `011 01 01` for `110101`, and `011 01` followed by `00` for `110100`. So the excursion is an ordinary pulse
+over these words to the next defect. If that is a run of three or more 1s, the packet `111` comes back, turns
+`10 111` into `11 011` and the head goes on left in mode E (`after_w01`, `after_w011`); `excursion_110110` proves the
+whole excursion for the carry `110110` (35 steps). If it is a `00`, a nested `00` pulse starts.
+
+So the return after a `00` pulse is recursive: E merges `01` words into a run of 1s; at the next `011` word the head
+switches to A, which turns `01` words into runs of two; at the next `011` word A sends a pulse back right, which
+meets the nearest defect (for instance the run E has just made), takes three 1s from it and returns in mode E. A halt
+still needs a pulse to meet `0001`; what is open is whether this recursion can ever leave one.
 
 <!-- related machines: written by holdouts/related.py -->
 
