@@ -2,7 +2,7 @@
 
 bbchallenge id 76942. One of the six-state holdouts whose halting from blank tape is open (group G09: the visited tape grows like the square root of the step count on both sides).
 
-**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list, in a way that looks like a cellular automaton and has no known formula. It halts only if B reads two adjacent 1s, which no run has shown. Decision: open. Twin of [1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md): renaming the states A, B, C, D, E, F here to C, D, E, A, B, F gives that machine's table, so this one is it started in its state C (without the two 1s that machine writes first). The runs differ cell by cell but have the same structure.
+**What it does.** A bouncer whose tape, just after a rightward sweep, is a list of blocks of ones separated by single 0s, almost every block of length 4k+3: a list of numbers in unary. The leftward sweep turns each block of 4k+3 ones into 2k+1 single 1s; the rightward sweep zigzags over the list and rebuilds blocks of 4k+3 ones, but different ones: each round trip rewrites the list. The rewrite is decoded (section "The round trip as an XOR rule", proved in Lean): in 4-cell letters s = `0111`, c = `1111` the round trip replaces the word by its running XOR, so backwards in time it is the XOR cellular automaton (rule 102). Only a thin layer at the right end of the tape is not decoded, and a halt can only come from the ends. It halts only if B reads two adjacent 1s, which no run has shown. Decision: open. Twin of [1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---](../1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---/README.md): renaming the states A, B, C, D, E, F here to C, D, E, A, B, F gives that machine's table, so this one is it started in its state C (without the two 1s that machine writes first). The runs differ cell by cell but have the same structure.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -30,8 +30,48 @@ The leftward sweep (state B, rule `left_pairs`) turns each `11` of a block into 
 The rightward sweep zigzags: at every block boundary the head backs up a few cells, and inside a group it turns `001`, `010`, `100` into `110`, `101`,
 `011` (states C, D, E). A visit adds 1 to 4 cells at the left end and 3 to 8 at the right.
 
-The rewriting of the list is sequential with a finite carry, but the resulting map on lists has not been described: the first few numbers repeat a
-short cycle, the rest looks random.
+The rewriting of the list is decoded in the next section.
+
+## The round trip as an XOR rule (`lean/Sweep.lean`, `lean/Bulk.lean`)
+
+Cut the tape into 4-cell letters counted from the left end. After a rightward sweep every letter is s = `0111` (a block starts) or
+c = `1111` (the block goes on); a block of 4k+3 ones with the 0 before it is s c^k. Write G_k = `1 (0101)^k 000`, the group of 2k+1 single 1s
+the leftward sweep makes of it.
+
+| rule | from | to | steps |
+|---|---|---|---|
+| `block_B` | `L 0111 (1111)^n B> 0 R` | `L B> 0 0001 0 (1010)^n R` | 8n + 6 |
+| `group_E` | `L E> 1 (0101)^n 000 R` | `L (0111)^(n+1) A> R` | 4n + 4 |
+| `group_A` | `L 0111 A> 1 (0101)^n 000 R` | `L 1111 (1111)^n 0111 E> R` | 28n + 30 |
+
+`left_sweep` chains `block_B` over any list of blocks, `right_sweep` chains `group_E`, `group_A` over any list of pairs of groups: the
+rightward sweep reads the groups in E and A in turn, with no exception, writes s^(k+1) for a group read in E, and c^(k+1) for a group read
+in A, which also turns the s behind it into c. `outL_eq_pxor`: what the rightward sweep writes is the running XOR (`pxor`) of the letter word
+it read, with s = 1. Its inverse is the XOR of neighbours (`xdiff_pxor`). So, with z = 1 for s,
+
+    z_before(n) = z_after(n) XOR z_after(n-1)
+
+at every letter n away from the ends: backwards in time the word evolves by the XOR cellular automaton (elementary rule 102, Pascal's
+triangle mod 2), forwards by its inverse, the running XOR. On the list of numbers: read in pairs (a, b), each pair becomes a zeros and
+then b + 1.
+
+The ends (observed, not proved):
+
+- The tape grows by exactly one cell at the left end each round trip, and the letter grid moves with it, so the letter index from the
+  left end is fixed and the left end is a fixed boundary for the rule. The first 2^j letters repeat with period 2^(j+1) round trips
+  (checked for j = 2..7): this is the short cycle of the first numbers.
+- At the right end a layer of the last few groups is not in letter form: 13 cells on average and at most about 100 in the first 10^9
+  steps, not growing between the first and last third of that run. In about 9% of round trips the rightward sweep turns back before the
+  end of the tape. This layer is not decoded.
+- Information moves only to the right: a letter after a round trip depends only on the letters left of it.
+
+`py/ca_check.py` checks the rule on the run: at every return to the left end, every letter that two consecutive round trips have in common,
+up to the right-end layer. To 2·10^8 steps: 4,159 round trips, 8,492,322 letters, no exception, and the same for the five other machines
+with these tapes (listed in that script).
+
+Where a halt can come from: the three rules take a fixed number of steps for every n, so no halt happens in the bulk; a halt (B on two
+adjacent 1s) has to come from one of the two ends, and the left end has been periodic in every run so far. The open question is the
+right-end layer, fed by the running XOR that arrives from the left.
 
 ## Halting
 
@@ -57,9 +97,9 @@ Generated by `py/rules.py` with `tools/py/bbtools/symtm.py`; every rule holds fo
 
 ## Status
 
-Open. Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps (`lean/Blank.lean`), the sweep rules (`lean/Rules.lean`). Lean with `native_decide`: no halt in 10^7 steps. C: no halt in 10^10 steps (`tools/c/tmrun.c`). Observed: the unary-list structure; the blocks of 4k+3 ones.
+Open. Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps (`lean/Blank.lean`), the sweep rules (`lean/Rules.lean`), the round trip on the bulk as a running XOR (`lean/Sweep.lean`, `lean/Bulk.lean`). Lean with `native_decide`: no halt in 10^7 steps. C: no halt in 10^10 steps (`tools/c/tmrun.c`). Observed: the unary-list structure; the blocks of 4k+3 ones.
 
-**For later.** Write the round trip as a map on lists of numbers (a transducer with finite carry: the zigzag of the rightward sweep) and look for an invariant set of lists; the generic closed-language searches (windows of up to 11 cells, also with run-length parity) fail.
+**For later.** Decode the right-end layer: which local patterns it goes through, and how it depends on the parity that the running XOR brings to it. A finite description of it would reduce halting to a question about the running XOR of the word, i.e. about Pascal's triangle mod 2.
 
 ## First look
 
@@ -97,6 +137,8 @@ of: A with 0 under the head, 1 right, 1 two right; F with 1 left, 0 under the he
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/lean/check.sh
 python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/rules.py | diff - holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/lean/Rules.lean
+python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca.py | diff - holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/lean/Sweep.lean
+python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000
 ```
 
 <!-- related machines: written by holdouts/related.py -->
