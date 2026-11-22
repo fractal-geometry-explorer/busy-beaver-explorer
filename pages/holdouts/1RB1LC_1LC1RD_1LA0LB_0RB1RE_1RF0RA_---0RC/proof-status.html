@@ -90,7 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.</p>
       <p><b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.</p>
-      <p><b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, the rules give no halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades.</p>
+      <p><b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, the rules give no halt in the first 3&middot;10<sup>12</sup> visits (about 1.8&middot;10<sup>37</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -208,9 +208,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC 4 1542400000</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 10<sup>12</sup> visits (about 6.8&middot;10<sup>35</sup> steps)</h3>
-        <p><code>tools/collatz/c/amap.c</code> iterates the rules from A(2, 9): 10<sup>12</sup> visits without b = 3, ending near a, b &asymp; 3.5&middot;10<sup>12</sup>; by the rules' exact step counts that is about 6.8&middot;10<sup>35</sup> machine steps. The steps grow like 0.68&nbsp;N<sup>3</sup> in the number N of visits. <code>c/abrun.c</code> (128-bit integers, exact step counts, every visit with 1 &le; b &minus; a &le; 8 logged) agrees over the first 1.4&middot;10<sup>11</sup> visits.</p>
-        <p class="where"><code>gcc -O2 -o amap tools/collatz/c/amap.c -lm && ./amap 1e12</code>; <code>c/abrun.c</code></p>
+        <h3>No halt in the first 3&middot;10<sup>12</sup> visits (about 1.8&middot;10<sup>37</sup> steps)</h3>
+        <p><code>c/abrun.c</code> iterates the rules from A(2, 9) in 128-bit integers with their exact step counts: 3&middot;10<sup>12</sup> visits without b = 3, ending at A(6583418669566, 3916580488195); that is 18,<wbr>374,<wbr>996,<wbr>873,<wbr>246,<wbr>197,<wbr>841,<wbr>670,<wbr>520,<wbr>444,<wbr>117,<wbr>981,<wbr>496 &asymp; 1.8&middot;10<sup>37</sup> machine steps. Of its 41 logged visits with 1 &le; b &minus; a &le; 8, none has a even and b &minus; a = 4. <code>tools/collatz/c/amap.c</code> agrees over the first 10<sup>12</sup> visits. The steps grow like 0.68&nbsp;N<sup>3</sup> in the number N of visits.</p>
+        <p class="where"><code>gcc -O2 -o abrun c/abrun.c && ./abrun 3000000000000 10000000000</code> (about 7 hours; resumable from any logged <code>prog</code> line)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
