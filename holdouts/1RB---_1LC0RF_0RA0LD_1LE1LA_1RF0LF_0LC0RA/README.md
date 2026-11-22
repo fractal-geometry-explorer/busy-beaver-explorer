@@ -226,9 +226,24 @@ run (values: N, Z | (Q, P) of each item, the last P being R):
 | 70,678,024 | N 12,593, Z 3 \| (0, 0) (0, 15) (0, 242) (3, 8191) | 70,680,694 | N 12,594, Z 0 \| (0, 0) (0, 128) (0, 4096) |
 
 Words merge or split, Q's digits move into a longer R, and five of the seven take 2 to 5 base-3 digits from N (as in
-the era changes of the sibling with F0 = 0LB). What an overflow hands on is the open part. Next steps: build
-overflows by hand from the values before them and map the outcome against N's low base-3 digits (as `era_sweep.py`
-of the sibling does), and port the chain law to the siblings (their X layout is its two-item case).
+the era changes of the sibling with F0 = 0LB).
+
+**Following the overflows far beyond the run (trusted).** Between two overflows the law can be applied in closed form:
+m events add m to N and to Z, and the units sent down the chain add up with carries, whatever their order. So
+`py/overflow_jump.py` jumps straight to the next overflow (the largest m with no carry out of R, by bisection) and runs
+only the overflow event cell by cell on the machine (`c/overflow_event.c`), up to the next full event in a layered
+layout. Started at step 118,003 (N = 35, Z2 | (Q12, R0)) it reproduces the 7 overflows of the run exactly, and then
+follows 1,500 overflows, to about 10^874 events, with no halt. What it shows about the hand-over:
+
+- **N loses d low base-3 digits, then counts on:** at every one of the 1,500 overflows the next full event has
+  N' = floor(N / 3^d) + 1 and lies 3d cells further left. d is read off N's low digits like a prefix code and the
+  chain; d = 1 never occurs. d counts: 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1.
+- d = 0 merges two neighbouring words of the chain (the widths add up, plus 2); d ≥ 2 shifts the list of word
+  widths by one slot, which is how the long chains grow (19 items by overflow 750). The last item alternates between
+  (Q12, R0) and (Q2, R13).
+
+What is still open is the exact map from (N's low digits, chain) to d and the new words, and with it a proof that the
+overflows never reach the halting cell.
 
 ## Status
 
@@ -241,7 +256,8 @@ of the sibling does), and port the chain law to the siblings (their X layout is 
 - Trusted: in a 3·10^8-step run the full events have the plain cascade layout only at steps 322,900 to 664,016 with C of 2 digits and R of 13 (7,284 events), and 7,283 consecutive pairs follow the rule, no mismatch (`py/cascade_check.py`); the layered shapes after are listed above.
 - Lean (kernel): `Layers.lean`, the layer law (a chain of items Q, P after Z; a carry multiplied by 3 at each separator) for every layout and width, in `layer_event` and its 9 cases of N.
 - Trusted: all 1,169,737 pairs of consecutive full events of a 3·10^8-step run in a layered layout follow it (`py/layers_check.py`); 7 overflows of R.
-- Open: what an overflow of R hands on (the 7 of the run are listed above); halting.
+- Trusted: from step 118,003 the law in closed form plus each overflow event run on the machine (`py/overflow_jump.py`, `c/overflow_event.c`): 1,500 overflows, about 10^874 events, no halt; N' = floor(N/3^d) + 1 at every overflow.
+- Open: the exact law of what an overflow of R hands on (d and the new words); halting.
 
 ## Scripts
 
@@ -255,6 +271,7 @@ of the sibling does), and port the chain law to the siblings (their X layout is 
 
 - `py/layers_gen.py > lean/Layers.lean`: the layer law (rows by `py/rowgen.py`, composition in `py/Layers.lean.tpl`, the end of an event by `bbtools.symtm`).
 - `py/layers_check.py`: `./cascade_events 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA 0 300000000 0 | python3 holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/py/layers_check.py` checks a run against the layer law and lists the overflows of R.
+- `py/overflow_jump.py`, `c/overflow_event.c`: `gcc -O2 -o overflow_event holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/c/overflow_event.c && python3 holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/py/overflow_jump.py 1500 ./overflow_event` follows the run from overflow to overflow of R.
 - `py/layers_page.py`: writes the layer law into `status.json` (with the interactive `py/layers_widget.html` and the run's layouts `py/layers_presets.json`).
 
 ## Pages
