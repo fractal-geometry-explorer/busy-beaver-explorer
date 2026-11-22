@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, but it is now an exact question about one pattern.</b> Lean proves (kernel only) that the machine is a rewriting system on lists of block lengths, the <em>block map</em>, and that it halts from blank tape if and only if the block map reaches the frame <code>0 1 1 C&gt;0 1</code>. The other two critical frames, <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code>, are excluded by an invariant. That frame can only be reached in a sweep of the head to the right, and whether a sweep halts is read off the block list where it starts. By <code>native_decide</code> none of the first 10<sup>8</sup> frames is critical (3.0·10<sup>11</sup> machine steps). Whether a halting sweep ever starts is not known.</p>
+      <p><b>The question is open, but it is now one local event.</b> Lean proves (kernel only) that the machine is a rewriting system on lists of block lengths, the <em>block map</em>, and that it halts from blank tape if and only if a zigzag of the block map cuts a block down to exactly 3 cells next to a block of exactly 8 cells (<code>halts_iff_8</code>). Equivalently, a block of m cells with i cells on its left, with m a multiple of 3 and i + 2m/3 = 10. Before this, halting was known to need the frame <code>0 1 1 C&gt;0 1</code> at the start of a sweep on a bad block list. By <code>native_decide</code> none of the first 10<sup>8</sup> frames is critical (3.0·10<sup>11</sup> machine steps). Whether the two small blocks ever meet is not known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -151,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>cut_even</code>, <code>lean/Cuts.lean</code></p>
       </div>
       <div class="card">
+        <h3>It halts iff a zigzag cuts a block to 3 cells next to a block of 8</h3>
+        <p>The machine halts from blank tape iff the block map reaches <code>E L (3 :: 0 :: j :: R)</code> with a block of exactly 8 cells first in L: a zigzag has cut the block next to the head down to 3 cells while its left neighbour has 8. From there the critical frame <code>0 1 1 C&gt;0 1</code> follows in 11 frames, for all L, j ≥ 1 and R. The converse is an invariant of the block map, kept by every frame except that one: every block has at least 2 cells except next to the head and the last block, the block behind the double 0 (which collects one cell per trip of the zigzag) never ends a zigzag at 3 against a block of 4, and the leftmost block of the tape is never 3. With the zigzag rule, a block of m cells with i on its left leads to a halt iff m is a multiple of 3 and i + 2m/3 = 10.</p>
+        <p class="where"><code>halts_iff_8</code>, <code>halts_iff_pat</code>, <code>inv4_next</code>, <code>inv4_total</code>, <code>pat_halts</code>, <code>lm_next</code>, <code>lean/Pair.lean</code></p>
+      </div>
+      <div class="card">
         <h3>How the cut is made</h3>
         <p>In the block map the cut is three cases in a row: <code>E (i :: L) (m :: 0 :: j :: R)</code> goes to <code>C (m−2 :: i+2 :: L) (0 :: j :: R)</code>, to <code>C (1 :: m−3 :: i+2 :: L) (j :: R)</code> and to <code>E (i+2 :: L) (m−3 :: 0 :: j+1 :: R)</code> (for m ≥ 5): the block left of the head gains 2 cells, the block being cut loses 3, the block behind the double 0 gains 1. Each of the three cases is proved, and so is their composition over a whole cut (<code>zig</code>, below).</p>
         <p class="where">cases <code>nextE</code> (m+2), <code>nextC</code> (a+3), <code>nextC</code> (1) of <code>lean/Blocks.lean</code></p>
@@ -195,6 +200,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 2.75·10<sup>23</sup> steps (accelerated run)</h3>
         <p><code>tools/c/rleaccel.cpp</code>, the compiled port of the run-length simulator <code>tools/py/bbtools/rleaccel.py</code> (same rules: blocks of 1 cell, runs crossed in one step, cycle jumps only after their one-cycle rule is proved symbolically; tested against the Python program by <code>tools/tests/test_rleaccel_cpp.py</code>), runs from blank tape without a halt to 2.75·10<sup>23</sup> machine steps (exact count; tape spanning 237,881,298 cells).  It ran about 30 minutes and was resumed from a checkpoint after interruptions, so its macro-step count (9,160,000,000) is not that of an uninterrupted run; the step count it reports is exact either way.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 1000000000000000 run.ck 300</code></p>
+      </div>
+      <div class="card">
+        <h3>How close the run comes to that pattern</h3>
+        <p>In 2.5·10<sup>11</sup> frames of the block map with zigzags in one step (5.36·10<sup>10</sup> ones at the end), 1.79·10<sup>10</sup> zigzags stop at exactly 3 cells and none next to a block of 8. When the left neighbour is not the leftmost block of the tape, it is below 64 only 19 times, all in the first 10<sup>8</sup> frames (smallest 15, at frame 1,277). When it is the leftmost block, it is below 64 in 330 cases. 314 of them are 2 mod 4 (a cut inside a left-end descent, where the values are even); the other 16 (4, 12, 19, 21, …) all come in the first 10<sup>8</sup> frames. It is never 8.</p>
+        <p class="where"><code>c/pairs.c</code>: <code>./pairs 250000000000</code></p>
       </div>
       <div class="card">
         <h3>10<sup>8</sup> frames are 300,362,311,724 steps</h3>
@@ -244,7 +254,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts iff some sweep to the right starts on a bad block list (in particular iff the block map reaches <code>0 1 1 C&gt;0 1</code>; the other two critical frames are excluded). Two exact events are known that would settle it: cutting a block of exactly 15 cells at the left end (halts) and cutting a block of exactly 2 or 3 cells there (never halts). Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones. The arithmetic of the left-end descents keeps 3 away from the first block of the sweeps they start, but blocks elsewhere are kept large only by their size, and no invariant is known that excludes the bad sweep starts. The community tracker lists the machine as a "lottery".</p>
+        <p>Not known. It halts iff a zigzag ever cuts a block down to exactly 3 cells while the block on its left has exactly 8 (<code>lean/Pair.lean</code>), which needs two small blocks next to each other. Small blocks come only from the left-end descents and from the last block at the right end, and the run has never put one next to the other or next to a second small block away from the left end. At the left end the pattern needs a descent that starts on exactly 15 cells; a descent starting on 2 or 3 would instead never halt. Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones. No invariant is known that keeps the small blocks apart; the community tracker lists the machine as a "lottery".</p>
       </div>
     </div>
   </section>
@@ -256,6 +266,7 @@ python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py &amp;&am
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
 gcc -O2 -o /tmp/sweeps holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/sweeps.c &amp;&amp; /tmp/sweeps 1000000000    # 7 seconds
+gcc -O2 -o /tmp/pairs holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/pairs.c &amp;&amp; /tmp/pairs 250000000000    # about 30 minutes
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/absint.py 30 8 8 START    # START: a frame in three lines; prints an abstract path to the critical frame
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000
 gcc -O2 -o /tmp/series holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/series.c &amp;&amp; /tmp/series 249644974080    # about 25 minutes
