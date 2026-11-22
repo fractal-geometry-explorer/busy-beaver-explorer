@@ -124,9 +124,15 @@
    "where": "<code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LE--- jump 200 10</code>"
   },
   {
-   "level": "open",
+   "level": "trusted",
    "title": "What a change of era hands on",
-   "text": "At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.",
+   "text": "The change of era is one event whose carry runs off the last word; the head then sweeps back to the left end. Let d be the number of base-3 digits N loses. R1: N' = ⌊N/3<sup>d</sup>⌋ + 1. R2: if d &gt; 0, d is fixed by N: read from its lowest digit, N starts with a zeros, one digit 1 or 2, b twos and one more digit, and the change eats exactly that block, so d = a + b + 2. R3: d = 0 exactly when the sweep back reaches the head cell of the last event in state C (otherwise it arrives in A). Every word wraps and the words are read again with each separator moved by half a digit. In 200 changes of era of this machine every change follows them except 4 of the first 5; the same holds for 1,000 changes of 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---.",
+   "where": "py/handoff.py"
+  },
+  {
+   "level": "open",
+   "title": "Which kind of change comes, and the new words",
+   "text": "R3 makes the kind of change a bit computed word by word during the sweep back; a closed form for it, and for the new widths and values, is open, and so is whether a change of era can ever halt.",
    "where": ""
   },
   {

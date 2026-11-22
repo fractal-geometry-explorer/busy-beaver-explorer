@@ -297,8 +297,36 @@ become new words. Which one happens depends on N mod 9 and more. Kinds in the fi
 | loses 1 digit | ± 0 | 2 |
 
 So the chain grows by about 2 digits per era and gains words slowly, and the number of events per era grows by a
-factor of about 3.5. What remains for a decision is a rule for this hand-over, and whether a change of era can ever put
-the head on the halting 1.
+factor of about 3.5.
+
+**What a change of era hands on (trusted, `py/handoff.py`).** The change of era is one event whose carry runs through
+every word and off the right end of the chain; the head then sweeps back to the left end. Let d be the number of
+base-3 digits N loses (N has nw digits at the last event of the era and nw − d at the next full event in a layout).
+Three rules hold at every change of era after the first few:
+
+- R1, the counter: N' = ⌊N / 3^d⌋ + 1, with nw − d digits. (d = 0 is the plain N + 1 of an event.)
+- R2, how much it eats: if d > 0, d is fixed by N alone. Read from its lowest digit (the one next to the head), N
+  starts with a zeros, then one digit 1 or 2, then b twos, then one more digit; the change eats exactly that block, so
+  d = a + b + 2. This explains the table above: for random digits, d = 2, 3, 4, … has the chances 4/9, 8/27, 4/27, …
+  among the changes with d > 0 (seen: 150, 93, 55 of 336), and d = 1 cannot happen.
+- R3, which kind: d = 0 exactly when the sweep back reaches cell 0 (the head cell of the last event) in state C;
+  otherwise it arrives in state A and d > 0. That state is passed on word by word during the sweep, so it is a
+  function of the chain at the end of the era. No closed form for it is known yet: no parity of the widths, the
+  values, the number of words, or S mod 2, 3 or 4 predicts it.
+
+What the words get: every word wraps (its cells stay in place, one cell of each digit flips), and the tape is read
+again with each separator moved by 2 cells, half a digit. The new Z is made of the 3d cells eaten from N and the
+zeroed cells of the lowest old words. When d = 0, two words merge into one.
+
+`python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/handoff.py MACHINE ERAS` jumps from era to era with
+the chain law, runs each change of era cell by cell, and checks R1 to R3 at each one:
+
+- `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`, 1000 changes of era (twice as far as the jump run above), no halt: every change follows R1 to R3 except 6 of the first 9, while N has at most 5 digits (d = 0: 322, d > 0: 678).
+- `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LE---`, 200 changes of era: every change follows R1 to R3 except 4 of the first 5 (d = 0: 66, d > 0: 134).
+
+The sibling `1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA` has the same rule R1 at its overflows of R. What remains for a
+decision is a closed form for R3 and for the new words, and whether a change of era can ever put the head on the
+halting 1.
 
 ## Status
 
@@ -312,7 +340,8 @@ the head on the halting 1.
 - Trusted: the 4,866,936 full events of a 3·10^8-step run from step 173,166,400 on follow the cascade rule, no mismatch (`py/cascade_check.py`); the eras before carry one more word X between Z and C.
 - Lean (kernel): `Layers.lean`, the chain law for every layout (any number of words, any widths), which contains the cascade and the X layer as special cases.
 - Trusted: `py/wordchain.py`, the run checked against the chain law and followed through many changes of era with no halt (see "One law for every era").
-- Open: a rule for the changes of era (a carry leaving the last word); halting.
+- Trusted: `py/handoff.py`, three rules for the changes of era: N' = ⌊N/3^d⌋ + 1, d fixed by N's lowest digits when d > 0, and d = 0 exactly when the sweep back arrives in state C (see "What a change of era hands on").
+- Open: a closed form for which kind of change comes (R3) and for the new words; halting.
 - (Earlier note) Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"), the left side in the same form; halting.
 
 ## Scripts
@@ -328,6 +357,7 @@ the head on the halting 1.
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c` and `py/cascade_check.py`: `gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c && ./cascade_events MACHINE 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py` checks a run against the cascade rule.
 
 - `py/wordchain.py MACHINE check STEPS | jump ERAS SPOT [OUT.json]`: the chain law on a run, and the simulator that jumps over eras.
+- `py/handoff.py MACHINE ERAS`: follows ERAS changes of era and checks the three hand-over rules R1 to R3 at each.
 - `py/layers_gen.py MACHINE NAMESPACE > lean/Layers.lean` (with `py/Layers.lean.tpl`, `py/rowgen.py`, `py/layers_bounce.json`): the chain law in Lean, for the whole family.
 - `py/chain_page.py collect|write`: the chain law and the runs (`py/chain_runs.json`) into the five status.json files.
 
