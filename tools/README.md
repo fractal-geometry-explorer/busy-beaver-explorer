@@ -12,6 +12,7 @@ as they are and keeps only what is about its own machine.
 | `lean/check.sh` | compile the library, then a machine's files, with plain `lean` (no Lake) | `bb6-holdout/lean/check.sh` |
 | `py/bbtools/leangen.py` | the Lean definition of a machine, generated from its text form | new |
 | `py/bbtools/symtm.py` | symbolic simulation with repeats and unknown context, shift rules found automatically (optionally after re-bracketing a repeat next to the head, `rotate=True`, proved with `TM.rep_rotate`), and **Lean proofs written from the trace** (`prove`) | `bb6-holdout/rec/symtm.py`, `lean/gen_rules.py` |
+| `py/bbtools/symframe.py` | the runs of `symtm.prove` with **framed Lean proofs** (`prove_framed`): each piece (single steps, a crossing, a re-bracketing) is proved on the cells it touches for every tape beyond them, stated once in a `Library` shared by a file's rules, and the pieces are chained by unification; only the start and end configurations are written out (36 reset rules of 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA: 0.7 MB and 22 s, against 21 MB with `prove`) | new |
 | `py/bbtools/machine.py` | parser of the standard format and the reference simulator | the many per-machine simulators |
 | `py/bbtools/explore.py` | records, end-of-tape events and block lists of a run, for finding macro structure | new |
 | `py/bbtools/invariants.py` | exhaustive search for conserved a·ones + b·pos + W[state] (mod m) | the holdout's mod-3 invariant, found by hand there |

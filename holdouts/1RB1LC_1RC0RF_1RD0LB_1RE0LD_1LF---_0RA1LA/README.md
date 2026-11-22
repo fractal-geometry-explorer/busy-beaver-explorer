@@ -1,6 +1,8 @@
 # 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA
 
-bbchallenge id 66813, a BB(6) holdout (group G06). Family: **two blocks trading words, with resets**. Open; the first level (periods and resets) is proved in Lean with exact step counts.
+bbchallenge id 66813, a BB(6) holdout (group G06). Family: **two blocks trading words, with resets**. Open; the run from blank tape is proved in Lean, with exact step counts, through all of level 1 to the first
+configuration of level 2 (past 10^1543 steps), and every reset at a nearly empty tail is a theorem: one class halts,
+fourteen never halt, the rest start a new tail.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -71,12 +73,75 @@ with their exact step counts. The table is now a theorem for every n (above), so
 proved (`level1_end'`, with R = `1 0^inf`): phase 2175 ends at (n, 4, 5), phase 2176 at (n, 3, 3) with
 n = 11 mod 100 (771 digits, about 10^1542 steps in all), phase 2177 at (n, 3, 0) with n = 63 mod 100 (772 digits,
 about 10^1543 steps), without a halt. That the run from blank tape reaches (17, 0, 6805) with the tail
-`10 (1110)^6805 1 0^inf` is measured (`m7fast`), not proved.
+`10 (1110)^6805 1 0^inf` is now proved too (`blank_to_17`, below), and so is the reset after phase 2177.
 
 With fewer words than a row reads (t < 4, 1, 4, 3, 2 for r = 0..4) the constructed tapes show other resets: the
 tail is rebuilt with about n words `1110` and a new suffix (`1001101011001`), as the reset of (6799, 1) built a tail
 of 6805 words. So the run is a nested structure, the same
 kind of counter one level up, and the next level starts with numbers of about 770 digits.
+
+## From blank tape to level 2, and every reset at a nearly empty tail (22 Nov)
+
+**The run from blank tape** (`lean/BlankRun.lean`, rules in `lean/TailResetRules.lean` from `lean/tailresets.py`;
+kernel, no `sorry`). Before the long tail exists the tail after the d block is `1001`, and its resets are rules for
+every n: (n, 0) goes to the new phase (10, floor(n/2) - 1) and (n, 2) to (10, ceil(n/2) + 6), both keeping `1001`
+(`tail0_even/odd`, `tail2_even/odd`); (n, 1) builds the long tail, (17, 0) with `10 (1110)^(n+6) 1` (`tail1`).
+`blank_prefix` (7106 steps, `decide` on the list simulator) reaches (10, 10) with tail `1001`; then periods and these
+resets give the phase ends (72, 0), (227, 0), (692, 2), (2180, 2), (6799, 1) and (17, 0, 6805): `blank_to_17`,
+`steps 374475636 init = some (cfg 17 0 (tl 6805 s1))`. At the end of level 1 (`level1_end'`, phase 2177, (N, 3, 0)
+with the suffix `1`) the reset reads the suffix and goes straight to (17, 0) with the tail
+`10 (1110)^(N+20) 1001101011001` in 440N + 9367 steps (`level2_entry`). Together (`blank_to_level2`): from blank tape
+the machine reaches, without halting, `cfg 17 0 (tl (N+20) s2)`, the first record of level 2, with N = 63 mod 100,
+10^771 <= N < 10^772, after more than 10^1543 steps.
+
+**The resets at a nearly empty tail** (`lean/NearEmpty.lean`, rules in `lean/NearEmptyRules.lean`, both from
+`lean/nearempty.py`; kernel). A phase end `cfg n r (tl t s)` with t below what row r of the reset table reads (t < 4,
+1, 4, 3, 2 for r = 0..4) reads into the suffix s. For each suffix of the run every such reset is a theorem for every
+n (per parity where the end needs it). Measured first on n = 60..65 (`py/nearempty_table.py`, output in
+`runs/nearempty_table.txt`); each class turned out linear in n, and Lean proves the symbolic run. Here `loop` is the
+record `0^inf B> 0 0 1 (1100)^(n+k) 0 1 0^inf`, from which `loop5` gains five words 1100 every 80n + 395 steps
+forever, so the class never halts (`*_never_halts`):
+
+| suffix | r | t | the reset reaches | theorem |
+|---|---|---|---|---|
+| `1001` (level 0) | 0, 2 | 0 | (10, floor(n/2) - 1), (10, ceil(n/2) + 6), tail `1001` | `tail0_*`, `tail2_*` |
+| | 1 | 0 | (17, 0) with `10 (1110)^(n+6) 1`: level 1 | `tail1` |
+| | 3, 4 | 0 | loop (n+38, n+28) | `t1001_r3_t0`, `t1001_r4_t0` |
+| `1` (level 1) | 0 | 0, 1, 3 | (17, 0) with `10 (1110)^(n-2, n, n+2) 1001101011001`: level 2 | `s1_r0_t0` ... |
+| | 0 | 2 | loop (n+12) | `s1_r0_t2` |
+| | 1 | 0 | loop (n+9) | `s1_r1_t0` |
+| | 2 | 0 | (10, ceil(n/2) + 6), tail `1001` | `s1_r2_t0_even/odd` |
+| | 2 | 1, 3 | loop (n+20, n+29) | `s1_r2_t1`, `s1_r2_t3` |
+| | 2 | 2 | level 2 with n + 21 words | `s1_r2_t2` |
+| | 3 | 0, 2 | level 2 with n + 20, n + 22 words (the real run: `level2_entry`) | `s1_r3_t0`, `s1_r3_t2` |
+| | 3 | 1 | loop (n+32) | `s1_r3_t1` |
+| | 4 | 0 | loop (n+33) | `s1_r4_t0` |
+| | 4 | 1 | level 2 with n + 23 words | `s1_r4_t1` |
+| `1001101011001` (level 2) | 0 | 0, 1 | loop (n+10, n+20) | `s2_r0_t0`, `s2_r0_t1` |
+| | 0 | 2 | (n+7, 0) with the tail `1001101011001` | `s2_r0_t2` |
+| | 0 | 3 | (10, floor((n+5)/2)) with `1100 1011001` | `s2_r0_t3_even/odd` |
+| | 1 | 0 | (n+16, 0) with the tail `1001`: back to level 0 | `s2_r1_t0` |
+| | 2 | 0 | loop (n+26) | `s2_r2_t0` |
+| | 2 | 1 | (10, floor(n/2) + 9) with `10 1101001` | `s2_r2_t1_even/odd` |
+| | 2 | 2 | **halts** (n >= 1) | `s2_r2_t2_halts` |
+| | 2 | 3 | (n+36, 0) with the tail `1001`: back to level 0 | `s2_r2_t3` |
+| | 3 | 0 | loop (n+40) | `s2_r3_t0` |
+| | 3 | 1 | (n+27, 0) with the tail `1001101011001` | `s2_r3_t1` |
+| | 3 | 2 | (10, floor((n+25)/2)) with `1100 1011001` | `s2_r3_t2_even/odd` |
+| | 4 | 0 | (n+28, 0) with the tail `1001101011001` | `s2_r4_t0` |
+| | 4 | 1 | (10, floor((n+26)/2)) with `1100 1011001` | `s2_r4_t1_even/odd` |
+
+So the halting class and the looping classes of the 13 Nov section below are now theorems, and so is the way into the
+halting class: `s2_r0_t6_halts`, a phase end (n, 0, 6) on level 2 with n = 0 or 9 mod 10 halts (the generic reset and
+its periods end at (n', 2, 2)). Some level-2 resets go back to the tail `1001` of the start (a new level 0 inside the
+old one), and some leave tails not tabulated here (`1100 1011001`, `10 1101001`, or the suffix itself right after the
+d block): those are the third level. Which class the real run meets at the end of level 2 is still the open
+question.
+
+The proofs are written by a new emitter, `tools/py/bbtools/symframe.py`: the same symbolic run as `symtm.py`, but each
+piece (a stretch of single steps, a crossing, a re-bracketing) is proved on the cells it touches for every tape beyond
+them, stated once per file, and the pieces are chained by unification. The 36 rules of `NearEmptyRules.lean` take
+0.7 MB and 22 s this way; with `symtm.prove` they were 21 MB and ran out of memory.
 
 ## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
 
@@ -105,6 +170,9 @@ Assumptions: the outcome of a class is taken from n = 60..69 only (plus the spot
 off at 2*10^9 steps; nothing in this section is proved in Lean except the generic rows (`lean/Resets.lean`).
 Conclusion: no closed set exists, the question is Collatz-like (the tracker's "cryptid" label is right).
 
+22 Nov: every class with fewer words than its row reads is now a theorem for every n (section above), and the
+classes with more words left follow the proved reset table.
+
 ## Why the region-memo engine stalled, and the fix (21 Nov)
 
 In the hour-long runs of PR #328 the region-memo engine (`tools/py/bbtools/regaccel.py`) used blocks of 4 cells and
@@ -130,24 +198,26 @@ Open.
 * Lean: `lean/Blank.lean`, `lean/Rules.lean` (left-end turns, `period`), `lean/Periods.lean` (`periods`),
   `lean/ResetRules.lean` (the eight resets, generated by `lean/resets.py`), `lean/Resets.lean` (the resets in `cfg`
   form, `reset_spec`, `periods_exact`, the phase map `phase` with `phase_spec`, `phaseRun_spec`, `phaseRun_some`,
-  `run_from_17`, `level1_end'`). The first level is a theorem: from a phase end (n, r, t) the machine follows the
-  phase map, with exact step counts, as long as t is at least 4 per phase. All kernel-checked, no `sorry`, no
-  `native_decide` outside `blank_runs_native`.
-* No halt to 4.5*10^17 steps (exact, accelerated). From the phase end (17, 0, 6805) (reached at step 374,475,636,
-  measured) none for 2177 phases, to about 10^1543 steps: a theorem (`level1_end'`).
+  `run_from_17`, `level1_end'`), `lean/TailResetRules.lean` and `lean/BlankRun.lean` (the run from blank tape:
+  `blank_to_17`, `level2_entry`, `blank_to_level2`), `lean/NearEmptyRules.lean` and `lean/NearEmpty.lean` (every reset
+  at a nearly empty tail, `loop5`, the `*_never_halts` classes, `s2_r2_t2_halts`, `s2_r0_t6_halts`). The first level
+  is a theorem: from a phase end (n, r, t) the machine follows the phase map, with exact step counts, as long as t is
+  at least 4 per phase. All kernel-checked, no `sorry`, no `native_decide` outside `blank_runs_native`.
+* No halt to 4.5*10^17 steps (exact, accelerated). From blank tape to the first record of level 2 (through the phase
+  end (17, 0, 6805) at step 374,475,636 and 2177 phases of level 1, more than 10^1543 steps): a theorem
+  (`blank_to_level2`).
 * No halt in 10^186095 steps (region-memo engine, blocks of 8 cells; trusted).
 * The only halting transition is E reading 1.
 
 ## For later
 
-* Prove that the run from blank tape reaches the phase end (17, 0, 6805) with the tail `10 (1110)^6805 1 0^inf`
-  (five phases with the tail `1001` and the reset of (6799, 1) that builds the long tail; measured by `m7fast`):
-  with `level1_end'` that would make the run to about 10^1543 steps a theorem.
-* Prove the resets at a nearly empty tail (t below the row's need, so the reset reads into R) as rules with the
-  suffix named: the step from (n, 3, 0) after phase 2177 is the first one the map does not cover.
-* Prove the halting class and one looping class in Lean (bounded runs with n symbolic), so that "some class halts,
-  some class never does" is a theorem.
-* The resets at a nearly empty tail are tabulated above; a third level (after `1001101011001` is used up) is not.
+* The third level: the tails `1100 1011001` (`x3`), `10 1101001` (`tl 0 y`) and the suffix right after the d block
+  (`cfg n 0 s2`), which some level-2 resets leave, are not tabulated; nor are the resets of the level-0 tail `1001`
+  when it comes back inside level 2 (the same rules as at the start, `tail0_*` ... `t1001_r4_t0`, apply, with blank
+  tape after it only).
+* The end of level 2 of the real run: level 2 starts at `cfg 17 0 (tl (N+20) s2)` (proved) and lasts about
+  (N+20)/2.5 phases of the proved phase map; its last phase end (r, t, n mod 10) decides between the rows of the
+  table above. Nothing short of a closed form for about 10^770 iterations of the map is in sight.
 
 ## Check
 
@@ -159,6 +229,8 @@ VAL=11 SZ=268435456 ./m7fast 12      # checked against the plain machine to 5.9*
 ./m7fast 30                          # the run, until the 2 GB tape is used up (about 20 minutes)
 ./m7fast 7 100 3 20                  # one reset from a constructed tape
 python3 holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/py/m7map.py 17 0 6805 374475636 100000 6
+cd holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA && gcc -O2 -o nextrec c/nextrec.c && gcc -O2 -o reset c/reset.c && python3 py/nearempty_table.py   # the table, measured (a few minutes)
+python3 lean/tailresets.py > lean/TailResetRules.lean && python3 lean/nearempty.py   # regenerate the rules (seconds)
 ```
 
 ## Pages
