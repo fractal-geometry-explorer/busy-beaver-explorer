@@ -67,7 +67,8 @@ and 12 random ones of k = 7, 8 (`py/macro.py`). The overflows of the run (bits, 
 **Halting.** The map covers every overflow except those whose odd pairs reach the top bit. Among those, for every
 string of at most 9 bits, the machine halts only for the all-ones string with j = M: `1^(2M+2) 0 1^(3M-2) B>0`
 (after 686, 1,390, 2,798 steps for M = 4, 5, 6; Lean, kernel); the other 67 such cases do not halt. So the machine
-halts if and only if the map reaches a string whose odd pairs fill it (and then the all-ones one).
+halts if and only if the map reaches a string whose odd pairs fill it (and then the all-ones one). This is now proved
+for every size, in the form of the phase map below (`halts_iff_family`).
 
 **The map iterated.** From the first event (step 39), 100,000 phases in 38 s: the odd pairs never reach the top; M
 grows to 508,578 bits, about 10^153,000 machine steps. k at an overflow: 1 (35,315 phases), 2 (14,810), 3 (8,264),
@@ -120,27 +121,50 @@ phase: the event rule, or i0 counts, the overflowing count and `arun` (fuel 2d +
 first 9 overflows of `orbit` are those of the table above. `py/phasemap.py` is a line-for-line transcription: it
 agrees with the machine at all 2,000 overflows of strings of at most 9 bits (and is stuck at the 8 that halt), with
 `py/macro.py` (the old trusted map, C(r)) at the first 1,000 overflows of the orbit (M up to 4,788), and Lean's
-`#eval` of `phase` agrees with it at the first 300. The map is stuck exactly at (d, M, Y) = (M - 2, M, 2^(M-1) + 1)
-(the all-ones halting pattern) for M <= 12, apart from degenerate inputs (Y <= 1 or d >= M - 1) that the orbit does
-not reach.
+`#eval` of `phase` agrees with it at the first 300.
 
-**What non-halting reduces to.** Proved in the kernel: the machine never halts if the iterated `phase` map never
-gets stuck. So the overflow map is no longer trusted: the problem is now a question about a computable function on
-numbers. Open: (1) the converse (that a stuck phase does halt, which would make it an "if and only if"; checked for
-M <= 9, proved for M = 4, 5, 6 in `Shapes.lean`); (2) that the orbit never gets stuck. The map behaves like a random
-process on growing strings; a halt needs k >= M/2 and the k seen thin out geometrically (above). No invariant
-excluding the halting case is known; this looks like a Collatz-type question, not something a finite certificate
-will settle.
+**Halting is exactly the map getting stuck (`lean/Invariant.lean`, `lean/Start.lean`, `lean/Family.lean`,
+`lean/Converse.lean`, kernel).**
+
+> **`halts_iff_stuck`: the machine halts from blank tape if and only if the orbit of `phase` from (0, 2, 2) gets
+> stuck;** `halts_iff_family`: if and only if the orbit meets (d, M, Y) = (m, m + 2, 2^(m+1) + 1) for some m
+
+(axioms propext, Classical.choice, Quot.sound). The pieces:
+
+- `Inv` (`Invariant.lean`) is an invariant of the junction machine that bounds the left string by what the counts
+  still to come will add: with a J junction the right side is one counter that runs on to `2^l tl(H)` and the string
+  has room for twice the difference (`JInv`); with a K junction there is room for the counts up to the next
+  absorption, and right after it plenty of room (`KInv`, `SInv`). `step_inv`: from a state with `Inv`, `astep` never
+  gets stuck, keeps `Inv` and lowers a measure; `arun_inv`: with fuel above the measure `arun` ends in a post-event
+  configuration with `2 <= Y < 2^M` and `d < M`. `arun_mono`: the counter never shrinks, so the guard of `phase`
+  never fires.
+- `phase_some` (`Start.lean`): every overflow start with `2 <= Y < 2^M`, `d < M` satisfies `Inv`, except the family
+  (d, M, Y) = (M - 2, M, 2^(M-1) + 1), where the first 1 of the counter (`lz`) is too high. So outside the family
+  `phase` returns a configuration, again of that kind.
+- `fam_halts` (`Family.lean`): the family halts for every m. After the overflowing count the junction machine carries
+  through the m + 1 zeros of the counter until the left string is `0 1^(m+1)`; the next carry overflows it again
+  (`overflow_walk`, the walk of `overflow_false` for any tape on the right), leaving the counter `0^(m+1)` followed by
+  `0 1 1`; `2^(m+1) - 1` counts fill it and the carry reads B0, C1, A1: halt.
+- `halts_iff_stuck` (`Converse.lean`): the orbit stays in the good region until it meets the family, so it gets stuck
+  only right after the family, from which the machine halts; the other direction is `not_halts_of_orbit`.
+
+So the whole halting question is now a question about the integer map `phase`: does its orbit from (0, 2, 2) ever
+reach (m, m + 2, 2^(m+1) + 1)? In the README's event terms that is the all-ones string with j = M, the pattern of
+`Shapes.lean`. The map behaves like a random process on growing strings; a halt needs k >= M/2 and the k seen thin
+out geometrically (above). No invariant excluding the family is known; this looks like a Collatz-type question,
+not something a finite certificate will settle.
 
 ## Status
 
-Open. Lean: `lean/Blank.lean` (halting configurations; no halt in 10^7 steps), `lean/Rules.lean` (shift rules
-`erase`, `fill`, `pairs`, `shift`, kernel), `lean/Shapes.lean` (`allones_4/5/6`: the halting pattern halts, kernel),
-`lean/Count.lean` (the event rule for every size, kernel), `lean/Bits.lean` (bit strings as numbers),
-`lean/Junction.lean`, `lean/Overflow.lean`, `lean/Phase.lean`, `lean/Orbit.lean` (the overflow phase for every
-size and **`not_halts_of_orbit`**, kernel), `lean/OrbitCheck.lean` (the first 9 overflows, `#guard`).
-Not proved: that the orbit of the map never gets stuck. Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`);
-100,000 phases of the map (`py/macro.py`, which agrees with `phase`) without getting stuck, about 10^153,000 steps.
+Open, and reduced in Lean to a question about an integer map. Lean: `lean/Blank.lean` (halting configurations; no
+halt in 10^7 steps), `lean/Rules.lean` (shift rules `erase`, `fill`, `pairs`, `shift`, kernel), `lean/Shapes.lean`
+(`allones_4/5/6`: the halting pattern halts, kernel), `lean/Count.lean` (the event rule for every size, kernel),
+`lean/Bits.lean` (bit strings as numbers), `lean/Junction.lean`, `lean/Overflow.lean`, `lean/Phase.lean`,
+`lean/Orbit.lean` (the overflow phase for every size and `not_halts_of_orbit`, kernel), `lean/OrbitCheck.lean` (the
+first 9 overflows, `#guard`), `lean/Invariant.lean`, `lean/Start.lean`, `lean/Family.lean`, `lean/Converse.lean`
+(**`halts_iff_stuck`, `halts_iff_family`**, kernel). Not proved: that the orbit never meets the family.
+Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`); 100,000 phases of the map (`py/macro.py`, which agrees with
+`phase`) without meeting it, about 10^153,000 steps.
 
 ## Scripts
 
