@@ -3,7 +3,7 @@
 bbchallenge id 129771, a six-state holdout of group G05. **Open.** The tape is a binary counter on blocks
 `(10)^D x`. Its phases grow by a Collatz-like 3/2 map. An exact block-level macro machine reproduces direct
 simulation record for record. Every crossing rule it used in the first 300,000 records is proved in Lean (kernel), for
-all block sizes and all surrounding tapes. The macro run finds no halt in 338,536,834,271,065 (3.39·10^14) steps. The reset map
+all block sizes and all surrounding tapes. The macro run finds no halt in 338,536,834,271,065 (3.39·10^14) steps, and a record-skipping version of it (`py/run_accel.py`) none in 8.86·10^40 steps (phase 106 of the reset map; the twin: phase 101, 2.59·10^39 steps). The reset map
 X' = floor(3X/2) + 1 or + 3 is proved in Lean for the head part of the tape (`lean/ResetMap.lean`), so both this
 machine and its twin halt only if a carry into the tail fails to come back. No invariant that excludes the halt is known.
 
@@ -267,6 +267,29 @@ irregular block. The cost per phase would then be about (tail blocks) × (transi
 makes phase 100 a matter of bookkeeping. This is not built yet. The per-touch rules for regular blocks are the
 crossing rules of `py/blockmm.py`.
 
+**The carry-skipping halt hunt (`py/accel.py`, `py/run_accel.py`).** This is the simulator outlined above, built
+as Hashlife over time on the block macro machine. A *transform* records what 2^j records do to a tape whose first
+L blocks have given shapes (D exactly when D < 64, else the parity of D, and x). The new first blocks are linear
+expressions in the old D's, the steps are a linear expression, and linear conditions say when the intermediate
+shapes are the ones assumed. One record comes from `blockmm.macro_step` on a generic tape (each long block a distinct
+huge number, decoded afterwards) and is checked against the concrete step. Level j is two level-(j-1) transforms
+composed, memoized by shapes. Checks: from blank tape it reaches record 16,409,053 at exactly step
+338,536,834,271,065 with X = 8,204,530, as the old run did (8 s instead of the old run's long compute). For the
+twin it agrees with the plain macro run, state and steps, over 300,000 records.
+
+| run (100 minutes, about 3 GB) | phases (X from 40, resp. 52) | records | steps | halt |
+|---|---|---|---|---|
+| this machine | 106 (X ≈ 1.3·10^20) | 2.65·10^20 | 8.86·10^40 | none |
+| the twin | 101 (X ≈ 2.3·10^19) | 4.5·10^19 | 2.59·10^39 | none (stopped by memory) |
+
+The previous reach was phase 31 (3.39·10^14 steps). By the estimate above (about one halt per 8,600 rough turns), and if the number of rough turns per phase kept
+growing as it did in phases 1 to 18, a halt before phase 106 would have had a probability of very roughly one half.
+None came. That makes the estimate doubtful, and it says the true orbit's rough tail is safer than the steered
+runs' rough tail. This is still a computation, not a proof. It is exact if `blockmm`'s crossing rules (symbolic
+runs, not in Lean beyond the first 300,000 records) and the shape threshold 64 are right. The threshold was checked
+by the two comparisons above. Each phase now costs about 150 s and grows slowly. `python3 run_accel.py FILE
+SECONDS` resumes from the STATE line a run prints at its end.
+
 Reproduce: `gcc -O2 -o perturb c/perturb.c && ./perturb 5 36 400 30 1e10` (seed 5 halts after 23 resets);
 `gcc -O2 -o branch c/branch.c && ./branch 16 2 A 0 1 2 3 4 5 6 7 8 -1 -2 -3`.
 
@@ -300,6 +323,8 @@ which lists the run can reach.
 **Lean, native_decide**: `blank_runs_native`, no halt in 10^7 steps.
 
 **Computed (trusted)**:
+- `py/run_accel.py` (record skipping, checked against `py/run_macro.py`): no halt through phase 106, 8.86·10^40
+  steps, here, and through phase 101, 2.59·10^39 steps, in the twin.
 - `py/check_macro.py`: the macro machine agrees with `c/recp.c` (direct simulation) at all 15,144 records up to
   step 299,979,488.
 - `py/run_macro.py`: no halt through 16,409,053 left records, 338,536,834,271,065 (3.39·10^14) steps and
@@ -350,6 +375,7 @@ python3 $D/py/reset_map.py twin3e8.txt       # the countdown map at every reset 
 | `py/twin.py`, `py/reset_map.py`, `py/tail_ops.py` | the twin against direct simulation; the countdown map; the tail operators |
 | `lean/ResetMap.lean`, `lean/ResetMapRuns.lean`, `py/gen_resetmap.py` | the reset map in Lean: the head part of a phase and its composition |
 | `c/recp.c`, `c/rec18.c` | direct simulators printing records in P-notation (any start state) / the old notation |
+| `py/accel.py`, `py/run_accel.py` | the carry-skipping run (Hashlife over records on the block macro machine) |
 | `py/tail_counter.py` | the tail as a binary counter of blocks: depth of each carry, periods of the first w blocks |
 | `c/perturb.c`, `c/branch.c` | the real machine with the countdown replaced at resets: steered runs, and branches off the true run |
 
