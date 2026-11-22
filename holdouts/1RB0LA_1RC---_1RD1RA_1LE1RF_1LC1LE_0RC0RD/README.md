@@ -101,6 +101,13 @@ of invariant that closes there (a word language with a rational potential).
 . /etc/profile.d/lean.sh && holdouts/1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD/lean/check.sh
 ```
 
+## The clock (21 November 2026)
+
+This table is the table of `1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF` with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A), so this machine runs the same clock from another start: a block at the right end grows by 4 per tick, and tick k makes 2^k trips (one word map P each) into the word beside it. Family R02, see [`../R02-clock-word/README.md`](../R02-clock-word/README.md).
+
+- Trusted computation: the exact accelerated simulator (`clock.py` with `R02-clock-word/py/clockx.py`) agrees with `tools/c/tmrun.c` at all 56 visits of the clock end in the first 2·10^9 steps, and follows the run past 6.30·10^79 steps without a halt (`R02-clock-word/out/run_1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD.txt`).
+- A halt can only come at a phase end, when a trip does not return.
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

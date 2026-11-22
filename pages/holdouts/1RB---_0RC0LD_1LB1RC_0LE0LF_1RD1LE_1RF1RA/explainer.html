@@ -186,13 +186,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 12 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 22 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
   <div class="col"><p class="lede">Nobody knows. The tape is blocks of 1s separated by 0s, and the machine moves cells from block to block: a zigzag cuts a block to two thirds, a sweep shifts every 0 one cell left. Lean proves that this block arithmetic is all the machine does, and that it halts exactly if one of three small patterns ever turns up.</p></div>
   <div class="facts">
-    <div class="fact"><span class="ev k">Kernel</span><b>3</b><span class="small">Critical frames; the machine halts iff the block map reaches one.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>1</b><span class="small">Critical frame left: the machine halts iff the block map reaches <code>0 1 1 C&gt;0 1</code>; an invariant excludes the other two.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>8</sup></b><span class="small">Frames of the block map checked, none critical (3.0·10<sup>11</sup> steps).</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>t<sup>1/3</sup></b><span class="small">Width after t steps (fitted exponents 0.33 and 0.35).</span></div>
   </div>
@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#split">Cutting a block to two thirds</a><a href="#right">Merging at the right end</a><a href="#blocks">The machine as arithmetic on a list of blocks</a><a href="#growth">Why the width grows like t&lt;sup&gt;1/3&lt;/sup&gt;</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#split">Cutting a block to two thirds</a><a href="#right">Merging at the right end</a><a href="#blocks">The machine as arithmetic on a list of blocks</a><a href="#sweeps">Where it could halt: only at the start of a sweep</a><a href="#growth">Why the width grows like t&lt;sup&gt;1/3&lt;/sup&gt;</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -305,7 +305,147 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>Read the tape as blocks of 1s, each followed by one 0: <code>1^7 0 1^5 0 0 1^4 0</code> is the list 7, 5, 0, 4 (the double 0 is an empty block). Stop the machine only at four kinds of moments: E or C standing on a 0 between two blocks, B or F standing on the first cell of a block. Then the whole tape is two lists of numbers, the blocks left of the head (nearest first) and the blocks right of it.</p>
 <p>From such a moment the machine always reaches another one, and the new lists are given by a short formula on the first one or two numbers of each list. For example, with E on a 0, i ones on its left and a block of m ≥ 2 ones on its right, the machine moves two cells of that block to the left block and stands in state C at the end of what remains: <code>1^i E&gt;0 1^m 0</code> becomes <code>1^(i+2) 0 1^(m−2) C&gt;0</code>. With C after a block of a ≥ 3 ones, the 0 under the head moves one cell left and C runs on over the next block: <code>1^a C&gt;0 1^r 0</code> becomes <code>1^(a−1) 0 1^(r+1) C&gt;0</code>. With C after a block of exactly one 1, the machine turns round and E runs back to the previous 0. There are 16 such cases. Lean proves each one for all block lengths and all surroundings (<code>next_sound</code>).</p>
 <p>Three situations have no next frame: <code>0 1 1 C&gt;0 1</code> (C after a block of exactly two 1s, and a 1 two cells ahead), <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code>. In each the machine halts within 8 steps, and these are the only ways it can halt: Lean proves that the machine halts from blank tape if and only if the block map, started from the frame after the first step, ever reaches one of these three (<code>halts_iff_critical</code>). The first 10<sup>8</sup> frames, 3.0·10<sup>11</sup> steps, do not.</p>
-<p>The cut of the section above is three of the cases in a row; a sweep to the right is the second example repeated. What the block map does in the long run, and whether the three patterns can be excluded for good, is the open part.</p>
+<p>The cut of the section above is three of the cases in a row; a sweep to the right is the second example repeated. Two of the three patterns are excluded for good by an invariant (next section); whether the third is ever reached is the open part.</p>
+</section>
+<section id="sweeps">
+  <span class="eyebrow">What is proved</span>
+  <h2>Where it could halt: only at the start of a sweep</h2>
+<p>Lean now proves an invariant of every frame after the first (<code>lean/Invariant.lean</code>, kernel only). In E frames the tape has exactly one double 0, and it sits right after the block next to the head: <code>blk(L) E&gt;0 1^m 0 0 blk(R')</code>, with m ≥ 1 and no other empty block. In B frames the block left of the head has at least five 1s, and there is no empty block anywhere. No F frame is ever reached. Two of the three critical frames, <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code>, are therefore impossible. <b>The machine halts iff the block map reaches <code>0 1 1 C&gt;0 1</code></b> (<code>halts_iff_C</code>), and it can never get there straight from an E frame (<code>critical_after_BC</code>).</p>
+<p>The head reaches that frame only while it moves right through C frames, in a <em>sweep</em>. Each step of a sweep moves one block from the right list to the left list unchanged. The sweep stops at the first block of fewer than two 1s: a 0 turns the head round, and a 1 halts the machine unless it is the last block. A sweep starts at a B frame (or, once early in the run, at <code>E L (1 :: 0 :: R)</code>). <code>lean/Sweep.lean</code> proves that <b>the machine halts iff some sweep start has a right list r₀, r₁, r₂, … with r₀ = 3 and r₁ ≥ 1, or with r₀ ≠ 2 and a block of exactly one 1, not the last block, before the first block of 0</b> (<code>halts_iff_sweep</code>).</p>
+<p>At the left end the descent of cuts makes every value after the first one even. <code>lean/Cuts.lean</code> (<code>cut_even</code>) computes how such a descent ends when its last two blocks are 18u + 6 and then 12u + 4: at <code>B [8u+7] (4u+1 :: …)</code>. The sweep then starts on 1, 5, 9, 13, … cells, never 3. A start on 3 needs an odd block of 15 at the beginning of a descent, which is the <code>halts_of_15</code> event. Run the block map below and look at the first block of every sweep start. The small values cluster at 1 mod 4, and 2, 3, 4, 6 and 7 never occur.</p>
+<div class="panel" id="swp">
+  <div class="controls">
+    <label for="swpN">frames</label>
+    <select id="swpN"><option value="1000000">10^6</option><option value="10000000" selected>10^7</option><option value="100000000">10^8</option></select>
+    <button id="swpGo" class="primary" type="button">Run the block map</button>
+    <span class="small" id="swpMsg">Zigzags are taken in one step, as in <code>c/series.c</code>.</span>
+  </div>
+  <div class="readout">
+    <span>frames <b id="swpF">0</b></span>
+    <span>sweep starts (B frames) <b id="swpB">0</b></span>
+    <span>F frames <b id="swpFF">0</b></span>
+    <span>smallest block left of a B frame <b id="swpMinA">–</b></span>
+    <span>E frames without exactly one double 0 <b id="swpE">0</b></span>
+    <span>halting sweep starts <b id="swpBad">0</b></span>
+    <span>ones on the tape <b id="swpOnes">0</b></span>
+  </div>
+  <div class="cap">First block r₀ of each sweep start, when it is below 40 and not the last block (log scale). Darker bars are r₀ ≡ 1 mod 4; the red mark at 3 is where a sweep start halts.</div>
+  <svg id="swpHist" viewBox="0 0 640 170" role="img" aria-label="histogram of the first block at sweep starts" style="width:100%;height:auto;display:block;margin:8px 0 4px"></svg>
+  <div class="cap">The last sweep starts with more than two blocks on the right, blocks listed outward from the head (numbers above 9,999 shortened):</div>
+  <div class="log" id="swpLog" style="font-family:var(--mono);font-size:.82rem;white-space:pre;overflow-x:auto"></div>
+</div>
+<p>Why no simple invariant closes the question: after the first 10<sup>5</sup> frames, blocks of fewer than 20 cells occur only among the leftmost five or six blocks, as the last block, or next to the head. Every other block is larger, and most have thousands of cells or more. The right end, though, sometimes shrinks its last block to about a third. An abstract model that keeps the small blocks at both ends exactly and lumps the others into "at least N" still reaches the critical frame (<code>py/absint.py</code>). Each path it finds needs several small blocks in a row next to each other, which the real run has not produced. Whether the run ever produces them is the lottery the community tracker describes.</p>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var L = [], R = [], q = 2, n = 0, nb = 0, nF = 0, nEbad = 0, nBad = 0, minA = Infinity;
+  var hist = new Array(40).fill(0), log = [], running = false;
+  function reset() { L = [1]; R = []; q = 2; n = 0; nb = 0; nF = 0; nEbad = 0; nBad = 0; minA = Infinity; hist.fill(0); log = []; }
+  function fmt(x) { return x < 10000 ? String(x) : x.toExponential(1).replace("e+", "e"); }
+  function popL() { return L.length ? L.pop() : 0; }
+  function popR() { return R.length ? R.pop() : 0; }
+  function atB() {
+    nb++;
+    var a = L.length ? L[L.length - 1] : 0;
+    if (a < minA) minA = a;
+    if (!R.length) return;
+    var r0 = R[R.length - 1], last = R.length === 1;
+    if (!last && r0 < 40) hist[r0]++;
+    var bad = false;
+    if (r0 === 3) bad = !last && R[R.length - 2] >= 1;
+    else if (r0 !== 2) {
+      for (var k = R.length - 2; k >= 0; k--) { var v = R[k]; if (v <= 1) { bad = v === 1 && k > 0 && R[k - 1] >= 1; break; } }
+    }
+    if (bad) nBad++;
+    if (R.length > 2) {
+      var s = []; for (var k2 = R.length - 1; k2 >= 0 && s.length < 9; k2--) s.push(fmt(R[k2]));
+      var verdict = r0 === 2 ? "turns at once" : bad ? "HALTS" : "sweeps on";
+      log.push("frame " + n.toLocaleString("en-US") + ":  r = " + s.join(", ") + (R.length > 9 ? ", …" : "") + "   (" + verdict + ")");
+      if (log.length > 8) log.shift();
+    }
+  }
+  function checkE() {
+    var z = 0;
+    for (var k = 0; k < L.length; k++) if (L[k] === 0) z++;
+    for (var k2 = 0; k2 < R.length; k2++) if (R[k2] === 0) z++;
+    var ok = R.length >= 2 && R[R.length - 2] === 0 && R[R.length - 1] >= 1 && z === 1;
+    if (!ok) nEbad++;
+  }
+  function run(steps) {
+    for (var s = 0; s < steps; s++) {
+      if (q === 2 && n > 0) atB();
+      if (q === 0) {
+        if (n > 0) checkE();
+        var i = popL(), m = popR();
+        if (m === 0) R.push(i + 1);
+        else if (m === 1) { var r = popR(); L.push(i + 2); L.push(r); q = 1; }
+        else if (m >= 5 && R.length >= 2 && R[R.length - 1] === 0) { var t = Math.floor((m - 2) / 3); R[R.length - 2] += t; R.push(m - 3 * t); L.push(i + 2 * t); }
+        else { L.push(i + 2); L.push(m - 2); q = 1; }
+      } else if (q === 1) {
+        var a = popL(), r1 = popR();
+        if (a === 0) L.push(r1 + 1);
+        else if (a === 1) { var b = popL(); R.push(r1 + 1); R.push(0); R.push(b); q = 0; }
+        else if (a === 2) { if (r1 >= 1) { return "halt"; } var b2 = popL(); L.push(b2 + 5); q = 2; }
+        else { L.push(a - 1); L.push(r1 + 1); }
+      } else if (q === 2) {
+        var a2 = popL(), r2 = popR();
+        if (r2 === 0) { var s2 = popR(); L.push(a2); L.push(s2); q = 1; }
+        else if (a2 <= 1) return "B";
+        else { L.push(a2); L.push(r2 - 1); q = 1; }
+      } else { nF++; return "F"; }
+      n++;
+    }
+    return "";
+  }
+  function drawHist() {
+    var svg = $("swpHist"), W = 640, H = 170, x0 = 28, y0 = 140, bw = (W - x0 - 8) / 40, mx = 1;
+    for (var k = 0; k < 40; k++) mx = Math.max(mx, hist[k]);
+    var lm = Math.log10(mx + 1), out = [];
+    out.push('<line x1="' + x0 + '" x2="' + (W - 8) + '" y1="' + y0 + '" y2="' + y0 + '" stroke="var(--line-strong)"/>');
+    for (var k3 = 0; k3 < 40; k3++) {
+      var x = x0 + k3 * bw;
+      if (hist[k3]) {
+        var h = Math.max(2, (y0 - 14) * Math.log10(hist[k3] + 1) / lm);
+        var c = k3 % 4 === 1 ? "var(--accent)" : "var(--muted)";
+        out.push('<rect x="' + (x + 1).toFixed(1) + '" y="' + (y0 - h).toFixed(1) + '" width="' + (bw - 2).toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + c + '" rx="1.5"><title>r0 = ' + k3 + ': ' + hist[k3] + ' sweep starts</title></rect>');
+      }
+      if (k3 % 4 === 1 || k3 === 3) out.push('<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (y0 + 14) + '" text-anchor="middle" font-size="10" fill="' + (k3 === 3 ? "var(--open)" : "var(--muted)") + '" font-family="var(--mono)">' + k3 + '</text>');
+    }
+    var x3 = x0 + 3 * bw + bw / 2;
+    out.push('<line x1="' + x3.toFixed(1) + '" x2="' + x3.toFixed(1) + '" y1="14" y2="' + y0 + '" stroke="var(--open)" stroke-dasharray="3 3"/>');
+    out.push('<text x="' + (x3 - 4).toFixed(1) + '" y="22" text-anchor="end" font-size="10" fill="var(--open)" font-family="var(--mono)">halts</text>');
+    svg.innerHTML = out.join("");
+  }
+  function show() {
+    $("swpF").textContent = n.toLocaleString("en-US");
+    $("swpB").textContent = nb.toLocaleString("en-US");
+    $("swpFF").textContent = nF;
+    $("swpMinA").textContent = isFinite(minA) ? minA : "–";
+    $("swpE").textContent = nEbad;
+    $("swpBad").textContent = nBad;
+    var w = 0; for (var k = 0; k < L.length; k++) w += L[k]; for (var k2 = 0; k2 < R.length; k2++) w += R[k2];
+    $("swpOnes").textContent = w.toLocaleString("en-US");
+    $("swpLog").textContent = log.join("\n");
+    drawHist();
+  }
+  $("swpGo").addEventListener("click", function () {
+    if (running) return;
+    running = true; reset();
+    var target = +$("swpN").value, btn = $("swpGo");
+    btn.disabled = true;
+    (function chunk() {
+      var st = run(Math.min(2000000, target - n));
+      show();
+      if (st) { $("swpMsg").textContent = "stopped: " + st; running = false; btn.disabled = false; return; }
+      if (n < target) { $("swpMsg").textContent = "running…"; setTimeout(chunk, 0); }
+      else { $("swpMsg").textContent = "done: no critical frame, no F frame, every B frame has at least " + minA + " cells on its left."; running = false; btn.disabled = false; }
+    })();
+  });
+  reset(); show();
+})();
+</script>
+
 </section>
 <section id="growth">
   <span class="eyebrow">Growth law</span>
@@ -324,7 +464,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 12 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 22 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -341,6 +481,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>next_sound</code>, <code>lean/Blocks.lean</code>; pieces in <code>lean/BPieces.lean</code> (generated by <code>py/blocks.py</code>)</div></div><div><b>The block map</b><p>Write the tape as blocks of 1s, each followed by one 0 (a block may be empty, so <code>0 0</code> is an empty block). A frame is a state E, C, B or F and the lists of block lengths left and right of the head. The map <code>next</code> (16 cases, each a formula on the first one or two block lengths of each side) sends every frame to the next frame the machine reaches; this is proved for all block lists, each case by one symbolic run.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>next_none_iff</code>, <code>none_halts</code>, <code>init_start</code>, <code>halts_iff_critical</code>, <code>lean/Blocks.lean</code></div></div><div><b>It halts iff the block map reaches a critical frame</b><p>The block map is undefined exactly at three kinds of frames: C just after a block of exactly two 1s when the cell after the next is a 1 (<code>0 1 1 C&gt;0 1</code>); B on a block of at least three 1s just after a block of exactly one 1 (<code>0 1 B&gt;1 1 1</code>); F on a block of at least two 1s (<code>F&gt;1 1</code>). From each the machine halts within 8 steps. The run from blank tape reaches the frame <code>B [1] []</code> after one step, and the machine halts from blank tape if and only if the orbit of that frame under the block map reaches a critical frame.</p></div></div>
     <div class="litem" data-level="native"><div><span class="ev n">native_decide</span><div class="w"><code>frames_100000000</code>, <code>no_halt_frames</code>, <code>lean/Blocks.lean</code></div></div><div><b>No critical frame among the first 10<sup>8</sup> frames</b><p>The block map is defined 10<sup>8</sup> times in a row from the first frame, evaluated by compiled code.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>inv_next</code>, <code>inv_orbit</code>, <code>no_F</code>, <code>no_B_critical</code>, <code>halts_iff_C</code>, <code>critical_after_BC</code>, <code>lean/Invariant.lean</code></div></div><div><b>An invariant of every frame: two of the three critical frames are never reached</b><p>After the first frame, every E frame is <code>E L (m :: 0 :: R')</code> with m ≥ 1 and no other empty block (the tape <code>blk(L) E&gt;0 1^m 0 0 blk(R')</code> has exactly one double 0); every C frame has at least two blocks on its left, the second not empty, and an empty block on its right only first; every B frame has at least five 1s left of the head and no empty block; and no F frame is ever reached. So the critical frames <code>0 1 B&gt;1 1 1</code> and <code>F&gt;1 1</code> never occur, and <b>the machine halts iff the block map reaches <code>C (2 :: L) (r+1 :: R)</code></b>, never straight from an E frame.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>bad</code>, <code>bad_reaches</code>, <code>safe_step</code>, <code>halts_iff_sweep</code>, <code>lean/Sweep.lean</code></div></div><div><b>It halts iff some sweep to the right starts on a bad block list</b><p>While the head moves right through C frames, each step moves one block from the right list to the left list, until the first block of 0 or 1 cells: a 0 turns the head round, a 1 halts unless it is the last block. A sweep starts at a B frame (or at <code>E L (1 :: 0 :: R)</code>). The machine halts from blank tape iff the run reaches a sweep start whose right list r₀, r₁, … has r₀ = 3 and r₁ ≥ 1, or r₀ ≠ 2 and a block of exactly one 1, not the last, before the first block of 0.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>cut_even</code>, <code>lean/Cuts.lean</code></div></div><div><b>A descent at the left end that ends after an even cut starts its sweep on 4u+1 cells</b><p><code>E [] (18u+6 :: 0 :: j :: R)</code> reaches <code>B [8u+7] (4u+1 :: j+6u+1 :: R)</code> in 30u + 7 frames. After the first cut every value of a left-end descent is even, so a descent whose last cut is from a block divisible by 3 hands the sweep a first block of 1, 5, 9, 13, … cells, never 3. A first block of 3 needs the odd block of 15 of <code>halts_of_15</code>.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/blockmap.py run 100000000</code>, <code>py/blockmap.py check 3000000</code></div></div><div><b>10<sup>8</sup> frames are 300,362,311,724 steps</b><p>The same map in Python, with the step count of each case, reaches 300,362,311,724 machine steps after 10<sup>8</sup> frames (at most 16 blocks on the tape). Compared with the machine itself step by step for the first 3,000,000 steps: 42,875 frames, each reached at exactly the step the map says.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at E L</code>), <code>py/splits.py</code></div></div><div><b>The splitting step</b><p>Each time the head is at the left end in state E on a 0, the tape starts <code>E&gt;0 1^x 0 0 1^y …</code>. In the first 10<sup>9</sup> steps, 810 of the 1,241 consecutive pairs of such moments are a <em>splitting step</em>: the next one is <code>E&gt;0 1^x' 0 0 1^y' …</code> with x' = ⌈2x/3⌉ and y' = y + (x − x') + 1 (the new second block sometimes written <code>1 0 1^(y'−2)</code>), the rest of the tape unchanged. The others come after a pass at the right end.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">same run</div></div><div><b>Cost of a split</b><p>A splitting step from a block of x cells takes about x²/3 steps (2,827,525 steps for x = 2,903; 84,477 for x = 494).</p></div></div>
@@ -351,7 +494,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>never_halts_of_2</code>, <code>never_halts_of_3</code>, <code>loop_2</code>, <code>lean/Series.lean</code></div></div><div><b>Cutting a block of exactly 2 or 3 cells at the left end never halts</b><p>From <code>E [] (2 :: 0 :: j :: R)</code> two frames lead to <code>E [] (2 :: 0 :: j+1 :: R)</code>, forever; a block of 3 becomes a block of 2 in two frames. So if the run from blank tape ever reaches one of these frames, the machine does not halt. Neither frame has been seen in the run.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/series.c</code>: <code>./series 249644974080</code> (about 25 minutes)</div></div><div><b>No critical frame until the tape holds 5.3·10<sup>10</sup> ones</b><p>A C program runs the block map with every zigzag taken in one step (the rule above) and tests each frame for the three critical frames and for the left-end loop. From the first frame it runs 249,644,974,080 such steps without either; the tape then holds 53,495,934,532 ones. It gives the same frame as <code>py/blockmap.py</code> after the first 4·10<sup>7</sup> frames of the block map. The program counts its own steps, not machine steps; the earlier accelerated run reached 5.3·10<sup>7</sup> cells at 3.08·10<sup>21</sup> machine steps, and steps grow roughly like the cube of the width, so this is of the order of 10<sup>30</sup> machine steps (an estimate, not a count).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/series.c</code> built with <code>-DSTATS</code>: <code>./series 60000000000</code>; <code>c/mc.c</code>: <code>./mc 3000000 2000 100 4</code></div></div><div><b>Observed: how the left end is cut</b><p>At the left end a block of m cells is cut to 2(m+1)/3 or 2m/3 cells, again and again, until m ≡ 1 mod 3, when the head leaves to the right. After the first cut the values are even, so 15 can only be the first value of such a descent. In 6·10<sup>10</sup> steps of the C program (1.3·10<sup>10</sup> ones) descents reach a block of at most 20 cells about five times per doubling of the tape, with no sign of dying out: the values cut were 4, 6, …, 20 (15 to 25 times each) and 7, 9, 19 once each, early in the run. In 2,000 restarts from the tape at 647,185 ones with every block of 100 cells or more changed by a random 0 to 99 cells, each run until the tape had grown fourfold, none reached a critical frame or the loop; random small tapes halt often. This suggests the non-halting is structural, but no invariant is known.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts iff the block map ever reaches one of the three critical frames. Two exact events are known that would settle it: cutting a block of exactly 15 cells at the left end (halts) and cutting a block of exactly 2 or 3 cells there (never halts). Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones, although small blocks keep being cut at the left end. No invariant is known that excludes the critical frames. The community tracker lists the machine as a "lottery": each round has a small chance of hitting a critical frame.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/sweeps.c</code>: <code>./sweeps 1000000000</code> (7 seconds)</div></div><div><b>The sweep starts of the run</b><p>In 10<sup>9</sup> frames of the block map with zigzags in one step (71,452,928 B frames, 2.1·10<sup>8</sup> ones at the end) no sweep start is bad. The first block of a sweep start, when it is not the last block, is below 32 only 140 times. The values are 1, 5, 8, 9, 13, 14, 15, 16, 17, 18, 21, 25, 28, 29, 30, 31, mostly 1 mod 4, and never 2, 3, 4, 6 or 7. The smallest later block a sweep reads before turning, away from the last block, is 2 once and otherwise at least 4.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/absint.py 30 8 8 START</code></div></div><div><b>No finite pattern invariant of the two ends closes</b><p>After the first 10<sup>5</sup> frames, blocks below 20 cells occur only among the leftmost five or six blocks, as the last block, or next to the head. An abstract block map that keeps up to 8 blocks at each end exactly, values below T exactly and larger ones as "at least k", started from the real frame 10<sup>8</sup>, still reaches the critical frame. Each path it finds makes the last block small and then several small blocks next to each other, which the real run has not produced. What keeps the blocks large is their size, which such a model cannot hold.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts iff some sweep to the right starts on a bad block list (in particular iff the block map reaches <code>0 1 1 C&gt;0 1</code>; the other two critical frames are excluded). Two exact events are known that would settle it: cutting a block of exactly 15 cells at the left end (halts) and cutting a block of exactly 2 or 3 cells there (never halts). Neither has happened while the tape grew to 5.3·10<sup>10</sup> ones. The arithmetic of the left-end descents keeps 3 away from the first block of the sweeps they start, but blocks elsewhere are kept large only by their size, and no invariant is known that excludes the bad sweep starts. The community tracker lists the machine as a "lottery".</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>
@@ -361,6 +506,8 @@ holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean/check.sh
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py &amp;&amp; git diff --exit-code holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
+gcc -O2 -o /tmp/sweeps holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/sweeps.c &amp;&amp; /tmp/sweeps 1000000000    # 7 seconds
+python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/absint.py 30 8 8 START    # START: a frame in three lines; prints an abstract path to the critical frame
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000
 gcc -O2 -o /tmp/series holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/series.c &amp;&amp; /tmp/series 249644974080    # about 25 minutes
 gcc -O2 -o /tmp/mc holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/mc.c &amp;&amp; /tmp/mc 3000000 2000 100 4    # about 2 minutes
