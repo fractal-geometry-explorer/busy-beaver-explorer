@@ -76,9 +76,15 @@
    "where": "<code>c/passes.c</code>"
   },
   {
+   "level": "kernel",
+   "title": "One pulse, for any list of words",
+   "text": "For every list <code>ws</code> of words <code>01</code>/<code>011</code> and all tapes around: <code>L | A&gt; ws 0111 R</code> reaches <code>L | A&gt; 111 ws 0 R</code> in 10&middot;(|ws|+1) steps. The right sweep turns each word into an image (<code>01 &rarr; 11</code>, <code>011 &rarr; 100</code>), the turn picks up three 1s as a packet, and the packet crosses back restoring every word. So a run <code>1^(k+3)</code> after any stretch of words becomes <code>1^k</code>, words unchanged (<code>1^3</code> becomes <code>00</code>). If the words are followed by <code>0001</code>, the sweep halts the machine.",
+   "where": "<code>pulse</code>, <code>pulse_halt</code>, <code>lean/Pulse.lean</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Pulses and defects",
-   "text": "After <code>0 (011)^a 001101</code> the tape is mostly words: a run of one or two 1s and a single 0. Stretches of words are transparent: a round trip leaves them exactly as they were (30 of 30 random word lists). Where the tape is not made of words there is a defect, a run of three or more 1s or of two or more 0s, and each round trip sends one pulse to the first defect only. In 20 of 20 random tests each: <code>1^k</code> with k &ge; 6 becomes <code>1^(k&minus;3)</code>; <code>1^4</code> and <code>1^5</code> dissolve into words; <code>1^3</code> becomes <code>00</code>; an inner <code>000</code> makes the machine halt. A pulse at <code>00</code> starts a local zigzag whose result depends on the words themselves, and often rewrites the left part: these are the epoch ends.",
+   "text": "After <code>0 (011)^a 001101</code> the tape is mostly words: a run of one or two 1s and a single 0. Stretches of words are transparent: a round trip leaves them exactly as they were (30 of 30 random word lists). Where the tape is not made of words there is a defect, a run of three or more 1s or of two or more 0s, and each round trip sends one pulse to the first defect only. In 20 of 20 random tests each: <code>1^k</code> with k &ge; 6 becomes <code>1^(k&minus;3)</code>; <code>1^4</code> and <code>1^5</code> dissolve into words; <code>1^3</code> becomes <code>00</code>; an inner <code>000</code> makes the machine halt. A pulse at <code>00</code> starts a local zigzag whose result depends on the words themselves, and often rewrites the left part: these are the epoch ends. The fuse rows are proved in Lean (above); the others are tests. At <code>00</code> the sweep comes back in state E instead of with a packet, and E rewrites the images of <code>011</code> words it crosses, which is why the left part can change.",
    "where": "<code>py/pulses.py</code>"
   },
   {
@@ -155,6 +161,11 @@
     "level": "heuristic",
     "value": "power/sqrt",
     "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "kernel",
+    "value": "any word list",
+    "text": "One pulse takes three 1s from the run after any stretch of words and leaves the words unchanged (Lean)."
    }
   ],
   "presets": [
@@ -202,6 +213,7 @@
      "<p>Most of the tape is made of <em>words</em>: one or two 1s followed by a single 0. A stretch of words is transparent: when the head sweeps through it and back, every cell ends up as it was. Wherever the tape is not made of words there is a <em>defect</em>, a run of three or more 1s or of two or more 0s.</p>",
      "<p>So each round trip of the head acts like a <em>pulse</em> sent to the first defect, and only that defect changes:</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>first defect</th><th>after one pulse</th></tr></thead><tbody><tr><td><code>1^k</code>, k &ge; 6</td><td><code>1^(k&minus;3)</code>: the fuse burns down</td></tr><tr><td><code>1^4</code>, <code>1^5</code></td><td>dissolves into a word</td></tr><tr><td><code>1^3</code></td><td><code>00</code></td></tr><tr><td><code>000</code></td><td><b>the machine halts</b></td></tr><tr><td><code>00</code></td><td>a small zigzag of its own; often rewrites the whole left part (an epoch end)</td></tr></tbody></table></div>",
+     "<p>The first rows are proved in Lean for every list of words: the sweep turns each word into an image (<code>01</code> becomes <code>11</code>, <code>011</code> becomes <code>100</code>), picks up three 1s from the run as a packet <code>111</code>, and carries the packet back, restoring every word on the way. If the run is a <code>000</code> followed by a 1, the sweep halts the machine instead.</p>",
      "<p>These are tests on random tapes, not proofs. On the real run, no pulse has ever met a <code>000</code> in 3&middot;10<sup>10</sup> steps. The open question is now sharper: can a <code>00</code> pulse ever leave a <code>000</code> for a later pulse to find? What it writes depends on the actual words near it, not just on how many there are.</p>"
     ]
    },

@@ -33,6 +33,7 @@ like t^0.31.
 ## What is proved
 
 - Lean, kernel only (`lean/Blank.lean`, generated): the halting configurations (`step_none_iff`) and no halt in the first 10,000 steps; with `native_decide`, none in the first 10<sup>7</sup>.
+- Lean, kernel only (`lean/Pulse.lean`): one pulse over any list of words takes three 1s from the run after them and leaves the words as they were (`pulse`); a pulse that meets `0001` halts (`pulse_halt`). See The pulse in Lean.
 - Lean, kernel only (`lean/Rules.lean`, written by `py/rules.py`): the shift rules: A crosses `(100)^n` leftward (into `(110)^n`) and `(01)^n` rightward (into `(11)^n`) (`shift_l_A_100`, `shift_r_A_01`).
 - C (`tools/c/triage.c`, trusted): no halt in the first 10<sup>9</sup> steps.
 
@@ -167,6 +168,30 @@ python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 k9 
 python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 z3 w8 k7 w5' 1 20   # 000: halt
 gcc -O2 -o defects holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/defects.c && ./defects 30000000000 0   # 2.5 min
 ```
+
+## The pulse in Lean (22 November 2026)
+
+`lean/Pulse.lean` (kernel only: `rfl`, `simp`, `omega`) proves the pulse for every list of words and every tape
+around it. Here a word is `01` or `011`, read in the direction of the right sweep:
+
+- `right_words`: in state A the head crosses any list of words to the right, `A> 01 → 11 A>`, `A> 011 → 100 A>`.
+- `turn`: `A> 0111 → A> 1110` in 10 steps: three 1s of the run are picked up as a packet `111`.
+- `left_words`: the packet crosses the images back to the left and restores every word,
+  `11 A>111 → A>111 01` and `100 A>111 → A>111 011`.
+- `pulse`: together, `L | A> ws 0111 R → L | A> 111 ws 0 R` in 10·(|ws|+1) steps, for every list ws and all L, R.
+  With `R = 1^k 0 …` this is the fuse rule: the run `1^(k+3)` becomes `1^k`, and the words come back unchanged.
+- `pulse_halt`: if the words are followed by `0001` instead, the sweep halts the machine (D on a 1).
+
+So two rows of the pulse table are now theorems: a run of three or more 1s after a stretch of words loses three
+(`1^3` becomes `00`, the k = 0 case), and an inner `000` followed by a 1 halts. What the packet does at the left end
+(where it becomes one more `011` and three more words) and the `00` pulse are not yet in Lean.
+
+**The `00` pulse, as far as it is understood.** The sweep in state A reaching `0 0` writes over it, makes a short
+zigzag of a few dozen steps over the next words, and comes back left in state E instead of A with a packet. E
+crosses the image `11` of a word `01` unchanged (`11 <E → <E 11`, any tape around), but on the image `100` of a
+word `011` it switches to other states and rewrites cells, so the words to the left are not restored. That is why
+a `00` pulse can rewrite the whole left part, and why its result depends on which words lie to its left. Turning
+this return into a finite list of rules over words is the next step.
 
 <!-- related machines: written by holdouts/related.py -->
 
