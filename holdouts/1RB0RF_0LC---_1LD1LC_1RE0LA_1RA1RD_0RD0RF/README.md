@@ -55,7 +55,7 @@ step and a D0 detour that halts exactly when D reads 0 with a 1 on its left (the
 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF from other starts). A Coq proof of halting built from PR 93's file compiles
 with one assumption, that its accelerated engine stops (*proved*, Coq 8.18.0). The engine, checked against direct
 simulation through 3·10^9 steps, ran 14,971,979 fast steps without stopping, on a tape of more than 2^4487 cells: no
-halt in the first 10^1350 steps (*computed*). Details: [`coq/README.md`](coq/README.md).
+halt in the first 10^5374 steps (*computed*). Details: [`coq/README.md`](coq/README.md).
 
 ## Pages
 

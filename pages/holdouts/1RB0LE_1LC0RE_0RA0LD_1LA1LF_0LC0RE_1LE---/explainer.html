@@ -190,8 +190,11 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a cascade of binary counters on the right tick together, Z by one per event, C by three each time Z wraps, R by three each time C wraps. Later, further layers of words form between Z and R; their law is the open question.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a chain of binary words on the right tick together, and each word that wraps sends 3 to the next. So between two changes of era the whole right side is one counter. A simulator built on this has followed the run for 5.1·10<sup>41</sup> events without a halt; what a change of era hands on is the open question.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev k">Kernel</span><b>every layout</b><span class="small">The chain law (each wrap sends 3 to the next word), in Lean.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>5.1·10<sup>41</sup></b><span class="small">Events of the run (74 eras followed), no halt.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>10<sup>128</sup></b><span class="small">Events followed past the chain's defects (defect law), no halt.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>54 rules</b><span class="small">The event rule (N+1, M+1, R+3 on a wrap) for every size, in Lean.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>42,230</b><span class="small">Events by the rule in 3·10<sup>6</sup> steps.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>162 rules</b><span class="small">The cascade rule of the later layout for every size, in Lean.</span></div>
@@ -208,7 +211,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#engine">Three counters on one tape</a><a href="#rule">One event: N + 1, M + 1, and R + 3 when M wraps</a><a href="#runs">How long the run keeps this shape</a><a href="#words">Two words and a separator</a><a href="#sweeps">Sweeps and an inner counter</a><a href="#family">What the siblings share and where they differ</a><a href="#front">The front section</a><a href="#siblings">Six siblings</a><a href="#halt">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#eras">A cascade, then layers of words</a><a href="#open">What is left</a><a href="#visit">One visit of a stream</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#engine">Three counters on one tape</a><a href="#rule">One event: N + 1, M + 1, and R + 3 when M wraps</a><a href="#runs">How long the run keeps this shape</a><a href="#words">Two words and a separator</a><a href="#sweeps">Sweeps and an inner counter</a><a href="#family">What the siblings share and where they differ</a><a href="#front">The front section</a><a href="#siblings">Six siblings</a><a href="#halt">Where it could halt</a><a href="#shape">The shape of the run</a><a href="#eras">A cascade, then layers of words</a><a href="#chain">One law for every era</a><a href="#open">What is left</a><a href="#visit">One visit of a stream</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -362,10 +365,145 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <table><tr><th>steps</th><th>shape (tokens)</th><th>full events</th></tr><tr><td>1,345,591&ndash;3,700,299</td><td><code>Z1 d C5 a X2 d C12</code></td><td>38,868</td></tr><tr><td>3,700,657&ndash;9,320,409</td><td><code>Z3 d C5 a X2 d C12</code></td><td>155,476</td></tr><tr><td>9,320,864&ndash;20,382,132</td><td><code>Z2 d C2 a X6 d C2 R13</code></td><td>207,300</td></tr><tr><td>20,382,881&ndash;43,294,701</td><td><code>Z1 d C3 a X1 d C7 a X2 d C12</code></td><td>276,400</td></tr><tr><td>43,298,588&ndash;79,159,384</td><td><code>Z2 d c a d c a X4 d c a X8 d C2 R13</code></td><td>40,948</td></tr><tr><td>79,162,340&ndash;299,999,424</td><td><code>Z2 d c a d c a X14 d C2 R13</code></td><td>375,500</td></tr></table>
 <p>That layered law is not decoded yet. No rule of the cascade can halt.</p>
 </section>
+<section id="chain">
+  <span class="eyebrow">Decoded</span>
+  <h2>One law for every era</h2>
+<p>All the layouts of the run, the plain cascade, the X layer and everything after, are one shape: Z followed by a chain of binary words, alternately of two kinds (W with digits <code>0001</code>, <code>0101</code> and U with digits <code>1000</code>, <code>1010</code>), separated by the blocks <code>1 1</code>, <code>0 1</code> and <code>1 0 1 1</code>, any of them possibly empty:</p><p style="text-align:center"><code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [Z] 1 1 [W₁] 0 1 [U₁] 1 0 1 1 [W₂] 0 1 [U₂] … 1 0 1 1 [W<sub>m</sub>] 0 1 [U<sub>m</sub>] 0<sup>∞</sup></code></p><p>Every word is a binary counter, and <b>every wrap sends 3 to the next word</b>. Each event adds 1 to Z; when Z wraps, W₁ gets 3; when W₁ wraps, U₁ gets 3; and so on. An empty word wraps at once, so it passes 3 times what it got. In one number: Z + 2<sup>|Z|</sup>/3 · (W₁ + 2<sup>|W₁|</sup>/3 · (U₁ + …)) grows by exactly 1 per event. The rules of the earlier sections are special cases: the cascade is one pair (C, R), the X layer two pairs (∅, X) and (C, R), and for the X layer the law gives the odd-looking C + 24/2<sup>k</sup> (an empty W makes the 3 into 9, X of k digits takes 9 mod 2<sup>k</sup> and passes the rest on, times 3).</p><p>The law is proved in Lean for every number of words and every width (<code>lean/Layers.lean</code>), from 23 visit rows of blocks of 1, 2 and 4 cells composed by induction.</p>
+<p>Because the right side is one counter, a simulator can jump straight to the last event before a carry would leave the last word, and run only the change of era cell by cell. The first eras of the run:</p>
+<table class="tbl"><thead><tr><th>first event of the era</th><th>words</th><th>widths (Z, then W and U alternately; · empty)</th></tr></thead><tbody><tr><td>33</td><td>3</td><td><code>Z1 · W6 ·</code></td></tr><tr><td>72</td><td>3</td><td><code>Z1 · W7 ·</code></td></tr><tr><td>140</td><td>3</td><td><code>Z2 · · U9</code></td></tr><tr><td>4.3·10<sup>3</sup></td><td>3</td><td><code>Z2 · W12 ·</code></td></tr><tr><td>9.8·10<sup>3</sup></td><td>3</td><td><code>Z2 · W2 U13</code></td></tr><tr><td>1.7·10<sup>4</sup></td><td>7</td><td><code>Z1 · · · W3 U2 W12 ·</code></td></tr><tr><td>1.8·10<sup>4</sup></td><td>5</td><td><code>Z1 · W5 U2 W12 ·</code></td></tr><tr><td>5.7·10<sup>4</sup></td><td>5</td><td><code>Z3 · W5 U2 W12 ·</code></td></tr><tr><td>2.1·10<sup>5</sup></td><td>5</td><td><code>Z2 · W2 U6 W2 U13</code></td></tr><tr><td>4.1·10<sup>5</sup></td><td>7</td><td><code>Z1 · W3 U1 W7 U2 W12 ·</code></td></tr><tr><td>6.9·10<sup>5</sup></td><td>9</td><td><code>Z2 · · · · U4 · U8 W2 U13</code></td></tr><tr><td>7.3·10<sup>5</sup></td><td>7</td><td><code>Z2 · · · · U14 W2 U13</code></td></tr><tr><td>2.2·10<sup>6</sup></td><td>5</td><td><code>Z2 · · U16 W2 U13</code></td></tr><tr><td>5.5·10<sup>7</sup></td><td>5</td><td><code>Z3 · · U17 W2 U13</code></td></tr><tr><td>2.6·10<sup>8</sup></td><td>3</td><td><code>Z22 · W2 U13</code></td></tr><tr><td>7.9·10<sup>9</sup></td><td>3</td><td><code>Z24 · W2 U13</code></td></tr><tr><td>3.8·10<sup>10</sup></td><td>3</td><td><code>Z26 · W2 U13</code></td></tr><tr><td>1.6·10<sup>11</sup></td><td>3</td><td><code>Z28 · W2 U13</code></td></tr></tbody></table>
+<p>Through 74 changes of era, 5.1·10<sup>41</sup> events, nothing halts. The chain keeps growing: at the end it has 13 words with 154 digits in all. Step through a layout below; the page can run the machine itself on the encoded tape to check that it leaves exactly the predicted words.</p>
+<div class="panel" id="lw">
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px">
+  <label for="lw-pre">Start from the run at</label>
+  <select id="lw-pre"></select>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+  <button type="button" id="lw-1">Next event</button>
+  <button type="button" id="lw-w">To the next wrap of Z</button>
+  <button type="button" id="lw-100">+1,000 events</button>
+  <button type="button" id="lw-m">Check this event on the machine</button>
+</div>
+<div id="lw-out" style="overflow-x:auto"></div>
+<p id="lw-msg" style="color:var(--muted)"></p>
+</div>
+<script>
+// The chain law of lean/Layers.lean (widget first written for 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA): the same functions on digit lists (lowest digit first), and a check of one
+// event against the machine itself (a plain simulator of the table).
+(function () {
+"use strict";
+const PRE = [["Z1 | (W6, \u2205)",{"event":33,"n":0,"nw":1,"z":"0","items":[["000100",""]]}],["Z1 | (W7, \u2205)",{"event":72,"n":0,"nw":2,"z":"1","items":[["0101100",""]]}],["Z2 | (\u2205, U9)",{"event":140,"n":1,"nw":2,"z":"00","items":[["","110100001"]]}],["Z2 | (W12, \u2205)",{"event":4340,"n":35,"nw":5,"z":"01","items":[["000000000000",""]]}],["Z2 | (W2, U13)",{"event":9802,"n":87,"nw":5,"z":"00","items":[["11","0000000000001"]]}],["Z1 | (\u2205, \u2205) (W3, U2) (W12, \u2205)",{"event":17086,"n":18,"nw":3,"z":"0","items":[["",""],["101","01"],["001100000000",""]]}],["Z1 | (W5, U2) (W12, \u2205)",{"event":18162,"n":14,"nw":7,"z":"0","items":[["00100","00"],["000000000000",""]]}],["Z3 | (W5, U2) (W12, \u2205)",{"event":57030,"n":1164,"nw":8,"z":"001","items":[["00000","00"],["000000000000",""]]}],["Z2 | (W2, U6) (W2, U13)",{"event":212506,"n":2643,"nw":8,"z":"00","items":[["11","010000"],["00","0000000000001"]]}],["Z1 | (W3, U1) (W7, U2) (W12, \u2205)",{"event":419806,"n":4617,"nw":8,"z":"0","items":[["000","1"],["1010000","00"],["000000000000",""]]}],["Z2 | (\u2205, \u2205) (\u2205, U4) (\u2205, U8) (W2, U13)",{"event":696207,"n":77,"nw":7,"z":"00","items":[["",""],["","1100"],["","11110100"],["00","0000000000001"]]}],["Z2 | (\u2205, \u2205) (\u2205, U14) (W2, U13)",{"event":737155,"n":12594,"nw":10,"z":"00","items":[["",""],["","00000001000000"],["00","0000000000001"]]}],["Z2 | (\u2205, U16) (W2, U13)",{"event":2211307,"n":719109,"nw":13,"z":"00","items":[["","0101000000000000"],["00","0000000000001"]]}],["Z3 | (\u2205, U17) (W2, U13)",{"event":55280899,"n":3673612,"nw":14,"z":"010","items":[["","00010000000000000"],["00","0000000000001"]]}],["Z22 | (W2, U13)",{"event":267559281,"n":24633234,"nw":18,"z":"0000100000000000000000","items":[["00","0000000000001"]]}],["Z24 | (W2, U13)",{"event":7909581153,"n":292243195,"nw":19,"z":"010000000000000000000000","items":[["00","0000000000001"]]}],["Z26 | (W2, U13)",{"event":38477668703,"n":1750103520,"nw":20,"z":"01000000000000000000000000","items":[["00","0000000000001"]]}],["Z28 | (W2, U13)",{"event":160750018909,"n":8743806282,"nw":21,"z":"0010000000000000000000000000","items":[["00","0000000000001"]]}],["Z1 | (\u2205, U29) (W2, U13)",{"event":649839419737,"n":980482457,"nw":21,"z":"0","items":[["","01011000000000000000000000000"],["00","0000000000001"]]}],["Z32 | (W2, U13)",{"event":867212486769,"n":82368957850,"nw":24,"z":"00100000000000000000000000000000","items":[["00","0000000000001"]]}],["Z2 | (\u2205, \u2205) (W32, U2) (W12, \u2205)",{"event":8692642900077,"n":17432985173,"nw":22,"z":"00","items":[["",""],["11011000000000000000000000000000","00"],["000000000000",""]]}],["Z4 | (W32, U2) (W12, \u2205)",{"event":9851965924269,"n":768802234448,"nw":25,"z":"0000","items":[["11000000000000000000000000000000","00"],["000000000000",""]]}],["Z2 | (\u2205, U4) (W32, U2) (W12, \u2205)",{"event":51587594795261,"n":106331934913,"nw":25,"z":"00","items":[["","1001"],["00000000000000000000000000000000","00"],["000000000000",""]]}],["Z8 | (W32, U2) (W12, \u2205)",{"event":70136763182373,"n":7640748399266,"nw":28,"z":"00001000","items":[["00000000000000000000000000000000","00"],["000000000000",""]]}]];
+const TM = "1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---";
+const $ = (id) => document.getElementById(id);
+const bits = (s) => s.split("").map((c) => c === "1");
+const str = (w) => w.map((b) => (b ? "1" : "0")).join("");
+const val = (w) => w.reduce((a, b, i) => a + (b ? 2 ** i : 0), 0);
+function incB(w) {
+  if (!w.length) return [[], true];
+  if (!w[0]) return [[true].concat(w.slice(1)), false];
+  const [r, c] = incB(w.slice(1));
+  return [[false].concat(r), c];
+}
+// st: {n, nw, z, items: [[q, p], ...]} (the last item's p is the last word).  units[i]: units sent into item i in this event.
+let st, units, lastWrap, events;
+function unit(i) {               // a unit into item i: Q gets 3, every wrap of Q gives P 3, every wrap of P a unit to i+1
+  units[i]++;
+  for (let a = 0; a < 3; a++) {
+    const [q, c] = incB(st.items[i][0]); st.items[i][0] = q;
+    if (!c) continue;
+    for (let b = 0; b < 3; b++) {
+      const [p, d] = incB(st.items[i][1]); st.items[i][1] = p;
+      if (!d) continue;
+      if (i + 1 === st.items.length) return false;     // a carry leaves R: not covered by the law
+      if (!unit(i + 1)) return false;
+    }
+  }
+  return true;
+}
+function event() {
+  units = st.items.map(() => 0);
+  st.n++; if (st.n === 3 ** st.nw) { st.n = 0; st.nw++; }
+  const [z, c] = incB(st.z); st.z = z; events++;
+  lastWrap = c;
+  if (c && !unit(0)) return false;
+  return true;
+}
+function tape() {   // cells: left part (N) and right part from the event cell
+  const D3 = ["100", "110", "010"];
+  let ds = [], x = st.n;
+  for (let i = 0; i < st.nw; i++) { ds.push(D3[x % 3]); x = Math.floor(x / 3); }
+  const left = "10" + ds.reverse().join("");
+  const ZD = ["0010", "1010"], QD = ["0001", "0101"], PD = ["1000", "1010"];
+  let r = "0" + st.z.map((b) => ZD[+b]).join("");
+  st.items.forEach(([q, p], i) => {
+    r += "11" + q.map((b) => QD[+b]).join("") + "01" + p.map((b) => PD[+b]).join("");
+    if (i + 1 < st.items.length) r += "10";
+  });
+  return [left, r];
+}
+function machine(left, right, maxSteps) {   // run from the event to the next event; returns the right part
+  const T = {}; const tb = [];
+  TM.split("_").forEach((p, i) => { for (let r = 0; r < 2; r++) { const t = p.substr(3 * r, 3); tb[2 * i + r] = t[2] === "-" ? null : [+t[0], t[1] === "R" ? 1 : -1, t.charCodeAt(2) - 65]; } });
+  for (let i = 0; i < left.length; i++) T[i - left.length] = +left[i];
+  for (let i = 0; i < right.length; i++) T[i] = +right[i];
+  let p = 0, s = 0, hi = right.length;
+  for (let k = 0; k < maxSteps; k++) {
+    const tr = tb[2 * s + (T[p] || 0)];
+    if (!tr) return { halt: true, steps: k };
+    T[p] = tr[0]; p += tr[1]; s = tr[2]; if (p > hi) hi = p;
+    if (p === 0 && s === 0 && !(T[0] || 0)) {
+      let o = ""; for (let i = 0; i <= hi; i++) o += T[i] || 0;
+      return { right: o, steps: k + 1 };
+    }
+  }
+  return { timeout: true };
+}
+function show(msg) {
+  const rows = [["Z", st.z, "", "1"]];
+  let w = 2 ** st.z.length / 3, wtxt = "2^" + st.z.length + "/3";
+  st.items.forEach(([q, p], i) => {
+        rows.push(["W" + (i + 1), q, units ? units[i] : 0, wtxt]);
+    wtxt += " · 2^" + q.length + "/3";
+    rows.push(["U" + (i + 1), p, "", wtxt]);
+    wtxt += " · 2^" + p.length + "/3";
+  });
+  let h = '<table class="tbl"><thead><tr><th>word</th><th>digits (lowest first)</th><th>width</th><th>value</th><th>carries of 3 in (last event)</th><th>weight</th></tr></thead><tbody>';
+  rows.forEach(([nm, wd, u, wt]) => {
+    h += `<tr><td><b>${nm}</b></td><td><code>${str(wd) || "(empty)"}</code></td><td>${wd.length}</td><td>${val(wd)}</td><td>${nm[0] === "W" ? u : ""}</td><td><code>${wt}</code></td></tr>`;
+  });
+  h += "</tbody></table>";
+  $("lw-out").innerHTML = h;
+  $("lw-msg").innerHTML = `N = ${st.n} (${st.nw} base-3 digits); ${events} events from the preset. ` + (msg || "");
+}
+function load(i) {
+  const p = PRE[i][1];
+  st = { n: p.n, nw: p.nw, z: bits(p.z), items: p.items.map(([q, r]) => [bits(q), bits(r)]) };
+  units = null; events = 0; show("");
+}
+PRE.forEach(([sh, p], i) => { const o = document.createElement("option"); o.value = i; o.textContent = `event ${p.event}: ${sh}`; $("lw-pre").appendChild(o); });
+$("lw-pre").value = PRE.length - 1;
+$("lw-pre").onchange = () => load(+$("lw-pre").value);
+const stop = "A carry left the last word: this is a change of era, which the law does not cover (choose another preset).";
+$("lw-1").onclick = () => { show(event() ? (lastWrap ? "Z wrapped and sent 3 to W1." : "") : stop); };
+$("lw-w").onclick = () => { let ok = true; do { ok = event(); } while (ok && !lastWrap); show(ok ? "Z wrapped and sent 3 to W1." : stop); };
+$("lw-100").onclick = () => { let ok = true; for (let i = 0; i < 1000 && ok; i++) ok = event(); show(ok ? "" : stop); };
+$("lw-m").onclick = () => {
+  const [l, r] = tape();
+  const res = machine(l, r, 5e6);
+  const ok = event(); const [l2, r2] = tape();
+  if (!ok) { show(stop); return; }
+  if (res.right === undefined) { show("The machine did not reach the next event."); return; }
+  const same = res.right.replace(/0+$/, "") === r2.replace(/0+$/, "");
+  show(same ? `The machine ran ${res.steps.toLocaleString("en-US")} steps to the next event and left exactly the predicted tape.` : "The machine's tape differs from the prediction.");
+};
+load(PRE.length - 1);
+})();
+</script>
+
+</section>
 <section id="open">
   <span class="eyebrow">Open</span>
   <h2>What is left</h2>
-<p>The engine is proved; the halting question now sits entirely in the overflows. No event can halt, since every rule is a run of the machine; a halt can only come between events that the rules do not cover. Open: (1) the overflow of R as a rule: what N, M, R and the cells after R become; (2) the layered layout that follows (the part right of R starting <code>1 0 1 1 0</code>), which seems to hold further counters; (3) whether the iterated overflows ever produce the halting pattern. The left counter N alone never causes trouble: its wrap at the left end is one of the proved cases.</p>
+<p>The engine is proved for every layout: N + 1 on the left, and on the right the chain law. A halt can only come during a change of era, when a carry runs off the last word: every event that follows the law is a run of the machine that never reads the halting 1. At the end of an era all words are near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has a digit more, and N has either gained 1 or given 2 to 9 of its lowest base-3 digits to new words. Open: (1) a rule for this hand-over; (2) whether some change of era can ever put the head on the halting 1.</p>
 </section>
 <section id="visit">
   <span class="eyebrow">New view</span>
@@ -427,8 +565,14 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Stream.lean</code></div></div><div><b>The a/z stream and M as a recursive visit law</b><p>Everything from R on, blank tape included, is one stream of a = <code>10</code> and z = <code>00</code>. A visit in state B turns the first z into a and every second a before it into z; it comes out in A when the first z is at an odd place (the binary increment of R, for every size: <code>vb_odd</code>, <code>ve_odd</code>) and in C when it is at an even place (<code>vb_even</code>). M + 1 without a wrap (<code>m_inc</code>) and with a wrap, where the stream gets three visits (<code>m_wrap</code>), for every size.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/laws.py</code>; a direct run</div></div><div><b>The overflow of R is the even case of the stream law</b><p>R has no end: when all its digits up to the blank tape are 1, the first z is at an even place and the visit comes out in C, leaving the digits shifted by one token. In the run of <code>1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---</code> this first happens at step 20,645 (stream a<sup>18</sup> then blank, left as (z a)<sup>9</sup> a). That the event rule fails only there is read off the rules, not a Lean theorem.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Cascade.lean</code> (generated by <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events2.py</code>)</div></div><div><b>The cascade rule of the later layout, for every size</b><p>From an event <code>0^∞ 1 0 [N] A&gt; 0 [Z] 1 1 [C] 0 1 [R]</code> (N base 3 as before; Z, the former M, in 4-cell digits 0010/1010; C binary in 4-cell digits <code>0001</code> = 0, <code>0101</code> = 1; R as before; lowest digit first) the machine reaches the next event with N + 1, Z + 1, C + 3 when Z wraps and R + 3 when C wraps; 162 theorems, one per case, each with its exact step count.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>layer_event</code>, <code>layer_event_n0t0</code> … <code>layer_event_novk</code> (the 9 cases of N), <code>lean/Layers.lean</code>, from <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/layers_gen.py</code></div></div><div><b>The chain law, for every layout</b><p>At an event the right side is <code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [Z] 1 1 [W₁] 0 1 [U₁] 1 0 1 1 [W₂] 0 1 [U₂] … 1 0 1 1 [W<sub>m</sub>] 0 1 [U<sub>m</sub>] 0<sup>∞</sup></code>: Z (digits <code>0010</code>, <code>1010</code>), each W (<code>0001</code>, <code>0101</code>) and each U (<code>1000</code>, <code>1010</code>) binary, lowest digit first, of any width, W and U possibly empty, any number m of pairs. From one event to the next: N + 1, Z + 1; when Z wraps, W₁ gets 3; each wrap of a W gives its U 3; each wrap of a U gives the next W 3, as long as no carry leaves the last word. Equivalently Z + 2<sup>|Z|</sup>/3 · (W₁ + 2<sup>|W₁|</sup>/3 · (U₁ + 2<sup>|U₁|</sup>/3 · (W₂ + …))) grows by exactly 1 per event. 23 visit rows (24 for E1 = 0RE) of blocks of 1, 2 and 4 cells, composed by induction over the digits of each word and over the list of pairs; the generator is this family's copy of the one first written for 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA. The law holds whatever tape follows the last word (<code>encT B</code>): no visit reads past it unless a carry leaves it.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- check 50000000</code></div></div><div><b>The run follows the chain law</b><p>In the first 50,000,000 steps, 699,724 pairs of consecutive full events in one layout follow the law (the number above gains exactly 1), with no mismatch; 6 pairs change the layout (changes of era), 4121 full events are in no layout.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- jump 74 10</code></div></div><div><b>No halt through the first changes of era</b><p>The simulator runs the machine cell by cell from blank tape; at each full event in a layout it computes from the chain law the last event before a carry would leave the last word, writes that tape and runs on cell by cell through the change of era. 74 changes of era, 5.1·10<sup>41</sup> events in all (each at least one step), 264,431 steps run cell by cell, no halt; at the end the chain has 13 words, 154 digits in all. Before each jump it checks the law on random events of the era, rebuilt and run cell by cell: 29,211 events, 0 mismatches. Rests on the chain law (Lean) and on the simulator's arithmetic (the number above, decoded back into words), which is not in Lean.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">py/defects.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)</div></div><div><b>No halt past the defects of the chain</b><p>Later full events carry defects of the chain. With the chain law up to the first defect, the defect law below at each crossing, and the grammar prefix where neither applies, the run reaches about 10<sup>128</sup> events from blank tape with no halt; 505 self-checks against cell-by-cell runs found no mismatch. At about 10<sup>128</sup> events the event cell moves into the chain, so no full event comes; 6·10<sup>10</sup> more steps stay within the same 2,729 cells without a halt.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>What a change of era hands on</b><p>At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">py/defects.py</div></div><div><b>What a carry does at a defect</b><p>A defect is one erased cell in a separator (after Z <code>11</code> read as <code>01</code>, after a W <code>01</code> as <code>00</code>, after a U <code>1011</code> as <code>1001</code>). When a carry of c &gt; 0 reaches it, the separator is restored and the carry goes on as c − 3. In 3·10<sup>7</sup> steps 535,801 consecutive pairs follow the law, 2 of them crossing a defect, 0 mismatches; 19 events not covered.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Half-digit shifts</b><p>The other kind of defect, a separator missing altogether or a separator after Z read as <code>a</code>, <code>ad</code>, <code>zd</code> or <code>ac</code>, makes the words after it be read again with W and U swapped when a carry meets it. Its law is not decoded, and neither is the stage after 10<sup>128</sup> events, where the event cell has moved into the chain.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/cascade_check.py</code></div></div><div><b>The layered shapes of the later run</b><p>In the first 3·10<sup>8</sup> steps the full events have the plain layout only at steps 361,628 to 743,696 with C of 2 digits and R of 13 (7,284 events), and 7,283 consecutive pairs of them follow the cascade rule with no mismatch. The other full events carry more words between Z and R; their commonest shapes: <code>Z1 d C5 a X2 d C12</code> (steps 1,345,591 to 3,700,299, 38,868 events); <code>Z3 d C5 a X2 d C12</code> (steps 3,700,657 to 9,320,409, 155,476 events); <code>Z2 d C2 a X6 d C2 R13</code> (steps 9,320,864 to 20,382,132, 207,300 events); <code>Z1 d C3 a X1 d C7 a X2 d C12</code> (steps 20,382,881 to 43,294,701, 276,400 events); <code>Z2 d c a d c a X4 d c a X8 d C2 R13</code> (steps 43,298,588 to 79,159,384, 40,948 events); <code>Z2 d c a d c a X14 d C2 R13</code> (steps 79,162,340 to 299,999,424, 375,500 events).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>What the eras hand on, and the shapes between</b><p>The law of the layered shapes of this sibling (several C words with binary words X between them), what its overflows hand on, and halting. No cascade rule can halt.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same tapes at another pace, whatever the states, as 1 other holdout (listed on the explainer page).</p></div></div>
 </section>
 <section id="check">
@@ -438,7 +582,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 1000000000
 python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 6   # from tools/py
-gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c &amp;&amp; ./cascade_events 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py</code></pre>
+gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c &amp;&amp; ./cascade_events 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py
+python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- jump 74 10</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

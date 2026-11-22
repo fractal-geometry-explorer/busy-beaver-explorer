@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 14 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean); between phases the head works through an irregular region that is not understood. A halt needs a 1 read in state C next to a long run of ones."
+  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 5&middot;10<sup>11</sup> steps (no halt) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (about 120,000 cells) is touched only at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones."
  ],
  "claims": [
   {
@@ -46,6 +46,12 @@
    "where": "<code>holdouts/triage.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 5&middot;10<sup>11</sup> steps",
+   "text": "The plain C simulator <code>c/snap.c</code> runs 5&middot;10<sup>11</sup> steps from blank tape without a halt; at the end the tape spans cells &minus;1,125,275 to 24,097.",
+   "where": "<code>c/snap.c</code>, <code>evidence/phases-5e11.txt</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.464). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -70,6 +76,13 @@
    "title": "Phases",
    "text": "The run alternates growth phases, in which the blocks (011)^n and (01)^m at the left end grow by eating a long run of ones three cells per double cycle, with an irregular stretch in which the head works through a list of short words; the runs of ones are made by earlier phases.",
    "where": "<code>README.md</code>",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Two kinds of phase, to 5&middot;10<sup>11</sup> steps",
+   "text": "Seen from far away the tape is (100)^a, then a run of ones or a block of (011), then a block of 5-cell words (rotations of 00111 or 01011), then an irregular stretch. The run alternates phases with the left end fixed, in which (100)^a is turned into 5-words, and phases with the left end moving, in which (100)^a grows by eating ones. Since 2.8&middot;10<sup>11</sup> steps the 66,518 5-words and the 120,574-cell irregular stretch have not changed; that phase ends when a run of ones further right (54,641 cells at 5&middot;10<sup>11</sup>) is used up.",
+   "where": "<code>README.md</code> (Phases to 5&middot;10<sup>11</sup> steps), <code>py/phases.py</code>",
    "added": true
   },
   {

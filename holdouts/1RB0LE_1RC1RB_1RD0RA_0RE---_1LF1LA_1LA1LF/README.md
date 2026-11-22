@@ -31,7 +31,7 @@ right end; the closest call was `B> 0 1 0 0` (6 times).
 
 ## Status
 
-Open.
+Open. Lean reduces it to one list question: it halts only if the list machine `astep` fails from step 48 (`lean/Start.lean`).
 
 - **Lean, kernel** (`lean/Rules.lean`, from `py/rules.py`): `b_run`, `f_run`, `e_run`, `a_run` (the sweep rules),
   `halt_shape` (`B> 0 0 1` reaches D on a 1 in 2 steps), `halt_after_shape`. `lean/Blank.lean`: no halt in 10^7 steps.
@@ -52,6 +52,44 @@ sweep in E/F and the right sweep in B). In 10^9 steps of this run every right tu
 letters `11` and `01` right of the head (`c/twoletter.c` there, start state E of that table), so that never happens
 (observed). See the other machine's README for what the halting question reduces to.
 
+## The holdout as a question about lists (22 November 2026)
+
+The rest of the other machine's Lean reduction also holds here with the states renamed: `lean/Absorb.lean`,
+`Wall.lean`, `Crossing.lean`, `End.lean` and `Race.lean` are written from its files by `py/port_list.py` (state names in
+their prose are the other machine's; a right turn is A here, E there). So every right turn of this run is a state of
+the list machine `astep` (`T`, `T2`, or A on the last 1), each list step is at least one machine step (`astep_sim`), a
+clean far part never blocks a crossing (`far_even`), and a frozen word with a witness rules out both failure cases
+(`astep_T2_witness`).
+
+Only the start is this machine's own (`lean/Start.lean`, kernel):
+
+* `start`: the first right turn from blank tape is at step 48, A on the last 1, zone `b a b a a a` (nearest letter
+  first), prefix 1. Tape: `1 11 11 11 10 11 10 | 1`.
+* `not_halts_of_arun`: if `arun k (.EO [true, false, true, false, false, false] none true)` is defined for every `k`,
+  the machine never halts from blank tape.
+
+So the holdout is the same list question as the other machine's, from a different start state. Any result there that
+is stated for every list state in some class (an invariant closed under `astep`) holds here too; a proof of
+non-halting needs such an invariant that also contains this start.
+
+Observed (`py/listrun.py`, which runs the other machine's `py/listmachine.py` and `py/race.py` from this start):
+
+* `lockstep 2e8`: the list machine agrees with the real machine at all 17,546 right turns of the first 2·10^8 steps
+  (9,414 `T`, 8,113 `T2`, 19 `EO`).
+* `run 40000` (about 30 minutes): 40,000 list steps without failing (16,600 `T`, 23,381 `T2`, 19 `EO`), every far part
+  clean, zones up to 22,714 letters.
+* `race 40000`: 2,878 crossing turns with blank end, 2,874 with a witness. The other 4 are each the first bounce after
+  A reads the last 1 during a crossing (list steps 19, 875, 1,646, 5,335), with frozen word `0`; the list machine gets
+  past them. That is the same pattern as the other machine.
+
+**The windows (`lean/Window.lean`, ported).** The other machine's `window_W3` holds here: for every prefix and every
+clean far part, `EO (b a b a^6)` with a far part does not fail for 2 list steps and reaches a `Safe` state (the crossing
+is over, or the frozen word has a witness and the far part is clean). All 4 witness-less turns above come right after
+such an `EO` turn: at list steps 18, 874, 1,645 and 5,334 the near part is exactly `b a b a^6` and the far part is clean
+(observed). So in the first 40,000 list steps every crossing turn with blank end is covered by a Lean lemma about
+whole families of states. What stays open is the same as there: that witnesses never run out later in a crossing,
+which depends on the far parts the growing phase builds (`eo_W1_fails`: the near part alone is not enough).
+
 ## Notes for later
 
 - The natural conjecture is "every 0 inside the tape stays single". It would prove non-halting. It is not a regular
@@ -64,6 +102,8 @@ letters `11` and `01` right of the head (`c/twoletter.c` there, start state E of
 gcc -O2 -o samples holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/c/samples.c && ./samples 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF 200000 A L 100000 3
 gcc -O2 -o nbhd holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/c/nbhd.c && ./nbhd 1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF 1000000000 B 0
 python3 holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/py/rules.py > holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/lean/Rules.lean
+python3 holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/py/port_list.py
+python3 holdouts/1RB0LE_1RC1RB_1RD0RA_0RE---_1LF1LA_1LA1LF/py/listrun.py run 40000
 ```
 
 ## Deciders tried (F11, 13 November 2026)

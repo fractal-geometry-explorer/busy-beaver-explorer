@@ -30,3 +30,11 @@ the claim that the accelerated engine, started in D on blank tape, stops. A stop
 
 `build.sh PR93.v OUTDIR` (with `BUSYCOQ` set) builds the skeleton and the tools; run them with `ulimit -s unlimited`
 (`run D N CHECKPOINT`, `validateU D N M`).
+
+## The fast-engine run (22 November 2026)
+
+The same engine extracted with Coq's numbers realized by Zarith (`ExtT4CZ.v`, `buildz.sh` and `runz.ml` in the start-A
+folder, explained there) has the old engine's full compressed state at fast step 29,077,778, the old run's last checkpoint
+(equal MD5 digests), and is far faster. `runz D ...` ran **305,000,000 fast steps from blank tape without stopping**; the tape
+then has more than 2^17855 cells, so **the machine does not halt in its first 10^5374 steps** (extracted code and OCaml,
+not Coq's kernel). Every entry into raw mode was in the classes described in the start-A folder (D moving right with a 0 on its left, D moving left onto a 1, B moving right, and the sibling's halting event, which is survived).

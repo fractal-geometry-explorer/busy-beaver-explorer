@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps of the plain simulator, none in 3&middot;10<sup>13</sup> steps of an accelerated one, nor in 1.8&middot;10<sup>17</sup> steps of another (neither verified)."
+  "<b>The question is open.</b> Sweeps back and forth, each sweep rewriting the whole tape into its other form (011 to 100, 10 to 11, a period-12 word to its partner); a period-3 zone at the left end, then a few huge blocks of longer words (12, 15, 30 cells) that are built up and eaten in turn, and a short tail on the right; a halt needs a rightward sweep to meet 0001. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt, and no halt in the first 8&middot;10<sup>15</sup> steps (<code>native_decide</code>, with rsim's jumps checked in Lean); no halt in 10<sup>9</sup> steps of the plain simulator, none in 3&middot;10<sup>13</sup> steps of an accelerated one, nor in 1.8&middot;10<sup>17</sup> steps of another (neither verified)."
  ],
  "claims": [
   {
@@ -32,6 +32,13 @@
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
    "where": "<code>blank_runs_native</code>, <code>lean/Blank.lean</code>"
+  },
+  {
+   "level": "native",
+   "tag": "LEANRUN",
+   "title": "No halt in the first 8&middot;10<sup>15</sup> steps (checked accelerated simulator)",
+   "text": "The accelerated simulator rsim (<code>c/rsim_fast.cpp</code> of the T3 sibling) rebuilt in Lean so that every move is proved (<code>tools/lean/TM/RSim.lean</code>): runs of a word with a count, crossing rules learned at run time and each checked by a run of the machine before it is used, and rsim's sample-level jumps, each checked by running one period symbolically with the counts as linear forms in two variables (a period that takes the family <code>T(0, J)</code> to <code>T(1, J &minus; 1)</code> takes it to <code>T(J, 0)</code>, with the step count in closed form). Rule learning, compression, the canonical form and the jump detection are unverified heuristics; their outputs are checked or carry proofs, so the theorem is <code>run_ok</code>: if the run reaches N steps, the machine makes N steps from blank tape. Evaluated by compiled code (<code>native_decide</code>): 10<sup>8</sup> steps in <code>lean/RSimBound.lean</code> (part of <code>check.sh</code>, under a minute) and 8&middot;10<sup>15</sup> in <code>lean/RSimLong.lean</code> (<code>check_big.sh</code>, about 5 minutes with the compiled code loaded by <code>tools/lean/check_native.sh</code>).",
+   "where": "<code>rsim_1e8</code>, <code>lean/RSimBound.lean</code>; <code>rsim_long</code>, <code>lean/RSimLong.lean</code>; <code>run_ok</code>, <code>jump_ok</code>, <code>tools/lean/TM/RSim.lean</code>"
   },
   {
    "level": "trusted",

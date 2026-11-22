@@ -75,17 +75,148 @@ block followed by a separator 1; in the run F always reads a 0.
 - `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, every configuration two steps before a halt is
   `B> 0 1 1`.
 - `c/blocks.c` (trusted computation): the block list at every right-end turn, with the form checked (10¹⁰ steps in a
-  minute); `py/blocks.py` is the same in Python.
+  minute; a third column gives how far left of the first 1 the head went in the tick); `py/blocks.py` is the same in
+  Python, without the third column.
 - `py/ticks.py` (trusted computation: symbolic runs, not Lean): the rule of each tick, grouped by pattern.
+- `lean/Front.lean` (kernel, written by `py/front.py`): the left-end ticks of 13 front shapes, for every chain
+  length and all block sizes (next section).
+
+## The left-end ticks decoded (22 November 2026)
+
+A *left-end tick* is one whose rule needs the left end of the list: `py/ticks.py` finds no rule for it, or the head
+reaches the first 1 of the tape (`c/blocks.c` now prints, as a third column, how far left of the first 1 the head
+went during the tick). There are **258** of them in the first 10¹⁰ steps: the 238 of `py/ticks.py` and 20 copy ticks
+that `py/ticks.py` had put among the ticks needing a finer split. Each one splits into a *front* and a *chain*:
+
+    F . C          C = m1 . m2 . … . mk, all even, all separators 0, as long as possible
+
+**The chain law.** In every left-end tick, as in the ordinary ticks, the chain C becomes `C'`: every separator turns
+into `|` and the blocks change by, counted from the right, +1, +1, −1, +1, −1, … So `6.10.24.46` becomes
+`7|9|25|47`. The left pass over C and the right pass back are the ordinary ones (`left_pass`, `right_pass` of
+`lean/Chain.lean`), so a left-end tick is one new piece at the left end, between the two passes.
+
+**The front rules (proved).** 198 of the 258 left-end ticks have one of 13 front shapes, and for each the front
+piece is a symbolic run that closes for every value of the block lengths (`py/front.py`). `lean/Front.lean` proves,
+for each shape, the front piece and the whole tick, from one right-end turn to the next, for every number of blocks
+in C and all lengths (`tick_<shape>`, kernel only). `py/front.py classify` checks the rule against the run at each
+of the 198 ticks, all agree. In block notation (e even, o odd; n0, n1, … the front's blocks; C odd or even means
+the number of its blocks):
+
+| front | ticks | rule |
+|---|---|---|
+| `n0 . C`, n0 even, C even | 48 | `3 \| n0−1 \| C'` |
+| `n0 . C`, n0 even, C odd | 16 | `n0+3 \| C'` |
+| `n0 \| n1 . C`, both odd, C even | 37 | `3 \| n0 \| n1−1 \| C'` |
+| `n0 \| n1 . C`, both odd, C odd | 47 | `n0−1 \| n1+2 \| C'` (this one only reads into n0) |
+| `n0 \| n1 . C`, n0 even, n1 odd, C even | 3 | `n0+2 \| n1−1 \| C'` |
+| `n0 . n1 \| n2 . C`, n0 even, n1 and n2 odd, C even | 2 | `n0+3 \| n1 \| n2−1 \| C'` |
+| `n0 \| g1 \| … \| gj \| x . C`, all even, C odd, j = 0 to 7 | 45 | `n0+4 \| g1 \| … \| gj \| x−1 \| C'` |
+
+(The last row is 7 shapes in `lean/Front.lean`, one per j that occurs, j = 0, 1, 2, 3, 4, 5, 7.) For example
+`2.6.10.24.46` → `3|1|7|9|25|47` (first row), `92.6.4.8.38.128` → `95|5|5|7|39|129` (second),
+`10774|20|8|10|28.234.190.1378.544.1248.1642.13314` → `10778|20|8|10|27|233|191|1377|545|1247|1643|13315` (last).
+So the left end of the list is a small counter of its own: the first block grows by 3 or 4, or splits off a new
+block 3 at the left, and which one depends on the parities and on whether C has an even or odd number of blocks.
+
+**The copy ticks.** 54 left-end ticks have a front ending `| 1`:
+
+    P | 1 . X . C          (C odd)  →   N | P' | C''          N = 2X − c(P)
+
+The head goes back and forth between the left end and X, and each round moves one pair of X into a new first block
+(`py/front.py` finds the piece does not close: it reads X cell by cell). After a few rounds that rework P, every round
+is the same, so the outcome depends on X only through N. `py/copy.py` checks this on the real machine
+(`c/tick.c`, one tick from a given list) for each of the 52 ordinary copy ticks: the tick run again with X + 2,
+X + 10 and X + 100, and with C replaced by `100.200.300` and by `4.6.8.10.12`, changes nothing but N, by exactly twice
+the change of X; and C'' is C' with its first block one less. So **each copy tick is a function of P alone**, `c(P)`
+and `P'(P)`, with 33 different P in the run:
+
+| P | ticks | c | N \| P' |
+|---|---|---|---|
+| `3` | 14 | 1 | `N\|9` |
+| `113`, `151`, `8375`, `9355` | 6 | 1 | `N\|p+6` |
+| `110\|3855` | 1 | 4 | `N\|111\|3861` |
+| `111\|1765\|97` | 1 | 4 | `N\|114\|1763\|103` |
+| `3\|3\|12\|15` | 5 | 8 | `N\|6\|2\|13\|21` |
+| `2\|97\|3\|11` | 3 | 8 | `N\|4\|100\|1\|17` |
+| `1780\|6\|10761` | 1 | 8 | `N\|1782\|7\|10767` |
+| `2.6.1784\|15` | 1 | 8 | `N\|4\|6\|1785\|21` |
+| `3\|3\|18876\|11\|17\|8417` | 1 | 12 | `N\|6\|2\|18878\|14\|15\|8423` |
+| `92\|6\|1\|11.28.204\|279` | 1 | 16 | `N\|94\|8\|4\|10\|28\|205\|285` |
+
+(all 33: `python3 py/copy.py ./tick < classify.txt`). Read from the right, P' is P with the last block + 6 and the
+others changed by a small transducer that reads the block's parity and the separator after it: after the +6, an even
+block gets +1 and an odd one −2; after a −1 or −2 the next block gets +3, and after a +3 or a 0 the next gets +2;
+after a +1 or +2 an even block gets +2 (0 if the separator after it is a 0) and an odd one −1. Every
+separator becomes `|`. When the first block of P is followed by a 0, or is a lone 2, it is absorbed into N
+(`112.4|7|1781|33|1.328` → `760|6|10|1779|39`, 760 = 2·328 + 112 − 8). This transducer is read off the 52 ticks; it is
+not derived. Two copy ticks are different: `3|1|771|1.26…` → `1546.33|…` and `3|1|47|1.18…` → `98.25|…` copy the block
+between the two 1s (N = 2Y + 4) and add 7 to X.
+
+**The recursion (observed).** After a copy tick the new block N stands at the left of the list, and the blocks that
+then grow in front of it replay the run from blank tape: after `9340|2|10|106|…` (step 5,660,813,996) the part left of
+the big block reads `27`, `26`, `3|25`, `3|3|24`, `3|3.24`, `2|5|23`, `2.6|22`, …, the lists of the blank run
+(`4`, `3|5`, `3|3|6`, `3|3.8`, `2|5|9`, `2.6|10`, …) with the blank run's growing last block replaced by a shrinking
+one next to N. Copies from further right interrupt the replay (the big block of 18874 at step 6,921,870,502 comes
+from the block 9440 behind it), so the list is a counter whose top digit restarts the whole run in front of every new
+big block, at every scale. This is the "same sequence of lists on larger scales" of the first section.
+
+The other 6 left-end ticks (steps 4 to 274,716) have at most one block after the front, too few for the passes.
+
+**The copy ticks in Lean (22 November 2026).** After its first rounds (the *entry*) a copy tick settles into a
+loop whose state, at the left end of the tape in state D, is
+
+    1 (10)^(2j+2)  0 (10)^(2b1+2)  0 (10)^(2b2+2)  …  0 (10)^(2bm+2)  0 0 (10)^(2r)  Z
+
+j the pairs already copied into the new first block, b1 … bm the reworked P (all even blocks, separators 0), r the
+pairs of X still to copy, Z the chain, never touched. Each half round moves one pair of X: the head crosses every
+block to the right in state B (`crossB`), takes a pair at X (`xa`, `xb`), crosses back in state D, restoring each
+block (`crossD`), and adds a pair at the left end (`el1`, `el2`, `el3`). These seven pieces are local, so `round`
+holds for every list of blocks (two inductions on the list), and `loop` (induction on r) runs the copy to r = 0
+(`lean/Copy.lean`). For each front shape of the run (each block of P a variable of fixed parity, as in `lean/Front.lean`) the entry and
+the two exits (`exit3` when the chain goes on, `exit1` when it has one block) are symbolic runs, and
+`copy_<shape>_long` / `copy_<shape>_one` are the whole tick from one right-end turn to the next, for every X, every
+value of the blocks of P, every chain and every number of pairs (`lean/CopyS1.lean` … `CopyS8.lean`). 21 front
+shapes are proved; **51 of the 54 copy ticks** of the first 10¹⁰ steps are instances, and the end of each theorem, read as a block list, is the list the run
+reaches (`py/copyloop.py check`). Not covered: the two ticks with front `3|1|Y` (which copy Y) and
+`3|1|7|9.26|…|1583` (front shape `o|1|o|o.e|e|o|o.e|e|o`, whose entry needs a split the generator does not find).
+The entry, the rework of P, is still one symbolic run per shape: its block law (the transducer above) is not a
+theorem.
+
+**Copy rounds are left-end ticks (Lean, 22 November 2026).** Cut a copy tick at the turns at the edge of X: each
+round from one turn to the next runs the same *middle* as the left-end tick of the list `F | 3`, F the front at that
+round. In both runs the head comes to the last separator of F in state D, works inside F without reading anything
+right of that separator, and comes back to it in state A; the pieces before and after the middle never read F. So
+`lean/Transfer.lean` (written by `py/transfer.py`) proves, for any tape F with a middle `Mid F F'`, both the tick
+`F | 3 -> F' 1 0 | 4` (`main_of_mid`) and the copy round from the turn at `F | (10)^(2c+2)` to the next turn at
+`F' 1 0 | (10)^(2c+2)`, one pair of X further (`round_of_mid`; `rounds_of_mids` for any number of rounds): the
+rework of P is the left-end tick law applied to the front once per pair of X.
+
+The middle is then proved block by block. An even block after a separator 1 is *passive*: the middle crosses it
+leftwards (`le`), runs on what is in front of it, and comes back (`re`), and after the round the block is what it
+was; so any number of even blocks after separators 1 at the end of the front pass through unchanged (`mid_evens`, an
+induction on the list). In front of them the middle turns, and that turn is a symbolic run for every value of its
+blocks: `L | o -> L . o+1` for an odd block after a 1, whatever L is (`round_od`); `e -> e+2` for an even first
+block (`round_e0`, the copy loop); `o -> 3 | o` for an odd first block (`round_o0`); and 19 more turn shapes with
+a separator 0 or a block 1 near the turn (`round_b_<shape>`, each block a variable, split at 0 where the run needs
+it), e.g. `L | o . e -> L | o-1 | e+2`. The 54 copy ticks of the first 10^10 steps have 2,094 rounds (and 56 last
+turns at X, where no pair is left and the exit starts); `py/transfer.py check classify.txt` finds 2,013 of them to be
+rounds of these theorems, for every value of the blocks and every number of passive blocks. The other 81: the first
+round of every tick and the second of 22 (the front does not yet end in a separator 1, or an odd number of pairs
+stands after it), and 7 rounds over the fronts `1 | …` and `3 | 0 | …`, where the middle reaches past the separator.
+
+What is still open here: gluing these rounds into the 3 copy ticks not yet proved, the first rounds as a rule, and
+the replay as a statement on lists.
 
 ## What is open, next steps
 
 1. The other tick patterns: 166 ticks of the first 10¹⁰ steps, besides the 238 rebuilds (blocks of length 1, mixed
    parities). The pieces of `lean/Chain.lean` should cover most of them with new turn pieces.
-2. The rebuilds. A rebuild reads the block after its turning point cell by cell, so `rebuild_3_3_12_15_1_48` has a
-   variable only for the last block. With more blocks to the right, the head comes back from the left end in a
-   state that depends on them (it is not the state the pass pieces expect), so a rebuild does not split like an
-   ordinary tick. A general rule has to follow the counter that the rebuild runs on that block.
+2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
+   for every chain length (`lean/Front.lean`); the 54 copy ticks are checked to depend on the block X only through
+   the new block 2X − c(P), and 51 of them are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
+   per front shape). Every later round of a copy tick is the left-end tick of `F | 3` on its front, and 2,013 of
+   the 2,094 rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
+   Open: the first rounds of a copy tick as a rule.
 3. An invariant of the block lists, kept by all rules, that keeps B off `0 1 1`.
 
 Why the method that proves 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB (a finite table of forms, then linear
@@ -237,8 +368,17 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rules.py     # rew
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/route.py     # rewrites lean/Route.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain.py     # rewrites lean/Chain.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/rebuild.py   # rewrites lean/Rebuild.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py lean # rewrites lean/Front.lean
 gcc -O2 -o blocks holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/blocks.c
+gcc -O2 -o tick holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/tick.c
 ./blocks 1e8 | python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/ticks.py
+./blocks 1e10 > blocks.txt                                                       # 1 minute
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py classify < blocks.txt > classify.txt   # 30 s
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick < classify.txt                  # 3 minutes
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classify.txt      # rewrites lean/Copy*.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # 51 of 54 copy ticks
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,013 of 2,094 rounds
 ```
 
 <!-- related machines: written by holdouts/related.py -->

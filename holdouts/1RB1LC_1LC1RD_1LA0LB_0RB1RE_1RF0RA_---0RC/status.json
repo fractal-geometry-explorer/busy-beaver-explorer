@@ -14,7 +14,7 @@
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.",
   "<b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.",
-  "<b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, the rules give no halt in the first 3&middot;10<sup>12</sup> visits (about 1.8&middot;10<sup>37</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades."
+  "<b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, up to 48 visits at a time with a block check proved sound in Lean (<code>block_ok</code>), the rules give no halt in the first 3.1&middot;10<sup>12</sup> visits (about 2.0&middot;10<sup>37</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades."
  ],
  "claims": [
   {
@@ -132,6 +132,18 @@
    "where": "<code>gcc -O2 -o abrun c/abrun.c && ./abrun 3000000000000 10000000000</code> (about 7 hours; resumable from any logged <code>prog</code> line)"
   },
   {
+   "level": "kernel",
+   "title": "Blocks of visits are sound",
+   "text": "<code>block_ok</code>: for any list of grow/swap digits, if their formal run from a visit A(a, b) ends with both coordinates at least 16&middot;2<sup>K</sup>, the next K visits of the rules are that run; <code>block_far</code>: none of them has 1 &le; b &minus; a &le; 27. No <code>native_decide</code>.",
+   "where": "<code>lean/Block.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 6.6&middot;10<sup>12</sup> visits (about 2.0&middot;10<sup>38</sup> steps)",
+   "text": "<code>c/abfast.c</code> follows the rules from A(2, 9) up to 48 visits at a time: it reads the next grow/swap digits off the binary expansion of b / (a + b), applies them formally and keeps the block only if both coordinates end at least 16&middot;2<sup>K</sup>, which <code>block_ok</code> in <code>lean/Block.lean</code> proves sound for any guessed digits (refused blocks are redone one visit at a time). 6.6&middot;10<sup>12</sup> visits without b = 3, ending at A(8096170023751, 15003829348773); 41 near visits (1 &le; b &minus; a &le; 8), none with a even and b &minus; a = 4. It reproduces <code>c/abrun.c</code>'s states and near visits at 10<sup>11</sup> and 3&middot;10<sup>12</sup> visits. Steps by T &asymp; 0.68&nbsp;N<sup>3</sup>.",
+   "where": "<code>gcc -O3 -march=native -o abfast c/abfast.c && ./abfast 6600000000000 100000000000</code> (about 1.7&middot;10<sup>9</sup> visits a second; resumable from any <code>prog</code> line of <code>c/abfast_log.txt</code>)"
+  },
+  {
    "level": "heuristic",
    "title": "No congruence invariant excludes b = 3",
    "text": "The halt needs a visit A(a, a + 4) with a even. Over the visits with b &gt; a and b &minus; a &le; 10<sup>6</sup> among the first 3&middot;10<sup>9</sup>, the residues (a mod M, (b &minus; a) mod M) are far from uniform, yet for every M tried (2<sup>k</sup> up to 256; 48, 90, 120, 210, 252) the classes with a even and b &minus; a &equiv; 4 get the same share as any other even residue. The rules applied to residues mod every even M up to 128 also reach them.",
@@ -169,8 +181,8 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "1.8&middot;10<sup>37</sup> steps",
-    "text": "No halt in the first 3&middot;10<sup>12</sup> visits of the wiki's rules."
+    "value": "2.0&middot;10<sup>38</sup> steps",
+    "text": "No halt in the first 6.6&middot;10<sup>12</sup> visits of the wiki's rules (blocks of visits proved sound in Lean)."
    },
    {
     "level": "kernel",
@@ -276,6 +288,90 @@
     ]
    },
    {
+    "id": "blocks",
+    "eyebrow": "The long run",
+    "heading": "Many visits at once",
+    "html": [
+     "<p>The rules move along a clock: every rule adds a fixed amount to s = a + b (3 for a growing rule, 4 for a swap). Away from the rare resets the orbit is one of two affine maps, picked by one digit:</p>",
+     "<ul><li><b>grow</b> (b &gt; a): A(a, b) &#8614; A(2a + 4, b &minus; a &minus; 1) if a is even, A(2a + 3, b &minus; a) if a is odd;</li>",
+     "<li><b>swap</b> (b &le; a): A(a, b) &#8614; A(a &minus; b + 1, 2b + 3).</li></ul>",
+     "<p>The smaller coordinate doubles and the larger pays for it. The grow/swap digits are the binary expansion of b / (a + b), up to carries from the small constants, which reach only the digits about log<sub>2</sub>(a + b) places down. So the next 32 or more digits can be read off at once as the top bits of 2<sup>K</sup> b / (a + b), applied together with tables, and checked: <code>c/abfast.c</code> keeps a block of K guessed digits only if both coordinates end at least 16&middot;2<sup>K</sup>. <code>lean/Block.lean</code> proves that check sound whatever digits were guessed (<code>block_ok</code>): one formal step at most doubles min(a, b) plus 4, so a large end forces every step of the block to end with both coordinates at least 28, and such a step is the true rule. None of those visits has 1 &le; b &minus; a &le; 27 (<code>block_far</code>), so no halt (b &minus; a = 4 with a even), reset or near visit is skipped. Refused blocks, about 1 in 100, are redone one visit at a time with the full rules.</p>",
+     "<p><b>The run so far:</b> 6.6&middot;10<sup>12</sup> visits, no halt, ending at A(8096170023751, 15003829348773). Near visits (1 &le; b &minus; a &le; 8) keep coming at about the rate of the earlier decades; none has a even and b &minus; a = 4.</p>",
+     "<div class=\"panel\" id=\"abfDemo\">",
+     "  <div class=\"cap\">Try one block. Pick a visit A(a, b) and a block length K, then compare the guessed digits with the orbit.</div>",
+     "  <div style=\"display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0\">",
+     "    <label>a <input id=\"abfA\" size=\"22\" value=\"943261329281\"></label>",
+     "    <label>b <input id=\"abfB\" size=\"22\" value=\"1856738326878\"></label>",
+     "    <label>K <select id=\"abfK\"><option>8</option><option>16</option><option>24</option><option selected>32</option><option>40</option><option>48</option></select></label>",
+     "    <button id=\"abfGo\">Guess and check</button>",
+     "    <button id=\"abfRand\">Random large visit</button>",
+     "    <button id=\"abfNear\">A visit near the diagonal</button>",
+     "    <button id=\"abfOrb\">From A(2, 9), 10<sup>5</sup> visits</button>",
+     "  </div>",
+     "  <div class=\"log\" id=\"abfOut\" style=\"font-family:var(--mono);font-size:.82rem;white-space:pre;overflow-x:auto\"></div>",
+     "  <svg id=\"abfSvg\" viewBox=\"0 0 640 70\" role=\"img\" aria-label=\"guessed and true digits\" style=\"width:100%;height:auto;display:block;margin:8px 0 4px\"></svg>",
+     "  <div class=\"cap\">Top row: the guessed digits (dark = grow, light = swap). Bottom row: the orbit's own rules (red: a reset or halt). The block is kept only if the check passes; then the two rows agree.</div>",
+     "</div>",
+     "<script>",
+     "(function () {",
+     "  \"use strict\";",
+     "  var $ = function (id) { return document.getElementById(id); };",
+     "  function op(a, b) { // the rules; returns [a, b, kind]",
+     "    if (b === 3n) return [a, b, \"H\"];",
+     "    if (b === 2n) return [a - 3n, 7n, \"R\"];",
+     "    if (a >= b) return [a - b + 1n, 2n * b + 3n, \"S\"];",
+     "    if (b === a + 1n) return [4n, 2n * a + 4n, \"R\"];",
+     "    if (b === a + 2n) return [1n, 2n * a + 7n, \"R\"];",
+     "    if (a % 2n === 0n) return [2n * a + 4n, b - a - 1n, \"G\"];",
+     "    if (b === a + 3n) return [2n * a + 1n, 9n, \"R\"];",
+     "    return [2n * a + 3n, b - a, \"G\"];",
+     "  }",
+     "  function dstep(g, a, b) { // the formal step, no side conditions",
+     "    if (g) return (((a % 2n) + 2n) % 2n === 0n) ? [2n * a + 4n, b - a - 1n] : [2n * a + 3n, b - a];",
+     "    return [a - b + 1n, 2n * b + 3n];",
+     "  }",
+     "  function fmt(x) { var s = x.toString(); return s.length > 24 ? s.slice(0, 10) + \"…(\" + s.length + \" digits)\" : s; }",
+     "  function run() {",
+     "    var a, b, K = parseInt($(\"abfK\").value, 10);",
+     "    try { a = BigInt($(\"abfA\").value.trim()); b = BigInt($(\"abfB\").value.trim()); } catch (e) { $(\"abfOut\").textContent = \"a and b must be whole numbers\"; return; }",
+     "    if (a < 1n || b < 2n) { $(\"abfOut\").textContent = \"need a >= 1, b >= 2\"; return; }",
+     "    var s = a + b, Q = ((1n << BigInt(K)) * b) / s, guess = [];",
+     "    for (var j = K - 1; j >= 0; j--) guess.push(((Q >> BigInt(j)) & 1n) === 1n);",
+     "    var fa = a, fb = b, ta = a, tb = b, truth = [], stopped = false;",
+     "    for (var i = 0; i < K; i++) {",
+     "      var f = dstep(guess[i], fa, fb); fa = f[0]; fb = f[1];",
+     "      if (!stopped) { var t = op(ta, tb); truth.push(t[2]); if (t[2] === \"H\") stopped = true; else { ta = t[0]; tb = t[1]; } }",
+     "    }",
+     "    var lim = 16n * (1n << BigInt(K)), ok = fa >= lim && fb >= lim;",
+     "    var agree = guess.every(function (g, i) { return truth[i] === (g ? \"G\" : \"S\"); });",
+     "    var out = \"A(\" + fmt(a) + \", \" + fmt(b) + \"), K = \" + K + \"\\n\";",
+     "    out += \"guessed digits  \" + guess.map(function (g) { return g ? \"1\" : \"0\"; }).join(\"\") + \"\\n\";",
+     "    out += \"orbit's rules   \" + truth.map(function (t) { return t === \"G\" ? \"1\" : t === \"S\" ? \"0\" : t; }).join(\"\") + \"\\n\";",
+     "    out += \"formal end      A(\" + fmt(fa) + \", \" + fmt(fb) + \")\\n\";",
+     "    out += \"check           min = \" + fmt(fa < fb ? fa : fb) + (ok ? \" >= \" : \" < \") + \"16*2^K = \" + fmt(lim) + \"  ->  \" + (ok ? \"KEPT\" : \"refused, redo one visit at a time\") + \"\\n\";",
+     "    out += \"digits \" + (agree ? \"agree with the orbit\" : \"differ from the orbit\") + (ok && !agree ? \"  (cannot happen: block_ok)\" : \"\");",
+     "    $(\"abfOut\").textContent = out;",
+     "    var svg = $(\"abfSvg\"), w = 600 / K, h = \"\";",
+     "    for (var k = 0; k < K; k++) {",
+     "      var x = 20 + k * w;",
+     "      h += '<rect x=\"' + x + '\" y=\"6\" width=\"' + (w - 1) + '\" height=\"24\" fill=\"' + (guess[k] ? \"var(--ink)\" : \"var(--line-strong)\") + '\"/>';",
+     "      var t2 = truth[k], col = t2 === \"G\" ? \"var(--ink)\" : t2 === \"S\" ? \"var(--line-strong)\" : t2 ? \"var(--open)\" : \"transparent\";",
+     "      h += '<rect x=\"' + x + '\" y=\"38\" width=\"' + (w - 1) + '\" height=\"24\" fill=\"' + col + '\"/>';",
+     "    }",
+     "    svg.innerHTML = h;",
+     "  }",
+     "  function rnd(digits) { var s = String(1 + Math.floor(Math.random() * 9)); for (var i = 1; i < digits; i++) s += Math.floor(Math.random() * 10); return s; }",
+     "  $(\"abfGo\").onclick = run;",
+     "  $(\"abfRand\").onclick = function () { $(\"abfA\").value = rnd(13); $(\"abfB\").value = rnd(13); run(); };",
+     "  $(\"abfNear\").onclick = function () { var a = BigInt(rnd(13)); $(\"abfA\").value = String(a - 20n); $(\"abfB\").value = String(a); run(); };",
+     "  $(\"abfOrb\").onclick = function () { var a = 2n, b = 9n; for (var i = 0; i < 100000; i++) { var t = op(a, b); a = t[0]; b = t[1]; } $(\"abfA\").value = String(a); $(\"abfB\").value = String(b); run(); };",
+     "  run();",
+     "})();",
+     "</script>",
+     ""
+    ]
+   },
+   {
     "id": "shape",
     "eyebrow": "First look",
     "heading": "The shape of the run",
@@ -290,5 +386,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. The wiki's rules are proved in Lean (halts iff they reach b = 3); no halt in 1.8e37 steps by the rules; no congruence rules the halt out."
+ "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. The wiki's rules are proved in Lean (halts iff they reach b = 3); no halt in 2e38 steps by the rules; no congruence rules the halt out."
 }

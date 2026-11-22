@@ -131,6 +131,54 @@ invariant of the word end that excludes it would prove that the machine never ha
 by a round that reaches the junk with two visits, is a halt.
 <!-- T7-word-end:end -->
 
+<!-- T8-end-invariant:begin -->
+## No invariant of the word end alone, and how close the run comes (22 November 2026)
+
+The section above ends on a question: is there an invariant of the last few blocks of the word that excludes "a digit
+block that took exactly 3 visits, then junk `11`"? There is none: the danger is kept away by the exact size of the count that reaches the end,
+which is carried in from the front of the word, not by the shape of the end. Both results below are computed, not
+proved; they say where a proof cannot come from.
+
+**The end on its own reaches the danger in 2 or 3 rounds** (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/endbfs.py K ROUND0 D`). Take the last K = 48 cells
+of the real word after round ROUND0, with the block starts of the round that wrote them. Let every later round enter
+the window 1 or 2 cells into a block of the round before (the PR59 phase rule) with any count of the form 2^a − d.
+(At 48 cells before the end the run brings counts 2^a − d with a from 6 to 18 in nearly every round, and d is 0, 1,
+2 or 4 in 96% of them.) Breadth-first search over those inputs, with counts that are exact powers of two (d = 0)
+only, reaches `111` (for this machine a halt) after 3 rounds from the end of round 11 and of round 2,000 and after 2 rounds
+from the end of round 5,000. The same model with the real counts gives the real next window in 98.5% of 200,000
+rounds (the rest differ only in the first cells, where a block that starts left of the window overlaps it). So any
+proof that the junk stays harmless has to say something about the counts, not only about the blocks at the end.
+
+**One visit more and the run meets `111` two rounds later** (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss.c 0LF`, checked on whole words by
+`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/nearmiss_check.py`). In each round r of the real run, change the count n at the first block start at least 60
+cells before the word end, finish that round and run 6 more on a copy of the word end, the later rounds fed by the
+real run's own exact count at a block start left of every changed cell. Over the first 500,000 rounds:
+
+| change at 60 cells before the end | rounds after which a `111` follows within 6 rounds |
+|---|---|
+| n − 2, n − 1 | 0 |
+| n + 1 | 47 |
+| n + 2 | 105 |
+| 2n | 15,526 |
+| n / 2 | 10,524 |
+
+With the same count the copy never leaves the real run (checked: 0 of 20,000 rounds), and every `111` met is
+`11100`, the case with no proved rule. For 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---, where every `111` halts, the
+changes give the same counts in the first 200,000 rounds (`nearmiss 0LF`) except n / 2, 9,793 rounds against 4,223,
+because there `11101` counts too.
+The 152 misses by one or two visits fall in 142 rounds and all have the same shape: the real count is 2^a − 3,
+2^a − 2 or 2^a − 1 (for example 8,190 at 59 cells before the end in round 798), one or two visits more make it
+2^a − 1, 2^a or 2^a + 1, and exactly two rounds later the pass meets `111` (in the cases replayed on the whole word,
+rounds 798, 834, 3,861 and 5,628: `111000` three cells before the end). `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/nearmiss_check.py 798 1` replays that one on the whole word with exact
+integers: round 800 meets `111000` at cell 4,867. Taking one or two visits away never led to `111`.
+
+The run therefore comes within one or two visits of `111` about once every 3,500 rounds, and what keeps it
+out is the low end of the count, 2^e − c with c the small deficit that busycoq PR59 tracks: it is set at the front
+of the word, halves on every digit block and doubles on every doubler on its way to the end. A proof either way
+needs a handle on that deficit along the whole word (for PR59 this is what the 161,211-round simulation supplies),
+not an invariant of the last few blocks.
+<!-- T8-end-invariant:end -->
+
 
 
 ## Events, third round
@@ -149,9 +197,7 @@ Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.
 
 ## Next steps
 
-Decided for the visit law (see "The word end" above): the only junk is `11`, made when a count runs out with one visit
-just before a `1`, and a junk event is dangerous only after a digit block that took exactly 3 visits. Next: an invariant
-of the last few blocks of the word that excludes this, or a round that does it.
+The last few blocks of the word cannot exclude the dangerous junk on their own (see "No invariant of the word end alone" above): the run stays safe because of the exact counts it brings to the end, and one visit more 60 cells before the end leads to `111` two rounds later in about one round in 3,500. Next: an invariant on the deficit c of the count 2^e − c along the whole word (the quantity busycoq PR59 follows), or a long run that meets `111`.
 
 ## Scripts
 

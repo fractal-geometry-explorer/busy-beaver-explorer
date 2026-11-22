@@ -80,7 +80,64 @@ states). The left automaton on 4 runs is complete (315 states, none new after 2Â
 still meet new states after 10^7 steps, and a state that the run reaches but the automaton lacks defeats the
 method.
 
+## Pascal's triangle, in a mirror (22 November 2026)
+
+This table is the table of [`1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF`](../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/README.md)
+(the "Pascal machine") read in a mirror, with that machine's states A, B, C, D, E, F renamed D, E, F, A, B, C
+(`is_mirror`, `lean/Mirror.lean`). The blank tape is its own mirror image, so **this machine's run from blank tape
+is, cell for cell in the mirror, the run of the Pascal table started in state D** (`halts_iff`). Everything proved
+about the Pascal table holds for any surrounding tape, so it holds here with left and right exchanged. Read in this
+machine's own terms:
+
+* The two sweeps of "The two sweeps as rules on blocks" are the Pascal machine's: the sweep right in A/F is its
+  left sweep (running parity), the sweep left in C its right sweep. The Pascal machine's right turn (E reading a 1)
+  is a **left turn in B** here. The zone that is rewritten every bounce lies right of the head, next to the growing
+  right end. The frozen tape lies left of the head, toward the start.
+* `bounce` (Lean): at a left turn in B, with the zone a word in the 4-cell letters `0111` (1) and `1111` (0) read
+  outward from the head, and the frozen tape `1 1 1 ...` left of the head, one bounce turns the zone into the next row
+  of Pascal's triangle mod 2 and takes two cells from the frozen block. `bounces`: a frozen block of `2k + 1` cells
+  gives `k` bounces. The rows have a closed form by Lucas' theorem (`closed_form` of `lean/P75625/Lucas.lean`, a
+  statement about lists that holds as it stands).
+* `halts_of_odd`, `halts_of_odd_wall` (Lean): a left turn in B at a frozen block of odd length followed by `0 1`
+  halts, whatever the zone, clean or walled. That is the halt of `halt_pattern` above (C reading 0 with `1 0` to its
+  left), reached by bouncing an odd block down to a single 1.
+* `start` (Lean): the first left turn in B is at step 46, the list state `EO [b, a, b, a, a, a] none 0` of the
+  Pascal machine's list machine (`lean/P75625/End.lean`): B on the last 1 at the left end, zone `b a b a a a`, no
+  prefix. The Pascal machine's own run starts the same list machine at `EO [b, a] none 1`.
+* `not_halts_of_arun` (Lean): **if that list machine never fails from `EO [b, a, b, a, a, a] none 0`, this machine
+  never halts.** So this holdout is the same list program as the Pascal machine, started in another state. Every
+  further theorem about the list machine (the Pascal machine's folder works on it) settles both.
+
+How it was done: rather than restating every proof with the sides exchanged, `py/port_mirror.py` copies the Pascal
+machine's Lean files unchanged into `lean/P75625/` (only their imports are renamed, so they compile next to this
+folder's `Machine.lean`), and `lean/Mirror.lean` carries the theorems over with the mirror lemmas of
+`tools/lean/TM/Insert.lean`. Rerun the script after that folder's files change. Kernel only, no `native_decide`.
+
+**Where the list machine can fail (`lean/Fail.lean`, kernel, for every state).** A turn with no lone 1 in the zone
+(`T`, or `EO` outside a crossing) never fails (`astep_T`, `astep_EO`). A crossing turn whose far part is clean and
+whose tape ends in a single 1 never fails (`astep_T2_end`). Plain and crossing turns whose tape ends in a single 1
+pass that on (`astep_endOne`), so a blank end comes only after an `EO` turn (the head on the last 1). Together
+(`astep_none`): the list machine fails only at a crossing turn with blank end, at an `EO` turn during a crossing, or
+at a crossing turn whose far part is not clean. This is about the Pascal machine's list machine, so it holds for all
+three runs.
+
+**The list machine from this start (`py/mirror_run.py`, computed).** Run on its own from `start`, the list machine takes 40,000 list steps without failing (19,948 `T` turns, 20,033 `T2` turns, 19 `EO` turns, zone up to 19,162 letters, every far part clean), about 15 minutes. Four of the `EO` turns come during a crossing (after list steps 34, 811, 1,408 and 4,552, zone 9 letters each time); they are the only source of the 2,343 crossing turns with blank end, and 2,339 of those have a witness (`lean/Race.lean`). The other 4 are the first bounce after each of those `EO` turns, with frozen word `s = 0`; the list machine gets past them. After list step 4,552 no `EO` turn comes during a crossing. Run in lockstep with the real machine (`python3 py/mirror_run.py lockstep D 2e8`), the list machine agrees at all 20,967 right turns of the first 2Â·10^8 steps of the Pascal table started in D.
+
+**10^6 list steps, and the windows (`c/mirror_lm.sh D 1000000`, a few minutes).** The Pascal machine's C++ list
+machine, started here, takes 10^6 list steps without failing (zone up to 561,695 letters). In all that time E reads
+the last 1 during a crossing 5 times (list steps 44, 835, 1,433, 4,582 and 44,852 in its count), each time with near
+part exactly `b a b a^6` and a clean far part (checked for the first four in `py/mirror_run.py`'s states). That is
+the window `W3` of the Pascal machine's `lean/Window.lean` (copied to `lean/P75625/Window.lean`): `window_W3` proves
+that from `EO W3 (some O) p`, for every prefix and every clean far part `O`, the list machine does not fail for two
+steps and reaches a state that is safe (the crossing is over, or the frozen word has a witness). The 5 crossing turns
+of the run with blank end and no witness (out of 17,614) are the first bounces of those 5 windows. So every near
+miss of this run up to 10^6 list steps is an instance of one Lean theorem; what is not proved is that the run never
+meets a different window later.
+
 ## Status
+
+Open. It halts if and only if the Pascal table started in D halts (Lean). If the Pascal machine's list machine never
+fails from `EO [b, a, b, a, a, a] none 0`, it never halts (Lean). See the section above.
 
 Open. Lean (kernel): the halting configurations and 10^4 steps, 10^7 native (`lean/Blank.lean`); the crossings
 of a block of 1s (`lean/Shifts.lean`); the four block rules and the halting pattern (`lean/Blocks.lean`).
@@ -149,6 +206,10 @@ of: C with 1 two left, 0 left, 0 under the head.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/lean/check.sh
+python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/port_mirror.py      # refresh lean/P75625, Mirror.lean (both folders)
+python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py run D 40000   # the list machine, ~15 min
+python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py lockstep D 2e8
+holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/c/mirror_lm.sh D 1000000      # C++ list machine
 cd holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py
 python3 blocks.py check                      # the block rules against the machine
 python3 blocks.py > ../lean/Blocks.lean      # regenerate the Lean rules
