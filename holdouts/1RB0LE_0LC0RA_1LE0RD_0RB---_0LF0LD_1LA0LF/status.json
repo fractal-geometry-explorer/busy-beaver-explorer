@@ -14,7 +14,8 @@
  "verdict": [
   "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt.",
   "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.",
-  "<b>New, 22 November 2026.</b> Lean now proves that a tape with at most one defect cannot halt, so a halt needs a defect that survives its round. A new engine followed the defect word by word through 500,000 rounds (more than 2<sup>944,371</sup> steps): every defect died about halfway into the tape. The top of the counter is now understood exactly: its layers are the binary expansions predicted by the conserved value, 1/15 &minus; c&middot;2<sup>&minus;k/2</sup>/127. The defect only ever eats the irregular bottom layer; whether it can cross all of it in one round is the open question."
+  "<b>New, 22 November 2026.</b> Lean now proves that a tape with at most one defect cannot halt, so a halt needs a defect that survives its round. A new engine followed the defect word by word through 500,000 rounds (more than 2<sup>944,371</sup> steps): every defect died about halfway into the tape. The top of the counter is now understood exactly: its layers are the binary expansions predicted by the conserved value, 1/15 &minus; c&middot;2<sup>&minus;k/2</sup>/127. The defect only ever eats the irregular bottom layer; whether it can cross all of it in one round is the open question.",
+  "<b>Later on 22 November 2026.</b> Lean now also proves that the four visit functions are runs of the real transition table, and the round law. So the machine never halts from blank tape <i>if</i> every round's defect dies in its round; that one statement is all that is left."
  ],
  "claims": [
   {
@@ -134,14 +135,26 @@
   {
    "level": "kernel",
    "title": "Token rules and the conserved value",
-   "text": "Taking the four visit functions A, E, F, P as the definition, every token rule (the counter rules for L, O, I, the rules of the travelling defect, and the re-readings at the blank end) is a computation of them, and none uses the halting case E(1 1 &hellip;). Every visit of A derived by these rules adds exactly 1 to the value v of the tape. Not yet in Lean: that the machine's visits are these four functions (computed by <code>c/zvis.cpp</code>). That the rules apply to every tape with at most one defect is <code>lean/Total.lean</code>.",
+   "text": "Taking the four visit functions A, E, F, P as the definition, every token rule (the counter rules for L, O, I, the rules of the travelling defect, and the re-readings at the blank end) is a computation of them, and none uses the halting case E(1 1 &hellip;). Every visit of A derived by these rules adds exactly 1 to the value v of the tape. That the machine's visits are these four functions is <code>lean/Link.lean</code>. That the rules apply to every tape with at most one defect is <code>lean/Total.lean</code>.",
    "where": "<code>sound</code>, <code>conserve</code>, <code>lean/Tokens.lean</code>"
   },
   {
    "level": "kernel",
    "title": "A tape with at most one defect cannot halt",
-   "text": "Taking the four visit functions as the definition (as in <code>lean/Tokens.lean</code>): the token rules are deterministic, and on every tape of words with at most one defect any number of visits of A in a row are derived by them, every tape in between again having at most one defect. At the bit level each of these visits is a computation of the four functions, none of which is the halting case E(1 1 &hellip;). So within a round the machine can halt only on a tape with two defects, which needs the defect of an earlier round to survive its round. This replaces the hand argument of the 14 November notes.",
+   "text": "The token rules are deterministic, and on every tape of words with at most one defect any number of visits of A in a row are derived by them, every tape in between again having at most one defect. At the bit level each of these visits is a computation of the four functions, none of which is the halting case E(1 1 &hellip;). So within a round the machine can halt only on a tape with two defects, which needs the defect of an earlier round to survive its round. This replaces the hand argument of the 14 November notes.",
    "where": "<code>det</code>, <code>total</code>, <code>total_bits</code>, <code>lean/Total.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The four visit functions are the machine",
+   "text": "Every computation of the visit functions A, E, F, P is a run of the transition table: a visit of X on the half tape from the head leftwards ends with the head just right of it in state B, for any tape to the right, which it never reads. One round takes <code>0 S</code> (blank to the right, state A) to <code>0 1 0 A(S)</code> the same way round, starting from blank tape with S = []. This replaces the check by <code>c/zvis.cpp</code>.",
+   "where": "<code>link</code>, <code>round</code>, <code>lean/Link.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "If every defect dies, it never halts",
+   "text": "If in every round from blank tape the visit of A leaves a tape without defect, the machine never halts from blank tape. This hypothesis is now the whole open question.",
+   "where": "<code>nonhalt_of_clean</code>, <code>lean/Link.lean</code>"
   },
   {
    "level": "heuristic",
@@ -172,11 +185,18 @@
    "title": "Four layers of the digit end",
    "text": "Read lowest digit first, the digit end Z of the tape is four layers (round 50,000; round 8,000 is alike). From the top: 24,996 digits of period 4 (the expansion of 1/15), 24,997 of period 28 (1/15 minus a multiple of 1/127), 29,782 digits that are the same in round 50,056 (frozen: once laid down they no longer change), and 13,402 irregular digits at the bottom. The regular layers are what the first two terms of the value predict; the defect only ever eats the irregular one, about 0.27 k digits.",
    "where": "<code>py/layers.py dump50000 dump50056</code> (dumps written by <code>c/toksim.cpp</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The twin's rounds on any tape",
+   "text": "Started in E on <code>0 0 0 1 0 S</code>, the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- reaches <code>0 0 0 1 0 1 0 A(S)</code> for all 1,517 of 2,000 random tapes S (up to 30 cells) on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule is a run of the twin through them (symbolically). Not in Lean.",
+   "where": "<code>python3 py/twinforms.py 2000</code>"
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/check.sh",
+  "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/twinforms.py 2000",
   "g++ -O2 -o toksim holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cpp && ./toksim 100000 10000 -1 rec.bin   # 2 minutes",
   "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py rec.bin",
   "cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py && python3 vasym.py 420",
@@ -295,6 +315,6 @@
    }
   ]
  },
- "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; Lean: a tape with at most one defect cannot halt; every defect followed for 500,000 rounds (no halt, more than 2^944,371 steps); open: that every defect disappears before its round ends.",
+ "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; Lean: the visit functions are the machine, a tape with at most one defect cannot halt, and if every round's defect dies the machine never halts; every defect followed for 500,000 rounds; open: that every defect disappears before its round ends.",
  "family": "gap counter"
 }

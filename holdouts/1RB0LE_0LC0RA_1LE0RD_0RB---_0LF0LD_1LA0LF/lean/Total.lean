@@ -17,8 +17,8 @@ halt. This file proves it in the kernel:
 
 So during a round the machine can only halt if the tape holds two defects. Each round adds one defect at the front
 (`S' = 1 0 A(S)`), so a halt needs the defect of some round to survive to the end of that round. What is still
-not proved is exactly that: that every round's defect disappears (and, as before, the link between the four visit
-functions and the transition table, which `c/zvis.cpp` checks but which is not proved).
+not proved is exactly that: that every round's defect disappears. (The link between the four visit functions and
+the transition table, and the round law, are proved in `Link.lean`.)
 -/
 
 namespace Z36869

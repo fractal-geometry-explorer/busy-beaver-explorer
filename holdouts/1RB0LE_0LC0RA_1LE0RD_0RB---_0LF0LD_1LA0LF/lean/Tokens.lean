@@ -3,7 +3,7 @@
 Machine: 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF, read on the mirrored tape (see the README of this folder).
 
 A *visit* of a state is a function on half tapes. For this machine four of them close up (found and checked
-against direct simulation by `c/zvis.cpp`; that link to the transition table is **not** proved here):
+against direct simulation by `c/zvis.cpp`; that they are runs of the transition table is proved in `Link.lean`):
 
     A(0 S) = 1 S             A(1 S) = P(1 E(S))
     E(0 0 T) = 1 0 A(T)      E(1 0 T) = 1 0 E(T)      E(0 1 T) = P(0 F(1 T))      E(1 1 T): halt
