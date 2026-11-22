@@ -88,6 +88,12 @@
    "where": "<code>lean/Invariant.lean</code>, <code>lean/Start.lean</code>, <code>lean/Family.lean</code>, <code>lean/Converse.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Where the family can be entered",
+   "text": "Inside a phase the event branch keeps Y − 2<sup>d+1</sup> fixed, so the family can only be entered through an overflow. <code>halts_iff_lands</code>: the machine halts from blank tape if and only if some overflow phase of the orbit returns a configuration (d, M, 2<sup>d+1</sup> + 1) with d + 2 ≤ M, i.e. leaves the string 1<sup>j</sup> (j ones, j = d + 1) below a counter of length j. No <code>sorry</code>; axioms propext, Classical.choice, Quot.sound.",
+   "where": "<code>halts_iff_lands</code>, <code>lean/Landing.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "The map checked against the machine",
    "text": "<code>py/phasemap.py</code>, a line-for-line transcription of <code>phase</code>, agrees with the machine at all 2,000 overflows of strings of at most 9 bits and is stuck at exactly the 8 that halt. (That the map is stuck only at the family, and that the family halts, is now proved for every size: see below.)",
@@ -130,9 +136,15 @@
    "where": "<code>py/macro.py</code> (the function <code>phases</code>), <code>py/blockers.py 20000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No congruence blocks the family",
+   "text": "A residue invariant on (X mod q, j, M), with any moduli for j and M, could exclude the family only if no overflow output had X ≡ 2<sup>j</sup> − 1 (mod q). Over overflows 6 to 20,000 of the orbit every q ≤ 1,500 is hit (the fewest, q = 1,237, 4 times), mod 3 the six classes of (X mod 3, j mod 2) each take about a sixth, and the low a bits are all ones at some output for every a ≤ 31 (frequencies close to 2<sup>−a</sup>). So no invariant mod 3, mod any q ≤ 1,500 or mod 2<sup>a</sup> with a ≤ 31 exists. The overflow outputs also all have X &lt; 2<sup>j</sup>, but this is not closed under the map by residues: from an overflow start (M − 1, M, Y0 + 2<sup>M</sup> − 2<sup>d0+1</sup>) with top ones (Y0 &lt; 2<sup>d0+1</sup>, d0 &lt; M − 1) it fails exactly when Y0 mod 32 is 1, 9, 17, 23, 25 or 31 (all 16,320 such starts with M = 14).",
+   "where": "<code>py/congruence.py 20000 1500 24</code> (18 s)"
+  },
+  {
    "level": "open",
    "title": "A proof",
-   "text": "Everything about the machine is proved for all sizes (kernel): it halts exactly when the orbit of the computable map <code>phase</code> meets (m, m + 2, 2<sup>m+1</sup> + 1). What is open is that question about the map: it looks like a random process on growing strings (meeting the family needs about M/2 odd pairs in a row), and no invariant that excludes it is in sight.",
+   "text": "Everything about the machine is proved for all sizes (kernel): it halts exactly when the orbit of the computable map <code>phase</code> meets (m, m + 2, 2<sup>m+1</sup> + 1). What is open is that question about the map: it looks like a random process on growing strings (meeting the family needs about M/2 odd pairs in a row), and no invariant that excludes it is in sight: residue invariants are ruled out for every modulus up to 1,500 and every power of two up to 2<sup>31</sup> (<code>py/congruence.py</code>).",
    "where": ""
   },
   {
@@ -236,6 +248,7 @@
     "heading": "What would settle it",
     "html": [
      "<p>Proved: the event rule, the overflow, and that the machine halts exactly when the iterated map <code>phase</code> reaches (m, m + 2, 2<sup>m+1</sup> + 1) (<code>lean/Converse.lean</code>). Not proved: that it never does.</p>",
+     "<p>Inside a phase the events add 2<sup>j</sup>, 2<sup>j+1</sup>, …, so the family can only be entered right after an overflow: Lean proves the machine halts iff some overflow leaves the string as j ones under a counter of length j (<code>halts_iff_lands</code>). The simplest hope for a proof was a congruence: a residue of the string, mod 3 or mod a power of two, that the orbit never has but that pattern needs. There is none for any modulus up to 1,500 or any power of two up to 2<sup>31</sup>: in 20,000 overflows every such residue class is met, about as often as chance predicts, and up to 31 trailing ones do occur (<code>py/congruence.py</code>). The overflow divides the string by 4<sup>k</sup>, so its low bits come from higher bits of the old string, and no fixed modulus closes up.</p>",
      "<p>So the question is now about an explicit map on integers that behaves like a random process with growing strings; a halt needs about M/2 odd pairs in a row, and nothing like an invariant that excludes it is known. This looks like a Collatz-type question, not something a finite certificate will settle.</p>",
      "<p>The sibling <code>1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</code> is this machine with one transition changed (here C0 = 1RD, there the matching F0 = 0LF): the same proof, states renamed, proves its event rule; its overflows differ.</p>"
     ]

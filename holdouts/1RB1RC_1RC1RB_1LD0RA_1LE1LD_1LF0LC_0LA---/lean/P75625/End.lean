@@ -1,0 +1,274 @@
+-- Copied by holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/port_mirror.py from
+-- holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/End.lean, imports renamed; do not edit by hand.
+import P75625.Crossing
+
+/-!
+# The right end of the tape
+
+When a right sweep runs off the frozen word (`nxt` is `none`) the head is in F or E on the rest `R` of the tape,
+which at every right turn of the run is blank or a single 1 (`py/turnshape.py`).  The four cases:
+
+* `end_F_blank`: F on blank.  Five steps later the head is back in E on `1 1`, a lone 1 now lies between it and the
+  zone, and the tape ends in one 1: a crossing turn `Turn2 [] W p [] (cons true blank)`, reached by a left move.
+* `end_E_blank`, `end_F_one`: E on blank, or F on the last 1.  Six steps later: an ordinary `Turn (a :: W) p []` ending
+  in one 1 (or the crossing turn with near part `a :: W`).
+* E on the last 1 is itself a right turn (`EO`): it bounces like `Turn`, with blank tape in place of `c s R`.
+-/
+
+namespace H75625
+
+open TM
+
+theorem cons_false_blank : cons false blank = blank := by
+  funext n; cases n <;> rfl
+
+theorem blank4 : blank = cons false (cons false (cons false (cons false blank))) := by
+  simp only [cons_false_blank]
+
+theorem end_F_blank (L : Tape) :
+    steps 5 ⟨L, blank, .F⟩ = some ⟨cons true L, app [true, true] (cons true blank), .E⟩ := by
+  conv => lhs; rw [blank4]
+  rfl
+
+theorem end_E_blank (L : Tape) :
+    steps 6 ⟨L, blank, .E⟩ = some ⟨cons true (cons true L), app [true, true] (cons true blank), .E⟩ := by
+  conv => lhs; rw [blank4]
+  rfl
+
+theorem end_F_one (L : Tape) :
+    steps 6 ⟨L, cons true blank, .F⟩ = some ⟨cons true (cons true L), app [true, true] (cons true blank), .E⟩ := by
+  conv => lhs; rw [blank4]
+  rfl
+
+/-! ## The whole machine as a list machine
+
+States at right turns (and at the turns the right end hands back, reached by a left move):
+
+* `T w p s r`: `Turn w p s` with the tape ending in one 1 (`r`) or not;
+* `T2 N O p s r`: `Turn2 N O p s`, the same during a crossing;
+* `EO W Z p`: E on the last 1, a single 1 at the right end, zone `W`, then the lone 1 and far part `O` if `Z = some O`.
+
+`astep` computes the next state on lists, or `none` in the two cases nothing here covers: F reaching the blank end
+during a crossing, and an even crossing bounce blocked by its far part.  `astep_sim`: each step of `astep` is at least
+one step of the machine.  So if `astep` never fails from the first right turn, the machine never halts
+(`not_halts_of_astep`). -/
+
+/-- The end of the tape: blank, or a single 1. -/
+def rt : Bool → Tape
+  | false => blank
+  | true => cons true blank
+
+/-- What lies beyond the zone: the prefix, or a lone 1, a far part and the prefix. -/
+def Zt : Option (List Bool) → Bool → Tape
+  | none, p => pre p
+  | some O, p => cons true (zl2 O (pre p))
+
+inductive AS where
+  | T (w : List Bool) (p : Bool) (s : List Bool) (r : Bool)
+  | T2 (N O : List Bool) (p : Bool) (s : List Bool) (r : Bool)
+  | EO (W : List Bool) (Z : Option (List Bool)) (p : Bool)
+
+def cfg : AS → Config
+  | .T w p s r => Turn w p s (rt r)
+  | .T2 N O p s r => Turn2 N O p s (rt r)
+  | .EO W Z p => ⟨zl2 W (Zt Z p), cons true blank, .E⟩
+
+/-- The machine on the right end: the sweep stopped in `fst e` on `rt r` with `W` behind it. -/
+def endS (W : List Bool) (e r : Bool) (Z : Option (List Bool)) (p : Bool) : Option AS :=
+  match e, r, Z with
+  | false, false, none => some (.T2 [] W p [] true)
+  | false, false, some _ => none
+  | true, true, Z => some (.EO W Z p)
+  | _, _, none => some (.T (false :: W) p [] true)
+  | _, _, some O => some (.T2 (false :: W) O p [] true)
+
+theorem endS_sim (W : List Bool) (e r : Bool) (Z : Option (List Bool)) (p : Bool) (b : AS)
+    (h : endS W e r Z p = some b) : ∃ n, steps n ⟨zl2 W (Zt Z p), rt r, fst e⟩ = some (cfg b) := by
+  cases e <;> cases r <;> cases Z <;> simp only [endS, Option.some.injEq, reduceCtorEq] at h <;> subst h
+  · exact ⟨5, end_F_blank _⟩
+  · exact ⟨6, end_F_one _⟩
+  · exact ⟨6, end_F_one _⟩
+  · exact ⟨6, end_E_blank _⟩
+  · exact ⟨6, end_E_blank _⟩
+  · exact ⟨0, rfl⟩
+  · exact ⟨0, rfl⟩
+
+/-- A right sweep from F with `W` behind it, as `rswC`. -/
+theorem rs_from (xs W : List Bool) (S R : Tape) : ∃ n,
+    steps n ⟨zl2 W S, zl2 xs R, .F⟩ = some (rswC S R (rswL false W xs)) := by
+  obtain ⟨n, h⟩ := rsweep2 xs false (zl2 W S) R
+  rw [rsw2_eq] at h
+  exact ⟨n, h⟩
+
+/-- The step after a left sweep that reached the left end: the result of the right sweep. -/
+def fromSweep (Z : Option (List Bool)) (p : Bool) (r : Bool) : List Bool × Bool × Option (List Bool) → Option AS
+  | (W, _, some r') => some (match Z with
+      | none => .T W p r' r
+      | some O => .T2 W O p r' r)
+  | (W, e, none) => endS W e r Z p
+
+theorem fromSweep_sim (Z : Option (List Bool)) (p r : Bool) (x : List Bool × Bool × Option (List Bool)) (b : AS)
+    (h : fromSweep Z p r x = some b) : ∃ n, steps n (rswC (Zt Z p) (rt r) x) = some (cfg b) := by
+  obtain ⟨W, e, r'⟩ := x
+  cases r' with
+  | none => exact endS_sim W e r Z p b h
+  | some r' =>
+    cases Z <;> simp only [fromSweep, Option.some.injEq] at h <;> subst h <;> exact ⟨0, rfl⟩
+
+/-- A bounce with no lone 1 in the zone: left sweep over `w` from C, left end, right sweep over its output and `t`. -/
+def coreP (w : List Bool) (p : Bool) (t : List Bool) (r : Bool) : Option AS :=
+  fromSweep none (bne p (par true w)) r (rswL false [false] ((sx true w).reverse ++ t))
+
+theorem coreP_sim (w : List Bool) (p : Bool) (t : List Bool) (r : Bool) (b : AS) (h : coreP w p t r = some b) :
+    ∃ n, steps n (onL (zl2 w (pre p)) (zl2 t (rt r)) (pst true)) = some (cfg b) := by
+  have h1 := sweep2 w (pre p) true (zl2 t (rt r))
+  have h2 := lend p (par true w) (zl2 (sx true w).reverse (zl2 t (rt r)))
+  obtain ⟨m, h3⟩ := rs_from ((sx true w).reverse ++ t) [false] (pre (bne p (par true w))) (rt r)
+  rw [zl2_append] at h3
+  obtain ⟨k, h4⟩ := fromSweep_sim none _ r _ b h
+  exact ⟨_, steps_seq trans (steps_seq trans (steps_seq trans h1 h2) h3) h4⟩
+
+/-- A bounce with the lone 1 and far part `O` beyond the near part `N`. -/
+def coreO (N : List Bool) : List Bool → Bool → List Bool → Bool → Option AS
+  | [], p, t, r => if p then coreP (N ++ [false]) false t r else coreP N true t r
+  | false :: O, p, t, r => coreO (N ++ [false]) O p t r
+  | true :: O, p, t, r =>
+    if par true N then
+      fromSweep (some (false :: O)) p r (rswL false [] ((sx true N).reverse ++ t))
+    else
+      match rswL false [false] (sx false (true :: O)).reverse with
+      | (W1, false, none) =>
+        fromSweep (some W1) (bne p (par false (true :: O))) r (rswL false [] ((sx true N).reverse ++ t))
+      | _ => none
+
+theorem coreO_sim (O : List Bool) : ∀ (N : List Bool) (p : Bool) (t : List Bool) (r : Bool) (b : AS),
+    coreO N O p t r = some b →
+    ∃ n, steps n (onL (zl2 N (cons true (zl2 O (pre p)))) (zl2 t (rt r)) (pst true)) = some (cfg b) := by
+  induction O with
+  | nil =>
+    intro N p t r b h
+    cases p
+    · exact coreP_sim N true t r b h
+    · have e : zl2 N (cons true (zl2 [] (pre true))) = zl2 (N ++ [false]) (pre false) := by
+        rw [zl2_append]; rfl
+      rw [e]; exact coreP_sim _ false t r b h
+  | cons x O ih =>
+    intro N p t r b h
+    cases x with
+    | false =>
+      have e : zl2 N (cons true (zl2 (false :: O) (pre p))) = zl2 (N ++ [false]) (cons true (zl2 O (pre p))) := by
+        rw [zl2_append]; rfl
+      rw [e]; exact ih (N ++ [false]) p t r b h
+    | true =>
+      have g1 := sweep2 N (cons true (zl2 (true :: O) (pre p))) true (zl2 t (rt r))
+      by_cases hq : par true N = true
+      · simp only [coreO, hq, ↓reduceIte] at h
+        rw [hq] at g1
+        have g2 := o_odd (zl2 (true :: O) (pre p)) (zl2 (sx true N).reverse (zl2 t (rt r)))
+        have g3 := eturn (zl2 O (pre p)) (cons true (zl2 (sx true N).reverse (zl2 t (rt r))))
+        have g4 := f_lone (app [true, true] (zl2 O (pre p))) (zl2 (sx true N).reverse (zl2 t (rt r)))
+        obtain ⟨m, g5⟩ := rs_from ((sx true N).reverse ++ t) [] (cons true (zl2 (false :: O) (pre p))) (rt r)
+        rw [zl2_append] at g5
+        obtain ⟨k, g6⟩ := fromSweep_sim (some (false :: O)) p r _ b h
+        exact ⟨_, steps_seq trans (steps_seq trans (steps_seq trans (steps_seq trans
+          (steps_seq trans g1 g2) g3) g4) g5) g6⟩
+      · have hq' : par true N = false := by cases hh : par true N <;> simp_all
+        simp only [coreO, hq', Bool.false_eq_true, ↓reduceIte] at h
+        rw [hq'] at g1
+        have g2 := o_even (zl2 (true :: O) (pre p)) (zl2 (sx true N).reverse (zl2 t (rt r)))
+        have g3 := sweep2 (true :: O) (pre p) false (cons true (zl2 (sx true N).reverse (zl2 t (rt r))))
+        have g4 := lend p (par false (true :: O))
+          (zl2 (sx false (true :: O)).reverse (cons true (zl2 (sx true N).reverse (zl2 t (rt r)))))
+        obtain ⟨m, g5⟩ := rs_from (sx false (true :: O)).reverse [false] (pre (bne p (par false (true :: O))))
+          (cons true (zl2 (sx true N).reverse (zl2 t (rt r))))
+        revert h
+        cases hw : rswL false [false] (sx false (true :: O)).reverse with
+        | mk W1 rest =>
+          obtain ⟨e1, r1⟩ := rest
+          cases e1 <;> cases r1 <;> simp only [] <;> try (intro h; cases h)
+          intro h
+          rw [hw] at g5
+          have g6 := f_lone (zl2 W1 (pre (bne p (par false (true :: O))))) (zl2 (sx true N).reverse (zl2 t (rt r)))
+          obtain ⟨m2, g7⟩ := rs_from ((sx true N).reverse ++ t) []
+            (cons true (zl2 W1 (pre (bne p (par false (true :: O)))))) (rt r)
+          rw [zl2_append] at g7
+          obtain ⟨k, g8⟩ := fromSweep_sim (some W1) _ r _ b h
+          exact ⟨_, steps_seq trans (steps_seq trans (steps_seq trans (steps_seq trans (steps_seq trans
+            (steps_seq trans (steps_seq trans g1 g2) g3) g4) g5) g6) g7) g8⟩
+
+/-- **The list machine.** -/
+def astep : AS → Option AS
+  | .T w p s r => coreP w p (true :: s) r
+  | .T2 N O p s r => coreO N O p (true :: s) r
+  | .EO W none p => coreP W p [] false
+  | .EO W (some O) p => coreO W O p [] false
+
+theorem astep_sim (a b : AS) (h : astep a = some b) : ∃ n, steps (n + 1) (cfg a) = some (cfg b) := by
+  cases a with
+  | T w p s r =>
+    obtain ⟨n, hn⟩ := coreP_sim w p (true :: s) r b h
+    exact ⟨n, steps_congr trans (by omega) (steps_seq trans (rfl : steps 1 (cfg (.T w p s r)) = _) hn)⟩
+  | T2 N O p s r =>
+    obtain ⟨n, hn⟩ := coreO_sim O N p (true :: s) r b h
+    exact ⟨n, steps_congr trans (by omega) (steps_seq trans (rfl : steps 1 (cfg (.T2 N O p s r)) = _) hn)⟩
+  | EO W Z p =>
+    have h0' : steps 1 (cfg (.EO W Z p)) = some (onL (zl2 W (Zt Z p)) (cons false blank) (pst true)) := rfl
+    rw [cons_false_blank] at h0'
+    have h0 : steps 1 (cfg (.EO W Z p)) = some (onL (zl2 W (Zt Z p)) (zl2 [] (rt false)) (pst true)) := h0'
+    cases Z with
+    | none =>
+      obtain ⟨n, hn⟩ := coreP_sim W p [] false b h
+      exact ⟨n, steps_congr trans (by omega) (steps_seq trans h0 hn)⟩
+    | some O =>
+      obtain ⟨n, hn⟩ := coreO_sim O W p [] false b h
+      exact ⟨n, steps_congr trans (by omega) (steps_seq trans h0 hn)⟩
+
+/-- `k` steps of the list machine. -/
+def arun : Nat → AS → Option AS
+  | 0, a => some a
+  | k + 1, a => (arun k a).bind astep
+
+/-- While the list machine runs, the machine follows it, at least one step per list step. -/
+theorem arun_steps (a : AS) (h : ∀ k, (arun k a).isSome) :
+    ∀ k, ∃ b m, arun k a = some b ∧ k ≤ m ∧ steps m (cfg a) = some (cfg b) := by
+  intro k
+  induction k with
+  | zero => exact ⟨a, 0, rfl, Nat.le_refl 0, rfl⟩
+  | succ k ih =>
+    obtain ⟨b, m, hb, hm, hs⟩ := ih
+    have hk := h (k + 1)
+    cases hc : astep b with
+    | none => simp [arun, hb, hc] at hk
+    | some c =>
+      obtain ⟨n, hn⟩ := astep_sim b c hc
+      exact ⟨c, m + (n + 1), by simp [arun, hb, hc], by omega, steps_seq trans hs hn⟩
+
+/-- **No halt while the list machine runs.** -/
+theorem not_halts_of_astep (a : AS) (h : ∀ k, (arun k a).isSome) : ¬ Halts trans (cfg a) := by
+  apply not_halts_of_forall
+  apply forall_of_unbounded trans (fun m => ∃ c', steps m (cfg a) = some c')
+  · intro n
+    obtain ⟨b, m, _, hm, hs⟩ := arun_steps a h n
+    exact ⟨m, hm, _, hs⟩
+  · intro m hm; exact hm
+
+end H75625
+
+namespace H75625
+open TM
+
+/-- The first right turn from blank tape, step 12: E on the last 1, zone `b a`, prefix 1. -/
+theorem start : steps 12 init = some (cfg (.EO [true, false] none true)) := by
+  rfl
+
+/-- **The holdout as a list question.**  If the list machine never fails from the first right turn, the machine
+never halts from blank tape.  (It has not failed in the first 17,758 right turns, 2·10^8 steps.) -/
+theorem not_halts_of_arun (h : ∀ k, (arun k (.EO [true, false] none true)).isSome) : ¬ HaltsFromBlank := by
+  apply not_halts_of_forall
+  apply forall_of_unbounded trans (fun m => ∃ c', steps m init = some c')
+  · intro n
+    obtain ⟨b, m, _, hm, hs⟩ := arun_steps _ h n
+    exact ⟨12 + m, by omega, _, steps_seq trans start hs⟩
+  · intro m hm; exact hm
+
+end H75625

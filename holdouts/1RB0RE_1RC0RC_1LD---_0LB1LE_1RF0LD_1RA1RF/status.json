@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At 12 of the 13 epoch starts up to 1.7·10<sup>9</sup> steps this machine's configuration is identical, cell for cell, to that of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> (it gets there about 1.5 times later); so it runs the same running-parity computation. Lean proves eleven shift rules over its 4-cell words. It halts only when B stands left of a cell holding 1."
+  "<b>The question is open, and now the same as its twin's.</b> This machine follows <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> step for step, about 1.5 times slower, until a <em>break</em> (the twin in B with a 1 in one of the two cells ahead). Lean proves that the twin's own reduction to a list program also rules out every break: if that list program never fails, neither machine halts. So one proof would now settle both. It halts only when B stands left of a cell holding 1."
  ],
  "claims": [
   {
@@ -88,9 +88,21 @@
    "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
   },
   {
+   "level": "kernel",
+   "title": "The twin's list question settles this machine too",
+   "text": "If the twin's list machine never fails from the first right turn (the hypothesis of the twin's <code>not_halts_of_arun</code>), then neither this machine nor the twin halts from blank tape. The proof runs the twin's own list-machine files, copied unchanged, on a <em>watched twin</em>: the twin's table with a seventh state G after <code>B&gt; 0</code> that halts on a 1, so it halts exactly at a break. With <code>Twin.lean</code> (this machine follows the twin until a break), no break means no halt for either.",
+   "where": "<code>not_halts_of_arun</code>, <code>noBreak_of_watched</code>, <code>lean/NoBreak.lean</code>; <code>lean/watch/*.lean</code> (written by <code>py/port_watch.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No break in the first 3·10<sup>9</sup> steps of the twin",
+   "text": "The watched twin runs 3·10<sup>9</sup> steps (113,048 cells) without halting, so the twin's run has no break that far and this machine follows it all the way.",
+   "where": "<code>c/watch.c</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The two twins agree at epoch starts; between them they take different routes (this one about 1.5 times slower), and each has its own halting pattern, so a proof for one would have to be redone for the other unless the agreement itself is proved.",
+   "text": "Not known. Both machines now hang on one question: whether the twin's list machine (its <code>End.lean</code>) ever fails. A proof that it never fails settles both; a failure is where a halt or break could come from.",
    "where": ""
   },
   {
@@ -124,6 +136,11 @@
     "level": "heuristic",
     "value": "exp/sqrt",
     "text": "The growth shape of the two sides of the tape (see below)."
+   },
+   {
+    "level": "kernel",
+    "value": "same question",
+    "text": "If the twin's list machine never fails, neither twin halts."
    }
   ],
   "presets": [
@@ -144,6 +161,14 @@
     ]
    },
    {
+    "id": "nobreak",
+    "eyebrow": "New, 22 November 2026",
+    "heading": "One proof would settle both twins",
+    "html": [
+     "<p>This machine copies its twin step for step until a <em>break</em>: the twin standing in B with a 1 in one of the two cells ahead. At a break the two part ways, because their halting transitions differ: the twin halts on <code>F&gt; 0 0 1</code>, this machine on <code>F&gt; 0 0 1 1</code> and on <code>F&gt; 0 0 0 1</code>, which the twin simply crosses.</p><p>The twin's halting question has been reduced, in Lean, to one question about a program on lists of letters. To carry that over, Lean checks the twin's proof files, unchanged, against a <em>watched twin</em>: the twin's table with one extra state that looks at the cell after <code>B&gt; 0</code> and stops if it holds a 1. The watched twin stops exactly at breaks, and every lemma still goes through. So if the list program never fails, there is no break, and neither machine halts (<code>not_halts_of_arun</code>, <code>lean/NoBreak.lean</code>). In the first 3·10<sup>9</sup> steps of the twin there is no break.</p>"
+    ]
+   },
+   {
     "id": "what",
     "eyebrow": "What it computes",
     "heading": "Running parity, Sierpinski triangles",
@@ -156,7 +181,7 @@
     "eyebrow": "Can it stop?",
     "heading": "Only when B stands left of a 1",
     "html": [
-     "<p>The only halting transition is C reading 1, and C is entered only from B, which always moves right. So the machine stops exactly when B stands just left of a cell holding 1. As for its twin, the question is in the rightward sweeps and the turns at the walls, which were not decoded.</p>"
+     "<p>The only halting transition is C reading 1, and C is entered only from B, which always moves right. So the machine stops exactly when B stands just left of a cell holding 1. In the twin's terms that is <code>F&gt; 0 0 1 1</code> or <code>F&gt; 0 0 0 1</code>; both are breaks, and Lean shows the twin's list hypothesis rules out every break.</p>"
     ]
    },
    {
