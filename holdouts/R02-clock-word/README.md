@@ -96,6 +96,35 @@ At these sizes the search grows by a factor of about 70 per added state, so it w
 recursion inside the word as well; the next step is to find the five exits and the phase end as rules with an
 arbitrary word (Lean, `bbtools.symtm`), which would cut the problem to the trips alone.
 
+## Trips hold clocks, and searches with a derived right automaton (22 Nov)
+
+**Nested clocks.** For T88 a trip into a word that starts `0 1^(4+3k) 0 Z` becomes a second clock. After its first
+pass, the tape is the one the sweep of tick k leaves, with the trip's `0 0 0` as the zeros left of the block. If the
+2^k nested trips into Z return, the trip reaches the start of tick k+1 of that clock. This is proved in Lean for every
+k, Z and the tape to the left (`nest` in `../1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/lean/Nest.lean`). The clock then
+goes on with the same tick theorem. So trips cannot be listed: with words read cell by cell, the prefixes that leave a
+trip undecided grow by about 1.7 per cell (129, 2,956 and 70,941 at lengths 10, 16 and 22, `py/trip_tree.py`). The
+decided ones return or exit in the same five ways, and none halts.
+
+**Finite-automata reduction with the word unknown** (`far/`). These searches take the start `0^inf E> 1 1 1 1 0 W` for
+every word W. A left automaton reads the tape from the far left to the head. For each one, the least right automaton
+that makes the configuration set closed is computed, with the head cell included and with an accepting state for every
+word. This is stronger than a fixed pair of small automata.
+
+| left automaton | result |
+|---|---|
+| every DFA with up to 7 states (`far/farsearch.c`, depth first, 684,837 nodes at 7) | none closes |
+| position mod 3 and the last k cells, k up to 10 (3,073 states, `far/dfa_window.py` + `far/farcheck.cpp`) | a halt is allowed |
+| the last r runs, lengths exact to 4 and then mod 3, r up to 3 | a halt is allowed |
+| the trip alone (left wall at the region, `LEFTPRE=00011`), windows up to 10 cells | a halt is allowed |
+| the mirror image (automaton on the word side), small windows | a halt is allowed |
+
+The counterexamples the abstraction finds all have the same form. The head walks back over the part of the word it
+has already rewritten, and that part has no length bound. The automaton has forgotten what lies at its far end and
+allows a tape such as `0 1 1 0 1 1 1 B>0` (B on a 0 with `0 1 1` to its left), which then halts. The real runs never
+contain that tape. A working invariant has to summarise the rewritten word, which is made of blocks of three and
+nested clocks, and not just a window of it.
+
 ## Files
 
 - `py/clockx.py`, `py/runx.py`, `py/runall.sh`, `py/gen_clockx.py`: the six new clock registrations, checks, runs, Lean.
@@ -103,3 +132,5 @@ arbitrary word (Lean, `bbtools.symtm`), which would cut the problem to the trips
 - `py/phase_probe.py`, `py/halt_words.py`, `py/rand_probe.py`: one phase from given or random words.
 - `py/pstep_probe.py`, `py/stack_probe.py`, `py/cleanup_probe.py`: T88 trips, stacks and phase ends from random input.
 - `py/forget_sweep.py`, `../../tools/py/satctl_forget.py`: the forgetting invariant search.
+- `py/trip_tree.py`: T88 trips decided by a prefix of the word.
+- `far/farsearch.c`, `far/farcheck.cpp`, `far/dfa_window.py`: finite-automata reduction with the word unknown.

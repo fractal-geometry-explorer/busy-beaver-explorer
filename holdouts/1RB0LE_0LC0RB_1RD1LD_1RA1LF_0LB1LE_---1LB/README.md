@@ -52,6 +52,24 @@ The run was followed through 65 phases (seven of them in the first 500 steps) to
 phase followed ended with the block 1^1858 and a word of 1,240 cells. No halt. The phase ends do not follow an
 evident formula: from step 121,828 on the new block is shorter than the last one of the phase before by 3 to 66 cells.
 
+**A clock inside the word** (22 Nov). A trip does not always stay short. When the word starts with
+`0 1^(4+3k) 0 Z`, the trip's first pass turns the block into `0^(3+3k)` and goes on into `Z`. The tape it leaves is
+exactly the one the sweep of tick k leaves, with the trip's own `0 0 0` as the zeros left of the block. From there on
+the trip is tick k of a second clock, and its own trips go into `Z`. If those 2^k trips return, the trip reaches
+
+    L 0 0 0 1 1 A> 0 1^(4+3k) 0 Z   ->   L 0 0 0 E> 1^(4+3(k+1)) 0 Z'
+
+in E + 19·2^k − 8 steps, where E is the time of the 2^k nested trips. That is the start of tick
+k+1 of the nested clock. **Proved in Lean for every k, Z and L** (`nest`, `lean/Nest.lean`), and checked against
+plain simulation on 1,117 random cases. The nested clock then keeps ticking in the trip's place (`nest_then_tick`) and
+eats zeros of whatever lies to its left. Words hold clocks, and those clocks hold clocks in turn.
+
+This is why the trips cannot be listed. Enumerate words cell by cell, stopping a prefix once the trip returns, exits
+or halts without reading further. The number of prefixes still undecided grows by about 1.7 per cell: 129 at length
+10, 2,956 at length 16 and 70,941 at length 22 (`../R02-clock-word/py/trip_tree.py`). No decided trip halts, and the
+exits are the five seen before. So "every trip returns or exits in one of five ways" is a statement about nested
+clocks of every depth, not a finite check.
+
 **Halting.** The only halting transition is F on 0 (`step_none_iff`); F is entered only from D on 1 (1LF, from the
 table), so the machine halts exactly when D reads a 1 whose left neighbour is a 0. A tick whose trips all return is
 proved to finish, so a halt can only come at a phase end. Open: a closed form for P^(2^k) on the words that occur,
@@ -67,6 +85,8 @@ Open.
 
 - Lean, kernel (`lean/Clock.lean`): `tick` (every k, every word, under `PChain`), `tick_left_end`; rules
   `rule_sweep`, `rule_merge` in `lean/ClockRules.lean` (written by `holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/gen_clock.py`).
+- Lean, kernel (`lean/Nest.lean`): `nest`, a trip into `0 1^(4+3k) 0 Z` becomes tick k+1 of a nested clock
+  (every k, Z, L, under `PChain` for the nested trips); `enter`, `after_sweep`, `nest_then_tick`.
 - Lean, kernel (`lean/Instance.lean`): `run_ticks`, the run from blank tape through four ticks (steps 470 to 2,964)
   via `tick_left_end` with the 15 trips proved concretely.
 - Lean (`lean/Rules.lean`): shift rules `bclear`, `ewalk`; (`lean/Blank.lean`) `step_none_iff`, no halt in 10^4
@@ -79,13 +99,20 @@ Open.
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB tmcheck 1e10` — compare with `tmrun` at every visit (about a minute).
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB run 187` — the phases (about 25 minutes to 10^187).
 - `python3 holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/gen_clock.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB` — writes `lean/ClockRules.lean` and `lean/Clock.lean`.
+- `python3 holdouts/R02-clock-word/py/trip_tree.py 16`: trips decided by a prefix of the word, and how many prefixes stay undecided.
 - `python3 holdouts/1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB/py/instance.py 1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB 470 4` — writes `lean/Instance.lean`.
 - `py/phases.py LOG` prints the events of a `tmrun MACHINE T at E L 400 > LOG` log.
 
+- Invariant searches that forget the word (22 Nov, `../R02-clock-word/far/`): there is no left automaton with up
+  to 7 states for which the least right automaton closes. The same holds for windows of the last 10 cells plus the
+  position mod 3 (3,073 states), and for the trip alone with its left wall. See `../R02-clock-word/README.md`.
+
 ## Next steps
 
-Describe P^(2^k) on the words of the run in closed form, accelerate a phase end, and read off the map from one
-phase to the next.
+A proof that doesn't depend on the word has to follow nested clocks: a trip is either short or a clock whose phases
+end in the same five exits. The next step is the phase end of a nested clock, with an arbitrary word after it and an
+arbitrary stack before it. Separately: describe P^(2^k) on the words of the run in closed form, accelerate a phase
+end, and read off the map from one phase to the next.
 
 ## Pages
 
