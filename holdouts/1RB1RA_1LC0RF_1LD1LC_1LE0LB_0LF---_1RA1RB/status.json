@@ -15,7 +15,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 40,000 steps from there without failing."
+  "<b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 10<sup>6</sup> steps from there without failing."
  ],
  "claims": [
   {
@@ -133,6 +133,12 @@
    "where": "<code>py/mirror_run.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB (<code>run D 40000</code>, <code>lockstep D 2e8</code>)"
   },
   {
+   "level": "trusted",
+   "title": "10<sup>6</sup> list steps; every near miss is the window of one Lean theorem",
+   "text": "The C++ list machine of the Pascal machine, started here, takes 10<sup>6</sup> list steps without failing. E reads the last 1 during a crossing only 5 times, each with near part exactly <code>b a b a<sup>6</sup></code> and a clean far part: the window <code>W3</code>, for which <code>window_W3</code> (Lean, kernel, every prefix and every clean far part) proves two safe steps. The 5 crossing turns with blank end and no witness are the first bounces of those windows.",
+   "where": "<code>c/mirror_lm.sh D 1000000</code>; <code>window_W3</code>, <code>lean/P75625/Window.lean</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. It halts exactly if the Pascal table started in D halts (Lean), and it never halts if the Pascal machine's list machine never fails from <code>EO [b, a, b, a, a, a] none 0</code> (Lean). Whether it fails is the same open question as for the Pascal machine, from another start.",
@@ -181,7 +187,7 @@
    },
    {
     "level": "trusted",
-    "value": "40,000",
+    "value": "10<sup>6</sup>",
     "text": "Steps of the list program from this start, without a failure."
    }
   ],
@@ -216,7 +222,7 @@
     "html": [
      "<p>Read the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror and rename its states A to F as D, E, F, A, B, C: you get this machine's table exactly. The blank tape looks the same in a mirror, so this machine's run is that machine's table started in state D, seen in a mirror. Lean checks the correspondence, and every theorem about that table comes over with left and right exchanged.</p>",
      "<p>So the picture of that machine applies. A zone next to the growing right end is a word in the 4-cell letters <code>0111</code> and <code>1111</code>. Each time the head turns left in B, one bounce sweeps the zone and replaces it by its running parity, the next row of Pascal's triangle mod 2: the nested triangles in the space-time diagram above. Each bounce takes two cells from the frozen block left of the head. A frozen block of odd length followed by <code>0 1</code> would halt the machine, whatever the zone.</p>",
-     "<p>After 46 steps the run is in a state of the Pascal machine's <em>list program</em>, which follows the machine from turn to turn using lists alone. Lean proves that if this program never fails from <code>EO [b, a, b, a, a, a] none 0</code>, the machine never halts. It ran 40,000 list steps from there without failing. Lean also proves the program can fail in only three ways.</p>"
+     "<p>After 46 steps the run is in a state of the Pascal machine's <em>list program</em>, which follows the machine from turn to turn using lists alone. Lean proves that if this program never fails from <code>EO [b, a, b, a, a, a] none 0</code>, the machine never halts. It ran 10<sup>6</sup> list steps from there without failing. Lean also proves the program can fail in only three ways.</p>"
     ]
    },
    {

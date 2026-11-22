@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 40,000 steps from there without failing.</p>
+      <p><b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 10<sup>6</sup> steps from there without failing.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -210,6 +210,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The list machine from this start: 40,000 steps</h3>
         <p>Run on its own, 40,000 list steps without a failure (zone up to 19,162 letters, every far part clean). The 2,343 crossing turns with blank end all follow one of four early <code>EO</code> turns during a crossing (the last after list step 4,552); 2,339 have a witness, and the other 4 (frozen word <code>0</code>) are passed. In lockstep with the real machine the list machine agrees at all 20,967 right turns of the first 2&middot;10<sup>8</sup> steps.</p>
         <p class="where"><code>py/mirror_run.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB (<code>run D 40000</code>, <code>lockstep D 2e8</code>)</p>
+      </div>
+      <div class="card">
+        <h3>10<sup>6</sup> list steps; every near miss is the window of one Lean theorem</h3>
+        <p>The C++ list machine of the Pascal machine, started here, takes 10<sup>6</sup> list steps without failing. E reads the last 1 during a crossing only 5 times, each with near part exactly <code>b a b a<sup>6</sup></code> and a clean far part: the window <code>W3</code>, for which <code>window_W3</code> (Lean, kernel, every prefix and every clean far part) proves two safe steps. The 5 crossing turns with blank end and no witness are the first bounces of those windows.</p>
+        <p class="where"><code>c/mirror_lm.sh D 1000000</code>; <code>window_W3</code>, <code>lean/P75625/Window.lean</code></p>
       </div>
       <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>

@@ -110,6 +110,12 @@ three runs.
 
 **The list machine from this start (`py/mirror_run.py`, computed).** Run on its own from `start`, the list machine takes 40,000 list steps without failing (17,772 `T` turns, 22,209 `T2` turns, 19 `EO` turns, zone up to 21,498 letters, every far part clean), about 14 minutes. None of the 19 `EO` turns comes during a crossing, so no state with blank end ever arises (a crossing turn with blank end needs an earlier `EO` turn during a crossing: `astep_endOne` for plain and crossing turns ending in one 1, and a plain turn with blank end only becomes a crossing turn at the end of the tape, where `endS` marks the end again; read off `astep`, not a separate Lean statement) and the first failure case cannot occur at all in that stretch: unlike the other two runs, there is not one crossing turn with blank end. What is left is to show that no `EO` turn ever comes during a crossing (then only an unclean far part could make it fail). Run in lockstep with the real machine (`python3 py/mirror_run.py lockstep C 2e8`), the list machine agrees at all 17,728 right turns of the first 2·10^8 steps of the Pascal table started in C.
 
+**10^6 list steps (`c/mirror_lm.sh C 1000000` in the folder of
+1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB, a few minutes).** The Pascal machine's C++ list machine, started here,
+takes 10^6 list steps without failing (zone up to 623,187 letters). Still no `EO` turn comes during a crossing (27
+`EO` turns, all outside crossings), so not one crossing turn with blank end occurs. The Pascal machine's window
+theorems (`lean/P75625/Window.lean`) are compiled here too but are not needed for this run so far.
+
 ## Status
 
 Open. It halts if and only if the Pascal table started in C halts (Lean). If the Pascal machine's list machine never
@@ -144,6 +150,7 @@ of: D with 1 two left, 0 left, 0 under the head.
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/port_mirror.py      # refresh lean/P75625, Mirror.lean (both folders)
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py run C 40000   # the list machine, ~15 min
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py lockstep C 2e8
+holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/c/mirror_lm.sh C 1000000      # C++ list machine
 gcc -O2 -o sim holdouts/1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA---/c/sim.c && ./sim 1RB1RC_1RC1RB_1LD0RA_1LE1LD_1LF0LC_0LA--- 1000000000 1 | grep ' LD '
 ```
 

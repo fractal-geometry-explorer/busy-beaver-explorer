@@ -123,6 +123,17 @@ three runs.
 
 **The list machine from this start (`py/mirror_run.py`, computed).** Run on its own from `start`, the list machine takes 40,000 list steps without failing (19,948 `T` turns, 20,033 `T2` turns, 19 `EO` turns, zone up to 19,162 letters, every far part clean), about 15 minutes. Four of the `EO` turns come during a crossing (after list steps 34, 811, 1,408 and 4,552, zone 9 letters each time); they are the only source of the 2,343 crossing turns with blank end, and 2,339 of those have a witness (`lean/Race.lean`). The other 4 are the first bounce after each of those `EO` turns, with frozen word `s = 0`; the list machine gets past them. After list step 4,552 no `EO` turn comes during a crossing. Run in lockstep with the real machine (`python3 py/mirror_run.py lockstep D 2e8`), the list machine agrees at all 20,967 right turns of the first 2·10^8 steps of the Pascal table started in D.
 
+**10^6 list steps, and the windows (`c/mirror_lm.sh D 1000000`, a few minutes).** The Pascal machine's C++ list
+machine, started here, takes 10^6 list steps without failing (zone up to 561,695 letters). In all that time E reads
+the last 1 during a crossing 5 times (list steps 44, 835, 1,433, 4,582 and 44,852 in its count), each time with near
+part exactly `b a b a^6` and a clean far part (checked for the first four in `py/mirror_run.py`'s states). That is
+the window `W3` of the Pascal machine's `lean/Window.lean` (copied to `lean/P75625/Window.lean`): `window_W3` proves
+that from `EO W3 (some O) p`, for every prefix and every clean far part `O`, the list machine does not fail for two
+steps and reaches a state that is safe (the crossing is over, or the frozen word has a witness). The 5 crossing turns
+of the run with blank end and no witness (out of 17,614) are the first bounces of those 5 windows. So every near
+miss of this run up to 10^6 list steps is an instance of one Lean theorem; what is not proved is that the run never
+meets a different window later.
+
 ## Status
 
 Open. It halts if and only if the Pascal table started in D halts (Lean). If the Pascal machine's list machine never
@@ -198,6 +209,7 @@ of: C with 1 two left, 0 left, 0 under the head.
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/port_mirror.py      # refresh lean/P75625, Mirror.lean (both folders)
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py run D 40000   # the list machine, ~15 min
 python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py lockstep D 2e8
+holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/c/mirror_lm.sh D 1000000      # C++ list machine
 cd holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py
 python3 blocks.py check                      # the block rules against the machine
 python3 blocks.py > ../lean/Blocks.lean      # regenerate the Lean rules
