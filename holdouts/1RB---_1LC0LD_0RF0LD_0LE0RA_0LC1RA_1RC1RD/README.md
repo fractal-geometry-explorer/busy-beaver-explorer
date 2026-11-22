@@ -6,7 +6,10 @@ Z_k with n < 12k + 12, the only place a halt can come from. **The map is proved 
 and n outside that region, and the orbit from blank tape is checked in Lean for 10⁵ passes (no halt in 10¹⁶⁰⁰⁰
 steps). **The region is mapped in Lean too** (`lean/ZMap.lean`, `zregion`): from Z_k with n < 12k + 12 the
 machine halts in that pass exactly when k is odd and n = 12k + 9, and otherwise reaches a next E-event with an
-explicit new tail. Open; probviously non-halting, because k would have to catch up with n.
+explicit new tail. **The exits are closed for k < 20** (`lean/ExitMap.lean`, native): every one of the 2,502 other
+region starts with k < 20 halts (7 do) or is back at a tail of the map within 12 passes, so the machine halts exactly
+when the orbit of the extended map does, as long as that orbit never meets a region start with k ≥ 20
+(`halts_iff_blank`). Open; probviously non-halting, because k would have to catch up with n.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -69,6 +72,26 @@ starts with k < 14 return to the mapped tails within 11 passes (1,220 of them), 
 n = 12k + 9, and 8 more one to nine passes later, e.g. Z_3 at n = 23, Z_4 at n = 20, Z_12 at n = 3), or start at
 n = 2, where Z_k gives Z_{k+1} at n = 2 forever (13).
 
+**The exits of the region.** The new tails are not a small family. Followed by direct simulation, the 4,320 region
+starts with 14 ≤ k < 30 meet 57 shapes of tail words on the way back (`11 (01)^a 0^b 1`, `000 (10)^a 000 (10)^b 1`,
+`(0001010)^a 101`, …), and the list grows with k. An end word after a tail is rewritten in every pass, not carried
+along: X_k, Y_k or Z_k followed by `0001` gives the map's next event with `0001` still behind it in only 26, 9 and 0
+of 240 starts (`py/exit_survey.py suffix`). So instead of a map on lists of blocks, the exits are closed for small k
+by a table. `py/gen_exits.py 20` follows each of the 2,502 region starts with k < 20 (other than n = 2 and the
+halting line, which ZMap.lean handles for every k) to its fate, and `lean/ExitTab.lean` checks every entry with the
+list simulator of `tools/lean/TM/Fin.lean` (`exitTab_ok`, compiled evaluation, about 9 minutes): 7 halt within 6
+passes, at (k, n) = (3, 23), (6, 15), (7, 41), (8, 40), (14, 90), (15, 60), (16, 59); the others reach an E-event
+with tail 1, X, Y or Z within 12 passes (615 in one pass, 1,139 in two). `lean/ExitMap.lean` then extends the map
+(`step2`: the map, n = 2, the halting line, Z_0 with n ≥ 24, and the table) and proves
+
+- `exit_reenters`: every region start with k < 20 halts, or reaches an E-event where the map applies (or n = 2), or
+  reaches a region start with k ≥ 20 (the block can grow: Z_17 at n = 7 goes to Z_20 at n = 8);
+- `halts_iff_blank`: if the extended orbit from blank tape never meets a region start with k ≥ 20, the machine
+  halts if and only if that orbit reaches a halt.
+
+The same table for k < 30 (5,547 starts, 14 halts, back within 16 passes) passes too, in 45 minutes; it is not the
+committed one, to keep `check.sh` short.
+
 **Heuristic.** k is reset at every phase and grows by half only at 1 pass in 8 (and only when it is even), while n
 grows at every pass. Along the orbit the fraction of Z-events with k ≥ K falls like K^−1.1 to K^−1.7 (0.6% for
 K = 100, 0.04% for K = 1000). The chance of some phase reaching k ≈ n/12 is therefore about (n/12)^−1.2 per phase,
@@ -85,11 +108,14 @@ about 10⁻⁵ at the end of direct simulation and negligible after that. The ti
 | kernel | blank tape reaches `Ev 0 .one` in 18 steps (`init_E`); the first 3,000 passes stay in the proved region, so no halt in the first 10⁴⁵⁰ steps (`orbit_3k`, `no_halt_3k`); pass 37 is at step 20,999,239,576, as direct simulation finds (`orbitT_37`) | `lean/Orbit.lean` |
 | native | the first 10⁵ passes stay in the proved region: no halt in the first 10¹⁶⁰⁰⁰ steps (`orbit_100k`, `no_halt_100k`) | `lean/Orbit.lean` |
 | kernel | **the region**: for every k and n with n < 12k + 12 (and Z_0 with any n), `Ev n (.Z k)` halts in its pass iff k is odd and n = 12k + 9 (`zregion_halt`), and otherwise reaches an E-event `EvT n' T = E> 0^6 (10)^n' T` (`zregion_ev`); the 190 lemmas `zw_<case>` give n', T and the step count of each family (axioms propext, Classical.choice, Quot.sound) | `lean/ZMap.lean`, `lean/ZRegion0.lean` … `ZRegion5.lean` |
+| native | **the exits for k < 20**: a fate for each of the 2,502 region starts with k < 20 besides n = 2 and the halting line, each checked by the list simulator (`exitTab_ok`); every start halts, returns to the map, or reaches a region start with k ≥ 20 (`exit_reenters`); halting from blank tape is exactly halting of the extended orbit while it avoids region starts with k ≥ 20 (`halts_iff_blank`). Axioms: propext, Classical.choice, Quot.sound, and the native_decide of `exitTab_ok` | `lean/Exits.lean`, `lean/ExitTab.lean` (`py/gen_exits.py 20`), `lean/ExitMap.lean` |
+| native | the same table for k < 30 (5,547 starts), checked by hand in 45 minutes | `py/gen_exits.py 30`, then `lean/check.sh` |
+| trusted | the exits do not form a small family: 57 shapes of tail words for 14 ≤ k < 30; an end word after a tail is rewritten in every pass | `py/exit_survey.py follow 14 30`, `py/exit_survey.py suffix` |
 | trusted | the region families against direct simulation: all 8,040 region starts with k < 36, and 300 random starts with k < 300, no mismatch | `py/zmap.py check 36`, `py/zmap.py sample 300` |
 | trusted | what follows a region start: of the 1,248 with k < 14, 1,220 reach a mapped tail within 11 passes, 15 halt, 13 loop at n = 2 | above |
 | trusted | the map against direct simulation: a grid of every tail with k < 25 at 120 values of n each (Z_k from n = 12k+12): 9120 starts, no mismatch; 200 rules measured independently by direct simulation agree | `py/emap.py grid 25 120`, `py/emap.py rule`, `py/rules.json` |
 | trusted | the 38 E-events of the blank run up to 2.1·10¹⁰ steps follow the map | `py/emap.py blank 2.2e10` |
-| trusted | 10⁵ passes from (`1`, 0): n then has 8063 digits, k never above 1046, tightest margin n/(12k+12) = 55 | `py/emap.py far 100000` |
+| trusted | 10⁶ passes from (`1`, 0): n then has 80,583 digits, k never above 2,972, tightest margin n/(12k+12) still 55 (pass 28); 7.4·10⁶ passes of a 10⁷ run: largest k 22,853 (near pass 1.5·10⁶, n with about 112,000 digits) | `py/margins.py 1e6`, `py/margins.py 1e7` |
 | heuristic | a halt needs k ≈ n/12; chance about (n/12)^−1.2 per phase | above |
 
 ### How the map is proved
@@ -111,7 +137,7 @@ then writes `lean/Map.lean`, the map `next` as a Lean function and `next_sound` 
 ## Reproduce
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/lean/check.sh   # about 6 min
+. /etc/profile.d/lean.sh && holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/lean/check.sh   # about 17 min
 cd holdouts/1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/py
 python3 gen_map.py && python3 gen_mapdef.py   # regenerate lean/Cases.lean, cases.json, Map.lean (a few min)
 python3 emap.py rule 000101010101     # measured rules of a tail, compared with the map
@@ -120,6 +146,10 @@ python3 emap.py blank 2.2e10          # the blank run's E-events against the map
 python3 emap.py far 100000            # 10^5 passes
 python3 gen_zreg.py && python3 gen_zmapdef.py   # regenerate lean/ZRegion*.lean, zreg.json, ZMap.lean (about 2 min)
 python3 zmap.py check 36              # the region families against direct simulation
+python3 gen_exits.py 20               # regenerate lean/ExitTab.lean, exits.json (2 min; Lean checks it in 9 min)
+python3 exit_survey.py follow 14 30   # where the exits go, and the shapes of their tail words
+python3 exit_survey.py suffix         # an end word after a tail is not passive
+python3 margins.py 1e7                # 10^7 passes with margin statistics (about 2 h)
 python3 zpage.py                      # the region map section of status.json (then holdouts/build_pages.py)
 ```
 
@@ -133,10 +163,11 @@ python3 zpage.py                      # the region map section of status.json (t
   finite sequence of residues, including ones that pump k by 3/2 several times in a row, occurs for some n. A bound
   on k would therefore be a Collatz-type statement about this orbit. Empirically only n = 8, 11, 13, 15 among the
   3·10⁵ starts (`1`, n) with n < 3·10⁵ reach the uncovered region within 200 passes.
-- The region n < 12k + 12 of Z_k is now mapped for one pass, but its exits are new tails (a block followed by an end
-  word, or two blocks), so the halts-iff is still not closed. The next step is the X and Y rules for a tail
-  `000 (10)^m W` or `11 (01)^m W` with an arbitrary end word W (they only touch W when the block runs out or is
-  multiplied by 3/2), which would turn the tail into a list of blocks and the map into a map on lists.
+- The exits of the region are closed for k < 20 (a table checked in Lean), so the halts-iff holds as long as the
+  orbit avoids region starts with k ≥ 20. Closing them for every k needs a theory of the exit words, which are not a
+  list of blocks with fixed end words (the end word is rewritten in every pass, see above). Inside the region the
+  pass consumes about n/12 of the block and multiplies n by 9/8, so for k ≫ n the exit is again deep in a region of
+  its own kind; a closed description would be a map on these nested countdowns.
 - This machine and `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` are both a Collatz map driven by a tail or context
   word, but the words behave differently: here they form one counter, there they form a ternary-like counter.
 

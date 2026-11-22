@@ -3,8 +3,10 @@
 bbchallenge id 13743. Group G01. **A 3/2-Collatz map on a mixed with Euclid-like steps on a second number b**: the
 machine halts exactly at b = 1 with a ≡ 0 (mod 4), which takes a near-coincidence of size about 1/a. **Lean's
 kernel proves that the machine halts if and only if the orbit of the map from U(4, 3) reaches such an event**
-(`halts_iff`), so whether it halts is now a question about the map alone. The whole map below is proved in Lean
-(`nextAll`), though the run from blank tape only ever meets its even-a half. The orbit is checked in Lean for 10⁵
+(`halts_iff`), so whether it halts is now a question about the map alone. Sharper: **it halts exactly when the orbit
+meets an event with a, b both even and b − a ∈ {4, −2}** (`halts_iff_coincidence`), and **no congruence modulo any
+M ≤ 10,000 can rule that out** (`no_residue_proof`). The whole map below is proved in Lean (`nextAll`), though the
+run from blank tape only ever meets its even-a half. The orbit is checked in Lean for 10⁵
 passes (no halt in 10¹⁰⁰⁰⁰ steps). Open; probviously non-halting.
 
 | state | read 0 | read 1 |
@@ -57,7 +59,9 @@ V(10, 155), …, U(74180, 24362) at step 8,744,109,161.
 
 **Halting condition.** The machine halts exactly at U(a, 1) or V(a, 1) with a ≡ 0 (mod 4); the head then reads a 0
 in state F. The −5 rule makes b even, so b = 1 can only come out of a subtraction leaving exactly 1, which needs
-b ∈ {a−2, a+4, a−7, a−13} (or b = 1 already, carried by an a ≡ 2 step).
+b ∈ {a−2, a+4, a−7, a−13} (or b = 1 already, carried by an a ≡ 2 step). Along the run a is always even, which leaves
+b = a − 2 and b = a + 4, and every event with b = 1 halts: with a ≡ 2 (mod 4) the map keeps b = 1 and sends a + 10
+to 3(a + 10)/2, which loses a factor 2 each pass until a ≡ 0 (mod 4). Lean proves both facts (below).
 
 **Heuristic.** A halt therefore needs a coincidence of size about 1/a. Iterating the map from 20,000 random starts
 at each scale S (a ∈ [S, 2S), b ∈ [0, 2S)) gives halting frequencies 2.0·10⁻², 2.5·10⁻³ and 2.1·10⁻⁴ for
@@ -78,10 +82,13 @@ after the 10⁶ passes iterated. Probviously non-halting.
 | kernel | blank tape reaches U(4, 3) in 118 steps (`init_U`); **if the orbit of `next` from U(4, 3) never gets stuck, the machine never halts** (`not_halts_of_orbit`); the first 3,000 passes are not stuck: no halt in the first 10⁵⁰⁰ steps (`orbit_3k`, `no_halt_3k`); pass 34 is U(35354, 10986) at step 1,916,511,832, as direct simulation finds (`orbit_34`) | `lean/Orbit.lean` |
 | kernel | **the halting events halt**: from U(a, 1) or V(a, 1) with a ≡ 0 (mod 4), a ≥ 4, the machine reaches `1^n F> 0` (n = 3a/2 + 8 for U, 3a/2 + 9 for V) and stops (`halt_event`) | `lean/HaltIff.lean`, `lean/HaltCases.lean` |
 | kernel | **halts iff**: the machine halts from blank tape exactly when, for some k, the k-th event of the orbit of `next` from U(4, 3) has a ≡ 0 (mod 4) and b = 1 (`halts_iff`); equivalently, when the orbit is undefined at some k (`halts_iff_stuck`). Along the orbit a stays even, a ≥ 2 and b ≥ 1 (`orbit_inv`), so `next_isSome` leaves only the halting events as places to get stuck. Axioms propext, Classical.choice, Quot.sound | `lean/HaltIff.lean` |
+| kernel | **halts iff b = 1**: the machine halts exactly when the orbit reaches any event with b = 1 (`halts_iff_b1`; `next_b1` is the a ≡ 2 (mod 4) step). **Halts iff a Euclid coincidence**: exactly when the orbit meets an event with a, b even and b = a + 4 or b = a − 2 (`halts_iff_coincidence`): a pass ends at b = 1 only from b = 1 or from such an event (`next_to_b1`), and such an event always goes to b = 1 (`next_of_coincidence`). Axioms propext, Classical.choice, Quot.sound | `lean/Coincidence.lean` |
+| native | **no congruence proof**: for 1 ≤ M ≤ 10,000, every property of (letter, a mod M, b mod M) that holds along the orbit also holds at a valid coincidence event (`no_residue_proof`); the orbit's first 10⁵ passes meet b − a ≡ 4 or −2 (mod M) for each such M (`sweep_100k`; the last is M = 9,837 at pass 95,434) | `lean/Coincidence.lean` |
 | native | the first 10⁵ passes are not stuck: no halt in the first 10¹⁰⁰⁰⁰ steps (`orbit_100k`, `no_halt_100k`) | `lean/Orbit.lean` |
 | trusted | the whole map, odd a included (now also proved, above): all 7,980 covered starts with a < 60, b < 70 and 300 random starts with 15 ≤ a < 2000 agree with direct simulation, as do 84 starts with odd a < 15 and 30 ≤ b < 3000; the halting events do halt (same grid) | `py/emap.py grid 60 70`, `py/emap.py random 300 1` |
 | trusted | the 38 U/V-events of the blank run up to 8.7·10⁹ steps follow the map | `py/emap.py blank 1.2e10` |
 | trusted | 10⁶ passes from U(4, 3) without a halt (both numbers then have about 96,600 digits) | `py/emap.py far 1000000` |
+| trusted | at the even/even events of 10⁵ passes, b − a hits 4 and −2 mod 2^j·3^i as often as a uniform even number (M = 8 … 5,832); b > a at a third of them, so b − a has no lower bound; record lows of \|b − a\|/a fall like 1/passes (10^−3.9 by pass 98,298). The only rigid residue: a ≡ 2 (mod 3) at U-events, a ≡ 1 at V-events. Up to M = 30,000 the coincidence residues are met within 3·10⁵ passes except M = 24,463 | `py/residues.py equi 100000`, `near 100000`, `hits 300000 30000` |
 | heuristic | P(halt) ≈ 2/a; about 10⁻⁹⁶⁶⁰⁰ after the iterated passes | above |
 
 The map sends even a to even a (every rule's new a is even when a is), so the odd-a rules of the table are never
@@ -112,6 +119,14 @@ to `1^(6x+20) F> 0` (U) or `1^(6x+21) F> 0` (V), and a = 4 is one concrete run. 
 the orbit invariant branch by branch on `next` (a lemma that splits one `if` of the chain at a time) and joins
 `halt_event` with `not_halts_of_orbit`.
 
+### How the coincidence form is proved
+
+`lean/Coincidence.lean` (by hand). `next_to_b1`, `next_of_coincidence` and `next_b1` split `next` one `if` at a time,
+as `orbit_inv` does, but forget the negated conditions of the branches not taken (`ite_cases'`), which keeps `omega`
+fast. `halts_of_b1` writes a + 10 = 2^j·m with m odd and inducts on j. `sweep` walks the orbit once and drops from a
+list of moduli every M at which an event has the residues of a coincidence; `sweep_spec` turns its result into an
+orbit event, and `no_residue_proof` builds the coincidence event (a, a + 4) or (b + 2, b) with the same residues.
+
 ### How the odd rows are proved
 
 `py/gen_odd.py` writes `lean/OddCases.lean`. With a odd, after the first sweep the cells left of the head are a
@@ -132,7 +147,7 @@ by direct simulation (and checked against `emap.direct`), run in chunks of 30 by
 ## Reproduce
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh   # about 2 min
+. /etc/profile.d/lean.sh && holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh   # about 3 min
 cd holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py
 python3 gen_map.py && python3 gen_mapdef.py   # regenerate lean/Cases.lean, cases.json, Map.lean (a few min)
 python3 gen_halt.py                           # regenerate lean/HaltCases.lean (a few s)
@@ -143,14 +158,19 @@ python3 emap.py random 300 1      # random large starts (2 min)
 python3 emap.py blank 1.2e10      # the blank run's events against the map (2.5 min)
 python3 emap.py far 1000000       # 10^6 passes (4 min)
 python3 emap.py mc 1000 20000     # halting frequency from random starts of size 1000
+python3 residues.py hits 100000 10000   # the moduli of no_residue_proof (12 s)
+python3 residues.py equi 100000         # b − a mod 2^j 3^i against uniform
+python3 residues.py near 100000         # record lows of |b − a|/a, sign of b − a
 ```
 
 `py/emap.py` uses `../1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---/py/g01tools.py` and its C simulator `c/from.c`.
 
 ## Further work
 
-- Halting is now exactly the arithmetic statement that the orbit of `next` from U(4, 3) reaches b = 1 with
-  a ≡ 0 (mod 4) (`halts_iff`). Nothing short of a Collatz-type argument is in sight.
+- Halting is now exactly the arithmetic statement that the orbit of `next` from U(4, 3) meets b − a ∈ {4, −2} with
+  both even (`halts_iff_coincidence`). Residue invariants are ruled out for every modulus up to 10,000
+  (`no_residue_proof`), and b − a changes sign, so it has no lower bound. Nothing short of a Collatz-type argument
+  is in sight.
 - A sharper heuristic: the 2/S law could be derived from the exact offsets that produce b = 1.
 
 ## Pages

@@ -12,8 +12,8 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> This machine is the table of DeepMind's busycoq PR 93 (a halting proof for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---) with that table's halt moved: it goes on where PR 93's machine halts, and it halts only at a three-step detour when a 1 sits next to it. Lean proves 44 of PR 93's macro rules for it; PR 93's engine runs it 7,889,000 fast steps, to a tape of about 2<sup>2764</sup> cells, without a halt (trusted computation).",
-  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps, the detour and the 44 engine rules."
+  "<b>The question is open.</b> This machine is the table of DeepMind's busycoq PR 93 (a halting proof for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---) with that table's halt moved: it goes on where PR 93's machine halts, and it halts only at a three-step detour when a 1 sits next to it. Lean proves 44 of PR 93's macro rules for it; PR 93's engine runs it 7,889,000 fast steps, to a tape of about 2<sup>2764</sup> cells, without a halt (trusted computation). Every unbatched step of that engine through 30.4 million fast steps falls into nine shapes, and only one comes near the halt: the event where PR 93's machine halts, one blank cell short every time.",
+  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps, the detour, the 44 engine rules, and that a halt needs the head to meet <code>0 0 0 1</code> moving right."
  ],
  "claims": [
   {
@@ -89,6 +89,18 @@
    "where": "<code>engine/build.sh</code>, <code>engine/watch.ml</code>, <code>engine/validate.ml</code>, <code>engine/f1.ml</code>"
   },
   {
+   "level": "kernel",
+   "title": "The only way into the halt",
+   "text": "The four steps before any halt are forced: C reads 1, so B read 0 with a 1 beyond; B came from A0 (E1 would leave a 0 under C); A came from E0; and E came from A1 or F0, moving right (D0 writes a 1 beside it). So a halt needs E, moving right, to read <code>0 0 0 1</code>.",
+   "where": "<code>pre_halt</code>, <code>pre_halt_from</code>, <code>lean/HaltRoute.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Every unbatched step of PR 93's engine through 30,442,000 fast steps: nine shapes, none near a halt but one",
+   "text": "<code>engine/rawlog.ml</code> logs every raw step of the engine from blank tape. Through fast step 30,442,000 there are 65 raw stretches of nine shapes, and the run from the 30.4M checkpoint to 47,000,000 fast steps shows no other shape. Every D step reading 0 in them comes right after B1 = <code>0RD</code>, which leaves a 0 beside it, so it cannot halt. The only step on the leftward route to the halt is <code>C&lt;0</code> in the event where PR 93's own machine halts (its F1, 9 times to 30.4M); there the cell after the two 0s is always a 1, so the route stops one 0 short. No halt in 47,000,000 fast steps.",
+   "where": "<code>engine/rawlog.ml</code>; README, <em>The raw steps, classified</em>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. C reading 1 halts. The 5-cell closed language allows that with <code>11100</code>/<code>11111</code> on the left and any right window starting with 1.",
@@ -115,6 +127,11 @@
     "level": "trusted",
     "value": "2<sup>2764</sup> cells",
     "text": "No halt in 7,889,000 fast steps of PR 93's engine, past the point where PR 93's machine halts."
+   },
+   {
+    "level": "trusted",
+    "value": "9 shapes",
+    "text": "Every unbatched step of PR 93's engine through 30.4 million fast steps, classified. Only one shape comes near a halt, and it misses by one cell every time."
    },
    {
     "level": "kernel",
@@ -178,6 +195,16 @@
     ]
    },
    {
+    "id": "raw",
+    "eyebrow": "Raw steps",
+    "heading": "The engine's unbatched steps, and why none of them halts",
+    "html": [
+     "<p>A halt can only come in one of the engine's raw, unbatched steps: its macro rules are proved never to take the halting route. Lean proves what that route is (<code>lean/HaltRoute.lean</code>): the head, moving right in E, must meet three blank cells and then a 1, <code>0 0 0 1</code>.</p>",
+     "<p><code>engine/rawlog.ml</code> logs every raw step. Through 30,442,000 fast steps there are 65 stretches of raw steps, all of nine shapes; most carry the head across a long block of 1s one cell at a time (419, then 4,763, …, 23,918 cells) and turn it back. Two local facts make eight of the shapes safe whatever the tape holds: every raw D step reading 0 (in the engine's table) comes right after B reads 1 and writes a 0 beside it, and every B reading 0 on the way right comes right after A wrote a 1 beside it.</p>",
+     "<p>The ninth shape is the moment where DeepMind's PR 93 machine halts. It happens 9 times in 30.4 million fast steps, and each time the head meets <code>0 0 1</code>: two blank cells, not the three a halt needs. A proof would have to show that this event always has the same neighbourhood and that no new shape ever appears.</p>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Halting",
     "heading": "What a halt would require",
@@ -226,7 +253,7 @@
    }
   ]
  },
- "summary": "PR 93's table with its halt moved: it goes on where PR 93's machine halts and can halt only at a 3-step detour; 44 engine rules in Lean, no halt in 7,889,000 fast steps (tape 2^2764); open.",
+ "summary": "PR 93's table with its halt moved: it goes on where PR 93's machine halts and can halt only at a 3-step detour; 44 engine rules in Lean; the engine's raw steps through 30.4M fast steps are of nine shapes and only the F1 event comes within one cell of a halt; no halt in 47M fast steps; open.",
  "family": "bouncer with a sorted list of blocks 1^(6j+1)",
  "decision": "open"
 }

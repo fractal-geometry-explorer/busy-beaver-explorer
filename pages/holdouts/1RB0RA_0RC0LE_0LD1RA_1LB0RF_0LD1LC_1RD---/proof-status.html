@@ -90,6 +90,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="verdict">
       <p><b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules.</p>
       <p><b>One counter, two starts</b> (21 November): this machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> started in state D, proved in Lean, and that folder&rsquo;s exact block macro machine reproduces its run; the reset map and the tail operators found there hold here too, so it is open for the same reason.</p>
+      <p><b>Phase by phase</b> (22 November): every carry of the first 36 phases of this run is checked in Lean (<code>ResetExcLong.lean</code> in the twin's folder), so the 3/2 reset map holds there with no assumption, up to X = 121,081,390.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -149,6 +150,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The reset map without hypotheses: 36 phases</h3>
+        <p>Every carry into the tail of the first 36 phases of this machine's run is checked in Lean by a simulator proved for every tape on the left, so the reset map of the twin's folder holds there with no hypothesis: the run reaches the reset with X = 121,081,390 without a halt (<code>reach_twin_phases36</code>; 26 phases, X = 2,099,734, in CI: <code>reach_twin_phases</code>).</p>
+        <p class="where"><code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/ResetExcLong.lean</code>, <code>ResetExcRuns.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>

@@ -150,6 +150,58 @@ exits into F itself, or a C exit onto a different tail. Started from random bloc
 one F-entry in 150; `[15, 31, 17, 59, 31]` halts after 63,153 steps, `py/random_lists.py`), so whether the blank-tape
 run stays clean is a real question.
 
+### Merges, the left end and the two rare events (third pass)
+
+**The rules without cleanliness.** `go_spec` needs a whole visit to be clean. `lean/Visits.lean` (written by
+`py/gen_visits_lean.py`) states the rules for visits whose nested visits only *end* the way clean ones do
+(`Visit l X t`: back on the start cell in E with `1 0 enc X` on the right, the left untouched), whatever happens
+inside them:
+
+- `spread_gen`: a visit to `[2j+7, c+1, ...]` is PUSH, five visits, POP, with the bumps +1, +3, +1, +1, +1;
+- `carry`: a visit to `[1, c, ...]` makes one visit to `[c+1, ...]` and exits in A one cell further left with `[1] ++ X`;
+- `merge3`: a visit to `[3, c, ...]` (a block used up) makes one visit to `[c+1, ...]` and exits in C, the next
+  block 3 longer: the merge;
+- `sweep` (built with `run_gap` and `run_end`): a visit to even blocks `[2h_1, ..., 2h_k]`. The head crosses
+  everything in B (`(10)^(2h) 1` becomes `(0010)^h 0`), turns on blank tape and starts a new block with a visit to
+  `[1]`; then, from the last block to the first, one visit to `[t-1] ++ S` and three CARRYs each, and it leaves with
+  the first block two shorter;
+- `left_end`: at the true left end, 5 more steps give the first block its two back. So one left-end event leads to
+  the next exactly as the sweep says, one cell further left.
+
+All of them are proved for every list and every left context from short tape pieces proved by bbtools.symtm, and use
+no axioms beyond `propext` and `Quot.sound`. None uses state F, so they hold for the core shared by all 40 machines.
+What is still only simulated: visits to `[5, ...]` and `[0, ...]`, and what a parent does when a nested visit exits
+in C (the merge spreading upwards).
+
+**A merge-level accelerator.** `py/fast.py` runs the machine as these rules on lists, with no tape: SPREAD, CARRY
+and SWEEP as above, clean visits by the closed form, and only the remaining visits (about 1 in 40) on the run-length
+simulator of `hybrid.py`. A rule that meets an unexpected exit half way is undone and the visit simulated, so the
+result is the same function as `hybrid.py`'s: on all 37 list machines of the family the left-end events (step and
+list) and the F-events (step and cell read) agree with `hybrid.py` to 10^100 steps (`python3 py/fast.py check M N`).
+It runs 10^200 steps in 6 s instead of 2 minutes.
+
+**The two rare events.** Between merges, a round keeps two numbers of each pair of neighbouring blocks (`visit_conserves`):
+the residue t_j mod 18 and the drift d_j = t_(j+1) - 5 t_j. `py/f05_danger.py` takes a real left-end list, puts
+every pair of even values (a, b) at two neighbouring positions and runs the machine exactly for 12 more left-end
+events. The pairs that halt are exactly those with (a mod 18, b - 5a) in a small set; for this machine
+{(6, -4), (10, -6), (14, -8), (0, -10), (0, -2), (0, 0)}, the same at positions 1 (event 60) and 2 (event 20); for
+`1RB---_0LC0LB_1RF0LD_1RE0RB_1LB0RC_0RD1RA` the same set and (16, -4); for
+`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_1LC---` and `1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LA---` larger sets with drifts
+from -24 to 8 (`data/f05_danger.json`, 4,000 runs each). So a halt needs a block to run out while its drift is within a
+few tens of 0: the next block then runs out within about one round of it. `py/f05_timing.py` watches every drift that is new at a left-end event (merges and
+births make them; otherwise they are conserved) on a long run.
+
+On this machine, `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---` and `1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RE---` to
+10^1000 steps (about 45 minutes each), and on the 37 list machines of the family to 10^300 steps (`data/f05_timing.json`):
+no halt, no F-event reading 1, and no new pair in a danger set. After the 30th left-end event the smallest new |d| is
+2,031,272 here (10^1000 steps, 6,494 new drifts), 26,382 over the three long runs, and 1,048 over all 37 machines
+(`1RB0RC_1LC0RD_0LD0LC_1RE0LA_0RA0RF_0LC---`, block 0 at event 35); only 6 of 72,361 new drifts are below 10^4.
+Most new drifts at block j are of the size of the block, about 18·5^(j+1), but not all: in the run of
+`1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RB---` a drift of -6,003,356,234 appears at block 495, where the blocks have
+about 350 digits. So small drifts do come up deep in the list; none has come within the window. This is the shape of the open question, not an
+answer: nothing proved keeps a drift out of the window. The three machines whose run needs the raw simulator
+(`hybrid2.py`) are not in these runs.
+
 ## What is established
 
 | level | claim | where |
@@ -169,6 +221,9 @@ run stays clean is a real question.
 | trusted | **No halt in the first 10^12 steps.** The same simulator runs 10^12 steps (about an hour): 13 F-events, at steps 39,734, 84,610, 7,423,096, 61,170,138, 83,341,005, 19,760,364,771, …, 49,599,980,477, 92,401,008,442, all reading 0. | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/rle.py` (`watch`) |
 | trusted | **The whole run as an exact map on block lists.** `hybrid.py` runs the machine as a map on block lists: clean visits by the closed form (a theorem), every other visit (small or even first blocks, merges after a block runs out, births, the left end) by the exact run-length simulator, recursively and memoised. It is exact, not a model: against `data/trajectory.json` (100,000,033,912 steps of the machine) it reproduces all 21 left-end events (step and block list) and all 13 F-events (step and cell read). | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid.py`, `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py`, `data/hybrid.json` |
 | trusted | **No halt in the first 6.8·10^100 steps.** The exact map runs 6.8·10^100 steps (19 s): 248 left-end events, 138 F-events, every one reading 0 and every one of the proved kind (`010001000100[F]001010101010` (97×); `010001000100[F]001010110101` (41×)). The block list grows to about 40 blocks, block i of size about 5^i. The same run to 1.0·10^200 steps (2 minutes): 505 left-end events, 278 F-events, no halt. | `data/hybrid.json`, `data/hybrid_1e200.txt` |
+| kernel | **Merges and the left end, for any inner visits.** For every list and every left context, given only that the nested visits end as clean ones do: SPREAD, CARRY (a visit to [1, c, ...]), the merge of a used-up block (a visit to [3, c, ...] exits in C, the next block 3 longer), the left-end SWEEP (a visit to even blocks) and the round from one left-end event to the next. No state F is used, so they hold for the core of all 40 machines. Not yet: visits to [5, ...] and [0, ...], C exits nested in a parent. | `spread_gen`, `carry`, `merge3`, `sweep`, `run_gap`, `run_end`, `left_end`, `lean/Visits.lean` |
+| trusted | **A merge-level accelerator.** `fast.py` runs these rules on lists with no tape and only about 1 visit in 40 on the run-length simulator; the same left-end events and F-events as `hybrid.py` on all 37 list machines to 10^100 steps; 10^200 steps in 6 s. | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/fast.py` |
+| trusted | **No halt in the first 10^1000 steps; no drift near the danger window.** 2,555 left-end events, 1,440 F-events, all reading 0. A halt needs a block to run out while its drift is within about 10 of 0 (exact halt scans); the smallest new drift after the 30th event is 2,031,272, and 1,048 over the 37 list machines to 10^300. | `data/f05_danger.json`, `data/f05_timing.json` |
 | heuristic | **Where a halt would have to come from.** F is entered only by D1 (D reads a 1 during the left sweep, where a spread block is turned back), and halts only when it then reads a 1. In this run every F-event has the same clean context (`010001000100[F]0010101` (13×)). Random block lists do reach a halting F-event (about 1 in 150 F-entries; e.g. `[15, 31, 17, 59, 31]` halts after 63,153 steps), so the halt is reachable in principle; whether the blank-tape run ever produces such a list is the open part. F-events get rarer as the blocks grow (the top-level round time grows about fivefold per block). | `holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/random_lists.py` |
 | open | **Does it halt from blank tape?.** Not known. The visit rule is proved for every depth, its closed form, births and the F-event too; what is missing is a proof that the unclean visits of the blank-tape run (merges, small first blocks, the left end) always end in a C exit of the proved kind and never in an F exit onto a 1, that is an invariant on the block lists reached from blank tape. | README.md, Further work |
 | heuristic | **Growth shape: exp/sqrt.** Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a *counter* or of a Collatz-like map whose values are written on the tape (fitted exponent 0.051). Right of the start it grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a *bouncer*-like shape) (fitted exponent 0.471). | `tools/py/bbtools/triage.py` |
@@ -176,7 +231,7 @@ run stays clean is a real question.
 ## Reproduce
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/check.sh          # Blank.lean + Rules.lean + Family.lean
+. /etc/profile.d/lean.sh && holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/check.sh          # Blank.lean + Rules.lean + Family.lean + StartTwin.lean + Visits.lean
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_family_lean.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- H170624 > holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/Family.lean
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/cf.py                                       # closed form vs the recursion
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/hybrid_run.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1e100                     # exact block-list map, checked against trajectory.json
@@ -184,6 +239,10 @@ cd tools/py && python3 ../../holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/frames.py                                   # the 14 tables are conjugate as claimed
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/conjugacy_steps.py 1e6                      # and the runs agree step by step
 python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/trajectory.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1e11 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/data/trajectory.json
+python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/gen_visits_lean.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- H170624 > holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/lean/Visits.lean
+cd holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py && python3 fast.py check 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1e100; cd -   # rule-level map vs hybrid.py
+cd holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py && python3 f05_danger.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 60 1 40 400 out.json; cd -
+cd holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py && python3 f05_timing.py 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1e1000 out.json; cd -
 cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c
 ./family events 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---:A 1e8 > ev.txt && python3 holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/check_rounds.py ev.txt
 ./family enter 1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA--- 1e9 F                                 # the F-events, with the cells around them
@@ -201,6 +260,10 @@ cc -O2 -o family holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/c/family.c
   entries are large and grow like 5^i, so a parity/size invariant per depth is the natural candidate; none has been
   found yet.
 - The closed step count (`cf.steps`) is checked against `goT` in Python, not proved in Lean.
+- Done in the third pass: merge3, the left-end sweep and the left-end round in Lean for any inner visits
+  (`lean/Visits.lean`), the rule-level accelerator `py/fast.py`, the danger window and the drift timing. Still open in
+  Lean: visits to `[5, ...]` and `[0, ...]` and the C exits nested in a parent (the merge moving up); with them the
+  whole run would be a proved map on lists, and the question one about drifts.
 
 <!-- F05 -->
 

@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 0RA is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 10<sup>200</sup> steps: every F-event so far is of the proved harmless kind.</p>
+      <p><b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 0RA is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the merge of a used-up block and the whole left-end round are proved too, for any inner visits (<code>lean/Visits.lean</code>); the remaining exceptions are simulated exactly. No halt in 10<sup>1000</sup> steps: every F-event so far is of the proved harmless kind.</p>
       <p><b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 1.0&middot;10<sup>200</sup> steps without a halt.</p>
       <p><b>Start twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</code> (the same table from another start), under a condition on the block lists of one run.</p>
     </div>
@@ -132,6 +132,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What a clean visit conserves</h3>
         <p>For the blocks after the first, the last one left out: a clean visit (a list the closed form applies to) changes neither the residue of block i modulo 18&middot;5<sup>i&minus;2</sup> nor the drift b<sub>i+1</sub> &minus; 5&middot;b<sub>i</sub> of two neighbours. So these numbers change only at the exceptional events (a block running out, a birth, an entry into F, the left end). This is a law between events, not a proof that the machine never halts.</p>
         <p class="where"><code>tailEff_res</code>, <code>tailEff_drift</code>, <code>visit_conserves</code>, <code>lean/Family.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Merges and the left end, for any inner visits</h3>
+        <p><code>lean/Visits.lean</code> proves the rules for visits whose nested visits only <em>end</em> as clean ones do, whatever happens inside them, for every list and every left context: SPREAD (<code>spread_gen</code>), CARRY (a visit to [1, c, ...], <code>carry</code>), the merge of a used-up block (a visit to [3, c, ...] exits in C with the next block 3 longer, <code>merge3</code>), the left-end SWEEP (a visit to even blocks: cross them all, start a new block with a visit to [1], then from the last block to the first one visit and three CARRYs each; the first block ends two shorter: <code>sweep</code>, <code>run_gap</code>, <code>run_end</code>) and the round from one left-end event to the next (<code>left_end</code>). No state F is used, so they hold for the core of all 40 machines. Visits to [5, ...] and [0, ...] and the C exits nested in a parent are not covered yet.</p>
+        <p class="where"><code>spread_gen</code>, <code>carry</code>, <code>merge3</code>, <code>sweep</code>, <code>left_end</code>, <code>lean/Visits.lean</code></p>
       </div>
       <div class="card">
         <h3>One question with its start twin 1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</h3>
@@ -178,6 +183,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 1.0&middot;10<sup>200</sup> steps (exact block-list map)</h3>
         <p>The machine run as a map on block lists (clean visits by the closed form, a Lean theorem; every other visit by the exact run-length simulator, memoised) reaches step 1.0&middot;10<sup>200</sup> without a halt: 505 returns to the left end, 278 entries into F, all reading 0, all with the tape of the proved harmless kind around the head (<code>010001000100[F]001010101010</code> (189&times;); <code>010001000100[F]001010110101</code> (89&times;)). The list has 143 blocks at the last left-end event. Its F-events (step and cell read) agree with the plain cell-by-cell simulation of the machine on the first 3&middot;10<sup>9</sup> steps (5 F-events).</p>
         <p class="where"><code>data/f05_run.json</code>, <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code> (<code>hybrid.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>A merge-level accelerator</h3>
+        <p><code>py/fast.py</code> runs the machine as these rules on block lists, with no tape: clean visits by the closed form, SPREAD, CARRY and SWEEP as nested visits, and only the rest (about 1 visit in 40) on the run-length simulator. It gives the same left-end events and F-events as <code>hybrid.py</code> on all 37 list machines of the family to 10<sup>100</sup> steps, and runs 10<sup>200</sup> steps in 6 s instead of 2 minutes.</p>
+        <p class="where"><code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/fast.py</code> (<code>check</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>1000</sup> steps; no drift near the danger window</h3>
+        <p>The exact rule-level map runs 10<sup>1000</sup> steps (2,555 left-end events, 1,440 F-events, all reading 0). Halt scans on real left-end lists (every even pair at two neighbouring blocks, 12 more events, run exactly) halt exactly when (t<sub>j</sub> mod 18, t<sub>j+1</sub> &minus; 5t<sub>j</sub>) is in a small set, here {(6,&minus;4), (10,&minus;6), (14,&minus;8), (0,&minus;10), (0,&minus;2), (0,0)}: a block running out while its drift is within 10 of 0. Over the run no new drift comes near: the smallest after the 30th event is 2,031,272. Over the 37 list machines of the family to 10<sup>300</sup> steps the smallest is 1,048.</p>
+        <p class="where"><code>data/f05_danger.json</code>, <code>data/f05_timing.json</code>, <code>py/f05_danger.py</code>, <code>py/f05_timing.py</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
