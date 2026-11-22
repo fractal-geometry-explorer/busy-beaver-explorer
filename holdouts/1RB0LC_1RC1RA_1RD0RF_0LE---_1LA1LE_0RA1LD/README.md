@@ -93,6 +93,38 @@ went 6,232,238,054 steps from blank tape in 20 minutes without a halt (199 jumps
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD 1200
 ```
 
+## Lead 20 rechecked, longer runs and the fuse (22 November 2026)
+
+- **PR 93's engine, rechecked.** In the renamed table G = `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1RF_0RA---` (section above), PR 93's
+  collision rule `CfgL (001101 l) r → CfgJ l (1111 r)` was simulated again from scratch with 30 random cells on each
+  side: for T4 it ends in its rule form (`CfgL l (111111 r)`, 10 steps) in 40 of 40 cases; for G the head runs more
+  than 7 cells into `r` in 29 of 40, and in the other 11 it comes back to `l` in B with a different tape, never the
+  rule form. This agrees with PR #410, so the engine
+  does not carry over and this lead is closed. An engine for this machine has to be built from its own passes (below).
+- **Direct run.** `tools/c/tmrun.c` runs 10^12 steps from blank tape without a halt; the tape then holds 1,071,316
+  ones (about an hour).
+- **Accelerated run.** The C++ port `rsim_fast` (in the folder of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF) runs
+  19,424,261,661,128 steps (1.9·10^13) in one hour without a halt (7,491 tape-level jumps, validated, not proved).
+- **The passes of an epoch (observed).** `c/passes.c` prints, for each return of the head to the left end, how far
+  right it got. Inside an epoch the returns alternate between a short pass, which turns at the end of the
+  `(011)^a` block, and a long pass, which crosses the `(01)^b` block and the irregular region and turns at the
+  left end of a run of 1s near the right end of the tape. Each long pass shortens that run by 3 cells, so the run
+  is a **fuse**: for example `1^29` at step 179,100 is used up 3 at a time until step 209,010, and the next long
+  pass runs to the right end of the tape. That is the end of the epoch; the same alternation is seen in the epoch
+  at 4·10^8 steps (short passes turning about 3,180 cells from the left end, long ones about 9,290, on a run of 1s).
+  So the length of an epoch is set by the fuse the previous dump left behind.
+- **Long stretches away from the left end.** The stretches of more than 10^6 steps in which the head reaches the
+  right end of the tape before coming back end at steps 1.2·10^7, 3.2·10^7, 4.7·10^7, 5.8·10^7, 8.5·10^7,
+  1.6·10^8, 4.0·10^8, 1.45·10^9, 4.03·10^9 and then in clusters near 1.1–1.5·10^10, 1.7·10^10, 3.0·10^10 and
+  3.7·10^10; the longest take 5.8·10^8, 1.4·10^9, 1.3·10^9 and 9.6·10^9 steps. None between 3.73·10^10 and
+  3·10^11 steps (`passes 0 300000000000 ends`, the same run, no halt in 3·10^11 steps).
+
+```sh
+gcc -O2 -o passes holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/passes.c
+./passes 179000 210000 | cut -c1-140          # short and long passes, the fuse 1^29 eaten 3 cells at a time
+./passes 0 300000000000 ends                  # the long stretches that reach the right end (about 20 minutes)
+```
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, with exact step counts, and the counter phases are proved in Lean. An accelerated simulator that finds its own rules, checked against direct simulation at every one of 1,399 wall visits (word and step number), runs to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>) without a halt. It is exact by construction but has not been re-derived independently. The right-end events do not stop, each one can in principle leave a halting word (such words exist, proved in Lean), and no invariant is known."
+  "<b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, with exact step counts, and the counter phases are proved in Lean. An accelerated simulator that finds its own rules, checked against direct simulation at every one of 1,399 wall visits (word and step number), runs to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>) without a halt. It is exact by construction but has not been re-derived independently. The right-end events do not stop, each one can in principle leave a halting word (such words exist, proved in Lean), and no invariant is known. Every halt seen comes from one local pattern, a cascade with 3 blank cells, and the run's events so far meet only even counts."
  ],
  "claims": [
   {
@@ -112,16 +112,64 @@
    "where": "<code>py/lsa_run.py 1 1600</code>, <code>py/lsa_*.py</code>"
   },
   {
+   "level": "kernel",
+   "title": "Two hits that halt whatever is to their left",
+   "text": "The hit of a last run of 13 Y's, <code>L Y B&gt; X Y<sup>13</sup></code>, halts after 690 steps, and the hit <code>L Y B&gt; X Y<sup>8</sup> X X</code> after 254, for every tape L to the left (the head never reads L). So any visit, at any depth of the recursion, that hands on one of these hits stops the machine.",
+   "where": "<code>hit13_halts</code>, <code>hit800_halts</code>, <code>lean/Events.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "What an event does, for every tape to the left",
+   "text": "For b = 11, 12 and 14 to 20 and every tape L: <code>L x Y B&gt; X Y<sup>b</sup></code> comes back over the Y in F, as every regular hit does, leaving a word fixed by b; in the recursion this is one more rule, h(b) = g(b). For b = 0 to 10, every prefix Y<sup>a</sup> (a &ge; 1) and every tape beyond four blank pairs: the wall visit of the word (a, b) ends 7 cells to the left instead of 2, so the pairs to its right are shifted by one cell.",
+   "where": "<code>event11_0</code> &hellip; <code>event20_1</code>, <code>shift0</code> &hellip; <code>shift10</code>, <code>lean/Events.lean</code> (from <code>py/events_lean.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "The event rule h(b) = g(b) agrees with the machine",
+   "text": "44,000 random words whose events all have a last digit b &ge; 11 (490 of them halt): the recursion G extended by h(b) = g(b) and h(13) = halt predicts every visit exactly (direct simulation). The visit of X Y<sup>b</sup> halts for b &le; 400 only at b = 13. Events with b &le; 10 instead end 3.5 pairs further left, with the pairs shifted by one cell, and the word 3 + 0<sup>a</sup> f(b).",
+   "where": "<code>python3 py/events.py rule11 1</code>, <code>python3 py/events.py anatomy</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Every word of at most 18 pairs: 409 halt",
+   "text": "One wall visit of each of the 524,287 words: 409 halt, every other visit reaches the next wall visit, and every visit without an event gives G(S). Whether a word halts depends only on its hit (the word after the first digit): 218 halting hits, roughly doubling with each extra pair. At every event the innermost sub-visit is a two-digit word (a, b); halting is not decided by (a, b) and the frames' counters alone.",
+   "where": "<code>python3 py/events.py classify 18</code>, <code>py/halting_hits_18.txt</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The run's events meet no halting hit",
+   "text": "The accelerated run, logged at every visit that ends in an event through all eight right-end events and into the eighth's return: the innermost words are (3, 2), (2, 2), (6, 8), (5, 5), (9, 2), (6, 2), (5, 11) and (2, 8). No last digit is 13, and none of the 26 short hit words of the innermost frames halts when run directly; those of the seventh event (b = 11) return as ordinary hits.",
+   "where": "<code>python3 py/evlog.py 1 600 py/halting_hits_18.txt</code>, <code>python3 py/events.py hits FILE</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The cascade, case by case",
+   "text": "A pass of the head to the left reads the tape in pairs (A-cell, F-cell). Where it turns on a pair 01 instead of a blank pair, the head runs a cascade whose result depends only on the number m of blank cells to its left, proved for every tape on both sides: m = 0 is a hit in the new pair grid, m = 1 one more sub-visit, m = 2 a hit in the old grid, <b>m = 3 halts</b>, m = 4 and 5 hand the pass on to the left, m &ge; 6 gives a wall visit 7 cells on with the word Y Y Y R.",
+   "where": "<code>lean/Cascade.lean</code> (<code>cascade0</code> to <code>cascade6</code>, <code>cascade3_halts</code>), <code>python3 py/cascade_lean.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Every halt is a cascade with m = 3, never the first one",
+   "text": "All 524,287 words of at most 18 pairs, one wall visit each: a cascade happens exactly when the recursion meets an event; the first one has m = 2 &times; (sub-visits still to come in the innermost frame) in all 54,597 visits with a last digit b &le; 10, so it is even; m = 4 hands the pass to the next frame out (8,915 of 8,915); after m &ge; 6 the frame goes on in the other grid with m &minus; 5 blank cells. All 409 halting visits halt in a cascade with m = 3, and in none of them is it the first cascade: a halt needs a second event in a frame that already changed grid, when 5 blank cells are left.",
+   "where": "<code>python3 py/cascade.py words 18</code> (10 s)"
+  },
+  {
+   "level": "trusted",
+   "title": "The run's first five events: only even m",
+   "text": "Direct simulation from blank tape (first 3,000,000 steps) gives the cascades of the first five events, all with even m, as the logged frames predict. For the eighth event the logged frames predict m = 4, then m = 10 in frame (6, 0), which leaves that frame 5 blank cells: an event straight away in its next sub-visit would halt. That is a prediction from the frames, not a simulation.",
+   "where": "<code>python3 py/cascade.py run</code>, README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The counter cannot halt; a right-end event could leave a halting word, and no rule for these events is known.",
+   "text": "Not known. The counter cannot halt. Every halt seen is a cascade with m = 3: an event with last digit b &le; 10 that comes back to a frame with exactly 5 blank cells, after an earlier change of grid in that frame (or a last digit 13). The run's first events have only even m; in the eighth, frame (6, 0) is predicted to be left with 5 blank cells.",
    "where": "README"
   },
   {
    "level": "open",
    "title": "The right-end events",
-   "text": "A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word.",
-   "where": "README, Next steps"
+   "text": "A right-end event is a hit that reaches the last digit b of the word; at its bottom is always a sub-visit of a two-digit word (a, b). For b &ge; 11 it is an ordinary hit h(b) = g(b), or a halt at b = 13. For b &le; 10 the head comes home in the other pair grid and runs a cascade at the first blank stretch; the cascade is now a proved local rule with seven outcomes. What is still missing is the recursion that keeps the grid and the blank cells of every frame, so that the events can be followed as digit work instead of on cells.",
+   "where": "README, Inside a right-end event; Shifted events: the cascade"
   },
   {
    "level": "trusted",
@@ -138,7 +186,12 @@
   "gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 111010 F L 2000000",
   "cd tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6",
   "cd holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA && gcc -O2 -o /tmp/wv c/wv.c && /tmp/wv 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 3e6 0 1 > /tmp/ref.txt && python3 py/accel_check.py 1 /tmp/ref.txt",
-  "python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 1 && python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 1 100 100 8"
+  "python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 1 && python3 holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 1 100 100 8",
+  "cd holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py && python3 events.py anatomy && python3 events.py rule11 1",
+  "python3 events.py classify 18   # 7 minutes",
+  "python3 events_lean.py > ../lean/Events.lean",
+  "python3 cascade.py words 18 && python3 cascade.py run",
+  "python3 cascade_lean.py > ../lean/Cascade.lean"
  ],
  "explainer": {
   "lede": "Nobody knows whether it halts. Cut the tape into pairs of cells: every visit of the growing left end applies one recursive map to the tape, which builds a ladder of counters in base 4 and feeds it with fuel. A program that jumps over the regular parts has followed the machine to step 3.1&middot;10<sup>4475</sup> without a halt; the rare moments when the head reaches the other end of the tape keep coming and are not understood, and they decide the question.",
@@ -162,6 +215,16 @@
     "level": "heuristic",
     "value": "3.1&middot;10<sup>4475</sup>",
     "text": "Steps without a halt in the accelerated run (validated on the part direct simulation can reach)."
+   },
+   {
+    "level": "kernel",
+    "value": "h(13)",
+    "text": "An event with last digit 13 halts for every tape to its left; those with 11, 12, 14 to 20 are ordinary hits."
+   },
+   {
+    "level": "kernel",
+    "value": "1 0000 F&gt;1",
+    "text": "A pass of the head that reads this halts the machine, for every tape around it; every halt of every word of at most 18 pairs is this one."
    }
   ],
   "presets": [
@@ -200,7 +263,23 @@
     "heading": "When the head reaches the right end",
     "html": [
      "<p>When the last level overflows the head arrives at the blank right end in state D, and the recursion no longer applies. In the first 2·10<sup>10</sup> steps this happened at steps 1,937, 4,828, 24,290, 26,031, 17,047,480,846, 19,980,179,600. Some of these events only rewrite the last few digits; others are resets: a stretch of blank pairs is left inside the tape, a new counter starts to its right and uses the stretch as its wall, and the old blocks stay frozen until the stretch is used up.</p>",
-     "<p>The machine stops only when E reads a 1. The counter never brings that about, but some words of pairs do: on the tape <code>X Y^8 X X</code> a single wall visit halts after 257 steps (a Lean theorem; this tape does not occur in the run from blank). So whether the machine halts depends on the words that the right-end events leave behind, and nobody knows a rule for them.</p>"
+     "<p>The machine stops only when E reads a 1. The counter never brings that about, but some words of pairs do: on the tape <code>X Y^8 X X</code> a single wall visit halts after 257 steps (a Lean theorem; this tape does not occur in the run from blank). So whether the machine halts depends on the words that the right-end events leave behind. The next section takes an event apart.</p>"
+    ]
+   },
+   {
+    "id": "eventmap",
+    "eyebrow": "New, 22 November",
+    "heading": "Inside a right-end event",
+    "html": [
+     "<p>A right-end event is a hit that reaches the last digit b of the word. The visit that does it always comes down, at the bottom of the recursion, to a <b>two-digit word (a, b)</b>: every level of the recursion shortens the word by one digit, so the last sub-visit before the end sees just two. On cells the head then erases the last b Y's (state D) and runs into blank tape. The b erased pairs become b small walls, and a fresh counter starts on them from the word <code>2</code>, one pair per visit, <b>shifted one cell</b> against the pairs to its left. What happens next depends on b:</p>\n<table class=\"evtab\">\n<thead><tr><th>last digit b</th><th>what the event does (with enough blank pairs to its left)</th><th>evidence</th></tr></thead>\n<tbody>\n<tr><td>0 to 10</td><td>The visit ends 3.5 pairs further left than usual, in the other pair alignment, with the word <code>3 + 0<sup>a</sup> f(b)</code>. The visits after it are the same recursion G, shifted by one cell; the shift only matters where it meets the unshifted pairs of an enclosing frame.</td><td>Lean for every a &ge; 1 and every tape beyond four blank pairs (<code>shift0</code> to <code>shift10</code>)</td></tr>\n<tr><td>13</td><td><b>The machine halts</b>, whatever is to the left: the counter on the 13 erased pairs runs into the Y in front of them and E reads a 1 (690 steps).</td><td>Lean, every left tape (<code>hit13_halts</code>)</td></tr>\n<tr><td>11, 12, 14 and up</td><td>An <b>ordinary hit</b>: the head comes back in F as after any hit, and the event is one more rule of the recursion, <code>h(b) = g(b)</code> for a fixed word g(b).</td><td>Lean for b = 11, 12, 14 to 20, every left tape; 44,000 random words with such events agree with the machine</td></tr>\n</tbody></table>\n<p>The words for an event right at the wall (a = 0):</p>\n<pre class=\"evw\">b =  0..10 (shifted):  5 | 3 0 2 | 8 | 3 0 0 0 0 2 | 6 0 0 2 | 3 0 0 3 2 | 6 3 2 | 3 0 0 1 0 0 5 | 6 1 0 0 5 | 3 0 0 1 0 8 | 6 1 0 8\ng(11) = 0 0 0 3 3 1 0 0 5     g(12) = 0 6 3 1 0 0 5     g(13): halt     g(14) = 4 0 3 3 1 0 0 5\ng(15) = 1 0 0 6 3 1 0 0 5     g(16) = 4 6 3 1 0 0 5     g(17) = 1 0 0 4 1 0 0 0 0 0 3 3 1 0 0 5</pre>\n<p><b>Which words halt.</b> All 524,287 words of at most 18 pairs were run, one wall visit each. 409 of them halt and every other visit reaches the next wall visit. Whether a word halts depends only on its <i>hit</i>, the part after the first digit: <code>Y<sup>a</sup> X T</code> halts for every a or for none. There are 218 halting hits of this size, and their number keeps growing with the length, so they are not a short list. The two simplest, <code>13</code> and <code>8 0 0</code>, are Lean theorems for every tape to their left. Most others are a digit 8 or 6 whose first sub-visits end in an event right next to the blank pairs the digit left behind.</p>\n<p><b>The run's events tested.</b> The accelerated run was instrumented at every visit that ends in an event, through all eight right-end events and into the return of the eighth. The innermost words were (3, 2), (2, 2), (6, 8), (5, 5), (9, 2), (6, 2), then (5, 11) many times in the seventh event's return and (2, 8) in the eighth's. No last digit is 13. The hits of the innermost frames (for example <code>3 3 11</code>, <code>4 1 0 0 3 11</code>, <code>9 9 4 1 0 0 3 11</code>) were run directly: none halts, and the ones with b = 11 return as ordinary hits. Halting is not decided by the innermost word and the frames' counters alone: in the 18-pair data the same (a, b) and the same remaining sub-visits of the four innermost frames occur in halting and non-halting words. So the test has to look at the words themselves, which is what the next step needs.</p>\n<div class=\"evtry\">\n<label for=\"evw\">Run one wall visit of a word (digits: the number of Y's before each X, the last one is the final run of Y's)</label>\n<div class=\"row\"><input type=\"text\" id=\"evw\" value=\"0 13\" spellcheck=\"false\" autocomplete=\"off\"><button id=\"evgo\" class=\"primary\" type=\"button\">Run</button></div>\n<div class=\"row\" id=\"evpre\"></div>\n<div class=\"evout\" id=\"evout\" aria-live=\"polite\"></div>\n</div>\n<style>.evtab{border-collapse:collapse;width:100%;font-size:.92em;margin:8px 0}.evtab td,.evtab th{border:1px solid var(--line,#ccc);padding:5px 7px;vertical-align:top;text-align:left}.evw{white-space:pre-wrap;font-size:.85em}.evtry{border:1px solid var(--line,#ccc);border-radius:8px;padding:10px;margin-top:10px}.evtry .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.evtry input{flex:1;min-width:160px;font-family:monospace}.evout{font-family:monospace;font-size:.88em;white-space:pre-wrap;margin-top:8px;word-break:break-all}</style>\n<script>\n(function(){\n  // 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA: [write, move, next] per state A..F and read 0/1; null halts\n  var T = [[[1,1,1],[1,-1,5]], [[1,-1,2],[1,1,1]], [[1,-1,4],[1,-1,3]], [[1,-1,1],[0,1,3]], [[1,-1,5],null], [[1,-1,0],[0,-1,0]]];\n  var inp = document.getElementById('evw'), out = document.getElementById('evout'), pre = document.getElementById('evpre');\n  var presets = [['0 13','a last digit 13: halts'], ['0 8 0 0','the hit 8 0 0: halts'], ['0 11','b = 11: an ordinary hit'], ['0 5','b = 5: shifted'], ['3 2','the first event of the run'], ['0 3 3 11','a frame of the 7th event'], ['3 0 0 0 2','no event']];\n  presets.forEach(function(p){ var b = document.createElement('button'); b.type = 'button'; b.textContent = p[0]; b.title = p[1];\n    b.onclick = function(){ inp.value = p[0]; run(); }; pre.appendChild(b); });\n  function digits(cells){ if (cells.length % 2) cells.push(0); var d = [0];\n    for (var i = 0; i < cells.length; i += 2) { var x = cells[i], y = cells[i+1];\n      if (x === 1 && y === 1) d[d.length-1]++; else if (x === 1 && y === 0) d.push(0); else return null; }\n    return d; }\n  function run(){\n    var ds = inp.value.trim().split(/[\\s,]+/).filter(function(s){ return s !== ''; }).map(Number);\n    if (!ds.length || ds.some(function(x){ return !(x >= 0 && x <= 400 && Math.floor(x) === x); })) { out.textContent = 'Give digits 0..400 separated by spaces.'; return; }\n    var cells = []; ds.forEach(function(x, i){ if (i) cells.push(1, 0); for (var j = 0; j < x; j++) cells.push(1, 1); });\n    var N = 1 << 20, base = N >> 1, t = new Uint8Array(N); for (var i = 0; i < cells.length; i++) t[base + 1 + i] = cells[i];\n    var end = base + cells.length, p = base, s = 5, n = 0, lo = p, ev = null, cap = 3e7;\n    while (n < cap) {\n      var tr = T[s][t[p]];\n      if (tr === null) { out.textContent = 'HALTS after ' + n.toLocaleString() + ' steps: E reads a 1 at cell ' + (p - base) + ' (the wall is cell 0).' + (ev ? '\\nThe head reached the blank right end in ' + ev + ' first (a right-end event).' : ''); return; }\n      t[p] = tr[0]; p += tr[1]; s = tr[2]; n++;\n      if (p > end && ev === null) ev = 'ABCDEF'[s] + ' at step ' + n;\n      if (p < lo) { lo = p; if (s === 5 && t[p] === 0) break; }\n      if (p <= 1 || p >= N - 2) { out.textContent = 'The head left the window.'; return; }\n    }\n    if (n >= cap) { out.textContent = 'No result in ' + cap.toLocaleString() + ' steps.'; return; }\n    var hi = N - 2; while (hi > p && t[hi] === 0) hi--;\n    var rest = []; for (var q = p + 1; q <= hi; q++) rest.push(t[q]);\n    var d = digits(rest.slice()), off = p - base;\n    out.textContent = 'Next wall visit after ' + n.toLocaleString() + ' steps, at cell ' + off + (off === -2 ? ' (an ordinary visit: one pair to the left).' : ' (not the ordinary -2: ' + (off % 2 ? 'the pairs are now shifted by one cell' : 'extra blank pairs used') + ').') +\n      '\\n' + (ev ? 'Right-end event: the head first went past the end in ' + ev + '.' : 'No right-end event: the recursion G applies.') +\n      '\\nNext word: ' + (d ? d.join(' ') : 'not a word of X and Y: ' + rest.join(''));\n  }\n  document.getElementById('evgo').onclick = run;\n  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') run(); });\n  run();\n})();\n</script>"
+    ]
+   },
+   {
+    "id": "cascade",
+    "eyebrow": "New, 22 November",
+    "heading": "The cascade: how a shifted event ends, and how the machine would halt",
+    "html": [
+     "<p>A pass of the head to the left alternates F and A, so it reads the tape in pairs: F flips its cell, A goes on over a 1 and turns the head right on a 0. On a word of X = 10 and Y = 11 the pass swaps X and Y and turns only on a blank pair, which is the ordinary wall visit. After an event with last digit b &le; 10 the pass starts one cell off and reads the pairs <b>in the other grid</b>. At the next blank stretch the pair it turns on is 01 instead of 00, and the head runs a <b>cascade</b>: it writes 1s to the left, one cell per step. The result depends only on <b>m, the number of blank cells</b> left of that pair (Lean, every tape on both sides):</p>\n<table class=\"cztab\">\n<thead><tr><th>m</th><th>what the cascade does</th></tr></thead>\n<tbody>\n<tr><td>0</td><td>a hit in the new grid: the recursion goes on from there</td></tr>\n<tr><td>1</td><td>one more sub-visit, with no blank cell left</td></tr>\n<tr><td>2</td><td>a hit back in the old grid</td></tr>\n<tr class=\"czhalt\"><td>3</td><td><b>the machine halts</b>: <code>1 0 0 0 0 F&gt;1</code> stops it in 7 steps</td></tr>\n<tr><td>4, 5</td><td>the pass goes on to the next frame out</td></tr>\n<tr><td>6 or more</td><td>a wall visit 7 cells further on; the frame goes on in the new grid with m &minus; 5 blank cells</td></tr>\n</tbody></table>\n<p><b>Why a halt is rare.</b> The first cascade of an event has m = 2 &times; (sub-visits still to come in the frame it happens in), always even (all 54,597 such words of at most 18 pairs). An odd m needs a frame that already changed grid. All 409 halting words of at most 18 pairs halt at m = 3, never at the first cascade. The hit <code>8 0 0</code> is the shortest case: m = 14 leaves 9 blank cells, two sub-visits use 2 each, and the next event finds 5 and halts. The run's first five events have only even m. In the eighth, the logged frames predict a shift that leaves one frame <b>exactly 5 blank cells</b>. An event there straight away would halt.</p>\n<div class=\"cztry\">\n<label for=\"czw\">Run one wall visit and list its cascades (digits as above)</label>\n<div class=\"row\"><input type=\"text\" id=\"czw\" value=\"0 8 0 0\" spellcheck=\"false\" autocomplete=\"off\"><button id=\"czgo\" class=\"primary\" type=\"button\">Run</button></div>\n<div class=\"row\" id=\"czpre\"></div>\n<div class=\"czout\" id=\"czout\" aria-live=\"polite\"></div>\n</div>\n<style>.cztab{border-collapse:collapse;width:100%;font-size:.92em;margin:8px 0}.cztab td,.cztab th{border:1px solid var(--line,#ccc);padding:5px 7px;vertical-align:top;text-align:left}.cztab tr.czhalt td{font-weight:600}.cztry{border:1px solid var(--line,#ccc);border-radius:8px;padding:10px;margin-top:10px}.cztry .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.cztry input{flex:1;min-width:160px;font-family:monospace}.czout{font-family:monospace;font-size:.88em;white-space:pre-wrap;margin-top:8px;word-break:break-all}</style>\n<script>\n(function(){\n  var T = [[[1,1,1],[1,-1,5]], [[1,-1,2],[1,1,1]], [[1,-1,4],[1,-1,3]], [[1,-1,1],[0,1,3]], [[1,-1,5],null], [[1,-1,0],[0,-1,0]]];\n  var MEAN = {0:'a hit in the new grid', 1:'one more sub-visit, no blank cell left', 2:'a hit back in the old grid', 3:'HALT', 4:'the pass goes on to the next frame out', 5:'the pass goes on to the next frame out'};\n  var inp = document.getElementById('czw'), out = document.getElementById('czout'), pre = document.getElementById('czpre');\n  var presets = [['0 8 0 0','m = 14, then 3: halts'], ['0 13','last digit 13: 0, then 3'], ['0 6 0 1 1 0','0, 10, 4, 3: halts'], ['0 9 0 0','16, then 5: no halt'], ['0 3 0 5','m = 4: passed on to the top'], ['0 6 0 5','m = 10, then 0'], ['3 2','the run\\'s first event']];\n  presets.forEach(function(p){ var b = document.createElement('button'); b.type = 'button'; b.textContent = p[0]; b.title = p[1];\n    b.onclick = function(){ inp.value = p[0]; run(); }; pre.appendChild(b); });\n  function run(){\n    var ds = inp.value.trim().split(/[\\s,]+/).filter(function(s){ return s !== ''; }).map(Number);\n    if (!ds.length || ds.some(function(x){ return !(x >= 0 && x <= 400 && Math.floor(x) === x); })) { out.textContent = 'Give digits 0..400 separated by spaces.'; return; }\n    var cells = []; ds.forEach(function(x, i){ if (i) cells.push(1, 0); for (var j = 0; j < x; j++) cells.push(1, 1); });\n    var N = 1 << 20, base = N >> 1, t = new Uint8Array(N); for (var i = 0; i < cells.length; i++) t[base + 1 + i] = cells[i];\n    var p = base, s = 5, n = 0, lo = p, prevF1 = false, lines = [], cap = 3e7;\n    while (n < cap) {\n      var r = t[p];\n      if (prevF1 && s === 0 && r === 0) {\n        var m = 0; while (t[p - 1 - m] === 0 && p - 1 - m >= lo - 1) m++;\n        var inf = p - 1 - m < lo - 1;\n        lines.push('step ' + n.toLocaleString() + ': cascade, m = ' + (inf ? 'infinite (blank tape: the visit ends 7 cells to the left)' : m + ' (' + (m >= 6 ? 'a wall visit 7 cells on, ' + (m - 5) + ' blank cells left' : MEAN[m]) + ')'));\n      }\n      var tr = T[s][r];\n      if (tr === null) { lines.push('HALTS after ' + n.toLocaleString() + ' steps (E reads a 1).'); break; }\n      prevF1 = (s === 5 && r === 1);\n      t[p] = tr[0]; p += tr[1]; s = tr[2]; n++;\n      if (p < lo) { lo = p; if (s === 5 && t[p] === 0) { lines.push('Next wall visit after ' + n.toLocaleString() + ' steps, ' + (base - p) + ' cells to the left.'); break; } }\n      if (p <= 1 || p >= N - 2) { lines.push('The head left the window.'); break; }\n    }\n    if (n >= cap) lines.push('No result in ' + cap.toLocaleString() + ' steps.');\n    if (lines.length === 1 && !/HALT/.test(lines[0])) lines.unshift('No cascade: no event with b ≤ 10 in this visit.');\n    out.textContent = lines.join('\\n');\n  }\n  document.getElementById('czgo').onclick = run;\n  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') run(); });\n  run();\n})();\n</script>\n"
     ]
    },
    {

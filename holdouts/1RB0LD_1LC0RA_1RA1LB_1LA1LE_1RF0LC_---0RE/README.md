@@ -62,6 +62,8 @@ a sparse set?), hence "Cryptid".
 | trusted | closed form of the step count = `pstep` for 1 ≤ n ≤ 200,000 (Python transcription of the Lean function) | `py/macro.py check 200000` |
 | trusted | all 16 P-events up to 10¹⁰ steps match direct simulation (last: P(70411) at step 9,108,900,940) | `py/macro.py orbit 1e10`, `c/pevents.c` |
 | trusted | 10⁵ rounds without a halt: n has 66,605 bits, ≈ 10^40,100 steps | `py/macro.py far 1e5` |
+| kernel | **no congruence invariant**: no set of residue classes mod any divisor of 2^16·3^9 holds the run, is kept by the map and misses every h_k (same for the starts n = 10 and n = 1 of the two sibling machines) | `no_cong_4`, `no_cong_10`, `no_cong_1`, `no_inv`, `lean/Congruence.lean` |
+| trusted | the same for every modulus M ≤ 20,000 and every 2^j·3^i ≤ 2^12·3^7 (breadth-first search) | `py/congruence.py all 20000`, `grid 12 7` |
 | heuristic | chance of a later halt ≈ 10^−20,000 | above |
 | open | does the orbit of 4 ever hit an h_k? | |
 
@@ -79,7 +81,26 @@ python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py check 200
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py orbit 1e10
 gcc -O2 -o pevents holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/c/pevents.c && ./pevents 10000000000   # ~3 min
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5                               # ~10 min
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/congruence.py all 20000   # ~8 min; `lean 16 9 17 17` ~1 min
 ```
+
+## Congruences cannot settle it
+
+A non-halting proof of the usual Collatz kind would be a set of residue classes (of n mod 2^j·3^i, say) that holds
+the run, is kept by the map and misses every h_k. There is none. With v = n + k + 6 − 5·2^k (v = 0 exactly at
+n = h_k) the step is, exactly,
+
+    v′ = 3v + 2 + 5·2^k + k′ − 5·2^k′,   k′ = k + d,  d ∈ {0, 1} (d = 2 only in the top ~k/3 values of a level).
+
+A congruence mod M sees only (v, k, 2^k) mod M, and whether d is 0 or 1 depends on the size of n inside its level,
+not on its residues: for 2^k ≥ 3M + k + 10 every residue of v occurs with both (`realize`). So an invariant has to
+survive both choices, and one sequence of choices from the residues of the run to v ≡ 0 rules it out (`no_inv`).
+`py/congruence.py lean 16 9 17 17` finds such sequences (34 choices, meet in the middle) for M = 2^16·3^9 from the
+three starts, and `lean/Congruence.lean` checks them in the kernel; an invariant mod a divisor of M would be one
+mod M (`no_inv_dvd`), so this covers every 2^j·3^i with j ≤ 16, i ≤ 9. A breadth-first search finds such paths
+for every modulus M ≤ 20,000, primes other than 2 and 3 included (at most 24 choices). Mod 3^i the step forgets v
+after i steps (it is multiplied by 3), and mod 2^j the multiplication by 3 is a permutation while k drifts freely,
+so the residues mix completely. A proof that the orbit avoids the h_k has to use the size of n within its level.
 
 ## Further work
 

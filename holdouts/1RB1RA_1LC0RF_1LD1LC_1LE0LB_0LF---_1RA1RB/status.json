@@ -2,7 +2,7 @@
  "generated": false,
  "group": "G07",
  "family": "rows of blocks of 1s rewritten by two sweeps (parity and mod 4 structure, chaotic)",
- "summary": "A row of blocks of 1s split by single 0s, rewritten by two sweeps with four block rules (in Lean); it halts only if the left sweep bounces off a block of exactly two 1s inside the row, which did not happen in 2·10^10 steps; open.",
+ "summary": "The Pascal machine (1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF) in a mirror, started in state D: bounces write rows of Pascal's triangle mod 2, and in Lean it halts only if that machine's list program fails from another start; open.",
  "decision": "open",
  "title": "What is known about 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB",
  "description": "Proof status of the six-state BB(6) holdout 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB.",
@@ -13,9 +13,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is a row of blocks of 1s split by single 0s. Two sweeps rewrite it by four rules, proved for all block sizes. The machine halts only if the sweep to the left bounces off a block of exactly two 1s that is not the leftmost block, and no invariant is known that rules this out."
+  "<b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 10<sup>6</sup> steps from there without failing."
  ],
  "claims": [
   {
@@ -103,9 +103,45 @@
    "where": "<code>c/mrun.c</code> of 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB"
   },
   {
+   "level": "kernel",
+   "title": "The Pascal machine in a mirror",
+   "text": "This table is the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> read in a mirror, with that machine's states A to F renamed D, E, F, A, B, C. The blank tape is its own mirror image, so the run from blank tape is, cell for cell in the mirror, the run of the Pascal table started in state D, and this machine halts if and only if that run halts.",
+   "where": "<code>is_mirror</code>, <code>halts_iff</code>, <code>lean/Mirror.lean</code> (written by <code>py/port_mirror.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB)"
+  },
+  {
+   "level": "kernel",
+   "title": "One bounce is one row of Pascal's triangle mod 2",
+   "text": "Every theorem of the Pascal machine's folder holds here with left and right exchanged; its Lean files are compiled here unchanged (<code>lean/P75625/</code>). At a left turn in B, with the zone right of the head a word in the 4-cell letters <code>0111</code> and <code>1111</code> and the frozen tape <code>1 1 1 ...</code> left of it, one bounce turns the zone into the next row of Pascal's triangle mod 2 (closed form by Lucas' theorem), and takes two cells from the frozen block. A frozen block of odd length followed by <code>0 1</code> halts, whatever the zone, clean or walled (the halt: C reading 0 with <code>1 0</code> to its left).",
+   "where": "<code>bounce</code>, <code>bounces</code>, <code>halts_of_odd</code>, <code>halts_of_odd_wall</code>, <code>lean/Mirror.lean</code>; <code>closed_form</code>, <code>lean/P75625/Lucas.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The holdout is the Pascal machine's list program, from another start",
+   "text": "The first left turn in B, at step 46, is the list state <code>EO [b, a, b, a, a, a] none 0</code> of the Pascal machine's list machine <code>arun</code> (zone <code>b a b a a a</code>). If that list machine never fails from there, this machine never halts. The Pascal machine's own run starts it at <code>EO [b, a] none 1</code>.",
+   "where": "<code>start</code>, <code>not_halts_of_arun</code>, <code>lean/Mirror.lean</code>; <code>astep</code>, <code>lean/P75625/End.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Where the list machine can fail",
+   "text": "For every state: a turn with no lone 1 in the zone never fails; a crossing turn with a clean far part whose tape ends in a single 1 never fails, and plain and crossing turns ending in a single 1 hand that on. So the list machine fails only at a crossing turn with blank end, at an <code>EO</code> turn during a crossing, or at a crossing turn whose far part is not clean.",
+   "where": "<code>astep_T</code>, <code>astep_EO</code>, <code>astep_T2_end</code>, <code>astep_endOne</code>, <code>astep_none</code>, <code>lean/Fail.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The list machine from this start: 40,000 steps",
+   "text": "Run on its own, 40,000 list steps without a failure (zone up to 19,162 letters, every far part clean). The 2,343 crossing turns with blank end all follow one of four early <code>EO</code> turns during a crossing (the last after list step 4,552); 2,339 have a witness, and the other 4 (frozen word <code>0</code>) are passed. In lockstep with the real machine the list machine agrees at all 20,967 right turns of the first 2&middot;10<sup>8</sup> steps.",
+   "where": "<code>py/mirror_run.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB (<code>run D 40000</code>, <code>lockstep D 2e8</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "10<sup>6</sup> list steps; every near miss is the window of one Lean theorem",
+   "text": "The C++ list machine of the Pascal machine, started here, takes 10<sup>6</sup> list steps without failing. E reads the last 1 during a crossing only 5 times, each with near part exactly <code>b a b a<sup>6</sup></code> and a clean far part: the window <code>W3</code>, for which <code>window_W3</code> (Lean, kernel, every prefix and every clean far part) proves two safe steps. The 5 crossing turns with blank end and no witness are the first bounces of those windows.",
+   "where": "<code>c/mirror_lm.sh D 1000000</code>; <code>window_W3</code>, <code>lean/P75625/Window.lean</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly when the sweep to the left bounces off a block of two 1s that is not the leftmost block and then comes back to it; what is missing is an invariant of the rows of blocks that forbids this.",
+   "text": "Not known. It halts exactly if the Pascal table started in D halts (Lean), and it never halts if the Pascal machine's list machine never fails from <code>EO [b, a, b, a, a, a] none 0</code> (Lean). Whether it fails is the same open question as for the Pascal machine, from another start.",
    "where": ""
   },
   {
@@ -130,6 +166,7 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/lean/check.sh",
+  "python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py run D 40000     # the list machine, about 15 minutes",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB 1000000000",
   "cd holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py && python3 blocks.py check",
   "gcc -O2 -o echeck ../c/echeck.c && ./echeck 2e10",
@@ -139,19 +176,19 @@
   "lede": "Nobody knows. This machine's tape is a long row of blocks of 1s with single 0s between them. The head sweeps left and right over the row and rewrites it by four simple rules, and the machine stops only if one of the sweeps meets a block of exactly two 1s in the wrong place.",
   "facts": [
    {
-    "level": "trusted",
-    "value": "2&middot;10<sup>10</sup> steps",
-    "text": "No halt, and no block of two 1s ever bounced off inside the row."
+    "level": "kernel",
+    "value": "mirror",
+    "text": "The Pascal machine's table read in a mirror, started in state D."
    },
    {
     "level": "kernel",
-    "value": "4 block rules",
-    "text": "What the two sweeps do to a block, proved for every block size."
+    "value": "Pascal mod 2",
+    "text": "Each bounce writes the next row of Pascal's triangle mod 2."
    },
    {
     "level": "trusted",
-    "value": "99.99%",
-    "text": "Blocks right of the head with length 3 mod 4 when the left sweep is under way."
+    "value": "10<sup>6</sup>",
+    "text": "Steps of the list program from this start, without a failure."
    }
   ],
   "presets": [
@@ -176,6 +213,16 @@
      "<p>All four rules are proved in Lean for every block size. They explain the shapes on the tape: blocks of length 3, 7, 11, ... shred into an odd number of single 1s, and that keeps the next sweep to the left in step with the row. In the run, 99.99% of the blocks to the right of the head have such a length.</p>",
      "<p><b>The only way to stop.</b> The machine halts exactly when the sweep to the left finds two 0s side by side with a 1 beyond them. Two 0s side by side arise in one way: a bounce off a block of exactly two 1s. At the very left end of the tape that is harmless, anywhere else it is fatal. In 20 billion steps the head bounced 208,505 times and the smallest block it bounced off inside the row had three cells.</p>",
      "<p>Is that luck? A test says no: change one block far from the head by one cell (so that its length becomes even), and the machine halts in about half of the trials. Change it by two or four cells and nothing happens. The row from blank tape obeys a hidden rule about odd and even lengths, and probably one about lengths mod 4. Finding that rule exactly, in a form a proof checker accepts, is what is missing. Two automatic searches for it (closed sets of tapes described by small automata) found nothing.</p>"
+    ]
+   },
+   {
+    "id": "pascal",
+    "eyebrow": "What it really is",
+    "heading": "The Pascal machine, in a mirror",
+    "html": [
+     "<p>Read the table of <a href=\"../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html\">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror and rename its states A to F as D, E, F, A, B, C: you get this machine's table exactly. The blank tape looks the same in a mirror, so this machine's run is that machine's table started in state D, seen in a mirror. Lean checks the correspondence, and every theorem about that table comes over with left and right exchanged.</p>",
+     "<p>So the picture of that machine applies. A zone next to the growing right end is a word in the 4-cell letters <code>0111</code> and <code>1111</code>. Each time the head turns left in B, one bounce sweeps the zone and replaces it by its running parity, the next row of Pascal's triangle mod 2: the nested triangles in the space-time diagram above. Each bounce takes two cells from the frozen block left of the head. A frozen block of odd length followed by <code>0 1</code> would halt the machine, whatever the zone.</p>",
+     "<p>After 46 steps the run is in a state of the Pascal machine's <em>list program</em>, which follows the machine from turn to turn using lists alone. Lean proves that if this program never fails from <code>EO [b, a, b, a, a, a] none 0</code>, the machine never halts. It ran 10<sup>6</sup> list steps from there without failing. Lean also proves the program can fail in only three ways.</p>"
     ]
    },
    {

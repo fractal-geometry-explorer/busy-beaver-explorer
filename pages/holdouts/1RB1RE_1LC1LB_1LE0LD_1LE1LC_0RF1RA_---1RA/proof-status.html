@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and it is now an exact arithmetic question.</b> Read the tape as a list of runs of ones. Lean proves that from one visit of the left end to the next the list changes by an explicit map (<code>visit</code>), and that the machine halts from blank tape exactly when the orbit of the list <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> under this map reaches a list in which every run is even (<code>halts_iff</code>). The map is a counter growing by 3/2 per epoch whose parities drive a growing stack of slower counters; a halt needs the whole stack used up. An exact simulator ran 260,000 epochs (about 10<sup>91568</sup> steps) without a halt, and the depth the head reaches into the stack falls off geometrically, so a halt looks very unlikely; it is not excluded. Lean also proves that no invariant on the parities of the runs (or on the runs mod 4, 8 or 16) can exclude it, and a list with the same stack as the real run but a different counter value halts: a proof would have to follow the 3/2 counter's arithmetic.</p>
+      <p><b>The question is open, and it is now an exact arithmetic question.</b> Read the tape as a list of runs of ones. Lean proves that from one visit of the left end to the next the list changes by an explicit map (<code>visit</code>), and that the machine halts from blank tape exactly when the orbit of the list <code>[12, 1, 1, 1, 1, 1, 1, 1, 1, 1]</code> under this map reaches a list in which every run is even (<code>halts_iff</code>). The map is a counter growing by 3/2 per epoch whose parities drive a growing stack of slower counters; a halt needs the whole stack used up. An exact simulator ran 10,000,000 epochs (more than 10<sup>3,521,825</sup> steps) without a halt. The real counter digs into the stack exactly as deep as a random 2-adic counter does, and such digs fall off geometrically (a factor 0.68 per run of the stack), so a halt looks very unlikely; it is not excluded. Lean also proves that no invariant on the parities of the runs (or on the runs mod 4, 8 or 16) can exclude it, and a list with the same stack as the real run but a different counter value halts: a proof would have to follow the 3/2 counter's arithmetic.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -160,6 +160,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>No set of parity words (the list of r mod 2 over the runs) contains the word of [12, 1<sup>9</sup>], is closed under the visit map on the domain D, and avoids every halting list; the same for residues mod 4, 8 and 16. The proof is an explicit chain of lists of D (14, 18, 20 and 56 lists): the first has the residue word of [12, 1<sup>9</sup>], each is mapped to a list with the residue word of the next, the last halts. Checked by <code>decide</code>. (Axioms: propext, Quot.sound.)</p>
         <p class="where"><code>no_parity_invariant</code>, <code>no_residue_invariant</code>, <code>lean/NoParityInvariant.lean</code>; chains from <code>py/residue_chain.py</code></p>
       </div>
+      <div class="card">
+        <h3>A parity word is one residue class of the counter</h3>
+        <p>For any stack dynamics L' = g(L, p) and counter m' = (3m + c(L, p))/2 with c(L, p) &equiv; p mod 2, where p = m mod 2: two counters give the same first n parities from the same stack iff they agree mod 2<sup>n</sup>, and every word of n parities occurs. So the counters that follow a given parity word of length n form exactly one residue class mod 2<sup>n</sup>, and any event decided by the parities (reaching a depth of the stack, emptying it) has a 2-adic measure equal to its probability under fair coin flips. The epoch map of this machine has this form (computed, not proved here).</p>
+        <p class="where"><code>word_class</code>, <code>word_eq_iff</code>, <code>word_onto</code>, <code>lean/Adic.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -197,6 +202,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/visit.py epochs 100000</code></p>
       </div>
       <div class="card">
+        <h3>No halt in 10,000,000 epochs</h3>
+        <p>A 2-adic epoch simulator (the exact run-stack simulator on the top of the stack only, and the counter updated in full once per 4,096 epochs from its low bits) agrees with the exact simulator over epochs 2,000 to 100,000 and runs 10,000,000 epochs in 8.5 minutes without a halt: the counter then has 5,849,626 bits, the stack 11,380,629 runs, and the machine has made more than 10<sup>3,521,825</sup> steps.</p>
+        <p class="where"><code>python3 py/adic.py check 100000</code>, <code>python3 py/adic.py run 1e7</code></p>
+      </div>
+      <div class="card">
         <h3>A halting list with the real stack</h3>
         <p>For large m the next stack depends only on the stack and the parity of m (<code>py/adversary.py</code>), and m' = (3m + c)/2 with c fixed by the stack and the parity. From the stack 4 u<sup>17</sup> 4 u<sup>3</sup> 4 1 of the real visit [6, 4, u<sup>368</sup>, &hellip;] at step 181,429, 247 odd epochs and then one even epoch halt the machine. Solving for m gives m<sub>0</sub> = <span style="word-break:break-all">411552886652862616936624594742<wbr>612768339794261645949505753891<wbr>63897113542655</span> (mod 2<sup>248</sup>); the exact simulator run from [6, 4, u<sup>m<sub>0</sub></sup>, 4, u<sup>17</sup>, 4, u<sup>3</sup>, 4, 1] halts after 248 epochs (a step count of 780 bits). So a proof has to see m mod 2<sup>248</sup>. The breadth-first searches over parities (468,328 stacks to depth 19, a sampled search to depth 40) were too shallow to meet this word.</p>
         <p class="where"><code>python3 py/halting_twin.py</code></p>
@@ -209,6 +219,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
+      <div class="card">
+        <h3>The real counter digs like a random 2-adic counter</h3>
+        <p>Call the dig from an epoch the largest later drop of the number of runs of the stack; a halt needs a dig of the whole stack. Over the first 10<sup>6</sup> epochs the real run digs 10 runs or more from 3.6% of the epochs, 20 or more from 0.079%, 30 or more from 0.0016%, at most 35. Coin flips from the real stack (by <code>word_class</code>, random 2-adic counters) give the same shares within sampling error (3.3% and 0.05% at 10 and 20). The tail falls by a factor 0.68 per run; extrapolated, the 2-adic counters that could still empty the stack of epoch 10<sup>7</sup> (11,380,629 runs) have measure about 10<sup>&minus;1,906,000</sup>. A literal &ldquo;depth d needs d parities&rdquo; is false: some words of 12 parities dig 27 runs.</p>
+        <p class="where"><code>py/dig.py</code></p>
+      </div>
       <div class="card">
         <h3>The stack is touched only near its top</h3>
         <p>In 100,000 epochs the head passed 1 entry of the stack in 73% of the epochs, 2 in 22%, 3 in 4%, 4 in 0.27%, 5 in 0.04%, 6 twice, while the stack gains 0.28 entries per epoch; its size never came back more than 10 entries below an earlier value. If the parities keep behaving like coin flips, the chance that the stack is ever emptied is negligible.</p>
@@ -260,7 +275,12 @@ python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/epochs.py 1RB1RE_1
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 1000000000
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 check 1e9
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 orbit 1742
-python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 300</code></pre>
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA L D 1 bfs 300
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adic.py check 100000
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/adic.py run 1e7
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/dig.py real 2e6
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/dig.py along 1e5 3e5 6000 400 1
+python3 holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/py/dig.py short 100000 15</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>
