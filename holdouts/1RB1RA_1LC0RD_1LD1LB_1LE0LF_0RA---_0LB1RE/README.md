@@ -31,6 +31,7 @@ the turning point jumps far left and a new phase starts.
 - **PR 93's macro rules on this machine.** 8 of the rules of DeepMind's busycoq PR 93 engine as they hold here, for every count, including the changed collision, collisionD and collide (`lean/EngineRules.lean`; see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
 - **No halt in the first 10,000 steps.** The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel. (`blank_runs_kernel`, `lean/Blank.lean`)
 - **The eat visit of the right-end bouncer, for all counts.** `L 1^(a+3) (01011)^b (011)^c 0 D> 0^inf` reaches `L 1^a (01011)^b (011)^(c+2) 0 D> 0^inf` in 20b + 10c + 25 steps, for every a, b, c and every tape L (never read); k such visits in a row take k(20b + 10c + 15) + 10k² steps. (`eat_visit`, `eat_iter`, `lean/VisitRules.lean`, written by `py/visit_rules.py`; see [the right end](#the-right-end-a-bouncer-over-long-blocks-lead-18-22-november-2026))
+- **One round of the right-end bouncer, for every chamber.** For every list of S-blocks between a wall and the right end, a long visit uses up three 1s of the wall, leaves the blocks unchanged and grows the last block (by 3 in regime I, where a short visit follows, and by 1 in regime II); k rounds in a row likewise; also at a wall of exactly three 1s. (`round_I`, `short_I`, `rounds_I`, `round_II`, `round_I3`, `round_II3`, `lean/RoundRules.lean`, written by `py/round_rules.py`; see [round by round](#round-by-round-walls-blocks-and-two-right-ends-22-november-2026))
 
 **Proved in Lean with `native_decide`:**
 
@@ -131,6 +132,55 @@ Next steps: decode the digit list's update rule (it is PR 93's counter with the 
 the long visits become a map; with the eat phase that would give a visit-level accelerator. `c/mm2.cpp` is exact but
 gains only a factor of 2 to 4 because the digit list does not compress.
 
+## Round by round: walls, blocks and two right ends (22 November 2026)
+
+Decoding how the irregular digit list changes from one right-end visit to the next. At rest (each time the head
+reaches a new rightmost cell) the tape right of the left-end digits is almost entirely made of S-blocks
+`S_n = 1 (01)^(n+1)`, the digits of the list. What is not an S-block is one of three things: a **wall**, a run of
+4 or more 1s; a run of exactly three 1s; or a leftover `D_0 = 100`. A visit only ever works on the part of the tape
+right of the rightmost such feature (the *chamber*), and what it does is fixed by that feature:
+
+- **Sweeps.** The left sweep turns each S-block into the D-block `D_n = 1 (11)^n 00` of the same length
+  (`sweep_left`: `L S_n <C 1 R` reaches `L <C 1 D_n R` in 2n+5 steps); the right sweep turns it back
+  (`sweep_right`: `L 1 B> 1 0 0 D_n R` reaches `L S_n 1 B> 1 0 0 R` in 8n+5 steps). So the blocks of the chamber
+  come back unchanged.
+- **Wall turn.** At a wall the sweep turns and uses up three 1s (`wall_turn`: `L 1^(k+3) <C 1 D_n R` reaches
+  `L 1^k S_n 1 B> 1 0 0 R`). A wall of exactly three 1s, `0 111 (01)^(m+1)`, becomes `00 1 (01)^m`
+  (`wall3_turn`); that is where the leftover `100`s come from. A wall of length 1 or 2 mod 3 dissolves into ordinary
+  block boundaries when it runs out, and the chamber merges with the one on its left.
+- **Two right ends.** In regime I the last block is followed by a gadget `101100 (110)^c`: a long visit makes the
+  last block S_(n+3) and the gadget `101101`, and the next visit is a short one that turns inside the gadget and
+  adds one `110` (`round_I`, `short_I`; seen around 2.8·10^8 steps, with n near 3,770). In regime II the tape ends
+  `S_n (011)^c 0`, every visit is long, the last block grows by one and two copies of `011` are added (`round_II`;
+  this is the eat visit of `VisitRules.lean` with a general chamber).
+
+`lean/RoundRules.lean` (written by `py/round_rules.py`: nine single-block rules by `tools/py/bbtools/symtm.py`,
+then induction over the list of blocks) proves these rounds for **every** chamber: `round_I`, `short_I`,
+`roundpair_I` and `rounds_I` (k rounds in a row: the wall loses 3k ones, the last block gains 3k, the gadget k copies
+of 110), `round_II`, and `round_I3` / `round_II3` for a wall of three 1s.
+
+Checked against the run with `py/round_check.py` (tapes from `c/vdump.c`), every consecutive pair of visits in three
+windows:
+
+| window (steps) | visits | wall | wall of 3 | short | leftover 100 | predicted exactly |
+|---|---|---|---|---|---|---|
+| 1·10^8 – 2·10^8 | 1,423 | 575 | 228 | 324 | 295 | 1,127 |
+| 2.8·10^8 – 4.2·10^8 | 2,492 | 2,085 | 112 | 129 | 165 | 2,326 |
+| 4·10^9 – 4.05·10^9 | 230 | 92 | 62 | 0 | 76 | 154 |
+
+Every visit at a wall, a wall of three or the gadget is predicted cell for cell (3,607 of 4,145, 87%); the two
+visits left over are regime changes. **The one case without a rule is a visit that meets a leftover `100`.** There
+the left sweep is reflected early (`S_(m+1) 100 <C 1` turns into `S_m 0101 11 A>`, state A instead of the right
+sweep's B), and the A run glues the D-blocks it passes into long runs of 1s: these are the new walls (lengths like
+15, 22, 27 and 34 at 2.8·10^8 steps) that the following rounds wear down three at a time. So the digit list is a
+stack of walls, each worn down by the visits that reach it, and the leftover 100s left when a wall of length 0 mod 3
+runs out are what rebuild new walls. A halt needs `1 0 0 B<0` (three 0s met by the left sweep); at rest the only
+00s are the leftover 100s (D-blocks exist only during a sweep), so the question is now whether a visit at a leftover
+100 can ever put a third 0 next to one.
+
+Next steps: the rule for a visit at a leftover 100 (it depends on how many D-blocks the A run reaches and glues),
+which would make the whole list a map.
+
 ## Reproduce
 
 From the repository root:
@@ -143,6 +193,9 @@ gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0
 cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5
 gcc -O2 -o rvisits holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/rvisits.c && ./rvisits 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 2000000000 50
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/py/visit_rules.py   # rewrites lean/VisitRules.lean
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/py/round_rules.py   # rewrites lean/RoundRules.lean
+gcc -O2 -o vdump holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/vdump.c && ./vdump 280000000 420000000 1 > vd.txt
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/py/round_check.py vd.txt   # 2,326 of 2,492 visits exact
 gcc -O2 -o route_census holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/route_census.c && ./route_census 10000000000
 g++ -O2 -std=c++17 -o mm2 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/mm2.cpp && ./mm2 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 15 12
 g++ -O2 -std=c++17 -o cpslru holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/cpslru.cpp

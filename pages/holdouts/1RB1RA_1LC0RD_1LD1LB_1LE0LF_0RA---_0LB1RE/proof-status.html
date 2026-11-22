@@ -129,6 +129,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>eat_visit</code>, <code>eat_iter</code>, <code>lean/VisitRules.lean</code> (written by <code>py/visit_rules.py</code>)</p>
       </div>
       <div class="card">
+        <h3>One round of the right-end bouncer, for every chamber</h3>
+        <p>At rest the tape right of the left-end digits is S-blocks <code>S_n = 1 (01)^(n+1)</code> with a few walls (runs of 1s) in between. For every wall <code>1^(a+3)</code> and every list of blocks behind it, a long visit turns each block into <code>D_n = 1 (11)^n 00</code> on the way left, uses up three 1s of the wall, turns the blocks back on the way right and grows the last block: in regime I (right end <code>S_n 101100 (110)^(c+2)</code>) to S<sub>n+3</sub>, followed by a short visit that adds one <code>110</code>; in regime II (right end <code>S_n (011)^c 0</code>) by one block step, with two copies of <code>011</code> added. Also k rounds in a row, and the same rounds at a wall of exactly three 1s, which becomes <code>00</code>.</p>
+        <p class="where"><code>round_I</code>, <code>short_I</code>, <code>rounds_I</code>, <code>round_II</code>, <code>round_I3</code>, <code>round_II3</code>, <code>lean/RoundRules.lean</code> (written by <code>py/round_rules.py</code>)</p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -205,6 +210,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>cpslru MACHINE 10000000001 300000 A - 8,2,6,0 8,1,6,0 8,2,4,0 8,3,4,0 4,2,6,0 6,2,6,0 12,1,6,0 16,1,4,0 2,4,8,0 1,8,8,0</code></p>
       </div>
       <div class="card">
+        <h3>The round rule predicts 87% of visits exactly</h3>
+        <p>Every consecutive pair of right-end visits in three windows (10<sup>8</sup> to 2&middot;10<sup>8</sup>, 2.8&middot;10<sup>8</sup> to 4.2&middot;10<sup>8</sup>, 4&middot;10<sup>9</sup> to 4.05&middot;10<sup>9</sup> steps): a visit works on the tape right of the rightmost wall, three-1 wall or leftover <code>100</code>, and at a wall, a three-1 wall or the regime I gadget the proved rounds predict the next tape cell for cell (3,607 of 4,145 visits, every one of those kinds). The remaining 536 visits all meet a leftover <code>100</code>, where the left sweep is reflected early and the head, in state A, glues the D-blocks it passes into long runs of 1s: the new walls. That case has no rule yet.</p>
+        <p class="where"><code>py/round_check.py</code> on tapes from <code>c/vdump.c</code></p>
+      </div>
+      <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
         <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 15, history 1 up to width 14, history 2 up to width 12, history 3 up to width 11, LRU history up to width 4 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 12, p = 3 up to width 12, p = 4 up to width 12, p = 6 up to width 12. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..7; n = 8 not finished in 150 s.</p>
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
@@ -242,17 +252,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At a left-end visit the tape left of the start is a list of PR 93's digits <code>1 (11)^n 00</code>: 605 of them at 2.0&middot;10<sup>9</sup> steps, 589 with n &le; 6, and one large digit (n = 302; n = 354 at 2.6&middot;10<sup>9</sup>). The list goes on right of the start for several thousand cells, written with single 0s while the head is on the right. Beyond it the right end holds a few periodic blocks with counts in the thousands that turn into one another in phases, for example <code>(1)^3396 (01011)^1379 (001)^1403</code> at 3.3&middot;10<sup>8</sup> steps and <code>(10110)^201 (10)^3823 &hellip; (110)^1274</code> at 2.8&middot;10<sup>8</sup>. There are no halving chains like those of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF, so the halving-chain engine of that sibling does not apply here.</p>
         <p class="where">scratch simulators; README section <i>The right end</i></p>
       </div>
-      <div class="card">
-        <h3>Most visits cross the digit list</h3>
-        <p>In 1,475 sampled intervals between right-end visits (every 7th visit from 10<sup>8</sup> to 9&middot;10<sup>8</sup> steps) the head turned back in the left half of the visited tape 950 times. Symbolic simulation of each sampled visit (big runs made variables) found the eat rule above and a handful of rules specific to one phase; the other visits depend on the irregular digit list, so a closed visit-to-visit map would have to carry it.</p>
-        <p class="where"><code>tools/py/bbtools/symtm.py</code> on sampled visits</p>
-      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The macro configuration family has not been found (only the eat phase of the right end is proved), and the proof of the neighbouring start (state D) does not cover this run at any of the four times tested.</p>
+        <p>Not known. Visits at walls and at the right-end gadget are proved for every chamber; the visits that meet a leftover <code>100</code> (13% of visits) and rebuild walls have no rule yet, so there is no complete map. The proof of the neighbouring start (state D) does not cover this run at any of the four times tested.</p>
       </div>
     </div>
   </section>
