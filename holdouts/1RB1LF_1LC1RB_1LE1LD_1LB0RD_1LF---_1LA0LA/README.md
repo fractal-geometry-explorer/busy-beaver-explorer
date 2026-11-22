@@ -263,6 +263,43 @@ Either would let the run finish this event and look for a halt in the word it le
 Trust: computations, exact by construction, validated only as far as direct simulation reaches (about 10^11 steps).
 They were not re-derived independently.
 
+## Level-stripping accelerator (22 November 2026)
+
+**From a wall visit straight to the next right-end event.** A carry is a visit of the rest (R' = G(X R)), so the
+ladder of levels only sets the clock. `py/lsa_*.py` turns that into arithmetic:
+
+* *Levels as a mixed-radix counter* (`lsa_ladder.py`, `lsa_region.py`). A level is a segment `pre (1 0)^n post`
+  with n symbolic and the rest of the word opaque. One hit on it is run symbolically; the states close after a few
+  hits, which gives each level a cycle, the hits it passes on per cycle and their positions, and a cost a·n + b.
+  The m-th pass of a level comes at its hit p(m − 1) + t, so a chain of levels needs an affine number of hits at
+  the top (`first_pass`, proved in `lean/Accel.lean`). The bottom of the ladder is fed with `geng.hpow` in batches.
+* *Eater super-cycles* (`lsa_eater.py`). With the fuel m symbolic, P hits on an eater give
+  h^P(E[m] X) = Blk E[m − dm] h^c(X), for every X and every m above a small bound. The rest X gets c hits per
+  super-cycle and is never looked at.
+* *K blocks at once* (`lsa_phase.py`). The block Blk is itself a few levels, with an affine map x ↦ a·x + b. The
+  hits that K super-cycles need from above, when the region below must still receive Z hits, are
+  I_1 = a^(K−1)(aZ + b) + (aP + b)(a^(K−1) − 1)/(a − 1) (`blocks_closed` in `lean/Accel.lean`, for every K). The
+  rest first takes its c·K hits in one `hpow`; if it has no event, the eater's leftover fuel and the new rest are
+  the next region (the next *phase*). Counts too large to write down are kept as sums of c·2^e (`lsa_sym.py`).
+
+Kinds of eater met so far: ×256 (3,633 or 2,283 hits, 27 units of fuel, 5 hits down), ×64 (730 hits, 4 units,
+21 down), ×16 (39 hits, 11 units, 1 down), ×1 (11 hits, 6 units, 2 down). A block that is not regular falls back to
+plain batches.
+
+*Validation* (`python3 py/lsa_run.py 1 1600 [explicit] [file]`). From the word at the first landing past visit
+10^1600 (between the sixth and the seventh event), the accelerator finds the seventh event at exactly wall visit
+6.354265240826449…·10^2236 (all 2,237 digits), the visit the digit engine found by running every visit. With the
+phase jumps off (`explicit`: only batches of hits) the same visit comes out in 128 s; with 7 nested phase jumps
+(×256, ×16, ×1) in 9 s. The ×64 kind has not been checked against plain batches yet; it uses the same code.
+
+*The return sweep of the eighth event.* A hook that hands the engine's visits of the whole word to the ladder
+(`gpow` through a region) gave the same words and steps where it was sampled, but no real speedup in the return
+sweep (18,135 to 15,799 runs of cells left in 2 h), so it is not part of this change. The eighth event's return is
+still open.
+
+Trust: computations, exact by construction; the accelerator agrees with the digit engine on the stretch it was
+compared on. The Lean file covers the arithmetic only, not the symbolic runs that supply its constants.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html)
@@ -278,4 +315,5 @@ gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1R
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6
 gcc -O2 -o wv ../c/wv.c && ./wv 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 3e6 0 1 > ref.txt && python3 ./accel_check.py 1 ref.txt   # accelerator against direct simulation
 python3 ./calibrate.py 1 && python3 ./accel_run.py 1 100 100 8                 # step constants; the accelerated run
+python3 ./lsa_run.py 1 1600                                     # level-stripping accelerator: the seventh event in seconds
 ```

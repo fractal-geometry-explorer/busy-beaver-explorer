@@ -11,7 +11,7 @@ bbchallenge id 56722. One of the six-state holdouts whose halting from blank tap
 | E | 0RA | --- |
 | F | 0LB | 1RE |
 
-**Verdict.** **The question is open.** No halt in the first 10^10 steps (C simulator); the macro configuration and its rules are not yet known, so there is no map to analyse and no heuristic for halting beyond the localisation of the halt below.
+**Verdict.** **The question is open.** No halt in the first 10^12 steps (C simulator); the macro configuration and its rules are not yet known, so there is no map to analyse and no heuristic for halting beyond the localisation of the halt below.
 
 ## What it does
 
@@ -28,6 +28,7 @@ the turning point jumps far left and a new phase starts.
 **Proved in Lean, kernel only:**
 
 - **The halting configurations.** The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration. (`step_none_iff`, `lean/Blank.lean`)
+- **PR 93's macro rules on this machine.** 8 of the rules of DeepMind's busycoq PR 93 engine as they hold here, for every count, including the changed collision, collisionD and collide (`lean/EngineRules.lean`; see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
 - **No halt in the first 10,000 steps.** The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel. (`blank_runs_kernel`, `lean/Blank.lean`)
 
 **Proved in Lean with `native_decide`:**
@@ -123,6 +124,38 @@ None closes. Each reaches a halting configuration in its abstraction, which says
 
 `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, two steps before any halt the machine is in one
 of: C with 1 two left, 0 left, 0 under the head.
+
+## PR 93's engine on this table (22 November 2026)
+
+**Result: the engine does not carry over.** The question stays open; no halt was found.
+
+- **The table.** Exchange the names E and F, and replace the detour D0 `1LE`, E0 `0RA`, A1 `1RA` by the single step
+  `1RA`. The detour ends in the same configuration unless the cell left of D is 1, where the machine halts. The table
+  becomes G = `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1RF_0RA---`. That is T4 = `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0RA---`
+  with one transition changed, E1. T4's E1 is `0LF`, which erases the 1 and steps left; G's is `1RF`, which keeps
+  it and steps right. T4 is the table of `tools/coq/t4engine`, DeepMind's busycoq PR 93 engine retargeted, which
+  proved 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE halts. E is entered only by D1 (`0LE`), so F then reads the 0
+  that D has just written and goes on with F0 `0RA`; the halting F1 is never reached that way. **This machine halts
+  exactly when G's run from blank tape has D reading 0 with a 1 on its left** (the same fact as `halt_route` below).
+- **The rules.** PR 93's engine works with `CfgR l r = l A> 0100 r`, `CfgL l r = l <B 1 r`,
+  `CfgJ l r = l <C 100 r` and the digit words `D n = 1 (11)^n 00`. Of its 18 basic rules, 14 hold here unchanged
+  (direct simulation, counts up to 4, random tape around). The four that end in `CfgJ` are the ones that pass through
+  E1. Here the head turns right at E1 and runs on into the tape beyond the rule: for example, collision
+  `CfgL (l 101100) r` reaches A on the first cell of `r`, with `1010111` behind it. Only collide stays local
+  (`CfgR l (10 D0 D0 r)` reaches `CfgL l (D1 D1 1 r)`). Lean proves 8 of the rules, the changed ones included
+  (`lean/EngineRules.lean`, written by `py/engine_rules.py`). In none of the 18 rules does D read 0 next to a 1.
+- **So there is no engine to retarget.** PR 93's engine rests on calls that return to the left within a few digits,
+  batched by counting. Here every collision sends the head back to the right, which matches the irregular `10`/`110`
+  region on the right of the tape (section above). A new engine would have to start from this machine's own
+  structure.
+- **Direct run.** The C simulator `tools/c/tmrun.c` runs 10^12 steps from blank tape without a halt; the tape then
+  holds 451,383 ones (`tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000000`, about an hour).
+- **Accelerated runs.** `rsim.py` (validated against direct simulation at 4 points up to 10^9 steps) reaches only
+  2.7·10^9 steps in 10 minutes: its jumps rarely apply. `tools/py/bbtools/rleaccel_rec.py` stalls near 10^8 steps.
+
+The same table from other starts: 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD (start B),
+1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC (start C) and the busycoq-proved non-halting
+1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1LB (start D, section above).
 
 ## Pages
 

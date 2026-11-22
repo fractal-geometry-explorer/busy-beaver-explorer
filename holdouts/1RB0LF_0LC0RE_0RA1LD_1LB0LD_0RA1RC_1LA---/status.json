@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd), heuristically, so the long run is a Collatz-like question; random block lists that look like records can halt, so no simple invariant is available."
+  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd); this reset map is proved in Lean for the head of the tape, for this machine and its twin, given that every carry into the tail comes back (<code>lean/ResetMap.lean</code>), so the long run is a Collatz-like question about the tail; random block lists that look like records can halt, so no simple invariant is available."
  ],
  "claims": [
   {
@@ -64,6 +64,12 @@
    "where": "<code>lean/RulesTwin1.lean</code>, <code>lean/RulesTwin2.lean</code> (from <code>py/gen_rules_twin.py</code>)"
   },
   {
+   "level": "kernel",
+   "title": "The reset map, for the head of the tape",
+   "text": "From a reset <code>0^inf 1 B&gt;1 0 (10)^X T</code> with X &ge; 36 the run reaches the reset with X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or + 3 (X odd), for every tail T whose carries come back with the signatures listed in <code>Good</code> (<code>reset_map</code>); k phases in a row by induction (<code>orbit</code>). The run from blank tape is at <code>Reset 40 T0own</code> after 8,577 steps (<code>reach_own</code>) and the twin at <code>Reset 52 T0twin</code> after 14,638 (<code>reach_twin</code>); if every phase's carries come back, neither halts (<code>never_halts_own</code>, <code>never_halts_twin</code>). The runs between carries are 19 theorems for all parameters and tails.",
+   "where": "<code>lean/ResetMap.lean</code>, <code>lean/ResetMapRuns.lean</code> (<code>py/gen_resetmap.py</code>)"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -108,7 +114,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Missing: a Lean proof that the composition of the macro rules is sound, and an invariant of the reachable block lists that excludes <code>1 A&gt;1</code>, or a <code>halts_iff</code> reduction to the Collatz-like reset map.",
+   "text": "Not known. The reset map is proved for the head of the tape (<code>reset_map</code>), so a halt can only happen inside a carry into the tail; missing is a proof that every carry comes back (<code>&forall; k, GoodN k 40 T0own</code> gives <code>never_halts_own</code>), or an invariant of the reachable tails that excludes <code>1 A&gt;1</code>.",
    "where": ""
   },
   {
@@ -125,9 +131,15 @@
   },
   {
    "level": "heuristic",
-   "title": "The reset map",
+   "title": "The reset map on the whole run",
    "text": "At every reset seen the countdown X becomes X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or &lfloor;3X/2&rfloor; + 3 (X odd) at the next one: 13 transitions in the direct run to 3&middot;10<sup>7</sup> steps, 19 in the twin's to 3&middot;10<sup>9</sup>, 34 in this machine&rsquo;s macro run (to 3.4&middot;10<sup>14</sup> steps) and 33 in the twin&rsquo;s (2&middot;10<sup>7</sup> records, 2.5&middot;10<sup>14</sup> steps). 142, 214, 322, 484, 727, 1093, &hellip; here; the twin is another orbit of the same map. Each phase takes about 2.25 times as many steps as the last.",
    "where": "<code>py/reset_map.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "The carries come back",
+   "text": "Every carry into the tail seen on the direct runs has the signature <code>reset_map</code> assumes: 1,888 phase double steps of both machines in their first 4,000 records, and 11 resets and 12 phase ends with X from 40 to 727. The signatures never depend on X or on the tail in the instances seen.",
+   "where": "<code>py/gen_resetmap.py</code>"
   },
   {
    "level": "heuristic",
@@ -147,6 +159,7 @@
   "holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/check.sh",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_rules.py 3e5      # rewrites lean/Rules.lean",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_sweep.py      # rewrites lean/Sweep.lean",
+  "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/gen_resetmap.py      # rewrites lean/ResetMapRuns.lean and the generated parts of lean/ResetMap.lean",
   "gcc -O2 -o recp holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/c/recp.c && ./recp 4000000 3e8 1 100000 > r3e8.txt && python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/check_macro.py r3e8.txt",
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/run_macro.py 2e7 1e6      # long macro run, prints resets",
   "./recp 4000000 3e8 1 100000 D > twin3e8.txt && python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/twin.py twin3e8.txt      # the twin, record by record",
@@ -154,7 +167,7 @@
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py r3e7.txt 400      # the tail operators (recp output of 3e7 steps)"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps.",
+  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps. The 3/2 reset map itself is proved in Lean, as long as every carry into the far part of the tape comes back.",
   "facts": [
    {
     "level": "kernel",
@@ -167,9 +180,9 @@
     "text": "No halt in the macro run, which matches direct simulation record for record."
    },
    {
-    "level": "heuristic",
+    "level": "kernel",
     "value": "X &rarr; &lfloor;3X/2&rfloor;+1 or +3",
-    "text": "The reset map, exact at every reset seen, shared with the twin."
+    "text": "The reset map, proved in Lean for the head of the tape, for this machine and its twin; only the carries into the tail are assumed."
    }
   ],
   "presets": [
@@ -222,7 +235,7 @@
     "eyebrow": "The emergent behaviour",
     "heading": "A Collatz-like reset map",
     "html": [
-     "<p>When the countdown runs out, the next block X becomes the countdown. At every reset so far X goes to 3X/2 + 1 (X even) or (3X + 5)/2 (X odd), and each phase is about 2.25 times as long as the last. Some of the resets (X, Y the first two blocks after it):</p>",
+     "<p>When the countdown runs out, the next block X becomes the countdown. At every reset so far X goes to 3X/2 + 1 (X even) or (3X + 5)/2 (X odd), and each phase is about 2.25 times as long as the last. This map is proved in Lean for the head of the tape (<a href=\"#resetlean\">below</a>). Some of the resets (X, Y the first two blocks after it):</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>record</th><th>step</th><th>X</th><th>Y</th></tr></thead><tbody><tr><td>1,454</td><td>2,651,707</td><td>727o</td><td>337i</td></tr><tr><td>4,925</td><td>30,310,173</td><td>2,464i</td><td>1,196i</td></tr><tr><td>16,643</td><td>349,654,423</td><td>8,323o</td><td>4,117i</td></tr><tr><td>56,195</td><td>3,957,593,757</td><td>28,102i</td><td>13,995o</td></tr><tr><td>189,692</td><td>45,293,767,053</td><td>94,849o</td><td>47,362o</td></tr><tr><td>640,241</td><td>514,989,796,041</td><td>320,125o</td><td>159,990o</td></tr><tr><td>2,160,851</td><td>5,853,817,116,561</td><td>1,080,430i</td><td>540,135o</td></tr><tr><td>7,292,906</td><td>66,659,636,161,183</td><td>3,646,456i</td><td>1,823,142i</td></tr><tr><td>16,409,053</td><td>338,536,834,271,065</td><td>8,204,530i</td><td>4,102,173o</td></tr></tbody></table></div>"
     ]
    },
@@ -240,6 +253,18 @@
     ]
    },
    {
+    "id": "resetlean",
+    "eyebrow": "Proved in Lean",
+    "heading": "The 3/2 reset map, proved for the head of the tape",
+    "html": [
+     "<p>The reset map is now a Lean theorem (kernel, <code>reset_map</code> in <code>lean/ResetMap.lean</code>). Write a reset as <code>Reset X T = 0^inf 1 B&gt;1 0 (10)^X T</code>: the long block X and, after it, the <b>tail</b> T. From <code>Reset X T</code> with X &ge; 36 the run reaches <code>Reset (f X) T&prime;</code>, with f X = &lfloor;3X/2&rfloor; + 1 for X even and &lfloor;3X/2&rfloor; + 3 for X odd, for <em>every</em> tail T, on one condition: that each time the head dives into the tail, it comes back.</p>",
+     "<p>The head part of the tape never depends on the tail except through these <b>excursions</b>. The head reads the first cell of the tail in some state with four known cells on its left, works inside the tail (a carry of the counter, sometimes hundreds of cells deep), and leaves to the left of those four cells in another state, with four known cells written in their place. In Lean that is <code>Exc u q q&prime; v T T&prime;</code>: entered with cells <code>u</code> in state q, left in state q&prime; with cells <code>v</code>, the same for every tape further left. A phase has one excursion per two increments (always cells <code>1100</code>, state A &rarr; state D, cells <code>0010</code>), and a few others at the reset and at the end. Everything between excursions is one of 19 proved runs (<code>lean/ResetMapRuns.lean</code>), valid for every value of the parameters and every tail.</p>",
+     "<p>So the countdown, the growing block, the arithmetic of f, and the parities that decide how a phase ends are all proved. What is not proved is that the excursions come back: that is exactly the open part of the problem now. If they always do (<code>&forall; k, GoodN k</code>), neither machine halts (<code>never_halts_own</code>, <code>never_halts_twin</code>); a halt can only happen inside an excursion. On the direct runs every excursion seen has the signature the theorem asks for: 1,888 phase double steps of both machines, and 11 resets and 12 phase ends with X from 40 to 727 (<code>py/gen_resetmap.py</code>).</p>",
+     "<p>Walk through the phases below. Each phase is cut into the pieces of the proof: the reset (<code>re</code> or <code>ro</code>), the double steps (<code>g</code>), and the end (<code>e0</code> or <code>e1</code>, by the parity of the countdown). The bars show the countdown and the growing block; the list names the tail excursions that piece assumes.</p>",
+     "<div class=\"panel\" id=\"rmw\">\n<div class=\"controls\">\n<label class=\"small\" for=\"rmM\">Machine</label>\n<select id=\"rmM\"><option value=\"own\">this machine: Reset 40 after 8,577 steps</option><option value=\"twin\">the twin: Reset 52 after 14,638 steps</option></select>\n<button id=\"rmPrev\" type=\"button\">&larr; phase</button><button id=\"rmNext\" class=\"primary\" type=\"button\">phase &rarr;</button>\n</div>\n<div class=\"controls\" style=\"margin-top:6px\">\n<label class=\"small\" for=\"rmS\">inside the phase</label>\n<input id=\"rmS\" type=\"range\" min=\"0\" max=\"1\" value=\"0\" step=\"1\" style=\"flex:1;min-width:160px\" aria-label=\"piece of the phase\">\n</div>\n<div class=\"cap\" id=\"rmCap\"></div>\n<div id=\"rmBars\" style=\"margin:10px 0\"></div>\n<div id=\"rmExc\" class=\"small\"></div>\n</div>\n<script>\n(function () {\n  var EXC = {\n    re: [[\"0100\", \"A\", \"B\", \"1001\"], [\"0010\", \"E\", \"C\", \"0101\"], [\"0010\", \"E\", \"C\", \"0101\"], [\"1100\", \"A\", \"D\", \"0101\"], [\"1100\", \"A\", \"D\", \"0101\"]],\n    ro: [[\"1001\", \"B\", \"D\", \"1011\"], [\"0101\", \"C\", \"A\", \"1010\"], [\"1001\", \"B\", \"D\", \"1011\"], [\"1100\", \"A\", \"D\", \"0101\"], [\"1100\", \"A\", \"D\", \"0101\"]],\n    g: [[\"1100\", \"A\", \"D\", \"0010\"]],\n    e0: [[\"1100\", \"A\", \"D\", \"0010\"]],\n    e1: [[\"1100\", \"A\", \"D\", \"0010\"], [\"0100\", \"A\", \"B\", \"1010\"]]\n  };\n  var START = { own: 40n, twin: 52n };\n  function f(X) { return 3n * X / 2n + (X % 2n === 0n ? 1n : 3n); }\n  function fmt(n) { return n.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, \",\"); }\n  var $ = function (id) { return document.getElementById(id); };\n  var mach = \"own\", k = 0, pos = 0;\n  function X() { var x = START[mach]; for (var i = 0; i < k; i++) x = f(x); return x; }\n  // the pieces of the phase from Reset X: [name, D, Y, theorem, text]\n  function pieces(X) {\n    var even = X % 2n === 0n, x = even ? X / 2n - 18n : (X - 37n) / 2n, d0 = x + (even ? 11n : 12n);\n    var j = d0 / 2n, e = d0 % 2n, out = [];\n    out.push([even ? \"re\" : \"ro\", X, 0n, even ? \"re_run\" : \"ro_run\",\n      \"The reset (X \" + (even ? \"even\" : \"odd\") + \"): the block X becomes the countdown, and the run goes on to the first record <code>S d 1</code> with countdown \" + fmt(2n * d0 + 5n) + \" and growing block 13.\"]);\n    var shown = j > 40n ? 40n : j;\n    for (var i = 0n; i < shown; i++) {\n      var d = d0 - 2n * i, b = 1n + 3n * i;\n      out.push([\"g\", 2n * d + 5n, 2n * b + 11n, \"g_run\", \"Two increments: the countdown loses 4 (\" + fmt(2n * d + 5n) + \" &rarr; \" + fmt(2n * d + 1n) + \"), the growing block gains 6 (\" + fmt(2n * b + 11n) + \" &rarr; \" + fmt(2n * b + 17n) + \"). Double step \" + fmt(i + 1n) + \" of \" + fmt(j) + (j > shown ? \" (the slider shows the first 40)\" : \"\") + \".\"]);\n    }\n    var bEnd = 1n + 3n * j, Xn = e === 0n ? 2n * bEnd + 20n : 2n * bEnd + 23n;\n    out.push([e === 0n ? \"e0\" : \"e1\", e === 0n ? 5n : 7n, 2n * bEnd + 11n, e === 0n ? \"e0_run\" : \"e1_run\",\n      \"The end of the phase from countdown \" + (e === 0n ? 5 : 7) + \": the growing block \" + fmt(2n * bEnd + 11n) + \" becomes the next X = \" + fmt(Xn) + \" = f(\" + fmt(X) + \").\"]);\n    return { list: out, j: j, Xn: Xn };\n  }\n  function bar(label, v, max, color) {\n    var w = max > 0n ? Number(v * 1000n / max) / 10 : 0;\n    return '<div style=\"display:flex;align-items:center;gap:8px;margin:3px 0\"><span class=\"small\" style=\"width:9em\">' + label + '</span>' +\n      '<div style=\"flex:1;background:var(--line,rgba(127,127,127,.2));height:12px;border-radius:3px;overflow:hidden\"><div style=\"width:' + w + '%;height:100%;background:' + color + '\"></div></div>' +\n      '<span class=\"small\" style=\"width:7em;text-align:right\">' + fmt(v) + '</span></div>';\n  }\n  function render() {\n    var x = X(), P = pieces(x), L = P.list;\n    $(\"rmS\").max = L.length - 1;\n    if (pos > L.length - 1) pos = L.length - 1;\n    $(\"rmS\").value = pos;\n    var p = L[pos];\n    $(\"rmCap\").innerHTML = \"Phase \" + (k + 1) + \" of \" + (mach === \"own\" ? \"this machine\" : \"the twin\") + \": <b>Reset X = \" + fmt(x) + \"</b> &rarr; next reset X&prime; = f(X) = <b>\" + fmt(P.Xn) + \"</b> after \" + fmt(P.j) + \" double steps. \" +\n      \"Piece <code>\" + p[0] + \"</code> (<code>\" + p[3] + \"</code>, kernel): \" + p[4];\n    var max = P.Xn;\n    $(\"rmBars\").innerHTML = bar(\"countdown D\", p[0] === \"re\" || p[0] === \"ro\" ? x : p[1], max, \"var(--accent)\") + bar(\"growing block Y\", p[2], max, \"var(--head)\");\n    var ex = EXC[p[0]];\n    $(\"rmExc\").innerHTML = \"Tail excursions of this piece, in order (the hypotheses of <code>\" + p[3] + \"</code>): \" +\n      ex.map(function (e) { return \"cells <code>\" + e[0] + \"</code> state \" + e[1] + \" &rarr; state \" + e[2] + \" cells <code>\" + e[3] + \"</code>\"; }).join(\"; \") + \".\";\n  }\n  $(\"rmM\").onchange = function () { mach = this.value; k = 0; pos = 0; render(); };\n  $(\"rmPrev\").onclick = function () { if (k > 0) { k--; pos = 0; render(); } };\n  $(\"rmNext\").onclick = function () { if (k < 60) { k++; pos = 0; render(); } };\n  $(\"rmS\").oninput = function () { pos = +this.value; render(); };\n  render();\n})();\n</script>"
+    ]
+   },
+   {
     "id": "halt",
     "eyebrow": "The danger",
     "heading": "Where it could halt",
@@ -252,9 +277,9 @@
     "eyebrow": "Status",
     "heading": "What is proved",
     "html": [
-     "<p><b>Lean, kernel</b>: the 387 crossing rules (<code>lean/Rules.lean</code>), the even long sweep over any block list (<code>lean/Sweep.lean</code>), the short sweep and the reach from blank tape.</p>",
+     "<p><b>Lean, kernel</b>: the 387 crossing rules (<code>lean/Rules.lean</code>), the even long sweep over any block list (<code>lean/Sweep.lean</code>), the short sweep and the reach from blank tape, and the reset map X &rarr; f X for the head of the tape (<code>lean/ResetMap.lean</code>), given that the carries into the tail come back.</p>",
      "<p><b>Computed</b>: the macro machine matches direct simulation at 15,144 records; the macro run finds no halt in 3.39&middot;10<sup>14</sup> steps.</p>",
-     "<p><b>Open</b>: Lean soundness of composing the rules, an invariant excluding the halt, and so the question.</p>"
+     "<p><b>Open</b>: Lean soundness of composing the macro rules, whether every carry into the tail comes back, and so the question.</p>"
     ]
    },
    {
@@ -269,6 +294,6 @@
   ]
  },
  "family": "binary counter on (10)^D x blocks with a countdown block; Collatz-like 3/2 reset map",
- "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map; no invariant excluding the halt is known.",
+ "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map, proved in Lean for the head of the tape given that the carries into the tail come back; no invariant excluding the halt is known.",
  "decision": "open"
 }

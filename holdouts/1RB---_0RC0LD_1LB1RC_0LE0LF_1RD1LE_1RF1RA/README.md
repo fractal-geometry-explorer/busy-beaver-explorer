@@ -20,6 +20,15 @@ frames (`halts_iff_critical`). By `native_decide` none of the first 10^8 frames 
 cutting a block of exactly 15 cells at the left end halts, of exactly 2 or 3 never halts; neither seen while the
 tape grew to 5.3·10^10 ones (`c/series.c`, trusted).
 
+**New (22 Nov 2026), kernel only.** `lean/Invariant.lean`: every frame after the first satisfies an invariant
+(`inv_next`, `inv_orbit`): E frames are `E L (m :: 0 :: R')` with m ≥ 1 and no other empty block, C frames have a
+non-empty second block on the left and an empty block on the right only first, B frames have at least 5 cells left
+of the head and no empty block, and no F frame occurs. So two of the three critical frames are never reached and
+**the machine halts iff the block map reaches `C (2 :: L) (r+1 :: R)`** (`halts_iff_C`), never straight from an E frame
+(`critical_after_BC`). `lean/Sweep.lean`: that frame is only reached in a rightward sweep, and **the machine halts iff
+some sweep start has a bad right list** (`halts_iff_sweep`, see "Sweeps" below). `lean/Cuts.lean` (`cut_even`): a
+left-end descent that ends after an even cut hands its sweep a first block of 4u+1 cells, never 3.
+
 ## The block map (Lean)
 
 `blk [a, b, c, ...]` is the tape `1^a 0 1^b 0 1^c 0 ...`, then blank, read away from the head (a block may be empty:
@@ -103,13 +112,40 @@ cells about five times per doubling of the tape (`-DSTATS`, 6·10^10 steps: m = 
 cells changed by a random 0..99, each run to four times the size: no critical frame, no loop. Random small tapes
 halt often, so the large tapes avoid the critical frames for a reason not yet found.
 
+## Sweeps (where it could halt)
+
+While the head moves right through C frames each step moves one block from the right list to the left list
+unchanged; the sweep stops at the first block of at most one cell: 0 turns the head round (state E), 1 halts unless
+it is the last block. A sweep starts at a B frame (`B L (r+1 :: R)` → `C (r :: …) R`) or, once early in the run, at
+`E L (1 :: 0 :: R)`. `halts_iff_sweep` (`lean/Sweep.lean`, kernel only): the machine halts iff the run reaches a sweep
+start whose right list r₀, r₁, … has
+
+- r₀ = 3 and r₁ ≥ 1, or
+- r₀ ≠ 2 and the first block among r₁, r₂, … with at most one cell is a 1 that is not the last block
+
+(`bad`, `SweepStart`). With the invariant, the third critical frame `0 1 1 C> 0 1` is the only way to halt.
+
+Why 3 is rare as r₀: at the left end every value of a descent after the first is even, and `cut_even`
+(`lean/Cuts.lean`) shows `E [] (18u+6 :: 0 :: j :: R)` → `B [8u+7] (4u+1 :: j+6u+1 :: R)` in 30u+7 frames: the
+sweep starts on 1, 5, 9, 13, … cells. `c/sweeps.c` (trusted) tests every sweep start of 10^9 frames of the block map
+with zigzags in one step (71,452,928 B frames): none is bad. r₀ is below 32 (and not the last block) 140 times, with
+values 1, 5, 8, 9, 13, 14, 15, 16, 17, 18, 21, 25, 28, 29, 30, 31, never 2, 3, 4, 6, 7. The smallest later block a
+sweep reads before turning, away from the last block, is 2 once and otherwise at least 4.
+
+No finite invariant of this kind is in sight (heuristic): after the first 10^5 frames, blocks of fewer than 20 cells
+occur only among the leftmost six blocks, as the last block, or next to the head (measured over 10^9 frames). `py/absint.py`, an abstract block map
+that keeps up to 8 blocks at each end exactly (values below T exact, larger ones as "at least k"), started from
+the real frames 2·10^6 and 10^8 with T = 30, finds an abstract path to the critical frame in under a second. Each
+such path makes the last block small and then several small blocks next to each other, which the run has not done.
+What keeps the blocks large is their size, which a finite pattern cannot express.
+
 ## Later
 
 1. The whole cut is now a rule (`zig`, see "Series" below). Still to do: a whole sweep (induction on the list), to
    get a coarser map whose step is one cut or one sweep.
-2. Look for an invariant of the block lists that excludes the three critical frames (in 10^8 frames: C after a
-   block of two only with an empty block ahead; B after a block of one only on a block of one or two). The
-   community tracker calls the machine a "lottery" (simulated there to 2.7·10^19 steps), so there may be none.
+2. Invariant: done for two of the three critical frames (`lean/Invariant.lean`). For the third, the open question
+   is whether a sweep ever starts on a bad list (`lean/Sweep.lean`). The community tracker calls the machine a
+   "lottery" (simulated there to 2.7·10^19 steps), so there may be no invariant for it.
 
 ## First look
 
@@ -134,6 +170,7 @@ start, 1,905 right), 3,609 ones.
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py && git diff --exit-code holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/lean
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
+gcc -O2 -o /tmp/sweeps holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/sweeps.c && /tmp/sweeps 1000000000
 gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000 at E L 1000000 > /tmp/el.txt
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/splits.py /tmp/el.txt
 ```

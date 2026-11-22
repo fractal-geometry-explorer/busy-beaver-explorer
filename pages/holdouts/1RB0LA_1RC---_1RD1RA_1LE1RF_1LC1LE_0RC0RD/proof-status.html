@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its run looks like the separator counters of this group: a block of 1s at the right end grows by 4 cells per visit of the head while the time per visit doubles, and the blocks to its left change slowly. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 21 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The clock is proved in Lean for every size (<code>tick</code>): what remains is the word map P, one excursion of the head into the blocks left of the counter, iterated 2<sup>j</sup> times by tick j. The machine can only halt inside an excursion (B reading a 1 in a long block, from a closed tape language computed outside Lean); no invariant of the words that excludes it is known.</p>
+      <p><b>The question is open.</b> Same table as 1RB---_1RC1RF_1LD1RE_1LB1LD_0RB0RC_1RA0LF (renamed): a clock at the right end, block +4 per tick, 2^k trips of one word map P per tick; exact accelerated run past 6.30·10<sup>79</sup> steps, no halt. A halt can only come at a phase end.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -176,6 +176,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The accelerated simulator agrees with the direct run</h3>
         <p>A simulator that does every tick whose excursions all return at once (word after 2<sup>j</sup> applications of P, the step count of the theorem) agrees with <code>tmrun</code> at all 54 visits of the end in the first 10<sup>9</sup> steps (time, block length, word).</p>
         <p class="where"><code>py/counter.py tmcheck 1e9</code></p>
+      </div>
+      <div class="card">
+        <h3>Clock run: no halt to 6.30·10<sup>79</sup> steps</h3>
+        <p>The exact accelerated clock simulator agrees with tools/c/tmrun.c at all 56 visits of the clock end in the first 2&middot;10<sup>9</sup> steps and follows the run past 6.30·10<sup>79</sup> steps without a halt. A halt can only come at a phase end, when a trip does not return.</p>
+        <p class="where"><code>holdouts/R02-clock-word/py/runx.py</code>, <code>out/run_1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD.txt</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

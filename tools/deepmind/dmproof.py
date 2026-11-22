@@ -163,7 +163,7 @@ def cfg_of(e, env, defs):
 def read_defs(src):
     """`def cfg_X (a b : ℕ) (r : ListBlank (Fin 2)) : Cfg (Fin 2) (Fin 6) := term` blocks."""
     defs = {}
-    for m in re.finditer(r"^def (cfg_\w+)((?:\s*\([^()]*(?:\([^()]*\)[^()]*)*\))*)\s*:\s*Cfg \(Fin 2\) \(Fin 6\) :=\n(.*?)(?=\n\n|\n/-|\n@|\nprivate|\ntheorem|\ndef)",
+    for m in re.finditer(r"^(?:private )?def (cfg_\w+)((?:\s*\([^()]*(?:\([^()]*\)[^()]*)*\))*)\s*:\s*Cfg \(Fin 2\) \(Fin 6\) :=\n(.*?)(?=\n\n|\n/-|\n@|\nprivate|\ntheorem|\ndef)",
                          src, re.M | re.S):
         name, binders, body = m.group(1), m.group(2), m.group(3)
         ps = []
@@ -174,12 +174,22 @@ def read_defs(src):
     return defs
 
 
-def read_encode(src):
-    m = re.search(r"^def encode : State → Cfg \(Fin 2\) \(Fin 6\)\n((?:  \|.*\n)+)", src, re.M)
+def read_encode(src, defs):
+    """Each clause of `encode` as (its variables, a template name, the template's arguments).  A clause written
+    `| .X a b => cfg_X a b` names a template; a clause whose configuration is written out in place becomes the
+    template `enc_X` (added to `defs`)."""
+    m = re.search(r"^def encode : State → Cfg \(Fin 2\) \(Fin 6\)\n((?:  \|.*\n|    .*\n)+)", src, re.M)
     out = {}
-    for line in m.group(1).splitlines():
-        mm = re.match(r"\s*\| \.(\w+)((?: \w+)*) => (cfg_\w+)((?: \w+)*)\s*$", line)
-        out[mm.group(1)] = (mm.group(2).split(), mm.group(3), mm.group(4).split())
+    for cl in re.split(r"\n(?=  \|)", m.group(1).rstrip("\n")):
+        mm = re.match(r"\s*\| \.(\w+)((?: \w+)*) =>\s*(.*)$", cl, re.S)
+        name, ps, body = mm.group(1), mm.group(2).split(), mm.group(3).strip()
+        mc = re.fullmatch(r"(cfg_\w+)((?: \w+)*)", body)
+        if mc:
+            out[name] = (ps, mc.group(1), mc.group(2).split())
+        else:
+            body = re.sub(r"\bSixState\.", "", body)
+            defs[f"enc_{name}"] = ([(v, "nat") for v in ps], P(lex(body)).expr())
+            out[name] = (ps, f"enc_{name}", ps)
     return out
 
 
@@ -213,7 +223,9 @@ def read_map(path):
         m = re.match(r"\s*\| \.(\w+)(.*?) => (.*)$", line)
         if not m:
             raise ValueError(f"clause not understood: {line}")
-        lhs, rhs = (m.group(1), split_args(m.group(2))), m.group(3).strip()
+        # an anonymous pattern variable `_` gets a name, so that the clause's rule can bind it
+        lhs_args = [re.sub(r"(?<![\w'])_(?![\w'])", f"u{k}", a) for k, a in enumerate(split_args(m.group(2)))]
+        lhs, rhs = (m.group(1), lhs_args), m.group(3).strip()
         if rhs == "none":
             clauses.append((lhs, None))
         else:
@@ -434,7 +446,7 @@ def generate(M, dmfile=None):
     else:
         dsrc = open(dmfile).read()
     defs = read_defs(dsrc)
-    enc = read_encode(dsrc)
+    enc = read_encode(dsrc, defs)
     cons, start, clauses = read_map(os.path.join(folder, "lean", "DeepMindMap.lean"))
     ns = re.search(r"^namespace (\S+)", open(os.path.join(folder, "lean", "Machine.lean")).read(), re.M).group(1)
     m = Machine.parse(M)
@@ -461,8 +473,12 @@ def generate(M, dmfile=None):
             if v not in vs:
                 vs.append(v)
         bind = f" ({' '.join(vs)} : Nat)" if vs else ""
-        lemmas.append(f"theorem c{i}_{st}{bind} : TM.Lands trans Rel (enc ({lhs})) (next ({lhs})) :=\n  "
-                      + lean_tree(tree, "  ") + "\n")
+        # `next` on the left side need not reduce by `rfl` (its match may split a count that the pattern leaves
+        # open, as `b + 1` against `1` and `b + 2` elsewhere), so the clause's value is rewritten in first
+        val = "none" if rhs is None else f"some (.{rhs[0]}{''.join(' ' + a for a in rhs[1])})"
+        lemmas.append(f"theorem c{i}_{st}{bind} : TM.Lands trans Rel (enc ({lhs})) (next ({lhs})) := by\n"
+                      f"  have e : next ({lhs}) = {val} := by first | rfl | simp only [next]\n"
+                      f"  rw [e]\n  exact " + lean_tree(tree, "    ") + "\n")
         cases.append(f"  | {lhs} => c{i}_{st}" + "".join(" " + v for v in vs))
     return ns, rules, enc_lines, (lemmas, cases), spec, sst, sargs, fin
 
@@ -512,7 +528,7 @@ def enc : State → Config
 def Rel (s : State) (c : Config) : Prop := c = enc s
 
 /-- `cfg_rfl` after unfolding `enc`. -/
-macro "enc_rfl" : tactic => `(tactic| first | (simp only [enc]; done) | (simp only [enc]; cfg_rfl) | cfg_rfl)
+macro "enc_rfl" : tactic => `(tactic| first | (simp only [enc]; done) | (simp only [enc]; cfg_rfl) | cfg_rfl | (simp only [enc, Nat.mul_succ]; cfg_rfl))
 
 theorem land {{c c' d : Config}} {{n : Nat}} {{s : State}} (h : steps n c = some c') (e₁ : d = c := by enc_rfl)
     (e₂ : c' = enc s := by enc_rfl) (hn : 0 < n := by omega) : TM.Lands trans Rel d (some s) :=

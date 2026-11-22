@@ -84,6 +84,57 @@ Tools (all in `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/`): `py/visit.py MAC
 two top-level visits per round for machines whose A1 is 0LB, one for A1 = 1LD); `py/vis.py`, `py/vis_check.py`.
 <!-- F02-visit-law:end -->
 
+<!-- T7-word-end:begin -->
+## The word end: where the only junk comes from, and when it would be dangerous (22 November 2026)
+
+**Proved in Lean (kernel), `lean/Word.lean`.** `visc f n w` makes `n` visits to the stream `w 0^∞` with exact counts,
+one block at a time, by the rules of `lean/Visit.lean` (a digit block `000`/`100` passes every second visit on, a
+doubler `1010` passes each visit on twice); `run f k` is the word after `k` rounds. `visc_sound` and `run_sound`: what
+they compute is what the machine does (after `k` rounds the machine is at `0^∞ A> 1 0 w 0^∞`, after at least `k` steps,
+and a `halt` result is a halt of the machine). `halts_of_run`: if some `run` reports `halt`, the machine halts from
+blank tape. `not_halts_of_run`: if every number of rounds computes to a word, it never halts. So the question is
+exactly whether the word computation ever meets `1111` (and `11100`, which has no proved rule). `lean/WordRun.lean` (`native_decide`, about 5 s) evaluates
+the first 2,000 rounds: no halt. (Round `k` sends 2^⌊k/2⌋ visits into the word, so 2,000 rounds are about 10^300
+visits; that count is read off the rules, not part of the Lean statement.)
+
+**The only junk is `11` (argument from the rules, checked on the run).** Every block a round writes is `000`, `100`
+or `1010`, and each ends in `0`, so the part of the word a round has passed never has two `1`s side by side. A count
+(the visits still travelling right) never runs out on a digit block or a doubler: a digit block passes at least one
+visit on. It runs out only on a `0` with exactly one visit left, which writes a `1` in front of the cells it did not
+reach. Every halting pattern, and `1011`, needs two touching `1`s, and the first pair can only come from such an end:
+the count runs out on the last `0` of a digit block right before a block that starts with `1`. We call this a *junk
+event*. The count is huge (2^e − c with e large, as in busycoq PR59) everywhere except in the last few dozen cells of
+the word, so junk events can only happen at the word end; this is the "carry reaching the end of the tape" of the
+earlier sections, and the stretches of `0101…` and `00100…` seen there are ordinary digit blocks and doublers read
+with a different grid, not junk.
+
+**When a junk event would be dangerous.** After a junk event the word ends `… 0 1 1 0^∞`, and the block just before
+the `0 1 1` was written in the same round. Every block of a round starts 1 or 2 cells into a block of the round before
+(busycoq PR59), so the next round meets either `0 0 1 1`: two visits give `0 0 0 1` through `1011` (`junk_offset1`),
+harmless; or `0 1 1`: the second visit meets `11100` at the word end, which has no proved rule (`junk_offset2_first`; `visc` reports `stuck`). Which one is decided by the blocks the junk round wrote (PR59's phase rule): after a
+`100` block the next round always enters at offset 2; after a `000` block it enters at offset 1 when the block before
+is a doubler (which a round enters at offset 2, as PR59's run checks). The block before the junk passed exactly one visit on, so its count was 2 (it writes `000`) or 3 (it
+writes `100`). A doubler always passes on an even count, so when the junk round writes doubler, digit, junk, the digit
+is `000` and the next round is safe. Danger needs a count of exactly 3 in the digit block before the junk, which needs
+a digit block (not a doubler) before that one too.
+
+**The run (computed, not proved).** `c/wordrun.c` (in `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/`; `./wordrun 0RD ROUNDS`) runs the same pass with
+counts kept as 2^e − c: 300,000 rounds take about 8 minutes, 10^6 rounds about 1.5 hours. Checks: it halts the PR59
+machines in round 161,211 on `1011`, as PR59 proves; its word after round 169,999 is, cell for cell, the tape of the
+machine-level runner `c/vis.c` run on 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- to the same point (1,055,794 cells);
+and its first 2,000 rounds agree with `lean/WordRun.lean` and `py/vis.py`. Result: no halt and no `111` up to round
+500,000. There are two junk events, in rounds 161,210 and 194,646, both on the cell just before the word's last `1`, both of the
+safe kind: the junk round wrote doubler, `000` (count 2), junk, and the next round met `0 0 1 1` with 4 and 3 visits.
+The two machines have the same run until a visit meets `111`, which has not happened.
+
+**Next.** The counts that reach the last few blocks are small and exact, and the end of the word is a short list of
+blocks fed by one small count per round. Decide whether a round can ever end digit, digit (count 3), junk: an
+invariant of the word end that excludes it would prove that the machine never halts; a round that does it, followed
+by a round that reaches the junk with two visits, is a halt.
+<!-- T7-word-end:end -->
+
+
+
 ## Events, third round
 
 Here E0 = 1RB, E1 = 0RD and F0 = 0RB (reference `1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RB_0RC---`: E0 = 0RD, E1 = 1RB, F0 = 0RC).
@@ -102,8 +153,9 @@ Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.
 
 ## Next steps
 
-Decode what a carry writes when it reaches the end of the tape, so that the junk after each visit is a formula in the
-counters; then decide whether a carry can ever find a 1 where it has always found a 0.
+Decided for the visit law (see "The word end" above): the only junk is `11`, made when a count runs out with one visit
+just before a `1`, and a junk event is dangerous only after a digit block that took exactly 3 visits. Next: an invariant
+of the last few blocks of the word that excludes this, or a round that does it.
 
 ## Scripts
 

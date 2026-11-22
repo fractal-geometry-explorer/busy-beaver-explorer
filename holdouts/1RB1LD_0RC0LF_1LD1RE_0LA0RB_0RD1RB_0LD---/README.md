@@ -76,6 +76,51 @@ Tools (all in `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/`): `py/visit.py MAC
 two top-level visits per round for machines whose A1 is 0LB, one for A1 = 1LD); `py/vis.py`, `py/vis_check.py`.
 <!-- F02-visit-law:end -->
 
+<!-- visp-run:begin -->
+## The visit law to round 1,000,000 (22 November 2026)
+
+**Computed (not proved): no halt in the first 1,000,000 rounds.** `c/visp.c` runs the visit law about 15 times
+faster than `vis.c` (round 200,000 in 3 minutes on 4 cores, round 1,000,000 in 80 minutes). Through round 1,000,000 no
+visit meets `111`. A visit meets `1011` (and writes `1000`) only four times, each time at the right end of the word:
+
+| round | position (right end of the word) |
+|---|---|
+| 161,211 | (the round where the PR59 machines halt) |
+| 194,647 | 819,721 (of 842,000) |
+| 757,566 | 3,191,503 |
+| 906,776 | 3,820,394 |
+
+At round 1,000,000 the word runs from cell -1,999,998 to 4,212,925. Every round sends a count of about 2^(r/2) visits
+along the whole word, so one round costs time proportional to the length of the word, and the whole run grows with
+the square of the number of rounds. The run continues toward round 4,000,000.
+
+**What the count does.** The prefix `(10)^a` (a = r plus a constant) sends 2^(a/2) visits to the word behind it,
+alternately at two entry points two cells apart. The two entries lead into two parse chains through the same
+cells, used by odd and even rounds, with no position in common (measured at round 4,000). Along each chain the
+count is 2^e - c with c small (mostly 1 to 10) and e falling by about one every 9 cells, so a round is a small
+finite-state pass over the whole word that rewrites about a quarter of its cells. The rare `1011` events happen at
+the right end, where e has run out and the count is small.
+
+**How `visp.c` is faster, and why it is still exact.**
+1. Several rounds at once. A round's cascade only moves right: its outermost position never decreases and it
+   touches nothing left of it. Round r+1 works only on cells left of round r's outermost position, with a margin,
+   so the tape is cell for cell the tape of the sequential program.
+2. The prefix in one jump. n visits of `(1010)^j s` are n·2^j visits of `s`, with the blocks written back unchanged.
+   This is proved in Lean: `visN_rep1010` in `lean/VisitPow.lean` (kernel only).
+3. A short lead-in followed by a cycle (e.g. `010 -> 110 -> 000 -> 100 -> 000 ...`) is compressed in one step when all
+   its nested visits go to the same cell.
+
+**Checks.** Dumps of the whole tape equal those of `vis.c` at rounds 5,000 and 20,000 (1 and 3 threads). On
+`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` (busycoq PR59) both `visp.c` and `vis.c` halt in top visit 322,423
+(round 161,211), at cell 678,829, with the same 81-cell window.
+
+```sh
+gcc -O2 -o visp holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/visp.c -lpthread
+./visp 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000001 - 3 50000     # 80 minutes on 4 cores; prints E1011 lines
+./visp 1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC--- 400000 - 3            # PR59 machine: HALT during top visit 322423
+```
+<!-- visp-run:end -->
+
 ## What is established
 
 **Proved in Lean, kernel only:**
