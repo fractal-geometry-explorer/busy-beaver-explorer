@@ -179,6 +179,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For every zone with one lone 1 (near part, far part), prefix and frozen word, the next right turn of a crossing is given on lists (<code>turn2_odd</code>, <code>turn2_even</code>). If the far part is a clean 4-cell word <code>u ws</code> (as at every crossing turn observed), an even bounce turns it into <code>u (sx true ws)</code> and an odd bounce removes its first <code>u</code>; it never stops a bounce. A crossing can therefore only go wrong through its near part.</p>
         <p class="where"><code>clean_even</code>, <code>clean_odd</code>, <code>far_even</code>, <code>lean/Crossing.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The holdout as a question about lists</h3>
+        <p>A list machine <code>astep</code> on three kinds of right-turn states (ordinary, crossing, E on the last 1) covers the right end of the tape too. Each list step is at least one machine step (<code>astep_sim</code>), and the first right turn is at step 12 (<code>start</code>). If the list machine never fails from there, the machine never halts from blank tape (<code>not_halts_of_arun</code>). It can fail in only two ways: F reaching the blank end during a crossing, or an even crossing bounce blocked by its far part. Neither has happened: the list machine matches all 17,758 right turns of the first 2·10<sup>8</sup> steps.</p>
+        <p class="where"><code>not_halts_of_arun</code>, <code>lean/End.lean</code>; <code>py/listmachine.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
