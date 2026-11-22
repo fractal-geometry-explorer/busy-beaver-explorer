@@ -126,8 +126,8 @@
   {
    "level": "trusted",
    "title": "No halt past the defects of the chain",
-   "where": "py/prefixjump.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
-   "text": "Later full events leave the grammar: somewhere the tape is out of phase by half a digit (for example <code>a c W</code> where the grammar has <code>a d W</code>, or a stock of <code>c z</code> tokens after the last W). Because the chain law holds whatever follows the last word, it holds on the longest grammar prefix until a carry leaves it. Jumping with this and running each crossing of a defect cell by cell, 270 jumps reach about 10<sup>128</sup> events from blank tape with no halt, and spot checks of the law on the prefix found no mismatch. Then the run went 10<sup>8</sup> steps without a full event, where this simulator stops."
+   "where": "py/defects.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
+   "text": "Later full events carry defects of the chain. With the chain law up to the first defect, the defect law below at each crossing, and the grammar prefix where neither applies, the run reaches about 10<sup>128</sup> events from blank tape with no halt; 505 self-checks against cell-by-cell runs found no mismatch. At about 10<sup>128</sup> events the event cell moves into the chain, so no full event comes; 6·10<sup>10</sup> more steps stay within the same 2,729 cells without a halt."
   },
   {
    "level": "open",
@@ -136,10 +136,16 @@
    "where": ""
   },
   {
-   "level": "open",
+   "level": "trusted",
    "title": "What a carry does at a defect",
+   "where": "py/defects.py",
+   "text": "A defect is one erased cell in a separator (after Z <code>11</code> read as <code>01</code>, after a W <code>01</code> as <code>00</code>, after a U <code>1011</code> as <code>1001</code>). When a carry of c &gt; 0 reaches it, the separator is restored and the carry goes on as c − 3. In 3·10<sup>7</sup> steps 535,801 consecutive pairs follow the law, 2 of them crossing a defect, 0 mismatches; 19 events not covered."
+  },
+  {
+   "level": "open",
+   "title": "Half-digit shifts",
    "where": "",
-   "text": "What a carry does when it crosses a defect of the chain, and why defects keep appearing after changes of era, is open; so is whether such a crossing can halt."
+   "text": "The other kind of defect, a separator missing altogether or a separator after Z read as <code>a</code>, <code>ad</code>, <code>zd</code> or <code>ac</code>, makes the words after it be read again with W and U swapped when a carry meets it. Its law is not decoded, and neither is the stage after 10<sup>128</sup> events, where the event cell has moved into the chain."
   },
   {
    "level": "trusted",
@@ -178,7 +184,7 @@
    {
     "level": "trusted",
     "value": "10<sup>128</sup>",
-    "text": "Events followed past the chain's defects (law on the grammar prefix), no halt."
+    "text": "Events followed past the chain's defects (defect law), no halt."
    },
    {
     "level": "kernel",
@@ -359,6 +365,6 @@
    }
   ]
  },
- "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt, and with the law on the grammar prefix past the defects of the chain to about 10^128 events (then 10^8 steps with no full event, where the simulator stops); the era changes and the defects are open.",
+ "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt, and with the law on the grammar prefix past the defects of the chain (each erased cell takes one unit of carry) to about 10^128 events (then the event cell moves into the chain); the era changes and the defects are open.",
  "family": "two-word sweeper"
 }
