@@ -30,6 +30,7 @@ the turning point jumps far left and a new phase starts.
 - **The halting configurations.** The machine stops exactly when it reads the symbol of a halting transition (E1); the generated statement covers every configuration. (`step_none_iff`, `lean/Blank.lean`)
 - **PR 93's macro rules on this machine.** 8 of the rules of DeepMind's busycoq PR 93 engine as they hold here, for every count, including the changed collision, collisionD and collide (`lean/EngineRules.lean`; see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
 - **No halt in the first 10,000 steps.** The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel. (`blank_runs_kernel`, `lean/Blank.lean`)
+- **The eat visit of the right-end bouncer, for all counts.** `L 1^(a+3) (01011)^b (011)^c 0 D> 0^inf` reaches `L 1^a (01011)^b (011)^(c+2) 0 D> 0^inf` in 20b + 10c + 25 steps, for every a, b, c and every tape L (never read); k such visits in a row take k(20b + 10c + 15) + 10k² steps. (`eat_visit`, `eat_iter`, `lean/VisitRules.lean`, written by `py/visit_rules.py`; see [the right end](#the-right-end-a-bouncer-over-long-blocks-lead-18-22-november-2026))
 
 **Proved in Lean with `native_decide`:**
 
@@ -41,6 +42,8 @@ the turning point jumps far left and a new phase starts.
 - **No halt in the first 10^9 steps.** The C simulator `tools/c/triage.c` runs 10^9 steps without a halt; at the end 44,635 cells have been visited and 19,460 of them hold a 1. (`holdouts/triage.json`)
 - **Where a halt can be.** A closed tape language of windows of 5 cells (`tools/py/bbtools/ctl.py`, closure checked by the script, not by Lean) contains every configuration reachable from blank tape, and its only halting configurations have E reading a 1 with at least four 1s right of the head (`E>1 1 1 1 1`). In the run so far the right region has shown no runs of five 1s, so a halt would have to happen inside a long block of 1s, as in the left region. (`python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5`)
 - **Not decided by n-gram CPS up to width 14.** The n-gram Closed Position Set decider (`tools/c/ngramcps.c`) with equal widths 4, 6, 8, 10, 12 and 14, plain and with the fixed-length (1) and LRU history augmentations, either reaches a halting local configuration (UNKNOWN) or stops at 3·10^7 local configurations: it does not prove non-halting at these settings. (`ngramcps MACHINE N [-H 1 | -U] -m 30000000`)
+- **The halting route is never approached inside the tape.** A halt needs C reading 0 with 0 on its left and 1 beyond (`halt_route`). In the first 10^10 steps C reads a 0 574,777 times; the cell on its left is 0 only 1,883 times, all at the left end of the visited tape (blank beyond, so no halt), and never inside, where the cell on its left was always 1. (`c/route_census.c`: `./route_census 10000000000`)
+- **Exact macro simulator.** `c/mm2.cpp` simulates blocks of K cells with two-block windows, so that sweeps which step back one cell per copy of a word still cross a whole run of equal blocks at once; nothing is extrapolated. With K = 15 its whole tape, state and head equal a direct simulator's at 1e6, 1e8 and 3·10^9 steps (and with K = 30 at six points up to 3·10^9), and on average it runs 2 to 4 times faster than direct simulation up to 3·10^11 steps. (`./mm2 MACHINE 15 LOG10MAX`)
 - **The right end grows by three cells per visit.** Counting a visit as the head reaching the right end after having been more than 50 cells to its left, the first 2·10^9 steps have 15,470 visits; at 15,386 of them the right end has grown by exactly 3 cells since the previous visit (57 times by 6, the rest by 0, 1 or 5). The head turns back at a point that drifts to the right by about 29 cells per visit, so the zone it sweeps shrinks, and every so often (3,478 times) the turning point jumps far to the left and a new phase starts. Visits get further apart as the right region grows, which gives the power-law growth. (`c/rvisits.c`: `./rvisits MACHINE 2000000000 50`)
 
 **Heuristic:**
@@ -48,9 +51,12 @@ the turning point jumps far left and a new phase starts.
 - **Growth shape: exp/power.** Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a *counter* or of a Collatz-like map whose values are written on the tape (fitted exponent 0.062). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.677). (`tools/py/bbtools/triage.py`)
 - **The two regions.** Left: `C>0 1 0^2 1^3 0^2 1^9 0^2 1 0^2 1 0^2 1^357 0^2 ...`, blocks of odd length separated by `0^2`, a few of them long (one of them has 205, 357 and 421 ones at three of the last left records before 10^9). Right: words `1 0` and `1 1 0`, with long stretches `(1 0)^n`. (`tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000 records 100000`)
 
+- **One digit list in two encodings, then long blocks.** At a left-end visit the tape left of the start is a list of digits `1 (11)^n 00` (605 of them at 2.0·10^9 steps, 589 with n ≤ 6, 5 other words, and one large digit, n = 302; 675 digits and n = 354 at 2.6·10^9). The list continues right of the start for several thousand cells (about 8,700 at 2.9·10^8 steps), written with single 0s (words `1`, `11`) while the head is on the right. Beyond it the right end holds a few long periodic blocks that turn into one another in phases: `(100)^m` (read `(110)^m` after a right sweep), `(10110)^n` / `(00111)^n`, `1^k`, `(10)^k`, and short-lived blocks of period 13, 19 and 39. There are no halving chains like those of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF. (scratch tools, see [the right end](#the-right-end-a-bouncer-over-long-blocks-lead-18-22-november-2026))
+- **Most visits cross the digit list.** In 1,475 sampled intervals between right-end visits (every 7th visit, 10^8 to 9·10^8 steps) the head turned back in the left half of the visited tape 950 times; only the eat phase and a few others stay among the long blocks. So there is no closed visit-to-visit map yet: it would have to include the digit list.
+
 **Open:**
 
-- **Does it halt from blank tape?.** Not known. The macro configuration family has not been found.
+- **Does it halt from blank tape?.** Not known. The macro configuration family has not been found; the right-end phases are understood only in part (the eat visit above).
 
 ## The proved neighbour (round 6)
 
@@ -88,11 +94,42 @@ of memory from these starts." What we found, and what we tried:
 
 No proof was transferred. The decision stays open.
 
-## For later
+## The right end: a bouncer over long blocks (lead 18, 22 November 2026)
 
-The phases on the right: record the configuration at the start of each phase (the turning point jump), the
-lengths of the `(1 0)^n` stretches, and the rule from one phase to the next; then the odd blocks on the left, which
-look like a counter. `c/rvisits.c` gives the visits.
+Lead 18 of the 22 November list asked to retarget lead 17's halving-chain engine (being built for
+1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF) to this machine and to 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF.
+Neither needs it: 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF already has an exact engine from busycoq PR 93 that has
+run past 10^1336 steps, and this machine has no halving chains. What it has instead:
+
+- **The digit list.** At left-end visits the tape left of the start is a list of digits `D n = 1 (11)^n 00`, PR 93's
+  digit word, but irregular: 605 digits left of the start at 2.0·10^9 steps, almost all small, and one large one
+  that grows (n = 302, then 354 at 2.6·10^9). The list goes on right of the start for several thousand cells, written
+  with single 0s while the head is on the right.
+- **The long blocks.** Right of the digit list the tape holds a few periodic blocks with counts in the thousands. In
+  item notation at three times: `(1)^3396 (01011)^1379 H (001)^1403` (3.3·10^8 steps),
+  `(10110)^201 (10)^3823 ~7 (110)^1274` (2.8·10^8), `(01011)^1229 (011)^5939 H` (4.8·10^8; H is the head). The block at the right end,
+  `(100)^m` or `(110)^m` depending on the last sweep, takes the 3 cells the right end gains per visit (the count
+  above), and every so often it is converted into the other blocks.
+- **The eat phase, proved.** When the tape right of the list is `1^(a+3) (01011)^b (011)^c 0` and the head is in D
+  on the blank cell after it, the head sweeps left over `(011)^c` (turning it into `(001)^c`) and `(01011)^b`,
+  turns inside the block of 1s after eating three of them, and comes back, restoring `(011)^c` and appending two
+  more copies. Lean proves the visit for all counts (`eat_visit`) and k visits in a row (`eat_iter`:
+  k(20b + 10c + 15) + 10k² steps). In the run one such phase has b = 1,379 and a going from about 5,000 at 3.1·10^8
+  steps to 171 at 3.84·10^8; 100 visits from step 304,257,913 take 2,892,500 steps, exactly as
+  `eat_iter` says.
+- **Other visits.** A catalogue of 1,475 sampled visits (symbolic simulation with `tools/py/bbtools/symtm.py` from
+  each visit to the next, big runs made variables) found the eat rule and a handful of rules specific to one
+  phase; 950 of the 1,475 intervals turned back in the left half of the tape, inside the digit list. Those visits
+  depend on the digit list, so a visit-to-visit map has to carry it.
+- **The halting route.** By `halt_route` (Route.lean) a halt needs C reading 0 with `1 0` on its left. C is entered
+  only from B reading 0 (B0 = 1LC), and B reads a 0 coming from the right, so this is the leftward sweep in B
+  stepping onto a 0 that has two more 0s and then a 1 on its left (`1 0 0 B<0`). The census (`c/route_census.c`)
+  shows that inside the tape, in 10^10 steps, C read a 0 only with a 1 next to it: whenever B steps left onto a 0,
+  at most one more 0 lies before the next 1.
+
+Next steps: decode the digit list's update rule (it is PR 93's counter with the collision changed, see below) so that
+the long visits become a map; with the eat phase that would give a visit-level accelerator. `c/mm2.cpp` is exact but
+gains only a factor of 2 to 4 because the digit list does not compress.
 
 ## Reproduce
 
@@ -105,6 +142,9 @@ gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA--
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 10000000000
 cd tools/py && python3 -m bbtools.ctl 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 5
 gcc -O2 -o rvisits holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/rvisits.c && ./rvisits 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 2000000000 50
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/py/visit_rules.py   # rewrites lean/VisitRules.lean
+gcc -O2 -o route_census holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/route_census.c && ./route_census 10000000000
+g++ -O2 -std=c++17 -o mm2 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/mm2.cpp && ./mm2 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 15 12
 g++ -O2 -std=c++17 -o cpslru holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/c/cpslru.cpp
 ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000001 300000 D - 8,2,6,0          # the neighbour's start: CLOSED
 ./cpslru 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000001 300000 A - 8,2,6,0 8,1,6,0   # this machine: toobig
