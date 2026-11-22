@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0.</p>
+      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 9.8&middot;10<sup>17</sup> steps (accelerated simulator).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -126,6 +126,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Lean proves, for every count and every tape around, the shift rules of the leftward sweep in B: it turns <code>(01)^n</code> into <code>(11)^n</code> (2 steps per copy) and <code>(011)^n</code> into <code>(001)^n</code> (5 steps per copy).</p>
         <p class="where"><code>shift_l_B_01</code>, <code>shift_l_B_011</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>DeepMind's PR 93 macro rules on this machine</h3>
+        <p>With E and F exchanged and the detour D0 <code>1LE</code>, E0 <code>0RA</code>, A1 <code>1RA</code> replaced by one step <code>1RA</code> (it ends in the same configuration unless the cell left of D is 1, where the machine halts), the table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1LE</code>: the table T3 of DeepMind's halting proof in busycoq PR 93 with E1 changed (T3: <code>0LF</code>, then F0 <code>0LB</code>). Lean proves 11 of PR 93's macro rules for this machine for every count, among them the four that change: where T3 writes the digit <code>D (k+1)</code> (<code>D n = 1 (11)^n 00</code>) on entering <code>CfgJ = l &lt;C 100 r</code>, this machine writes <code>D k 10</code>.</p>
+        <p class="where"><code>pr93_collisionD</code>, <code>pr93_collide</code>, <code>pr93_defect0D</code>, <code>pr93_defect0</code>, <code>pr93_finishP</code> and six unchanged rules, <code>lean/EngineRules.lean</code> (written by <code>py/engine_rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -141,6 +146,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 51,938 cells have been visited and 35,128 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>PR 93's engine does not carry over</h3>
+        <p>Of PR 93's 18 basic rules, 14 hold unchanged (direct simulation, counts up to 4, random tape around), and none of the 18 has D reading 0 next to a 1, so a halt can only come where an engine steps cell by cell. But a collision now leaves <code>10 10</code> (PR 93's call <code>D_j 10 D0 D0 r</code> to <code>D_(j+1) D2 10 r</code> becomes <code>D_(j+1) D1 10 10 r</code>), and a call that meets <code>10 10</code> runs on into the tape beyond instead of returning. PR 93's batched calls have no counterpart, so its engine cannot be patched the way it was for T4.</p>
+        <p class="where">README, section <em>PR 93's engine on this table</em></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 9.8&middot;10<sup>17</sup> steps</h3>
+        <p>The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 6 points up to 10<sup>10</sup> steps, runs 984,180,560,109,706,163 steps from blank tape without a halt (3 hours).</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -164,6 +179,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Never one step from a halt</h3>
         <p>The machine halts when E reads a 1, and E is entered only from D reading a 0 (D0 → 1LE). In the first 3·10<sup>6</sup> steps D reads a 0 297,649 times, always with a 0 to its left.</p>
         <p class="where">direct simulation</p>
+      </div>
+      <div class="card">
+        <h3>Digits, halving chains and periodic blocks</h3>
+        <p>At left-end visits up to 3&middot;10<sup>10</sup> steps the tape is a list of digits <code>D n</code> with a few <code>10</code> defects: halving chains such as <code>D5773 D0 D0 D2884 10 D1440 10 D0 D0 D0 D720 D1 D359 D1 D179 &hellip;</code> and growing periodic blocks <code>(D2 D1)^15875</code>, <code>(D3 D0)^3841</code>.</p>
+        <p class="where">direct simulation (C)</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

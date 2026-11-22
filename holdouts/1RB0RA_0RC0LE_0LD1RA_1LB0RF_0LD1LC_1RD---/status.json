@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules.",
   "<b>One counter, two starts</b> (21 November): this machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> started in state D, proved in Lean, and that folder&rsquo;s exact block macro machine reproduces its run; the reset map and the tail operators found there hold here too, so it is open for the same reason."
@@ -53,6 +53,12 @@
    "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/RulesTwin1.lean</code>, <code>RulesTwin2.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The reset map, for the head of the tape",
+   "text": "This machine halts if and only if the table of 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- halts started in state D (<code>twin_halts_iff</code>); that run is at <code>Reset 52 T0twin</code> after 14,638 steps (<code>reach_twin</code>). From every reset with X &ge; 36 the run reaches the reset with X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or + 3 (X odd) for every tail whose carries come back with the listed signatures (<code>reset_map</code>); if every phase's carries come back, this machine never halts (<code>never_halts_twin</code>).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/ResetMap.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "No halt in the first 2·10<sup>11</sup> steps",
    "text": "The C simulator <code>tmrun</code> runs 2·10<sup>11</sup> steps without a halt; the tape is then 391,889 cells wide. The shared cycle accelerator finds no cycle rules for this machine.",
@@ -79,7 +85,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts exactly when C or E reads a 0 that has a 1 on its left and <code>(10)^k 1 1</code> on its right. The increments never do this; the refills, long carries and the <code>1100</code> region are not closed rules yet.",
+   "text": "Not known. It halts exactly when C or E reads a 0 that has a 1 on its left and <code>(10)^k 1 1</code> on its right. The increments never do this; the refills, long carries and the <code>1100</code> region are not closed rules yet. The reset map is proved for the head of the tape (<code>reset_map</code>), so a halt can only happen inside a carry into the tail.",
    "where": ""
   },
   {
@@ -96,7 +102,7 @@
   },
   {
    "level": "heuristic",
-   "title": "The reset map",
+   "title": "The reset map on the whole run",
    "text": "Seen in the mirror, a countdown block X is used up and the next block becomes the countdown; the next reset has X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or &lfloor;3X/2&rfloor; + 3 (X odd): 7, 13, 22, 34, 52, 79, &hellip;, 24271 at every one of the 19 transitions of the first 3&middot;10<sup>9</sup> steps; 33 in this machine&rsquo;s macro run (2&middot;10<sup>7</sup> records, 2.5&middot;10<sup>14</sup> steps, no halt) and 34 in the twin&rsquo;s (to 3.4&middot;10<sup>14</sup> steps).",
    "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/reset_map.py</code>"
   },
@@ -143,6 +149,11 @@
     "level": "trusted",
     "value": "2,282",
     "text": "Increments checked against the rule, none off."
+   },
+   {
+    "level": "kernel",
+    "value": "X &rarr; &lfloor;3X/2&rfloor;+1 or +3",
+    "text": "The reset map of its twin's table, proved in Lean for the head of the tape; only the carries into the tail are assumed."
    }
   ],
   "presets": [
@@ -176,7 +187,8 @@
      "<p>At the records in the middle of a phase the tape is <code>B&gt;0 (10)^D0 0 0 (10)^Y x T</code>: the countdown D0, the growing block Y with its cell x, and the <b>tail</b> T, everything further on. From one such record to the next (one increment) the tail changes in a way that depends only on whether Y is even and on x &mdash; not on the countdown, and not on the size of Y. So there are just four things that can happen to a tail:</p>",
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>operator</th><th>block before the tail</th><th>what it does to the tail&rsquo;s cells</th></tr></thead><tbody><tr><td>E0</td><td>Y even, x = 0</td><td>lengthens the tail&rsquo;s first block by one <code>10</code>, nothing else</td></tr><tr><td>E1</td><td>Y odd, x = 1</td><td>a carry: a few cells change, sometimes hundreds of cells deep</td></tr><tr><td>O0, O1</td><td>Y odd, x = 0 / Y even, x = 1</td><td>another carry (the two give the same cells)</td></tr></tbody></table></div>",
      "<p>Checked on direct runs (<code>py/tail_ops.py</code> in the folder of <a href=\"../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/explainer.html\"><code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code></a>): inside every phase Y + x is even, so the tail goes E0, E1, E0, E1, &hellip; (2,965 of 2,965 increments in the first 6,000 records here, 1,467 of 1,467 in the twin; 13 of 14 resets here (the first, at X = 7, applies E1 O0), 13 of 13 in the twin); a reset applies E1 O0 O1 when X is even and E1 when X is odd. So the whole future of the tail is one fixed word of operators, spelled out by the orbit of the 3/2 map. Whether the machine halts is the question whether that word ever drives the tail into the halting pattern. The operators do not commute, so the tail is not simply a function of how many increments have happened; this is the Collatz-like core of the problem. All of this is heuristic: checked, not proved.</p>",
-     "<p>It also explains why run-length engines stall: the carries leave the tail as a mass of short blocks of different lengths (about 150 to 190 blocks at 3&middot;10<sup>9</sup> steps), with no long runs to compress beyond the first few blocks.</p>"
+     "<p>It also explains why run-length engines stall: the carries leave the tail as a mass of short blocks of different lengths (about 150 to 190 blocks at 3&middot;10<sup>9</sup> steps), with no long runs to compress beyond the first few blocks.</p>",
+     "<p><b>The reset map, in Lean.</b> Started in state D, the twin's table is at the reset <code>0^inf 1 B&gt;1 0 (10)^52 T</code> after 14,638 steps (<code>reach_twin</code>), and from every reset with X &ge; 36 the head of the tape follows X &rarr; &lfloor;3X/2&rfloor; + 1 or + 3 exactly, whatever the tail holds, as long as each carry into the tail comes back (<code>reset_map</code>, <code>never_halts_twin</code> in <a href=\"../1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/explainer.html#resetlean\">the twin's folder</a>). So this machine, too, can halt only inside such a carry.</p>"
     ]
    },
    {

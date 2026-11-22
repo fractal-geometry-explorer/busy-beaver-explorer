@@ -84,12 +84,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. This page records what is established about it, sorted by what each result rests on. Only a first analysis has been done: the macro rules are not yet known.</p>
     <p>Left of the start, the tape is blocks of an odd number of 1s separated by double 0s, and the head reaches the left end in state C; right of the start it is a long stretch of words <code>1</code> and <code>1 1</code> separated by single 0s, mostly <code>(1 0)^n</code>, which grows like a power of the step count.</p>
-    <p class="asof">Status as of 12 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> No halt in the first 10<sup>10</sup> steps (C simulator); the macro configuration and its rules are not yet known, so there is no map to analyse and no heuristic for halting beyond the localisation of the halt below.</p>
+      <p><b>The question is open.</b> No halt in the first 10<sup>12</sup> steps (C simulator); the macro configuration and its rules are not yet known, so there is no map to analyse and no heuristic for halting beyond the localisation of the halt below. DeepMind's PR 93 engine does not carry over: with two states renamed the table is the T4 table with one transition changed, and that change sends the head right where the engine's rules return left (Lean proves the changed rules).</p>
       <p><b>Round 6, the proved neighbour.</b> The machine proved in busycoq is this table mirrored and started in state D; in this machine's terms it is the run from the tape <code>1 A&gt;0</code> (one extra 1) instead of blank tape. Its proof is a closed tape language that exists once its own run has settled (after 10<sup>6</sup> steps, not before 10<sup>5</sup>). The same search from this machine's run after 10<sup>8</sup>, 10<sup>9</sup>, 10<sup>10</sup> and 10<sup>11</sup> steps does not close, so those configurations are not covered by the neighbour's proof. No transfer; the question stays open.</p>
     </div>
   </section>
@@ -133,6 +133,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From blank tape in state D, three steps lead to state A on blank tape with a single 1 on the cell to its left. busycoq's proved machine <code>1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1LB</code> is this table with left and right exchanged, started in state D (its states A&ndash;F are D, E, A, B, C, F here), so its run is this machine's run from <code>1 A&gt;0</code>. Nothing here says that run and the run from blank tape ever meet.</p>
         <p class="where"><code>neighbour_start</code>, <code>neighbour_start'</code>, <code>lean/Neighbour.lean</code></p>
       </div>
+      <div class="card">
+        <h3>DeepMind's PR 93 macro rules on this machine</h3>
+        <p>With E and F exchanged and the detour D0 <code>1LE</code>, E0 <code>0RA</code>, A1 <code>1RA</code> replaced by one step <code>1RA</code>, the table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1RF_0RA---</code>: the table T4 of the T4 engine (DeepMind's PR 93 engine retargeted, which proved 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE halts) with E1 changed (T4: <code>0LF</code>). Lean proves 8 of PR 93's macro rules for this machine for every count, among them the changed collision (the head turns right at E1 and reaches the tape beyond the rule in state A) and collide (<code>CfgR l (10 D0 D0 r)</code> reaches <code>CfgL l (D1 D1 1 r)</code>).</p>
+        <p class="where"><code>pr93_collision</code>, <code>pr93_collisionD</code>, <code>pr93_collide</code> and five unchanged rules, <code>lean/EngineRules.lean</code> (written by <code>py/engine_rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -144,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
+      <div class="card">
+        <h3>No halt in the first 10<sup>12</sup> steps</h3>
+        <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>12</sup> steps from blank tape without a halt; at the end the tape holds 451,383 ones.</p>
+        <p class="where"><code>tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE 1000000000000</code></p>
+      </div>
       <div class="card">
         <h3>No halt in the first 10<sup>10</sup> steps</h3>
         <p>The C simulator <code>tools/c/tmrun.c</code> runs 10<sup>10</sup> steps from blank tape without a halt; at the end the tape holds 94,290 ones.</p>
@@ -183,6 +193,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Regular-language deciders tried (F11)</h3>
         <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 15, history 1 up to width 14, history 2 up to width 12, history 3 up to width 11, LRU history up to width 4 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 12, p = 3 up to width 12, p = 4 up to width 12, p = 6 up to width 12. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..7; n = 8 not finished in 150 s.</p>
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
+      </div>
+      <div class="card">
+        <h3>PR 93's engine does not carry over</h3>
+        <p>Of PR 93's 18 basic rules, 14 hold unchanged (direct simulation, counts up to 4, random tape around) and none has D reading 0 next to a 1. The four that pass through E1 (collision, collide, defect0, finishP) now turn right at E1; all but collide run on into the tape beyond the rule. PR 93's engine rests on calls that return to the left within a few digits, so there is nothing to retarget.</p>
+        <p class="where">README, section <em>PR 93's engine on this table</em></p>
+      </div>
+      <div class="card">
+        <h3>Accelerated simulators do not get far</h3>
+        <p><code>rsim.py</code> reaches 2.7&middot;10<sup>9</sup> steps in 10 minutes (validated against direct simulation at 4 points up to 10<sup>9</sup>) and <code>tools/py/bbtools/rleaccel_rec.py</code> stalls near 10<sup>8</sup>: no halt, and no regular structure these tools can jump over.</p>
+        <p class="where"><code>rsim_screen.py</code>, <code>rleaccel_rec.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

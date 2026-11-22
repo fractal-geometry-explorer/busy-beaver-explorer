@@ -83,13 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> and a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.</p>
-      <p><b>What Lean proves.</b> The whole frame map: 8 tape shapes, 78 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 2 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 4.5&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.</p>
+      <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps; the jump map in C finds no halt in the first 8.1&middot;10<sup>29</sup> steps.</p>
+      <p><b>What Lean proves.</b> The whole frame map: 8 tape shapes, 78 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 2 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 4.5&middot;10<sup>11</sup> machine steps) do not. With whole sweeps taken as one jump (<code>lean/Jump.lean</code>), <code>native_decide</code> extends this to 1.5&middot;10<sup>14</sup> frames, and five halting rows are proved: a halt needs a zigzag to start exactly on one of them. Whether the orbit ever does is open.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>init_start</code>: the run from blank tape reaches <code>Ph.z 0 0 2</code> after 2 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from there is a frame where <code>next</code> is <code>none</code>.</p>
         <p class="where"><code>lean/Phases.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Whole sweeps and zigzags in closed form</h3>
+        <p><code>w_sweep</code>, <code>u_sweep</code>, <code>y_zigzag</code> and their bracket twins: k repetitions of one case of <code>next</code> (two for a zigzag round) for all sizes, e.g. <code>y(a + 3k, j, r + 1 + k)</code> reaches <code>y(a, j + 2k, r + 1)</code> in 2k frames. <code>jump</code> takes each whole sweep or zigzag at once and <code>jump_sound</code> proves every jump is that many frames of <code>next</code>.</p>
+        <p class="where"><code>lean/Jump.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Five halting rows</h3>
+        <p><code>halt_y</code>: from <code>y(3k+1, 2m, k+2)</code> the map reaches a frame where it is undefined (k zigzag rounds, three frames, a sweep to <code>w(., 0, 1)</code>); likewise <code>halt_Y</code> for <code>Y(3k+1, 2m, k+3)</code>, and <code>halt_y0</code>, <code>halt_y2</code>, <code>halt_Y0</code> for three rows with an odd alternating block.</p>
+        <p class="where"><code>lean/Jump.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -148,6 +158,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>8</sup> frames</h3>
         <p><code>no_halt_phases</code>, by <code>native_decide</code>: the first 10<sup>8</sup> iterates are defined. By the step counts of the fitted map (<code>py/framemap.py run 100000000</code>) that is about 4.5&middot;10<sup>11</sup> machine steps.</p>
         <p class="where"><code>lean/Phases.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.5&middot;10<sup>14</sup> frames</h3>
+        <p><code>jumps_frames</code>, by <code>native_decide</code>: 10<sup>8</sup> jumps from <code>Ph.z 0 0 2</code> are defined and cover 146,530,202,670,678 frames of <code>next</code>; <code>no_halt_frames</code>: none of them is a halting frame (8.1&middot;10<sup>20</sup> machine steps by the step counts of the cases).</p>
+        <p class="where"><code>lean/Jump.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
@@ -182,6 +197,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,404,600,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 3.58&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 2 1404600000</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 8.1&middot;10<sup>29</sup> steps (the jump map)</h3>
+        <p><code>c/frun.c</code> iterates the jump map with 64-bit sizes and 128-bit step counts (the 78 cases generated from the Lean files by <code>py/gen_c.py</code>; every jump checked case by case by <code>frun check</code> and against the Lean cases by <code>py/check_frun.py</code>): 1.0&middot;10<sup>11</sup> jumps, 1.5&middot;10<sup>20</sup> frames, 8.1&middot;10<sup>29</sup> machine steps, no halt.</p>
+        <p class="where"><code>c/frun.c</code>, <code>c/run_close.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>Every small halt goes through a halting row</h3>
+        <p>From every frame with all three numbers below 60, every halt within 400 jumps (205,943) comes before the first zigzag or right after a zigzag start in one of the five rows (<code>frun rows 60</code>). In the run from blank tape every zigzag start has had an even alternating block (<code>frun stats</code>), so only <code>y(3k+1, 2m, k+2)</code> and <code>Y(3k+1, 2m, k+3)</code> can be met.</p>
+        <p class="where"><code>c/frun.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -194,6 +219,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Two blocks trading length</h3>
         <p>At the moments the head reaches a new cell between steps 9.79&middot;10<sup>7</sup> and 9.94&middot;10<sup>7</sup>, the tape is an alternating block and a solid block plus a few cells, with lengths (806, 336), (672, 604), (540, 874), (722, 513).</p>
         <p class="where"><code>tools/c/tmrun.c</code> records</p>
+      </div>
+      <div class="card">
+        <h3>A halt is expected, but absurdly late</h3>
+        <p>The two blocks grow by 4/3 and by 4 per pass in alternating phases; where a phase ends is chaotic, and a halt needs a crossover exactly on a row (chance about 1/R, R about J/10 after J jumps). The expected number of hits grows like ln ln J; the close calls give about 1.5 per unit of ln ln J, so about 3.6 were expected by jump 1.0&middot;10<sup>11</sup> and none came. Median halt, if the heuristic holds: J &asymp; 10<sup>18</sup> jumps, about 10<sup>53</sup> steps.</p>
+        <p class="where"><code>frun close</code>, explainer section on close calls</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -210,7 +240,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 1000000000
 python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/framemap.py verify 26
-gcc -O2 -o mrun holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/mrun.c &amp;&amp; ./mrun 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 2 1000000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/mrun.c &amp;&amp; ./mrun 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD 2 1000000000000000
+gcc -O2 -o frun holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/frun.c &amp;&amp; ./frun check 300000 &amp;&amp; ./frun run 100000000000 1000000000
+./frun trace 8000 | python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/check_frun.py
+./frun rows 60 &amp;&amp; ./frun close 100000000000 1000000000 16</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/status.json</code>; edit that file and rebuild rather than editing this page.</p>

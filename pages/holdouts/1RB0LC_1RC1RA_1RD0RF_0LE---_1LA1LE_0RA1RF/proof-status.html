@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -157,6 +157,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>9</sup> steps</h3>
         <p>The C simulator <code>tools/c/triage.c</code> runs 10<sup>9</sup> steps without a halt; at the end 42,923 cells have been visited and 28,048 of them hold a 1.</p>
         <p class="where"><code>holdouts/triage.json</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2.26&middot;10<sup>14</sup> steps</h3>
+        <p>The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 6 points up to 10<sup>10</sup> steps, runs 225,538,757,990,671 steps from blank tape without a halt (20 minutes, 82 jumps; tape-level jumps validated, not proved).</p>
+        <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code></p>
+      </div>
+      <div class="card">
+        <h3>DeepMind's PR 93 engine does not carry over</h3>
+        <p>This is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF started in state B: up to renaming, DeepMind's busycoq PR 93 table T3 with E1 changed. Four of PR 93's 18 basic rules change (Lean proves the changed forms in that machine's folder), and the change breaks the engine for every start.</p>
+        <p class="where"><code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/README.md</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
