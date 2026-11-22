@@ -5048,6 +5048,28 @@
    "rank": 219
   },
   {
+   "m": "1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
+   "id": 76942,
+   "fam": "R14",
+   "famname": "Block lists rewritten like a cellular automaton (blocks of 4k+3 ones)",
+   "set": "T6",
+   "mates": 6,
+   "stage": "decode",
+   "score": 14.4,
+   "route": "either",
+   "work": "decode",
+   "kernel": 6,
+   "map": "",
+   "bound": 7,
+   "cryptid": false,
+   "name": "",
+   "tc": "Chaotic 1dCA-like in bouncer",
+   "why": "A bouncer whose tape, after a rightward sweep, is a word of 4-cell letters s = 0111 and c = 1111 (blocks of 4k+3 ones); each round trip replaces the word by its running XOR (proved in Lean), i.e. backwards in time the XOR rule 102; only the layer at the right end is undecoded, and a halt can only come from there.",
+   "next": "None yet.",
+   "folder": "holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
+   "rank": 220
+  },
+  {
    "m": "1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD",
    "id": 145349,
    "fam": "F03",
@@ -5067,7 +5089,7 @@
    "why": "A binary counter in the left word of a proved token model (Lean: rules, checked simulator, halts_iff); overflows double exactly, a marker walks a track of 0s, and a reset at the end of each epoch rewrites the tape; the reset is not proved.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB0RC_1LC0RE_0LD0LB_1RA1LE_1LB1RF_---0RD",
-   "rank": 220
+   "rank": 221
   },
   {
    "m": "1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA",
@@ -5089,7 +5111,7 @@
    "why": "The renamed twin of 1RB0RC_1LC0RE: the same proved token model (Lean rules, checked simulator, halts_iff), and frame by frame the twin's run with a shorter right end; the resets that start each epoch are not proved.",
    "next": "Decode the macro rules: find the configurations that recur at the tape ends (tools/py word view and invariant finder), write them as shift rules for the symbolic prover to check in Lean, and locate where the halting configuration could come from.",
    "folder": "holdouts/1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA",
-   "rank": 221
+   "rank": 222
   },
   {
    "m": "1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA",
@@ -5111,7 +5133,7 @@
    "why": "A 4/3 map on a run of 1s whose tail list holds a second counter that drains the main one: it halts exactly if that counter reaches four times the main run, which needs an astronomically long streak of m mod 3 ≠ 1; probviously non-halting, and no regular invariant can prove it. Accelerated run: no halt in 1.21e38782 steps.",
    "next": "Prove the round map with the tail runs in residue classes in Lean (no regular/pushdown certificate can work); the halting question is then number-theoretic.",
    "folder": "holdouts/1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA",
-   "rank": 222
+   "rank": 223
   },
   {
    "m": "1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB",
@@ -5133,7 +5155,7 @@
    "why": "One block of n ones; each pass maps n to about n(1+2^-(j+1)), j the 2-adic valuation of n+2, and it halts iff n+2 is ever a power of two. Doucette family (Lean): D -> D + a + v + 2. Accelerated run: no halt in 1.54e25722 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB0RF_1RC1RF_1LD0LE_---1LC_1RA1LE_1LC1RB",
-   "rank": 223
+   "rank": 224
   },
   {
    "m": "1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE",
@@ -5155,7 +5177,7 @@
    "why": "Two blocks of ones K(p, q): an odd p is halved ((p−3)/2, the second block absorbing the rest), an even p becomes 3p/2 + q; proved in Lean: it halts iff some p reached with q = 1 has p + 3 a power of two, and not before 2^2073 steps. Doucette family (Lean): D -> D + a + v. Accelerated run: no halt in 4.07e25927 steps.",
    "next": "None: pure number theory.",
    "folder": "holdouts/1RB1LA_0LC0RC_1LE1RD_1RE1RC_1LF0LA_---1LE",
-   "rank": 224
+   "rank": 225
   },
   {
    "m": "1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
@@ -5177,7 +5199,7 @@
    "why": "Proved in Lean (kernel), above the tape-level map: it halts iff a doubling map u ↦ 2u mod v (v grows by one at each doubling that does not wrap), with its odd pools and brackets, reaches an odd pool 2^(k+2) − 2k − 3 without a bracket, e.g. from 2u = v at v = 2^(k+1) − k. No halt in 10^11 operations (5·10^10 visits); open. Accelerated run: no halt in 4.44e10 steps.",
    "next": "Run the C map on past v ~ 2^37 (5x10^10 reached) to clear the next targets k = 36, 37; otherwise pure number theory.",
    "folder": "holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE",
-   "rank": 225
+   "rank": 226
   },
   {
    "m": "1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE",
@@ -5199,7 +5221,7 @@
    "why": "Moves numbers between binary counters (digits 1000/1100 counting down, 1100/1110 counting up) one unit per engine visit, in nested loops one level deeper each epoch (family X, reference).",
    "next": "Write the epoch as a recursive program on the list of counters (what each separator does to a carry or borrow, what is written at the ends), so that the epoch-to-epoch map is a formula; then ask whether A can ever land on a 1.",
    "folder": "holdouts/1RB---_0LC0RB_1RA1LD_0RD1LE_1LF0LA_1LB0LE",
-   "rank": 226
+   "rank": 227
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE",
@@ -5218,10 +5240,10 @@
    "cryptid": false,
    "name": "",
    "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "Sweeps between a dense form (blocks 1^4j+3 0) at the left end and a sparse form (words 0101, 0001) at the right end; the list of blocks changes chaotically from sweep to sweep. Open.",
+   "why": "Sweeps between a dense form (blocks 1^4j+3 0) at the left end and a sparse form (words 0101, 0001) at the right end; each round trip replaces the list, as a word of 4-cell letters, by its running XOR (rule 102 backwards in time). Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE",
-   "rank": 227
+   "rank": 228
   },
   {
    "m": "1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE",
@@ -5240,10 +5262,10 @@
    "cryptid": false,
    "name": "",
    "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "Sweeps between a dense form (blocks 1^4j+3 separated by single 0s) at the left end and a sparse form (words 0101, 0001) at the right end; the list of blocks is scrambled on every round trip. Open.",
+   "why": "Sweeps between a dense form (blocks 1^4j+3 separated by single 0s) at the left end and a sparse form (words 0101, 0001) at the right end; each round trip replaces the list, as a word of 4-cell letters, by its running XOR (rule 102 backwards in time). Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE",
-   "rank": 228
+   "rank": 229
   },
   {
    "m": "1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---",
@@ -5262,31 +5284,9 @@
    "cryptid": false,
    "name": "",
    "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "Sweeps between a sparse form (words 01 and 0001) at the left end and a dense form (blocks 1^4j+3 separated by single 0s) at the right end; the list of blocks is scrambled on every round trip. Open.",
+   "why": "Sweeps between a sparse form (words 01 and 0001) at the left end and a dense form (blocks 1^4j+3 separated by single 0s) at the right end; each round trip replaces the list, as a word of 4-cell letters, by its running XOR (rule 102 backwards in time). Open.",
    "next": "None yet.",
    "folder": "holdouts/1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---",
-   "rank": 229
-  },
-  {
-   "m": "1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
-   "id": 76942,
-   "fam": "R14",
-   "famname": "Block lists rewritten like a cellular automaton (blocks of 4k+3 ones)",
-   "set": "T6",
-   "mates": 6,
-   "stage": "decode",
-   "score": 13.6,
-   "route": "either",
-   "work": "decode",
-   "kernel": 5,
-   "map": "",
-   "bound": 7,
-   "cryptid": false,
-   "name": "",
-   "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip rewrites the list in a cellular-automaton-like way; halting needs B on two adjacent 1s, never seen.",
-   "next": "None yet.",
-   "folder": "holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---",
    "rank": 230
   },
   {
@@ -5592,7 +5592,7 @@
    "cryptid": false,
    "name": "",
    "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip rewrites the list in a cellular-automaton-like way; halting needs D on two adjacent 1s, never seen.",
+   "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip replaces the list, as a word of 4-cell letters, by its running XOR (rule 102 backwards in time); halting needs D on two adjacent 1s, never seen.",
    "next": "None yet.",
    "folder": "holdouts/1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---",
    "rank": 244
@@ -5680,7 +5680,7 @@
    "cryptid": false,
    "name": "",
    "tc": "Chaotic 1dCA-like in bouncer",
-   "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip rewrites the list in a cellular-automaton-like way; halting needs D on two adjacent 1s, never seen.",
+   "why": "A bouncer whose tape, after a rightward sweep, is a list of numbers k written as blocks of 4k+3 ones separated by single 0s; each round trip replaces the list, as a word of 4-cell letters, by its running XOR (rule 102 backwards in time); halting needs D on two adjacent 1s, never seen.",
    "next": "None yet.",
    "folder": "holdouts/1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---",
    "rank": 248
