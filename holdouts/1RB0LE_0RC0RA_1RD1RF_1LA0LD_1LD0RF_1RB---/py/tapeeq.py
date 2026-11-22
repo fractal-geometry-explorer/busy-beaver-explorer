@@ -149,6 +149,7 @@ def rule(name, start, end, vs, lhs, rhs, doc, machine=None):
         out.append(tape_eq(name + "_r", fin.right, tgt.right, sorted(vs),
                            doc=f"The right tape at the end of `{name}_raw`, rebracketed.", ctxs=ctxs))
         rws.append(f"{name}_r {' '.join(used(sorted(vs) + ctxs, right_term(fin.right) + ' ' + right_term(tgt.right)))}")
+    raw_vs = sorted(Config.parse(start).vars() | tgt.vars())     # the binders of the raw theorem
     binders = (f" ({' '.join(vs)} : Nat)" if vs else "") + (f" ({' '.join(ctxs)} : Tape)" if ctxs else "")
     # rewrite only the end configuration (the start may contain the same subterm)
     rw = (f"  have e : (some {cfg_term(fin)} : Option Config) = some {cfg_term(tgt)} := by\n"
@@ -156,7 +157,7 @@ def rule(name, start, end, vs, lhs, rhs, doc, machine=None):
     out.append(f"""/-- {doc} -/
 theorem {name}{binders} :
     steps ({fin.steps.lean()}) ({lhs}) = some ({rhs}) := by
-  have h := {name}_raw {' '.join(sorted(vs) + ctxs)}
+  have h := {name}_raw {' '.join(raw_vs + ctxs)}
 {rw}  exact h
 """)
     return out
