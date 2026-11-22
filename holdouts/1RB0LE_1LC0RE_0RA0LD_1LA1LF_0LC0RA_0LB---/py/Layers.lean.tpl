@@ -251,11 +251,15 @@ end
 /-- An item: its words Q and P. -/
 abbrev Item := List Bool × List Bool
 
-/-- The tape from the first item on: `(11 [Q] 01 [P] 10)* 11 [Q] 01 [R] 0^inf`, the last item `l` holding R. -/
-def encT : List Item → Item → Tape
-  | [], l => cons true (cons true (enc qd l.1 (cons false (cons true (enc pd l.2 blank)))))
+/-- The tape from the first item on: `(11 [Q] 01 [P] 10)* 11 [Q] 01 [R]` and then any tape `B` (blank tape in the
+layouts of the grammar), the last item `l` holding R.  The law holds whatever `B` is: no visit reads past R unless a
+carry leaves R. -/
+def encT (B : Tape) : List Item → Item → Tape
+  | [], l => cons true (cons true (enc qd l.1 (cons false (cons true (enc pd l.2 B)))))
   | i :: rest, l =>
-    cons true (cons true (enc qd i.1 (cons false (cons true (enc pd i.2 (cons true (cons false (encT rest l))))))))
+    cons true (cons true (enc qd i.1 (cons false (cons true (enc pd i.2 (cons true (cons false (encT B rest l))))))))
+
+variable {B : Tape}
 
 /-- A unit into the chain (`n` bounds the recursion; `none` when a carry leaves R). -/
 def dU : Nat → List Item → Item → Option (List Item × Item)
@@ -268,7 +272,7 @@ def dU : Nat → List Item → Item → Option (List Item × Item)
     | some x => some ((x.1, x.2.1) :: x.2.2.1, x.2.2.2)
 
 theorem dU_sound : ∀ (n : Nat) (its : List Item) (l : Item) (r : List Item × Item), dU n its l = some r →
-    UD (encT its l) (encT r.1 r.2) := by
+    UD (encT B its l) (encT B r.1 r.2) := by
   intro n
   induction n with
   | zero => intro its l r h; simp [dU] at h
@@ -282,7 +286,7 @@ theorem dU_sound : ∀ (n : Nat) (its : List Item) (l : Item) (r : List Item × 
       | some x =>
         simp only [hu, Option.some.injEq] at h
         subst h
-        exact qUnit_sound (σ := Unit) (fun _ => none) (fun _ => blank) (fun _ _ e => by cases e) hu
+        exact qUnit_sound (σ := Unit) (fun _ => none) (fun _ => B) (fun _ _ e => by cases e) hu
     | cons i rest =>
       simp only [dU] at h
       cases hu : qUnit (fun s : List Item × Item => dU n s.1 s.2) i.1 i.2 (rest, l) with
@@ -291,7 +295,7 @@ theorem dU_sound : ∀ (n : Nat) (its : List Item) (l : Item) (r : List Item × 
         simp only [hu, Option.some.injEq] at h
         subst h
         exact qUnit_sound (fun s : List Item × Item => dU n s.1 s.2)
-          (fun s : List Item × Item => cons true (cons false (encT s.1 s.2)))
+          (fun s : List Item × Item => cons true (cons false (encT B s.1 s.2)))
           (fun s s' e => a_ps (ih s.1 s.2 s' e)) hu
 
 /-! ## Z and the event -/
@@ -324,7 +328,7 @@ def evNext (z : List Bool) (its : List Item) (l : Item) : Option (List Bool × L
 /-- **The right half of an event, for every layout.** -/
 theorem event_vis {z : List Bool} {its : List Item} {l : Item} {r : List Bool × List Item × Item}
     (hz : z ≠ []) (h : evNext z its l = some r) :
-    Vis .A (cons false (enc zd z (encT its l))) .D (cons false (enc zd r.1 (encT r.2.1 r.2.2))) := by
+    Vis .A (cons false (enc zd z (encT B its l))) .D (cons false (enc zd r.1 (encT B r.2.1 r.2.2))) := by
   unfold evNext at h
   cases hc : (incB z).2 with
   | false =>
@@ -346,9 +350,9 @@ computed by `evNext`. -/
 theorem layer_event {z : List Bool} {its : List Item} {l : Item} {r : List Bool × List Item × Item}
     (hz : z ≠ []) (h : evNext z its l = some r) {L0 L1 : Tape}
     (hn : ∀ T : Tape, ∃ t, steps t ⟨L0, cons false (cons false T), .D⟩ = some ⟨L1, cons false T, .A⟩) :
-    ∃ t, steps t ⟨cons false L0, cons false (enc zd z (encT its l)), .A⟩ =
-      some ⟨L1, cons false (enc zd r.1 (encT r.2.1 r.2.2)), .A⟩ := by
+    ∃ t, steps t ⟨cons false L0, cons false (enc zd z (encT B its l)), .A⟩ =
+      some ⟨L1, cons false (enc zd r.1 (encT B r.2.1 r.2.2)), .A⟩ := by
   obtain ⟨t1, h1⟩ := event_vis hz h false L0
-  obtain ⟨t2, h2⟩ := hn (enc zd r.1 (encT r.2.1 r.2.2))
+  obtain ⟨t2, h2⟩ := hn (enc zd r.1 (encT B r.2.1 r.2.2))
   exact ⟨_, steps_seq trans h1 h2⟩
 

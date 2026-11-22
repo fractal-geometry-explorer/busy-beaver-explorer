@@ -108,7 +108,7 @@
   {
    "level": "kernel",
    "title": "The chain law, for every layout",
-   "text": "At an event the right side is <code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [Z] 1 1 [W₁] 0 1 [U₁] 1 0 1 1 [W₂] 0 1 [U₂] … 1 0 1 1 [W<sub>m</sub>] 0 1 [U<sub>m</sub>] 0<sup>∞</sup></code>: Z (digits <code>0010</code>, <code>1010</code>), each W (<code>0001</code>, <code>0101</code>) and each U (<code>1000</code>, <code>1010</code>) binary, lowest digit first, of any width, W and U possibly empty, any number m of pairs. From one event to the next: N + 1, Z + 1; when Z wraps, W₁ gets 3; each wrap of a W gives its U 3; each wrap of a U gives the next W 3, as long as no carry leaves the last word. Equivalently Z + 2<sup>|Z|</sup>/3 · (W₁ + 2<sup>|W₁|</sup>/3 · (U₁ + 2<sup>|U₁|</sup>/3 · (W₂ + …))) grows by exactly 1 per event. 23 visit rows (24 for E1 = 0RE) of blocks of 1, 2 and 4 cells, composed by induction over the digits of each word and over the list of pairs; the generator is this family's copy of the one first written for 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA.",
+   "text": "At an event the right side is <code>0<sup>∞</sup> 1 0 [N] A&gt; 0 [Z] 1 1 [W₁] 0 1 [U₁] 1 0 1 1 [W₂] 0 1 [U₂] … 1 0 1 1 [W<sub>m</sub>] 0 1 [U<sub>m</sub>] 0<sup>∞</sup></code>: Z (digits <code>0010</code>, <code>1010</code>), each W (<code>0001</code>, <code>0101</code>) and each U (<code>1000</code>, <code>1010</code>) binary, lowest digit first, of any width, W and U possibly empty, any number m of pairs. From one event to the next: N + 1, Z + 1; when Z wraps, W₁ gets 3; each wrap of a W gives its U 3; each wrap of a U gives the next W 3, as long as no carry leaves the last word. Equivalently Z + 2<sup>|Z|</sup>/3 · (W₁ + 2<sup>|W₁|</sup>/3 · (U₁ + 2<sup>|U₁|</sup>/3 · (W₂ + …))) grows by exactly 1 per event. 23 visit rows (24 for E1 = 0RE) of blocks of 1, 2 and 4 cells, composed by induction over the digits of each word and over the list of pairs; the generator is this family's copy of the one first written for 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA. The law holds whatever tape follows the last word (<code>encT B</code>): no visit reads past it unless a carry leaves it.",
    "where": "<code>layer_event</code>, <code>layer_event_n0t0</code> … <code>layer_event_novk</code> (the 9 cases of N), <code>lean/Layers.lean</code>, from <code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/layers_gen.py</code>"
   },
   {
@@ -124,10 +124,22 @@
    "where": "<code>python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- jump 74 10</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt past the defects of the chain",
+   "where": "py/prefixjump.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
+   "text": "Later full events leave the grammar: somewhere the tape is out of phase by half a digit (for example <code>a c W</code> where the grammar has <code>a d W</code>, or a stock of <code>c z</code> tokens after the last W). Because the chain law holds whatever follows the last word, it holds on the longest grammar prefix until a carry leaves it. Jumping with this and running each crossing of a defect cell by cell, 270 jumps reach about 10<sup>128</sup> events from blank tape with no halt, and spot checks of the law on the prefix found no mismatch. Then the run went 10<sup>8</sup> steps without a full event, where this simulator stops."
+  },
+  {
    "level": "open",
    "title": "What a change of era hands on",
    "text": "At the end of an era the words are at or near their largest values; after the change they hold small values, the boundaries between words have moved by a digit, the last word has one digit more, and N has either gained 1 (the change is one event, and two words disappear) or lost 2 to 9 base-3 digits, depending on N mod 9 and more, which become new words. A rule for this hand-over, and whether a change of era can ever halt, are open.",
    "where": ""
+  },
+  {
+   "level": "open",
+   "title": "What a carry does at a defect",
+   "where": "",
+   "text": "What a carry does when it crosses a defect of the chain, and why defects keep appearing after changes of era, is open; so is whether such a crossing can halt."
   },
   {
    "level": "trusted",
@@ -162,6 +174,11 @@
     "level": "trusted",
     "value": "5.1·10<sup>41</sup>",
     "text": "Events of the run (74 eras followed), no halt."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>128</sup>",
+    "text": "Events followed past the chain's defects (law on the grammar prefix), no halt."
    },
    {
     "level": "kernel",
@@ -342,6 +359,6 @@
    }
   ]
  },
- "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt; the era changes are open.",
+ "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt, and with the law on the grammar prefix past the defects of the chain to about 10^128 events (then 10^8 steps with no full event, where the simulator stops); the era changes and the defects are open.",
  "family": "two-word sweeper"
 }

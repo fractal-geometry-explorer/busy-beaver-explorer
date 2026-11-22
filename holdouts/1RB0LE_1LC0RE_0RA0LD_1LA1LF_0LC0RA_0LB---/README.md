@@ -257,7 +257,7 @@ layout the empty W turns the 3 into 9, X of k digits keeps 9 mod 2^k and passes 
 C + 24/2^k (+3 when X wraps) found before. `lean/Layers.lean` proves the law for any number of pairs and any widths:
 `layer_event`, and `layer_event_n0t0` … `layer_event_novk` with the 9 cases of N. It is built from 23 visit rows of
 blocks of 1, 2 and 4 cells, composed by induction over the digits of each word and over the list of pairs, as long as
-no carry leaves the last word. The generator `py/layers_gen.py` (with `py/Layers.lean.tpl` and `py/rowgen.py`) is this
+no carry leaves the last word; whatever tape follows the last word (`encT B`, blank in the grammar's layouts), since no visit reads past it unless a carry leaves it. The generator `py/layers_gen.py` (with `py/Layers.lean.tpl` and `py/rowgen.py`) is this
 family's copy of the one first written for `1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA`, which has the same layout and
 law. Its rows use E where that machine uses F and A where that machine leaves P in E, and the first visit of a unit
 bounces once in E. For the siblings with E1 = 0RE, a further bounce comes before every increment of a W
@@ -358,6 +358,7 @@ halting 1.
 
 - `py/wordchain.py MACHINE check STEPS | jump ERAS SPOT [OUT.json]`: the chain law on a run, and the simulator that jumps over eras.
 - `py/handoff.py MACHINE ERAS`: follows ERAS changes of era and checks the three hand-over rules R1 to R3 at each.
+- `py/prefixjump.py MACHINE JUMPS [SPOT]`: for chains with a defect (the E1 = 0RE siblings), jumps by the chain law on the longest grammar prefix, with the tail kept as it is.
 - `py/layers_gen.py MACHINE NAMESPACE > lean/Layers.lean` (with `py/Layers.lean.tpl`, `py/rowgen.py`, `py/layers_bounce.json`): the chain law in Lean, for the whole family.
 - `py/chain_page.py collect|write`: the chain law and the runs (`py/chain_runs.json`) into the five status.json files.
 
