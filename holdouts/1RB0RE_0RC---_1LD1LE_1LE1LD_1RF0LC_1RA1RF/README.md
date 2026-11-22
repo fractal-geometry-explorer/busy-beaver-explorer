@@ -355,6 +355,38 @@ count). E reads the last 1 during a crossing 8 times, always with one of the thr
 times, `b a b a^12` and the 43-letter word once each), and the 12 crossing turns with blank end that have no witness
 are all in those windows.
 
+**Do witnesses run out? Perturbed orbits (22 November 2026, `c/locality.cpp`, `c/perturb.cpp`).** The Lean windows
+cover every crossing the real orbit makes in 10^6 list steps, but they do not show that witnesses never run out later.
+Three experiments say why a proof along these lines is hard, and suggest the machine may well halt in the end.
+
+- *Locality (observed).* The next crossing start (its near part `a^m` and the first 30 letters of its far part)
+  depends only on the last 200 or so letters of the frozen word. `./locality 12240 200 12 7` keeps the last 200
+  letters, randomizes the rest, the length, the zone and the prefix, and all 13 runs print the same next crossing;
+  with only the last 30 kept (`./locality 12240 30 20 0`) they differ. So the far parts the growing phase builds are
+  a function of a short, deep window of the previous frozen word, with carry-like dependence on its far end, and
+  there is no evident finite description of them.
+- *A random far part fails.* Run against random clean far parts, the near side (`py/game.py`) fails in about 3% of
+  crossings, almost always within about 30 bounces. The real orbit's far parts are not random, but nothing found so
+  far separates them from the failing ones.
+- *Perturbed orbits halt.* `./perturb 186 10 1000 9 11 1000000000` runs the list machine from blank tape to list
+  step 186, keeps the last 10 letters of the frozen word, randomizes the rest and the prefix, and follows 1000 such
+  orbits through 9 more crossings. At each `astep` failure it rebuilds the tape (`cfg` of End.lean) and runs the
+  real machine for up to 10^9 steps. Per crossing after the cut, the failures (and real halts among them) are
+  0, 5 (2), 0, 23 (23), 4 (4), 10 (4), 10 (8), 11 (4), 4 (2), 0: 67 failures, 47 of them real halts, out of 1000
+  orbits. That is about 0.5 to 1% of orbits halting per crossing. Later the rate seems lower: from list step 12240
+  (K = 10, 120 orbits, 4 crossings) there was 1 failure in 476 crossings (halting not checked), and with K = 200
+  none.
+- *The real orbit and its siblings.* The unperturbed orbit runs 10^6 list steps without failure, and so do three
+  other small starts of the list machine (`EO` with `W = 101000`, `p = 0` and `p = 1`, and `W = 1010`, `p = 1`):
+  10^6 list steps each, no failure.
+
+So the machine behaves like a Collatz-like probabilistic halter: each crossing is a fresh, nearly independent trial
+with a small (and perhaps falling) chance of halting, and orbits that the machine could have taken do halt. A
+non-halting proof would need hidden structure that makes the real far parts special, such as a closed description of
+the words the growing phase builds; none has been found. A halting proof would need to follow the real orbit to the
+failing crossing, which at the present growth (epoch step counts about 3 times larger each time) may be far beyond
+reach. A bit-parallel list machine would push the halt hunt further.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
