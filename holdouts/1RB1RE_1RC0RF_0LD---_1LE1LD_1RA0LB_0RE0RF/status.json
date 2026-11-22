@@ -10,10 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Same mechanism as 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---: a 110101010 bouncer on the left, and on the slow right a sorted list of blocks 1^(6j+1) 00 (37, 41, 43, 47, 49, 53, …) rewritten by passing waves; open.",
-  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps; the rest of the description below is observation of the run, marked as such."
+  "<b>The question is open.</b> This machine is the table of DeepMind's busycoq PR 93 (a halting proof for 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---) with that table's halt moved: it goes on where PR 93's machine halts, and it halts only at a three-step detour when a 1 sits next to it. Lean proves 44 of PR 93's macro rules for it; PR 93's engine runs it 7,889,000 fast steps, to a tape of about 2<sup>2764</sup> cells, without a halt (trusted computation).",
+  "Lean proves no halt in the first 10<sup>7</sup> steps (the first 10,000 by the kernel alone), 8 shift rules of the sweeps, the detour and the 44 engine rules."
  ],
  "claims": [
   {
@@ -65,28 +65,28 @@
    "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
   },
   {
-   "level": "kernel",
-   "title": "8 shift rules of the sweeps",
-   "text": "For every n and every tape around: A crosses <code>110101010</code> rightward writing <code>001111111</code>, D crosses it leftward writing <code>111011101</code> (eight proved rules over its rotations). Each is a theorem <code>steps (s·n) … = some …</code> found and proved by <code>tools/py/bbtools/symtm.py</code>.",
-   "where": "<code>lean/Sweeps.lean</code> (<code>sweep_rA_110101010</code>, <code>sweep_rB_110101010</code>, <code>sweep_lD_110101010_1</code>, <code>sweep_rA_101010110</code>, …)"
-  },
-  {
-   "level": "trusted",
-   "title": "Where a halt can happen (closed tape language, 5-cell windows)",
-   "text": "The closure search of <code>bbtools.ctl</code> with windows of 5 cells is closed but allows halts; the halting abstract configurations constrain the neighbourhood of a halt: a halt (C reading 1) needs <code>11100</code> or <code>11111</code> to the left; any right side starting with 1. A Python check, not a Lean certificate (the Lean library only has the right-edge and no-halt corollaries, which do not apply).",
-   "where": "<code>python3 -m bbtools.ctl 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF 5</code>"
-  },
-  {
-   "level": "heuristic",
-   "title": "Macro structure: bouncer with a sorted list of blocks 1^(6j+1)",
-   "text": "Left of the start: <code>(110 10 10 10)</code> repeated, a √t bouncer (proved shift rules). Right of it, on the slow side (394 cells after 10<sup>9</sup> steps), a list of blocks of 1s separated by <code>00</code> whose settled lengths are 6j + 1, sorted, with 6j + 5 blocks at group boundaries, e.g. at step 945,073,674: <code>41 : 43 : 43 : 43 : 43 : 43 : 43 : 43 : 43 : 43 : 7 : 1 : 47 : 49 : 49 : 11 : 1 : 53 : 55 : 59 : 5 : 1 : 1 : 3 : 1</code> (run lengths, <code>:</code> = 00).",
-   "where": "README; <code>tmrun</code>, <code>tokrun</code> runs"
-  },
-  {
    "level": "heuristic",
    "title": "No halt in the first 8.29&times;10<sup>13</sup> steps of an accelerated run",
    "text": "Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 8.29&times;10<sup>13</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.01&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 7,944 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.",
    "where": "<code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "PR 93's table with its halt moved, and the detour",
+   "text": "Mirrored, with the states renamed (A&rarr;C, B&rarr;D, C&rarr;E, D&rarr;A, E&rarr;B), this machine is the source table T3 = <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB0LF_0LB---</code> of DeepMind's busycoq PR 93 (which proves that 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- halts), started in the same state C, with two changes: T3's halt F1 becomes T3's own E1 move (0LF), and T3's one step at D reading 0 becomes a three-step detour. In this machine's orientation the detour is B reading 0: with 0 next to it, three steps end exactly where PR 93's one step ends (<code>detour</code>); with 1 next to it, C reads that 1 and the machine halts (<code>detour_halt</code>). That is its only way to halt.",
+   "where": "<code>lean/Detour.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "44 macro rules of PR 93's engine hold for this machine",
+   "text": "PR 93's 21 basic macro rules, its 5 rules at the blank end, its 8 rules for the <code>DefWord</code> words and its two fast right sweeps, each stated in this machine's orientation for every count and every tape around (some split into the cases count = 0 and count &ge; 1). Their runs never meet the detour's halting case, so the engine's fast steps never hide a halt: a halt can only happen in one of its raw single steps. Generated by <code>py/pr93rules.py</code> with <code>tools/py/bbtools/symtm.py</code>; <code>py/rulecheck.py</code> checks the engine's shift scans the same way.",
+   "where": "<code>lean/PR93Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 7,889,000 fast steps of PR 93's engine (tape about 2<sup>2764</sup> cells)",
+   "text": "PR 93's engine, extracted to OCaml with only its source table changed (T3 with F1 := 0LF), runs this machine's mirror from blank tape, and <code>engine/watch</code> tests at every fast step whether the next steps reach the halting pattern. None does in the first 7,889,000 fast steps, at the end of which the tape holds about 2<sup>2764</sup> cells (so about 10<sup>1663</sup> or more steps). At fast step 2,452,241 (tape about 2<sup>1400</sup> cells) the run reaches the configuration where PR 93's machine halts (F reading 1); this machine goes on there. The engine agrees with direct simulation through fast step 1,331 (3·10<sup>11</sup> steps; in the first 3.6·10<sup>9</sup> of them all 453,682,544 steps of B reading 0 have 0 next to them). The extracted engine is not a proof for this table: PR 93's soundness proof is for T3.",
+   "where": "<code>engine/build.sh</code>, <code>engine/watch.ml</code>, <code>engine/validate.ml</code>, <code>engine/f1.ml</code>"
   },
   {
    "level": "open",
@@ -104,11 +104,23 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF/lean/check.sh",
-  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF 1000000000"
+  "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF 1000000000",
+  "python3 holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF/py/rulecheck.py",
+  "sh holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF/engine/build.sh /path/to/busycoq && ulimit -s unlimited && holdouts/1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE0RF/engine/out/watch C 7000000 - ck.bin"
  ],
  "explainer": {
-  "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
+  "lede": "Nobody knows. This machine is a close relative of one that DeepMind proved halts: the same table, mirrored and renamed, with the halt moved. It goes on where its relative stops, and it can only stop at a small detour. This page runs the real machine in your browser and lists what is known, each result marked by what it rests on.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "2<sup>2764</sup> cells",
+    "text": "No halt in 7,889,000 fast steps of PR 93's engine, past the point where PR 93's machine halts."
+   },
+   {
+    "level": "kernel",
+    "value": "44 rules",
+    "text": "PR 93's macro rules, proved in Lean for this machine."
+   },
    {
     "level": "trusted",
     "value": "10<sup>9</sup> steps",
@@ -154,6 +166,18 @@
     ]
    },
    {
+    "id": "pr93",
+    "eyebrow": "PR 93's engine",
+    "heading": "A halting proof for the next table over, and where this machine leaves it",
+    "html": [
+     "<p>DeepMind's busycoq PR 93 proves that 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD--- halts. Its proof runs a <em>fast engine</em>: an evaluator over run-length tapes of a few macro words (<code>D n = 1 (11)<sup>n</sup> 00</code>, <code>S n = 1 (01)<sup>n+1</sup></code> and some longer ones), whose every step is a macro rule proved in Coq. The engine works on a source table T3, mirrored and renamed. This machine is T3 too, started in the same state, with two differences.</p>",
+     "<p><b>The halt is moved.</b> T3 halts when F reads 1. T3's states E and F have the same row apart from that, so here they are one state, and where T3 halts this machine does what T3's E does and goes on. In the engine's run that moment comes at fast step 2,452,241, on a tape of about 2<sup>1400</sup> cells.</p>",
+     "<p><b>One step becomes a detour.</b> Where T3 writes a 1 and turns, this machine first steps over, looks at the next cell, and comes back: three steps that end exactly where T3's one step ends, unless the cell it looked at holds a 1, and then it halts. That is its only halt:</p><div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th></th><th>tape (this machine's orientation)</th><th>steps</th></tr></thead><tbody><tr><td>PR 93's machine, B reads 0</td><td><code>x <b>B&gt;0</b> 0</code> &rarr; <code><b>D&gt;x</b> 1 0</code></td><td>1</td></tr><tr><td>this machine, 0 next to it</td><td><code>x <b>B&gt;0</b> 0</code> &rarr; <code>x 1 <b>C&gt;0</b></code> &rarr; <code>x <b>D&gt;1</b> 0</code> &rarr; <code><b>D&gt;x</b> 1 0</code></td><td>3</td></tr><tr><td>this machine, 1 next to it</td><td><code>x <b>B&gt;0</b> 1</code> &rarr; <code>x 1 <b>C&gt;1</b></code> &rarr; halt</td><td>1</td></tr></tbody></table></div>",
+     "<p><b>The engine's rules never take the bad branch.</b> Lean proves 44 of the engine's macro rules for this machine itself (<code>lean/PR93Rules.lean</code>), for every count and every tape around; so inside a fast step nothing can halt, and a halt could only come at one of the engine's rare raw single steps. With the source table changed, the engine runs this machine; a check at every fast step looks for the halting pattern.</p>",
+     "<p><b>Result so far.</b> No halt in 7,889,000 fast steps, at which point the tape holds about 2<sup>2764</sup> cells (trusted computation; the engine agrees with direct simulation through 3·10<sup>11</sup> steps). The question stays open: the run would have to go on forever, and nothing yet says why the bad branch never comes.</p>"
+    ]
+   },
+   {
     "id": "halting",
     "eyebrow": "Halting",
     "heading": "What a halt would require",
@@ -166,8 +190,8 @@
     "eyebrow": "Lean",
     "heading": "What is proved, and what is not",
     "html": [
-     "<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): A crosses <code>110101010</code> rightward writing <code>001111111</code>, D crosses it leftward writing <code>111011101</code> (eight proved rules over its rotations); for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li></ul>",
-     "<p>Everything else on this page is observation of the simulated run (heuristic). Nothing here decides halting.</p>"
+     "<ul><li><b>Sweeps</b> (<code>lean/Sweeps.lean</code>, kernel): A crosses <code>110101010</code> rightward writing <code>001111111</code>, D crosses it leftward writing <code>111011101</code> (eight proved rules over its rotations); for every number of copies and every tape around.</li><li><b>Bounded run</b> (<code>lean/Blank.lean</code>): no halt in 10<sup>7</sup> steps (native), 10,000 (kernel); the halting transition is the only way to stop.</li><li><b>Detour</b> (<code>lean/Detour.lean</code>, kernel): the only difference from PR 93's table that matters, and its halting case.</li><li><b>PR 93's rules</b> (<code>lean/PR93Rules.lean</code>, kernel): 44 macro rules of DeepMind's engine, for this machine.</li></ul>",
+     "<p>The engine run is a trusted computation, and the rest of this page is observation of simulated runs (heuristic). Nothing here decides halting.</p>"
     ]
    },
    {
@@ -175,7 +199,7 @@
     "eyebrow": "Next",
     "heading": "What would move it forward",
     "html": [
-     "<p>As for the twin: the rule of one wall visit on the block list.</p>"
+     "<p>Find why the engine's raw steps never meet the detour's bad case: the halting pattern needs three 0s between a 1 and the head. In the samples taken (every 1,000th fast step) the tape never has more than two 0s in a row between 1s; longer runs of 0s appear only for a few steps, in the engine's raw stretches at irregular events, and so far always without the 1 beyond them. A proof that they never line up would decide the machine (it would never halt); a counterexample in the run would make it halt.</p>"
     ]
    },
    {
@@ -202,7 +226,7 @@
    }
   ]
  },
- "summary": "Same mechanism as 1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0RD---: a 110101010 bouncer on the left, and on the slow right a sorted list of blocks 1^(6j+1) 00 (37, 41, 43, 47, 49, 53, …) rewritten by passing waves; open.",
+ "summary": "PR 93's table with its halt moved: it goes on where PR 93's machine halts and can halt only at a 3-step detour; 44 engine rules in Lean, no halt in 7,889,000 fast steps (tape 2^2764); open.",
  "family": "bouncer with a sorted list of blocks 1^(6j+1)",
  "decision": "open"
 }

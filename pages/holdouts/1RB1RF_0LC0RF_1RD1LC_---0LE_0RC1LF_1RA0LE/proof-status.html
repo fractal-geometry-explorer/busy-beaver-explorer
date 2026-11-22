@@ -83,13 +83,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly long blocks of 1s and of <code>10</code>s. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.</p>
       <p><b>What Lean proves.</b> The whole frame map: 11 tape shapes, 66 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 6 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 9.7&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.</p>
+      <p><b>The frame map run far.</b> <code>c/framemap.c</code> iterates the same Lean map in C (its cases generated from the Lean files), jumping over whole sweeps by the Lean lemma <code>sweep</code>. In 62 minutes on one core it went 2.9&middot;10<sup>21</sup> frames (10<sup>11</sup> rounds, 1.5&middot;10<sup>32</sup> machine steps) without reaching a halting case. Seen from the rule form, the map is the tent map on u = 2x/(2x + y), and a halt is the orbit landing exactly on the middle; the closest tapes that could have halted (y odd) were 2 away, such as B(31690290, 63380583).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -140,6 +141,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>init_start</code>: the run from blank tape reaches <code>Ph.g 0 1</code> after 6 steps. <code>halts_iff</code>: the machine halts from blank tape if and only if some iterate of <code>next</code> from there is a frame where <code>next</code> is <code>none</code>.</p>
         <p class="where"><code>lean/Phases.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Whole sweeps in one statement</h3>
+        <p><code>sweep</code>: for all k, L, J, R, <code>iter (2k) (e L (J+1+k) (R+1+2k)) = some (e (L+2k) (J+1) (R+1))</code>. Nearly every frame of the run is one of the two cases that make up this pair (cases <code>e l (j+2) (r+2)</code> and <code>h l (m+1) (r+2)</code>).</p>
+        <p class="where"><code>lean/Sweep.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -186,6 +192,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 1,536,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 6.66&middot;10<sup>22</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1536000000</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 2.9&middot;10<sup>21</sup> frames (1.5&middot;10<sup>32</sup> steps)</h3>
+        <p><code>c/framemap.c</code> iterates <code>next</code> exactly: its 66 cases are generated from <code>lean/Phases.lean</code> and the step counts from <code>lean/Pieces.lean</code> by <code>py/gen_c.py</code>, and whole sweeps are jumped by <code>sweep</code>. It agrees frame by frame with the Python reading of the Lean map for 300,000 frames, and without the jumps it reaches the same frame and step count at 10<sup>10</sup> frames. From <code>Ph.g 0 1</code> it ran 2,916,662,715,542,862,488,166 frames, 10<sup>11</sup> of them frames f (one per round of the rule form), to machine step 151,<wbr>234,<wbr>372,<wbr>263,<wbr>249,<wbr>191,<wbr>290,<wbr>395,<wbr>350,<wbr>829,<wbr>563 (counted exactly in 128 bits), without reaching a case where <code>next</code> is <code>none</code>. Variables reached 2.3&middot;10<sup>11</sup>.</p>
+        <p class="where"><code>c/framemap.c</code>, log in <code>c/framemap_run.txt</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -198,6 +209,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Halving on the way left, doubling at the left end</h3>
         <p>At consecutive moments the head reaches a new cell, a solid block of p ones at the right end becomes about p/2 copies of <code>10</code> at the left end (1171 to 587, 1659 to 831, 691 to 347), and then the alternating block doubles (348 to 698).</p>
         <p class="where"><code>tools/c/tmrun.c</code> records</p>
+      </div>
+      <div class="card">
+        <h3>A tent map, and how close the orbit came to the middle</h3>
+        <p>With u = 2x/(2x + y), the rules of the rule form are u &rarr; 2u (when x &lt; y/2) and u &rarr; 2 &minus; 2u (otherwise), up to O(1/(2x + y)), while 2x + y grows by 1 to 4 each round. B(x, 2x + 1), the only halting tape, is the exact middle u &asymp; 1/2. Of 10<sup>11</sup> rounds, 33,333,405,819 had y odd (only those can halt); at x &ge; 16 none had d = y &minus; (2x + 1) = 0, and the 16 even values 0 &lt; |d| &le; 16 had 42 between them (2.6 each). So a d = 0 so far would not have been surprising, nor is its absence (a random model gives about 7% for no hit). The counts near the middle grow by about 0.26 per tenfold growth of x, so a random orbit would still hit eventually, but only after x grows by about 10<sup>4</sup>-fold per expected hit, i.e. the step count by about 10<sup>12</sup>.</p>
+        <p class="where"><code>c/framemap_run.txt</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -214,7 +230,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30
-gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000
+gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
