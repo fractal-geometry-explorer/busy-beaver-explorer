@@ -207,7 +207,7 @@
     },
     {
       m: "1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---", vars: ["m", "k", "b"], cfg: "C(m, k, b) = 1^m (10)^k C> 1^b", start: [0n, 0n, 2n],
-      level: "DeepMind's halts-iff (a cited theorem here, not proved on this repository's definitions)", rule: "DeepMind's next, with the step (m+3, k, b+1) -> (m, k+2, b) repeated at once",
+      level: "kernel halts-iff (DeepMind's map, proved here in core Lean)", rule: "DeepMind's next, with the step (m+3, k, b+1) -> (m, k+2, b) repeated at once; halts iff a sweep start has m = 3b+1",
       step([m, k, b]) {
         if (b === 0n) return [m + 1n, 0n, 2n * k + 2n];
         if (m === 0n) return b === 1n ? [2n * k + 3n, 0n, 2n] : [2n * k + 2n, 1n, b - 2n];
