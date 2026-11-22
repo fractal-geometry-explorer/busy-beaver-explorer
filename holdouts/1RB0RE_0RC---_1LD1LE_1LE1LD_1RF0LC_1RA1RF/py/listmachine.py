@@ -5,7 +5,9 @@ same during a crossing (near part N, a lone 1, far part O); ('EO', W, Z) E on th
 handed back by the right end, which the machine reaches by a left move, so it is not compared with a right turn.
 `Danger` is raised in the two cases the list machine does not cover (`astep = none` in Lean).
 
-  python3 listmachine.py [N]   compare with every right turn of the first N steps (default 2*10^6)
+  python3 listmachine.py [N]       compare with every right turn of the first N steps (default 2*10^6)
+  python3 listmachine.py run K     run the list machine alone for K list steps from the start state of End.lean,
+                                   checking that it never fails and that every far part is clean (dbl (true :: ws))
 """
 import sys
 from collections import Counter
@@ -127,6 +129,25 @@ def lockstep(N):
     print('matched',ok,'right turns',dict(kinds))
 
 
-if __name__ == '__main__':
+def run(K, every=5000):
+    import re, time
+    # a far part as bits: dbl (true :: ws) is 1 0 then pairs 00 / 10, so in letters x=0,y=1 it is y(x(xx)*y)*x(xx)*
+    clean = re.compile(r'^y(x(xx)*y)*x(xx)*$')
+    st = ('EO', (Tr, F), ('pre', 1)); kinds = Counter(); unclean = 0; zone = 0; t0 = time.time()
+    for i in range(K):
+        st = canon(step(st)); kinds[st[0]] += 1
+        if st[0] == 'T2':
+            if not clean.match(''.join('xy'[b] for b in st[2])): unclean += 1
+            zone = max(zone, len(st[1]) + len(st[2]))
+        elif st[0] in ('T', 'EO'):
+            zone = max(zone, len(st[1]))
+        if (i + 1) % every == 0 or i + 1 == K:
+            print(i + 1, 'list steps', dict(kinds), 'unclean far parts', unclean, 'largest zone', zone,
+                  '%.0fs' % (time.time() - t0), flush=True)
 
-    lockstep(int(float(sys.argv[1])) if len(sys.argv) > 1 else 2 * 10 ** 6)
+
+if __name__ == '__main__':
+    if len(sys.argv) > 2 and sys.argv[1] == 'run':
+        run(int(float(sys.argv[2])))
+    else:
+        lockstep(int(float(sys.argv[1])) if len(sys.argv) > 1 else 2 * 10 ** 6)
