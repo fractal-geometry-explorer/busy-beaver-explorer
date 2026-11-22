@@ -21,7 +21,7 @@ At zone step 3 · 10^7 the word of the zone orbit is: the new zone (76 cells), t
 
 namespace H25821
 
-open TM hiding rep
+open TM hiding rep run
 open XS
 
 /-! ## The block -/

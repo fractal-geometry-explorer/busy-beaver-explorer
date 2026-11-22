@@ -17,7 +17,7 @@ of cells that needed two passes, and is then run through the rest of the word (`
 
 namespace H25821
 
-open TM hiding rep
+open TM hiding rep run
 open XS
 
 /-- What compiled evaluation checks at zone step 3 · 10^7. -/
