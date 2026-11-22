@@ -1,8 +1,8 @@
 # 1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA
 
 bbchallenge id 66813, a BB(6) holdout (group G06). Family: **two blocks trading words, with resets**. Open; the run from blank tape is proved in Lean, with exact step counts, through all of level 1 to the first
-configuration of level 2 (past 10^1543 steps), and every reset at a nearly empty tail is a theorem: one class halts,
-fourteen never halt, the rest start a new tail.
+configuration of level 2 (past 10^1543 steps), and every reset at a short tail is a theorem, in a table that closes
+after a third level: two classes halt, 29 never halt, the rest start a new level or phase.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -143,6 +143,55 @@ piece (a stretch of single steps, a crossing, a re-bracketing) is proved on the 
 them, stated once per file, and the pieces are chained by unification. The 36 rules of `NearEmptyRules.lean` take
 0.7 MB and 22 s this way; with `symtm.prove` they were 21 MB and ran out of memory.
 
+## The third level: the short tails close up (22 Nov)
+
+Some level-2 resets leave a short tail that is not a nearly empty tail of a suffix: `x3` = `1100 1011001`,
+`tl 0 y` = `10 1101001`, and `s2` right after the d block (`cfg n 0 s2`). `py/closure_table.py` starts from these,
+runs the plain machine from `cfg n r T` (n = 60..69, every r) to the first clean record (`c/firstrec.c`: m >= 1, or a
+tail starting `1001` or `101110`, or the loop record) and adds what it leaves: a short tail with its r = m' mod 5, or a
+long tail `10 (1110)^k S` of a new suffix S with all its nearly empty tails. The list closes after 44 states
+(`runs/closure_table.txt`); five of them are the level-0 tail `1001`, proved before. `lean/level3.py` proves the other
+39 for every n (`lean/Level3Rules.lean`, 0.7 MB, about a minute; `lean/Level3.lean`, kernel):
+
+| tail T | r | the reset reaches | theorem |
+|---|---|---|---|
+| `x3` | 0, 3 | (n+4, 0), (10, floor(n/2) + 14) with `1001`: level 0 | `x3_r0`, `x3_r3_*` |
+| | 1 | (n+3, 1) with `z1` = `01011001` | `x3_r1` |
+| | 2 | (17, 0) with `10 (1110)^(n+14) 1001101011001`: level 2 again | `x3_r2` |
+| | 4 | loop (n+41) | `x3_r4` |
+| `tl 0 y` | 0 | (17, 0) with `10 (1110)^(n+3) 1`: level 1 again | `y0_r0` |
+| | 1, 3 | (10, floor(n/2) + 5), (n+26, 0) with `1001`: level 0 | `y0_r1_*`, `y0_r3` |
+| | 2 | **halts** | `y0_r2_halts` |
+| | 4 | loop (n+30) | `y0_r4` |
+| `s2` | 0 | (17, 0) with `10 (1110)^(n+3) 1011001`: **level 3**, suffix `s3` = `1011001` | `s2_r0` |
+| | 1, 3, 4 | loop (n+17 from n+1, n+32, n+43) | `s2_r1` ... |
+| | 2 | (n+22, 0) with `1001`: level 0 | `s2_r2` |
+| `z1`, `z2` = `1001011001` | 1, 0 | (n+6, 0) with `z2`; loop (n+5) | `z1_r1`, `z2_r0` |
+| `tl 0 s3` | 0 | level 1 again, n + 3 words | `s3_t0_r0` |
+| | 1, 2, 3 | loop | `s3_t0_r*` |
+| | 4 | (n+31, 0) with `1001` | `s3_t0_r4` |
+| `tl 1 s3` | 0, 2 | loop | `s3_t1_r0`, `s3_t1_r2` |
+| | 3 | (n+30, 0) with `1001` | `s3_t1_r3` |
+| | 4 | (10, floor(n/2) + 13) with `x4` = `1101 1011001` | `s3_t1_r4_*` |
+| `tl 2 s3` | 0 | (n+10, 0) with `1001` | `s3_t2_r0` |
+| | 2 | level 3 again, n + 23 words | `s3_t2_r2` |
+| | 3 | (10, floor((n+25)/2)) with `x4` | `s3_t2_r3_*` |
+| `tl 3 s3` | 0 | (10, floor((n+5)/2)) with `x4` | `s3_t3_r0_*` |
+| | 2 | loop (n+41) | `s3_t3_r2` |
+| `x4` | 0, 3, 4 | loop | `x4_r0`, `x4_r3`, `x4_r4` |
+| | 1 | (n+3, 1) with `z3` = `11011001`, then `z4` = `11001`, then `s0`, then (n+6, 0) with `1001` | `x4_r1`, `z3_r1`, `z4_r1`, `s0_r1` |
+| | 2 | level 1 again, n + 21 words | `x4_r2` |
+
+Fifteen more classes reach the loop record and never halt (`*_never_halts`), 29 in all. The second halting class,
+`cfg n 2 (tl 0 y)`, is reached through the generic rows: a level-2 phase end (n, 2, 1) with n = 6 or 7 mod 10 resets to
+(10, floor(n/2) + 9) with the tail `tl 0 y`, whose periods end at r = 2 (`s2_r2_t1_to_y_halts`).
+
+So, with the generic rows of the reset table (`lean/Resets.lean`, which hold for any suffix), every reset that the
+machine can meet on levels 0 to 3 is a theorem, and nothing else comes up: the run is a walk through a finite table of
+proved transitions on (n, r, t), and the machine halts exactly when the walk reaches one of the two halting classes.
+Assumptions: the closure was found from n = 60..69 (the Lean proofs then hold for every n, but a small n, below about
+2, can need its own case), and a record is "clean" by the test above.
+
 ## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
 
 The method that closed another holdout (keep the big counts free, track only remainders; it proves non-halting if no
@@ -200,7 +249,9 @@ Open.
   form, `reset_spec`, `periods_exact`, the phase map `phase` with `phase_spec`, `phaseRun_spec`, `phaseRun_some`,
   `run_from_17`, `level1_end'`), `lean/TailResetRules.lean` and `lean/BlankRun.lean` (the run from blank tape:
   `blank_to_17`, `level2_entry`, `blank_to_level2`), `lean/NearEmptyRules.lean` and `lean/NearEmpty.lean` (every reset
-  at a nearly empty tail, `loop5`, the `*_never_halts` classes, `s2_r2_t2_halts`, `s2_r0_t6_halts`). The first level
+  at a nearly empty tail, `loop5`, the `*_never_halts` classes, `s2_r2_t2_halts`, `s2_r0_t6_halts`),
+  `lean/Level3Rules.lean` and `lean/Level3.lean` (the third level and the closed list of short tails, `y0_r2_halts`,
+  `s2_r2_t1_to_y_halts`). The first level
   is a theorem: from a phase end (n, r, t) the machine follows the phase map, with exact step counts, as long as t is
   at least 4 per phase. All kernel-checked, no `sorry`, no `native_decide` outside `blank_runs_native`.
 * No halt to 4.5*10^17 steps (exact, accelerated). From blank tape to the first record of level 2 (through the phase
@@ -211,10 +262,8 @@ Open.
 
 ## For later
 
-* The third level: the tails `1100 1011001` (`x3`), `10 1101001` (`tl 0 y`) and the suffix right after the d block
-  (`cfg n 0 s2`), which some level-2 resets leave, are not tabulated; nor are the resets of the level-0 tail `1001`
-  when it comes back inside level 2 (the same rules as at the start, `tail0_*` ... `t1001_r4_t0`, apply, with blank
-  tape after it only).
+* One Lean statement for the whole table: a map on (level, short tail, n, r, t) with `spec` from the rules of
+  `Resets.lean`, `NearEmpty.lean` and `Level3.lean`, so that "halts iff the map reaches a halting class" is a theorem.
 * The end of level 2 of the real run: level 2 starts at `cfg 17 0 (tl (N+20) s2)` (proved) and lasts about
   (N+20)/2.5 phases of the proved phase map; its last phase end (r, t, n mod 10) decides between the rows of the
   table above. Nothing short of a closed form for about 10^770 iterations of the map is in sight.
@@ -231,6 +280,8 @@ VAL=11 SZ=268435456 ./m7fast 12      # checked against the plain machine to 5.9*
 python3 holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA/py/m7map.py 17 0 6805 374475636 100000 6
 cd holdouts/1RB1LC_1RC0RF_1RD0LB_1RE0LD_1LF---_0RA1LA && gcc -O2 -o nextrec c/nextrec.c && gcc -O2 -o reset c/reset.c && python3 py/nearempty_table.py   # the table, measured (a few minutes)
 python3 lean/tailresets.py > lean/TailResetRules.lean && python3 lean/nearempty.py   # regenerate the rules (seconds)
+gcc -O2 -o firstrec c/firstrec.c && python3 py/closure_table.py > runs/closure_table.txt   # the closed list of short tails (minutes)
+python3 lean/level3.py   # regenerate the third-level rules (seconds)
 ```
 
 ## Pages
