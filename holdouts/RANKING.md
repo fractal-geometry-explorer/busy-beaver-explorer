@@ -60,9 +60,9 @@ Each attack is one piece of work that would settle the machines listed with it. 
    - [`1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---`](1RB0RE_1LC1RA_1LD0LC_0RE0LA_1RA1RF_0RA---/README.md)
    - [`1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---`](1RB1RF_1RC0RA_1LD1RB_1LE0LD_0RA0LB_0RB---/README.md)
 7. **Rebuild maps and the wall invariant (R07)** (9 machines, either, Lean proof). Up/down counters and two binary counters with rebuilds. The rebuilds are explicit closed maps (checked, not proved); prove them in Lean and extend the PR 57/58 wall invariant to rebuilds that read only part of the counter. What remains after that is a number-theoretic inequality.
-   - [`1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---`](1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/README.md)
    - [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---`](1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---/README.md)
    - [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---`](1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---/README.md)
+   - [`1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---`](1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---/README.md)
    - [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---`](1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/README.md)
    - [`1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---`](1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---/README.md)
    - [`1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---`](1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---/README.md)
@@ -122,13 +122,13 @@ Each attack is one piece of work that would settle the machines listed with it. 
 | 15 | `1RB0LA_1RC---_1RD1RA_1LE1RF_1LC1LE_0RC0RD` | 50.4 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 16 | `1RB0RA_1RC0RC_1LD0LE_1RA1LC_1LC0LF_0LC---` | 50.4 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next. |
 | 17 | `1RB0RB_1LC0LE_1RD1LB_1RA0RD_1LB0LF_0LB---` | 50.4 | Finite or inequality question | non-halting | Describe P^(2^k) on the words of the run in closed form (the word holds a counter that P counts down), accelerate a phase end, and read off the map from one phase to the next. |
-| 18 | `1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---` | 50.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 19 | `1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB` | 50.4 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
-| 20 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---` | 49.6 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 21 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---` | 49.6 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 22 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | 49.4 | Finite or inequality question | non-halting | Prove the second-level tick (1^a 0 D>0 1^(3+3j) 0 W, the left context 1^a 0 instead of 0 0 0) the same way and add it to the accelerated run, to follow the run past 1.4·10^13 steps; then describe P in closed form. |
-| 23 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
-| 24 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---` | 49.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 18 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF0LE_1RA---` | 50.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 19 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RF1RC_1RA---` | 50.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 20 | `1RB1LD_1RC0RB_1LA1RC_1LE0LA_1LF---_1LC---` | 50.4 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 21 | `1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB` | 50.4 | Finite or inequality question | non-halting | Port Pascal.lean, Lucas.lean and Absorb.lean with the tape sides exchanged, then close the same two cases as the Pascal machine. |
+| 22 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---` | 50.2 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 23 | `1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---` | 50.2 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
+| 24 | `1RB0LC_1LC0RB_0LE1LD_1LB1LA_0RA1LF_0LA---` | 49.4 | Finite or inequality question | non-halting | Prove the second-level tick (1^a 0 D>0 1^(3+3j) 0 W, the left context 1^a 0 instead of 0 0 0) the same way and add it to the accelerated run, to follow the run past 1.4·10^13 steps; then describe P in closed form. |
 | 25 | `1RB0RE_0RC0RF_1LD1RA_1RE0LD_0LB1RC_1LE---` | 49.2 | Finite or inequality question | either | Prove the closed rebuild maps; extend the PR 57/58 wall invariant. |
 | 26 | `1RB0RE_1LC1RA_1LD0LC_1LA0LA_1RA0RF_0RA---` | 48.8 | Finite or inequality question | non-halting | Automaton invariant for the word map P alone, plus the clock lemma in Lean. |
 | 27 | `1RB0RE_1RC0RC_1LD---_0LB1LE_1RF0LD_1RA1RF` | 48.8 | Finite or inequality question | non-halting | Once the Pascal machine is proved non-halting, prove that no break comes (the twin's halt F> 0 0 1 1 is not the Pascal machine's). |
