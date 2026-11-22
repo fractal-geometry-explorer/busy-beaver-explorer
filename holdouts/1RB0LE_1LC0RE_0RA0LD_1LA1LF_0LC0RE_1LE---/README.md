@@ -184,9 +184,24 @@ After the last of these changes of era the run reaches full events outside the c
 **What a carry does at a defect (trusted, `py/defects.py`).** Every defect met is one of two kinds. (1) One erased cell in a separator: after Z `d` = 11 read as `c` = 01, after a W `c` = 01 read as `z` = 00, after a U `ad` = 1011 read as `ac` = 1001. The law for these: carries follow the chain law up to the defect, and when a carry of c > 0 reaches it the separator is restored and the carry goes on as c − 3. So the defect takes exactly one unit, once, and then the chain is the plain chain again. (2) A half-digit shift: a separator missing altogether (a W running straight into its U), or a separator after Z read as `a`, `ad`, `zd` or `ac`. When a carry meets one, the words after it are read again with W and U swapped and the widths move by a digit, as at a change of era. This kind is not decoded.
 
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/defects.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- check 30000000`: 30,000,000 steps: 535,801 consecutive pairs follow the law, 2 of them crossing a defect, 0 mismatches; 19 events not covered.
-- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/defects.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- run 2000 2` : about 10^128 events from blank tape (so at least that many steps), no halt; 290 jumps, 11 crossings by the defect law, 317 events run cell by cell; self-checks (random events of each jump and a fifth of the crossings, rebuilt and run cell by cell): 505 events, 0 mismatches. At about 10^128 events the run reaches a stretch where the event cell has moved into the chain: the words left of it stay fixed and the head works on the words right of it, so no full event (left side exactly `0^inf 1 0 [N]`) comes. A C run of 6·10^10 more steps from there stays within the same 2,729 cells, with no halt. The law of this stage is open.
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/defects.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- run 2000 2` : about 10^128 events from blank tape (so at least that many steps), no halt; 290 jumps, 11 crossings by the defect law, 317 events run cell by cell; self-checks (random events of each jump and a fifth of the crossings, rebuilt and run cell by cell): 505 events, 0 mismatches. At about 10^128 events the run reaches a stretch where the event cell has moved into the chain: the words left of it stay fixed and the head works on the words right of it, so no full event (left side exactly `0^inf 1 0 [N]`) comes. A C run of 6·10^10 more steps from there stays within the same 2,729 cells, with no halt.
 
-Open: the half-digit shifts, and the stage after 10^128 events.
+**The stage after 10^128 events (trusted, `py/latestage.py`).** The head now turns back at a cell 17 cells right of the last event cell. Call a *visit* the head at that cell in state C on a 0. At a visit the tape reads
+
+    left:   0^inf 1 0 [L2] 1010 [L1] 1010 [L0] 101010101010101 | head
+    right:  head | 0 b 1  W1 c U1 a d W2 c U2 a d ...       (W1 empty)
+
+On the left, L0, L1 and L2 are base-3 words in the digits of N (100 = 0, 110 = 1, 010 = 2, lowest digit next to the head), parted by the four cells `1010`, so each word sits one cell off from the next. L2 is what is left of the old N. At the start of the stage the carries of N rebuild its lowest digits into L0 (10 digits) and L1 (4 digits), and after that the widths stay fixed. On the right, b is one cell and the words are those of the chain, from W1 on. The law is two chain laws run at once, over each pair of visits (from b = 0):
+
+- left: L0 gets 16, and a word that wraps sends 2 to the next (base-3 words, so the left side is one counter);
+- right: the word (b, U1) gets 2 (b is its lowest bit), W2 gets 6, and a word that wraps sends 3 to the next, as in the chain law.
+
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/latestage.py check 100000000`: from blank tape to the stage (about 10^128 events), then 10^8 steps run cell by cell: 226,899 consecutive pairs of visits follow the law, 0 mismatches; 31 more were carries out of L0 in the first stretch, before L1 and L2 settle.
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/latestage.py run 20`: jumps by both laws. From the stage's start it covers about 10^127 visits (so at least that many more steps) in 53 jumps, with 106 visits run cell by cell and no halt; self-checks (20 random points of each jump, rebuilt and run cell by cell for 3 pairs): 3,178 pairs, 0 mismatches. Then a carry leaves the right chain, and the visit cell moves again, 31 cells further right.
+
+So the stage ends the way the first one did: a carry runs off the right end of the chain, and the cell where the head turns back moves further into the chain. At the next cell the first word is (b, W1) with W1 no longer empty, and over a pair of visits W1 gets 2 and U1 gets 3. Its left side has more words than L0, L1 and L2, and it is not decoded.
+
+Open: the half-digit shifts of the right chain, and the stages after the visit cell moves a second time.
 
 A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 
