@@ -112,6 +112,18 @@
    "where": "<code>README.md</code> (an argument, not a Lean statement)"
   },
   {
+   "level": "trusted",
+   "title": "No invariant of the word end alone",
+   "text": "The last 48 cells of the word with the block starts of the round that wrote them, fed by any count that is a power of two (2<sup>6</sup> to 2<sup>18</sup>, the sizes the run brings there) entering at the PR59 phase offsets, reach <code>111</code> within 2 or 3 rounds from the real word ends of rounds 11, 2,000 and 5,000. So no invariant of the last few blocks alone excludes the dangerous junk; a proof has to use the counts.",
+   "where": "<code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/endbfs.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "One visit from 111",
+   "text": "Adding one visit to the count 60 cells before the word end leads to <code>111</code> exactly two rounds later in 47 of the first 500,000 rounds (two visits: 105; doubling the count: 15,526; halving it: 10,524); taking one or two away never does. Each time it is <code>11100</code>, the case with no proved rule. One case, round 798, is replayed on the whole word with exact integers.",
+   "where": "<code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss.c</code>, <code>py/nearmiss_check.py</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: exp/exp",
    "text": "Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.073). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).",
@@ -126,7 +138,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It halts only if a visit meets <code>1111</code> (or <code>11100</code>, not decoded), which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless.",
+   "text": "Not known. It halts only if a visit meets <code>1111</code> (or <code>11100</code>, not decoded), which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word.",
    "where": ""
   },
   {
@@ -262,6 +274,18 @@
     ]
    },
    {
+    "id": "nearmiss",
+    "eyebrow": "Why the end alone cannot decide it",
+    "heading": "One visit from the danger",
+    "html": [
+     "<p>The hope was an invariant of the last few blocks of the word: some property of the end that every round keeps and that rules out a digit block with exactly 3 visits right before junk. There is none. Take the real last 48 cells of the word, and let each later round bring any count that is a power of two, entering where the PR59 phase rule allows. In 2 or 3 rounds the end meets <code>111</code>. The blocks at the end allow the danger; only the counts keep it away.</p>",
+     "<p>How exactly do they keep it away? Rerun every round of the real run with the count changed 60 cells before the end, and follow the copy for 6 more rounds with the real counts:</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>change</th><th>rounds (of 500,000) that reach <code>111</code> within 6 rounds</th></tr></thead><tbody><tr><td>one or two visits fewer</td><td>0</td></tr><tr><td>one visit more</td><td>47</td></tr><tr><td>two visits more</td><td>105</td></tr><tr><td>twice the count</td><td>15,526</td></tr><tr><td>half the count</td><td>10,524</td></tr></tbody></table></div>",
+     "<p>The misses by one or two visits (in 142 of the 500,000 rounds) all look alike. The real count there is 2<sup>a</sup> &minus; 3, 2<sup>a</sup> &minus; 2 or 2<sup>a</sup> &minus; 1 (in round 798 it is 8,190, 59 cells before the end); with one or two visits more it would be 2<sup>a</sup> &minus; 1, 2<sup>a</sup> or 2<sup>a</sup> + 1, and exactly two rounds later the pass would meet <code>111</code> (each case replayed on the whole word meets <code>111000</code> three cells before the end): <code>11100</code>, which has no proved rule. So about once every 3,500 rounds the run is one or two visits away from it. What decides is the small deficit c in the count 2<sup>e</sup> &minus; c, set at the front of the word and halved by every digit block and doubled by every doubler on the way to the end. A proof either way has to follow that number through the whole word.</p>",
+     "<p><b>Computed, not proved:</b> <code>py/endbfs.py</code> (the end on its own), <code>c/nearmiss.c</code> (the changed runs), <code>py/nearmiss_check.py</code> (one changed run replayed on the whole word with exact integers).</p>"
+    ]
+   },
+   {
     "id": "counters",
     "eyebrow": "The machine",
     "heading": "Two counters and an engine",
@@ -314,7 +338,7 @@
     "eyebrow": "Next",
     "heading": "What would settle it",
     "html": [
-     "<p>Decide whether the end of the word can ever produce a digit block with exactly 3 visits right before a junk event (an invariant that excludes it would show the machine never halts; a round that does it, followed by a round that reaches the junk with two visits, is a halt). The visits reaching the last few blocks are small exact numbers, so this is a question about a short list of blocks fed by one small number per round.</p>"
+     "<p>The end of the word cannot settle it on its own: its last blocks allow the dangerous junk, and the real run is kept from it only by the exact counts it brings there, sometimes by a single visit. What is needed is a handle on the deficit c of the count 2<sup>e</sup> &minus; c along the whole word (the number busycoq PR59 follows for 161,211 rounds): either an invariant of it that keeps the end safe, which would show the machine never halts, or a round where it lets the end make a digit block with 3 visits, junk, and then enter at offset 2, which would be the undecoded <code>11100</code>.</p>"
     ]
    },
    {
