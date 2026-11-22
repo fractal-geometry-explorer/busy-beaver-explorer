@@ -52,6 +52,21 @@ python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/py/rules.py        # 
 python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/py/turns.py 1.2e7 L  # the tape at the left-end turns
 ```
 
+## Start B of a PR 93 neighbour table (22 November 2026)
+
+This machine is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF started in state B, mirrored (see Related machines). With E and F of that machine
+exchanged and its halting detour replaced by one step, the table is `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1LE`, which is DeepMind's busycoq PR 93 table T3
+with one transition (E1) changed. Of PR 93's 18 basic macro rules, 14 still hold; the four that pass through E1 change:
+this table writes the digit D k followed by a stray 10 where T3 writes D (k+1), and a call that meets 10 10 runs on to the right end instead of returning. So PR 93's engine does not carry over to this table, from any start. Details, and Lean proofs of
+the changed rules, are in [1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/README.md#pr-93s-engine-on-this-table-22-november-2026).
+
+Run for a halt from this start: the accelerated simulator `rsim.py`, validated against direct simulation at 6 points up to 10^10 steps,
+went 225,538,757,990,671 steps from blank tape in 20 minutes without a halt (82 jumps).
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF 1200
+```
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines
