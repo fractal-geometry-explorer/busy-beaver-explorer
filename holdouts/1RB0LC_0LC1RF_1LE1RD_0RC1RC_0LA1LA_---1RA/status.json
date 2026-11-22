@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>Open, and probably never halting.</b> From step 118 the run is the orbit of an explicit map on two numbers, U(a, b) and V(a, b). <b>Lean's kernel proves the machine halts if and only if that orbit reaches an event with a divisible by 4 and b = 1</b> (<code>halts_iff</code>), so the question is now purely about the map. The whole map is proved, including the odd-a rows the run never meets (the run only ever has even a). Lean checks the orbit for 3,000 passes in the kernel (no halt in 10<sup>500</sup> steps) and 10<sup>5</sup> compiled (10<sup>10000</sup> steps). Reaching b = 1 needs b to land within a few units of a, so the chance of a halt is about 2/a, and a grows exponentially."
+  "<b>Open, and probably never halting.</b> From step 118 the run is the orbit of an explicit map on two numbers, U(a, b) and V(a, b). <b>Lean's kernel proves the machine halts if and only if that orbit meets an event with a and b both even and b &minus; a equal to 4 or &minus;2</b> (<code>halts_iff_coincidence</code>): a Euclid subtraction that leaves exactly b = 1, which always leads to a halt. The whole map is proved, including the odd-a rows the run never meets. Lean checks the orbit for 3,000 passes in the kernel (no halt in 10<sup>500</sup> steps) and 10<sup>5</sup> compiled (10<sup>10000</sup> steps). Lean also proves that no congruence modulo any M &le; 10,000 can exclude the coincidence: the orbit visits its residues. The chance of a halt is about 2/a, and a grows exponentially."
  ],
  "claims": [
   {
@@ -64,6 +64,18 @@
    "where": "<code>halts_iff</code>, <code>halts_iff_stuck</code>, <code>orbit_inv</code>, <code>lean/HaltIff.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Halts if and only if a Euclid coincidence: b &minus; a = 4 or &minus;2",
+   "text": "<code>halts_iff_b1</code>: the machine halts exactly when the orbit reaches any event with b = 1. At b = 1 with a = 2 mod 4 the map keeps b = 1 and multiplies a + 10 by 3/2 (<code>next_b1</code>), so a + 10 loses a factor 2 every pass until a = 0 mod 4, a halting event. <code>halts_iff_coincidence</code>: it halts exactly when the orbit meets an event with a and b even and b = a + 4 or b = a &minus; 2. A pass ending at b = 1 starts either at b = 1 or at such an event (<code>next_to_b1</code>, every branch of the map checked), and such an event always goes to b = 1 (<code>next_of_coincidence</code>). The b = 1 events with a = 2 mod 4 and the rows with odd b drop out: only the Euclid step matters. Axioms: propext, Classical.choice, Quot.sound.",
+   "where": "<code>halts_iff_b1</code>, <code>halts_iff_coincidence</code>, <code>lean/Coincidence.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No congruence proof modulo any M &le; 10,000",
+   "text": "<code>no_residue_proof</code>: for every 1 &le; M &le; 10,000 and every property S of (letter, a mod M, b mod M) that holds at all events of the orbit, S also holds at some valid coincidence event, which halts. So a proof of non-halting cannot be a closed set of residue classes, for any such modulus (2-adic, 3-adic or mixed). The witnesses are orbit events themselves: <code>sweep_100k</code> walks the first 10<sup>5</sup> passes and meets b &minus; a = 4 or &minus;2 (mod M) for every M &le; 10,000 (the last one, M = 9,837, at pass 95,434). Checked with <code>native_decide</code>.",
+   "where": "<code>no_residue_proof</code>, <code>sweep_100k</code>, <code>lean/Coincidence.lean</code>"
+  },
+  {
    "level": "native",
    "title": "10<sup>5</sup> passes, no halt in 10<sup>10000</sup> steps",
    "text": "The same orbit check for the first 10<sup>5</sup> passes, by compiled evaluation.",
@@ -88,9 +100,15 @@
    "where": "<code>py/emap.py far 1000000</code>"
   },
   {
+   "level": "trusted",
+   "title": "b &minus; a is equidistributed and has no lower bound",
+   "text": "At the even/even events of the first 10<sup>5</sup> passes, b &minus; a takes the residues 4 and &minus;2 as often as a uniform even number would, modulo every M = 2<sup>j</sup>3<sup>i</sup> tried (8 to 5,832; for example 132 hits mod 1,024 against 130 expected). It is positive at a third of these events and negative at the rest, so it has no lower bound, and the record lows of |b &minus; a|/a fall like 1/(number of passes) (10<sup>&minus;3.9</sup> by pass 98,298), as for random numbers; |b &minus; a| itself stays about as large as a. The one rigid residue fact is that a = 2 mod 3 at every U-event and a = 1 mod 3 at every V-event past the first passes (the last odd-b step fixes it), which says nothing about b. For moduli up to 30,000 the orbit meets the coincidence residues within 3&middot;10<sup>5</sup> passes, except M = 24,463.",
+   "where": "<code>py/residues.py equi 100000</code>, <code>py/residues.py near 100000</code>, <code>py/residues.py hits 300000 30000</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Probviously non-halting: the chance of a halt is about 2/a",
-   "text": "Reaching b = 1 needs a subtraction step that leaves exactly 1, so b has to land on one of a few values next to a (b = a&minus;2, a+4, a&minus;7, a&minus;13), and then a has to be divisible by 4. Iterating the map from 20,000 random starts at each scale (100,000 at S = 10⁴) S (a in [S, 2S), b in [0, 2S)) gives halting frequencies 2.0&middot;10<sup>&minus;2</sup>, 2.5&middot;10<sup>&minus;3</sup> and 2.1&middot;10<sup>&minus;4</sup> for S = 10<sup>2</sup>, 10<sup>3</sup> and 10<sup>4</sup>, so the frequency is about 2/S. Since a grows exponentially, this sum is dominated by its first terms. From the last simulated event (a = 74,180) the estimate is about 3&middot;10<sup>&minus;5</sup>, and after the 10<sup>6</sup> passes iterated it is about 10<sup>&minus;96,600</sup>.",
+   "text": "Reaching b = 1 needs a subtraction step that leaves exactly 1, so b has to land at a &minus; 2 or a + 4 at an event where both are even (<code>halts_iff_coincidence</code>). Iterating the map from 20,000 random starts at each scale (100,000 at S = 10⁴) S (a in [S, 2S), b in [0, 2S)) gives halting frequencies 2.0&middot;10<sup>&minus;2</sup>, 2.5&middot;10<sup>&minus;3</sup> and 2.1&middot;10<sup>&minus;4</sup> for S = 10<sup>2</sup>, 10<sup>3</sup> and 10<sup>4</sup>, so the frequency is about 2/S. Since a grows exponentially, this sum is dominated by its first terms. From the last simulated event (a = 74,180) the estimate is about 3&middot;10<sup>&minus;5</sup>, and after the 10<sup>6</sup> passes iterated it is about 10<sup>&minus;96,600</sup>.",
    "where": "<code>py/emap.py mc 1000 20000</code>"
   },
   {
@@ -102,13 +120,14 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known, but probably not. A proof would need to show that the subtraction steps never leave exactly b = 1 with a = 0 mod 4 along this orbit: a question about the long-run residues of a 3/2-Collatz-like orbit, which is out of reach.",
+   "text": "Not known, but probably not. A proof would need to show that b &minus; a never equals 4 or &minus;2 at an even/even event of this orbit. No congruence modulo M &le; 10,000 can do it (<code>no_residue_proof</code>), and b &minus; a has no lower bound, so it is a question about the long-run behaviour of a 3/2-Collatz-like orbit, which is out of reach.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh      # about 2 minutes",
+  "holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh      # about 3 minutes",
+  "python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/residues.py hits 100000 10000   # the moduli of no_residue_proof (12 s)",
   "python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_map.py && python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_mapdef.py   # regenerate Cases.lean, Map.lean",
   "python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_halt.py && python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_odd.py && python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_odddef.py && python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/gen_corner.py   # regenerate the Lean case files",
   "python3 holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py/emap.py grid 60 70",
@@ -121,12 +140,17 @@
    {
     "level": "kernel",
     "value": "halts iff",
-    "text": "Lean's kernel proves: the machine halts exactly when the map's orbit reaches b = 1 with a = 0 mod 4. The whole map is proved, odd a included."
+    "text": "Lean's kernel proves: the machine halts exactly when the map's orbit meets both numbers even with b &minus; a = 4 or &minus;2. The whole map is proved, odd a included."
    },
    {
     "level": "native",
     "value": "10<sup>10000</sup> steps",
     "text": "No halt: the first 10<sup>5</sup> passes never reach a halting event (3,000 of them checked by the kernel alone)."
+   },
+   {
+    "level": "native",
+    "value": "no congruence",
+    "text": "For every modulus up to 10,000 the orbit visits the residues of a halting coincidence, so no mod-M argument can prove it never halts."
    },
    {
     "level": "heuristic",
@@ -160,8 +184,9 @@
     "eyebrow": "Can it stop?",
     "heading": "Only at b = 1",
     "html": [
-     "<p>The machine stops exactly when it reaches U(<i>a</i>, 1) or V(<i>a</i>, 1) with <i>a</i> divisible by 4. The rule that lowers <i>b</i> by 5 makes it even, so <i>b</i> = 1 can only come out of a subtraction that leaves exactly 1. That needs <i>b</i> to land on one of a handful of values next to <i>a</i>: a coincidence with a chance of about 2/<i>a</i>.</p>",
-     "<p>Starting the map from random pairs of size <i>S</i> gives halting frequencies close to 2/<i>S</i> (2% at <i>S</i> = 100, 0.25% at 1,000, 0.021% at 10,000). Along the actual run <i>a</i> grows exponentially, so the total chance is dominated by the first terms. About 3&middot;10<sup>&minus;5</sup> was left when direct simulation stopped, and about 10<sup>&minus;96,600</sup> is left after the 1,000,000 passes that were iterated.</p>"
+     "<p>The machine stops at U(<i>a</i>, 1) or V(<i>a</i>, 1) with <i>a</i> divisible by 4, and Lean proves that <i>any</i> event with <i>b</i> = 1 leads there: with <i>a</i> = 2 mod 4 the map keeps <i>b</i> = 1 and multiplies <i>a</i> + 10 by 3/2 until 4 divides <i>a</i>. The rule that lowers <i>b</i> by 5 makes it even, so <i>b</i> = 1 can only come out of a subtraction that leaves exactly 1. Lean proves that this happens exactly when both numbers are even and <i>b</i> &minus; <i>a</i> is 4 or &minus;2: a coincidence with a chance of about 2/<i>a</i>.</p>",
+     "<p>Starting the map from random pairs of size <i>S</i> gives halting frequencies close to 2/<i>S</i> (2% at <i>S</i> = 100, 0.25% at 1,000, 0.021% at 10,000). Along the actual run <i>a</i> grows exponentially, so the total chance is dominated by the first terms. About 3&middot;10<sup>&minus;5</sup> was left when direct simulation stopped, and about 10<sup>&minus;96,600</sup> is left after the 1,000,000 passes that were iterated.</p>",
+     "<p><b>Could a congruence rule it out?</b> No. Lean checks that for every modulus <i>M</i> up to 10,000 the orbit itself visits an event whose residues (letter, <i>a</i> mod <i>M</i>, <i>b</i> mod <i>M</i>) are those of a halting coincidence, so any property of residues that the orbit keeps is also true at an event that halts. In the data, <i>b</i> &minus; <i>a</i> mod 2<sup><i>j</i></sup>3<sup><i>i</i></sup> looks uniform, it is negative two thirds of the time, and its closest approaches to 0 relative to <i>a</i> are what random numbers would give.</p>"
     ]
    },
    {
@@ -169,7 +194,7 @@
     "eyebrow": "What is checked",
     "heading": "Halting is now exactly a question about the map",
     "html": [
-     "<ul><li><b>Every pass is proved</b> for even <i>a</i>, the only kind the run meets: Lean's kernel checks that from every U(<i>a</i>, <i>b</i>) or V(<i>a</i>, <i>b</i>) with <i>a</i> even the machine reaches the event the map predicts, in exactly the predicted number of steps, unless <i>b</i> = 1 and 4 divides <i>a</i>. There are 32 cases, each a few sweeps. The repeated part of a sweep (four 1s of <i>a</i> turned into six on the left, or both blocks shortened by two) is proved once and iterated by induction. The odd-<i>a</i> rows, which the run never uses, are proved too: 48 more cases, plus a checked table of the 420 small events.</li><li><b>Halting is equivalent to the map.</b> Lean proves both directions: if the map's orbit from U(4, 3) never reaches <i>b</i> = 1 with 4 dividing <i>a</i>, the machine never halts; and if it ever does, the machine halts there (it ends at <code>1^n F&gt; 0</code>). It then evaluates that orbit: 3,000 passes in the kernel (more than 10<sup>500</sup> steps) and 10<sup>5</sup> compiled (10<sup>10000</sup> steps), none of them halting.</li><li><b>What is missing</b> is a reason why b = 1 never comes up. That looks as hard as any Collatz question.</li></ul>"
+     "<ul><li><b>Every pass is proved</b> for even <i>a</i>, the only kind the run meets: Lean's kernel checks that from every U(<i>a</i>, <i>b</i>) or V(<i>a</i>, <i>b</i>) with <i>a</i> even the machine reaches the event the map predicts, in exactly the predicted number of steps, unless <i>b</i> = 1 and 4 divides <i>a</i>. There are 32 cases, each a few sweeps. The repeated part of a sweep (four 1s of <i>a</i> turned into six on the left, or both blocks shortened by two) is proved once and iterated by induction. The odd-<i>a</i> rows, which the run never uses, are proved too: 48 more cases, plus a checked table of the 420 small events.</li><li><b>Halting is equivalent to the map.</b> Lean proves both directions: if the map's orbit from U(4, 3) never reaches <i>b</i> = 1 with 4 dividing <i>a</i>, the machine never halts; and if it ever does, the machine halts there (it ends at <code>1^n F&gt; 0</code>). It then evaluates that orbit: 3,000 passes in the kernel (more than 10<sup>500</sup> steps) and 10<sup>5</sup> compiled (10<sup>10000</sup> steps), none of them halting.</li><li><b>Halting is a coincidence.</b> Lean narrows it further: the machine halts exactly when both numbers are even and <i>b</i> &minus; <i>a</i> is 4 or &minus;2, and for every modulus up to 10,000 the orbit visits the residues of such an event, so no congruence argument can settle it.</li><li><b>What is missing</b> is a reason why that coincidence never comes up. That looks as hard as any Collatz question.</li></ul>"
     ]
    },
    {
@@ -186,6 +211,6 @@
    }
   ]
  },
- "summary": "A 3/2-Collatz step on a mixed with Euclid-like subtractions on a second number b. Lean proves it halts iff the map's orbit from U(4, 3) reaches b = 1 with a = 0 mod 4; the whole map is proved (odd a included), and 10^5 passes are checked (probviously non-halting, P(halt) ~ 2/a).",
+ "summary": "A 3/2-Collatz step on a mixed with Euclid-like subtractions on a second number b. Lean proves it halts iff the map's orbit from U(4, 3) meets both numbers even with b - a = 4 or -2, and that no congruence mod M <= 10,000 rules this out; the whole map is proved and 10^5 passes are checked (probviously non-halting, P(halt) ~ 2/a).",
  "family": "3/2-Collatz on a with a Euclid-like second number b; halts at b = 1"
 }
