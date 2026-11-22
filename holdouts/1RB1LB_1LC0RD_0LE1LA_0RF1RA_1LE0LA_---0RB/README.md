@@ -244,13 +244,62 @@ determines), and the near miss at 2.53·10^6 steps shows that they can matter. T
 contribution between jumps (what the walls feed in is again a rule-102 image of the bulk), or return to the births and
 show that `y 0 x^k 0` never forms again, so that no bulk `10` exists to jump.
 
+## One round trip is a cellular automaton on cells (22 November 2026, `lean/Trip.lean`)
+
+Drop the words and look at cells. A round trip starts when the head first stands on a new leftmost cell (blank, state A).
+Let `Q` be the first cell with `c[Q] = c[Q+1] = 0`. If no 1 stands alone (`0 1 0`) before `Q`, then the cells from the start
+to `Q` are runs of at least two 1s, each followed by one 0, and Lean proves the whole trip (`trip`):
+
+* cells `lo .. Q` become `c'[p] = (c[p] == c[p+3]) = 1 xor c[p] xor c[p+3]`, with `1 1 0` imagined after `Q` (`ca3`, `ca3_getD`);
+* `c[Q+1]` becomes 1; nothing right of it is read; the head ends on `lo - 1` in A;
+* it takes `4 (Q - lo) - 6 z + 15` steps, `z` the zeros in `lo .. Q+1` (`trip_steps`).
+
+The right sweep turns each run `1^m 0` into `0^(m-1) 1 1` (`rrun`). The left sweep spends **one step per cell**: arriving at a
+cell, its state names the three original cells to the right (E = `111`, C = `110`, B = `101`, A = `011`, `sg`); it reads
+`!(c[p] && c[p+1])`, which the right sweep left, writes `c[p] == c[p+3]` and moves on (`lstep`). The trip with `Q = lo` is the
+3-step "blip" at the left end, covered by the same theorem.
+
+So the machine is three interleaved copies of rule 102 (cells `p, p+3, p+6, ...`), run each trip from the left end up to the
+first `00`. A 0 only ever spreads three cells left. The words `x = 111`, `y = 110` are one copy carrying data and two copies
+fixed at 1; walls are where the data passes to another copy, and the rule does not see them. `Xor.lean`'s epoch is the
+special case of clean words; the wall rules (R_k walls `1^(3k) 0` counting down to `00`, a `00` hit becoming `1^(3K) 0`)
+are all consequences.
+
+The only thing a round trip cannot cross is a lone 1 before `Q` (the right sweep's token mode, where F0 lives). `iso_birth`: in a
+tape where no three neighbouring cells hold two 0s, an output `0 1 0` at `p .. p+2` comes only from `0 1 1 1 1 0` at `p .. p+5`.
+
+**Fast simulator** (`c/trips.c`). Trips the theorem covers are done with 64-bit word operations; trips with a lone 1 before `Q`
+and trips that reach the right end (with its fixed `10`) are run on the machine's table. Mode 1 also runs every trip on the
+machine and compares the whole tape and the step count.
+
+* `./trips 10000000 0`: 52,496,781,276,447 steps, no halt. 18 trips with a lone 1 before the turn, all before 8.5·10^6 steps
+  (the known `10` lifetimes).
+* `./trips 300000 1`: no difference from the machine in any trip.
+
+**Wall words, in cells.** Take a segment between two walls (its 0s in one copy). At each pass of the sweep through it, its 0s
+are multiplied by `1 + u` (`u` = three cells left): nothing is cut off at either end, since its neighbours' 0s are in other
+copies. So after a plain pass the segment has an even number of 0s. A turn at its left wall (`00`) deletes its first 0; a turn
+at its right wall applies `1 + u` and deletes its last 0. A bulk `10` is born exactly when a turn at the left wall finds a
+single 0 left (the old `y 0 x^k 0`). An even count minus one is 1 only when `(1 + u) S` has two terms, i.e. `S` is
+`y^n` (0s every three cells), and the left wall must reach `00` before a pass restores two 0s. So a birth needs a trip whose
+turn ends a y-only segment with a 3-cell wall `111` on its left (PRE in `trips.c`). In the run there are exactly 5 such trips
+(round trips 92, 108, 1,904, 2,608, 3,403), each followed by the token-mode trips of one `10` lifetime, and none after that
+in 10^6 trips. The y-only segments that keep forming sit 10, 17, 24 and 53 cells from the right end, behind walls of 6, 9 or
+18 cells, as part of the right end's periodic cycle (the last 75 cells repeat exactly every 10 right-end visits, growing 4 cells).
+
+What a proof still needs: (1) the right end's cycle as a proved rule, which would make the near-end y-only segments
+harmless; (2) that further left no y-only segment ends at a turn behind a `111` wall. (2) is about segment contents, which are
+Pascal-triangle images of what the right end emits, so it is the same open question as before, but now with exact linear
+dynamics and no wall rules in between.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
 search over all words of 1-3 cells, each for every n and every tape around. `lean/Xor.lean` and `lean/XorLucas.lean`:
 the rule 102 epoch and its closed form (section above). `lean/Danger.lean`: the danger pattern halts. `lean/Hop.lean`:
 the shielded sweep, the jump and the jump clock (section above). `lean/Gaps.lean`: which gaps sweeps and jumps can
-turn into the danger pattern (section above).
+turn into the danger pattern (section above). `lean/Trip.lean`: one round trip is the cell automaton
+`c'[p] = 1 xor c[p] xor c[p+3]` up to the first `00` (section above).
 
 ## Halting
 
