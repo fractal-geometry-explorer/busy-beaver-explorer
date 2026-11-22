@@ -196,6 +196,7 @@ def round_proof():
 
 HEAD = r'''import Machine
 import Total
+import Need
 
 /-! # The twin's token rules are runs of this machine, and the round law
 
@@ -203,7 +204,7 @@ Machine: 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---. Its twin 1RB0LE_0LC0RA_1LE0R
 rules `TV` (words `L = 1010`, `O = 000`, `I = 100`, defects `x = 10`, `1`, `0`; the twin's `lean/Tokens.lean`) and
 proves in `lean/Total.lean` there that on a tape with at most one defect they always apply (`Z36869.total`). This
 file proves, in the kernel, that the same token rules are runs of **this** machine's transition table
-(`H83189.trans`), so this machine never halts under exactly the same assumption as the twin.
+(`H83189.trans`), so this machine never halts under exactly the same assumption as the twin (`nonhalt_of_need`).
 
 A token tape `w` is the half tape `E w` to the right of the head. Each kind of token visit is a run from one of
 five *entry forms* (state, and the two cells left of the head, nearest first) that ends three cells further left,
@@ -222,8 +223,11 @@ having rewritten those two cells, for any tape `L` further left (never read):
 * `round_run`: in `E` on `0 0 0 1 0 · E S` (anything to the left after two blank cells) the machine reaches `E`
   two cells further left on `0 0 0 1 0 · E (x :: A(S))`, where `FA S A(S)`; from blank tape it is there with
   `S = []` after 4 steps (`start`).
-* `nonhalt_of_clean`: if every round's defect disappears (the twin's hypothesis, word for word: `Reach` is the
-  twin's `L36869.Reach`), this machine never halts from blank tape.
+* `round9`: from blank tape this machine is at the start of round 9 (E on `0 0 0 1 0 · x a9`) at step 7,834.
+* `nonhalt_of_need`: if every round from round 9 on has `nx W ≤ 1` on its tape `x W` (the twin's hypothesis in
+  `F36869.nonhalt_of_need`, word for word, with `nx` and `R9` from the twin's `Need.lean`), this machine never halts
+  from blank tape. An earlier version (`nonhalt_of_clean`, PR 416) assumed that every round's defect dies counted from
+  round 0; that hypothesis is false (round 2's defect survives, `F36869.old_hyp_false`), so it was removed.
 -/
 
 namespace K83189
@@ -320,46 +324,75 @@ theorem start : steps 4 H83189.init = some ⟨blank, app [false, false, false, t
     app_blank_ext _ _ (by decide)]
   exact h
 
-/-- The token tapes at the start of the rounds from blank tape: `S₀ = []`, `S_{k+1} = x A(S_k)`
-(the twin's `L36869.Reach`, restated here because the twin's `Link.lean` imports the twin's machine). -/
-inductive Reach : List T → Prop
-  | nil : Reach []
-  | next {w a} : Reach w → TV .A w a → Reach (.x :: a)
-
-theorem good_of_reach (H : ∀ w a, Reach w → TV .A w a → Clean a) {w} (h : Reach w) : Good w := by
-  cases h with
-  | nil => exact Or.inl Z36869.clean_nil
-  | next hw ha => exact Or.inr ⟨[], .x, _, Z36869.clean_nil, Or.inl rfl, H _ _ hw ha, rfl⟩
-
 theorem step_of_good {w} (h : Good w) : ∃ a, TV .A w a := by
   obtain ⟨r, hr, _⟩ := Z36869.total h 1
   obtain ⟨a, ha, h0⟩ := hr.succ_inv
   exact ⟨a, ha⟩
 
-theorem runs (H : ∀ w a, Reach w → TV .A w a → Clean a) :
-    ∀ k, ∃ w n, Reach w ∧ k ≤ n ∧
-      steps n H83189.init = some ⟨blank, app [false, false, false, true, false] (E w), .E⟩ := by
+/-! ## From round 9 on
+
+The rounds from blank tape do not all have one defect: round 2's defect survives (`F36869.old_hyp_false` in the
+twin's `Fuel.lean`), so a reduction "every round's defect dies, from round 0" would be vacuous. As on the twin, the
+reduction starts at round 9, whose tape `x a9` is clean behind the defect, and asks that every round's defect needs
+at most one visit (`F36869.nx`, `F36869.R9` from the twin's `Need.lean`). -/
+
+/-- The bits of a word list, head first. -/
+def flatK : List T → List Bool
+  | [] => []
+  | t :: w => Z36869.bits t ++ flatK w
+
+theorem E_flat (w : List T) : E w = app (flatK w) blank := by
+  induction w with
+  | nil => rfl
+  | cons t w ih => show app (Z36869.bits t) (E w) = _; rw [ih, flatK, TM.app_app]
+
+/-- The right half tape at the start of round 9, as the list simulator leaves it (no trailing blanks). -/
+def r9 : List Bool := ([false, false, false, true, false] ++ flatK (.x :: F36869.a9)).dropLast.dropLast
+
+theorem r9_eq : [false, false, false, true, false] ++ flatK (.x :: F36869.a9) = r9 ++ [false, false] := by decide
+
+theorem round9_f : H83189.fsteps 7834 (TM.FCfg.blank .A) = some ⟨[], r9, .E⟩ := by decide +kernel
+
+/-- From blank tape this machine reaches the start of round 9, E on `0 0 0 1 0 · x a9` with blank tape to the left,
+at step 7,834 (kernel evaluation; the twin gets there at step 5,848). -/
+theorem round9 : steps 7834 H83189.init =
+    some ⟨blank, app [false, false, false, true, false] (E (.x :: F36869.a9)), .E⟩ := by
+  have h := TM.blank_reaches H83189.trans round9_f
+  show TM.steps H83189.trans 7834 (TM.blankCfg .A) = _
+  rw [h]
+  have e1 : app r9 blank = app [false, false, false, true, false] (E (.x :: F36869.a9)) := by
+    rw [E_flat, TM.app_app, r9_eq, ← TM.app_app]
+    show app r9 blank = app r9 (cons false (cons false blank))
+    rw [TM.cons_false_blank, TM.cons_false_blank]
+  show some (⟨app [] blank, app r9 blank, .E⟩ : H83189.Config) = _
+  rw [e1]; rfl
+
+theorem runs9 (H : ∀ W, F36869.R9 W → F36869.nx W ≤ 1) :
+    ∀ k, ∃ W n, F36869.R9 W ∧ k ≤ n ∧
+      steps n H83189.init = some ⟨blank, app [false, false, false, true, false] (E (.x :: W)), .E⟩ := by
   intro k
   induction k with
-  | zero => exact ⟨[], 4, Reach.nil, by omega, start⟩
+  | zero => exact ⟨F36869.a9, 7834, F36869.R9.base, by omega, round9⟩
   | succ k ih =>
-    obtain ⟨w, n, hw, hk, hn⟩ := ih
-    obtain ⟨a, ha⟩ := step_of_good (good_of_reach H hw)
+    obtain ⟨W, n, hW, hk, hn⟩ := ih
+    have hg : Good (.x :: W) := Or.inr ⟨[], .x, W, Z36869.clean_nil, Or.inl rfl, F36869.r9_clean H hW, rfl⟩
+    obtain ⟨a, ha⟩ := step_of_good hg
     obtain ⟨m, hm1, hm⟩ := round_run (sound ha)
-    refine ⟨.x :: a, n + m, Reach.next hw ha, by omega, ?_⟩
+    refine ⟨a, n + m, F36869.R9.next hW ha, by omega, ?_⟩
     have h := hm blank
     rw [show app [false, false] blank = blank by simp only [TM.app_cons, TM.app_nil, TM.cons_false_blank]] at h
     exact sq hn h
 
-/-- If every round's defect has disappeared by the end of the round (the twin's hypothesis in
-`L36869.nonhalt_of_clean`, word for word), this machine never halts from blank tape. -/
-theorem nonhalt_of_clean (H : ∀ w a, Reach w → TV .A w a → Clean a) : ¬ H83189.HaltsFromBlank := by
+/-- **The reduction.** If in every round from round 9 on the defect in front needs at most one visit (the twin's
+hypothesis in `F36869.nonhalt_of_need`, word for word), this machine never halts from blank tape. -/
+theorem nonhalt_of_need (H : ∀ W, F36869.R9 W → F36869.nx W ≤ 1) : ¬ H83189.HaltsFromBlank := by
   apply TM.not_halts_of_forall
-  apply TM.forall_of_unbounded _ (fun m => ∃ w, steps m H83189.init = some ⟨blank, app [false, false, false, true, false] (E w), .E⟩)
+  apply TM.forall_of_unbounded _ (fun m => ∃ W, steps m H83189.init =
+    some ⟨blank, app [false, false, false, true, false] (E (.x :: W)), .E⟩)
   · intro n
-    obtain ⟨w, m, _, hm, h⟩ := runs H n
-    exact ⟨m, hm, w, h⟩
-  · rintro m ⟨w, h⟩
+    obtain ⟨W, m, _, hm, h⟩ := runs9 H n
+    exact ⟨m, hm, W, h⟩
+  · rintro m ⟨W, h⟩
     exact ⟨_, h⟩
 
 end K83189
