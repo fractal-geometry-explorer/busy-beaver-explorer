@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> cut by single <code>1</code>s, after a reservoir of the word <code>1010101</code> at the left end. In a <em>drain</em> each round trip moves one pair of the last block into the reservoir. When the last block is down to one pair a <em>rebuild</em> starts: a reflector Q walks left two cells per bounce, every separator it passes is carried right four cells per bounce, so the part of the list it passes comes out three times longer. Eight drain ends have been watched (five in direct simulation), all ending in a rebuild and a new drain. Q's walk is proved in Lean; its collisions are only observed. Every halt would be the head in D, moving right, on <code>1 0 1 1</code>, and no rebuild has been shown to avoid that.</p>
+      <p><b>The question is open.</b> The tape is a list of blocks <code>(10)^n</code> cut by single <code>1</code>s, after a reservoir of the word <code>1010101</code> at the left end. In a <em>drain</em> each round trip moves one pair of the last block into the reservoir; when it is down to one pair a <em>rebuild</em> starts, in which a reflector Q walks left and triples the part of the list it passes. Every separator and every reservoir word is a <em>mover</em>, and Lean proves that the head crosses any run of movers unchanged, so every bounce is a lemma except the few cells where the head turns. On these lemmas an exact simulator runs 1.5&times;10<sup>18</sup> steps without a halt. Every halt would be the head in D, moving right, on <code>1 0 1 1</code>, inside one of those collisions, and nothing yet shows that no collision ever does that.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With the head at the right end in state E and blank beyond, <code>Q0 c a = L (01)^c 0 (01)^a E&gt;</code> and <code>Q1 c a = L (01)^c 1 (01)^a E&gt;</code>: one bounce takes <code>Q0 (c+1) (a+1)</code> to <code>Q1 c (a+3)</code> in 4a+14 steps and <code>Q1 (c+1) (a+1)</code> to <code>Q0 c (a+3)</code> in 4a+10 steps, and k double bounces take <code>Q0 (c+2k) (a+1)</code> to <code>Q0 c (a+1+4k)</code> in 8ak+16k&sup2;+16k steps, for every c, a, k and every tape L. Q moves two cells left per bounce, the right end two cells right.</p>
         <p class="where"><code>bounce0</code>, <code>bounce1</code>, <code>bounce2</code>, <code>walk</code>, <code>lean/Walk.lean</code> (cell rules <code>lean/WalkRules.lean</code>, written by <code>py/gen_walk.py</code>)</p>
       </div>
+      <div class="card">
+        <h3>Movers: the head crosses them unchanged</h3>
+        <p>At a right-end turn a <em>mover</em> is the word <code>0 0 1 1 0</code> followed by g pairs <code>01</code>; the list's separators, the reservoir's words (g = 1) and the separators Q has passed are all movers. For any list of gaps of at least one pair, the left sweep (state E on a 0) crosses all the movers and comes out on their left in state E on a 0, and the right sweep crosses them again and comes out in state D with every mover four cells further right (after a one-pair gap it runs in state F for a while, which changes only the first cell it writes). Hence <b>any</b> bounce, whatever happens left of the movers, as long as the head sent in from the right in state E on a 0 comes back in state D or F without looking right, keeps the gaps between movers and shortens the last one by a pair; with Q on the left this gives Q's walk with movers in closed form.</p>
+        <p class="where"><code>left_all</code>, <code>right_gen</code>, <code>bounce_gen</code>, <code>bounce0m</code>, <code>bounce1m</code>, <code>walkm</code>, <code>lean/Movers.lean</code> (cell rules <code>lean/MoverRules.lean</code>, written by <code>py/gen_movers.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -156,6 +161,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Where a halt could come from</h3>
         <p>From the table: B is entered only from A reading 0, moving right and writing a 1, so B reading 0 sends the head back onto that 1; F is entered only as <code>A&gt; 0 1 x</code>, and it halts when x = 1. A reading 0 is entered only from D reading 1 (from B it lands on the 1 just written), and D reading 1 with A then reading 0 only from E (C writes the 1 that A would read). So every halt is <code>D&gt; 1 0 1 1</code> with D moving right: a block of one pair between two extra 1s. In 3&times;10<sup>9</sup> steps F is entered 63,295,957 times, always on a 0, in 22 different 17-cell windows.</p>
         <p class="where">the table; <code>c/fwatch.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 1.5&times;10<sup>18</sup> steps of an exact simulator</h3>
+        <p><code>py/mover_sim.py</code> moves the tape a bounce at a time: k bounces at once by <code>walk</code>/<code>walkm</code>, a bounce by <code>bounce_gen</code> when only its left end is unusual (that end run cell by cell), and every other bounce one machine step at a time, runs of pairs crossed by the rules of <code>lean/Rules.lean</code>. Only its bookkeeping is unproved; its tape and state equal those of direct simulation (<code>c/dump.c</code>) after 203,633 bounces at step 29,361,299,373 (441,628 cells). Its tape also equals that of the accelerated simulator <code>rsim</code> at steps 1,008,073,404,791 and 695,788,802,905,521 (57,654,285 cells). From step 273,791 it reaches 1.57&times;10<sup>18</sup> steps (1.57 billion bounces, 12 million collisions run cell by cell) without a halt; the rebuild that starts at 6.05&times;10<sup>14</sup> has not finished by then. Its drain ends at 6.48&times;10<sup>12</sup> and 6.05&times;10<sup>14</sup> give exactly the lists of the accelerated run, for example <code>... 5707 563005 177397 4764477 1</code> with a reservoir of 5,205,978 words.</p>
+        <p class="where"><code>py/mover_sim.py</code>, <code>c/dump.c</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -190,12 +200,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>rsim</code> with an event hook: the drain ending at 2.23&times;10<sup>9</sup> is followed by a rebuild of the whole tape, reservoir included (11,198 copies of <code>3</code> become <code>(5 13)^388 5 37 (19 35)^5209</code>, a new reservoir starts from nothing), finished at 1.79&times;10<sup>12</sup> with last block 468,864; the next drain ends at 6.48&times;10<sup>12</sup> and its rebuild ends at 1.26&times;10<sup>14</sup> with last block 4,737,114; that drain ends at 6.05&times;10<sup>14</sup> and its rebuild was not finished at 7.3&times;10<sup>14</sup>. These rest on rsim's jumps (not proved); in the middle of the long rebuild, at step 107,877,479,194, rsim's tape and state equal those of a plain C simulator (822,161 cells).</p>
         <p class="where"><code>py/rsim_events.py</code>, <code>py/drain_ends.py</code></p>
       </div>
+      <div class="card">
+        <h3>The collisions seen so far</h3>
+        <p>A halt can only come from a collision run cell by cell: inside the mover lemmas F always reads the first cell of a gap or the 0 that starts the next mover. To 10<sup>13</sup> steps there are 57 different collision runs, all made of a few pieces: the left sweep crossing a gap or a mover, the right sweep passing a mover (<code>E1 D1 A0 B1 F0</code>) or turning at one (<code>E1 D1 A0 B0</code>, <code>D1 A1</code>), and the turns at Q and at the two ends. In all of them F reads a 0.</p>
+        <p class="where">README, section Movers</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The machine halts only when F reads a 1, and that happens only as <code>D&gt; 1 0 1 1</code> (see below). The drains never meet that word; each end of a drain starts a rebuild whose collisions (Q with a separator, a mover reaching the right end, Q with a scar) are observed but not yet written as exact rules, so no rebuild is known to be safe. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
+        <p>Not known. The machine halts only when F reads a 1, and that happens only as <code>D&gt; 1 0 1 1</code> (see below). Every bounce is a proved mover lemma except the cells where the head turns, so a halt would have to come from one of those collisions; none of the 57 kinds seen to 10<sup>13</sup> steps halts, and an exact simulator finds none to 1.5&times;10<sup>18</sup>, but no invariant yet rules out a different collision later. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, history, LRU) fail.</p>
       </div>
     </div>
   </section>
@@ -204,7 +219,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE--- 1000000000
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/rsim_events.py 2e14 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/drain_ends.py ev.txt</code></pre>
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/rsim_events.py 2e14 &gt; ev.txt &amp;&amp; python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/drain_ends.py ev.txt
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py check 203633</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/status.json</code>; edit that file and rebuild rather than editing this page.</p>
