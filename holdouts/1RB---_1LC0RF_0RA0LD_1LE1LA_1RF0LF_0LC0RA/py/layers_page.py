@@ -27,7 +27,8 @@ d['explainer']['lede'] = ("Nobody knows whether it halts. Its engine is decoded 
                           "the next word, multiplied by 3. The open question is what happens when the carry runs off the "
                           "end of the chain.")
 claims = [c for c in d['claims'] if c['title'] not in ('The layered shapes of the later run', 'What the eras hand on, and the shapes between',
-                                                      'The layer law, for every layout', 'The run follows the layer law', 'What an overflow of R hands on')]
+                                                      'The layer law, for every layout', 'The run follows the layer law', 'What an overflow of R hands on',
+                                                      'Overflow after overflow, far beyond the run')]
 i = next(j for j, c in enumerate(claims) if c['title'] == 'The cascade rule of the later layout, for every size') + 1
 claims[i:i] = [
     {"level": "kernel", "title": "The layer law, for every layout",
@@ -45,10 +46,18 @@ claims[i:i] = [
              "(4,088 of them between steps 15,766 and 118,003) are in no layout. 12 layouts occur, from one item to four, the last "
              "<code>Z2 | (∅, ∅) (∅, P14) (Q2, R13)</code> from step 70,680,694 to the end of the run (436,712 events).",
      "where": "<code>holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c</code> piped into <code>py/layers_check.py</code>"},
+    {"level": "trusted", "title": "Overflow after overflow, far beyond the run",
+     "text": "Between two overflows the layer law is applied in closed form (m events add m to N and Z, and the units sent "
+             "down the chain add up with carries); each overflow event is run cell by cell on the machine. From step 118,003 "
+             "this reproduces the 7 overflows of the run and then follows 1,500 overflows, to about 10<sup>874</sup> events, "
+             "with no halt. At every overflow the next full event has N' = ⌊N / 3<sup>d</sup>⌋ + 1: the overflow eats d low "
+             "base-3 digits of N (d = 1 never occurs; d counts 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1).",
+     "where": "<code>py/overflow_jump.py</code> with <code>c/overflow_event.c</code>"},
     {"level": "open", "title": "What an overflow of R hands on",
-     "text": "The 7 overflows of R in the run (listed on the explainer page) each rebuild the chain: words merge or split, R "
-             "gains digits, and five of them take 2 to 5 base-3 digits of N. Their law, and halting. No event of any layout can "
-             "halt, since every rule is a run of the machine.", "where": ""},
+     "text": "The exact law: which d and which new words follow from N's low digits and the chain. Seen so far: d = 0 merges "
+             "two neighbouring words, d ≥ 2 shifts the word widths by one slot, and the last item alternates between "
+             "(Q12, R0) and (Q2, R13). Then halting. No event of any layout can halt, since every rule is a run of the machine.",
+     "where": ""},
 ]
 d['claims'] = claims
 chk = d['check']
@@ -104,7 +113,13 @@ secs.insert(i, {"id": "overflows", "eyebrow": "Where the law stops", "heading": 
              "3·10<sup>8</sup> steps it happens 7 times, and each time the next full event has a new layout:</p>", ovt,
              "<p>Words merge (the last one turns <code>(0, 15) (0, 242)</code> into one 14-digit word, <code>128</code>), Q's "
              "digits move into a longer R, and five of the seven take 2 to 5 base-3 digits from N, mixing base 3 into base 2 as in "
-             "the sibling with F0 = 0LB. Decoding this hand-over is what remains between the engine and a decision.</p>"]})
+             "the sibling with F0 = 0LB.</p>",
+             "<p>Past the run, the law does the work: between two overflows m events can be added in one step (N + m, Z + m, "
+             "and the units sent down the chain added with carries), and only the overflow event itself is run on the machine. "
+             "That follows 1,500 overflows, to about 10<sup>874</sup> events, with no halt. Every one of them obeys one rule "
+             "on the left: the overflow eats d low base-3 digits of N and the next event has N' = ⌊N / 3<sup>d</sup>⌋ + 1. "
+             "d is never 1; most often it is 0 (two words merge) or 2 and more (the widths shift by one slot). Which d, and "
+             "which new words, is what remains between the engine and a decision.</p>"]})
 for s in secs:
     if s['id'] == 'open':
         s['html'] = ["<p>The engine is proved for every layout: N + 1 on the left, and on the right the chain law, a carry "
