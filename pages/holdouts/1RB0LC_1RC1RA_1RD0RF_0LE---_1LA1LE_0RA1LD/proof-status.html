@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For every list <code>ws</code> of words <code>01</code>/<code>011</code> and all tapes around: <code>L | A&gt; ws 0111 R</code> reaches <code>L | A&gt; 111 ws 0 R</code> in 10&middot;(|ws|+1) steps. The right sweep turns each word into an image (<code>01 &rarr; 11</code>, <code>011 &rarr; 100</code>), the turn picks up three 1s as a packet, and the packet crosses back restoring every word. So a run <code>1^(k+3)</code> after any stretch of words becomes <code>1^k</code>, words unchanged (<code>1^3</code> becomes <code>00</code>). If the words are followed by <code>0001</code>, the sweep halts the machine.</p>
         <p class="where"><code>pulse</code>, <code>pulse_halt</code>, <code>lean/Pulse.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The return after a 00 pulse, word by word</h3>
+        <p>After a <code>00</code> pulse the head comes back over the images in one of three modes. 21 rules, each for every tape around: in mode C the images become words again; in mode E an image <code>11</code> stays <code>11</code>, so a stretch of <code>01</code> words becomes one run of 1s (a new fuse), and an image <code>100</code> switches to mode A; in mode A an image <code>11</code> becomes a run of two. Mode A on an image <code>100</code> sends the head right again; that excursion is not covered.</p>
+        <p class="where"><code>lean/Return.lean</code> (written by <code>py/ret_rules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
