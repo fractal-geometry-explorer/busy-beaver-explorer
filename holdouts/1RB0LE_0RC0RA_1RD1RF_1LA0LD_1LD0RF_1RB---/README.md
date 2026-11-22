@@ -118,7 +118,7 @@ the number of its blocks):
 So the left end of the list is a small counter of its own: the first block grows by 3 or 4, or splits off a new
 block 3 at the left, and which one depends on the parities and on whether C has an even or odd number of blocks.
 
-**The copy ticks (checked on the machine, not proved).** 54 left-end ticks have a front ending `| 1`:
+**The copy ticks.** 54 left-end ticks have a front ending `| 1`:
 
     P | 1 . X . C          (C odd)  →   N | P' | C''          N = 2X − c(P)
 
@@ -162,9 +162,28 @@ big block, at every scale. This is the "same sequence of lists on larger scales"
 
 The other 6 left-end ticks (steps 4 to 274,716) have at most one block after the front, too few for the passes.
 
-What is still open here: the copy ticks in Lean (the loop is an induction on X, as `wall_round` is for
-1RB1RF_1LC0LB_1RE0LD_1LB0RF_0RA0RC_1RE---, with P in its reworked form crossed by the sweeps), the rework transducer
-as a theorem, and the replay as a statement on lists.
+**The copy ticks in Lean (22 November 2026).** After its first rounds (the *entry*) a copy tick settles into a
+loop whose state, at the left end of the tape in state D, is
+
+    1 (10)^(2j+2)  0 (10)^(2b1+2)  0 (10)^(2b2+2)  …  0 (10)^(2bm+2)  0 0 (10)^(2r)  Z
+
+j the pairs already copied into the new first block, b1 … bm the reworked P (all even blocks, separators 0), r the
+pairs of X still to copy, Z the chain, never touched. Each half round moves one pair of X: the head crosses every
+block to the right in state B (`crossB`), takes a pair at X (`xa`, `xb`), crosses back in state D, restoring each
+block (`crossD`), and adds a pair at the left end (`el1`, `el2`, `el3`). These seven pieces are local, so `round`
+holds for every list of blocks (two inductions on the list), and `loop` (induction on r) runs the copy to r = 0
+(`lean/Copy.lean`). For each front shape of the run (each block of P a variable of fixed parity, as in `lean/Front.lean`) the entry and
+the two exits (`exit3` when the chain goes on, `exit1` when it has one block) are symbolic runs, and
+`copy_<shape>_long` / `copy_<shape>_one` are the whole tick from one right-end turn to the next, for every X, every
+value of the blocks of P, every chain and every number of pairs (`lean/CopyS1.lean` … `CopyS8.lean`). 21 front
+shapes are proved; **51 of the 54 copy ticks** of the first 10¹⁰ steps are instances, and the end of each theorem, read as a block list, is the list the run
+reaches (`py/copyloop.py check`). Not covered: the two ticks with front `3|1|Y` (which copy Y) and
+`3|1|7|9.26|…|1583` (front shape `o|1|o|o.e|e|o|o.e|e|o`, whose entry needs a split the generator does not find).
+The entry, the rework of P, is still one symbolic run per shape: its block law (the transducer above) is not a
+theorem.
+
+What is still open here: the rework transducer as a theorem for every front, the three copy ticks above, and the
+replay as a statement on lists.
 
 ## What is open, next steps
 
@@ -172,7 +191,8 @@ as a theorem, and the replay as a statement on lists.
    parities). The pieces of `lean/Chain.lean` should cover most of them with new turn pieces.
 2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
    for every chain length (`lean/Front.lean`); the 54 copy ticks are checked to depend on the block X only through
-   the new block 2X − c(P). Open: the copy loop in Lean, and the rework of P as a rule.
+   the new block 2X − c(P), and 51 of them are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
+   per front shape). Open: the rework of P as a rule for every front.
 3. An invariant of the block lists, kept by all rules, that keeps B off `0 1 1`.
 
 Why the method that proves 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB (a finite table of forms, then linear
@@ -331,6 +351,8 @@ gcc -O2 -o tick holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/tick.c
 ./blocks 1e10 > blocks.txt                                                       # 1 minute
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py classify < blocks.txt > classify.txt   # 30 s
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick < classify.txt                  # 3 minutes
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classify.txt      # rewrites lean/Copy*.lean
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # 51 of 54 copy ticks
 ```
 
 <!-- related machines: written by holdouts/related.py -->
