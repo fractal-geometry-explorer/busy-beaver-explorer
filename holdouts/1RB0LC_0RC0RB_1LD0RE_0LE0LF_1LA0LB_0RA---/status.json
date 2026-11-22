@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 13 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 0RA is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the remaining exceptions (merges, the left end) are simulated exactly. No halt in 10<sup>200</sup> steps: every F-event so far is of the proved harmless kind.",
+  "<b>The question is open.</b> This machine is written in <b>frame A</b>, the frame the analysis uses: states A to E do all the work, D1 = 0LF is the only way into F, F0 = 0RA is this machine's own transition, and F1 halts. The nested counter that drives the run is proved in Lean for every depth (<code>go_spec</code>), with its closed form, the birth of blocks and the F-event; the merge of a used-up block and the whole left-end round are proved too, for any inner visits (<code>lean/Visits.lean</code>); the remaining exceptions are simulated exactly. No halt in 10<sup>1000</sup> steps: every F-event so far is of the proved harmless kind.",
   "<b>Family F05.</b> One of 40 holdouts on the same five-state core; the family's exact block-list map runs this machine for 1.0&middot;10<sup>200</sup> steps without a halt.",
   "<b>Start twin.</b> Proved in Lean to share one question with <code>1RB0LC_0RC0RF_1RD0RE_1LE0RA_0LA0LE_0LD---</code> (the same table from another start), under a condition on the block lists of one run."
  ],
@@ -62,6 +62,24 @@
    "title": "Halting would need two exceptional events close together",
    "text": "A clean visit cannot halt, and in the runs every exceptional event with long blocks around it ends without a halt; short lists of the same shape do halt. When block i runs out, the next block has about the length of their drift, so a second event close by needs a drift near 0 at that moment. Observed at the left-end events of this run: after step 10<sup>20</sup> the smallest drift in absolute value is 478,842, after step 10<sup>100</sup> it is 521,954. New drifts are made of sums and differences of earlier blocks, which grow with the run, so close pairs of events should become ever rarer; but nothing proved keeps a drift away from 0, and the figures are sampled at the left-end events only.",
    "where": "<code>data/f05_run.json</code> (<code>drift</code>), <code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/f05_run.py</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Merges and the left end, for any inner visits",
+   "text": "<code>lean/Visits.lean</code> proves the rules for visits whose nested visits only <em>end</em> as clean ones do, whatever happens inside them, for every list and every left context: SPREAD (<code>spread_gen</code>), CARRY (a visit to [1, c, ...], <code>carry</code>), the merge of a used-up block (a visit to [3, c, ...] exits in C with the next block 3 longer, <code>merge3</code>), the left-end SWEEP (a visit to even blocks: cross them all, start a new block with a visit to [1], then from the last block to the first one visit and three CARRYs each; the first block ends two shorter: <code>sweep</code>, <code>run_gap</code>, <code>run_end</code>) and the round from one left-end event to the next (<code>left_end</code>). No state F is used, so they hold for the core of all 40 machines. Visits to [5, ...] and [0, ...] and the C exits nested in a parent are not covered yet.",
+   "where": "<code>spread_gen</code>, <code>carry</code>, <code>merge3</code>, <code>sweep</code>, <code>left_end</code>, <code>lean/Visits.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A merge-level accelerator",
+   "text": "<code>py/fast.py</code> runs the machine as these rules on block lists, with no tape: clean visits by the closed form, SPREAD, CARRY and SWEEP as nested visits, and only the rest (about 1 visit in 40) on the run-length simulator. It gives the same left-end events and F-events as <code>hybrid.py</code> on all 37 list machines of the family to 10<sup>100</sup> steps, and runs 10<sup>200</sup> steps in 6 s instead of 2 minutes.",
+   "where": "<code>holdouts/1RB0LC_0RC0RB_1LD0RE_0LE0LF_1LA0LB_0RA---/py/fast.py</code> (<code>check</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>1000</sup> steps; no drift near the danger window",
+   "text": "The exact rule-level map runs 10<sup>1000</sup> steps (2,555 left-end events, 1,440 F-events, all reading 0). Halt scans on real left-end lists (every even pair at two neighbouring blocks, 12 more events, run exactly) halt exactly when (t<sub>j</sub> mod 18, t<sub>j+1</sub> &minus; 5t<sub>j</sub>) is in a small set, here {(6,&minus;4), (10,&minus;6), (14,&minus;8), (0,&minus;10), (0,&minus;2), (0,0)}: a block running out while its drift is within 10 of 0. Over the run no new drift comes near: the smallest after the 30th event is 2,031,272. Over the 37 list machines of the family to 10<sup>300</sup> steps the smallest is 1,048.",
+   "where": "<code>data/f05_danger.json</code>, <code>data/f05_timing.json</code>, <code>py/f05_danger.py</code>, <code>py/f05_timing.py</code>"
   },
   {
    "level": "kernel",
