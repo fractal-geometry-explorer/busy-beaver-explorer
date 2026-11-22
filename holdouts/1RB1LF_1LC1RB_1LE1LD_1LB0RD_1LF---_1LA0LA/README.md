@@ -104,6 +104,11 @@ phases and their step counts are the same for both; the right-end events differ.
   the pair moves `reflect`, `flipX0/1`, `flipY0/1`, `turn0/1`, `digit1`, `digit`; the wall moves `bounce`,
   `cross`; the counter phases `phase1`, `phase2`, `phase4_in`, `phase4_out`; and `pure_tape_halts`.
 * **Lean**: `lean/Blank.lean`: the halting configurations; no halt in 10^4 steps (kernel), 10^7 (`native_decide`).
+* **Lean (kernel)**, `lean/Events.lean` (written by `py/events_lean.py`), for every tape to the left: the hits of a
+  last digit 13 and of `8 0 0` halt (`hit13_halts`, `hit800_halts`); the events with last digit 11, 12, 14 to 20
+  are ordinary hits (`event<b>_<x>`); with four blank pairs left of the wall, the events with last digit 0 to 10
+  end 7 cells to the left, the pairs shifted by one cell, for every prefix length (`shift<b>`). See "Inside a
+  right-end event".
 * **Trusted**: `py/gmodel.py`: V = G on random words and on the run from blank tape; `py/blocksim.py` /
   `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation: no halt
   in 10^13 steps (`c/mrun.c` of the neighbour folder, see above; `tools/c/tmrun.c` to 2·10^10).
@@ -325,6 +330,89 @@ still open.
 Trust: computations, exact by construction; the accelerator agrees with the digit engine on the stretch it was
 compared on. The Lean file covers the arithmetic only, not the symbolic runs that supply its constants.
 
+## Inside a right-end event (22 November 2026)
+
+**An event is a counter restarted on the Y's it erases. For a last digit b >= 11 it is an ordinary hit (b = 13
+halts), for b <= 10 it shifts the pairs by one cell. No event of the run so far meets a halting hit.**
+
+Code: `py/events.py` with `c/visit.c` (one wall visit per word, by direct simulation), `py/evlog.py` (the
+accelerated run, logging every visit that ends in an event), `py/events_lean.py` (writes `lean/Events.lean`).
+
+*Where an event happens.* G(a T) = 0^a h(T), and each hit h(k T) hands the rest k sub-visits of a word that is one
+digit shorter. So at the bottom of every event there is a sub-visit of a **two-digit word (a, b)**: G(a b) = 0^a h(b),
+the hit of the last digit. (Checked on every event word of at most 18 pairs.) On cells, D erases the b Y's of the
+last digit and runs into blank tape. The b erased pairs become b walls, and a new counter starts on them from the
+word `2`, one pair per visit, shifted by one cell against the pairs to its left. When it has used them up it
+meets the Y in front of them.
+
+*Three cases* (with at least 4 blank pairs left of the sub-visit's wall; `python3 events.py anatomy`):
+
+| last digit b | the next wall visit |
+|---|---|
+| 0 to 10 | 7 cells to the left instead of 2 (3.5 pairs: the pairs are now shifted by one cell), word 3 + 0^a f(b); Lean `shift<b>` for every a ≥ 1 and every tape beyond the four blank pairs |
+| 13 | none: **the machine halts**, for every tape to the left (Lean `hit13_halts`, 690 steps from the hit) |
+| 11, 12, 14 and up | an ordinary visit, word 0^a g(b): the event is one more rule of the recursion, **h(b) = g(b)** |
+
+with, for a = 0, the words 5, 3 0 2, 8, 3 0 0 0 0 2, 6 0 0 2, 3 0 0 3 2, 6 3 2, 3 0 0 1 0 0 5, 6 1 0 0 5, 3 0 0 1 0 8,
+6 1 0 8 for b = 0..10, and g(11) = 0 0 0 3 3 1 0 0 5, g(12) = 0 6 3 1 0 0 5, g(14) = 4 0 3 3 1 0 0 5,
+g(15) = 1 0 0 6 3 1 0 0 5, g(16) = 4 6 3 1 0 0 5, ... (a ≤ 3, b ≤ 60; and X Y^b halts for b ≤ 400 only at b = 13).
+
+*The rule h(b) = g(b) holds in every context tried.* Lean (`lean/Events.lean`, kernel): for b = 11, 12 and 14 to
+20 and every left tape L, `L x 1 1 B> 1 0 (11)^b 0^inf` comes back to `L F> x ...` in F, as every regular hit does
+(`event<b>_<x>`). Direct simulation: 44,000 random words whose events all have b ≥ 11 (up to 9 digits, last digit
+11 to 45; 490 of them halt) give exactly what the recursion extended by h(b) = g(b) and h(13) = halt predicts
+(`python3 events.py rule11 SEED`, seeds 1 to 11, all agree). So only the events with b ≤ 10 are outside
+the recursion: they shift the pairs, and the shift matters only where it meets the unshifted pairs of an enclosing
+frame (a frame whose blank pairs run out).
+
+*Which words halt* (`python3 events.py classify 18`, 7 min). All 524,287 words of at most 18 pairs, one wall visit
+each: 409 halt, all others reach the next wall visit; every halting visit goes through an event, and every visit
+without one is the ordinary G(S). Halting depends only on the hit (`Y^a X T` halts for every a or for none):
+218 halting hits T (`py/halting_hits_18.txt`), 140 of them not inherited from a shorter one in the first sub-visit.
+The shortest: `8 0 0`, `8 0 1`, `6 0 1 1 0`, `8 0 2`, `8 2 0`, ..., `13`. Their number roughly doubles with each
+pair (1, 1, 3, 7, 14, 22, 49, 121 hits whose wall visit 0 T has 11, 12, ..., 18 pairs), so they are not a short
+list. 13 of the 218 halt through a last digit 13 (the extended recursion predicts it); the other 205 all go through
+an event with b ≤ 10 first. Lean: `hit800_halts` and
+`hit13_halts`, for every left tape. Nor is halting decided by the innermost word (a, b) and the remaining
+sub-visits of the innermost frames: with up to four frames, a few dozen such signatures occur in halting and in
+non-halting words (`python3 events.py innermost 18`). The frames' words matter.
+
+*The events of the run, tested* (`python3 py/evlog.py 1 SECONDS py/halting_hits_18.txt`). Every visit batch of the
+accelerated run that ends in an event was logged with its innermost word and frames, through all eight right-end
+events and into the return sweep of the eighth:
+
+| event | innermost word (a, b) | innermost frames (k, sub-visits done) |
+|---|---|---|
+| 1 (visit 3) | (3, 2) | none (the outer visit) |
+| 2 (visit 14) | (2, 2) | (3, 0) |
+| 3 (visit 23) | (6, 8) | (3, 2), (4, 2) |
+| 4 (visit 114) | (5, 5) | (3, 0), (3, 0), (6, 4), (4, 2), ... |
+| 5 (visit 117) | (9, 2) | (3, 2), (3, 0), (3, 2), (15, 6), ... |
+| 6 (visit 107,452, the reset) | (6, 2) | (3, 2), (3, 0), (7, 2), (4, 2), ... |
+| 7 (visit 6.35·10^2236) | (5, 11), met again at every depth of its return | (3, 0), (4, 2), (9, 0), (4, 2), (6, 2), (3, 2) |
+| 8 (visit 4.23·10^2237) | (2, 8), behind a unit 1 0 | (3, 0), (6, 0), (7, 0), (4, 2), (12, 10), (3, 2) |
+
+No last digit is 13. The hit words of the innermost frames, as far as they are short (26 words, for example
+`3 3 11`, `4 1 0 0 3 11`, `9 9 4 1 0 0 3 11`, `4 1 0 4 0 6 0 3 3 1 0 8`), were each run directly from a wall
+(`python3 events.py hits FILE`): none halts, and those of the seventh event (b = 11) come back as ordinary visits,
+as the rule says. So the seventh event is, at its bottom, an ordinary hit h(11) = g(11), and so are its innermost
+frames (as far as they could be run); what makes its return irregular must come from frames further up.
+
+What this gives: the event map is now G plus one fixed word per last digit b ≥ 11, plus the shifted case b ≤ 10.
+A halt needs a last digit 13 or an event with b ≤ 10 inside a halting hit (all 205 other halting hits of at most
+18 pairs have one; most are a digit 8 or 6 whose first sub-visits end in such an event next to the blank pairs the
+digit left behind).
+
+Next steps:
+
+* Put h(b) = g(b) (b ≥ 11) into the digit engine `geng.py` (one rule, like the others) and prove it in Lean for
+  every b (g(b) is itself the counter run from `2` on b walls, so a proof by the same recursion).
+* The shifted case: write the recursion for a frame whose sub-visits run shifted by one cell, and the junction
+  where they meet the frame's own pairs (a finite list of local cases, judging by the 18-pair data). With it the
+  whole machine is one map on words and the return sweeps of the seventh and eighth events become digit work.
+* Then search that map for a halting hit, or for an invariant that keeps the last digit away from 13 and the frames
+  away from the halting hits.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/explainer.html)
@@ -342,4 +430,8 @@ gcc -O2 -o wv ../c/wv.c && ./wv 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 3e6 0 
 python3 ./calibrate.py 1 && python3 ./accel_run.py 1 100 100 8                 # step constants; the accelerated run
 python3 ./lsa_run.py 1 1600                                     # level-stripping accelerator: the seventh event in seconds
 LSA_CKPT=ck.pkl python3 ./lsa_run.py 2 3200                     # the twin from visit 10^3200 (checkpoints in ck.pkl, resumes from it)
+python3 ./events.py anatomy && python3 ./events.py rule11 1      # what an event does; the rule h(b) = g(b) for b >= 11
+python3 ./events.py classify 18                                 # every word of at most 18 pairs (7 min): the halting hits
+python3 ./events_lean.py > ../lean/Events.lean                  # regenerate the Lean event lemmas
+STACKMB=128 python3 ./evlog.py 1 600 halting_hits_18.txt        # the run's events, logged and tested
 ```
