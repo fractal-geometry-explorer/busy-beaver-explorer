@@ -40,8 +40,8 @@ Everything else above is measured on runs (heuristic), not proved.
 
 ## Open
 
-Whether it halts. The epochs are measured; the dumps at their ends and the irregular region they build are
-not understood.
+Whether it halts. Observed: it halts exactly if a pulse ever meets an inner `000` (see Pulses and defects). The
+fuses are understood; the `00` pulses, which end the epochs and build the irregular region, are not.
 
 ## For later
 
@@ -123,6 +123,49 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 gcc -O2 -o passes holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/passes.c
 ./passes 179000 210000 | cut -c1-140          # short and long passes, the fuse 1^29 eaten 3 cells at a time
 ./passes 0 300000000000 ends                  # the long stretches that reach the right end (about 20 minutes)
+```
+
+## Pulses and defects: what an epoch end is (22 November 2026)
+
+Observed and tested on random tapes, not proved. `py/pulses.py` and `c/defects.c` reproduce everything here.
+
+- **Transparent words.** Look at the tape at a return of the head to the left end in the form
+  `C>0 (011)^a 001101 …`. After `001101` it is mostly made of *words*: a run of one or two 1s followed by a single 0.
+  Runs of one or two 1s with single 0s between them are transparent: a round trip of the head (two returns to the
+  left end) leaves any such stretch exactly as it was. Replacing the 307 cells of words at step 182,483 by 30 random
+  lists of words `10`/`110` of other lengths changes nothing else: in every case the round trip only adds 1 to a,
+  three words at the left, and takes 3 from the run of 1s after the words.
+- **Defects and pulses.** Where the tape is not made of words there is a *defect*: a run of k ≥ 3 ones, or a run of
+  two or more 0s. A round trip goes right in state A (rules `A> 01 → 11 A>` and `A> 011 → 100 A>`, which hold for
+  every tape on the left), meets the first defect and comes back. So each round trip sends one **pulse** to the
+  first defect and only that defect changes. Tested with 20 random word lists around each defect:
+
+  | first defect | after one pulse |
+  |---|---|
+  | `1^k`, k ≥ 6 | `1^(k−3)` (this is the fuse of the section above) |
+  | `1^4`, `1^5` | dissolves into a word (`1`, `11`) |
+  | `1^3` | becomes `00` |
+  | `000` with tape after it | **the machine halts** (20 of 20, and with other tapes after it) |
+  | `00` | a zigzag around the `00`; the result depends on the words themselves, not only on how many there are, and it often rewrites the left part (a starts again from 1 or 2) |
+
+  So a fuse `1^k` lasts ⌊k/3⌋ pulses and then leaves nothing (k ≡ 1, 2 mod 3) or a `00` (k ≡ 0 mod 3).
+- **Epoch ends are `00` pulses.** On the run from blank tape, of the 9,714 round trips that start in the form above
+  in the first 3·10^10 steps, all but 1,766 follow the table's first three rows. Of the 1,766, 1,755 start with a
+  `00` as first defect and 7 with no defect at all (the pulse goes to the end of the tape); the other 4 are a `1^3`
+  just before the end of the tape and round trips that passed through other forms on the way. No round trip ever
+  meets a `000`.
+- **So:** the machine halts if and only if (observed, not proved) a pulse ever meets an inner `000`. The fuses are
+  pure arithmetic; what decides everything is the `00` pulse, a local bouncer of its own that reads the actual words
+  near the `00`. That is why the length of the next fuse is not a function of a, b and the block counts: two tapes
+  with the same counts and different words give different fuses (`python3 py/pulses.py 'w15 z2 w8 k7 w5' 2 3`).
+
+Next: describe the `00` zigzag as rules over words (it looks like the left-end bouncer again, one level down), and
+prove the transparent round trip and the fuse rule in Lean.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 k9 w8 k7 w5' 1 20   # 1^9 -> 1^6
+python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 z3 w8 k7 w5' 1 20   # 000: halt
+gcc -O2 -o defects holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/defects.c && ./defects 30000000000 0   # 2.5 min
 ```
 
 <!-- related machines: written by holdouts/related.py -->
