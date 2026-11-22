@@ -109,12 +109,17 @@ phases and their step counts are the same for both; the right-end events differ.
   are ordinary hits (`event<b>_<x>`); with four blank pairs left of the wall, the events with last digit 0 to 10
   end 7 cells to the left, the pairs shifted by one cell, for every prefix length (`shift<b>`). See "Inside a
   right-end event".
+* **Lean (kernel)**, `lean/Cascade.lean` (written by `py/cascade_lean.py`), for every tape on both sides: the
+  cascade, where a pass of the head turns on a pair 01, for each number m of blank cells to its left
+  (`cascade0` to `cascade6`); m = 3 halts (`cascade3_halts`). Every halt of every word of at most 18 pairs is this
+  one (`py/cascade.py words 18`). See "Shifted events: the cascade".
 * **Trusted**: `py/gmodel.py`: V = G on random words and on the run from blank tape; `py/blocksim.py` /
   `py/bscheck.py` (the earlier exact simulator on runs of `111010`). Direct simulation: no halt
   in 10^13 steps (`c/mrun.c` of the neighbour folder, see above; `tools/c/tmrun.c` to 2·10^10).
 * **Trusted**: a closed tape language from windows of 6 cells confines the halt to a head with only 0s on its left
   (`python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA 6`).
-* **Open**: what the right-end events do in general, and so whether a halting word ever appears.
+* **Open**: whether an event with b ≤ 10 ever comes back to a frame with exactly 5 blank cells (the m = 3
+  cascade), and so whether the machine halts.
 
 ## Next steps
 
@@ -408,10 +413,80 @@ Next steps:
 * Put h(b) = g(b) (b ≥ 11) into the digit engine `geng.py` (one rule, like the others) and prove it in Lean for
   every b (g(b) is itself the counter run from `2` on b walls, so a proof by the same recursion).
 * The shifted case: write the recursion for a frame whose sub-visits run shifted by one cell, and the junction
-  where they meet the frame's own pairs (a finite list of local cases, judging by the 18-pair data). With it the
+  where they meet the frame's own pairs (a finite list of local cases, judging by the 18-pair data). Done as a
+  local rule, see "Shifted events: the cascade" below. With it the
   whole machine is one map on words and the return sweeps of the seventh and eighth events become digit work.
 * Then search that map for a halting hit, or for an invariant that keeps the last digit away from 13 and the frames
   away from the halting hits.
+
+## Shifted events: the cascade (22 November 2026)
+
+**An event with last digit b ≤ 10 sends the head home in the other pair grid. At the first blank stretch it meets,
+the head runs a short *cascade* whose result depends only on the number m of blank cells there. m = 3 halts the
+machine, and every halt of every word of at most 18 pairs is such a cascade. The first cascade of an event always
+has m = 2 × (sub-visits still to come in the innermost frame), an even number, so a halt needs an earlier change
+of grid in the same frame.**
+
+Code: `py/cascade.py` (direct simulation), `py/cascade_lean.py` (writes `lean/Cascade.lean`).
+
+*Passes and grids.* A pass of the head to the left alternates F and A, so it reads the tape in pairs
+(A-cell, F-cell): F flips its cell, A goes on over a 1 and turns the head right on a 0. On a word of X = 10 and
+Y = 11 read in its own grid the A-cells are all 1, so the pass swaps X and Y and turns only on a blank pair: that
+is the wall visit. The grid of a pass is fixed by the cell where it starts. After an event with b ≤ 10 the pass
+starts one cell off, so it reads the pairs one cell shifted, and the pair where it turns at the next blank stretch
+is 01 instead of 00. The head then does not turn cleanly. It runs a cascade: D, B, C, E, F write 1s leftwards, one
+cell each, and what happens depends only on m, the number of blank cells left of the turning pair. For every tape
+L to the left and R to the right (Lean, `cascade<m>`):
+
+| m | `L 1 0^m 0 F> 1 R` (m ≥ 6: `L 0^7 F> 1 R`) | what it means |
+|---|---|---|
+| 0 | `L 0 0 0 D> R` | the hit `L 1 1 B> 1 0 R`, in the new grid: D erases the next Y's of R and the recursion goes on |
+| 1 | `L 1 1 1 1 B> R` | one more sub-visit in the new grid, with no blank cell left |
+| 2 | `L C> 1 1 1 1 1 R` | a hit again, back in the old grid (the next wall visit can be a word with 01 pairs) |
+| 3 | **halt**: E reads the 1 (7 steps, `cascade3_halts`) | |
+| 4, 5 | `L F> 1^7 R`, `L A> 1^8 R` | the pass goes on to the left, to the next frame out |
+| ≥ 6 | `L 0 F> 0 1 1 1 1 1 1 R` | a wall visit 7 cells on, word `Y Y Y R`: the frame goes on in the new grid with m − 5 blank cells (`shift<b>` in `Events.lean` is this case) |
+
+*How m is set* (`python3 cascade.py words 18`, 10 s). All 524,287 words of at most 18 pairs, one wall visit each:
+
+* A cascade happens exactly in the visits whose recursion G meets an event (every one with b ≤ 10, and the 143 with
+  b ≥ 11 later on); none of the 469,547 visits without an event has one. Every turn of the head inside a visit,
+  before or after a cascade, sees a word of X and Y to its right in its own grid (checked to 14 pairs).
+* The first cascade has m = 2 × (sub-visits still to come in the innermost frame of the recursion) in all
+  54,597 visits with b ≤ 10 (m = ∞ at the top level, where the visit ends 7 cells to the left). In a frame
+  that has not changed grid, the blank cells left of a sub-visit's wall are 2 per sub-visit to come, so m is even.
+* m = 4 hands the pass to the next frame out, where the next cascade has m = 2 × (that frame's sub-visits to come):
+  8,915 of 8,915.
+* After m ≥ 6 the frame goes on in the new grid with m − 5 blank cells, an odd number, 2 fewer per sub-visit. Of
+  10,841 such visits, 9,281 have the next cascade in the next frame out, with m as above (the frame used up its
+  blank cells), 497 have a second event in the shifted frame (odd m), 678 a second event in a deeper frame, and
+  385 no other cascade (a second event with one blank cell left: its pass goes on without a cascade and returns to
+  the old grid).
+* **Halting.** All 409 halting visits halt in a cascade with m = 3, and none of them in the first cascade of the
+  visit (the m sequences are for example (≥6, 3), (≥6, 4, 3), (0, ≥6, 4, 3), (≥6, 0, 3), (0, 3)). Lean: m = 3
+  halts for every L and R. So a word halts when an event with b ≤ 10 comes back to a frame with exactly 5 blank
+  cells, which happens only after an earlier change of grid in that frame: typically a shift (m ≥ 6, leaving
+  m − 5 cells) and then a second event when 5 are left. The hit `8 0 0` is the shortest case: its first sub-visit
+  shifts with m = 14 (9 cells left), its next sub-visits use 2 cells each, and an event with 5 left halts.
+  The hit of a last digit 13 halts in the same cascade.
+
+*The run's events* (`python3 cascade.py run`, and the frames logged by `evlog.py`). Direct simulation of the run
+from blank tape gives the cascades of the first five events: m = ∞; 4, 6, 0, ∞; 0, 2, 6, ∞; 4, 4, 2, 0, 0, 2, 2,
+then 0 twenty-five times, ∞; 0, 4, 0, 16, 10, 16, 0, 138, ∞. All are even, so
+none halts. The first cascades are what the logged frames predict (4 at event 2, 0 at 3, 4, 4, 2 at 4, 0 at 5).
+From its frames (3, 0), (6, 0), (7, 0), (4, 2), ... the eighth event should start with m = 4 (frame (3, 0) passes
+the head on), then m = 10 in frame (6, 0): a shift that leaves that frame **5 blank cells**. If the next sub-visit
+of that frame ends in an event straight away (b ≤ 10, no deeper frame), the machine halts. Otherwise the frame
+uses its cells up and the pass goes on to frame (7, 0) with m = 12 (7 cells left). This is a prediction from the
+logged frames; the eighth event is too long to simulate on cells.
+
+What this gives: the shifted case is one local rule with seven outcomes, all proved for every tape around them, and
+halting is one of them. Next steps:
+
+* Turn the cascade table into a recursion on words with a grid and a count of blank cells per frame (the 497 + 678
+  visits with a second event show where it gets nested), and check it against the 18-pair data.
+* Follow the eighth event's return in the accelerated run with the cascades logged: the frames (6, 0) and (7, 0)
+  are left with an odd number of blank cells, where a second event with b ≤ 10 at 5 cells halts.
 
 ## Pages
 
