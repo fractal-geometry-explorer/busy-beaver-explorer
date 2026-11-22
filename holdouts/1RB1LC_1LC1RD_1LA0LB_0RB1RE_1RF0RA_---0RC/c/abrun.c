@@ -1,6 +1,6 @@
 /* abrun.c: iterate the A(a,b) rules of 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC from A(2,9) in 128-bit integers.
    Logs every "near" visit with 1 <= b - a <= 8 (b > a) and every reset rule, and the exact machine step count.
-   usage: abrun N [logevery]   */
+   usage: abrun N [logevery [i0 a b T]]   (resume from a logged prog line: visit i0, state a, b, steps T) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,10 +8,12 @@ typedef unsigned __int128 u128;
 static void pr(FILE*f,u128 x){char s[50];int i=49;s[i]=0;if(!x){fputs("0",f);return;}while(x){s[--i]='0'+(int)(x%10);x/=10;}fputs(s+i,f);}
 int main(int argc,char**argv){
   unsigned long long N=strtoull(argv[1],0,10), LE=argc>2?strtoull(argv[2],0,10):0;
-  u128 a=2,b=9,T=52; unsigned long long cnt[8]={0}; const char*nm[8]={"ge","de","do","p1","p2","p3","b2","H"};
+  u128 a=2,b=9,T=52; unsigned long long i0=0;
+  if(argc>6){ i0=strtoull(argv[3],0,10); a=0;b=0;T=0;
+    for(char*p=argv[4];*p;p++)a=a*10+(*p-'0'); for(char*p=argv[5];*p;p++)b=b*10+(*p-'0'); for(char*p=argv[6];*p;p++)T=T*10+(*p-'0'); } unsigned long long cnt[8]={0}; const char*nm[8]={"ge","de","do","p1","p2","p3","b2","H"};
   unsigned long long near[9][2]; memset(near,0,sizeof near);
   u128 LIM=((u128)1)<<100;
-  for(unsigned long long i=0;i<N;i++){
+  for(unsigned long long i=i0;i<N;i++){
     if(b>a && b-a<=8){ int g=(int)(b-a); near[g][(int)(a&1)]++;
       printf("near i=%llu g=%d par=%d a=",i,g,(int)(a&1)); pr(stdout,a); printf(" T="); pr(stdout,T); printf("\n"); fflush(stdout);}
     int r;

@@ -146,6 +146,15 @@ gives b >= 4, except the same rule from A(a, a + 3), a even, which gives b = 2. 
   10^9, run 10^6 visits each, 5 halt (for example A(264421744, 92483937) reaches A(358606020, 3) after 485,721
   visits), and visits with a even and b - a = 4 are as frequent as those with b - a = 2, 6 or 8.
 
+- Why it looks random: **the rules are a doubling map in disguise.** Every rule adds a fixed amount to s = a + b
+  (3 for a growing rule, 4 for the swap, 6 or 7 for a restart, 2 for the short rule; `op_sum`, `orbit_sum` in
+  `lean/Rules.lean`), so s is a clock: after N visits s = 3.5 N + O(sqrt N) (3,500,001,904 after 10^9). In terms of
+  x = a / s the swap (a >= b, x >= 1/2) is a -> 2a - s + 1 and the growing rules a -> 2a + 4 or 2a + 3, that is
+  x -> 2x mod 1 up to O(1/s). The swap/grow sequence is the binary expansion of x, refreshed by the small constants;
+  `c/abdig.c` finds its blocks of 12 digits equidistributed over the first 10^9 visits (chi-square 3,956 on 4,095
+  degrees of freedom). The halt asks for one exact point, a = (s - 4)/2 with a even, of a doubling map whose low
+  digits are fed by +3/+4 carries: the same kind of question as whether a Collatz-like orbit hits one value.
+
 So no invariant of this kind exists, and the evidence is that the orbit behaves like a random one: under that model it
 halts with probability 1 (0.11 per decade summed over all decades diverges), but only after many more decades of
 visits (median about 2*10^18 visits, about 10^55 machine steps). Neither a proof of halting nor of non-halting is in
@@ -199,6 +208,7 @@ gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c &&
 gcc -O2 -o abstat holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abstat.c && ./abstat 10000000000 100000
 gcc -O2 -o abres holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abres.c && ./abres 3000000000 1000000 64
 gcc -O2 -o abrand holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrand.c && ./abrand 1 3000 1000000 1000000000 v
+gcc -O2 -o abdig holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abdig.c -lm && ./abdig 1000000000 12
 ```
 
 ## Later

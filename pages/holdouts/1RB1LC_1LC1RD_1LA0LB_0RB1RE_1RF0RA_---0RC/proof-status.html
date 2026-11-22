@@ -151,6 +151,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>halts_iff_rules</code>: the machine halts from blank tape if and only if some iterate of the wiki's map <code>op</code> from (2, 9) is a pair (a, 3).</p>
         <p class="where"><code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>a + b is a clock</h3>
+        <p><code>op_sum</code>: every rule adds at least 2 to a + b; <code>orbit_sum</code>: after k visits a + b &ge; 2k + 11. (In the run the growing rules add exactly 3, the swap 4, so a + b &asymp; 3.5 per visit.)</p>
+        <p class="where"><code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -224,6 +229,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No congruence invariant excludes b = 3</h3>
         <p>The halt needs a visit A(a, a + 4) with a even. Over the visits with b &gt; a and b &minus; a &le; 10<sup>6</sup> among the first 3&middot;10<sup>9</sup>, the residues (a mod M, (b &minus; a) mod M) are far from uniform, yet for every M tried (2<sup>k</sup> up to 256; 48, 90, 120, 210, 252) the classes with a even and b &minus; a &equiv; 4 get the same share as any other even residue. The rules applied to residues mod every even M up to 128 also reach them.</p>
         <p class="where"><code>c/abres.c</code></p>
+      </div>
+      <div class="card">
+        <h3>A doubling map in disguise</h3>
+        <p>With s = a + b as the clock, the swap is a &#8614; 2a &minus; s + 1 and the growing rules a &#8614; 2a + 4 or 2a + 3: x = a/s follows x &#8614; 2x mod 1 up to O(1/s). The swap/grow digits are its binary expansion; their blocks of 12 are equidistributed over the first 10<sup>9</sup> visits (chi-square 3,956 on 4,095 degrees of freedom). The halt asks for one exact point of this map.</p>
+        <p class="where"><code>c/abdig.c</code></p>
       </div>
       <div class="card">
         <h3>The halting visit looks like a rare random event</h3>
