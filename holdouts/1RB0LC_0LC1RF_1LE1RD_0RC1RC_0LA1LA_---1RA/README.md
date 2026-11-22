@@ -1,10 +1,10 @@
 # 1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA
 
 bbchallenge id 13743. Group G01. **A 3/2-Collatz map on a mixed with Euclid-like steps on a second number b**: the
-machine halts exactly at b = 1 with a ≡ 0 (mod 4), which takes a near-coincidence of size about 1/a. **The map is
-proved in Lean's kernel for every even a** (the run from blank tape only meets even a), non-halting is reduced in
-Lean to the orbit of the map, and that orbit is checked in Lean for 10⁵ passes (no halt in 10¹⁰⁰⁰⁰ steps). Open;
-probviously non-halting.
+machine halts exactly at b = 1 with a ≡ 0 (mod 4), which takes a near-coincidence of size about 1/a. **Lean's
+kernel proves that the machine halts if and only if the orbit of the map from U(4, 3) reaches such an event**
+(`halts_iff`), so whether it halts is now a question about the map alone. The map is proved for every even a (the
+run from blank tape only meets even a). The orbit is checked in Lean for 10⁵ passes (no halt in 10¹⁰⁰⁰⁰ steps). Open; probviously non-halting.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -72,6 +72,8 @@ after the 10⁶ passes iterated. Probviously non-halting.
 | native | no halt in 10⁷ steps | `lean/Blank.lean` |
 | kernel | **the map for every even a**: from `Ev F a b` (a even) the machine reaches the event `next F a b` gives, in exactly the steps it gives (`next_sound`); `next` is defined at every event with a even, a ≥ 2, b ≥ 1 except the halting events a ≡ 0 (4), b = 1 (`next_isSome`); every pass takes at least one step (`next_pos`). Axioms propext, Quot.sound | `lean/Map.lean`, `lean/Cases.lean` |
 | kernel | blank tape reaches U(4, 3) in 118 steps (`init_U`); **if the orbit of `next` from U(4, 3) never gets stuck, the machine never halts** (`not_halts_of_orbit`); the first 3,000 passes are not stuck: no halt in the first 10⁵⁰⁰ steps (`orbit_3k`, `no_halt_3k`); pass 34 is U(35354, 10986) at step 1,916,511,832, as direct simulation finds (`orbit_34`) | `lean/Orbit.lean` |
+| kernel | **the halting events halt**: from U(a, 1) or V(a, 1) with a ≡ 0 (mod 4), a ≥ 4, the machine reaches `1^n F> 0` (n = 3a/2 + 8 for U, 3a/2 + 9 for V) and stops (`halt_event`) | `lean/HaltIff.lean`, `lean/HaltCases.lean` |
+| kernel | **halts iff**: the machine halts from blank tape exactly when, for some k, the k-th event of the orbit of `next` from U(4, 3) has a ≡ 0 (mod 4) and b = 1 (`halts_iff`); equivalently, when the orbit is undefined at some k (`halts_iff_stuck`). Along the orbit a stays even, a ≥ 2 and b ≥ 1 (`orbit_inv`), so `next_isSome` leaves only the halting events as places to get stuck. Axioms propext, Classical.choice, Quot.sound | `lean/HaltIff.lean` |
 | native | the first 10⁵ passes are not stuck: no halt in the first 10¹⁰⁰⁰⁰ steps (`orbit_100k`, `no_halt_100k`) | `lean/Orbit.lean` |
 | trusted | the whole map, odd a included: all 7,980 covered starts with a < 60, b < 70 and 300 random starts with 15 ≤ a < 2000 agree with direct simulation, as do 84 starts with odd a < 15 and 30 ≤ b < 3000; the halting events do halt (same grid) | `py/emap.py grid 60 70`, `py/emap.py random 300 1` |
 | trusted | the 38 U/V-events of the blank run up to 8.7·10⁹ steps follow the map | `py/emap.py blank 1.2e10` |
@@ -98,12 +100,20 @@ comes from `py/emap.py`, fitted linearly at sample points, and Lean checks it. `
 `../1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD/py/chain.py` (with `symtm2.py` there); `lean/Chain.lean` is a copy of
 that folder's.
 
+### How the converse is proved
+
+`py/gen_halt.py` writes `lean/HaltCases.lean` the same way: U/V(4x+8, 1) run through the `lb` loop of `Cases.lean`
+to `1^(6x+20) F> 0` (U) or `1^(6x+21) F> 0` (V), and a = 4 is one concrete run. `lean/HaltIff.lean` (by hand) proves
+the orbit invariant branch by branch on `next` (a lemma that splits one `if` of the chain at a time) and joins
+`halt_event` with `not_halts_of_orbit`.
+
 ## Reproduce
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh   # about 1 min
 cd holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py
 python3 gen_map.py && python3 gen_mapdef.py   # regenerate lean/Cases.lean, cases.json, Map.lean (a few min)
+python3 gen_halt.py                           # regenerate lean/HaltCases.lean (a few s)
 python3 emap.py grid 60 70        # the map against direct simulation (1.5 min)
 python3 emap.py random 300 1      # random large starts (2 min)
 python3 emap.py blank 1.2e10      # the blank run's events against the map (2.5 min)
@@ -115,11 +125,11 @@ python3 emap.py mc 1000 20000     # halting frequency from random starts of size
 
 ## Further work
 
-- Non-halting is now the arithmetic statement that the orbit of `next` from U(4, 3) never reaches b = 1 with
-  a ≡ 0 (mod 4) (`not_halts_of_orbit`). Nothing short of a Collatz-type argument is in sight.
-- A Lean proof that the halting events do halt (a symbolic run from U/V(4x+4, 1) to the F0 transition) would make the
-  halting condition an equivalence in Lean.
-- The odd-a rules (never used from blank tape) could be proved the same way, with more families.
+- Halting is now exactly the arithmetic statement that the orbit of `next` from U(4, 3) reaches b = 1 with
+  a ≡ 0 (mod 4) (`halts_iff`). Nothing short of a Collatz-type argument is in sight.
+- The odd-a rules (never used from blank tape) could be proved the same way, with more families. A first attempt
+  (four loops with a plain run of 1s left of the head) passes the symbolic prover for every family but its long
+  constant segments hit Lean's kernel timeout; they need shorter segments.
 - A sharper heuristic: the 2/S law could be derived from the exact offsets that produce b = 1.
 
 ## Pages
