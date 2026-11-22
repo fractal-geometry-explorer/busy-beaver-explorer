@@ -15,7 +15,7 @@ The 98 machines of family R15 in [`holdouts/FAMILIES.md`](../../holdouts/FAMILIE
 | machine | what was run | before | now |
 |---|---|---|---|
 | `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` | the E-pass map, 2-adic divide and conquer (holdouts/.../c/orbit.c), 2^33 passes | 2^32 passes (4.3e9); a halt then had probability 0.4% under the fair-bit model | 2^33 passes (8.6e9), no halt; 36 minutes, about 7.5 GB (memory caps this run; a halt is expected near 2^40 under the fair-bit model) |
-| `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | 10^12 visits, no halt; a, b reach 3.5e12, about 6.8e35 machine steps; values grow about linearly, so a hit b = a + 4 (a even) stays possible |
+| `1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC` | the A(a, b) rules (tools/collatz/c/amap.c), 10^12 visits | 10^8 Lean frames (685 visits checked against the run) | 3x10^12 visits (c/abrun.c, 128-bit), no halt; a, b reach 1e13, about 1.84e37 machine steps; values grow about linearly, so a hit b = a + 4 (a even) stays possible |
 | `1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---` | DeepMind's map C(m, k, b) (tools/collatz/c/dm9516.c), 10^12 accelerated steps | 120 map steps | 10^12 accelerated steps (more than 10^18 steps of the map, which counts the chain rule one cell at a time), no halt; m, k, b reach 10^12, growing about linearly; then c/far.c on the proved map: 3.26e21 map steps, 7.03e32 machine steps, no sweep start on the halting line m = 3b+1 (16 near misses) |
 | `1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE` | the doubling map (holdouts/.../c/fast.c), 10^12 operations | 10^11 operations (modulus about 5e10); the next targets are moduli 2^37 - 36 and 2^38 - 37 | 10^12 operations, no halt: modulus about 4.8e11, past both targets 2^37 - 36 and 2^38 - 37; 36 odd events |
 
@@ -67,7 +67,7 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 - **Halts when:** Halts iff the orbit from A(2,9) reaches some A(a,3) (a>=2); in Lean: iff iterating next from Ph.e 1 0 reaches .b l j 2, .d l 0 1 or .d l 1 0.
 - **From blank tape:** A(2,9) at step 52 (Lean: Ph.e 1 0 after 1 step)
 - **Proved:** halts_iff_rules in lean/Rules.lean (kernel): halts iff the orbit of (2,9) under the rules reaches some (a,3); every rule proved for all sizes (op_step) from next_sound, none_halts, halts_iff of lean/Phases.lean.
-- **Checked:** 10^8 visits native_decide (no_b3, ~6.8x10^23 steps); 10^12 visits in C (~6.8x10^35 steps).
+- **Checked:** 10^8 visits native_decide (no_b3, ~6.8x10^23 steps); 3x10^12 visits in C (~1.84x10^37 steps).
 - **Odds:** random model: visits with a even and b = a + 4 come ~0.11 per decade of visit index (flat in b - a, same share in every residue class tried); halts with probability 1, median ~2x10^18 visits
 - **Next step:** No congruence invariant excludes b = 3 (c/abres.c, c/abstat.c, c/abrand.c); a non-halting proof would need an argument that the orbit misses one exact diagonal. Otherwise run far: each decade of visits gives ~10% chance of a halt.
 
