@@ -46,6 +46,11 @@ have a run of zero digits from position p to about 2^p/6. The stacks V form an i
 finite check. It is in the same class as Antihydra, but heuristically far safer. This is a much better position
 than the other 39, but it is still not a proof.
 
+Since 22 November the link to the machine is closed in Lean (`lean/Model.lean`, `not_halts_of_model`): if the integer
+stack recursion from the step start never makes a count fail, the machine never halts. The "every counter at least
+5 times the one below" bound is not an invariant to aim for: the rules do not keep it, and a wall satisfying it
+fails after 16 odd signals (`ratio5_not_enough`). What is left is the 2-adic statement on pairs.
+
 **Three machines iterate one function.** 1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE,
 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE (in the coordinate N = 2n + 2) and
 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE all iterate `f(n) = 3n - 10*2^k + 3k + 14` on `h_k < n < h_(k+1)`, with

@@ -312,6 +312,49 @@ empty) for one or two bounces. Once, after list step 28,414, it lacks a witness 
 near part. What is left for case 1 is to show that those first few bounces after E reads the last 1 are safe, and
 that the witnesses never run out after that.
 
+**The ten turns without a witness, as theorems (`lean/Window.lean`, 22 November 2026).** The ten come in six
+*windows*: the first bounces after E reads the last 1 during a crossing (an `EO` turn with a far part, which erases the
+last 1, so the end is blank from then on). The near part at those six `EO` turns is one of three words:
+
+| near part at the `EO` turn | windows | turns without a witness | Lean |
+|---|---:|---:|---|
+| `b a b a^6` | 4 | 4 (bounce 1, `s = 0`) | `window_W3`: within 2 list steps |
+| `b a b a^12` | 1 | 2 (bounces 1, 2; `s = 0`, empty) | `window_W6`: within 3 list steps |
+| 43 letters, list step 28,450 | 1 | 4 (bounces 1, 3, 4, 5) | `window_W43`: within 6 list steps, far part starting `u v v` |
+
+Each theorem is about a family of list states, not just the run's: it holds for every prefix `p` and every clean far
+part (`dbl (true :: ws)`, for any `ws`; for the third, any `ws` starting `0 0`). It says that `astep` does not fail
+for that many steps and reaches a `Safe` state: the crossing is over (`Plain`, what a bounce with no lone 1 returns),
+or the frozen word has a witness and the far part is clean (`Witnessed`; then the next step exists, `witnessed_step`,
+which extends `astep_T2_witness` to far parts with leading `a`s). The proofs keep the far part symbolic: the near
+side reads only the run of `a`s it absorbs after an odd bounce (`coreO_falses`, `core_odd`), and an even bounce turns
+the far part's 4-cell word into its running XOR (`core_even`, from `far_even`). The 43-letter window is written by
+`py/window43.py`, one lemma per bounce.
+
+**What this does not do, and why.** It does not close the holdout: it covers the turns where witnesses are missing,
+not the claim that witnesses never run out later in a crossing, and it takes the `EO` near parts and far-part prefixes
+from the run. Both of those depend on the far part, which is the zone the growing phase built:
+
+* `eo_W1_fails`: `EO (b a b a^2)` fails at once, for every clean far part. The run's `b a b a^6` is `b a b` plus the
+  `2 + 2z` letters `a` absorbed from the far part's first run `u v^z`, with `z = 2`; a far part starting `u u` gives
+  `b a b a^2`.
+* `py/game.py` plays the near side against a free far part (the run lengths `z` it hands over are chosen freely). It
+  finds failures from crossing starts `a^m` (m = 1, 2, 3, as in the run) and from real states of the run two bounces
+  after an `EO` turn: a long run of `a`s turns the near part into a zone that eats the whole frozen word two letters per
+  bounce, like a growing phase.
+
+So the near part cannot be handled on its own; a proof has to say which run lengths the far parts of real crossings
+have, which is the Lucas-theorem structure of the zone at the end of a growing phase.
+
+**A faster list machine (`c/listmachine.cpp`).** The same list machine in C++ (it matches `py/listmachine.py` state for
+state on the first 3,000 steps; its step count also counts the turns handed back by the right end, so it runs a little
+ahead of the Python count). `./listmachine 1000000` (about 25 minutes) runs 10^6 list steps without a failure: 458,336 `T`,
+541,637 `T2` and 27 `EO` turns, and the zone grows to 620,913 letters (about 1.2 million cells; with the left end
+growing like twice the square root of the step count, that is of the order of 10^11 machine steps, an estimate, not a
+count). E reads the last 1 during a crossing 8 times, always with one of the three near parts above (`b a b a^6` six
+times, `b a b a^12` and the 43-letter word once each), and the 12 crossing turns with blank end that have no witness
+are all in those windows.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up

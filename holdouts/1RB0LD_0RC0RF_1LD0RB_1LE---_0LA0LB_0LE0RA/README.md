@@ -98,6 +98,16 @@ What it rests on: the mirror and the soundness theorems are checked by the kerne
 `native_decide`, so they also trust Lean's compiler (`#print axioms halts_iff`: `propext`, `Classical.choice`,
 `Quot.sound` and the `native_decide` axioms of the checks). The whole check takes about a minute.
 
+## No congruence keeps the run off the line (22 November 2026)
+
+With `pqmap.py` of `holdouts/1RB0LE_1RC---_0RD0RE_1LE0RB_0LA0LF_0RC0LD/py/closure/` (see its `PQMAP.md`): composing
+the one-count classes leaves a map on 1,319 classes with two or three counts (1,885 pieces; it agrees with the node
+map on the first 3·10^5 nodes), whose only halting piece has its second count exactly 20, the bottom of the Y ladder.
+For every modulus m ≤ 24 the smallest closed set of (class, counts mod m) containing the start contains that piece.
+The exact orbit, with repeated cycles jumped, reaches 3.9·10^361 nodes; the Y classes where Q − 3M + 1 can vanish are
+entered 456 times, never on the line (closest 10,704), but for every m < 67 some entry has Q − 3M + 1 = 0 mod m. So no
+congruence with a small modulus decides it. Programs only, not Lean.
+
 ## What is proved, and where
 
 - `lean/Blank.lean` (generated): the halting configurations; no halt in 10⁴ steps (kernel) and 10⁷ (`native_decide`).

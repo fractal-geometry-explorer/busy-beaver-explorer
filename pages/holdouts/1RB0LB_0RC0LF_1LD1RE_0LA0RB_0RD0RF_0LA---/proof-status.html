@@ -193,6 +193,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c</code></p>
       </div>
       <div class="card">
+        <h3>No invariant of the word end alone</h3>
+        <p>The last 48 cells of the word with the block starts of the round that wrote them, fed by any count that is a power of two (2<sup>6</sup> to 2<sup>18</sup>, the sizes the run brings there) entering at the PR59 phase offsets, reach <code>111</code> within 2 or 3 rounds from the real word ends of rounds 11, 2,000 and 5,000. So no invariant of the last few blocks alone excludes the dangerous junk; a proof has to use the counts.</p>
+        <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/endbfs.py</code></p>
+      </div>
+      <div class="card">
+        <h3>One visit from 111</h3>
+        <p>Adding one visit to the count 60 cells before the word end leads to <code>111</code> exactly two rounds later in at least 47 of the first 500,000 rounds (two visits: at least 105; doubling the count: at least 15,526; halving it: at least 10,524); taking one or two away never does. For this machine every such <code>111</code> is a halt. One case, round 798, is replayed on the whole word with exact integers.</p>
+        <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss.c</code>, <code>py/nearmiss_check.py</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same tapes at another pace, whatever the states, as 4 other holdouts (listed on the explainer page).</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -220,7 +230,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless.</p>
+        <p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word.</p>
       </div>
     </div>
   </section>
