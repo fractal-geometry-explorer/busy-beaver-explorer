@@ -3,8 +3,9 @@
 bbchallenge id 13743. Group G01. **A 3/2-Collatz map on a mixed with Euclid-like steps on a second number b**: the
 machine halts exactly at b = 1 with a ≡ 0 (mod 4), which takes a near-coincidence of size about 1/a. **Lean's
 kernel proves that the machine halts if and only if the orbit of the map from U(4, 3) reaches such an event**
-(`halts_iff`), so whether it halts is now a question about the map alone. The map is proved for every even a (the
-run from blank tape only meets even a). The orbit is checked in Lean for 10⁵ passes (no halt in 10¹⁰⁰⁰⁰ steps). Open; probviously non-halting.
+(`halts_iff`), so whether it halts is now a question about the map alone. The whole map below is proved in Lean
+(`nextAll`), though the run from blank tape only ever meets its even-a half. The orbit is checked in Lean for 10⁵
+passes (no halt in 10¹⁰⁰⁰⁰ steps). Open; probviously non-halting.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -71,17 +72,21 @@ after the 10⁶ passes iterated. Probviously non-halting.
 | kernel | the halting configurations; no halt in 10⁴ steps | `lean/Blank.lean` (generated) |
 | native | no halt in 10⁷ steps | `lean/Blank.lean` |
 | kernel | **the map for every even a**: from `Ev F a b` (a even) the machine reaches the event `next F a b` gives, in exactly the steps it gives (`next_sound`); `next` is defined at every event with a even, a ≥ 2, b ≥ 1 except the halting events a ≡ 0 (4), b = 1 (`next_isSome`); every pass takes at least one step (`next_pos`). Axioms propext, Quot.sound | `lean/Map.lean`, `lean/Cases.lean` |
+| kernel | **the odd-a rows**: `nextOdd F a b` (every odd a ≥ 15, any b; every odd a < 15 with b ≥ 30) is sound (`nextOdd_sound`) and defined there (`nextOdd_isSome`). 48 case theorems. Axioms propext, Quot.sound | `lean/MapOdd.lean`, `lean/OddCases.lean` |
+| kernel | **the corner** odd a < 15, b < 30: all 420 events reach a next event (none halts), a table run on the list simulator (`nextCorner_sound`, `nextCorner_isSome`) | `lean/Corner.lean` |
+| kernel | **the whole table**: `nextAll` (even part, odd rows, corner) is sound (`nextAll_sound`) and defined at every event with a odd, and with a even, a ≥ 2, b ≥ 1 except the halting events (`nextAll_isSome`) | `lean/MapAll.lean` |
 | kernel | blank tape reaches U(4, 3) in 118 steps (`init_U`); **if the orbit of `next` from U(4, 3) never gets stuck, the machine never halts** (`not_halts_of_orbit`); the first 3,000 passes are not stuck: no halt in the first 10⁵⁰⁰ steps (`orbit_3k`, `no_halt_3k`); pass 34 is U(35354, 10986) at step 1,916,511,832, as direct simulation finds (`orbit_34`) | `lean/Orbit.lean` |
 | kernel | **the halting events halt**: from U(a, 1) or V(a, 1) with a ≡ 0 (mod 4), a ≥ 4, the machine reaches `1^n F> 0` (n = 3a/2 + 8 for U, 3a/2 + 9 for V) and stops (`halt_event`) | `lean/HaltIff.lean`, `lean/HaltCases.lean` |
 | kernel | **halts iff**: the machine halts from blank tape exactly when, for some k, the k-th event of the orbit of `next` from U(4, 3) has a ≡ 0 (mod 4) and b = 1 (`halts_iff`); equivalently, when the orbit is undefined at some k (`halts_iff_stuck`). Along the orbit a stays even, a ≥ 2 and b ≥ 1 (`orbit_inv`), so `next_isSome` leaves only the halting events as places to get stuck. Axioms propext, Classical.choice, Quot.sound | `lean/HaltIff.lean` |
 | native | the first 10⁵ passes are not stuck: no halt in the first 10¹⁰⁰⁰⁰ steps (`orbit_100k`, `no_halt_100k`) | `lean/Orbit.lean` |
-| trusted | the whole map, odd a included: all 7,980 covered starts with a < 60, b < 70 and 300 random starts with 15 ≤ a < 2000 agree with direct simulation, as do 84 starts with odd a < 15 and 30 ≤ b < 3000; the halting events do halt (same grid) | `py/emap.py grid 60 70`, `py/emap.py random 300 1` |
+| trusted | the whole map, odd a included (now also proved, above): all 7,980 covered starts with a < 60, b < 70 and 300 random starts with 15 ≤ a < 2000 agree with direct simulation, as do 84 starts with odd a < 15 and 30 ≤ b < 3000; the halting events do halt (same grid) | `py/emap.py grid 60 70`, `py/emap.py random 300 1` |
 | trusted | the 38 U/V-events of the blank run up to 8.7·10⁹ steps follow the map | `py/emap.py blank 1.2e10` |
 | trusted | 10⁶ passes from U(4, 3) without a halt (both numbers then have about 96,600 digits) | `py/emap.py far 1000000` |
 | heuristic | P(halt) ≈ 2/a; about 10⁻⁹⁶⁶⁰⁰ after the iterated passes | above |
 
 The map sends even a to even a (every rule's new a is even when a is), so the odd-a rules of the table are never
-used from blank tape; they are kept above as checked by simulation only.
+used from blank tape. They are proved anyway (`lean/MapOdd.lean`, `lean/Corner.lean`), so the whole table is in
+Lean (`nextAll`, `lean/MapAll.lean`).
 
 ### How the map is proved
 
@@ -107,13 +112,32 @@ to `1^(6x+20) F> 0` (U) or `1^(6x+21) F> 0` (V), and a = 4 is one concrete run. 
 the orbit invariant branch by branch on `next` (a lemma that splits one `if` of the chain at a time) and joins
 `halt_event` with `not_halts_of_orbit`.
 
+### How the odd rows are proved
+
+`py/gen_odd.py` writes `lean/OddCases.lean`. With a odd, after the first sweep the cells left of the head are a
+plain run of 1s from blank tape, so the loops are `0^inf 1^r (111111)^i A> 0 ...` with r < 6: `ob0`, `ob2` (b odd,
+the a block loses four 1s a round) and `oe1`, `oe2` (both blocks even, each loses two). The families are a ≡ 1 and
+a ≡ 3 (mod 4) with b odd, and b ≥ a−7, b ≤ a−13, b = 0, b = a−11, b = a−9 with b even (all for a ≥ 15), and for each
+odd a < 15 the two families b = 2y+30, 2y+31. `py/gen_odddef.py` writes `lean/MapOdd.lean` from `oddcases.json`.
+
+One fix was needed: the symbolic prover chains its segments with `steps_seq`, so each meeting point is a
+definitional equality, and with repeats like `rep (x + 5) [1,1,1,1,1,1]` on the tape and the two sides written
+differently (`app [] (rep 1 w X)` against `rep 1 w X`) Lean's defeq check takes minutes (the kernel timed out).
+`gen_odd.py` bridges every meeting point instead with an equation that `simp only [app_nil, app_cons, rep_succ,
+rep_zero]` proves, rewriting both sides to the same normal form; the file then checks in 25 s.
+
+`py/gen_corner.py` writes `lean/Corner.lean`: the 420 corner events with their next events and step counts, found
+by direct simulation (and checked against `emap.direct`), run in chunks of 30 by the kernel.
+
 ## Reproduce
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh   # about 1 min
+. /etc/profile.d/lean.sh && holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/lean/check.sh   # about 2 min
 cd holdouts/1RB0LC_0LC1RF_1LE1RD_0RC1RC_0LA1LA_---1RA/py
 python3 gen_map.py && python3 gen_mapdef.py   # regenerate lean/Cases.lean, cases.json, Map.lean (a few min)
 python3 gen_halt.py                           # regenerate lean/HaltCases.lean (a few s)
+python3 gen_odd.py && python3 gen_odddef.py   # regenerate lean/OddCases.lean, oddcases.json, MapOdd.lean (4 min)
+python3 gen_corner.py                         # regenerate lean/Corner.lean (a few s)
 python3 emap.py grid 60 70        # the map against direct simulation (1.5 min)
 python3 emap.py random 300 1      # random large starts (2 min)
 python3 emap.py blank 1.2e10      # the blank run's events against the map (2.5 min)
@@ -127,9 +151,6 @@ python3 emap.py mc 1000 20000     # halting frequency from random starts of size
 
 - Halting is now exactly the arithmetic statement that the orbit of `next` from U(4, 3) reaches b = 1 with
   a ≡ 0 (mod 4) (`halts_iff`). Nothing short of a Collatz-type argument is in sight.
-- The odd-a rules (never used from blank tape) could be proved the same way, with more families. A first attempt
-  (four loops with a plain run of 1s left of the head) passes the symbolic prover for every family but its long
-  constant segments hit Lean's kernel timeout; they need shorter segments.
 - A sharper heuristic: the 2/S law could be derived from the exact offsets that produce b = 1.
 
 ## Pages
