@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is a row of blocks of 1s split by single 0s. Two sweeps rewrite it by four rules, proved for all block sizes. The machine halts only if the sweep to the left bounces off a block of exactly two 1s that is not the leftmost block, and no invariant is known that rules this out.</p>
+      <p><b>The question is open, and it is now the Pascal machine's question.</b> This table is the table of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> in a mirror, started in state D: every bounce writes the next row of Pascal's triangle mod 2, an odd frozen block halts, and the machine never halts if that machine's list program never fails from <code>EO [b, a, b, a, a, a] none 0</code> (all Lean, kernel). The list program ran 40,000 steps from there without failing.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -141,6 +141,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>halt_pattern</code>, <code>lean/Blocks.lean</code></p>
       </div>
       <div class="card">
+        <h3>The Pascal machine in a mirror</h3>
+        <p>This table is the table of <a href="../1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/explainer.html">1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF</a> read in a mirror, with that machine's states A to F renamed D, E, F, A, B, C. The blank tape is its own mirror image, so the run from blank tape is, cell for cell in the mirror, the run of the Pascal table started in state D, and this machine halts if and only if that run halts.</p>
+        <p class="where"><code>is_mirror</code>, <code>halts_iff</code>, <code>lean/Mirror.lean</code> (written by <code>py/port_mirror.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB)</p>
+      </div>
+      <div class="card">
+        <h3>One bounce is one row of Pascal's triangle mod 2</h3>
+        <p>Every theorem of the Pascal machine's folder holds here with left and right exchanged; its Lean files are compiled here unchanged (<code>lean/P75625/</code>). At a left turn in B, with the zone right of the head a word in the 4-cell letters <code>0111</code> and <code>1111</code> and the frozen tape <code>1 1 1 ...</code> left of it, one bounce turns the zone into the next row of Pascal's triangle mod 2 (closed form by Lucas' theorem), and takes two cells from the frozen block. A frozen block of odd length followed by <code>0 1</code> halts, whatever the zone, clean or walled (the halt: C reading 0 with <code>1 0</code> to its left).</p>
+        <p class="where"><code>bounce</code>, <code>bounces</code>, <code>halts_of_odd</code>, <code>halts_of_odd_wall</code>, <code>lean/Mirror.lean</code>; <code>closed_form</code>, <code>lean/P75625/Lucas.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The holdout is the Pascal machine's list program, from another start</h3>
+        <p>The first left turn in B, at step 46, is the list state <code>EO [b, a, b, a, a, a] none 0</code> of the Pascal machine's list machine <code>arun</code> (zone <code>b a b a a a</code>). If that list machine never fails from there, this machine never halts. The Pascal machine's own run starts it at <code>EO [b, a] none 1</code>.</p>
+        <p class="where"><code>start</code>, <code>not_halts_of_arun</code>, <code>lean/Mirror.lean</code>; <code>astep</code>, <code>lean/P75625/End.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Where the list machine can fail</h3>
+        <p>For every state: a turn with no lone 1 in the zone never fails; a crossing turn with a clean far part whose tape ends in a single 1 never fails, and plain and crossing turns ending in a single 1 hand that on. So the list machine fails only at a crossing turn with blank end, at an <code>EO</code> turn during a crossing, or at a crossing turn whose far part is not clean.</p>
+        <p class="where"><code>astep_T</code>, <code>astep_EO</code>, <code>astep_T2_end</code>, <code>astep_endOne</code>, <code>astep_none</code>, <code>lean/Fail.lean</code></p>
+      </div>
+      <div class="card">
         <h3>Where a halt can come from</h3>
         <p>If the machine halts on its third step from a configuration, that configuration is one of: C with 1 two left, 0 left, 0 under the head. So a run can reach a halt only through one of these patterns, and a proof that the machine never halts only has to rule them out. The proof splits on the state and the five cells around the head.</p>
         <p class="where"><code>halt_route</code>, <code>lean/Route.lean</code> (written by <code>py/route.py</code>)</p>
@@ -187,6 +207,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/mrun.c</code> of 1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB</p>
       </div>
       <div class="card">
+        <h3>The list machine from this start: 40,000 steps</h3>
+        <p>Run on its own, 40,000 list steps without a failure (zone up to 19,162 letters, every far part clean). The 2,343 crossing turns with blank end all follow one of four early <code>EO</code> turns during a crossing (the last after list step 4,552); 2,339 have a witness, and the other 4 (frozen word <code>0</code>) are passed. In lockstep with the real machine the list machine agrees at all 20,967 right turns of the first 2&middot;10<sup>8</sup> steps.</p>
+        <p class="where"><code>py/mirror_run.py</code> of the folder of 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB (<code>run D 40000</code>, <code>lockstep D 2e8</code>)</p>
+      </div>
+      <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
         <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 24, history 1 up to width 24, history 2 up to width 24, history 3 up to width 24, LRU history up to width 3 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 20, p = 3 up to width 20, p = 4 up to width 20, p = 6 up to width 20. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..7; n = 8 not finished in 150 s.</p>
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
@@ -214,7 +239,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts exactly when the sweep to the left bounces off a block of two 1s that is not the leftmost block and then comes back to it; what is missing is an invariant of the rows of blocks that forbids this.</p>
+        <p>Not known. It halts exactly if the Pascal table started in D halts (Lean), and it never halts if the Pascal machine's list machine never fails from <code>EO [b, a, b, a, a, a] none 0</code> (Lean). Whether it fails is the same open question as for the Pascal machine, from another start.</p>
       </div>
     </div>
   </section>
@@ -222,6 +247,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/lean/check.sh
+python3 holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/mirror_run.py run D 40000     # the list machine, about 15 minutes
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB 1000000000
 cd holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py &amp;&amp; python3 blocks.py check
 gcc -O2 -o echeck ../c/echeck.c &amp;&amp; ./echeck 2e10
