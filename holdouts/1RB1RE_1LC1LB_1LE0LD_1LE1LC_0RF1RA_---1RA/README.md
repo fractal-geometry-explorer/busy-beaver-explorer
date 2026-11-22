@@ -136,6 +136,56 @@ in the kernel; axioms propext and Quot.sound): the first has the residue word of
 with the residue word of the next, and the last halts. A search for mod 32 within the same bounds found no chain,
 which says nothing either way.
 
+### The counter, 2-adically: 10,000,000 epochs, and how deep the parities dig (22 Nov 2026)
+
+**A fast exact method** (`py/adic.py`). The epoch map is `L' = g(L, p)`, `m' = (3m + c(L, p))/2` with `p = m mod 2`.
+Two shortcuts make it cheap: an epoch changes only the top of the stack, so the exact run-stack simulator is run on
+the top 8 entries of L (more when the head gets within one entry of the cut, which never happened), with the counter
+replaced by 2^64 + 2^33 + p and checked at a second size every 1,000 epochs; and the parity of `m_i` depends only
+on `m_0 mod 2^(i+1)`, so the counter is kept exactly but touched in full only once per block of 4,096 epochs
+(`2^B m_B = 3^B m_0 + C_B`, `C_(i+1) = 3 C_i + 2^i c_i`), working on the low bits in between. The method agrees
+with the exact simulator of `py/visit.py` (parities, stack and counter) over epochs 2,000 to 100,000
+(`py/adic.py check 100000`, 47 s).
+
+**10,000,000 epochs, no halt** (`py/adic.py run 1e7`, 8.5 minutes). The counter m then has 5,849,626 bits, the
+stack 2,833,499 entries (11,380,629 runs), and the machine has made more than 10^3,521,825 steps (each epoch makes at
+least 1.5 m^2 steps). The parities are 49.989% odd, the longest run of odd epochs is 21, of even epochs 25. Entries
+of the stack passed by the head in one epoch: 1 in 73.4% of the epochs, 2 in 22.2%, 3 in 4.05%, 4 in 0.26%, 5 in
+0.040%, 6 in 2.0e-5, 7 in 3.9e-6, and 8 and 9 once each, the same shares as in the first 100,000 epochs.
+
+**Lean: a parity word is one residue class** (`lean/Adic.lean`, for any stack dynamics `g` and any offsets `c` with
+`c ≡ p mod 2`):
+
+    theorem word_class (w : List Bool) (L : S) :
+        ∃ r : Int, ∀ m : Int, word g c w.length L m = w ↔ 2 ^ w.length ∣ m - r
+
+The counters that follow a given parity word of length n from a given stack are exactly one class mod 2^n
+(`word_eq_iff`: same first n parities iff congruent mod 2^n; `word_onto`: every word occurs). So any event decided by
+the parities, such as reaching a depth of the stack or emptying it, happens for a union of residue classes, and its
+2-adic (Haar) measure is its probability when fair coin flips replace the parities. A halt from the stack at epoch n
+along a parity word w pins the counter at epoch n modulo 2^|w|.
+
+**How deep the parities dig** (`py/dig.py`). Call the *dig* from epoch n the largest drop of the number of runs of
+the stack after epoch n. A halt from epoch n needs a dig of the whole stack, |L_n| runs.
+
+| dig ≥ d runs | 1 | 5 | 10 | 15 | 20 | 25 | 30 | 35 |
+|---|---|---|---|---|---|---|---|---|
+| real run, epochs 2,000 to 1,000,000 (`dig.py real 2e6`) | 0.819 | 0.228 | 0.0357 | 5.0e-3 | 7.9e-4 | 1.1e-4 | 1.6e-5 | 1.0e-6 |
+| 2-adic counters: coin flips from the real stack at 6,000 random epochs of [10^5, 3·10^5) (`dig.py along 1e5 3e5 6000 400 1`) | 0.817 | 0.235 | 0.033 | 4.7e-3 | 5.0e-4 | 1.7e-4 (1 of 6,000) | (too rare) | |
+
+The real counter digs exactly as deep as a random 2-adic counter does. The tail is geometric: from d = 10 to d = 30
+each further run costs a factor 0.68 (0.56 bits of the counter per run). The deepest dig in the first 10^6 epochs
+is 35 runs, while the stack had grown to 10^6 runs. Each epoch changed |L| by -4 to +87 runs (never more than 4
+down, in 2·10^6 epochs).
+
+So the precise form of "reaching depth d needs a d-bit pattern" is: the counters that dig d runs from a stack have
+2-adic measure about 1.7 · 0.68^d (measured up to d = 30, an estimate, not a bound). A literal bound of d parities
+for depth d is false: from the stack of epoch 100,000, some words of 12 parities dig 27 runs
+(`dig.py short 100000 15`, every word of length at most 15). Extrapolating the tail to the stack of epoch 10^7
+(11,380,629 runs), the 2-adic counters that could still empty it have measure about 10^-1,906,000. A heuristic, like
+every probabilistic argument here: the real counter is one integer, and only a proof about its arithmetic (or a
+halt found along it) decides the machine.
+
 ## Where it can halt
 
 The halting transition is F0. A closed tape language from windows of 4 cells (`lean/EdgeCert.lean`, checked by
@@ -152,16 +202,20 @@ Open (Collatz-like, with an exact reduced map).
   `py/visit_rules.py`); `visit_step`, `blank_to_V`, **`halts_iff`**, `scan_none_iff` (`lean/Visit.lean`; axioms:
   propext, Quot.sound, and Classical.choice for the statement about all step counts).
   `no_parity_invariant`, `no_residue_invariant` (`lean/NoParityInvariant.lean`; no invariant on the runs mod 2,
-  4, 8 or 16 excludes the halt).
+  4, 8 or 16 excludes the halt). `word_class` (`lean/Adic.lean`): the counters that follow a parity word of length
+  n are one residue class mod 2^n, for any stack dynamics.
   **native_decide:** `blank_runs_native` (10^7 steps).
 - **Trusted computation:** no halt in 100,000 epochs (about 10^35219 steps; 260,000 epochs, about 10^91568 steps, in a
-  longer run) with `py/runstack.py`, an exact simulator checked against direct simulation; the Python visit map
+  longer run) with `py/runstack.py`, an exact simulator checked against direct simulation; **no halt in 10,000,000
+  epochs** (more than 10^3,521,825 steps) with `py/adic.py`, checked equal to that simulator for 100,000 epochs; the Python visit map
   against the machine at 5,405 visits; a list with the real stack of step 181,429 and the counter m0 halts
   (`py/halting_twin.py`).
 - **Exact, by hand from the map:** a halt needs a visit at which all runs but the last two are even. **Trusted
   (enumeration of small lists):** the lists one visit before a halt are `[X, 4, odd, odd, even, ..., even]` (`py/last_step.py`).
 - **Heuristic:** the depth the head reaches into the stack falls off geometrically while the stack grows linearly, so
-  the probability of ever emptying it is tiny (a halt from the stack of step 181,429 already needs 247 odd epochs in
+  the probability of ever emptying it is tiny. The real run digs into the stack exactly as often as random 2-adic
+  counters do (about 1.7 · 0.68^d for a dig of d runs, `py/dig.py`); extrapolated, the 2-adic counters that could
+  still empty the stack of epoch 10^7 have measure about 10^-1,906,000 (a halt from the stack of step 181,429 already needs 247 odd epochs in
   a row on the all-odd route).
 - **Open:** whether the orbit of `[12, 1^9]` under the visit map ever reaches a list with only even runs.
 
@@ -171,7 +225,8 @@ An invariant of the visit map that excludes "all runs even" would decide the mac
 is not enough, and now provably no invariant on run parities, or on runs mod 4, 8 or 16, can be
 (`no_residue_invariant`). A list with the real stack and another counter value halts (`py/halting_twin.py`), so any
 proof must follow the counter m modulo 2^248 at least: the exact arithmetic of the 3/2 map `m' = (3m + c)/2`, a
-problem of the Mahler 3/2 kind. Realistic routes are a halt found by following the real orbit further (a halt along
+problem of the Mahler 3/2 kind. The real counter digs into the stack like a random 2-adic counter
+(`py/dig.py`), so nothing in its parities so far singles it out. Realistic routes are a halt found by following the real orbit further (a halt along
 the proved map is a proof), or a structural theorem about which parity words the real m sequence can produce.
 
 ## Remainder classes (family survey)
@@ -198,6 +253,11 @@ python3 py/visit.py check 3e7          # the visit map (both forms) against the 
 python3 py/visit.py epochs 100000      # 100,000 epochs, no halt; depth statistics, 1 min
 python3 py/adversary.py bfs 19         # both parities from every stack, a few minutes
 python3 py/adversary.py sample 40 2000
+python3 py/adic.py check 100000       # the 2-adic method = the exact simulator, epochs 2,000..100,000 (47 s)
+python3 py/adic.py run 1e7            # 10,000,000 epochs, no halt (8.5 min)
+python3 py/dig.py real 2e6            # how deep the real run digs (100 s)
+python3 py/dig.py along 1e5 3e5 6000 400 1   # the same for random 2-adic counters (coin flips, 2.5 min)
+python3 py/dig.py short 100000 15     # the deepest dig of every word of at most 15 parities (10 s)
 python3 py/halting_twin.py           # a halting list with the stack of step 181,429, under a second
 python3 py/residue_chain.py 2 12 300 1   # the mod-2 chain of lean/NoParityInvariant.lean (also 4 12 300 1, 8 12 300 1, 16 18 400 1)
 python3 py/epochs.py 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA 2 1e30 E L "pre:2 4 1^"     # epoch starts, ~1 min
