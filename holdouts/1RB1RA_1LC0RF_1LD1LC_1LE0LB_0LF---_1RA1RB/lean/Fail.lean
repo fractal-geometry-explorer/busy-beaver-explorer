@@ -34,7 +34,7 @@ theorem endS_true (W : List Bool) (e : Bool) (Z : Option (List Bool)) (p : Bool)
     (endS W e true Z p).isSome ∧ ∀ b, endS W e true Z p = some b → endOne b = true := by
   cases e <;> cases Z <;> simp [endS, endOne]
 
-theorem fromSweep_none (p r : Bool) (x : List Bool × Bool × Option (List Bool)) : (fromSweep none p r x).isSome := by
+theorem fromSweep_none_some (p r : Bool) (x : List Bool × Bool × Option (List Bool)) : (fromSweep none p r x).isSome := by
   obtain ⟨W, e, o⟩ := x
   cases o
   · exact endS_some W e r p
@@ -48,7 +48,7 @@ theorem fromSweep_true (Z : Option (List Bool)) (p : Bool) (x : List Bool × Boo
   | some r' => cases Z <;> simp [fromSweep, endOne]
 
 theorem coreP_some (w : List Bool) (p : Bool) (t : List Bool) (r : Bool) : (coreP w p t r).isSome :=
-  fromSweep_none _ r _
+  fromSweep_none_some _ r _
 
 theorem coreP_true (w : List Bool) (p : Bool) (t : List Bool) (b : AS) (h : coreP w p t true = some b) :
     endOne b = true :=
