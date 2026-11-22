@@ -22,12 +22,14 @@ Stop the run when the head reaches a new cell (`a = 10`):
     99,362,025  C>0^2 a^722 1^513           (left end)
 
 Two long blocks, alternating and solid, whose lengths trade; each rewrite costs about x^2 steps, width ~ t^(1/3).
-Same shape as the three `1RB1RD_0LC1RA_..._1RF0LD_---0RE` machines; exact rules not worked out.
+Same shape as the three `1RB1RD_0LC1RA_..._1RF0LD_---0RE` machines. The exact rules are the frame map below; the
+epochs they make (growth x4/3, drain x4) are in "Sweeps as jumps".
 
 ## Halting
 
 F0 halts; F is entered only from E0 (`1RF`), so a halt needs `E>0 0`. In the first 10^8 steps F was entered
-83,257 times, always on a 1 (`c/sstat.c`). Open.
+83,257 times, always on a 1 (`c/sstat.c`). At the level of the frame map a halt needs a zigzag to start on one of
+five halting rows ("The halting rows" below). Open.
 
 ## The frame map in Lean
 
@@ -177,9 +179,89 @@ variants on 25,957 instances, and every frame of the first 10^7 steps from blank
 1^12 A> 00 1^3 halts after 4 + 3 + 63 + 18 + 24 + 5 = 117 steps (y(10, 0, 5), z(9, 2, 4), z(0, 8, 1), w(0, 8, 1),
 w(16, 0, 1), halt), as direct simulation gives.
 
+## Sweeps as jumps: the closed map
+
+Almost every application of `next` repeats one of a few cases, and the repeats sum in closed form
+(`lean/Jump.lean`, for all sizes):
+
+    w(l, j + 2k, r + 1)       --k frames, 6k steps-->               w(l + 4k, j, r + 1)        w_sweep (also W)
+    u(l, j + k, r)            --k frames, 4k steps-->               u(l, j, r + 2k)            u_sweep (also U(l + 1, ..))
+    y(a + 3k, j, r + 1 + k)   --2k frames, k(4j + 9) + 4k(k-1)-->    y(a, j + 2k, r + 1)        y_zigzag (also Y)
+
+`jump` takes each whole sweep or zigzag at once (the largest k for which every application is still the first
+matching case of `next`) and is `next` everywhere else; `jump_sound` proves each jump is that many frames of `next`.
+So the run is a sequence of about 10^8 jumps per 1.5·10^14 frames, each jump O(1) arithmetic:
+`c/frun.c` does 7·10^7 jumps a second.
+
+The jumps show what the machine does. Write the tape as a solid block `1^l`, an alternating block `(10)^j`, and a
+solid block `1^r`. An *epoch* has two phases:
+
+* **growth**: `w(L, e, R)` → `y(L + 3, 0, R - 3)` (or via `u` to `y(L + 2, 0, R)`), a zigzag that turns the left
+  block into alternating cells (each round eats 3 of `l` and 1 of `r` and adds 2 to `j`), then a `w` sweep that turns
+  them back into a left block 4/3 as long. The left block grows by 4/3 per pass and the right block pays `L/3` per
+  pass, so after about `log_{4/3}` of the size the right block runs out in the middle of a zigzag;
+* **drain**: from `y(a, j, 1)` the `u` sweep moves the alternating block into the right block (`r = 2j + 4`), and
+  the zigzags now run until `r` runs out again, each pass multiplying `r` by about 4 and costing 3r of the left block,
+  until the left block is used up and a new growth phase starts with a long right block.
+
+Within a phase the ratios are fixed; what is chaotic is where the phases end, the remainders mod 3 at the crossovers.
+The total length grows by a few cells per pass, so the size grows about linearly in the number of jumps
+(the right block at a crossover is about J/10 after J jumps) and the steps like J^3.
+
+### The halting rows
+
+`next` is `none` only at `z(1,1,1)`, `w(l,0,1)`, `w(l,1,0)` and their `W` twins. A zigzag ends when `a < 3` or
+`r = 1`; it ends with `r = 2` (or 3) left exactly when the two blocks run out together, and then three more frames
+and a sweep decide. Lean proves five rows that halt (`lean/Jump.lean`):
+
+| row | route | theorem |
+|---|---|---|
+| `y(3k+1, 2m, k+2)` | k rounds, `y(1, ., 2)`, `z(0, ., 1)`, `w(0, even, 1)`, sweep to `w(., 0, 1)` | `halt_y` |
+| `Y(3k+1, 2m, k+3)` | k rounds, `Y(1, ., 3)`, `z(2, ., 2)`, `y(0, odd, 2)`, `z(0, ., 1)`, `w(0, even, 1)`, sweep | `halt_Y` |
+| `y(3k, 2m+1, k+2)` | k rounds, `y(0, odd, 2)`, `z(0, even, 1)`, `w`, sweep | `halt_y0` |
+| `y(3k+2, 2m+1, k+2)` | k rounds, `y(2, odd, 2)`, `z(1, ., 1)`, `W(4, even, 1)`, sweep | `halt_y2` |
+| `Y(3k, 2m+1, k+2)` | k rounds, `Y(0, odd, 2)`, `w(3, even, 1)`, sweep | `halt_Y0` |
+
+From every frame with all three numbers below 60 (205,943 of them halt within 400 jumps), every halt comes before
+the first zigzag or right after a zigzag start in one of these rows (`frun rows 60`). That this holds for all
+frames is not proved. In the run from blank tape every zigzag start so far has even `j` (`frun stats`), so only
+the first two rows can be met: **the machine halts if a crossover lands on `y(a, 2m, R)` with `a = 3R - 5` or on
+`Y(a, 2m, R)` with `a = 3R - 8`** (and `a ≡ 1 mod 3`). Call `d = R - floor(a/3) - 2` (y) or `- 3` (Y) the distance
+to the row; `d = 0` halts.
+
+### The run
+
+`c/frun.c` (checked case by case: `frun check`, `py/check_frun.py` against the Lean cases read by `py/rules.py`,
+`py/jumps_panel_test.js` for the page's copy):
+
+| jumps | frames | machine steps | frame |
+|---|---|---|---|
+| 1,000,000,000 | 14,663,127,908,673,683 | 8.1·10^23 | Y(43,889,550, 0, 359,123,705) |
+| 10,000,000,000 | 1,466,115,638,078,894,721 | 8.1·10^26 | y(3,138,081,542, 0, 891,798,589) |
+| 20,000,000,000 | 5,864,258,929,373,709,319 | 6.5·10^27 | y(2, 1,489,737,902, 5,080,219,723) |
+| 50,000,000,000 | 36,651,764,352,175,722,702 | 1.0·10^29 | U(3,885,282,087, 0, 16,263,964,358) |
+| 100,000,000,000 | 146,605,789,270,410,448,593 | 8.1·10^29 | u(39,742,276,314, 0, 556,168,540) |
+
+No halt; it was stopped at 100,000,000,000 jumps (1.5·10^20 frames, 8.1·10^29 machine steps), against 3.58·10^22 steps before.
+Lean checks the first 10^8 jumps by `native_decide` (`jumps_frames`): no halt in the first 146,530,202,670,678
+frames (`no_halt_frames`; Phases.lean had 10^8).
+
+Close calls (zigzag starts with `|d| ≤ 2`, `frun close`): y(10, 0, 6) at jump 30 (d = +1), Y(34, 0, 13) at jump 103 (d = -1), y(139,357, 0, 46,453) at jump 461,762 (d = -1), Y(1,699,306, 0, 566,440) at jump 5,624,455 (d = +2). None at `d = 0`.
+
+### How likely is a halt (heuristic)
+
+At a crossover the ratio a/(3R) lands somewhere in an interval of fixed relative width, so the chance of `d = 0` is
+about c/R per epoch, and `R` is about J/10 while an epoch is about `log J` jumps. Summed, the expected number of
+hits up to J grows like `ln ln J`: it diverges, but very slowly. Counting the zigzag starts with `|d| ≤ 16` per
+unit of `ln ln J` gives about 1.5 expected hits per unit of `ln ln J` (per value of d); from J = 10 to 100,000,000,000 that
+is about 3.6 expected hits and none was seen. If the heuristic is right the machine halts with probability 1, but
+the median waiting time is around `ln ln J ≈ 3.7`, i.e. `J ≈ 10^18` jumps, about 10^53 steps: far beyond
+any computation. The close calls near `d = 0` are thinner than this rate predicts (8 with `|d| ≤ 3` against about 15),
+which might be chance or a hidden obstruction near the rows.
+
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 78 cases over 8 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.z 0 0 2` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 4.5*10^11 steps). Open: whether the orbit ever gets there.
+Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 78 cases over 8 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.z 0 0 2` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 4.5*10^11 steps). Lean (`lean/Jump.lean`): whole sweeps and zigzags in closed form (`w_sweep`, `u_sweep`, `y_zigzag`, ...), the jump map (`jump_sound`), five halting rows (`halt_y`, `halt_Y`, `halt_y0`, `halt_y2`, `halt_Y0`), and no halt in the first 146,530,202,670,678 frames (`no_halt_frames`, `native_decide` on 10^8 jumps). C (`c/frun.c`): no halt in 100,000,000,000 jumps, 8.1·10^29 steps. Open: whether the orbit ever lands on a halting row.
 
 ## First look
 
@@ -216,9 +298,18 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c
 python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/pieces.py && git diff --exit-code holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/lean
 python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/framemap.py verify 16
 python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/rules.py                # the rule table and its step counts against direct simulation
+python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/gen_c.py && git diff --exit-code holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/fcases.h
+gcc -O2 -o frun holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/c/frun.c && ./frun check 300000 && ./frun rows 60
+./frun trace 8000 | python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/check_frun.py     # the jumps against the Lean cases
+./frun trace 200000 > t.txt && node holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/jumps_panel_test.js t.txt  # the page's copy
+./frun close 100000000000 1000000000 16      # the long run (c/run_close.txt), about an hour
+python3 holdouts/1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD/py/page_jumps.py && python3 holdouts/build_pages.py 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD
 ```
 
 ## Later
 
-- Find the higher-level rule (one sweep or round to the next) and which sizes lead to an undefined case, as was
-  done for the all-ones lengths of `1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE`.
+- Prove that every halt of the map goes through one of the five halting rows (`frun rows` checks it for small
+  frames), and that zigzag starts in the run always have an even alternating block; then the question is exactly
+  whether a crossover lands on `a = 3R - 5` (y) or `a = 3R - 8` (Y).
+- Explain the epoch: a closed map from one crossover to the next (it depends on base-3 and base-4/3 remainders, so
+  probably no closed form), and whether the close calls are really thinner near `d = 0` than the heuristic says.
