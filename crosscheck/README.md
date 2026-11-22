@@ -7,11 +7,13 @@ methods that share no code with the proofs or with `tools/`.
 
 ## Result
 
-**No discrepancy found.** For 83 of the 85 machines a Coq 8.20.1 build here proves exactly the claimed statement
+**No discrepancy found.** For 84 of the 85 machines a Coq 8.20.1 build here proves exactly the claimed statement
 `halts (TM_from_str "<full TNF name>") c0` (or its negation) on busycoq's own definitions, and my own parser agrees with
-busycoq's `TM_from_str` on every transition of all 85 tables. The other two,
-`1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---` and `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---`, are proofs of about 4 and
-14 hours (busycoq PRs 100 and 102); they compiled here before (18 November), and their audited rebuilds are running.
+busycoq's `TM_from_str` on every transition of all 85 tables. That includes
+`1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---` (busycoq PR 100, a 4.5-hour build, closed under the global context,
+[`coq/results_long.txt`](coq/results_long.txt)). The last one, `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---` (PR 102,
+about 14 hours), compiled here before (18 November); its audited rebuild was cut off by a container restart and is
+running again.
 A new direct simulator finds no halt in the first 10^10 steps of any of the 85, which agrees with every claim (each
 halting proof puts the halt far beyond 10^11 steps).
 
