@@ -178,8 +178,28 @@ runs out are what rebuild new walls. A halt needs `1 0 0 B<0` (three 0s met by t
 00s are the leftover 100s (D-blocks exist only during a sweep), so the question is now whether a visit at a leftover
 100 can ever put a third 0 next to one.
 
-Next steps: the rule for a visit at a leftover 100 (it depends on how many D-blocks the A run reaches and glues),
-which would make the whole list a map.
+**Visits at a leftover 100** (`lean/LeftoverRules.lean`, `py/leftover_rules.py`, `py/leftover_check.py`). Two
+cases so far:
+
+- **Merge (pass-through).** When the 100 sits as `S_x S_0 100 1 S_y S_z`, the left sweep passes it and goes on to the
+  next wall on the left, which loses three 1s as in any round. On the way back the blocks around the 100 merge:
+  `S_x S_0 100 1 S_y S_z` becomes `S_(x+y+3) S_0 S_0 S_(z-1)` (with `S_(-1) = 1`), and every other block is unchanged.
+  symtm proves it for all counts in regime II with a fixed number of blocks around it (`merge_II`, `merge_II_z0`).
+  In the run it predicts 90 of 90 such visits cell for cell (1·10^8 – 2·10^8 and 2.8·10^8 – 4.2·10^8 steps). Another 34
+  merges have no wall on the left (a second 100 is next), so the rule above does not apply to them as written.
+- **Reflection (wall-making).** In the other cases (336 of the 460 leftover-100 visits in those windows, for example
+  `S_x S_0 100 S_y`) the sweep turns at the 100. On the way back the head is in A instead of the right sweep's
+  `1 B> 100`, and it leaves every second D-block it passes as a run of 1s while turning the others back into
+  S-blocks. Symbolic runs with every count a variable show this alternation through four blocks. These runs of 1s
+  are the new walls, which later rounds wear down three at a time. At the right end the A run meets the `(100)^c`
+  of regime II, and how it goes on there depends on c in a way symtm cannot follow (it asks to split `(100100)^c`).
+  That is plausibly where the regimes change.
+
+So the digit list behaves like a stack of walls. Rounds wear the top wall down; a wall of length 0 mod 3 leaves a
+100. A 100 either merges blocks or turns the sweep, and a turned sweep splits the blocks behind it into new walls.
+
+Next steps: the reflection case as a rule for any number of blocks (an induction over the alternation, as in
+RoundRules.lean), its right-end continuation, and the merges that meet a second 100.
 
 ## Reproduce
 

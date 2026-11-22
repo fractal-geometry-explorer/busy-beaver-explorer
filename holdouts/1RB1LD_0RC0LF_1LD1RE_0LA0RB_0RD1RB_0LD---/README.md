@@ -121,6 +121,80 @@ gcc -O2 -o visp holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/visp.c -lpt
 ```
 <!-- visp-run:end -->
 
+<!-- right-end:begin -->
+## 1011 and 111 only at the right end (proved, 22 November 2026)
+
+**Proved in Lean (`lean/Cascade.lean`, no `native_decide`): halting is a right-end question.** In every round a
+visit can meet `1011` or `111` only from two cells before the place where the previous round's visits stopped.
+So the machine halts from blank tape exactly when, in some round, the last few cells of the cascade meet `111`.
+
+*The cascade.* A round is one visit to the stream `X = 1 0 S`. Its nested visits run in single file from left to
+right: the block at offset 0 takes its visits and passes the ones it owes on to the block behind it, which passes its
+own on, and so on, until a block receives visits and passes none on. That block is the round's **stop**. With `n`
+visits (n ≥ 1) a block does (`Blk`, closed forms proved by induction from the rules of `lean/Visit.lean`):
+
+| block | n visits leave | visits passed on |
+|---|---|---|
+| `000` | `100` if n odd, `000` if n even | ⌊n/2⌋ |
+| `100` | `000` if n odd, `100` if n even | ⌈n/2⌉ |
+| `110` | `000` if n odd, `100` if n even | ⌈n/2⌉ |
+| `010` | `110` if n = 1; else as `110` after one visit | 0 if n = 1, else ⌈(n−1)/2⌉ |
+| `1010` | `1010` | 2n |
+| `0010` | `1010` | 2(n−1) |
+| `1011`, `0011`, `011`, `111` | handled one visit at a time (`Casc.e`, `Casc.d`, `Casc.u1`, `CascH`) | |
+
+*The invariant.* Every block that passes visits on is left as `000`, `100` or `1010` (`Blk.out`): no two adjacent
+1s, last cell 0. Only the stop block can be left with adjacent 1s (`010` hit once becomes `110`; after a dirty stop
+also `1011` or `111`). So after every round the stream has no two adjacent 1s left of the stop (`Casc.clean`,
+`reach_clean`). A visit meets `1011` (or `0011`, which becomes `1011`) only on the 1s at its offsets 2 and 3, and
+`111` (or `011` hit twice) on the 1s at offsets 0, 1 or 1, 2. Hence:
+
+- `right_end_1011`: in round r+1, every visit that meets `1011` does so at an offset p with F ≤ p + 2, where F is
+  the offset (in `1 0 S`) of round r's stop.
+- `right_end_halt`: a round whose cascade halts on `111` does so at an offset p with F ≤ p + 2.
+- `halts_iff`, `halts_iff_right_end`: the machine halts from blank tape if and only if, for some r, the cascade of
+  round r+1 halts, and then at p ≥ F − 2.
+
+*Why this is a statement about the machine.* `Casc.vis` and `CascH.vis` derive each cascade from the visit-law
+theorems (n visits of the machine, or a halting one among them); `total` shows that every number of visits to an
+eventually blank stream is a cascade or a halting cascade; `reach_steps` puts round r of the model on the machine's
+run after at least r steps. Nothing about the size of the counts is used: the invariant holds from any starting word
+(the explainer's panel lets you try random dirty words).
+
+*What is left.* The counts entering the blocks are about 2^(r/2) at the front of round r and fall by about one
+binary digit every 9 cells, reaching a handful of visits only in the last cells of the word. The open question is
+now confined there. A stop leaves two adjacent 1s (a *dirty stop*) when its block is `010` hit once, which becomes
+`110` with the 1s at F, F+1. The next round then either holds cell F in a block starting at F (it reads `110` and
+cleans it), at F−2 (it reads `1011` and writes `1000`), or at F−1, where it reads `011`: with two or more visits there
+the machine halts. So the machine halts exactly if a dirty stop is ever met by the next round one cell to the left,
+with at least two visits (or a later dirty pattern of this kind).
+
+**Computed (`c/visps.c`, the pipelined simulator with every stop recorded, rounds 1 to 1,000,000):**
+
+| | |
+|---|---|
+| dirty stops | 4 (the rounds just before the four visits to `1011`) |
+| next round after a dirty stop | block at F−2 all 4 times, so `1011` at exactly F−2: the bound of `right_end_1011` is attained |
+| next round after a clean stop | block holding F starts at F−2 in 379,302 rounds, at F−1 in 601,268, never at F; 19,425 rounds stop before F |
+| visits to `1011` | 4, each at p = F − 2, each followed by a stop 3 cells further right |
+
+| round of the visit to `1011` | its cell | previous round's stop F |
+|---|---|---|
+| 161,211 | 678,826 | 678,828 |
+| 194,647 | 819,721 | 819,723 |
+| 757,566 | 3,191,503 | 3,191,505 |
+| 906,776 | 3,820,394 | 3,820,396 |
+
+The danger, alignment F−1 after a dirty stop, is common after clean stops (60% of rounds) but has not yet followed
+one of the rare dirty stops. Whether it ever does is the right-end question.
+
+```sh
+gcc -O2 -o visps holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/visps.c -lpthread
+./visps 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000001 - 3 100000   # 76 minutes on 4 cores; EV, DIRTY lines at the end
+```
+
+<!-- right-end:end -->
+
 ## What is established
 
 **Proved in Lean, kernel only:**
@@ -235,7 +309,7 @@ From the repository root:
 
 ```sh
 . /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/lean/check.sh
+holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/lean/check.sh      # includes lean/Cascade.lean
 gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000000000
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 10000000000
 cd tools/py && python3 -m bbtools.ctl 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 5

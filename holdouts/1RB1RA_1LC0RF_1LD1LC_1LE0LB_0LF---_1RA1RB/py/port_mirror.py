@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HOLD = os.path.normpath(os.path.join(HERE, "..", ".."))
 HOME = "1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB"
 PASCAL = "1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF"
-FILES = ["Machine", "Pascal", "Lucas", "Absorb", "Wall", "Crossing", "End", "Race"]
+FILES = ["Machine", "Pascal", "Lucas", "Absorb", "Wall", "Crossing", "End", "Race", "Window"]
 NOTE = ("-- Copied by holdouts/1RB1RA_1LC0RF_1LD1LC_1LE0LB_0LF---_1RA1RB/py/port_mirror.py from\n"
         "-- holdouts/" + PASCAL + "/lean/{name}.lean, imports renamed; do not edit by hand.\n")
 

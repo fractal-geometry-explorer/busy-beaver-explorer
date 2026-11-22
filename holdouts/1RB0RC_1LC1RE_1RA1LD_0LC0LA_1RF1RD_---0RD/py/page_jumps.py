@@ -152,15 +152,10 @@ def build():
             svg_close(close, J),
             '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>jump</th><th>zigzag start</th><th>d</th>'
             '</tr></thead><tbody>' + rows + '</tbody></table></div>',
-            f'<p><b>Heuristic.</b> At a crossover the ratio of the blocks lands anywhere in a range of fixed relative '
-            'width, so the chance of <code>d = 0</code> is about c/R per epoch; R is about a tenth of the jump number '
-            'J and an epoch is about log J jumps, so the expected number of hits up to J grows like ln ln J: without '
-            f'bound, but very slowly. The close calls above give about {lam:.1f} expected hits per unit of ln ln J '
-            f'({nev} starts with |d| &le; 16 since jump 1,000), so about {exp_seen:.1f} were expected so far and none '
-            f'came. If this is right the machine halts with probability 1, with a median around '
-            f'ln ln J &asymp; {med:.1f}, J &asymp; 10<sup>{math.exp(med) / math.log(10):.0f}</sup> jumps and about '
-            f'10<sup>{3 * math.exp(med) / math.log(10):.0f}</sup> steps. The calls closest to <code>d = 0</code> '
-            'are fewer than the rate predicts, which may be chance or a structure not found yet.</p>',
+            f'<p><b>Heuristic.</b> An earlier version of this page took an epoch to last about log J jumps and '
+            'got an expected number of hits growing like ln ln J. An epoch lasts a bounded number of passes on '
+            'average (a pass ends the growth with chance about 1/4), so the count grows like ln J; the section on '
+            'passes below measures the rate.</p>',
         ]}
     return jumps, closes, (J, F, S, lam, exp_seen, med)
 

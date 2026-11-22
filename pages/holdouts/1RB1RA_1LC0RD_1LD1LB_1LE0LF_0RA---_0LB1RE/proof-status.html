@@ -144,6 +144,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>neighbour_start</code>, <code>neighbour_start'</code>, <code>lean/Neighbour.lean</code></p>
       </div>
       <div class="card">
+        <h3>Passing a leftover 100: the blocks merge</h3>
+        <p>When a visit meets a leftover <code>100</code> placed as <code>S_x S_0 100 1 S_y S_z</code>, it passes it. The next wall on the left loses three 1s as in a round, and on the way back the blocks merge into <code>S_(x+y+3) S_0 S_0 S_(z-1)</code>. Proved for all counts in regime II with a fixed number of blocks around the 100. In the run the rule predicts 90 of 90 such visits that have a wall on their left, cell for cell.</p>
+        <p class="where"><code>merge_II</code>, <code>merge_II_z0</code>, <code>lean/LeftoverRules.lean</code> (written by <code>py/leftover_rules.py</code>); <code>py/leftover_check.py</code></p>
+      </div>
+      <div class="card">
         <h3>DeepMind's PR 93 macro rules on this machine</h3>
         <p>With E and F exchanged and the detour D0 <code>1LE</code>, E0 <code>0RA</code>, A1 <code>1RA</code> replaced by one step <code>1RA</code>, the table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1RF_0RA---</code>: the table T4 of the T4 engine (DeepMind's PR 93 engine retargeted, which proved 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LE halts) with E1 changed (T4: <code>0LF</code>). Lean proves 8 of PR 93's macro rules for this machine for every count, among them the changed collision (the head turns right at E1 and reaches the tape beyond the rule in state A) and collide (<code>CfgR l (10 D0 D0 r)</code> reaches <code>CfgL l (D1 D1 1 r)</code>).</p>
         <p class="where"><code>pr93_collision</code>, <code>pr93_collisionD</code>, <code>pr93_collide</code> and five unchanged rules, <code>lean/EngineRules.lean</code> (written by <code>py/engine_rules.py</code>)</p>
@@ -252,12 +257,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>At a left-end visit the tape left of the start is a list of PR 93's digits <code>1 (11)^n 00</code>: 605 of them at 2.0&middot;10<sup>9</sup> steps, 589 with n &le; 6, and one large digit (n = 302; n = 354 at 2.6&middot;10<sup>9</sup>). The list goes on right of the start for several thousand cells, written with single 0s while the head is on the right. Beyond it the right end holds a few periodic blocks with counts in the thousands that turn into one another in phases, for example <code>(1)^3396 (01011)^1379 (001)^1403</code> at 3.3&middot;10<sup>8</sup> steps and <code>(10110)^201 (10)^3823 &hellip; (110)^1274</code> at 2.8&middot;10<sup>8</sup>. There are no halving chains like those of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF, so the halving-chain engine of that sibling does not apply here.</p>
         <p class="where">scratch simulators; README section <i>The right end</i></p>
       </div>
+      <div class="card">
+        <h3>Turning at a leftover 100 makes new walls</h3>
+        <p>In the other leftover-100 visits (336 of 460 in two windows) the sweep turns at the 100. On the way back, in state A, it leaves every second block it passes as a run of 1s and turns the rest back into S-blocks; symbolic runs with every count a variable show the alternation through four blocks. These runs are the new walls. How the A run continues at the right end is not yet worked out.</p>
+        <p class="where">symbolic runs with <code>tools/py/bbtools/symtm.py</code>; README section <i>Round by round</i></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. Visits at walls and at the right-end gadget are proved for every chamber; the visits that meet a leftover <code>100</code> (13% of visits) and rebuild walls have no rule yet, so there is no complete map. The proof of the neighbouring start (state D) does not cover this run at any of the four times tested.</p>
+        <p>Not known. Visits at walls, at the right-end gadget, and those that pass a leftover <code>100</code> by merging blocks have rules. The visits that turn at a leftover <code>100</code> and build new walls (about 8% of visits) do not yet have one, so there is no complete map. The proof of the neighbouring start (state D) does not cover this run at any of the four times tested.</p>
       </div>
     </div>
   </section>
