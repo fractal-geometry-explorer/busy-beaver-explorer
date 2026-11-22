@@ -106,8 +106,51 @@ with the exact number of steps of each rule. A visit is any moment the tape is
 The rules are the wiki's; the step counts and the bounds on a are added here. A(1, 2), A(1, 3), A(2, 2), A(3, 2) are
 outside every rule and no rule leads to them. The Lean map is finer: A(a, b) is the frame b(a - 2, 1, b - 1) three
 steps earlier (a = 1: d(0, 2, b - 1), five steps earlier), and each rule is the run of Lean cases from one such frame
-to the next. The rules are not stated in Lean; the cases they are made of are (`next_sound`, `none_halts`,
-`halts_iff` in `lean/Phases.lean`), each with its step count in its piece theorem in `lean/Pieces.lean`.
+to the next.
+
+## The rules in Lean
+
+`lean/Rules.lean` proves the rules (their targets, not their step counts) for all sizes from the frame map: each is a
+zigzag of `b`/`a` frames (`loop_ba`), for the growing rules a sweep of `d`/`c` frames (`loop_cd`), and a few single
+cases of `next` (`r_de`, `r_do`, `r_do1`, `r_p3`, `r_p3_1`, `r_p2`, `r_p1`, `r_ge`, `r_b2`, gathered in `op_step`;
+`dom` is kept by every rule). Then:
+
+- `halts_iff_rules`: **the machine halts from blank tape iff the orbit of (2, 9) under `op` reaches some (a, 3).**
+- `no_b3` (`native_decide`, about a minute): not in the first 10^8 visits, about 6.8*10^23 machine steps by the
+  step counts above.
+
+## Looking for an invariant that excludes b = 3
+
+The only way to b = 3 is the growing rule from A(a, a + 4) with a even (giving A(2a + 4, 3)); every other rule
+gives b >= 4, except the same rule from A(a, a + 3), a even, which gives b = 2. So the question is whether the orbit ever visits A(a, a + 4) with a even.
+
+- The orbit is cheap to follow and its sizes grow only about linearly in the number N of visits; the machine steps
+  grow like 0.68 N^3. `tools/collatz/c/amap.c` found no halt in the first 10^12 visits (a, b near 3.5*10^12, about
+  6.8*10^35 machine steps). `c/abrun.c` does the same in 128-bit integers with exact step counts (about 1.3*10^8
+  visits a second) and logs every visit with 1 <= b - a <= 8; it agrees, with no halt in the first 1.4*10^11
+  visits (1.9*10^33 steps).
+- Almost every visit is a swap (half of them) or a growing rule; the restarts (b - a = 1, 2, or 3 with a odd) are
+  rare: 8 restarts and 2 short rules (b = 2) in the first 10^7 visits.
+- No congruence excludes it. `c/abres.c` tabulates (a mod M, (b - a) mod M) over the visits with b > a and
+  b - a <= 10^6 among the first 3*10^9: the table is far from uniform (many classes are empty; for example a = 2 or
+  3 mod 4 forces b odd), but for every M tried (2^k up to 256, and 48, 90, 120, 210, 252) the classes with a even and
+  b - a = 4 mod M together get the same share as any other even residue of b - a. The exact search over residues
+  mod every even M up to 128 (the rules applied to residues, each branch allowed whenever its congruence allows it)
+  also reaches a even, b - a = 4 mod M.
+- Visits with b - a small behave like a Poisson process in the logarithm of the visit index. `c/abstat.c`: over the
+  visits with b > a, a even, b - a even and b - a <= 10^5, about 5,500 fall in each decade of visit index (10^5 to
+  10^6, ..., 10^9 to 10^10), flat in b - a down to b - a <= 100. That is about 0.11 per decade for each single even
+  value of b - a, b - a = 4 included. In the 12 decades run the expected number of halting visits is about 1.3, so
+  seeing none is unremarkable (probability about 0.27).
+- The halting rule is reached from other starts. `c/abrand.c`: of 9,000 orbits from random A(a, b) with a, b below
+  10^9, run 10^6 visits each, 5 halt (for example A(264421744, 92483937) reaches A(358606020, 3) after 485,721
+  visits), and visits with a even and b - a = 4 are as frequent as those with b - a = 2, 6 or 8.
+
+So no invariant of this kind exists, and the evidence is that the orbit behaves like a random one: under that model it
+halts with probability 1 (0.11 per decade summed over all decades diverges), but only after many more decades of
+visits (median about 2*10^18 visits, about 10^55 machine steps). Neither a proof of halting nor of non-halting is in
+sight: the first needs the orbit followed to the halt, the second an argument that the visits avoid one exact
+diagonal.
 `py/rules.py` checks the rules and step counts against direct simulation (3,418 tapes A(a, b) with a, b < 60, and the
 238 visits of the first 10^7 steps from blank tape) and against the Lean cases (the same tapes, the same run, and the
 Lean map for 5*10^5 frames, 685 visits). Example: A(1, 7) halts after 27 + 82 + 79 + 176 + 79 + 431 + 11 = 885 steps
@@ -115,7 +158,7 @@ Lean map for 5*10^5 frames, 685 visits). Example: A(1, 7) halts after 27 + 82 + 
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 30 cases over 6 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.e 1 0` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 5.95*10^11 steps). Open: whether the orbit ever gets there.
+Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 30 cases over 6 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.e 1 0` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 5.95*10^11 steps). Open: whether the orbit ever gets there. Lean (`lean/Rules.lean`): the wiki's rules for all sizes, the machine halts iff their orbit from (2, 9) reaches b = 3 (`halts_iff_rules`), not in the first 10^8 visits (`no_b3`, `native_decide`; about 6.8*10^23 steps). C (`tools/collatz/c/amap.c`): not in the first 10^12 visits (about 6.8*10^35 steps); no congruence invariant excludes b = 3 (see above).
 
 ## First look
 
@@ -152,6 +195,10 @@ gcc -O2 -I tools/c -o sstat holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c
 python3 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/py/pieces.py && git diff --exit-code holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/lean
 python3 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/py/framemap.py verify 20
 python3 holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/py/rules.py                # the wiki's rules and their step counts against the machine and the Lean map
+gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c && ./abrun 140000000000 10000000000   # about 18 minutes
+gcc -O2 -o abstat holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abstat.c && ./abstat 10000000000 100000
+gcc -O2 -o abres holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abres.c && ./abres 3000000000 1000000 64
+gcc -O2 -o abrand holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrand.c && ./abrand 1 3000 1000000 1000000000 v
 ```
 
 ## Later

@@ -63,13 +63,13 @@ The map is fixed (proved, or checked against the machine) and a halt, if there i
 
 *reduced, outlook unclear, table set T258*
 
-- **Map:** A(a,b) = 0^inf 1^a 0 C> 1^b 0^inf: a even, b>=a+3: (2a+4, b-a-1); a odd, b>=a+4: (2a+3, b-a); a odd, b=a+3: (2a+1, 9); b=a+2 (a>=2): (1, 2a+7); b=a+1 (a>=3): (4, 2a+4); a>=b>=4: (a-b+1, 2b+3); b=2 (a>=4): (a-3, 7); b=3: halt. (Lean proves the finer 6-frame map next, 30 cases.)
+- **Map:** A(a,b) = 0^inf 1^a 0 C> 1^b 0^inf: a even, b>=a+3: (2a+4, b-a-1); a odd, b>=a+4: (2a+3, b-a); a odd, b=a+3: (2a+1, 9); b=a+2 (a>=2): (1, 2a+7); b=a+1 (a>=3): (4, 2a+4); a>=b>=4: (a-b+1, 2b+3); b=2 (a>=4): (a-3, 7); b=3: halt. (Proved in Lean for all sizes, lean/Rules.lean, from the 6-frame map next of lean/Phases.lean.)
 - **Halts when:** Halts iff the orbit from A(2,9) reaches some A(a,3) (a>=2); in Lean: iff iterating next from Ph.e 1 0 reaches .b l j 2, .d l 0 1 or .d l 1 0.
 - **From blank tape:** A(2,9) at step 52 (Lean: Ph.e 1 0 after 1 step)
-- **Proved:** halts_iff, next_sound, none_halts in lean/Phases.lean (kernel); the A(a,b) rules themselves are checked by py/rules.py, not stated in Lean.
-- **Checked:** 10^8 frames native_decide (~5.95x10^11 steps); macro sim 10^15 steps; rleaccel 2.65x10^22 steps trusted.
-- **Odds:** not stated
-- **Next step:** Iterate the A(a,b) rules much further and look for an invariant excluding b = 3 (a quick 3x10^6-visit run done during this triage, not in the files, reached only ~22-bit values with no halt).
+- **Proved:** halts_iff_rules in lean/Rules.lean (kernel): halts iff the orbit of (2,9) under the rules reaches some (a,3); every rule proved for all sizes (op_step) from next_sound, none_halts, halts_iff of lean/Phases.lean.
+- **Checked:** 10^8 visits native_decide (no_b3, ~6.8x10^23 steps); 10^12 visits in C (~6.8x10^35 steps).
+- **Odds:** random model: visits with a even and b = a + 4 come ~0.11 per decade of visit index (flat in b - a, same share in every residue class tried); halts with probability 1, median ~2x10^18 visits
+- **Next step:** No congruence invariant excludes b = 3 (c/abres.c, c/abstat.c, c/abrand.c); a non-halting proof would need an argument that the orbit misses one exact diagonal. Otherwise run far: each decade of visits gives ~10% chance of a halt.
 
 ### [`1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE`](../../holdouts/1RB1LF_1RC1RF_0LD1RE_---1LC_0RB1RE_1LA0LE/README.md)
 
