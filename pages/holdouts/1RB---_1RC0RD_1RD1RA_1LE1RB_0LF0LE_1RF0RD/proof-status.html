@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its run is a pair of binary counters: one written as a long block of 1s at the right end, whose full count takes about 22·2<sup>j</sup> steps, and one written in the single 0s that separate the blocks on the left, which receives 2<sup>j</sup> at each full count. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The event rule is now proved in Lean for every size: between overflows the run is two binary counters, and the machine cannot halt there. Halting can only happen at an overflow, which follows an explicit map (with a recursive constant C(r)) that agrees with the machine on every event and overflow of a 4·10<sup>11</sup>-step run and on all 1,950 overflows with at most 9 bits; iterated for 100,000 phases it never reaches the only place where the machine can halt. The overflow map is checked, not proved.</p>
+      <p><b>The question is open.</b> The whole phase is now proved in Lean for every size, overflow included: the machine goes from one post-event configuration to the next exactly as an explicit, computable map <code>phase</code> on three numbers says, and <code>not_halts_of_orbit</code> proves (kernel) that if the iterated map never gets stuck the machine never halts. What is left is a question about that map alone: iterated for 100,000 phases (about 10<sup>153,000</sup> steps) it never gets stuck, but no proof that it never does is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -138,8 +138,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Halting only at an overflow</h3>
-        <p>Follows from <code>blank_to_P</code> and <code>event_rule</code> (the deduction is not itself a Lean theorem). Because <code>event_rule</code> is a statement that the machine runs (no halt) from one P configuration to the next, the machine can halt only during a phase P(d, bs) in which bs has no 0 at or above bit d+1, that is when adding 2<sup>d+1</sup> carries out of the top bit. Non-halting is exactly the statement that every such overflow phase ends in a new P configuration; the overflow map (trusted, below) says which one.</p>
+        <p>Follows from <code>blank_to_P</code> and <code>event_rule</code> (the deduction is not itself a Lean theorem). Because <code>event_rule</code> is a statement that the machine runs (no halt) from one P configuration to the next, the machine can halt only during a phase P(d, bs) in which bs has no 0 at or above bit d+1, that is when adding 2<sup>d+1</sup> carries out of the top bit. Non-halting is exactly the statement that every such overflow phase ends in a new P configuration; the proved phase map (below) says which one.</p>
         <p class="where"><code>event_rule</code>, <code>lean/Count.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The overflowing count, for every size</h3>
+        <p>When the left increment carries out of the top bit (the string is <code>b1 1^m</code>), the carry walks into the blank left of the string, the block is shifted right, F writes two new 1s and D comes back. The string is reset, to <code>0^(m+1)</code> if b1 = 1 or <code>1 0^(m+1)</code> if b1 = 0, and the head comes back one cell out of phase with the counter: the right side is the incremented counter behind a <em>junction</em>, <code>h ctr(H)</code> (K) or <code>0 h ctr(H)</code> (J).</p>
+        <p class="where"><code>overflow_true</code>, <code>overflow_false</code>, <code>lean/Overflow.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The junction machine</h3>
+        <p>After an overflow the right side is a counter <code>low</code> followed by a junction. Proved rules, each for every length: a count adds 1 to <code>low</code> and 2 to the string; when <code>low</code> is full and the next digit is 0 it grows by one digit (<code>carry0</code>); behind a J junction a next digit 1 makes the head cross the ones that follow (<code>carryJ1</code>); behind a K junction <code>low</code> (l digits) is absorbed into the string, adding <code>0^(3n) 1</code> (l = 2n, then a J junction) or <code>1 0^(3n+1) 1</code> (l = 2n + 1, then a K junction) (<code>absorb_even</code>, <code>absorb_odd</code>). <code>astep</code> is this machine on numbers and lists, and <code>astep_next</code>, <code>arun_done</code> prove every step it takes.</p>
+        <p class="where"><code>lean/Junction.lean</code>, <code>lean/Phase.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Non-halting reduces to a map on numbers</h3>
+        <p><code>phase d M Y</code> computes the next post-event configuration from the counter length d and the M-bit string Y: the event rule, or a whole overflow run by <code>arun</code>; it returns nothing (stuck) when a side condition fails, the only place where the machine can halt. <code>phase_sound</code>: whenever it returns (d′, M′, Y′) the machine goes from <code>PN d M Y</code> to <code>PN d′ M′ Y′</code>. With step 69 at <code>PN 0 2 2</code>, <code>not_halts_of_orbit</code>: if the orbit of <code>phase</code> from (0, 2, 2) is never stuck, the machine never halts from blank tape (no <code>sorry</code>; axioms propext, Classical.choice, Quot.sound). <code>lean/OrbitCheck.lean</code> checks with <code>#guard</code> that its first 9 overflows are those of the run.</p>
+        <p class="where"><code>phase_sound</code>, <code>orbit_reach</code>, <code>not_halts_of_orbit</code>, <code>lean/Orbit.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -158,6 +173,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>The map checked against the machine</h3>
+        <p><code>py/phasemap.py</code>, a line-for-line transcription of <code>phase</code>, agrees with the machine at all 2,000 overflows of strings of at most 9 bits and is stuck at exactly the 8 that halt. For M ≤ 12 it is stuck only at (d, M, Y) = (M − 2, M, 2<sup>M−1</sup> + 1), the all-ones halting pattern, apart from inputs the orbit never reaches. That a stuck phase always halts (the converse, which would make this an if and only if) is not proved for all M.</p>
+        <p class="where"><code>py/phasemap.py machine 9</code>, <code>py/phasemap.py stuck 12</code></p>
+      </div>
+      <div class="card">
         <h3>An exact accelerated run</h3>
         <p><code>py/accel.py</code> follows the run from one P configuration to the next with the proved rules (jumps whose endpoints are proved; the step counts are checked against the direct run, not proved) and simulates only the overflows cell by cell (<code>c/transient.c</code>). The steps of a count are 30 + 6t + 8r (t, r the two carry lengths, from the step counts of the lemmas), summed over a phase in closed form; the result equals the step of every P configuration of a direct run to 2·10<sup>7</sup> steps (<code>py/pchain.py</code>). It reproduces the overflows of the direct run, the seventh ending at P(24, …) at step 1,857,557,588 after 3.7·10<sup>8</sup> simulated steps; the simulated stretch of an overflow grows quickly with the number of digits the machine eats, so this does not replace the map for long runs.</p>
         <p class="where"><code>py/accel.py</code>, <code>c/transient.c</code></p>
@@ -168,8 +188,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/c/tmrun.c</code></p>
       </div>
       <div class="card">
-        <h3>The overflow map</h3>
-        <p>When adding 2<sup>j</sup> carries out of the top bit, let R = X + 2<sup>j</sup> − 2<sup>M</sup>. If R is even the next event has X = R + 1, M + 1, N + 3. If R is odd, let k be the number of trailing pairs of bits whose low bit is 1 and r = R mod 4<sup>k</sup>: the next event has X = C(r) + ⌊R / 4<sup>k</sup>⌋, M + 3k + 1 bits and N − 3(2k − 1), where C(01) = 43, C(11) = 104 and C(r) = C(⌊r/4⌋) + c<sub>t</sub>·8<sup>k−1</sup> with t the number of trailing 11 pairs, c<sub>0</sub> = 42, c<sub>t</sub> = 248·4<sup>t−1</sup> − 21 (2c<sub>k−1</sub> + 21 when all k pairs are 11). Checked against the machine on all 1,950 overflows with at most 9 bits (whose odd pairs stop below the top bit), on all 126 patterns r with k ≤ 6 and 12 random ones with k = 7, 8, and on the 9 overflows of the run to 4·10<sup>11</sup> steps.</p>
+        <h3>The overflow map with C(r)</h3>
+        <p>When adding 2<sup>j</sup> carries out of the top bit, let R = X + 2<sup>j</sup> − 2<sup>M</sup>. If R is even the next event has X = R + 1, M + 1, N + 3. If R is odd, let k be the number of trailing pairs of bits whose low bit is 1 and r = R mod 4<sup>k</sup>: the next event has X = C(r) + ⌊R / 4<sup>k</sup>⌋, M + 3k + 1 bits and N − 3(2k − 1), where C(01) = 43, C(11) = 104 and C(r) = C(⌊r/4⌋) + c<sub>t</sub>·8<sup>k−1</sup> with t the number of trailing 11 pairs, c<sub>0</sub> = 42, c<sub>t</sub> = 248·4<sup>t−1</sup> − 21 (2c<sub>k−1</sub> + 21 when all k pairs are 11). Checked against the machine on all 1,950 overflows with at most 9 bits (whose odd pairs stop below the top bit), on all 126 patterns r with k ≤ 6 and 12 random ones with k = 7, 8, and on the 9 overflows of the run to 4·10<sup>11</sup> steps. It agrees with the proved map <code>phase</code> at the first 1,000 overflows of the orbit (<code>py/phasemap.py</code>), so the proved map supersedes it.</p>
         <p class="where"><code>py/macro.py</code> (<code>checkO</code>, <code>checkC</code>, <code>check</code>)</p>
       </div>
       <div class="card">
@@ -187,12 +207,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card">
         <h3>100,000 phases of the map</h3>
-        <p>Iterated from the first event, the map runs 100,000 phases (each phase a run of additions ended by an overflow) without its odd pairs ever reaching the top bit: M grows to 508,578, which is about 10<sup>153,000</sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 92). A halt needs k ≥ M/2.</p>
+        <p>Iterated from the first event, the map runs 100,000 phases (each phase a run of additions ended by an overflow) without its odd pairs ever reaching the top bit (without getting stuck): M grows to 508,578, which is about 10<sup>153,000</sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 92). A halt needs k ≥ M/2.</p>
         <p class="where"><code>py/macro.py 100000</code></p>
       </div>
       <div class="card">
         <h3>Blockers pile up</h3>
-        <p>Computed with the trusted overflow map: at an overflow the top M − j0 bits of the remainder R are all 1 (2,998 of the first 3,000 overflows). A pair of R whose low bit is 0 is a blocker; a halt needs a string without blockers. In 20,000 overflows the number of blockers grows about linearly (639 at overflow 2,000, 3,302 at 10,000, 5,901 at 18,000). Evidence against a halt, not a proof.</p>
+        <p>Computed with the overflow map (which agrees with the proved one): at an overflow the top M − j0 bits of the remainder R are all 1 (2,998 of the first 3,000 overflows). A pair of R whose low bit is 0 is a blocker; a halt needs a string without blockers. In 20,000 overflows the number of blockers grows about linearly (639 at overflow 2,000, 3,302 at 10,000, 5,901 at 18,000). Evidence against a halt, not a proof.</p>
         <p class="where"><code>py/macro.py</code> (the function <code>phases</code>), <code>py/blockers.py 20000</code></p>
       </div>
     </div>
@@ -200,7 +220,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>A proof</h3>
-        <p>The event rule is proved for all sizes (kernel). Still open: the overflow map for all sizes (at an overflow the left string is reset and the right counter ends up one cell out of phase; the machine then eats the counter's low digits in pairs, which is where C(r) comes from), and an argument that the iterated map never fills a string with odd pairs. The map looks like a random process on growing strings, so an invariant that excludes the halting case is not in sight.</p>
+        <p>The whole phase is proved for all sizes (kernel), so non-halting is now the statement that the orbit of the computable map <code>phase</code> never gets stuck. That is open: the map looks like a random process on growing strings (a halt needs about M/2 odd pairs in a row), and no invariant that excludes the stuck case is in sight. Also open, for an if and only if: that every stuck phase halts.</p>
       </div>
     </div>
   </section>
