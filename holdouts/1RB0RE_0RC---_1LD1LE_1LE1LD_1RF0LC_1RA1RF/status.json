@@ -106,6 +106,12 @@
    "where": "<code>clean_even</code>, <code>clean_odd</code>, <code>far_even</code>, <code>lean/Crossing.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "The holdout as a question about lists",
+   "text": "A list machine <code>astep</code> on three kinds of right-turn states (ordinary, crossing, E on the last 1) covers the right end of the tape too. Each list step is at least one machine step (<code>astep_sim</code>), and the first right turn is at step 12 (<code>start</code>). If the list machine never fails from there, the machine never halts from blank tape (<code>not_halts_of_arun</code>). It can fail in only two ways: F reaching the blank end during a crossing, or an even crossing bounce blocked by its far part. Neither has happened: the list machine matches all 17,758 right turns of the first 2·10<sup>8</sup> steps.",
+   "where": "<code>not_halts_of_arun</code>, <code>lean/End.lean</code>; <code>py/listmachine.py</code>"
+  },
+  {
    "level": "trusted",
    "title": "Crossings as one map",
    "text": "A crossing depends only on the swept zone, the prefix and the end cell, so the machine is an iterated map on crossing starts; the simulated map matches the run at all 13 crossings of the first 2·10<sup>7</sup> steps. The 17 crossing starts up to 2·10<sup>8</sup> steps have an odd last run of <code>a</code>s and odd inner runs apart from at most two near the head, but small words of that kind can still break a crossing, depending on run lengths modulo higher powers of 2.",

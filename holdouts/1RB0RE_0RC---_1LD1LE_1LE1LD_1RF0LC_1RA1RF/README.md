@@ -270,6 +270,28 @@ is not a halt: in a search over words with first run 0 to 3, inner runs 1, 3, 5 
 1 of the 36 words whose crossing breaks halts within 2·10^5 steps. So what remains is a
 race between the odd bounces, which use up the far part, and the near part's growth toward the right end.
 
+**The holdout as a question about lists (`lean/End.lean`, 22 November 2026).** The right end of the tape comes in
+four cases. F on blank (`end_F_blank`) gives a crossing turn with an empty near part. E on blank, or F on the last 1
+(`end_E_blank`, `end_F_one`), gives an ordinary turn with one more `a`. E on the last 1 is itself a right turn that
+bounces like `Turn`. With these, every right turn of the run is one of three list states: `T` (`Turn`), `T2`
+(`Turn2`), or `EO` (E on the last 1). `astep` computes the next state on lists alone, by running XORs and the
+stopping rule of the right sweep. It returns `none` in only two cases:
+
+1. F reaches the blank end during a crossing, while the far part is not used up;
+2. an even crossing bounce is blocked by its far part (impossible when the far part is clean, `far_even`).
+
+Proved in Lean:
+
+* `astep_sim`: each list step is at least one step of the machine.
+* `start`: the first right turn, step 12, is `EO [b, a]` with prefix 1.
+* `not_halts_of_arun`: if `arun k (EO [b, a] none true)` is defined for every `k`, the machine never halts from blank
+  tape.
+
+So the whole holdout is now one question about one list program: does it ever reach case 1 or case 2? The Python
+version (`py/listmachine.py`) agrees with the real machine at every one of the 17,758 right turns of the first
+2·10^8 steps. Evaluating the Lean `arun` with `#eval` gives the same tapes as the Python version after 300 and 2,000
+list steps, and neither case occurs in that run.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
