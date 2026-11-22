@@ -312,6 +312,79 @@ Trust: computations, exact by construction. The phase jumps reproduce the twin's
 (kinds ×256, ×16 and ×1) and agree with plain batches on 6 words with a ×64 phase; the cached transitions agree
 with the plain steps over the first 700 phases.
 
+## The descents as arithmetic, and a word that keeps growing (22–23 November 2026)
+
+**What was asked:** prove the descent recursion and skip whole descents, to reach the eighth right-end event.
+**What came out:** the laws between phases, measured on 12,482 phases and proved as arithmetic in Lean
+(`lean/Descent.lean`); three fixes that let the accelerator run past phase 30 again; and the finding that the
+bottom word grows as the phases go on, so a skip over descents would not reach the event either. The event is
+still out of reach, and no new bound: the logged phases give exactly the bound above.
+
+*Three fixes in the twin's `py/lsa_phase.py` and `py/lsa_region.py`.* Run again from the word at wall visit
+10^3200 (saved as `g07/lead12/start2_visit1e3200.pkl` in the project files; 43 min to rebuild), the accelerator
+stalled for more than half an hour after phase 30. Causes, all fixed:
+* when an eater stops with a little fuel, say 9 rungs of one rotation, the next run of the same word follows in
+  another rotation: `(t s)^9 t (s t)^F`. That is `t (s t)^(F+9)`, one fuel, but as tokens it is two, so no known
+  eater shape matched. Copies of a run's word just before it are now folded into it, digit by digit
+  (`fold_toks`, also in `head_split`, so the cache key of a transition stays the same);
+* single-hit feeding asserted that the bottom gets exactly one hit per batch, but one hit of a level can pass
+  two; it now takes them (`Region.feed`);
+* a cached transition starts with single hits (the next eater can take its regular shape at any hit of its
+  cycle), but there it only looks up shapes already known; a new super-cycle search at every hit took minutes.
+
+The run then went at about 17 phases a second, slowing to about one a second at phase 12,000 as the word grows.
+
+*The laws* (`python3 py/lsa_laws.py LOG` in the twin's folder, on the log written with `LSA_LOG=LOG`). The eaters
+of the ×64 kind leave a slack F − 4K of 5 to 9. Their fuel is a run of the 20-digit rung, and the rung is a
+*frozen* word: a hit crosses a run of rungs unchanged (494 steps a rung), so the 21 hits a super-cycle passes down
+go through every run of rungs to the next part of the word that is not frozen. Of the next fuels after a ×64
+phase:
+* 6,936 are fresh and follow **law A**, 11 F' = 21 K + e with −913 ≤ e ≤ 224 (almost all between 24 and 150):
+  one rung for every 11 hits passed down, a ratio of 44/21 ≈ 2.1 per phase;
+* 1,401 are fresh and follow **law B**, F' = K + δ with 2 ≤ δ ≤ 12: one rung for every 21 hits, a ratio of 4;
+* 4,063 are older runs of the word, met when a chain of fresh fuels has run out.
+
+*Descents of descents.* A run of fresh fuels is a descent. In the log they come in families: from phase 5,379
+the descents start on fuels of 120, 120, 119.7, 119.3, ..., 106.9 digits (0.32 digit less each time, the ratio of
+law A once more) and last 185, 171, 146, 129, 108, 93, ..., 4, 2 phases. Then a new family starts on 124 digits.
+
+*The bottom word is a list of staircases, and it grows.* Read as runs, the word below the eater is a sequence of
+staircases: runs of the rung of 10^130, 10^129.4, 10^128.8, ... down to about 10^3 rungs (a factor of 4 apart,
+about 210 runs), between the fuels (1 0 0)^F. They are written while the phases run:
+
+| after phase | runs longer than 1000 | their digits | fuels (1 0 0)^F |
+|---|---|---|---|
+| 0 (wall visit 10^3200) | 362 | 25,957 | 264 |
+| 7,999 | 1,164 | 81,669 | 268 |
+| 9,999 | 3,679 | 232,487 | – |
+| 11,999 | 5,257 | 322,122 | 273 |
+
+Every long run is a fuel a later phase has to burn before a hit can get through to the right end. So the list does
+not run down; it fills up, by about 60 digits of new runs per phase between phases 8,000 and 12,000.
+
+*No new bound.* With phase j needing at least a_j^(K_j) times the hits of what is below it (`blk_ge`), a stack
+of phases needs at least 2^(Σ K_j log2 a_j) top hits (`phases_compose`). Over the 12,482 phases that is
+2^(2.8989·10^147), the bound of the 42,000-phase run (wall visit 10^(8.73·10^146)): it all comes from the first
+phases, whose fuels have 146 to 148 digits; after phase 5,000 no fuel had more than 127 digits. The word still
+holds fuels of up to 147 digits further down, and when the eater gets to them the exponent grows again, but each
+phase adds at most about 10^148 to it (the fuel times log2 a, while fuels stay below 10^148). So the bound grows
+only like the number of phases, and skipping descents raises it only if it skips very many of them; the event
+itself comes when the whole list is used up.
+
+*In Lean* (`lean/Descent.lean`, for all values; the offsets are hypotheses, the run's constants an instance):
+`lawA_step_lower`/`upper`, `lawB_step` for one phase; `descent_A_lower`/`upper` (21^j (23 F_0 + c) ≤ 44^j
+(23 F_j + c) and 44^j · 23 F_j ≤ 21^j · 23 F_0 + 44^j · 4 hi) and `descent_B_lower`/`upper` (factor 4) for a
+descent; `phases_compose` and `blk_ge` for the top hits over a stack of phases. This is the arithmetic only. That
+the machine's phases satisfy the laws is the log, not a proof.
+
+*What a level skip still needs.* The law that writes the staircases: how the hits passed down through the
+frozen runs build new runs where they stop, as a rule symbolic in the number of hits. With it a staircase could
+be one step on the list, and the list itself a counter whose overflow is the event. Without it the question is
+open.
+
+Trust: computations, exact by construction; the laws are observations over 12,482 phases; the Lean file is the
+arithmetic only.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
@@ -327,6 +400,8 @@ gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1R
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6
 gcc -O2 -o wv ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/c/wv.c && ./wv 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 3e6 0 1 > ref.txt && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_check.py 2 ref.txt   # accelerator against direct simulation
 python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 2 && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 2 60 100 7                 # step constants; the accelerated run
+cd ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py && LSA_LOG=log.pkl LSA_CKPT=ck.pkl python3 lsa_run.py 2 3200   # the phases from visit 10^3200, logged
+python3 lsa_laws.py log.pkl --ckpt ck.pkl                       # the laws between phases; the bottom word of the checkpoint
 ```
 
 <!-- related machines: written by holdouts/related.py -->
