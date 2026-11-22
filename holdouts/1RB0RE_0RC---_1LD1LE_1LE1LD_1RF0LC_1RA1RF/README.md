@@ -251,6 +251,47 @@ one exact turn-to-turn step on all small shapes. A zone of one or two letters me
 a lone 1 into the frozen side; the run never builds that combination, but nothing local says why. That is where this
 attempt stops.
 
+**Crossing bounces in Lean (`lean/Crossing.lean`).** Write a crossing turn as `Turn2 N O p s R`: near part `N`, the
+lone 1, far part `O`. The lone 1 commutes with an `a` (`shift_a`: `1 | 11` and `11 | 1` are the same cells), so `O` can
+be taken to start with `b`. All of the following holds for every zone, prefix and frozen word.
+
+* `turn2_odd`: when the parity of `N` is odd, the next turn is `Turn2 W2 (a :: O') p r R`. Here `O = b :: O'`, and
+  `W2` and `r` come from the same right sweep `rswL` as in `turn_next`, over `N`'s output, `c` and the frozen word.
+* `turn2_even`: when the parity is even, the same holds with the far part replaced by the sweep's output `W1`, provided
+  the right sweep crosses the far part's output without turning and arrives in F.
+* `far_even`, `clean_even`, `clean_odd`: in the 4-cell letters of `Pascal.lean`, a far part `u ws` always meets that
+  proviso. An even bounce turns it into `u (sx true ws)`, the running XOR (Pascal's rule), and an odd bounce removes its
+  first `u`. So a clean far part stays clean through every crossing bounce, and nothing in it can stop a bounce.
+
+At all 2,590 crossing turns of the first 2·10^7 steps the far part is clean (`u ws`). A crossing can leave the shapes
+only through its near part, by reaching the right end of the tape while the far part is not used up yet. That adds a
+second lone 1, or happens right after a turn on the last cell. Small words show both (`py/crossing.py table`). A break
+is not a halt: in a search over words with first run 0 to 3, inner runs 1, 3, 5 or 7, last run 1 or 3 and up to four `b`s (not kept), only
+1 of the 36 words whose crossing breaks halts within 2·10^5 steps. So what remains is a
+race between the odd bounces, which use up the far part, and the near part's growth toward the right end.
+
+**The holdout as a question about lists (`lean/End.lean`, 22 November 2026).** The right end of the tape comes in
+four cases. F on blank (`end_F_blank`) gives a crossing turn with an empty near part. E on blank, or F on the last 1
+(`end_E_blank`, `end_F_one`), gives an ordinary turn with one more `a`. E on the last 1 is itself a right turn that
+bounces like `Turn`. With these, every right turn of the run is one of three list states: `T` (`Turn`), `T2`
+(`Turn2`), or `EO` (E on the last 1). `astep` computes the next state on lists alone, by running XORs and the
+stopping rule of the right sweep. It returns `none` in only two cases:
+
+1. F reaches the blank end during a crossing, while the far part is not used up;
+2. an even crossing bounce is blocked by its far part (impossible when the far part is clean, `far_even`).
+
+Proved in Lean:
+
+* `astep_sim`: each list step is at least one step of the machine.
+* `start`: the first right turn, step 12, is `EO [b, a]` with prefix 1.
+* `not_halts_of_arun`: if `arun k (EO [b, a] none true)` is defined for every `k`, the machine never halts from blank
+  tape.
+
+So the whole holdout is now one question about one list program: does it ever reach case 1 or case 2? The Python
+version (`py/listmachine.py`) agrees with the real machine at every one of the 17,758 right turns of the first
+2·10^8 steps. Evaluating the Lean `arun` with `#eval` gives the same tapes as the Python version after 300 and 2,000
+list steps, and neither case occurs in that run.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up

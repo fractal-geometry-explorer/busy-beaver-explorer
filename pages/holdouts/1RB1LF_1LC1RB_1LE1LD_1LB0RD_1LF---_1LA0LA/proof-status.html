@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The wall visit of the tape <code>X Y^8 X X</code> halts after 257 steps. It is not a tape of the run from blank; it shows that the pair structure alone does not exclude a halt.</p>
         <p class="where"><code>pure_tape_halts</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The counting laws of the level-stripping accelerator</h3>
+        <p><code>first_pass_correct</code>: a level with cycle length p that passes one hit per cycle at position t makes its m-th pass at its hit p(m &minus; 1) + t. <code>blocks_closed</code>: the hits that K super-cycles of an eater need from above, when each block maps x &#8614; (c + 1)x + b, are a geometric sum in closed form, for every K. Arithmetic only: the constants come from symbolic runs of the digit engine.</p>
+        <p class="where"><code>lean/Accel.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -186,6 +191,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Accelerated run: no halt up to wall visit 4.233&middot;10<sup>2237</sup> (step about 3.1&middot;10<sup>4475</sup>)</h3>
         <p>The digit engine finds cycle, run and recursion rules by symbolic execution and the macro simulator does the right-end events on cells. The run passes the events after wall visits 3, 14, 23, 114, 117, 107,452 and 6.354&middot;10<sup>2236</sup> and stops at the event after 4.233&middot;10<sup>2237</sup>, where a fuel run of more than 10<sup>14</sup> units needed a rule the engine did not have. That rule (frozen words emitted by cycle rules, 16 November 2026) now exists, and the run of 16 November 2026 gets past that point and well into the return sweep of the event, with no halt: after 2 h 35 min, 14,635 runs of cells are left of the head, from 18,141 when the stall point was passed. It is slow there, not stuck. Each wall visit costs about 200,000 explicit operations of the recursion, and rule discovery is not the bottleneck. Exact by construction, validated only on the range direct simulation can reach, not re-derived independently: read it as strong evidence, not as a proof.</p>
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py</code>, numbers in <code>accel_run_1.txt</code></p>
+      </div>
+      <div class="card">
+        <h3>From a wall visit straight to the next right-end event</h3>
+        <p>The level-stripping accelerator treats the ladder of levels as a mixed-radix counter and jumps an eater's K super-cycles at once (h<sup>P</sup>(E[m] X) = Blk E[m &minus; dm] h<sup>c</sup>(X), derived with the fuel m symbolic). From the word at visit 10<sup>1600</sup> it finds the seventh event at exactly wall visit 6.354265240826449&hellip;&middot;10<sup>2236</sup>, all 2,237 digits as the digit engine found them by running every visit: in 128 s with plain batches of hits, in 9 s with 7 nested jumps (eaters &times;256, &times;16, &times;1).</p>
+        <p class="where"><code>py/lsa_run.py 1 1600</code>, <code>py/lsa_*.py</code></p>
       </div>
       <div class="card">
         <h3>No halt in the first 6.60&times;10<sup>17</sup> steps (exact macro run)</h3>

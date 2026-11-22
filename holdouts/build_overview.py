@@ -7,8 +7,9 @@ families were made" and "Recommended next attacks" of holdouts/FAMILIES.md (both
 machine is shown with its standing today, read the same way as the index, so the page shows what was decided since
 the families were drawn up.
 
-recent.html is the newest results, from holdouts/recent.json, which is edited by hand: add an entry, newest first,
-when a pull request changes what is known about a machine, then rebuild.
+recent.html is the newest results, from holdouts/recent.json and holdouts/recent.d/*.json, edited by hand: when a pull
+request changes what is known about a machine, add one file holdouts/recent.d/YYYY-MM-DD-short-name.json holding one
+entry (same fields as an entry of recent.json). Neither page is committed: the Pages workflow builds them on main.
 """
 import html
 import json
@@ -133,11 +134,37 @@ def build_families(rows):
         f.write(page)
 
 
-def build_recent(rows):
+def recent_entries():
+    """The entries of recent.json plus one entry per file in recent.d/ (newest date first; on a tie recent.d first).
+
+    New results go in their own file, recent.d/YYYY-MM-DD-short-name.json (one entry object), so that parallel pull
+    requests do not all edit the top of recent.json and conflict."""
     with open(os.path.join(HERE, "recent.json")) as f:
         rec = json.load(f)
+    extra = []
+    d = os.path.join(HERE, "recent.d")
+    if os.path.isdir(d):
+        for fn in sorted(os.listdir(d), reverse=True):
+            if fn.endswith(".json"):
+                with open(os.path.join(d, fn)) as f:
+                    extra.append(json.load(f))
+    entries = sorted(extra + rec["entries"], key=lambda e: e.get("date", ""), reverse=True)
+    asof = rec.get("asof", "")
+    if extra and max(e.get("date", "") for e in extra) > max((e.get("date", "") for e in rec["entries"]), default=""):
+        y, m, dd = max(e["date"] for e in extra).split("-")
+        asof = f"{int(dd)} {MONTHS[int(m) - 1]} {y}"
+    return asof, entries
+
+
+MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+          "November", "December"]
+
+
+def build_recent(rows):
+    asof, rec_entries = recent_entries()
+    rec = {"asof": asof}
     entries = []
-    for e in rec["entries"]:
+    for e in rec_entries:
         x = dict(e)
         x["machines"] = [machine_entry(M, rows) for M in e.get("machines", [])]
         entries.append(x)

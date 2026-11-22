@@ -186,12 +186,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 22 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
   <div class="col"><p class="lede">Nobody knows. This machine's tape is an irregular list of runs with one long, regular, growing block in the middle. This page shows them and what is proved.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>9.8&middot;10<sup>17</sup> steps</b><span class="small">No halt in the accelerated simulator (checked against direct runs to 10<sup>10</sup>).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 51,938 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
@@ -206,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#block">A regular block in an irregular list</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#block">A regular block in an irregular list</a><a href="#engine">One transition away from a proved table</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -292,6 +293,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <pre>E&gt;0 1^17 0010 1^3 0 (01)^3 1^4 00 1^5 (001)^4 1^8 … (001111111001)^3766 00 (10011)^3 …</pre>
 <p>In the middle sits one long regular block, <code>0 0 1^7 0 0 1</code> repeated 3,766 times, that grows as the machine runs; around it the list shows no order. At the right end the same block is written in another code, <code>(011011101011)^2687</code>.</p>
 </section>
+<section id="engine">
+  <span class="eyebrow">DeepMind's engine</span>
+  <h2>One transition away from a proved table</h2>
+<p>Rename two states and this machine is, step for step, the table that DeepMind proved halts in busycoq pull request 93, except for one entry: when the head meets a 1 in state E, DeepMind's table erases it and steps left, and this one keeps it and keeps walking left over 1s. A halt here happens exactly when D reads a 0 with a 1 on its left.</p>
+<p>DeepMind's proof runs a fast engine that treats the tape as a list of numbers, the digits <code>D n = 1 (11)^n 00</code>, and does many sweeps (calls) at once by counting. Of its 18 basic rules, 14 hold here unchanged. In the other four, where DeepMind's table writes the digit <code>D (k+1)</code>, this one writes <code>D k</code> followed by a stray <code>10</code>. Lean proves these rules for every size.</p>
+<p>The stray <code>10</code> is what breaks the engine. Two of them side by side send the next sweep all the way to the right end instead of back to the left, so the engine's shortcut of counting calls no longer holds. The tape still looks like a list of digits, now with halving chains (<code>D5773 &hellip; D2884 &hellip; D1440 &hellip; D720</code>) and long periodic blocks (<code>(D2 D1)^15875</code>), but it needs an engine of its own.</p>
+</section>
 <section id="halt">
   <span class="eyebrow">Halting</span>
   <h2>What a halt would need</h2>
@@ -335,7 +343,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 22 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -352,6 +360,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>shift_l_B_01</code>, <code>shift_l_B_011</code>, <code>lean/Rules.lean</code></div></div><div><b>Shift rules of the sweeps</b><p>Lean proves, for every count and every tape around, the shift rules of the leftward sweep in B: it turns <code>(01)^n</code> into <code>(11)^n</code> (2 steps per copy) and <code>(011)^n</code> into <code>(001)^n</code> (5 steps per copy).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/observe.py</code>, <code>tools/c/tmrun.c</code></div></div><div><b>A periodic block in an irregular list</b><p>At the last left extension before 10<sup>9</sup> steps (step 882,788,555) the tape is <code>E&gt;0 1^17 0010 1^3 0 (01)^3 1^4 00 1^5 (001)^4 1^8 … (001111111001)^3766 00 (10011)^3 …</code>: runs of 1s of length 3a+1 (7,550 of 7,582) separated by <code>00</code> (7,574 of 7,581 runs of 0s have length 2), and a periodic block of 3,766 copies of <code>1^7 00 1 00</code>. At the last right extension (step 999,852,606) the same block reads <code>(011011101011)^2687</code> followed by <code>(01)^1608</code>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">direct simulation</div></div><div><b>Never one step from a halt</b><p>The machine halts when E reads a 1, and E is entered only from D reading a 0 (D0 → 1LE). In the first 3·10<sup>6</sup> steps D reads a 0 297,649 times, always with a 0 to its left.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>pr93_collisionD</code>, <code>pr93_collide</code>, <code>pr93_defect0D</code>, <code>pr93_defect0</code>, <code>pr93_finishP</code> and six unchanged rules, <code>lean/EngineRules.lean</code> (written by <code>py/engine_rules.py</code>)</div></div><div><b>DeepMind's PR 93 macro rules on this machine</b><p>With E and F exchanged and the detour D0 <code>1LE</code>, E0 <code>0RA</code>, A1 <code>1RA</code> replaced by one step <code>1RA</code> (it ends in the same configuration unless the cell left of D is 1, where the machine halts), the table is <code>1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1LE</code>: the table T3 of DeepMind's halting proof in busycoq PR 93 with E1 changed (T3: <code>0LF</code>, then F0 <code>0LB</code>). Lean proves 11 of PR 93's macro rules for this machine for every count, among them the four that change: where T3 writes the digit <code>D (k+1)</code> (<code>D n = 1 (11)^n 00</code>) on entering <code>CfgJ = l &lt;C 100 r</code>, this machine writes <code>D k 10</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">README, section <em>PR 93's engine on this table</em></div></div><div><b>PR 93's engine does not carry over</b><p>Of PR 93's 18 basic rules, 14 hold unchanged (direct simulation, counts up to 4, random tape around), and none of the 18 has D reading 0 next to a 1, so a halt can only come where an engine steps cell by cell. But a collision now leaves <code>10 10</code> (PR 93's call <code>D_j 10 D0 D0 r</code> to <code>D_(j+1) D2 10 r</code> becomes <code>D_(j+1) D1 10 10 r</code>), and a call that meets <code>10 10</code> runs on into the tape beyond instead of returning. PR 93's batched calls have no counterpart, so its engine cannot be patched the way it was for T4.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">direct simulation (C)</div></div><div><b>Digits, halving chains and periodic blocks</b><p>At left-end visits up to 3&middot;10<sup>10</sup> steps the tape is a list of digits <code>D n</code> with a few <code>10</code> defects: halving chains such as <code>D5773 D0 D0 D2884 10 D1440 10 D0 D0 D0 D720 D1 D359 D1 D179 &hellip;</code> and growing periodic blocks <code>(D2 D1)^15875</code>, <code>(D3 D0)^3841</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code></div></div><div><b>No halt in the first 9.8&middot;10<sup>17</sup> steps</b><p>The accelerated simulator <code>rsim.py</code>, validated against direct simulation at 6 points up to 10<sup>10</sup> steps, runs 984,180,560,109,706,163 steps from blank tape without a halt (3 hours).</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The periodic block is a clean counter, but the irregular rest of the list, where a halt would have to happen, is not understood.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>
