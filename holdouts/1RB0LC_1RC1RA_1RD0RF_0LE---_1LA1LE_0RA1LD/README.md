@@ -187,11 +187,18 @@ So two rows of the pulse table are now theorems: a run of three or more 1s after
 (where it becomes one more `011` and three more words) and the `00` pulse are not yet in Lean.
 
 **The `00` pulse, as far as it is understood.** The sweep in state A reaching `0 0` writes over it, makes a short
-zigzag of a few dozen steps over the next words, and comes back left in state E instead of A with a packet. E
-crosses the image `11` of a word `01` unchanged (`11 <E → <E 11`, any tape around), but on the image `100` of a
-word `011` it switches to other states and rewrites cells, so the words to the left are not restored. That is why
-a `00` pulse can rewrite the whole left part, and why its result depends on which words lie to its left. Turning
-this return into a finite list of rules over words is the next step.
+zigzag over the next words, and comes back left over the images in one of three modes, named by the head's state as
+it enters each image. `lean/Return.lean` (kernel only, written by `py/ret_rules.py`) proves 21 rules, one for each mode,
+image and six-cell carry to its right that occurs on random returns, each for every tape around:
+
+| mode | image `11` (word `01`) | image `100` (word `011`) |
+|---|---|---|
+| C | becomes `01`; the carry's `011` becomes `101`; stays C | becomes `011`, carry unchanged; stays C |
+| E | stays `11`, so the 1s join the run on the right; stays E | becomes `110`, second carry cell cleared; to A |
+| A | stays `11`, first carry cell cleared (a run of two); stays A | the head goes right past the carry: a new excursion (open) |
+
+So in mode E a stretch of `01` words becomes one run of 1s: one way a `00` pulse writes a new fuse. Mode A on a
+`011` word starts a new excursion to the right, which is what is left to decode.
 
 <!-- related machines: written by holdouts/related.py -->
 
