@@ -213,6 +213,46 @@ Level 2 alone takes about 10^771 steps of it, and n roughly triples in each, so 
 It cannot be followed to its end, and so it cannot show a halting class or a cycle. The axioms are propext,
 Quot.sound and Classical.choice (for the case split "reaches halt or not").
 
+## Every level runs one orbit of one digit map (22 Nov)
+
+`lean/DigitMap.lean` (kernel; axioms propext, Quot.sound, Classical.choice). On a long tail the walk of `Walk.lean`
+is, phase by phase, one map on one number. A state x stands for the phase end (n, r) = (10 + 31 floor(x/10),
+floor((x mod 10)/2)), and
+
+    f(10a + d) = 31a + K[d/2],   K = 15, 27, 47, 35, 36   (r = 0..4)
+
+is the next phase end, using 4, 5, 8, 3, 2 words `1110` (r = 1, 2: the reset goes straight into an r = 0 reset, so
+one step of f is two phases there); `digit_step`, for every suffix. Every level starts at (17, 0) with T words, which
+after its first phase is x = 22 with T - 4 words (`level_start`). So **every level runs a prefix of the same orbit
+22, 89, 284, 915, 2868, ... of f**, and stops at the first state whose phase needs more words than are left
+(`dstop`, `dstop_run`, `dstop_stops`). Level 1 (6801 words) stops after 1566 steps at r = 3 with no word left and
+n = 63 mod 100 (`level1_digit`, by `decide`), as `level1_end'` found. `halts_iff_level2_end`: the machine halts from
+blank tape if and only if the walk halts from the state where the orbit of 22 stops with the budget
+B2 = 10 + 31 floor(X1/10) + 16 of level 2 (772 digits).
+
+**No closed form is in reach.** f is a generalized Collatz map (divide by 10, multiply by 31, add a constant chosen
+by the last digit); its last digits behave like digits in the rational base 31/10. Since 31 is invertible mod 10^k,
+the last digits d_0..d_k of an orbit depend only on the start mod 10^(k+1) and every digit list comes from exactly one
+residue (`py/endgame.py` checks k <= 4). So the digits of an orbit re-encode the digits of its start one for one,
+and the end of level 2, about B2/4.38 = 2·10^770 steps along the orbit of the fixed number 22, needs in effect the
+middle digits of a number of about 10^770 digits. Nothing faster than following the orbit is known for maps of this
+kind (Mahler's 3/2 problem and Antihydra are the same kind of question). The end is decidable in principle and out
+of reach in practice.
+
+**What the real orbit suggests** (`python3 py/endgame.py 40000`, 16 s; heuristic). Along 40,000 steps of the orbit
+of 22 each r comes up 19.7 to 20.2% of the time (mean 4.38 words per step) and n mod 10 is near uniform. With every
+budget stopping between steps 2,000 and 40,000 taken as equally likely, and the walk followed from the stop
+(`py/walksim.py` reads the rows from `Walk.lean`):
+
+| end of | loop | halt | new level 1 | new level 2 | new level 3 |
+|---|---|---|---|---|---|
+| level 1 | 39.3% | - | 1.5% | 59.2% | - |
+| level 2 | 59.7% | 5.4% | 7.6% | 4.5% | 22.8% |
+| level 3 | 68.3% | - | 27.3% | - | 4.5% |
+
+Chained over levels (each new budget treated as random) the chance of an eventual halt is about 6.2% from the start
+of level 2. Most likely the machine falls into one of the proved loops, but nothing here proves which.
+
 ## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
 
 The method that closed another holdout (keep the big counts free, track only remainders; it proves non-halting if no
@@ -272,7 +312,8 @@ Open.
   `blank_to_17`, `level2_entry`, `blank_to_level2`), `lean/NearEmptyRules.lean` and `lean/NearEmpty.lean` (every reset
   at a nearly empty tail, `loop5`, the `*_never_halts` classes, `s2_r2_t2_halts`, `s2_r0_t6_halts`),
   `lean/Level3Rules.lean` and `lean/Level3.lean` (the third level and the closed list of short tails, `y0_r2_halts`,
-  `s2_r2_t1_to_y_halts`), `lean/Walk.lean` (the whole table as one map, `halts_iff_walk`). The first level
+  `s2_r2_t1_to_y_halts`), `lean/Walk.lean` (the whole table as one map, `halts_iff_walk`), `lean/DigitMap.lean` (every level is a prefix of one
+  orbit of f(10a + d) = 31a + K[d/2], `halts_iff_level2_end`). The first level
   is a theorem: from a phase end (n, r, t) the machine follows the phase map, with exact step counts, as long as t is
   at least 4 per phase. All kernel-checked, no `sorry`, no `native_decide` outside `blank_runs_native`.
 * No halt to 4.5*10^17 steps (exact, accelerated). From blank tape to the first record of level 2 (through the phase
@@ -283,9 +324,9 @@ Open.
 
 ## For later
 
-* The end of level 2 of the real run: level 2 starts at `cfg 17 0 (tl (N+20) s2)` (proved) and lasts about
-  (N+20)/2.5 phases of the proved phase map; its last phase end (r, t, n mod 10) decides between the rows of the
-  table above. Nothing short of a closed form for about 10^770 iterations of the map is in sight.
+* The end of level 2 of the real run: the state of the orbit of 22 under f about 2·10^770 steps along (section
+  "Every level runs one orbit"). No closed form is known; a proof of non-halting would need a new idea, for example
+  an invariant of the orbit's digits that keeps it out of the halting rows.
 
 ## Check
 
@@ -302,6 +343,7 @@ python3 lean/tailresets.py > lean/TailResetRules.lean && python3 lean/nearempty.
 gcc -O2 -o firstrec c/firstrec.c && python3 py/closure_table.py > runs/closure_table.txt   # the closed list of short tails (minutes)
 python3 lean/level3.py   # regenerate the third-level rules (seconds)
 python3 lean/walk.py   # regenerate Walk.lean from the rule statements (instant)
+python3 py/endgame.py 40000   # digit map vs the walk, level 1 replayed, how levels end (16 s)
 ```
 
 ## Pages
