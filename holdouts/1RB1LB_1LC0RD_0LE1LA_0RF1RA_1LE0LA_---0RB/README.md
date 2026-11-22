@@ -268,6 +268,16 @@ are all consequences.
 The only thing a round trip cannot cross is a lone 1 before `Q` (the right sweep's token mode, where F0 lives). `iso_birth`: in a
 tape where no three neighbouring cells hold two 0s, an output `0 1 0` at `p .. p+2` comes only from `0 1 1 1 1 0` at `p .. p+5`.
 
+**Token mode, in cells** (`lean/Token.lean`). A lone 1 sends the right sweep into token mode; it crosses the `110` words
+after it and drops back one cell late at the first `111`. `rtok`: the cells and state it leaves are exactly those of the
+right sweep over the *filled* tape, where the holes at `i+1, i+4, ..., i+1+3j` (the lone 1's 0 and the 0s of the `j`
+words) are 1s. So the left sweep cannot tell, and `trip_tok`: any round trip over ordinary runs and token chains is `ca3`
+of the filled tape. By `ca3_diff` that is the plain automaton with two cells flipped, `i-2` and `i+1+3j`, which is the
+defect's jump of `Hop.lean` as a rule on cells. `tok_halt`: if the `110` words run into a 0 the machine halts in F.
+`py/trip_model.py` applies this map to whole tapes: it reproduces all 10,528 round trips of the first 6·10^7 steps,
+token-mode trips and right-end trips included.
+
+
 **Fast simulator** (`c/trips.c`). Trips the theorem covers are done with 64-bit word operations; trips with a lone 1 before `Q`
 and trips that reach the right end (with its fixed `10`) are run on the machine's table. Mode 1 also runs every trip on the
 machine and compares the whole tape and the step count.
@@ -299,7 +309,7 @@ search over all words of 1-3 cells, each for every n and every tape around. `lea
 the rule 102 epoch and its closed form (section above). `lean/Danger.lean`: the danger pattern halts. `lean/Hop.lean`:
 the shielded sweep, the jump and the jump clock (section above). `lean/Gaps.lean`: which gaps sweeps and jumps can
 turn into the danger pattern (section above). `lean/Trip.lean`: one round trip is the cell automaton
-`c'[p] = 1 xor c[p] xor c[p+3]` up to the first `00` (section above).
+`c'[p] = 1 xor c[p] xor c[p+3]` up to the first `00`; `lean/Token.lean`: with lone 1s, the same on the filled tape, and the halt (section above).
 
 ## Halting
 
