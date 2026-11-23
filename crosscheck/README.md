@@ -12,8 +12,10 @@ methods that share no code with the proofs or with `tools/`.
 busycoq's `TM_from_str` on every transition of all 85 tables. That includes
 `1RB1RD_1LC0RE_1LD1LC_1RA0LB_0RD0RF_0LC---` (busycoq PR 100, a 4.5-hour build, closed under the global context,
 [`coq/results_long.txt`](coq/results_long.txt)). The last one, `1RB0LE_1RC1RB_1LD0RA_1LA1LC_0LC0LF_0RB---` (PR 102,
-about 14 hours), compiled here before (18 November); its audited rebuild was cut off by a container restart and is
-running again.
+about 14 hours), compiled here before (18 November, `tools/coq/busycoq/prs-97-107/results.txt` and `axioms.json`: rc=0, closed under the
+global context, and its file states `halt : halts tm c0` with `tm := TM_from_str` of exactly this name); its audited
+rebuild was cut off twice by container restarts and was not run a third time, so it rests on that compile and the
+table check.
 A new direct simulator finds no halt in the first 10^10 steps of any of the 85, which agrees with every claim (each
 halting proof puts the halt far beyond 10^11 steps).
 
