@@ -401,12 +401,55 @@ the machine's phases satisfy the laws is the log, not a proof.
 *What a level skip still needs.* The picture is now a flow of hits through a few kinds of parts: an eater
 turns 4 rungs into 21 hits (multiplying the hits needed above by 64), a factory turns 11 hits into one rung and 2
 hits further down while it burns its [100] fuel, and below it the next factory. A skip one level above the eater
-phases would run this flow as arithmetic. Still missing: the rule of law B (one rung per 21 hits), what a
-factory does when its [100] fuel runs out, and the parts the 2 hits reach.
+phases would run this flow as arithmetic. The three missing pieces (law B, a factory out of fuel, where the 2
+hits go) are in the next section.
 
 Trust: computations, exact by construction; the laws are observations over 12,482 phases; the factory rule is
 a symbolic run of the digit recursion (the engine, not Lean); the Lean files are the arithmetic, with the
 factory rule as a hypothesis.
+
+## Law B, the ladder, and refuelling (23 November 2026)
+
+**What was asked:** the three pieces a level skip still needed: the rule behind law B, what a factory does when
+its fuel runs out, and where the 2 hits it passes on go.
+**What came out:** law B is not a rule of the machine; the hits go to a base-4 *ladder*; and when the fuel runs out
+the factory burns the top block of that ladder. Each rule is checked on the digit recursion (the engine), not in
+Lean. No new bound yet.
+
+*Law B was the engine's bookkeeping.* Every law-B transition was the eater crossing from one piece of a run of the
+rung to the next piece of the same run (the junction digits are periodic). The merge of such pieces was not
+applied where the cached transitions pick the next fuel (`head_split` in the twin's `py/lsa_phase.py`). With that
+fixed, the first 1,050 phases from wall visit 10^3200 have no law-B transition at all: 1,018 follow law A
+(−42 ≤ e ≤ 174), and the 20 others are the ends of descents (every ~440 phases the eater moves on to the next
+fuel [100]^M) and one stretch of 17 phases on older rung runs. They give the same bound as the 1,404 unmerged
+phases (Σ K log2 a = 2.8986·10^147). The twin's seventh event comes out the same.
+
+*Where the 2 hits go: a ladder.* Below the factory's fuel the word holds five blocks (10)^R0 ... (10)^R4
+(R0 = 10^143.5, each about a quarter of the one before), with counter digits 0^7, 0^4 3, 3 0^2 3 in the junctions,
+then the next fuel [100]^(10^146.5) and below it the next, larger ladder. The ladder counts the factory's hits in
+base 4: after 11 q hits to the factory, block i has grown by q / 4^i, up to the carries (|error| ≤ 1). So R0 is
+about the number of hits the factory has had, divided by 11.
+
+*When the fuel runs out the factory refuels from the ladder.* A few hits after [100]^M is used up, the top block
+becomes the next fuel and the ladder moves up by one block:
+
+    (10)^R0  ->  [100]^(2 floor((R0 − 1) / 3) − 4),     R'_j = R_(j+1) + (R0 / 3) / 4^(j+1)  (|error| ≤ 3)
+
+and the fuel after the ladder gains at most one unit. So the new ladder is about the old one divided by 3, and
+the factory goes on. Its new fuel lasts about 11 R0 / 9 more hits.
+
+`python3 py/lsa_refuel.py N` in the twin's folder checks both rules on N random ladders (40 checked: worst carry
+error 0.75 for counting and 2.75 for refuelling). The word there is the one after phase 999, with the block lengths
+and the fuels as parameters. With the factory rule (`py/lsa_factory.py`) this gives the whole flow below an eater:
+
+* an eater turns 4 rungs into 21 hits and multiplies the hits needed above it by 64;
+* the factory turns 11 hits into one rung of the next fuel and 2 hits for the ladder, and burns 6 units of
+  [100] fuel;
+* the ladder counts the hits in base 4;
+* when the fuel is gone, the ladder's top block becomes the next fuel.
+
+A level skip would run this flow as arithmetic until the ladder and the fuel after it are used up. That is the
+next step. The rules here are observations of the engine on many values, not yet proofs.
 
 ## Pages
 
