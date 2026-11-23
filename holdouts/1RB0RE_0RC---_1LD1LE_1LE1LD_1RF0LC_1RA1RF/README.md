@@ -389,11 +389,14 @@ reach. A bit-parallel list machine would push the halt hunt further.
 
 **The halt hunt on the real orbit (23 November 2026, `c/bitlist.cpp`).** A bit-parallel list machine (64 letters per
 machine word, one fused pass per bounce, threads for long zones) matches `c/listmachine.cpp` state for state on the
-first 150,000 steps and reproduces its 10^6-step counts exactly, about 20 to 50 times faster. From blank tape it has
-run 4.1·10^7 list steps without a failure of `astep` (still running): the zone has grown to 2.8·10^7 letters, E has
-read the last 1 35 times, and the last time it did so during a crossing was at list step 471,169. Since about list
-step 10^6 there has been no crossing turn with blank end at all (192,818 in all, 12 without a witness, all in the
-first 10^6 steps). On a failure it saves the state, and `./bitlist tm H state` rebuilds the tape and runs the machine.
+first 150,000 steps and reproduces its 10^6-step counts exactly, about 20 to 50 times faster. From blank tape it ran
+10^8 list steps without a failure of `astep` (about 14 hours on 3 cores): 41,941,838 `T`, 58,058,124 `T2` and 38 `EO`
+turns, the zone reaching 5.6·10^7 letters (about 1.1·10^8 cells). E reads the last 1 at list steps growing by a factor
+of about 1.75 (4,463,710, 7,833,642, 13,742,098, 24,102,211, 42,285,079, 74,185,719), each followed by one long
+crossing (the last ran from about 75·10^6 to 99.9·10^6), but the last time E read it during a crossing was at list
+step 471,169, and after the first 10^6 steps there was no crossing turn with blank end at all (192,818 in all, 12
+without a witness, all early). So the hazard that makes perturbed orbits halt has not come back on the real orbit.
+On a failure the program saves the state, and `./bitlist tm H state` rebuilds the tape and runs the machine.
 
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
