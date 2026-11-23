@@ -202,17 +202,22 @@ both the plain round and the round with the first run removed. (In the real run 
     9 "00" 1 "110" | 1  ->  8 | 1 "1110" | 1
 
 So the target of the section above, "no `"110"` or `"1110"` before a separator, even in the relaxed run", is
-false. Every example goes through a double separator `| |` (an empty run). A cursor makes it by colliding with the
-right end of a short tape (`"0" 1 "1"` at the end, or `12 "1" 1 "10" | 1` -> `13 | | 1`). The real run never has
-`| |` (to round 100,000), and its tape almost always ends in `| 1` (2,828 of the first 2,866 explicit rounds). Random relaxed runs from the real tape at round
-300 reach `| |` only when heavy cuts (p = 0.3) have eaten the tape down to a few tokens. None of 600 random relaxed runs
-with heavy cuts halts either.
+false. The first examples go through a double separator `| |` (an empty run), which a collision makes: `"0" 1 "1"`
+at the tape's end, or `"1" 1 "10" |` anywhere (`12 "1" 1 "10" | 1 | 1 | 1` -> `13 | | 1 | 1 | 1`). The real run
+never has `| |` (to round 100,000). But excluding it is not enough. `python3 py/relaxbfs.py 85 4 400 nodouble` drops
+every tape with `| |` and still finds 242 tapes with `"110" |` (2,380,059 tapes, no halt, no `"1110" |`). In these a
+walking `"0"` merges with a stalled `"10"` before a separator:
 
-So an invariant of the relaxed run must allow `"110" |`. It would have to forbid the halt itself, or forbid `| |`,
-and forbidding `| |` needs a fact about the right end of the tape. This also explains the closures above. They
-invent many tape ends and cursor chains that the relaxed run does not make. Real relaxed runs (16 runs, 96,000
-rounds) show 2,837 distinct 6-grams, while the closure has 86,000 by its 20th round. Keeping only the parity of the
-runs (K = 0 or 1) is too coarse: those closures soon reach false halts or bad patterns.
+    10 | 3 | 3 "0" 2 "0" | 1  ->  ...  ->  9 "10" 7 "10" | 1  ->  ...  ->  4 | 15 "0" 2 "10" | 1  ->  3 | 19 "110" | 1
+
+The README's list for the real run already includes `"10"` before a separator. What keeps a `"0"` from arriving two
+pairs behind it is then the size of the budgets. None of 600 random relaxed runs with heavy cuts halts either.
+
+So an invariant of the relaxed run must allow `"110" |`. It could forbid `"1110" |` (with `| |` excluded), or the halt
+itself. This also explains the closures above. They invent many tape ends and cursor chains that the relaxed run
+does not make. Real relaxed runs (16 runs, 96,000 rounds) show 2,837 distinct 6-grams, while the closure has 86,000
+by its 20th round. Keeping only the parity of the runs (K = 0 or 1) is too coarse: those closures soon reach false
+halts or bad patterns.
 
 ## Results
 
@@ -238,9 +243,10 @@ runs (K = 0 or 1) is too coarse: those closures soon reach false halts or bad pa
   `py/tok.py`), and n-gram closures under it (no halt and no 110/1110 before a separator seen; none closes).
 - `py/relaxbfs.py`: the relaxed run searched over every choice of cuts. To 92 rounds (4,774,767 tapes) it finds no
   halt, but it does find `"110"` and `"1110"` before a separator, after a double separator `| |` made at the tape's
-  right end. So the relaxed target is false.
-- Not done: an invariant of the relaxed run that allows `"110" |` but excludes the halt (or one that uses the right
-  end of the tape or the real budget sizes), and the complete list of collisions.
+  right end or by `"1" 1 "10" |`. Without `| |` it still finds `"110" |`, from `"0" 2 "10" |`, though not `"1110" |`.
+  So the relaxed target is false.
+- Not done: an invariant of the relaxed run that allows `"110" |` but excludes the halt (for instance no `"1110" |`
+  once `| |` is excluded, which would need a proof for the real run), and the complete list of collisions.
 
 ## First look
 

@@ -5,7 +5,8 @@ runs out) the search tries both the plain round and the round with the first run
 and those longer than MAXTAPE tokens dropped.  It reports halts, the words seen directly before a separator, double
 separators `| |`, and a shortest history for each of `"110" |`, `"1110" |` and 1111.
 
-usage: python3 relaxbfs.py ROUNDS [START [MAXTAPE]]     default START '4' (round 1 from blank tape), MAXTAPE 400
+usage: python3 relaxbfs.py ROUNDS [START [MAXTAPE [nodouble]]]   default START '4' (round 1 from blank tape),
+                                                         MAXTAPE 400; nodouble: drop tapes with a double separator
 exit code 1 if a halt is found
 """
 import sys, os, collections
@@ -26,7 +27,10 @@ def key(t): return tuple(tuple(x) if type(x) is list else x for x in t)
 def unkey(k): return [list(x) if type(x) is tuple else x for x in k]
 
 
-def search(start, R, maxtape):
+def double(t): return any(t[i:i + 4] == SEP and t[i + 4:i + 8] == SEP for i in range(len(t) - 7))
+
+
+def search(start, R, maxtape, nodouble=False):
     front = {key(start)}; seen = set(front); par = {}; C = collections.Counter(); ex = {}
     for r in range(R):
         nxt = set()
@@ -37,7 +41,7 @@ def search(start, R, maxtape):
             for o in opts:
                 n, _ = round_(o)
                 if n is None: return 'HALT', r, show(o), C, ex, par
-                if len(n) > maxtape: continue
+                if len(n) > maxtape or (nodouble and double(n)): continue
                 k = key(n)
                 if k in seen: continue
                 seen.add(k); nxt.add(k); par[k] = k0
@@ -55,7 +59,8 @@ def history(k, par, n=12):
 
 if __name__ == '__main__':
     R = int(sys.argv[1]); start = parse(sys.argv[2] if len(sys.argv) > 2 else '4')
-    res, r, info, C, ex, par = search(start, R, int(sys.argv[3]) if len(sys.argv) > 3 else 400)
+    res, r, info, C, ex, par = search(start, R, int(sys.argv[3]) if len(sys.argv) > 3 else 400,
+                                     len(sys.argv) > 4 and sys.argv[4] == 'nodouble')
     if res == 'HALT':
         print(f'HALT in round {r + 1} from {info}'); sys.exit(1)
     print(f'{R} rounds, {info} tapes, no halt')
@@ -63,4 +68,4 @@ if __name__ == '__main__':
     for w in ('"110"', '"1110"', '1111'):
         if w in ex:
             print(f'a history of {w}' + (' |' if w != '1111' else '') + ':')
-            for x in history(ex[w], par): print('   ', x)
+            for x in history(ex[w], par, 30): print('   ', x)
