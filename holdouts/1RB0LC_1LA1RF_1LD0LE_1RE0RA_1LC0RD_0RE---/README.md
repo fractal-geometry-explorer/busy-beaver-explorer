@@ -41,7 +41,8 @@ by SAT up to 16×16 and 20×12 states, NGramCPS (widths 2-14, -H, -U) and RepWL 
 3. Partly done 22 November: the movers are proved (`lean/Movers.lean`), the simulator on them is exact, and every
    collision at the ends of the movers seen to 1.6·10^18 is a lemma with its gaps as variables (`lean/Collisions.lean`).
    Still to do: an invariant, in terms of movers, that shows no other collision ever happens; in particular that a
-   gap of one pair is never followed by another swept mover at the right end.
+   gap of one pair is never followed by another swept mover at the right end. A first abstract search for one
+   (23 November, below) does not close.
 
 ## Reproduce
 
@@ -250,6 +251,39 @@ runs forgets how far away it is. An invariant would have to be written in terms 
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_collisions.py 1.6e18 # writes lean/Collisions.lean (20 min)
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                       # ALL CHECKED
+```
+
+## Toward an invariant in terms of movers (23 November 2026)
+
+**Short answer.** Not found yet. Two things were measured, and a first abstract search in terms of movers was
+built; it does not close.
+
+**What the moving list looks like.** Sampled every 50 bounces to 1.06·10^13 steps (`py/gap_patterns.py`), the gaps
+of the movers the head crosses, after the rightmost one, are always some gaps of three pairs or more followed by
+some gaps of one pair (the reservoir's words, at the far end). A gap of two pairs, or a one-pair gap before a
+longer one, never occurs. At every bounce where the rightmost gap is under two pairs, the next gap is 3, 4 or more.
+So the one-pair gaps only reach the right end when everything in front of them is gone. When that happens
+(1.4·10^8 steps, the reservoir of the drain that ends there) they are opened up one after another inside one
+bounce, and no halt follows.
+
+**An abstract search** (`py/mover_cps.py`). It runs `mover_sim.py`'s bounce on an abstract state:
+* runs of pairs are capped at 6;
+* the moving list and each block of movers at rest are queues with a few explicit gaps at each end and a middle
+  taken from a learned graph of adjacent gaps;
+* the static part of the tape below its top 12 items is a path in a learned graph of adjacent items;
+* a block of movers at rest is crossed in one step by `left_all` and `right_gen` when the head meets it in E on
+  a 0 (or comes back in D or F).
+
+It fails, started at 4.2·10^9 steps, after about 2,000 states. One state leaves only `0 1 1 0 4` above the static
+part, and the run that follows walks into it without end: the head crosses the movers of a block one cell at a
+time, in states where `left_all` does not apply, and the abstract block can be as long as it likes. This is the
+same loss as in the tape-level searches: the abstraction forgets how far the next turning point is. A version that
+can close needs the static part written as mover-level items whose crossings are lemmas in every state the head
+can meet them in, not only E on a 0.
+
+```sh
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gap_patterns.py 1e13    # gap patterns (10 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_cps.py 3e9        # FAIL after ~2,000 states
 ```
 
 ## Pages
