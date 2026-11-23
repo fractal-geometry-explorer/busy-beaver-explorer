@@ -81,19 +81,21 @@ for the old engine.
   (`584e46fced19ef4fef6aec291f47d321`), the last checkpoints of the old runs. The new engine reaches those two points in
   under 3 minutes; the old one took several hours.
 - **Speed.** About 27 times faster at 10^6 fast steps and far more on larger tapes: in one hour each of the three runs below
-  went from blank tape to about 3·10^8 fast steps and 2^17800 cells.
+  went from blank tape to about 3·10^8 fast steps and 2^17800 cells; after 3.7 hours
+  (stopped at 00:11 UTC on 23 November) they were at 6.0-6.6·10^8 fast steps and 2^25750 cells, growing by about
+  2,000 bits of tape per hour. The checkpoints are kept outside the repository (about 37 MB each).
 - `runz START MAXFAST CHECKPOINT` runs from blank tape (or resumes), saves every 3 minutes, and classifies every entry
   into raw mode like `ev3` (state, direction, 8 cells on each side), printing a kind when it is first seen.
 
 | start | machine | fast steps, no stop | tape then | so no halt in the first | kinds of raw entry |
 |---|---|---|---|---|---|
-| A | 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF | 309,343,765 | > 2^17817 cells | 10^5363 steps | 19 |
-| B | 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF | 286,000,000 | > 2^17816 cells | 10^5363 steps | 17 |
-| D | 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF | 305,000,000 | > 2^17855 cells | 10^5374 steps | 23 |
+| A | 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF | 601,531,739 | > 2^25798 cells | 10^7765 steps | 21 |
+| B | 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA0RF | 627,839,771 | > 2^25751 cells | 10^7751 steps | 23 |
+| D | 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD0RF | 659,729,468 | > 2^25808 cells | 10^7768 steps | 24 |
 
 The new kinds of raw entry (more of the 8 neighbouring cells, the same situations) are all in the classes of the table
 above: D moving right with a 0 on its left, D moving left onto a 1, B moving right, and C reading 0 moving left with
-`1 1 1` on its left, the sibling's halting event. That event came 73 times from start A (55+5 from B, 75+1 from D)
+`1 1 1` on its left, the sibling's halting event. That event came 111 times from start A (97 from B, 105 from D)
 and was survived every time. Every raw step is checked for the halt by the engine itself.
 
 ## Files

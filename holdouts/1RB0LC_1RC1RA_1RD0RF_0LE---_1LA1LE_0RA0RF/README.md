@@ -102,7 +102,7 @@ of 7, `1xN` = the counter).
 | heuristic | **The epoch law.** Read off the recorded lists, not proved: with n the counter and c<sub>7</sub>, c<sub>13</sub>, … the numbers of runs, one epoch gives c<sub>7</sub>′ ≈ n/2, c<sub>6j+7</sub>′ ≈ c<sub>6j+1</sub>/2 (the half, or one or two less) and n′ ≈ (5/2)·c<sub>7</sub> (within 10^−4 at 10^14 steps). Hence the two interleaved geometric series in the table of counts, the factor 5 per +12 in length, growth by 5/4 every two epochs and step counts growing by 25/16. Between the groups sit a few odd runs that change from epoch to epoch without a visible rule; they are the chaotic part, and the halting pattern can only arise there. | `data/far_1e14.json` |
 | heuristic | **Where B reads 0 1 1.** In the first 10^9 steps of a2 state B reads `0 1 1` 20,972 times; in 20,941 of them the cells around are `111101[0]110101`, in 29 `001101[0]110101`, and twice (steps 104 and 1,264) something else; the next cell is always 0. a1 has 20,998 such events with the windows `111100[0]110101` and `001100[0]110101`. So after the first 1,300 steps the F-events seen are all of two harmless kinds; whether that holds for ever is the open question. | direct C runs (not kept in the repository) |
 | kernel | **A Coq halting proof with one assumption.** Built from DeepMind's proof in busycoq pull request 93 (this machine is that table with its halt replaced and a D0 detour); complete except `run_ok`, the claim that its accelerated engine stops. | `coq/README.md`, `coq/build.sh` |
-| trusted | **No halt in the first 10^5363 steps.** The engine of that proof file, extracted to OCaml and checked against direct simulation through 3·10^9 steps, ran 18,726,507 fast steps from blank tape without stopping; its tape then has more than 2^4486 cells. | `coq/README.md` |
+| trusted | **No halt in the first 10^7751 steps.** The engine of that proof file, extracted to OCaml and checked against direct simulation through 3·10^9 steps, ran 18,726,507 fast steps from blank tape without stopping; its tape then has more than 2^4486 cells. | `coq/README.md` |
 | open | **Does it halt from blank tape?.** Not known. It halts exactly if B ever reads `0 0 1`. A proof of non-halting needs an invariant for the odd runs between the groups, which no closed rule describes so far; the simulator slows down beyond 10^15 steps because those runs pile up at the right end. |  |
 
 ## Lean
@@ -137,7 +137,7 @@ and D, gives the holdouts 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF, 1RB1RE_1RC0
   engine step is proved to be a stretch of this machine's run, and a stop is proved to be a halt.
 - *Computed.* The engine, extracted from that file, agrees with direct simulation through 3·10^9 steps, and ran
   18,726,507 fast steps from blank tape without stopping. Its tape then has more than 2^4486 cells, so **the machine
-  does not halt in its first 10^5363 steps**.
+  does not halt in its first 10^7751 steps**.
 - *Observed.* The engine leaves its macro rules only in 15 kinds of local situation (first 9.6 million fast steps).
   One of them is the configuration where PR 93's machine halts; it recurs here and the machine erases three 1s and
   goes on. None of the others can lead to the halting pattern.
