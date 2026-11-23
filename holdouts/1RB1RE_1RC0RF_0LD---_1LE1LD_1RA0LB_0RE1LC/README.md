@@ -105,9 +105,38 @@ Y goes down slowly, from 261,805 at 2.84·10^11 to 54,641 at 5·10^11. When Y ru
 13-word block and the irregular stretch again. No phase so far needed anything from the irregular stretch except at
 these hand-overs, so a halt (C reading 1 next to six 1s, per the CTL search below) would have to happen there.
 
-Next: time the end of the current phase (Y = 0, probably near 10^12 steps) with an accelerated simulator for this
-one shape (three counters a, X, Y and a fixed middle). Then decode the hand-over that follows, which is the first
-place the irregular stretch matters.
+The end of this phase and what follows: see the next section.
+
+## Past 5·10^11 steps with a block accelerator (23 November 2026)
+
+`c/bacc.cpp` is an exact accelerator built for this run. It keeps the tape as blocks (word, count) and:
+
+- crosses a whole block w^k in one jump when one copy (or two, or three) is crossed and the head leaves in the
+  state it came in with (cached trial);
+- repeats a moving front, such as the conversion `(01)^n` to `(11)^n` one word at a time, once its configuration
+  minus two block counts has come back twice with the same count changes;
+- crosses runs of 64 cells with no structure in one go when that chunk has been crossed before (cached).
+
+It is a trusted computation, not a proof. Checked against the plain simulator `c/snap.c` (`py/tapecmp.py`: same tape,
+head position and state): at 10^8 steps from blank tape, and from saved plain tapes 1·10^11 to 1.5·10^11, 2.5·10^11 to
+3·10^11, 3·10^11 to 5·10^11 and 4.99·10^11 to 5·10^11. In the regular phases it covers 10^10 steps in well under a
+second; on the long stretches with no structure it is only a few times faster than the plain simulator.
+
+**No halt in the first 2.16·10^12 steps** (from the plain tape at 5·10^11, `evidence/bacc-5e11-to-2.15e12.txt`: the
+tape as its big blocks every 10^10 steps). What the run did:
+
+| steps | what happens |
+|---|---|
+| 5·10^11 to 5.95·10^11 | the regular phase above continues; the run of ones `1^Y` runs out |
+| 5.95·10^11 to 9.2·10^11 | the irregular stretch is eaten from 120,571 to about 70,000 cells while the left end keeps moving; the 5-word block shrinks from 66,518 to 48,627 words; blocks of a 19-cell word come and go |
+| about 9.2·10^11 | the tape is rebuilt as `(001)^a (5-word)^135383 (11)^Z (0110110110101)^13146`, then 142,999 cells of irregular stretch |
+| 9.3·10^11 to 1.86·10^12 | a new regular phase: a grows from 104,120 to 360,930 and Z goes down from 374,882 to 0; the 5-word block, the 13-word block and the irregular stretch do not change |
+| 1.86·10^12 to 2.16·10^12 | the second hand-over: the left zone (now `(100)^a`, a about 385,000) is fixed and slowly shrinks, the 5-word block is turned into blocks of 13- and 19-cell words, and the irregular stretch grows to about 880,000 cells |
+
+So far the run looks like a slow hierarchy. Each regular phase builds the left zone `(100)^a` (or `(001)^a`) at the
+expense of a run of ones or of `(11)`. Each hand-over turns blocks into a larger irregular stretch and then a larger
+regular phase. A halt would need C to read a 1 next to six 1s inside a hand-over. The hand-overs are where the
+accelerator is slow, and they are not decoded.
 
 ## Where it could halt
 
