@@ -14,7 +14,7 @@ Exact mode: gaps and runs are integers.  Abstract mode: they are capped at K (K+
 are a queue with a few explicit ends and a middle that is any path of a learned graph GQ of adjacent gaps; every
 choice the abstraction allows is tried (`successors`).
 """
-import sys, os, collections, copy, time
+import sys, os, collections, copy, time, itertools
 
 MACH = "1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---"
 T = {}
@@ -377,6 +377,14 @@ def abstract_of(Y):
 
 
 # ---------------------------------------------------------------- the transfer, accelerated (exact mode)
+def _show_top(Y, k=12):
+    o = []
+    for t in Y[-k:]:
+        if isinstance(t, tuple):
+            g = t[1].gaps(); o.append('M[%s%s]' % (' '.join(map(str, g[:4])), ' ..%d' % len(g) if len(g) > 4 else ''))
+        else: o.append(repr(t))
+    return ' '.join(o)
+
 def _transfer_shape(Y):
     """`... M[g ..] X n M[f ..]` at the top of the stack, X a single cell; returns (g, X, n, f) or None"""
     if len(Y) < 5: return None
@@ -461,6 +469,59 @@ def main():
                       s if len(s) < 400 else s[:200] + ' ... ' + s[-160:]))
             single = one
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
+    if mode == 'rule':
+        # The rebuild transducer.  A gap's transfer starts as `M[g ..] 0 n0 M[f ..]` with n0 = 4 (S1, g whole),
+        # 3 (S0, one pair already taken) or 2 (S2, after a drain end).  With fuel f larger than the gap the new gap
+        # joins the right block; with less, the fuel runs out after f bounces (run n0 + 3f), a drain follows, and
+        # the transfer starts again: for even f in S2 with the gap 3 pairs shorter and fuel 2 (n0 + 3f) + 7, for odd
+        # f in S0 with the gap 2 pairs shorter and fuel 2 (n0 + 3f) + 6.
+        def pred(st, g0):
+            if st == 1: return (3 * g0 + 4, 1) if g0 % 2 == 0 else (3 * g0 + 8, 0)
+            if st == 0: return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
+            return (3 * g0 + 2, 1) if g0 % 2 == 0 else (3 * g0 + 6, 0)
+        i = 0; prev = None; res = collections.Counter(); bad = []
+        while i < nb:
+            ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            sh = _transfer_shape(Y)
+            if not (sh and sh[1] == '0' and sh[2] in (2, 3, 4)): continue
+            st = {4: 1, 3: 0, 2: 2}[sh[2]]; g0 = sh[0] + (1 if st == 0 else 0); f = sh[3]
+            Lb, R = Y[-4][1], Y[-1][1]
+            ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
+            if prev is not None:
+                pst, pg0, pg, pf, pn, pll, prl, pi, pgaps, prgaps = prev
+                k = pll - ll
+                if pg < pf <= pg + 1: res['fuel ends with the gap (f = g + 1)'] += 1
+                elif pf > sum(pgaps[:k]) + 1 and k >= 1 and rl == prl + k:
+                    s_, outs = pst, []
+                    for j in range(k):
+                        h, s_ = pred(s_, pg0 if j == 0 else pgaps[j])
+                        outs.append(h)
+                    got = list(itertools.islice(itertools.chain(R.E, R.F), rl - k, rl))
+                    key = 'gap copied, as predicted' if k == 1 else 'gaps copied, as predicted (%d at once)' % k
+                    if (outs, s_) == (got, st): res[key] += 1
+                    else: bad.append((pi, 'S%d' % pst, pgaps[:k], pf, 'predicted', (outs, s_), 'got', (got, st)))
+                elif pf < pg and ll == pll and rl == 1:
+                    ne = pn + 3 * pf
+                    want = (2, pg - pf - 3, 2 * ne + 7) if pf % 2 == 0 else (0, pg - pf - 2, 2 * ne + 6)
+                    if (st, sh[0], f) == want: res['drain end, as predicted'] += 1
+                    else: bad.append((pi, 'S%d' % pst, pg0, pf, 'drain end predicted', want, 'got', (st, sh[0], f)))
+                elif pf < pg and len(prgaps) >= 3:
+                    # nesting: the run freezes, the fuel block's next gap h is the new fuel, the rest a new left block
+                    h = prgaps[1]; ne = pn + 3 * pf
+                    want = ['1' if pf % 2 == 0 else '0', ne + 3, pg - pf - 1]
+                    if h % 2 == 1: want += [prgaps[2], 1, 2 * h]
+                    else: want += [prgaps[2] - 1, 0, 2 * h + 3]
+                    got = [Y[-6], Y[-5], Y[-7][1].first() if isM(Y[-7]) else None, sh[0], st, f] if len(Y) >= 7 else None
+                    if got == want: res['nesting, as predicted'] += 1
+                    else: bad.append((pi, 'S%d' % pst, pg, pf, prgaps[:3], 'nesting predicted', want, 'got', got))
+                else:
+                    res['not checked (another level)'] += 1
+                    if os.environ.get('SHOW'): print('unchecked at bounce', i, '\n   before:', pshow, '\n   now:   ', _show_top(Y))
+            pshow = _show_top(Y) if os.environ.get('SHOW') else None
+            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)),
+                    list(itertools.islice(itertools.chain(R.E, R.F), 3)))
+        print(dict(res))
+        for b_ in bad: print('  differs at bounce', *b_)
 
 if __name__ == '__main__':
     main()
