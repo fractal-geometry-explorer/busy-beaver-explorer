@@ -148,6 +148,18 @@
    "where": "<code>python3 py/aphase.py test</code>, <code>python3 py/aphase.py run preA.pkl postA.pkl</code>; README, 23 November section"
   },
   {
+   "level": "trusted",
+   "title": "No halt of the counter model in 19,437,497,185 rounds (23 November 2026)",
+   "text": "<code>py/cycle.py</code> continued from round 16,952,683,091 for 2,484,814,094 more rounds (about 1.2 hours) to round 19,437,497,185, with 145,285 groups at the end. There was no halt, no exact-model round and no A phase. The charged pairs are still the residue-2 pair at the front and the residue-1 pair from round 49,668. This is a bounded run and says nothing about later rounds.",
+   "where": "<code>python3 py/cycle.py run</code>; checkpoint <code>countdown-hunt/1RB1RF_run/cycle_round19437497185.pkl</code> in the project files"
+  },
+  {
+   "level": "heuristic",
+   "title": "The front in closed form, and no halt up to the A phase of round 16,359,800,336,602,988 (argument, 23 November 2026)",
+   "text": "The young groups follow a lifetime model (lifetime n/3<sup>q</sup> falls by 1 per round; a death multiplies everything left of it by 9; the aged newborn grows 8-fold per two-round cycle), which matches the exact model with 0 mismatches over tens of thousands of rounds and on the real list for 6&times;10<sup>6</sup> rounds. The exact model is sensitive, though: it reads one to two more bits of the young sizes at each cycle break, so neither this closed form nor an exact run (about 10<sup>16</sup> bits of state) can follow the real front to that A phase, and whether it makes a third charged pair is not decided. A halt there would need one of the two charged blocks to run out; their lifetimes (about 10<sup>22</sup> rounds and more) are far beyond that round, so the model does not halt before the end of that A phase. This is an argument, not a run. The exact run (<code>py/cycle.py</code>) was extended to round 19,437,497,185 with no halt and charges unchanged.",
+   "where": "<code>py/front.py lmtest</code>, <code>py/front.py test</code>, <code>py/front.py chaos</code>, <code>c/front.c</code>, <code>py/cycle.py run</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Conserved differences",
    "text": "Counting blocks from the right end, per round block p loses 3<sup>p-1</sup> (the last loses 2), so the differences n<sub>p+1</sub> &minus; 3n<sub>p</sub> (p &ge; 2) do not change between merges. That is why the blocks at the right end run out together, in rare collapses (rounds 23 and 49,668 so far).",

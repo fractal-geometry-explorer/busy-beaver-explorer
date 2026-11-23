@@ -389,6 +389,10 @@ class Fast:
         dr = self.due_round()
         kmax = 1 << 40 if dr is None else (dr - self.R) // 2 - 1
         kmax = min(kmax, (self.valD(0) - 3) // (2 * rate(0)) - 1)
+        if lam > 1:
+            # 23 Nov: the geometric term lam^K is a front value; it reaches 3^m within about m cycles, so a larger K
+            # can never pass check_cycle, and ecount(lam, 2^40) does not fit in memory
+            kmax = min(kmax, 2 * self.m() + 8)
         args = (S[-1][1], F3, d3, pv, lam)
         if kmax < 4 or not self.check_cycle(*args, 4):
             return 0
