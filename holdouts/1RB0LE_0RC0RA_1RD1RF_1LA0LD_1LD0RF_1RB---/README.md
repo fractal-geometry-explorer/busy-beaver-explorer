@@ -70,6 +70,14 @@ block followed by a separator 1; in the run F always reads a 0.
   `right_pass` are inductions on the list of pairs. With `tick_last` and `tick_oo` this covers the families
   `x | e (. e . e)^k` and `x | o | o (. e . e)^k` for every k (30,528 of the 30,932 ticks of the first 10¹⁰ steps
   are in them, by `py/ticks.py`).
+- `lean/Chain2.lean` (kernel, written by `py/chain2.py`): seven more turn shapes over the same chains.
+  `x | p | a . a2 . b1 . c1 . … . d . e` with a odd and an odd number of even blocks after it turns at the separator
+  before p (`tick_chain_pe`, `tick_chain_po`, `tick_chain_p1` for p even, odd ≥ 3, 1); `x | 1 | a . b1 . … . d . e`
+  is `tick_chain_oo` with a first block of length 1 (`tick_chain_1o`); `x | p | a . c` are whole ticks
+  (`tick_pe_last`, `tick_po_last`, `tick_p1_last`). `py/chain2.py check` reads every tick of the first 10¹⁰ steps
+  as an instance of a theorem of `Rules`, `Chain` or `Chain2` (blocks of length 2 or 3 are the smallest values of
+  the families) and compares the end tape with the run: 30,673 instances, 0 mismatches, and the other 258 ticks
+  are the left-end ticks.
 - `lean/Rebuild.lean` (kernel, written by `py/rebuild.py`): the left-end tick at step 22,986,
   `3|3|12|15|1.48.(2v+4)` → `88|6|2|13|21|(2v+4)`, for every v (8v + 16,500 steps).
 - `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, every configuration two steps before a halt is
@@ -223,8 +231,9 @@ its blocks, not a rule for every shape), and the replay as a statement on lists.
 
 ## What is open, next steps
 
-1. The other tick patterns: 166 ticks of the first 10¹⁰ steps, besides the 238 rebuilds (blocks of length 1, mixed
-   parities). The pieces of `lean/Chain.lean` should cover most of them with new turn pieces.
+1. The other tick patterns (done, 23 November 2026): with seven more turn shapes (`lean/Chain2.lean`) every one of the
+   30,931 ticks of the first 10¹⁰ steps is an instance of a Lean theorem: 30,673 of the chain theorems (`py/chain2.py
+   check`, which compares each theorem's end tape with the run), the other 258 of the left-end theorems below.
 2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
    for every chain length (`lean/Front.lean`), the 6 early ones as concrete runs (`lean/Early.lean`); the 54 copy ticks are checked to depend on the block X only through
    the new block 2X − c(P), and all 54 are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
@@ -393,6 +402,7 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classi
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # all 54 copy ticks
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,091 rounds, 3 loop starts, 56 exits
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain2.py check blocks.txt   # every tick: 30,673 chain instances, 258 left end
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/early.py   # writes lean/Early.lean (the 6 early left-end ticks)
 ```
 
