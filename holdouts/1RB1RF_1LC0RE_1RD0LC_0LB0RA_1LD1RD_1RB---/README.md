@@ -271,7 +271,7 @@ not on the front of that round.
 ## The A phase of round 16,952,683,091, run exactly (23 November 2026)
 
 **Trusted, bounded: the counter model does not halt in its first 16,952,683,091 rounds** (up from 561,525,639),
-and it passes the deciding A phase of the previous section without a halt and without a new charge.
+and it passes the deciding A phase of the previous section without a halt; the A phase makes a new charged pair at the front.
 
 - **Run.** `py/cycle.py` resumed from round 613,061,665 (25,822 groups) and reached round 16,952,683,090 in
   about 33 hours on one core. Two right-end events on the way were exact-model rounds: the last group ran out near
@@ -290,12 +290,15 @@ and it passes the deciding A phase of the previous section without a halt and wi
   - 37 groups ran out and the list went from 135,700 to 135,663 groups.
   - The groups at the right end afterwards agree with what `py/rightpart.py` computed for them on 21 November, as
     they must.
-- **No new charge.** After the round there is still exactly one charged pair, residue 1, the one made in round
-  49,668, now 201st from the right end. So the forecast of the previous section, made with the front of round
-  613,061,665, was wrong: the real front did not leave n0 + d1 ≡ 2 (mod 3). The previous section explains why that
-  old charge is not expected to halt: with nothing fed into it, its block outlives its right neighbour through every
-  later A phase until the charge disappears near round 9.2·10^108. That relies on a front group surviving each A
-  phase, which is observed, not proved.
+- **A new charge, at the front (corrected 23 November).** At the round start right after the A round, the only
+  charged pair is still the one from round 49,668 (now 201st from the right end). But that state has n0 ≡ 1 and
+  d1 = 2, so n0 + d1 ≡ 0, not 1 (mod 3). The end of the next round makes a pair of residue 2 at the very front:
+  at round 16,952,683,092, one more exact round, the charged pairs are (135,664th from the right, residue 2) and
+  (201st, residue 1). So the forecast of the previous section was right: this A phase made a new charge. Its left
+  block is the newborn front block, lifetime about 2^75 rounds, and its right neighbour's is about 2^71.6. If
+  the new charged block ran out before that neighbour, the model would halt. The sizes say the neighbour goes
+  first, as with the round-49,668 charge, but that is a heuristic, not a proof. (The first version of this section
+  said "no new charge". It had only looked at the state before that round end.)
 - **Next deciding event.** `py/rightpart.py run` from the new state lists the right-end events. Before round
   1.636·10^16 there are only merges, and the next A phase is in round 16,359,800,336,602,988, a million times further
   than this run reached. At about 1.5·10^5 rounds a second, `cycle.py` cannot get there. That needs the front in
