@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros (the sweeps are proved in Lean); Z mod 4 drives a counter in a short word D at the fixed left end. 1,500 phases from blank tape (far past 10<sup>350</sup> steps) do not halt, With the residues chosen freely, words D on which a phase halts are reachable; the real orbit has not produced one."
+  "<b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros; Z mod 4 drives a counter in a short word at the fixed left end. Five phase rules, proved in Lean for <em>any</em> tape left of the counter, cover all but 17 of the first 1,000,000 phases, and those 17 cycle ends are proved one by one. Lean's kernel runs the resulting map 100,000 phases from blank tape (no halt in 10<sup>17610</sup> steps); <code>native_decide</code> runs it 1,000,000 phases (10<sup>176092</sup> steps). Whether a halting word ever appears depends on the residues of Z at the cycle ends."
  ],
  "claims": [
   {
@@ -52,16 +52,64 @@
    "where": "<code>py/phases.py</code>, <code>c/nextps.c</code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The counter in D",
-   "text": "For D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code>: Z &equiv; 1 leaves D alone, Z &equiv; 3 makes it D(a&minus;1, b+1), Z stays odd; at a = 0 a phase with Z &equiv; 3 resets D to <code>0 1 0^(3b+5) 1</code>, which continues as D(3b+4, 0) if Z &equiv; 3 mod 8 and leaves the family otherwise. Checked for a, b &lt; 16.",
-   "where": "<code>py/phases.py</code>"
+   "text": "For D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code>: Z &equiv; 1 leaves D alone, Z &equiv; 3 makes it D(a&minus;1, b+1), Z stays odd; at a = 0 a phase with Z &equiv; 3 resets D to <code>0 1 0^(3b+5) 1</code>, which continues as D(3b+4, 0) if Z &equiv; 3 mod 8 and leaves the family otherwise. Checked for a, b &lt; 16. Now proved for all a, b (see the next claims); the check for a, b &lt; 16 was the first evidence.",
+   "where": "<code>py/phases.py</code>; <code>lean/Phase.lean</code>"
   },
   {
    "level": "trusted",
    "title": "No halt in 1,500 phases",
    "text": "Iterating the phase map from the first phase start (assuming the linear extrapolation, checked as above): resets of the counter at phases 5, 29, 92, 332 stay in the family (cycles of length 11, 35, 107, 323); at phase 1001 (Z has 178 digits) the word leaves it and a second-level counter starts. No halt up to phase 1,500.",
    "where": "<code>py/phases.py 1500</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Whole phases of the level-1 words",
+   "text": "For D(a, b) = <code>0 1 0^a 1 0 1 (001)^b</code> and R(a) = <code>0 1 0^a 1</code>, for every a, b, j: Z = 4j + 9 keeps D(a, b) with Z' = 6j + 15; Z = 4j + 11 turns D(a+1, b) into D(a, b+1) with Z' = 6j + 15, and D(0, b) into R(3b + 5) with Z' = 6j + 18; Z = 4j + 10 turns R(a+1) into D(a, 0) with Z' = 6j + 15. Each phase is the generated start and end rules chained with the sweeps.",
+   "where": "<code>phase_D1</code>, <code>phase_D3</code>, <code>phase_D0</code>, <code>phase_R2</code>, <code>lean/Phase.lean</code>; <code>start</code>, <code>end*</code>, <code>lean/Ends.lean</code> (from <code>lean/ends.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The first 1001 phases, and no halt in the first 10<sup>177</sup> steps",
+   "text": "From blank tape the machine reaches PS(D(2, 0), 15) in 457 steps. The level-1 phase map, proved sound, is evaluated by Lean's kernel with exact integers for 1001 phases: the counter resets at phases 5, 29, 92 and 332 stay in the family, and phase 1001 starts at R(971) with Z &equiv; 0 mod 4 (178 digits), where the family ends. So the machine runs at least 10<sup>177</sup> steps without halting.",
+   "where": "<code>blank_1001</code>, <code>iter1_1001</code>, <code>iter1_1002</code>, <code>lean/Orbit.lean</code> (<code>decide +kernel</code>, no <code>native_decide</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The counters, for any word on the left",
+   "text": "For every tape L left of the counter and every a, b, Z: Z &equiv; 1 mod 4 leaves any word ending <code>0 1</code> unchanged; Z &equiv; 3 turns <code>L 1 0^(a+1) 1 0 1 (001)^b</code> into <code>L 1 0^a 1 0 1 (001)^(b+1)</code> and <code>L 1 0^(a+5) 1 000 1 (001)^b</code> into <code>L 1 0^(a+1) 1 000 1 (001)^(b+2)</code>; Z &equiv; 2 turns <code>L 1 0^(a+1) 1</code> into <code>L 1 0^a 1 0 1</code>; Z &equiv; 0 turns <code>L 1 0^(a+8) 1</code> into <code>L 1 0^(a+4) 1 000 1 00 1</code>. Only a counter that has run down reads further left.",
+   "where": "<code>phase_keep</code>, <code>phase_tick1</code>, <code>phase_tick3</code>, <code>phase_rtwo</code>, <code>phase_rzero</code>, <code>lean/CounterPhase.lean</code>; rules in <code>lean/Counter.lean</code> (from <code>lean/counter.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "The 9 kinds of cycle end in the first 10<sup>6</sup> phases",
+   "text": "17 of the first 1,000,000 phases are cycle ends, where the counter has run down. They are of 9 kinds, each proved for every b and Z with its short concrete prefix.",
+   "where": "<code>phase_D0</code>, <code>phase_sp2</code> &hellip; <code>phase_sp9</code>, <code>lean/SpecialPhase.lean</code>; rules in <code>lean/Specials.lean</code> (from <code>lean/specials.py</code>)"
+  },
+  {
+   "level": "kernel",
+   "title": "No halt in the first 10<sup>17610</sup> steps",
+   "text": "The phase map built from these rules, proved sound, is run by Lean's kernel for 100,000 phases from blank tape.",
+   "where": "<code>blank_kernel</code>, <code>iter2_kernel</code>, <code>lean/Orbit2.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "No halt in the first 10<sup>176092</sup> steps",
+   "text": "The same map, evaluated by compiled code (<code>native_decide</code>), for 1,000,000 phases. Its final state agrees with the exact engine <code>py/phaseiter.py</code> (Z mod 10<sup>30</sup>, a and b). The real step count is about 10<sup>352184</sup>; the theorem only claims at least the final Z.",
+   "where": "<code>blank_native</code>, <code>iter2_native</code>, <code>lean/Orbit2.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 1,000,000 phases (about 10<sup>352,184</sup> steps), exact",
+   "text": "<code>py/phaseiter.py</code> runs the machine phase by phase from blank tape with exact integers: each phase's start and sweeps are the Lean rules (jumped over with their exact step count), and the end of each phase is run on the run-length coded tape with the shift rules of <code>symtm.py</code>, the moves that <code>lean/ends.py</code> turns into Lean proofs. No extrapolation. After 1,000,000 phases (4.1 hours) Z has 176,093 digits. Checked against the plain machine on the 17 phase starts to step 8.7&middot;10<sup>7</sup> and, at each of the first 4,000 phases, on the phase's word with a small Z of the same residue mod 8.",
+   "where": "<code>python3 py/phaseiter.py 1000000 --every 20000</code>; <code>py/phaseiter.py 1 --check 120 --xcheck 4000 1</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The cycles of the counter",
+   "text": "The counter's cycles end at phases 6, 30, 93, 333 (R(11), R(35), R(107), R(323)), 1002 (R(971): a second-level counter moving by 4), 1511, 2234, 6567 (back to a bare R(6569)), 19692, 59119, 88536, 132982, 199715 and 598126; each cycle is about three times as long as the one before. Short prefixes appear in front of the counter and are eaten again, so the levels do not simply nest.",
+   "where": "<code>py/phaseiter.py 1000000 --events FILE</code>"
   },
   {
    "level": "trusted",
@@ -109,6 +157,7 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/lean/check.sh",
+  "python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phaseiter.py 20000 --check 120 --xcheck 300 1",
   "python3 holdouts/1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB---/py/phases.py",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 check 1e9",
   "python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 orbit 2930",
@@ -119,23 +168,23 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "1.41&middot;10<sup>28,643</sup> steps",
-    "text": "No halt in an accelerated run (Quick_Sim, an outside program)."
+    "value": "10<sup>352,184</sup> steps",
+    "text": "No halt in 1,000,000 exact phases from blank tape."
    },
    {
     "level": "kernel",
-    "value": "4 zeros, 2 words",
-    "text": "What one sweep eats and builds; chained over a whole phase in Lean."
+    "value": "10<sup>17,610</sup> steps",
+    "text": "No halt, proved in Lean (kernel): 100,000 phases."
+   },
+   {
+    "level": "kernel",
+    "value": "5 rules",
+    "text": "Proved for any word on the left; they cover all but 17 of a million phases."
    },
    {
     "level": "trusted",
-    "value": "Z &rarr; 3Z/2",
-    "text": "The phase map on the run of zeros, with a constant set by Z mod 4."
-   },
-   {
-    "level": "trusted",
-    "value": "1,500 phases",
-    "text": "No halt from blank tape, far past 10<sup>350</sup> steps."
+    "value": "&times;3",
+    "text": "Each cycle of the counter is about three times longer than the last."
    }
   ],
   "presets": [
@@ -189,6 +238,18 @@
     ]
    },
    {
+    "id": "exact",
+    "eyebrow": "New",
+    "heading": "A million phases, exactly",
+    "html": [
+     "<p>The counter rules for D(a, b) and R(a) are now Lean theorems: each phase is the start of the phase, the sweeps and one of nine end rules, all proved for every size. Lean's kernel then runs the map itself for the first 1001 phases from blank tape, with exact integers, which proves that the machine runs at least 10<sup>177</sup> steps without halting.</p>",
+     "<p>Past phase 1001 the word grows prefixes, so a new program runs the phases exactly. It jumps over the sweeps with the proved formula and simulates the end of each phase on a compressed tape. Nothing is extrapolated. In 4.1 hours it ran 1,000,000 phases, about 10<sup>352,184</sup> steps, without a halt.</p>",
+     "<p><b>Why it stays simple.</b> Five phase rules hold whatever lies further left on the tape: a phase with Z &equiv; 1 mod 4 changes nothing, two kinds of counter tick down, and two kinds of restart. Only a counter that has run to zero reads the short word in front of it. That happened just 17 times in the first million phases, in 9 different ways, and each of those 9 is proved too. Chained together, Lean's kernel runs the first 100,000 phases (no halt in 10<sup>17,610</sup> steps). Compiled Lean code runs all 1,000,000.</p>",
+     "<table class=\"tbl\"><thead><tr><th>phase</th><th>word (gaps between 1s)</th><th>then</th></tr></thead><tbody><tr><td>6, 30, 93, 333</td><td>11 / 35 / 107 / 323</td><td>level 1 again</td></tr><tr><td>1002</td><td>971</td><td>a counter moving by 4</td></tr><tr><td>1511</td><td>3, 1458</td><td>the same behind a prefix</td></tr><tr><td>2234</td><td>2 1, 2187</td><td>level 1 behind a prefix</td></tr><tr><td>6567</td><td>6569</td><td>prefix gone: plain level 1</td></tr><tr><td>19692, 59119, 88536</td><td>19709 / 59129 / 88695</td><td>level 1, level 2, level 2</td></tr><tr><td>132982, 199715, 598126</td><td>3, … / 6 2, … / 2 3 1, …</td><td>behind prefixes</td></tr></tbody></table>",
+     "<p>Each cycle is about three times as long as the one before. Prefixes appear and are eaten again, so the word does not simply grow deeper. Whether a halting word ever appears is still open.</p>"
+    ]
+   },
+   {
     "id": "question",
     "eyebrow": "What is left",
     "heading": "An open, Collatz-like question",
@@ -199,5 +260,5 @@
   ]
  },
  "family": "Collatz-like map with a stack",
- "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end, whose cycles grow threefold, and Z mod 8 at the end of a cycle decides whether the word grows a new level. Halting words are reachable with freely chosen residues, not so far along the real orbit. Accelerated run: no halt in 1.41e28643 steps."
+ "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end. Five phase rules, proved in Lean for any word to the left, cover all but 17 of the first 10^6 phases, and those are proved one by one: no halt in 10^17610 steps (kernel) or 10^176092 (native_decide)."
 }

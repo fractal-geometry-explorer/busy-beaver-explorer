@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 23 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A word of pairs that halts</h3>
         <p>The wall visit of the tape <code>X Y^7 X X</code> halts after 253 steps. It is not a tape of the run from blank; it shows that the pair structure alone does not exclude a halt.</p>
         <p class="where"><code>pure_tape_halts</code>, <code>lean/Rules.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The arithmetic of a descent</h3>
+        <p>For every value: under law A the fuel after j phases satisfies 21<sup>j</sup>(23F<sub>0</sub> + c) &le; 44<sup>j</sup>(23F<sub>j</sub> + c) and 44<sup>j</sup>&middot;23F<sub>j</sub> &le; 21<sup>j</sup>&middot;23F<sub>0</sub> + 44<sup>j</sup>&middot;4hi, under law B the same with a factor of 4, and a stack of phases whose maps grow at least like a<sup>K<sub>j</sub></sup> needs at least a<sup>&Sigma;K<sub>j</sub></sup> times the hits below it. The arithmetic only: that the machine's phases follow the laws is the log above.</p>
+        <p class="where"><code>descent_A_lower</code>, <code>descent_A_upper</code>, <code>descent_B_lower</code>, <code>descent_B_upper</code>, <code>phases_compose</code>, <code>blk_ge</code>, <code>lean/Descent.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -188,6 +193,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_run.py 2 3200</code>, README</p>
       </div>
       <div class="card">
+        <h3>The laws between phases, and a bottom word that grows</h3>
+        <p>Logged over 12,482 phases from the word at wall visit 10<sup>3200</sup>: after a &times;64 phase (slack F &minus; 4K of 5 to 9) the next fuel is fresh by law A, 11F&prime; = 21K + e with &minus;913 &le; e &le; 224 (6,936 times), fresh by law B, F&prime; = K + &delta; with 2 &le; &delta; &le; 12 (1,401 times), or an older run of the word (4,063 times). The rung is a frozen word, so the hits a phase passes down cross every run of rungs. Below the eater the word is a list of staircases (runs a factor of 4 apart, about 210 each) between fuels (1 0 0)<sup>F</sup>, and the list grows: 362 runs longer than 1000 (25,957 digits) at the start, 1,164 (81,669) after 8,000 phases, 5,257 (322,122) after 12,000. The logged phases give the same bound as before (2<sup>2.899&middot;10<sup>147</sup></sup> top hits), all of it from the first phases. Three fixes made the accelerator run past phase 30 again.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_laws.py</code> on the log of <code>LSA_LOG=log lsa_run.py 2 3200</code>, README</p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 2.16&times;10<sup>18</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 2,166,473,947,245,007,495 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,010,334 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
@@ -209,7 +219,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card open">
         <h3>The right-end events</h3>
-        <p>A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word.</p>
+        <p>A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word. The list of runs below the eater grows as the phases go on (see above), so the next event needs that list used up, and no rule for it is known.</p>
         <p class="where">README, Next steps</p>
       </div>
     </div>

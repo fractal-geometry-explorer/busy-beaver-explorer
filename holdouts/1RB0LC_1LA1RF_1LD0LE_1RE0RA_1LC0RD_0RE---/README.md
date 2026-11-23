@@ -30,15 +30,18 @@ Open. Kernel: halting configurations, no halt in 10^4 steps (10^7 native), the f
 reflector Q (`lean/Walk.lean`), and the movers: the head crosses any run of them unchanged, so every bounce of a drain
 or a rebuild is a lemma except where the head turns (`lean/Movers.lean`). On these lemmas an exact simulator reaches
 1.5·10^18 steps without a halt (below). Halting needs F to read a 1, which happens only as `D> 1 0 1 1`, and only a
-collision run cell by cell could do that. CTL (K = 2..5) and NGramCPS (widths 2-8, -H, -U) fail.
+collision run cell by cell could do that. Every collision at the ends of the movers seen to 1.6·10^18 steps is a lemma
+for all values of its gaps (`lean/Collisions.lean`, `lean/ZList.lean`); none halts. No regular invariant was found: CTL
+by SAT up to 16×16 and 20×12 states, NGramCPS (widths 2-14, -H, -U) and RepWL fail.
 
 ## For later
 
 1. Prove the drain step (one pair per round trip) as a rule with r and m as variables.
 2. Done 22 November: the end of a drain starts a rebuild (see below).
-3. Partly done 22 November: the movers are proved (`lean/Movers.lean`) and the simulator on them is exact. Still to
-   do: prove each family of collisions with its gaps as variables, or find an invariant of the lists that keeps
-   `D> 1 0 1 1` out of every collision.
+3. Partly done 22 November: the movers are proved (`lean/Movers.lean`), the simulator on them is exact, and every
+   collision at the ends of the movers seen to 1.6·10^18 is a lemma with its gaps as variables (`lean/Collisions.lean`).
+   Still to do: an invariant, in terms of movers, that shows no other collision ever happens; in particular that a
+   gap of one pair is never followed by another swept mover at the right end.
 
 ## Reproduce
 
@@ -194,6 +197,59 @@ family with its gaps as variables.
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py check 203633   # compares with c/dump.c
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_sim.py run 1.5e18     # drain ends, no halt (5 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_movers.py              # writes lean/MoverRules.lean
+```
+
+## Collisions with their gaps as variables (22 November 2026)
+
+**Short answer.** Every collision the exact simulator runs cell by cell at the ends of the movers, up to 1.6·10^18
+steps, is now a Lean lemma for every value of its gaps (`lean/Collisions.lean`, `lean/ZList.lean`, kernel). None of
+them can halt, whatever the gaps. What stays open is whether a collision of another shape ever halts, and new shapes
+do still turn up: two of the 20 first appear after 10^15 steps. The search for a regular invariant of the whole tape,
+which would settle that, found none.
+
+**How the lemmas are made.** `py/gen_collisions.py` runs `mover_sim.py` and groups the runs it makes cell by cell by
+the (state, symbol) pairs they read. Up to 1.6·10^18 steps there are 46 families at the ends of the movers ("Z": the
+right end, after the last mover is opened up; "macro": the left end of a bounce, at Q or at the left end of the
+tape) and 43 whole-tape runs ("plain", 130 runs, made when no mover lies between the two places where the head
+turns). For each of the 46 the first occurrence becomes a symbolic configuration: every run of pairs becomes
+`(01)^(a+k)` with its own variable (`k` the least count the run needs), and whatever the run never reads becomes a
+context. `bbtools.symtm` runs it to the end of the collision and writes the proof. They come down to 20 distinct
+lemmas, for example
+
+    0^inf 1 E> 0 R                                  ->  0^inf 1 0 0 1 1 F> R       (9 steps; 5,217,085 times)
+    L 0 (01)^(a+1) 1 0 0 (01)^(b+2) E> 0 R          ->  L 0 (01)^(a+1) 1 1 0 0 1 1 0 (01)^b 0 D> R
+    L 0 (01)^1 1 0 (01)^a 0 C> 1 (10)^(b+1) 1 (10)^(c+1) R
+                                                    ->  L E> 0 0 1 0 1 1 0 (10)^a (10)^(b+1) 1 (10)^(c+1) R
+
+The first is a drain trip turning at the left end of the tape: F comes out reading the first cell of the movers,
+which is a 0 (`right_gen`). At the right end a collision can sweep back over any number of swept movers
+`1 (10)^(g+2)`, then a last one `1 (10)^1` and blank tape; the lemmas stop at the second one, and `zlist` and `zend`
+(`lean/ZList.lean`) take any list: each swept mover becomes a mover at rest. Here is the one place a halt was close:
+on a swept mover with a gap of one pair the head reads `E1 D1 A0 B1` and F reads the next cell, which is the blank
+only because that mover is the last. A gap of one pair anywhere else in that list would halt. In every list seen,
+the gaps before the last are at least two pairs (three or more, in fact).
+
+One family is left out: a run, once, at step 32,044,261, that crosses about 85 movers stored as cells, more than the
+simulator's snapshot holds. The whole-tape runs are not generalised either.
+
+**No regular invariant found.** A closed tape language would settle the question, and none was found:
+
+* `tools/py/satctl.py` (two automata found by SAT, CaDiCaL): none with 6×6, 8×8, 10×10, 12×12, 16×16 or 20×12 states
+  (16×16 took 32 minutes);
+* NGramCPS (`tools/c/ngramcps.c`) with windows of 10, 12 and 14 cells: it reaches a halt in under 300 steps; the
+  first step that leaves the real run glues a 1 onto its left window where the real tape is blank;
+* RepWL (`tools/c/repwl.cpp`): it reaches a halt with blocks of 2 cells, and passes 2 million abstract
+  configurations with blocks of 4 to 12;
+* `c/runcps.cpp`, the same idea with runs of alternating cells as letters: it fails the same way, by gluing the end
+  of the tape in where it is not, and with counts of the runs to each end it does not close (90 million
+  configurations).
+
+The reason is the same in each: the left end of the tape matters (drain trips turn there), and a window of cells or
+runs forgets how far away it is. An invariant would have to be written in terms of movers.
+
+```sh
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gen_collisions.py 1.6e18 # writes lean/Collisions.lean (20 min)
+holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                       # ALL CHECKED
 ```
 
 ## Pages

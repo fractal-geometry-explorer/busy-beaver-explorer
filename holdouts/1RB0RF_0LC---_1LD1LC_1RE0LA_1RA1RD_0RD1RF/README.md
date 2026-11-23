@@ -62,6 +62,12 @@ reads `0 (011)^(a+1) 001101 ...`); every visit adds one word to the left block a
   [`c/rsim_fast.cpp`](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp) of the generic `rsim.py` (tape
   equal to direct simulation at 4 points up to 1.1·10^10) ran **180,830,972,685,456,069 steps (1.8·10^17)** without a
   halt in 3 hours (151 jumps, 1.8·10^10 rules; rules exact, tape-level jumps validated, not proved).
+* **The same simulator, checked in Lean (22 November 2026).** `tools/lean/TM/RSim.lean` rebuilds rsim with every
+  move proved: learned crossing rules are checked by a run of the machine before use, and each sample-level jump is
+  checked by one symbolic period with the counts as linear forms. `lean/RSimBound.lean`: no halt in 10^8 steps
+  (`rsim_1e8`, part of `check.sh`, 50 s); `lean/RSimLong.lean`: no halt in **8·10^15 steps** (`rsim_long`,
+  `native_decide`; `check_big.sh`, about 5 minutes). Past 8.35·10^15 no long jump applies and both simulators cross
+  sweeps one by one (rsim reaches 10^16 after 16 minutes); the Lean one is about 25 times slower there.
 
 But the recipe "closed set of (tail, block size mod m)" does not apply as it stands:
 
@@ -82,7 +88,7 @@ In the twin the clean zone is nearly used up by 2·10^12 steps; see its README f
 
 ## Status
 
-Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 9 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps. Trusted (tools in `py/closure/`, not verified): the accelerated simulator agrees with the plain one at 20 checkpoints; one tail cycle proved as a rule by a symbolic run; no halt in the accelerated run (3·10^13 steps).
+Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 9 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps, and in 8·10^15 steps by the checked accelerated simulator (`lean/RSimLong.lean`). C: no halt in 1,000,000,000 steps. Trusted (tools in `py/closure/`, not verified): the accelerated simulator agrees with the plain one at 20 checkpoints; one tail cycle proved as a rule by a symbolic run; no halt in the accelerated run (3·10^13 steps).
 
 ## For later
 
@@ -105,6 +111,7 @@ List the phases (which word, which blocks, what a visit does to the counts) and 
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/lean/check.sh
+holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/lean/check_big.sh   # 8·10^15 steps, checked simulator, about 5 minutes
 python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py cycle                      # 10 s
 python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py rules 3e13 900             # the accelerated run (stops at 3e13 steps or after 900 s; 15 min here)
 gcc -O2 -o at holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/c/at.c && python3 holdouts/1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF/py/closure/screen.py checkpoints ./at 3e10 20     # 5 min

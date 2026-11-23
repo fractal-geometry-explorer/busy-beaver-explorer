@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">A list of unary numbers, rewritten every round trip</a><a href="#ca">A round trip is a running XOR</a><a href="#end">The right-end layer runs on its own</a><a href="#rules">The sweep rules</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#what">A list of unary numbers, rewritten every round trip</a><a href="#ca">A round trip is a running XOR</a><a href="#end">The right-end layer runs on its own</a><a href="#laws">The round trip as a recursion</a><a href="#rules">The sweep rules</a><a href="#halt">What a halt would need</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -418,6 +418,43 @@ draw(-1);show(R.length-1);go();
 })();
 </script>
 </section>
+<section id="laws">
+  <span class="eyebrow">The right end</span>
+  <h2>The round trip as a recursion</h2>
+<p>The round trip of the tail is a recursion on the tail itself. Write the tail as <i>p y</i>: a front pattern
+<i>p</i> (one group in a first slot, or an odd group and the group after it, the second slot) and the rest <i>y</i>.
+Then G(<i>p y</i>) is one of three things:</p>
+<ul>
+<li><b>freeze</b>: <i>h</i> followed by <i>y</i> without its first token. The sweep turns back at <i>p</i>, so the rest
+waits a round trip.</li>
+<li><b>continue</b>: <i>h</i> followed by G(<i>y</i>). The sweep goes on as if <i>p</i> were bulk.</li>
+<li><b>double</b>: <i>h</i> followed by G(G(<i>y</i>)) without its first token. The part right of <i>p</i> gets two
+round trips in one visit.</li>
+</ul>
+<p>The head <i>h</i> is a short word whose group sizes are affine in the size <i>m</i> of <i>p</i> and the size
+<i>c</i> of the first token of <i>y</i>. An odd group <i>a</i> in front of a second slot only adds
+1<sup>(a&minus;1)/2</sup> in front. When <i>y</i> is only the last group, the last token written ends the tape.</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>slot</th><th>p</th><th>kind</th><th>head h</th></tr></thead>
+<tr><td>first</td><td>odd <i>m</i>, touching</td><td>freeze</td><td>1<sup>(m&minus;1)/2</sup>, then 1 and c&minus;1 (c = 1: one 1 with a gap 2 longer)</td></tr>
+<tr><td>first</td><td>odd <i>m</i>, gap 00</td><td>double</td><td>1<sup>(m&minus;1)/2</sup>, then a+1, where a is the first token of G(G(y))</td></tr>
+<tr><td>first</td><td>odd <i>m</i>, gap of 5</td><td>continue</td><td>1<sup>(m&minus;1)/2</sup>, then 2</td></tr>
+<tr><td>first</td><td>even <i>m</i> = 2j</td><td>freeze</td><td>1<sup>j&minus;1</sup>, then 1, 3 touching, c&minus;1 (c = 1: 1, 3 with gap 00); c a touching 1: halt</td></tr>
+<tr><td>first</td><td>even <i>m</i>, gap 00</td><td>freeze</td><td>1<sup>j</sup>, then 1 and c&minus;1</td></tr>
+<tr><td>first</td><td>even <i>m</i>, gap of 5</td><td>freeze</td><td>1<sup>j&minus;1</sup>, then 1 and 2 with gap 00; y untouched</td></tr>
+<tr><td>second</td><td><i>m</i>, gap 000</td><td>continue</td><td>m+2 (the pair rule)</td></tr>
+<tr><td>second</td><td><i>m</i>, touching</td><td>double</td><td>a+m+1, where a is the first token of G(G(y))</td></tr>
+<tr><td>second</td><td><i>m</i>, gap of 5</td><td>freeze</td><td>m+2, then 3 touching and c&minus;1 (c = 1: 3 with gap 00)</td></tr>
+<tr><td>second</td><td><i>m</i>, gap 00, c &ge; 2</td><td>freeze</td><td>m+2, then 1 and c&minus;2 (c = 2: one 1 with a gap 2 longer)</td></tr>
+</table></div>
+<p>Two cases are not in the table: an even group touching the next group, whose law depends on the next two or three
+tokens, and a gap 00 in a second slot followed by a single 1. On random tails these laws give exactly the
+simulated G for all six machines (<code>py/endlaws.py check</code>: 30,000 front patterns per machine, none wrong,
+about a quarter not covered).</p>
+<p>The double case is why no small automaton describes the reachable tails. Each short gap doubles the speed of
+everything right of it, and short gaps nest, so G is not a finite-state map. With the round trip in C
+(<code>c/roundtrip.c</code>), the search over every parity input reaches 1,500,000 tails, 46 round trips deep,
+without a halt.</p>
+</section>
 <section id="rules">
   <span class="eyebrow">Proved in Lean</span>
   <h2>The sweep rules</h2>
@@ -507,7 +544,8 @@ python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/route.py        # 
 python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca.py | diff - holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/lean/Sweep.lean   # Sweep.lean is current
 python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/ca_check.py 200000000   # the XOR rule on the run, all six machines
 python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/endrules.py | diff - holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/lean/EndRules.lean   # EndRules.lean is current
-python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/endlayer.py check 1e8   # the end-layer model on all six machines</code></pre>
+python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/endlayer.py check 1e8   # the end-layer model on all six machines
+python3 holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/py/endlaws.py check 30000   # the recursive laws of the round trip against G</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

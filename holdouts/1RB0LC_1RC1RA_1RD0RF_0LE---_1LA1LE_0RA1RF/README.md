@@ -36,6 +36,12 @@ The only halt is D reading a 1, and D is entered only from C reading a 0: `C> 0 
 - `lean/Rules.lean` (kernel, written by `py/rules.py`): `pass_right_q`, `pass_left_q`, `pass_right_c`; `halt_C`.
 - `lean/Route.lean` (kernel, written by `py/route.py`): `halt_route`, every configuration two steps before a
   halt is `B> 0 0 1`.
+- `lean/RSimBound.lean`, `lean/RSimLong.lean` (`native_decide`, the checked accelerated simulator
+  `tools/lean/TM/RSim.lean`): no halt in 10^8 steps (`rsim_1e8`, part of `check.sh`, 45 s) and in 2·10^14 steps
+  (`rsim_long`; `check_big.sh`, about 2 minutes). The simulator is rsim (`c/rsim_fast.cpp` of the T3 sibling) with
+  every move proved: learned crossing rules are checked by a run of the machine before use, and each sample-level jump
+  is checked by one symbolic period with the counts as linear forms. `RSimRun.lean` holds the run as a definition so
+  that `check_big.sh` compiles it with the machine.
 - `py/turns.py` (heuristic): the tape as words at the end turns.
 
 ## What is open, next steps
@@ -47,6 +53,7 @@ invariant from it that keeps D off a 1. The doubling runs of `10` suggest the di
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/lean/check.sh
+holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/lean/check_big.sh   # 2·10^14 steps, checked simulator, about 2 minutes
 python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/py/route.py        # rewrites lean/Route.lean
 python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/py/rules.py        # rewrites lean/Rules.lean
 python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF/py/turns.py 1.2e7 L  # the tape at the left-end turns
@@ -66,6 +73,10 @@ Its faster C++ port [`c/rsim_fast.cpp`](../1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0L
 `rsim.py`; tape equal to direct simulation at 4 points up to 10^10) went **122,501,965,489,001,108,659 steps (1.2·10^20)**
 in 3 hours without a halt (136 jumps, 1.8·10^10 rules; 22 November 2026). It reached 1.2·10^20 after 11 minutes; after
 that no jump applied and the rest of the run crossed sweeps rule by rule. The jumps are validated, not proved.
+The Lean rebuild of rsim (`lean/RSimLong.lean`) follows the same trajectory with the same jumps and proves the first
+2·10^14 steps. From 2.25·10^14 to about 10^15 no long jump applies (a binary-counter-like row of `(01)^k` blocks whose
+separators change on every sweep), and rsim crosses that stretch sweep by sweep in about 10 minutes before its jumps
+cascade to 10^20; the Lean simulator is about 25 times slower there.
 
 ```sh
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF 1200
