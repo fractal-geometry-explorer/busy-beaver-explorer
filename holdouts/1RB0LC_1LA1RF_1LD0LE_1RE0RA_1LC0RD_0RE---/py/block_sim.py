@@ -203,8 +203,10 @@ def concat(q1, q2):
     return q
 
 class RQ:
-    """a block's gaps in exact mode, run length coded: R holds [gap, count] runs, the near end first, and no two
-    neighbouring runs have the same gap.  A run of a hundred thousand one-pair gaps is one entry."""
+    """a block's gaps in exact mode, coded as runs of patterns: R holds [pat, count] entries, the near end first, pat a
+    tuple of one or two gaps repeated count times (`(3, 11), 5000` is `3 11 3 11 ...`).  A reservoir of a hundred
+    thousand one-pair gaps, or a long `(105 377)^n` stretch, is one entry.  Neighbouring entries with the same
+    pattern are merged, and gaps added at either end that repeat a pair `a b a b` are folded into a `(a, b)` entry."""
     __slots__ = ('R', 'S', 'n')
     mid = None
     def __init__(self, gaps=(), runs=None):
@@ -213,60 +215,77 @@ class RQ:
             for v, c in runs: self.append(v, c)
         else:
             for g in gaps: self.append(g)
-    def key(self): return tuple(tuple(r) for r in self.R)
+    def key(self): return tuple((e[0], e[1]) for e in self.R)
     def __bool__(self): return self.n > 0
     def exact(self): return True
     def size(self): return self.n
     def it(self):
-        for v, c in self.R:
-            for _ in range(c): yield v
+        for pat, c in self.R:
+            for _ in range(c): yield from pat
     def gaps(self): return list(self.it())
-    def runs(self): return [tuple(r) for r in self.R]
-    def first(self): return self.R[0][0]
-    def add_first(self, k):
-        R = self.R; r = R[0]; v = r[0] + k; self.S += k
-        if r[1] == 1:
-            r[0] = v
-            if len(R) > 1 and R[1][0] == v: R.popleft(); R[0][1] += 1
+    def runs(self): return [(e[0], e[1]) for e in self.R]
+    def first(self): return self.R[0][0][0]
+    def _fold_front(self):
+        R = self.R
+        if len(R) >= 2 and R[0][0] == R[1][0]: c = R.popleft()[1]; R[0][1] += c; return
+        if len(R) >= 3 and R[0][1] == 1 and R[1][1] == 1 and len(R[0][0]) == 1 and len(R[1][0]) == 1:
+            ab = R[0][0] + R[1][0]
+            if R[2][0] == ab: R.popleft(); R.popleft(); R[0][1] += 1; return
+            if len(R) >= 4 and ab[0] != ab[1] and R[2][1] == 1 and R[3][1] == 1 and R[2][0] + R[3][0] == ab:
+                for _ in range(4): R.popleft()
+                R.appendleft([ab, 2])
+    def _fold_back(self):
+        R = self.R
+        if len(R) >= 2 and R[-1][0] == R[-2][0]: c = R.pop()[1]; R[-1][1] += c; return
+        if len(R) >= 3 and R[-1][1] == 1 and R[-2][1] == 1 and len(R[-1][0]) == 1 and len(R[-2][0]) == 1:
+            ab = R[-2][0] + R[-1][0]
+            if R[-3][0] == ab: R.pop(); R.pop(); R[-1][1] += 1; return
+            if len(R) >= 4 and ab[0] != ab[1] and R[-3][1] == 1 and R[-4][1] == 1 and R[-4][0] + R[-3][0] == ab:
+                for _ in range(4): R.pop()
+                R.append([ab, 2])
+    def push_entry(self, pat, c, front=False):
+        """add c copies of the pattern at one end"""
+        if c <= 0: return
+        R = self.R
+        if front:
+            if R and R[0][0] == pat: R[0][1] += c
+            else: R.appendleft([pat, c]); self._fold_front()
         else:
-            r[1] -= 1; R.appendleft([v, 1])
+            if R and R[-1][0] == pat: R[-1][1] += c
+            else: R.append([pat, c]); self._fold_back()
+        self.S += sum(pat) * c; self.n += len(pat) * c
+    def append(self, g, c=1): self.push_entry((g,), c)
+    def prepend(self, g, c=1): self.push_entry((g,), c, True)
     def pop_first(self):
-        r = self.R[0]; v = r[0]
-        if r[1] == 1: self.R.popleft()
-        else: r[1] -= 1
+        R = self.R; e = R[0]; pat = e[0]; v = pat[0]
+        e[1] -= 1
+        if e[1] == 0: R.popleft()
+        if len(pat) > 1: R.appendleft([pat[1:], 1])
         self.S -= v; self.n -= 1; return v
     def pop_last(self):
-        r = self.R[-1]; v = r[0]
-        if r[1] == 1: self.R.pop()
-        else: r[1] -= 1
+        R = self.R; e = R[-1]; pat = e[0]; v = pat[-1]
+        e[1] -= 1
+        if e[1] == 0: R.pop()
+        if len(pat) > 1: R.append([pat[:-1], 1])
         self.S -= v; self.n -= 1; return v
-    def append(self, g, c=1):
-        if c <= 0: return
-        R = self.R
-        if R and R[-1][0] == g: R[-1][1] += c
-        else: R.append([g, c])
-        self.S += g * c; self.n += c
-    def prepend(self, g, c=1):
-        if c <= 0: return
-        R = self.R
-        if R and R[0][0] == g: R[0][1] += c
-        else: R.appendleft([g, c])
-        self.S += g * c; self.n += c
+    def add_first(self, k):
+        v = self.pop_first(); self.prepend(v + k)
     def lead_ones(self):
-        R = self.R
-        if R and R[0][0] == 1:
-            k = R.popleft()[1]; self.S -= k; self.n -= k; return k, False
-        return 0, False
+        R = self.R; k = 0
+        while R and R[0][0][0] == 1:
+            if R[0][0] == (1,): c = R.popleft()[1]; k += c; self.S -= c; self.n -= c
+            else: self.pop_first(); k += 1
+        return k, False
     def fold(self): pass
     def record(self): pass
     def cost(self): return self.S, self.n
 
 def rq_concat(q1, q2):
-    """q1 then q2 (near to far), in place into the one with more runs"""
+    """q1 then q2 (near to far), in place into the one with more entries"""
     if len(q1.R) >= len(q2.R):
-        for v, c in q2.R: q1.append(v, c)
+        for pat, c in list(q2.R): q1.push_entry(pat, c)
         return q1
-    for v, c in reversed(q1.R): q2.prepend(v, c)
+    for pat, c in reversed(list(q1.R)): q2.push_entry(pat, c, True)
     return q2
 
 def newQ(gaps=(), runs=None):
@@ -473,10 +492,27 @@ def _transfer_shape(Y):
     if not (isM(a) and isM(b) and x in ('0', '1') and type(n) is int and a[1].exact() and b[1].exact()): return None
     return a[1].first(), x, n, b[1].first()
 
-def run_bounces(Y, accel=True, margin=6):
+def _drain(Y, margin, room=10**40):
+    """the tape is `1 M[G ..]`, one block: each bounce takes one pair off G and puts one more one-pair mover at
+    the block's far end, at 20 steps more than the bounce before.  Two bounces are run and checked against that,
+    then p more applied at once."""
+    q = Y[2][1]; G = q.first(); n = q.size()
+    s0 = bounce(Y); normalize(Y); s1 = bounce(Y); normalize(Y)
+    if not (len(Y) == 3 and Y[1] == '1' and isM(Y[2]) and Y[2][1].first() == G - 2 and Y[2][1].size() == n + 2
+            and Y[2][1].R[-1][0] == (1,) and s1 == s0 + 20):
+        return s0 + s1, 2
+    q = Y[2][1]; p = min(G - 2 - 2 * margin, room - 2)
+    if p <= 0: return s0 + s1, 2
+    q.add_first(-p); q.append(1, p)          # the p new movers take their pairs from G
+    STAT['drain'] += 1; STAT['drain bounces'] += p
+    return s0 + s1 + p * s1 + 10 * p * (p + 1), 2 + p
+
+def run_bounces(Y, accel=True, margin=6, room=10**40):
     """one bounce, or with accel a whole stretch of a transfer: while `... M[g ..] X n M[f ..]` holds, each bounce
     takes g-1, flips X, adds 3 to n and takes f-1.  Two bounces are run and checked against that; then 2p more
     are applied at once, their cost from s(t+2) = s(t) + 16.  Returns (steps, bounces)."""
+    if accel and len(Y) == 3 and Y[1] == '1' and isM(Y[2]) and isinstance(Y[2][1], RQ) and Y[2][1].first() >= 4 * margin:
+        return _drain(Y, margin, room)
     sh = _transfer_shape(Y) if accel else None
     if sh is None or min(sh[0], sh[3]) < margin + 4:
         return bounce(Y), 1
@@ -485,11 +521,92 @@ def run_bounces(Y, accel=True, margin=6):
     want = (g - 2, x, n + 6, f - 2)
     if _transfer_shape(Y) != want:
         return s0 + s1, 2
-    p = (min(g, f) - 2 - margin) // 2
+    p = min((min(g, f) - 2 - margin) // 2, (room - 2) // 2)
     if p <= 0: return s0 + s1, 2
     Y[-4][1].add_first(-2 * p); Y[-2] = n + 6 + 6 * p; Y[-1][1].add_first(-2 * p)
     STAT['transfer'] += 1; STAT['transfer bounces'] += 2 * p
     return s0 + s1 + p * (s0 + s1) + 16 * p * (p + 1), 2 + 2 * p
+
+# ---------------------------------------------------------------- repeating stretches of bounces, extrapolated
+WIN = 3          # entries tracked at each end of a block
+
+def _sig(Y):
+    """the tape as a structure and a list of numbers: every run of pairs, and for each block its entries (all of
+    them if few, else WIN at each end) as pattern values and counts"""
+    st = []; nums = []
+    for t in Y:
+        if type(t) is int: st.append('n'); nums.append(t)
+        elif isinstance(t, tuple):
+            R = t[1].R
+            ents = list(R) if len(R) <= 2 * WIN else list(itertools.islice(R, WIN)) + list(itertools.islice(R, len(R) - WIN, len(R)))
+            st.append(('M', len(R) if len(R) <= 2 * WIN else -1) + tuple(len(e[0]) for e in ents))
+            for e in ents: nums.extend(e[0]); nums.append(e[1])
+        else: st.append(t)
+    return tuple(st), nums
+
+def _set_sig(Y, nums):
+    it_ = iter(nums)
+    for i, t in enumerate(Y):
+        if type(t) is int: Y[i] = next(it_)
+        elif isinstance(t, tuple):
+            q = t[1]; R = q.R
+            idx = list(range(len(R))) if len(R) <= 2 * WIN else list(range(WIN)) + list(range(len(R) - WIN, len(R)))
+            for j in idx:
+                e = R[j]; q.S -= sum(e[0]) * e[1]; q.n -= len(e[0]) * e[1]
+                pat = tuple(next(it_) for _ in e[0]); c = next(it_)
+                R[j] = [pat, c]; q.S += sum(pat) * c; q.n += len(pat) * c
+
+class Periodic:
+    """Watches the tape after each bounce.  When for some period P the structure is the same at four points P
+    bounces apart, every tracked number changes by the same amount d over each period, and each bounce costs D
+    steps more than the one P bounces before, m more periods are applied at once: the numbers move by m d and the
+    cost is m Q + P D m (m + 1) / 2 (Q the last period's cost).  m keeps every decreasing number, and every
+    difference of two numbers that is closing, at least three periods away from zero."""
+    def __init__(self, pmax=12): self.h = collections.deque(maxlen=3 * pmax + 1); self.pmax = pmax
+    def clear(self): self.h.clear()
+    def step(self, Y, cost, room=10**40):
+        st, nums = _sig(Y); h = self.h; h.append((st, nums, cost))
+        n = len(h)
+        for P in range(1, self.pmax + 1):
+            if n < 3 * P + 1: break
+            a, b_, c, d_ = h[-1], h[-1 - P], h[-1 - 2 * P], h[-1 - 3 * P]
+            if not (a[0] == b_[0] == c[0] == d_[0]) or len(a[1]) != len(d_[1]): continue
+            dl = [x - y for x, y in zip(a[1], b_[1])]
+            if not any(dl): continue
+            if dl != [x - y for x, y in zip(b_[1], c[1])] or dl != [x - y for x, y in zip(c[1], d_[1])]: continue
+            D = a[2] - b_[2]
+            if any(h[-1 - j][2] - h[-1 - j - P][2] != D for j in range(2 * P)): continue
+            m = min(self._room(a[1], dl), room // P)
+            if m < 1: return None
+            _set_sig(Y, [x + m * dx for x, dx in zip(a[1], dl)])
+            Q = sum(h[-1 - j][2] for j in range(P))
+            self.clear()
+            STAT['periodic'] += 1; STAT['periodic bounces'] += m * P
+            return m * Q + P * D * m * (m + 1) // 2, m * P
+        return None
+    @staticmethod
+    def _room(x, dl):
+        m = 10 ** 30
+        for i, (xi, di) in enumerate(zip(x, dl)):
+            if di < 0: m = min(m, (xi - 1) // -di - 3)
+        ch = [(xi, di) for xi, di in zip(x, dl) if di]
+        for xi, di in ch:
+            for xj, dj in zip(x, dl):
+                dd = di - dj; gap = xi - xj
+                if dd and gap and (gap > 0) != (dd > 0): m = min(m, (abs(gap) - 1) // abs(dd) - 3)
+        return m
+
+PER = Periodic()
+
+def advance(Y, accel=True, room=10**40):
+    """run_bounces, then with accel a repeating stretch of bounces extrapolated (exact mode)"""
+    ds, db = run_bounces(Y, accel, room=room) if room >= 3 else (bounce(Y), 1)
+    normalize(Y)
+    if not accel or not CFG.get('periodic', True): return ds, db
+    if db != 1: PER.clear(); return ds, db
+    r = PER.step(Y, ds, room - 1)
+    if r: ds += r[0]; db += r[1]; normalize(Y)
+    return ds, db
 
 # ---------------------------------------------------------------- command line
 def _rle(g):
@@ -499,12 +616,18 @@ def _rle(g):
         else: out.append([x, 1])
     return ' '.join('%d^%d' % (a, b) if b > 1 else str(a) for a, b in out)
 
-def _rle_runs(runs): return ' '.join('%d^%d' % (a, b) if b > 1 else str(a) for a, b in runs)
+def _rle_runs(runs):
+    def one(pat, c):
+        t = ' '.join(map(str, pat))
+        if c == 1: return t
+        return ('(%s)^%d' if len(pat) > 1 else '%s^%d') % (t, c)
+    return ' '.join(one(p_, c) for p_, c in runs)
 
 def _exact_start():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import mover_sim as ms
-    CFG.update(K=10**30, NF=10**12, NE=10**12, MAXMOVES=10**12, YMAX=10**9, exact=True)
+    CFG.update(K=10**30, NF=10**12, NE=10**12, MAXMOVES=10**12, YMAX=10**9, exact=True,
+               periodic=os.environ.get('PERIODIC', '1') == '1')
     S = ms.start(); assert S.gs.m == 0 and len(S.Z) == 1
     Y = list(S.Y); normalize(Y)
     return ms, Y, S.steps
@@ -526,7 +649,7 @@ def main():
         t0 = time.time(); mx = 0
         i = 0; accel = os.environ.get('ACCEL', '1') == '1'
         while i < nb:
-            ds, db = run_bounces(Y, accel); normalize(Y); steps += ds; i += db; mx = max(mx, len(Y))
+            ds, db = advance(Y, accel); steps += ds; i += db; mx = max(mx, len(Y))
         print('bounces', i, 'step', steps, 'max items', mx, dict(STAT), '%.0fs' % (time.time() - t0))
         k, st, hp, hi, cells = ms.dump(steps)
         ok = ms.strip(to_cells(Y)) == ms.strip(cells[:-1]) and st == 'E' and hp == hi
@@ -552,11 +675,19 @@ def main():
                       s if len(s) < 400 else s[:200] + ' ... ' + s[-160:]))
             single = one
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
+    if mode == 'goto':
+        # accelerated to exactly bounce N: the step count there, the movers and their pair sum
+        i = 0; t0 = time.time()
+        while i < nb:
+            ds, db = advance(Y, True, nb - i); i += db; steps += ds
+        qs = [t[1] for t in Y if isM(t)]
+        print('bounce', i, 'step', steps, 'movers', sum(q.size() for q in qs), 'gap sum', sum(q.S for q in qs),
+              'items', len(Y), '%.0fs' % (time.time() - t0))
     if mode == 'blocks':
         # accelerated: every bounce at which the tape is one block, with its gaps (run length coded)
         i = 0; single = False; t0 = tp = time.time(); PROG = float(os.environ.get('PROGRESS', '0'))
         while i < nb:
-            ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            ds, db = advance(Y); i += db; steps += ds
             if PROG and time.time() - tp > PROG:
                 tp = time.time(); qs = [t[1] for t in Y if isM(t)]
                 print('  at bounce %d (step %.3e): %d items, %d blocks, %d movers in %d runs' % (i, steps, len(Y),

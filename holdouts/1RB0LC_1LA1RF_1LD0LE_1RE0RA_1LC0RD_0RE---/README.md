@@ -103,7 +103,7 @@ When the walks are over the head runs back to the left end and the next drain st
 | 1,793,526,413 | `... (893 565)^2 1162 6 1` | `... (893 565)^2 1552` | direct |
 | 2,230,168,743 | whole list, reservoir 11,198 | `10 (5 13)^388 5 37 (19 35)^5209 19 90 (107 379)^9 107 774 739 24448 6659 5707 81162 (19709 98389)^2 19709 158069 468864`, reservoir about 0, at 1.79·10^12 | accelerated |
 | 6.48·10^12 | `... 81162 (19709 98389)^2 19709 158069 1` | `... 5707 563005 177397 4764477 4737114`, at 1.26·10^14 | accelerated |
-| 6.05·10^14 | `... 563005 177397 4764477 1`, reservoir 5,205,977 | a rebuild that reaches back to `(107 379)^9`; not finished at 7.3·10^14 | accelerated |
+| 6.05·10^14 | `... 563005 177397 4764477 1`, reservoir 5,205,977 | a rebuild that reaches back to `(107 379)^9`; not finished at 7.3·10^14; with `block_sim.py` it ends at 4.84·10^18 in one block (below) | accelerated |
 
 A *short* rebuild only touches the last few blocks (1.79·10^9: `1162 6 1` becomes `1552` in 562,000 steps). A
 *partial* one re-makes the right part of the list (1.4·10^8 and 6.5·10^12). A *full* one reaches the left end and
@@ -368,10 +368,31 @@ rest applied with the cost `s(t+2) = s(t) + 16` (`n` grows by six pairs, +24 ste
 million bounces it skips 540,118 bounces in 5,399 stretches and gives the same step count as the plain run,
 1,880,381,285,307 (6 seconds). Accelerated, the one-block moments go on at bounce 11,499,387 (step 1.26·10^14), 480,093
 movers: `4737114 4764475 177395 563003 5705 6657 24446 737 772 (105 377)^n 88 (17 33)^n … (3 11)^n`. In exact mode a
-block's gaps are stored run-length coded (`RQ`), so the reservoir of one-pair gaps at a block's near end is one entry
-and is taken off and put back whole each bounce. That moment is reached in 69 seconds, and the run goes on at about
-six million bounces a minute: step 1.7·10^17 after 50 minutes, with 5,217,196 movers in 2.8 million runs (the
-`(a b)^n` stretches are not compressed). The next one-block moment had not come by then.
+block's gaps are stored as runs of a repeated gap or a repeated pair (`RQ`), so the reservoir and each
+`(a b)^n` stretch is one entry: the tape of 5.2 million movers is about 30 entries. Three things are skipped
+instead of run bounce by bounce:
+
+- a stretch of a transfer, as above;
+- the drain of a lone block's first gap (`1 M[G ..]`: each bounce takes one pair off `G` and adds a one-pair mover
+  at the far end, 20 steps more than the bounce before);
+- any repeating stretch (`Periodic`): when for some period P of at most 12 bounces the tape has the same shape at
+  four points P bounces apart, every tracked number (each run of pairs, and the values and counts of the entries
+  at each end of each block) changes by the same amount each period, and each bounce costs D steps more than the
+  one P bounces before, then m more periods are applied at once. m keeps every decreasing number, and every closing
+  difference of two numbers, at least three periods from zero. This is extrapolation, not a lemma; it is checked
+  below.
+
+Checks: `check 4e5` (119 billion steps) gives the tape of the direct simulation, and `goto N` stops at exactly
+bounce N and gives the same step count as `mover_sim.py` at its bounces 92,078, 3,290,107, 25,809,417 and
+318,337,968 (step 100,000,211,421,072,259). The one-block moment at 1.26·10^14 now takes 2 seconds. The rebuild that
+starts at 6.0·10^14 ends at bounce 2,101,653,447 (**step 4.84·10^18**, ten minutes) in one block of 5,217,194
+movers:
+
+`455602186 (55982777 202297545)^2 55982777 110559213 30578956 (18661379 67432059)^2 15975304 1771468
+(407219 655659)^37 407219 100566 (45243 72851)^5037 37377 2602 (24305 15057)^134 25763 (4851 8267)^388 4851 7288
+(977 3393)^2024 148 (377 105)^24294 54 (9 41)^1383232 9 28 1^2386877`
+
+and the run goes on without a halt: 9·10^19 steps at bounce 9.9 billion, with 460 million movers.
 
 **A finite abstraction does not close.** `py/block_search.py` runs the abstract bounce with pair counts capped at K
 and each block a queue with explicit ends and a learned middle. With K = 6 there is no halt in 1.76 million abstract
@@ -384,7 +405,8 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 1.2e7 # one-block moments, accelerated, to 1.26e14 steps (69 s)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 2.2e9 # one-block moments, accelerated, to 4.84e18 steps (10 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py goto 318337968 # step count at that bounce, as mover_sim (2 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # every rebuild event checked as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED

@@ -130,6 +130,12 @@
    "where": "<code>py/block_sim.py</code>, <code>py/block_search.py</code>, README"
   },
   {
+   "level": "heuristic",
+   "title": "The long rebuild ends at 4.84&times;10<sup>18</sup> steps",
+   "text": "With gap lists stored as runs of a repeated gap or pair, and repeating stretches of bounces extrapolated (not proved), the block simulator gives the step counts of the exact mover simulator at the same bounces up to step 10<sup>17</sup>. The rebuild that starts at 6.05&times;10<sup>14</sup> ends at step 4,841,180,110,594,696,065 in one block of 5,217,194 movers, <code>455602186 (55982777 202297545)^2 ... (377 105)^24294 54 (9 41)^1383232 9 28 1^2386877</code>. The run goes on without a halt to 9&times;10<sup>19</sup> steps.",
+   "where": "<code>py/block_sim.py</code> (<code>blocks</code>, <code>goto</code>), README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The machine halts only when F reads a 1, and that happens only as <code>D&gt; 1 0 1 1</code> (see below). Every bounce is a proved mover lemma except the cells where the head turns, and every collision seen to 1.6&times;10<sup>18</sup> steps at the ends of the movers is a lemma for all values of its gaps, none halting; an exact simulator finds no halt to 1.5&times;10<sup>18</sup>. But new shapes still turn up (two after 10<sup>15</sup> steps), and no invariant yet rules out one that halts. No regular invariant was found: CTL by SAT with up to 16&times;16 and 20&times;12 states, NGramCPS (widths 2 to 14, history, LRU), RepWL and a CPS over runs of alternating cells all fail, each because a window forgets how far away the left end of the tape is.",
