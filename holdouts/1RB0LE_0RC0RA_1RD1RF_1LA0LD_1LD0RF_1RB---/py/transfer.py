@@ -209,12 +209,13 @@ theorem G_Hs : ∀ (bs : List Nat) (L : Tape), G (Hs bs L) = XTs bs (G L) := by
 # a shape: '^' (the left end) or 'L' (any tape), then blocks e (even), o (odd >= 3), 1, each after its separator
 # ('|' or '.'; none for a first block after '^'); the front is the shape followed by passive even blocks.
 BASES = ["L|o.e", "^o.e", "L.e.e", "^e.e", "L|1", "L|e.e", "^e.e.o", "^e.o", "L|o|o.o", "^o|1.o", "L|1|o.e.o",
-         "L|1.e", "^o|o.o", "L|o|o.e.e.e.o", "^o|o.e.o", "^e|e.o", "L|e.e.o", "L|o|o.e.o", "^o|1.e.e.o"]
+         "L|1.e", "^o|o.o", "L|o|o.e.e.e.o", "^o|o.e.o", "^e|e.o", "L|e.e.o", "L|o|o.e.o", "^o|1.e.e.o",
+         "^1|e"]
 
 
 def base_tokens(shape):
     import re as _re
-    parts = _re.findall(r"([|.]?)([eo1])", shape[1:])
+    parts = _re.findall(r"([|.]?)([eo1z])", shape[1:])
     return parts
 
 
@@ -227,6 +228,8 @@ def base_start(shape, off):
             out.append("1" if sep == "|" else "0")
         if k == "1":
             out.append("1 0")
+            continue
+        if k == "z":     # an empty block: two separators 1 side by side
             continue
         v = f"v{i}"
         o = off.get(v, 0)
@@ -434,7 +437,7 @@ def front_at(tp, h0):
 
 
 def kind(n):
-    return "1" if n == 1 else "eo"[n % 2]
+    return "z" if n == 0 else "1" if n == 1 else "eo"[n % 2]
 
 
 def round_theorem(blocks, m):
@@ -461,10 +464,15 @@ def round_theorem(blocks, m):
         return "round_e0" if core[0][0] % 2 == 0 else "round_o0"
     if core[-1][1] == "|" and core[-1][0] % 2 and core[-1][0] >= 3:
         return "round_od"
-    for k in range(1, len(core) + 1):
-        shape = ("^" if k == len(core) else "L") + "".join((sp or "") + kind(n) for n, sp in core[-k:])
-        if shape in BASES:
-            return f"round_b_<{shape}>"
+    if [kind(n) for n, _ in core] == ["o", "z"]:
+        return ("front 3|0: no round, a copy loop starts here (the head takes the pairs of X one by one), "
+                "inside the copy tick of lean/Copy*.lean")
+    # the front `1` alone: its middle reads the next block, so the base takes it in (`^1|e`)
+    for ext in ([core] + ([bl[:i + 2]] if i + 1 < len(bl) else [])):
+        for k in range(1, len(ext) + 1):
+            shape = ("^" if k == len(ext) else "L") + "".join((sp or "") + kind(n) for n, sp in ext[-k:])
+            if shape in BASES:
+                return f"round_b_<{shape}>"
     return f"no theorem: turn shape {('^' + ''.join((sp or '') + kind(n) for n, sp in core))}"
 
 
