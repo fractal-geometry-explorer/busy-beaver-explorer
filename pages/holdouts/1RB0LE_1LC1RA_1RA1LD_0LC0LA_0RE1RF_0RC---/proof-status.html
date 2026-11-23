@@ -83,13 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Like <code>1RB---_0RC0RD_1LD1RB_0LE0LC_1RA0LF_1LD1LE</code> in this group, its tape has two parts: a stretch <code>1 0 1 0 …</code> and a solid block of 1s. At the left end the stretch is on the left (<code>0 0 0 (10)^909 1^1859</code>); at the right end the block is on the left (<code>0 1^238 (10)^1718</code>). Unlike in that machine, the block does not keep its length across a trip.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 23 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>The question is open, and it is now exactly a question about one orbit of a three-number map.</b> Lean proves (kernel, core Lean) that the machine halts if and only if DeepMind's map on C(m, k, b) = 0<sup>&infin;</sup> 1<sup>m</sup> (10)<sup>k</sup> C&gt; 1<sup>b</sup> 0<sup>&infin;</sup> stops, and that this happens exactly when the orbit visits a state with m = 3b + 1.</p>
-      <p><b>Where the run is.</b> Iterated from C(0, 0, 2) for 3.26&middot;10<sup>21</sup> steps of the map (7.03&middot;10<sup>32</sup> machine steps): no halt. Sizes reach about 2.6&middot;10<sup>11</sup>. The orbit came within 1 of the halting line m = 3b + 1 several times (m &minus; 3b = 0 or 2), last at m &asymp; 1.3&middot;10<sup>11</sup>; heuristically each new decade of the step count has a small fixed chance of a halt, so a halt may well come, far out of reach.</p>
+      <p><b>Where the run is.</b> Iterated from C(0, 0, 2) for 1.81&middot;10<sup>24</sup> steps of the map (9.16&middot;10<sup>36</sup> machine steps): no halt. Sizes reach about 7&middot;10<sup>12</sup>. The orbit came within 1 of the halting line m = 3b + 1 several times (m &minus; 3b = 0 or 2), last at m &asymp; 1.3&middot;10<sup>11</sup>; about 3.3 hits were expected so far if m &minus; 3b behaved like a random number of the size of b, and none came. Heuristically each new decade of sizes has a chance of about 0.28 of a halt, so a halt may well come, far out of reach.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The map stops only at C(2, 0, b) with b &ge; 2, and only C(1, k, 0) is sent there. A state C(m + 3, k, b + 1) always takes the sweep clause C(m + 3, k, b + 1) &rarr; C(m, k + 2, b), so from C(3B + 1, k, B) B sweeps reach C(1, k + 2B, 0) and two more steps stop the map. Hence: the machine halts from blank tape if and only if the orbit of the map from C(0, 0, 2) visits a state C(3B + 1, k, B) (B = 0 included).</p>
         <p class="where"><code>halts_iff_visits</code>, <code>next_none_iff</code>, <code>next_to_halting</code>, <code>sweep</code>, <code>lean/Criterion.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The two shortcuts of the fast iterator</h3>
+        <p><code>left_step</code>: for q &ge; 1 and r &lt; 3, q + 1 steps of the map take C(3q + r, k, q + 2 + c) to C(4q + 2k + 2 + (2 if r = 1 else 0), 1, c) (q sweeps, then the small-left clause). <code>wall_step</code>: b + 1 steps take C(3b + d, k, b) to C(d + 1, 0, 2(k + 2b) + 2) (b sweeps, then the wall).</p>
+        <p class="where"><code>left_step</code>, <code>wall_step</code>, <code>lean/Batch.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -163,17 +168,17 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/shape.py</code>, <code>py/switches.py</code> on a <code>tmrun … records</code> log</p>
       </div>
       <div class="card">
-        <h3>No halt in 3.26&middot;10<sup>21</sup> steps of the map (7.03&middot;10<sup>32</sup> machine steps)</h3>
-        <p><code>c/far.c</code> iterates the proved map from C(0, 0, 2) with the sweep jumped (C(m, k, b) &rarr; C(m &minus; 3j, k + 2j, b &minus; j) for j = min(&lfloor;m/3&rfloor;, b)), counting machine steps with the step counts of the Lean rules. In 56 minutes it made 3.26&middot;10<sup>21</sup> map steps, 4.04&middot;10<sup>10</sup> walls (b = 0) and 1.62&middot;10<sup>11</sup> sweep starts, reaching 7.03&middot;10<sup>32</sup> machine steps, with m, b up to about 2.6&middot;10<sup>11</sup>; no sweep start had m = 3b + 1. Its first map steps agree with a plain transcription of <code>DM.next</code>, and its step counts were checked against a direct simulation of the machine at 235 states up to step 3&middot;10<sup>6</sup>. (An earlier run, <code>tools/collatz/c/dm9516.c</code>, made 10<sup>12</sup> accelerated steps, with sizes up to 10<sup>12</sup>.)</p>
-        <p class="where"><code>c/far.c</code></p>
+        <h3>No halt in 1.81&middot;10<sup>24</sup> steps of the map (9.16&middot;10<sup>36</sup> machine steps)</h3>
+        <p><code>c/fast.c</code> iterates the proved map from C(0, 0, 2) with two shortcuts proved in Lean for <code>DM.next</code> (<code>left_step</code> and <code>wall_step</code>, <code>lean/Batch.lean</code>): a left step C(3q + r, k, q + 2 + c) &rarr; C(4q + 2k + 2 + 2[r = 1], 1, c) in q + 1 map steps, run L &le; 9 at a time from tables indexed by m mod 3<sup>L</sup>, and a wall step C(3b + d, k, b) &rarr; C(d + 1, 0, 2(k + 2b) + 2) in b + 1 map steps. Both are used only with a margin of 101, so every sweep start with |m &minus; 3b &minus; 1| &le; 100 is still examined one by one. Its orbit, counts and near-miss lines agree exactly with <code>c/far.c</code> to 3&middot;10<sup>8</sup> walls. In three two-hour legs (resumed from checkpoints) it made 1.81&middot;10<sup>24</sup> map steps, 9.50&middot;10<sup>11</sup> walls and 3.80&middot;10<sup>12</sup> sweep starts, reaching 9.16&middot;10<sup>36</sup> machine steps with m + b up to 7.6&middot;10<sup>12</sup>; no sweep start had m = 3b + 1. (Before: <code>c/far.c</code>, 3.26&middot;10<sup>21</sup> map steps, 7.03&middot;10<sup>32</sup> machine steps; its step counts were checked against a direct simulation of the machine.)</p>
+        <p class="where"><code>c/fast.c</code>, <code>left_step</code>, <code>wall_step</code> (<code>lean/Batch.lean</code>)</p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
         <h3>Growth shape: power/power</h3>
-        <p>Left of the start, the visited part of the tape grows like a power of the step count other than 1/2 (fitted exponent 0.341). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.345).</p>
-        <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+        <p>At a sweep start the quantity d = m &minus; 3b decides: d = 1 halts. In the runs d was within 2 of 1 at 16 sweep starts (d = &minus;1, 0, 2 or 3), at sizes from 6 up to about 1.3&middot;10<sup>11</sup>; none came in the 1.8 further decades of size of the <code>c/fast.c</code> run (about 2 expected). Sweep starts with |d &minus; 1| &le; 100 number 669 in all, between 38 and 71 per decade of b, flat in d: a histogram of d over the window has about 3 per value and many values with 0, d = 1 among them. So under a random model about 3.3 hits of d = 1 were expected and none occurred (Poisson chance about 4%): unusual, but the window shows no sign of an invariant (d mod 2, 3, 4, 5, 8, 9, 16 and 27 at walls are uniform). The model predicts about 0.28 expected hits per decade of b: a halt with probability 1, but at sizes with a long exponent. This is a model, not evidence either way.</p>
+        <p class="where"><code>c/far.c</code>, <code>c/fast.c</code> (the near-miss lines and histograms)</p>
       </div>
       <div class="card">
         <h3>Growth like t<sup>1/3</sup></h3>
@@ -203,6 +208,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/lean/check.sh
+gcc -O2 -march=native -o fast holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/c/fast.c -lm &amp;&amp; ./fast 7000 ck.bin   # repeat to resume
 gcc -O2 -o far holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/c/far.c &amp;&amp; ./far 3600
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC--- 1000000000
 gcc -O2 -o tmrun tools/c/tmrun.c &amp;&amp; ./tmrun 1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC--- 1000000000 records 100000 &gt; rec.txt &amp;&amp; python3 holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/py/shape.py rec.txt a=10 &amp;&amp; python3 holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/py/switches.py rec.txt a=10</code></pre>
