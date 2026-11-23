@@ -216,6 +216,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/ticks.py</code> (symbolic runs with <code>bbtools.symtm</code>, not Lean)</p>
       </div>
       <div class="card">
+        <h3>Halting lists break one local condition, which the run keeps</h3>
+        <p>Of all 113,105 block lists of at most 5 blocks of length 0 to 5, 4,635 halt within one tick. Every one of them breaks the local condition C: each block 1 has a separator 1 before it, and each block 0 stands between two separators 1 and before an odd block of length at least 3. The run keeps C at all 30,931 right-end turns of the first 10<sup>10</sup> steps after the first, and none of the 31,636 small lists with C halts. C alone is not kept by a tick (3,268 small lists with C give a next list without it, lists the run never shows), so an invariant that rules out the halt needs C together with the parity structure of the tick families.</p>
+        <p class="where"><code>py/invariant.py</code></p>
+      </div>
+      <div class="card">
         <h3>Size of the tape description (family screen)</h3>
         <p>At the 8 records between 2.6&middot;10<sup>8</sup> and 1.7&middot;10<sup>10</sup> steps (first new leftmost or rightmost cell after each threshold 10<sup>6</sup>&middot;4^k) the tape has 39,174 to 337,957 visited cells and compresses to 20 to 27 level-2 tokens (repeats of a word of at most 40 cells, then repeats of groups of such tokens).</p>
         <p class="where"><code>python3 holdouts/1RB0LC_0RC0RF_1RD0LE_1LA1RA_1LC1RB_0RB---/screen/screen.py 1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---</code>, saved in <code>screen.json</code> next to it</p>

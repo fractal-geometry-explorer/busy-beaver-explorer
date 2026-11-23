@@ -241,6 +241,14 @@ its blocks, not a rule for every shape), and the replay as a statement on lists.
    rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
    Open: one rule for every turn shape.
 3. An invariant of the block lists, kept by all rules, that keeps B off `0 1 1`.
+   First steps (`py/invariant.py`, a computation): of all 113,105 lists of at most 5 blocks of length 0 to 5,
+   4,635 halt within one tick (`1.0`, `1.2`, `1.1|1`, …). Every one of them breaks the local condition C: every
+   block 1 has a separator 1 before it, and every block 0 stands between two separators 1 and before an odd block
+   of length at least 3. The run keeps C at all 30,931 right-end turns of the first 10¹⁰ steps after the first
+   (block 1 comes only as `|1|` and `|1.`, block 0 only as `100|0|19`), and none of the 31,636 small lists with C
+   halts. C alone is not kept by a tick, though: 3,268 of those lists give a next list without it (`2.3 -> 1|6`,
+   `2|1.3 -> 2|0|6`, …), lists that the run never shows. So the invariant needs C together with the parity
+   structure that the tick families keep, and for the left-end ticks, the shape of the front.
 
 Why the method that proves 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB (a finite table of forms, then linear
 inequalities on their counts) does not apply as it is: the forms here are block lists of unbounded length (3 to 15
@@ -403,6 +411,7 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check 
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,091 rounds, 3 loop starts, 56 exits
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/chain2.py check blocks.txt   # every tick: 30,673 chain instances, 258 left end
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/invariant.py blocks.txt   # small lists that halt; the local condition C
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/early.py   # writes lean/Early.lean (the 6 early left-end ticks)
 ```
 
