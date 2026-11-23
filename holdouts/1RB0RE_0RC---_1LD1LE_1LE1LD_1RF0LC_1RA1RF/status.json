@@ -125,9 +125,9 @@
   },
   {
    "level": "trusted",
-   "title": "40,000 list steps, and 10<sup>6</sup> in C++",
-   "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through. The C++ port runs 10<sup>6</sup> list steps without failing (zone 620,913 letters, of the order of 10<sup>11</sup> machine steps by an estimate from the zone size). E reads the last 1 during a crossing 8 times there, always with one of the three near parts that <code>lean/Window.lean</code> covers, and all 12 crossing turns without a witness are in those windows.",
-   "where": "<code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code>, <code>c/listmachine.cpp</code>"
+   "title": "40,000 list steps, 10<sup>6</sup> in C++ and 4·10<sup>7</sup> bit-parallel",
+   "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through. The C++ port runs 10<sup>6</sup> list steps without failing (zone 620,913 letters, of the order of 10<sup>11</sup> machine steps by an estimate from the zone size). E reads the last 1 during a crossing 8 times there, always with one of the three near parts that <code>lean/Window.lean</code> covers, and all 12 crossing turns without a witness are in those windows. A bit-parallel version (<code>c/bitlist.cpp</code>, checked state for state against the byte version) has run 4.1·10<sup>7</sup> list steps without a failure; the zone reaches 2.8·10<sup>7</sup> letters, and since list step 471,169 E has never read the last 1 during a crossing.",
+   "where": "<code>py/listmachine.py run 40000</code>, <code>py/race.py 40000</code>, <code>c/listmachine.cpp</code>, <code>c/bitlist.cpp</code>"
   },
   {
    "level": "trusted",
@@ -225,6 +225,7 @@
   "holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/lean/check.sh",
   "g++ -O2 -o listmachine holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c/listmachine.cpp && ./listmachine 1000000",
   "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c && g++ -O2 -o locality locality.cpp && ./locality 12240 200 12 7 && g++ -O2 -o perturb perturb.cpp && ./perturb 186 10 1000 9 11 1000000000   # about 10 minutes",
+  "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/c && g++ -O3 -march=native -fopenmp -o bitlist bitlist.cpp && ./bitlist verify 150000 && NT=3 ./bitlist run 40000000 ck.bin   # about 3 hours",
   "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 game.py 3 14 123 && python3 game.py 2 13 101010000 010110010",
   "cd holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py && python3 window43.py     # the 43-letter window of lean/Window.lean",
   "python3 holdouts/1RB0RE_0RC---_1LD1LE_1LE1LD_1RF0LC_1RA1RF/py/frozen.py",
