@@ -14,7 +14,7 @@ Exact mode: gaps and runs are integers.  Abstract mode: they are capped at K (K+
 are a queue with a few explicit ends and a middle that is any path of a learned graph GQ of adjacent gaps; every
 choice the abstraction allows is tried (`successors`).
 """
-import sys, os, collections, copy, time
+import sys, os, collections, copy, time, itertools
 
 MACH = "1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---"
 T = {}
@@ -480,18 +480,25 @@ def main():
             Lb, R = Y[-4][1], Y[-1][1]
             ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
             if prev is not None:
-                pst, pg0, pg, pf, pn, pll, prl, pi = prev
+                pst, pg0, pg, pf, pn, pll, prl, pi, pgaps = prev
+                k = pll - ll
                 if pg < pf <= pg + 1: res['fuel ends with the gap (f = g + 1)'] += 1
-                elif pf > pg and rl == prl + 1 and ll == pll - 1:
-                    if pred(pst, pg0) == (last, st): res['gap copied, as predicted'] += 1
-                    else: bad.append((pi, 'S%d' % pst, pg0, pf, 'predicted', pred(pst, pg0), 'got', (last, st)))
+                elif pf > sum(pgaps[:k]) + 1 and k >= 1 and rl == prl + k:
+                    s_, outs = pst, []
+                    for j in range(k):
+                        h, s_ = pred(s_, pg0 if j == 0 else pgaps[j])
+                        outs.append(h)
+                    got = list(itertools.islice(itertools.chain(R.E, R.F), rl - k, rl))
+                    key = 'gap copied, as predicted' if k == 1 else 'gaps copied, as predicted (%d at once)' % k
+                    if (outs, s_) == (got, st): res[key] += 1
+                    else: bad.append((pi, 'S%d' % pst, pgaps[:k], pf, 'predicted', (outs, s_), 'got', (got, st)))
                 elif pf < pg and ll == pll and rl == 1:
                     ne = pn + 3 * pf
                     want = (2, pg - pf - 3, 2 * ne + 7) if pf % 2 == 0 else (0, pg - pf - 2, 2 * ne + 6)
                     if (st, sh[0], f) == want: res['drain end, as predicted'] += 1
                     else: bad.append((pi, 'S%d' % pst, pg0, pf, 'drain end predicted', want, 'got', (st, sh[0], f)))
-                else: res['not consecutive'] += 1
-            prev = (st, g0, sh[0], f, sh[2], ll, rl, i)
+                else: res['not checked (another level)'] += 1
+            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)))
         print(dict(res))
         for b_ in bad: print('  differs at bounce', *b_)
 

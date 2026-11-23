@@ -337,9 +337,9 @@ starts in S2 with the gap `f + 3` pairs shorter and fuel `2 n_e + 7` (`166` → 
 `f`, in S0 with the gap `f + 2` shorter and fuel `2 n_e + 6`.
 
 `block_sim.py rule 1.3e6` checks this on every pair of consecutive starts to 1.88·10^12 steps: 10,627 gaps copied
-and 6 drain ends, all as predicted, and 2 where the fuel ends with the gap (`f = g + 1`, not covered). Not checked:
-the 5,642 starts whose predecessor is at another level (the end of a block's list, where the activity moves one block
-over). The stretch is `walkm` (`lean/Movers.lean`); the two ends of a gap are collisions at Q, most likely the two
+one at a time, 5,616 times two one-pair gaps at once (too short to show a start of their own), and 6 drain ends, all
+as predicted; 2 where the fuel ends with the gap (`f = g + 1`, not covered). Not checked: the 26 starts whose
+predecessor is at another level (the end of a block's list, where the activity moves one block over). The stretch is `walkm` (`lean/Movers.lean`); the two ends of a gap are collisions at Q, most likely the two
 frequent families 4 and 5 of `lean/Collisions.lean` (not yet matched). None of this is one composed theorem yet. The
 reservoir drains completely at bounce 1,283,663 (step 1.79·10^12, `B 1 M[1] 0 1 1 8 M[11228]`); eight bounces later
 the block on the right merges back as one block of 11,232 movers:
@@ -362,7 +362,7 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # the transducer: 10627 gaps and 6 drain ends as predicted (15 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # the transducer: all 16249 checked starts as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED
 ```
