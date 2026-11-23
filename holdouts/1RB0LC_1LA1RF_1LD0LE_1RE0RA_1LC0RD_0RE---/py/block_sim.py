@@ -49,7 +49,7 @@ class Big(int):
 BIG = None
 
 def norm(x):
-    if isinstance(x, Big): return x
+    if isinstance(x, Big) or CFG.get('exact'): return x
     return BIG if x >= CFG['K'] else x
 
 def sub(g, k):
@@ -557,15 +557,17 @@ def _set_sig(Y, nums):
                 R[j] = [pat, c]; q.S += sum(pat) * c; q.n += len(pat) * c
 
 class Periodic:
-    """Watches the tape after each bounce.  When for some period P the structure is the same at four points P
-    bounces apart, every tracked number changes by the same amount d over each period, and each bounce costs D
-    steps more than the one P bounces before, m more periods are applied at once: the numbers move by m d and the
-    cost is m Q + P D m (m + 1) / 2 (Q the last period's cost).  m keeps every decreasing number, and every
-    difference of two numbers that is closing, at least three periods away from zero."""
-    def __init__(self, pmax=12): self.h = collections.deque(maxlen=3 * pmax + 1); self.pmax = pmax
+    """Watches the tape after each move of `advance` (a bounce, or a stretch skipped by a lemma-shaped rule).  When
+    for some period of P moves the structure is the same at four points P moves apart, every tracked number changes
+    by the same amount d over each period, each move covers as many bounces as the one P moves before, and each move
+    costs a fixed number of steps more than the one P moves before (its own D_j), m more periods are applied at
+    once: the numbers move by m d, and the cost is m Q + (D_0 + ... + D_(P-1)) m (m + 1) / 2, Q the last period's
+    cost.  m keeps every decreasing number, and every difference of two numbers that is closing, at least three
+    periods away from zero."""
+    def __init__(self, pmax=48): self.h = collections.deque(maxlen=3 * pmax + 1); self.pmax = pmax
     def clear(self): self.h.clear()
-    def step(self, Y, cost, room=10**40):
-        st, nums = _sig(Y); h = self.h; h.append((st, nums, cost))
+    def step(self, Y, cost, db=1, room=10**40):
+        st, nums = _sig(Y); h = self.h; h.append((st, nums, cost, db))
         n = len(h)
         for P in range(1, self.pmax + 1):
             if n < 3 * P + 1: break
@@ -574,15 +576,20 @@ class Periodic:
             dl = [x - y for x, y in zip(a[1], b_[1])]
             if not any(dl): continue
             if dl != [x - y for x, y in zip(b_[1], c[1])] or dl != [x - y for x, y in zip(c[1], d_[1])]: continue
-            D = a[2] - b_[2]
-            if any(h[-1 - j][2] - h[-1 - j - P][2] != D for j in range(2 * P)): continue
-            m = min(self._room(a[1], dl), room // P)
+            ok = True; Dsum = 0
+            for j in range(P):
+                x0, x1, x2 = h[-1 - j], h[-1 - j - P], h[-1 - j - 2 * P]
+                if not (x0[3] == x1[3] == x2[3]) or x0[2] - x1[2] != x1[2] - x2[2]: ok = False; break
+                Dsum += x0[2] - x1[2]
+            if not ok: continue
+            B = sum(h[-1 - j][3] for j in range(P))
+            m = min(self._room(a[1], dl), room // B)
             if m < 1: return None
             _set_sig(Y, [x + m * dx for x, dx in zip(a[1], dl)])
             Q = sum(h[-1 - j][2] for j in range(P))
             self.clear()
-            STAT['periodic'] += 1; STAT['periodic bounces'] += m * P
-            return m * Q + P * D * m * (m + 1) // 2, m * P
+            STAT['periodic'] += 1; STAT['periodic bounces'] += m * B
+            return m * Q + Dsum * m * (m + 1) // 2, m * B
         return None
     @staticmethod
     def _room(x, dl):
@@ -603,8 +610,7 @@ def advance(Y, accel=True, room=10**40):
     ds, db = run_bounces(Y, accel, room=room) if room >= 3 else (bounce(Y), 1)
     normalize(Y)
     if not accel or not CFG.get('periodic', True): return ds, db
-    if db != 1: PER.clear(); return ds, db
-    r = PER.step(Y, ds, room - 1)
+    r = PER.step(Y, ds, db, room - db)
     if r: ds += r[0]; db += r[1]; normalize(Y)
     return ds, db
 
@@ -643,7 +649,7 @@ def _ones(Y):
     return big, qsize(b) - big
 
 def main():
-    mode, nb = sys.argv[1], int(float(sys.argv[2]))
+    mode, nb = sys.argv[1], (int(float(sys.argv[2])) if 'e' not in sys.argv[2] or float(sys.argv[2]) < 1e18 else 10 ** int(sys.argv[2].split('e')[1]))
     ms, Y, steps = _exact_start()
     if mode == 'check':
         t0 = time.time(); mx = 0
