@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 23 November 2026.",
  "verdict": [
-  "<b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros; Z mod 4 drives a counter in a short word at the fixed left end. Five phase rules, proved in Lean for <em>any</em> tape left of the counter, cover all but 17 of the first 1,000,000 phases, and those 17 cycle ends are proved one by one. Lean's kernel runs the resulting map 100,000 phases from blank tape (no halt in 10<sup>17610</sup> steps); <code>native_decide</code> runs it 1,000,000 phases (10<sup>176092</sup> steps). Whether a halting word ever appears depends on the residues of Z at the cycle ends."
+  "<b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros; Z mod 4 drives a counter in a short word at the fixed left end. Five phase rules, proved in Lean for <em>any</em> tape left of the counter, cover all but 17 of the first 1,000,000 phases, and those 17 cycle ends are proved one by one. Lean's kernel runs the resulting map 100,000 phases from blank tape (no halt in 10<sup>17610</sup> steps); <code>native_decide</code> runs it 1,000,000 phases (10<sup>176092</sup> steps). Whether a halting word ever appears depends on the residues of Z at the cycle ends, and those are the 2-adic digits of the orbit: there is no finite law for them. With free residues halting is reachable (a concrete start with a 64,000-bit Z halts), and with fair coin flips the halting rate per cycle-level step is flat, so the heuristic says it halts, far beyond any computation."
  ],
  "claims": [
   {
@@ -148,9 +148,33 @@
    "where": "<code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB0RE_0LC1LE_0RD1LD_1RA1LF_1LC0RA_0LB--- R B 1 bfs 5000</code>"
   },
   {
+   "level": "heuristic",
+   "title": "No finite law for the cycle ends",
+   "text": "Each phase is Z' = (3Z + c)/2, so Z<sub>t</sub> mod 8 is fixed by Z<sub>0</sub> mod 2<sup>t+3</sup>, and adding 2<sup>t+2</sup> to Z<sub>0</sub> flips Z<sub>t</sub> mod 8 by 4 without changing an earlier phase. Every sequence of residues at the phases is met by exactly one 2-adic Z<sub>0</sub>: the residues at the cycle ends are the digits of a 3/2-map orbit, as in Mahler's 3/2 problem, not a finite pattern.",
+   "where": "<code>py/cycles.py</code>, README"
+  },
+  {
+   "level": "heuristic",
+   "title": "A halting path in 17 cycle-level steps",
+   "text": "With Z = 4j + 8 + r, j = 2m + bit and m symbolic (each phase then holds for every Z of that residue mod 8) and the counter run-downs jumped by the Lean rules, a breadth-first search from the first phase start halts after 17 cycle-level steps: the prefix of D walks down <code>2 1</code>, <code>1 1 2</code>, <code>0 1 2 2</code>, <code>0 0 1</code>, <code>0 0 0 1</code> and the next phase halts.",
+   "where": "<code>py/cycles.py explore 300</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A start with a 64,000-bit Z that halts",
+   "text": "Following a random halting walk of 35 steps and fixing the bits of Z<sub>0</sub> one at a time with the exact engine, a Z<sub>0</sub> of about 64,000 bits makes the exact run from the phase start PS(D(2,0), Z<sub>0</sub>) halt at phase 63,939. The words and phase rules do not exclude halting; only the bits of the blank-tape orbit can.",
+   "where": "<code>py/cycles.py realize</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "A flat halting rate",
+   "text": "With fair coin flips for the free bits, 400 walks to depth 2,000 cycle-level steps: 213 halt, at a rate of about 3.7&middot;10<sup>-4</sup> per step that stays flat from the first 250 steps to the last (3.2 to 4.4). The prefix of D outside the counters stays at 1 to 10 gaps: the words recur, they do not grow. If the blank-tape bits behave like coin flips the machine halts with probability 1, but the real orbit makes only about two such steps per threefold cycle (19 in 20,000 phases), so the expected halt lies at a number of phases with hundreds of digits.",
+   "where": "<code>py/cycles.py walk 400 2000</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. It reduces to the orbit of the map Z &rarr; (3Z + c)/2 and the nested counters it drives in D: whether the residues along the orbit ever build a halting word.",
+   "text": "Not known. It reduces to the orbit of the map Z &rarr; (3Z + c)/2 and the nested counters it drives in D. There is no finite law for the residues at the cycle ends, halting paths exist when the residues are free, and a concrete large start halts; whether the blank-tape orbit's residues ever take such a path is a 3/2-map question like Mahler's.",
    "where": ""
   }
  ],
@@ -185,6 +209,11 @@
     "level": "trusted",
     "value": "&times;3",
     "text": "Each cycle of the counter is about three times longer than the last."
+   },
+   {
+    "level": "heuristic",
+    "value": "17 steps",
+    "text": "The shortest halting path when the residues at the cycle ends are free."
    }
   ],
   "presets": [
@@ -252,13 +281,15 @@
    {
     "id": "question",
     "eyebrow": "What is left",
-    "heading": "An open, Collatz-like question",
+    "heading": "An open, Mahler-like question",
     "html": [
-     "<p>Halting depends on the orbit of Z under a 3/2 map whose constant depends on Z mod 4, together with the nested counters it drives. Words D on which a phase halts do exist. Choosing the residues freely reaches them, but the real orbit has not produced one so far.</p>"
+     "<p>Each cycle end is decided by the short prefix of D and by Z mod 8. Because Z' = (3Z + c)/2, the residue at phase t is fixed by the last t + 3 binary digits of the starting Z, and each new phase reads one more digit. Every pattern of residues belongs to exactly one 2-adic start, so the question of which residues the real orbit meets is a question about the digits of a 3/2-map orbit, like Mahler's 3/2 problem. No finite law is to be expected.</p>",
+     "<p>The words do not protect the machine. Choosing the residues freely, the prefix of D can walk down <code>2 1</code>, <code>1 1 2</code>, <code>0 1 2 2</code>, <code>0 0 1</code>, <code>0 0 0 1</code> and the next phase halts, 17 cycle-level steps from the start. Fixing the bits one by one gives a concrete start, a run of about 64,000 binary digits of zeros, that halts at phase 63,939.</p>",
+     "<p>With fair coin flips for the free digits, random walks halt at a steady rate of about one in 2,700 cycle-level steps, and the prefix of D stays short however long the walk. The real orbit makes about two such steps per threefold cycle, so the heuristic says it does halt, but at a number of phases with hundreds of digits. Proving it either way is a 3/2-map problem.</p>"
     ]
    }
   ]
  },
  "family": "Collatz-like map with a stack",
- "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end. Five phase rules, proved in Lean for any word to the left, cover all but 17 of the first 10^6 phases, and those are proved one by one: no halt in 10^17610 steps (kernel) or 10^176092 (native_decide)."
+ "summary": "A run of Z zeros is turned into a wall of 100 words and back each phase, Z -> about 3Z/2; Z mod 4 drives a counter in a short word at the fixed end. Five phase rules, proved in Lean for any word to the left, cover all but 17 of the first 10^6 phases, and those are proved one by one: no halt in 10^17610 steps (kernel) or 10^176092 (native_decide). There is no finite law for Z mod 8 at the cycle ends (they are the 2-adic digits of the orbit); with free residues halting is reachable."
 }
