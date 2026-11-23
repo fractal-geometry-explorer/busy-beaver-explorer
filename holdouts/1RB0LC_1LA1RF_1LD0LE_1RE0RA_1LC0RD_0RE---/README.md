@@ -375,12 +375,14 @@ instead of run bounce by bounce:
 - a stretch of a transfer, as above;
 - the drain of a lone block's first gap (`1 M[G ..]`: each bounce takes one pair off `G` and adds a one-pair mover
   at the far end, 20 steps more than the bounce before);
-- any repeating stretch (`Periodic`): when for some period P of at most 12 bounces the tape has the same shape at
-  four points P bounces apart, every tracked number (each run of pairs, and the values and counts of the entries
-  at each end of each block) changes by the same amount each period, and each bounce costs D steps more than the
-  one P bounces before, then m more periods are applied at once. m keeps every decreasing number, and every closing
+- any repeating stretch (`Periodic`): a period of P moves (P at most 48; a move is one bounce or one of the two
+  skips above) such that the tape has the same shape at four points P moves apart, every tracked number (each run
+  of pairs, and the values and counts of the entries at each end of each block) changes by the same amount each
+  period, each move covers as many bounces as the one P moves before, and each move costs a fixed number of steps
+  more than that one. Then m more periods are applied at once. m keeps every decreasing number, and every closing
   difference of two numbers, at least three periods from zero. This is extrapolation, not a lemma; it is checked
-  below.
+  below. Counting moves rather than bounces lets it skip a whole transfer of an `(a b)^n` stretch, one pair of gaps
+  per period.
 
 Checks: `check 4e5` (119 billion steps) gives the tape of the direct simulation, and `goto N` stops at exactly
 bounce N and gives the same step count as `mover_sim.py` at its bounces 92,078, 3,290,107, 25,809,417 and
@@ -392,7 +394,24 @@ movers:
 (407219 655659)^37 407219 100566 (45243 72851)^5037 37377 2602 (24305 15057)^134 25763 (4851 8267)^388 4851 7288
 (977 3393)^2024 148 (377 105)^24294 54 (9 41)^1383232 9 28 1^2386877`
 
-and the run goes on without a halt: 9·10^19 steps at bounce 9.9 billion, with 460 million movers.
+and the run goes on without a halt. That moment now takes 3 seconds, and in 15 minutes the run passes 37 one-block
+moments, the last at step 2.9·10^73 with 2.5·10^34 movers (still no halt; the `step` and `movers` columns are rounded):
+
+| bounce | step | movers |
+|---|---|---|
+| 1.15·10^7 | 1.26·10^14 | 480,093 |
+| 2.10·10^9 | 4.84·10^18 | 5.22·10^6 |
+| 1.14·10^10 | 1.54·10^20 | 4.61·10^8 |
+| 3.38·10^10 | 1.50·10^21 | 8.20·10^9 |
+| 2.07·10^12 | 4.16·10^24 | 9.14·10^9 |
+| 9.80·10^16 | 1.21·10^34 | 3.72·10^15 |
+| 5.07·10^20 | 3.14·10^41 | 7.21·10^18 |
+| 1.36·10^30 | 1.46·10^60 | 4.01·10^28 |
+| 5.62·10^36 | 2.94·10^73 | 2.53·10^34 |
+
+The lists show the tripling rules above at work: `(9 41)^n` comes back as `(35 123)^n` and `(377 105)^n` as
+`(1139 315)^n`, each with a new reservoir at the far end. Before the exact-mode cap on numbers was removed (`norm`),
+the run stopped at step 2.7·10^61 on a number above 10^30.
 
 **A finite abstraction does not close.** `py/block_search.py` runs the abstract bounce with pair counts capped at K
 and each block a queue with explicit ends and a learned middle. With K = 6 there is no halt in 1.76 million abstract
@@ -405,7 +424,7 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 2.2e9 # one-block moments, accelerated, to 4.84e18 steps (10 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 2.2e9 # one-block moments, accelerated, to 4.84e18 steps (3 s)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py goto 318337968 # step count at that bounce, as mover_sim (2 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # every rebuild event checked as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
