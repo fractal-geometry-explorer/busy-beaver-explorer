@@ -2,4 +2,4 @@
 # Check this machine's Lean files with the shared library (tools/lean). LEAN, LEANLIB as for tools/lean/check.sh.
 set -e
 cd "$(dirname "$0")"
-../../../tools/lean/check.sh . Machine.lean Blank.lean Rules.lean Sweeps.lean Ends.lean Phase.lean Orbit.lean
+../../../tools/lean/check.sh . Machine.lean Blank.lean Rules.lean Sweeps.lean Ends.lean Phase.lean Orbit.lean Counter.lean CounterPhase.lean Specials.lean SpecialPhase.lean Orbit2.lean

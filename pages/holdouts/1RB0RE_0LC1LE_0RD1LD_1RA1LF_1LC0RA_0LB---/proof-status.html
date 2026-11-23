@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros; Z mod 4 drives a counter in a short word D at the fixed left end. Whole phases of the first family of words are now Lean theorems, and so are the first 1001 phases from blank tape (no halt in the first 10<sup>177</sup> steps). An exact phase-by-phase run (no extrapolation) finds no halt in 1,000,000 phases, about 10<sup>352,184</sup> steps. With the residues chosen freely, words D on which a phase halts are reachable; the real orbit has not produced one.</p>
+      <p><b>The question is open, and Collatz-like.</b> The run is a sequence of phases Z &rarr; (3Z + c)/2 on a run of zeros; Z mod 4 drives a counter in a short word at the fixed left end. Five phase rules, proved in Lean for <em>any</em> tape left of the counter, cover all but 17 of the first 1,000,000 phases, and those 17 cycle ends are proved one by one. Lean's kernel runs the resulting map 100,000 phases from blank tape (no halt in 10<sup>17610</sup> steps); <code>native_decide</code> runs it 1,000,000 phases (10<sup>176092</sup> steps). Whether a halting word ever appears depends on the residues of Z at the cycle ends.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -141,6 +141,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From blank tape the machine reaches PS(D(2, 0), 15) in 457 steps. The level-1 phase map, proved sound, is evaluated by Lean's kernel with exact integers for 1001 phases: the counter resets at phases 5, 29, 92 and 332 stay in the family, and phase 1001 starts at R(971) with Z &equiv; 0 mod 4 (178 digits), where the family ends. So the machine runs at least 10<sup>177</sup> steps without halting.</p>
         <p class="where"><code>blank_1001</code>, <code>iter1_1001</code>, <code>iter1_1002</code>, <code>lean/Orbit.lean</code> (<code>decide +kernel</code>, no <code>native_decide</code>)</p>
       </div>
+      <div class="card">
+        <h3>The counters, for any word on the left</h3>
+        <p>For every tape L left of the counter and every a, b, Z: Z &equiv; 1 mod 4 leaves any word ending <code>0 1</code> unchanged; Z &equiv; 3 turns <code>L 1 0^(a+1) 1 0 1 (001)^b</code> into <code>L 1 0^a 1 0 1 (001)^(b+1)</code> and <code>L 1 0^(a+5) 1 000 1 (001)^b</code> into <code>L 1 0^(a+1) 1 000 1 (001)^(b+2)</code>; Z &equiv; 2 turns <code>L 1 0^(a+1) 1</code> into <code>L 1 0^a 1 0 1</code>; Z &equiv; 0 turns <code>L 1 0^(a+8) 1</code> into <code>L 1 0^(a+4) 1 000 1 00 1</code>. Only a counter that has run down reads further left.</p>
+        <p class="where"><code>phase_keep</code>, <code>phase_tick1</code>, <code>phase_tick3</code>, <code>phase_rtwo</code>, <code>phase_rzero</code>, <code>lean/CounterPhase.lean</code>; rules in <code>lean/Counter.lean</code> (from <code>lean/counter.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>The 9 kinds of cycle end in the first 10<sup>6</sup> phases</h3>
+        <p>17 of the first 1,000,000 phases are cycle ends, where the counter has run down. They are of 9 kinds, each proved for every b and Z with its short concrete prefix.</p>
+        <p class="where"><code>phase_D0</code>, <code>phase_sp2</code> &hellip; <code>phase_sp9</code>, <code>lean/SpecialPhase.lean</code>; rules in <code>lean/Specials.lean</code> (from <code>lean/specials.py</code>)</p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>17610</sup> steps</h3>
+        <p>The phase map built from these rules, proved sound, is run by Lean's kernel for 100,000 phases from blank tape.</p>
+        <p class="where"><code>blank_kernel</code>, <code>iter2_kernel</code>, <code>lean/Orbit2.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -148,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>176092</sup> steps</h3>
+        <p>The same map, evaluated by compiled code (<code>native_decide</code>), for 1,000,000 phases. Its final state agrees with the exact engine <code>py/phaseiter.py</code> (Z mod 10<sup>30</sup>, a and b). The real step count is about 10<sup>352184</sup>; the theorem only claims at least the final Z.</p>
+        <p class="where"><code>blank_native</code>, <code>iter2_native</code>, <code>lean/Orbit2.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
