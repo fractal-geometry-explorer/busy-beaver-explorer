@@ -154,6 +154,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No halt in the first 10<sup>8</sup> steps (checked accelerated simulator)</h3>
+        <p>The accelerated simulator of the shared library with every move proved (crossing rules checked by a run of the machine, jumps by a symbolic period) runs 10<sup>8</sup> steps from blank tape without a halt.</p>
+        <p class="where"><code>rsim_1e8</code>, <code>lean/RSimBound.lean</code> (<code>tools/lean/TM/RSim.lean</code>; <code>lean/check_rsim.sh</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>
     <div class="cards">
@@ -181,6 +186,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>DeepMind's PR 93 engine does not carry over</h3>
         <p>This is the table of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE started in state B: up to renaming, DeepMind's busycoq PR 93 table T4 with E1 changed. Four of PR 93's 18 basic rules change (Lean proves the changed forms in that machine's folder), and the change breaks the engine for every start. Rechecked from scratch on 22 November 2026: PR 93's collision rule ends in its rule form for T4 in 40 of 40 random cases and in none for this table, where the head runs on into the tape on the right.</p>
         <p class="where"><code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 7.6&middot;10<sup>13</sup> steps</h3>
+        <p><code>c/psim.c</code> is the direct simulation with two shortcuts, both theorems of <code>lean/Pulse.lean</code> for every tape around: the right sweep over a stretch of words (<code>right_words</code>) and the packet crossing it back (<code>left_words</code>). They take 99% of the steps. It runs 75,967,097,042,634 steps from blank tape without a halt (7.7 hours; the tape is then 8,320,745 cells long). At all 6,148 returns to the left end in the first 3&middot;10<sup>9</sup> steps its tape is identical to the direct run's.</p>
+        <p class="where"><code>c/psim.c</code>, <code>lean/Pulse.lean</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -224,6 +234,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Never one step from a halt</h3>
         <p>The machine halts when D reads a 1; D is entered from C reading a 0 (C0 → 1RD) and from F reading a 1 (F1 → 1LD). In the first 3·10<sup>6</sup> steps that happens 296,494 times, and D always lands on a 0.</p>
         <p class="where">direct simulation</p>
+      </div>
+      <div class="card">
+        <h3>No 000 away from the head</h3>
+        <p>In 30,000 samples of the direct run, one every 10<sup>7</sup> steps up to 3&middot;10<sup>11</sup>, the tape never holds a run of three or more 0s more than 8 cells from the head. That is the invariant a proof would need (then a pulse can never meet <code>0001</code>); the local deciders tried find no invariant of this kind.</p>
+        <p class="where"><code>c/zeros.c</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
