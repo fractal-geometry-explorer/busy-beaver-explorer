@@ -5184,4 +5184,495 @@ theorem tick3_b_ZoI1_e_e_o (v0 v2 v3 v4 : Nat) (bs : List Nat) : ∃ n,
   have h := main_of_mid (mid_evens bs (fun R => ⟨_, mid_b_ZoI1_e_e_o v0 v2 v3 v4 R⟩))
   rwa [four_eq, G_Hs] at h
 
+/-- `L . 3`. -/
+def ThreeD (L : Tape) : Tape := cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))
+/-- `L 0 (10)^5`: the same after the tick. -/
+def FourD (L : Tape) : Tape := cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))))
+/-- `L . (10)^(2c+2)`: a turn at X, the front ending in a 0. -/
+def XTd (c : Nat) (L : Tape) : Tape := rep (c + 1) [false, true, false, true] (cons false (L))
+/-- The next turn at X after a round over such a front. -/
+def XTe (c : Nat) (L : Tape) : Tape := rep (c + 1) [false, true, false, true] (cons false (cons true (cons false (L))))
+/-- `L | (10)^(2c+3)`: a turn at X, an odd number of pairs. -/
+def XTo (c : Nat) (L : Tape) : Tape := rep (c + 1) [false, true, false, true] (cons false (cons true (cons true (L))))
+
+/-- The symbolic run of `main_in_d`, ending as the run writes it. -/
+theorem main_in_d_raw (L : Tape) :
+    steps (7) ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))), cons true (cons true (blank)), .A⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))), .D⟩ := by
+  have hn : 7 = 7 := by omega
+  have h0 : steps 7 ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))), cons true (cons true (blank)), .A⟩ = some ⟨L, cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))), .D⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The tick of `L . 3` from the right-end turn to the separator. -/
+theorem main_in_d (L : Tape) :
+    steps (7) (⟨ThreeD L, cons true (cons true blank), .A⟩) = some (⟨L, cons false M1, .D⟩) := by
+  have h := main_in_d_raw L
+  exact h
+
+/-- The symbolic run of `main_out_d`, ending as the run writes it. -/
+theorem main_out_d_raw (L : Tape) :
+    steps (13) ⟨L, cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))), .B⟩ = some ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))))))), cons true (cons true (blank)), .A⟩ := by
+  have hn : 13 = 13 := by omega
+  have h0 : steps 13 ⟨L, cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))), .B⟩ = some ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))))))), cons true (cons true (blank)), .A⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- From the separator to the right-end turn. -/
+theorem main_out_d (L : Tape) :
+    steps (13) (⟨L, cons true M1, .B⟩) = some (⟨FourD L, cons true (cons true blank), .A⟩) := by
+  have h := main_out_d_raw L
+  exact h
+
+/-- The symbolic run of `copy_in_d`, ending as the run writes it. -/
+theorem copy_in_d_raw (c : Nat) (L R : Tape) :
+    steps (4 * c + 5) ⟨rep (c + 1) [false, true, false, true] (cons false (L)), cons true (cons false (cons false (R))), .D⟩ = some ⟨L, cons false (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (R))))), .D⟩ := by
+  have hn : (c + 1) * 4 + (1) = 4 * c + 5 := by omega
+  have c0 : ∀ L R : Tape, steps 4 ⟨app [false, true, false, true] L, app [true] R, .D⟩ = some ⟨L, app [true] (app [true, false, true, false] R), .D⟩ := fun _ _ => rfl
+  have h0 : steps ((c + 1) * 4) ⟨rep (c + 1) [false, true, false, true] (cons false (L)), cons true (cons false (cons false (R))), .D⟩ = some ⟨cons false (L), cons true (rep (c + 1) [true, false, true, false] (cons false (cons false (R)))), .D⟩ :=
+    cross_l trans c0 (c + 1) (cons false (L)) (cons false (cons false (R)))
+  have h1 : steps 1 ⟨cons false (L), cons true (rep (c + 1) [true, false, true, false] (cons false (cons false (R)))), .D⟩ = some ⟨L, cons false (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (R))))), .D⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (h1))
+
+/-- The right tape at the end of `copy_in_d_raw`, rebracketed. -/
+theorem copy_in_d_r (c : Nat) (R : Tape) :
+    cons false (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (R))))) = cons false (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (R))))) := by
+  have e0 : cons false (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (R))))) = cons false (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons false (cons false (R))))))))) := by
+    rw [show rep (c + 1) [true, false, true, false] (cons false (cons false (R))) = rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons false (cons false (R))))))) from rep_add (c) 1 [true, false, true, false] (cons false (cons false (R)))]
+  have e1 : cons false (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons false (cons false (R))))))))) = cons false (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons false (cons false (R))))))))) := by
+    rw [show cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons false (cons false (R)))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons false (cons false (R)))))))) from rep_rotate (c) [false] [true, false, true, false] [false, true, false, true] rfl (cons true (cons false (cons true (cons false (cons false (cons false (R)))))))]
+  have f0 : cons false (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (R))))) = cons false (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons false (cons false (R))))))))) := by
+    rw [show rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (R)))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons false (cons false (R)))))))) from rep_add (c) 1 [false, true, false, true] (cons false (cons false (cons false (R))))]
+  exact (e0.trans (e1)).trans (f0).symm
+
+/-- A copy round over a front ending in a 0, from the turn at X to the separator. -/
+theorem copy_in_d (c : Nat) (L R : Tape) :
+    steps (4 * c + 5) (⟨XTd c L, cons true (cons false (cons false R)), .D⟩) = some (⟨L, cons false (Y c R), .D⟩) := by
+  have h := copy_in_d_raw c L R
+  have e : (some ⟨L, cons false (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (R))))), .D⟩ : Option Config) = some ⟨L, cons false (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (R))))), .D⟩ := by
+    rw [copy_in_d_r c R]
+  rw [e] at h
+  exact h
+
+/-- The symbolic run of `copy_out_d`, ending as the run writes it. -/
+theorem copy_out_d_raw (c : Nat) (L R : Tape) :
+    steps (4 * c + 9) ⟨L, cons true (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ = some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (L)))), cons true (cons false (cons false (R))), .D⟩ := by
+  have hn : 0 + ((c + 1) * 4 + (5)) = 4 * c + 9 := by omega
+  have h0 : steps 0 ⟨L, cons true (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ = some ⟨L, rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ := by
+    simp only [steps_zero, show cons true (rep (c + 1) [false, true, false, true] (cons false (cons false (cons false (cons true (cons false (R))))))) = rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))) from
+      rep_rotate (c + 1) [true] [false, true, false, true] [true, false, true, false] rfl (cons false (cons false (cons false (cons true (cons false (R))))))]
+  have c1 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, false, true, false] R, .B⟩ = some ⟨app [] (app [true, false, true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h1 : steps ((c + 1) * 4) ⟨L, rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ = some ⟨rep (c + 1) [true, false, true, false] (L), cons true (cons false (cons false (cons false (cons true (cons false (R)))))), .B⟩ :=
+    cross_r trans c1 (c + 1) (L) (cons true (cons false (cons false (cons false (cons true (cons false (R)))))))
+  have h2 : steps 5 ⟨rep (c + 1) [true, false, true, false] (L), cons true (cons false (cons false (cons false (cons true (cons false (R)))))), .B⟩ = some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (L)))), cons true (cons false (cons false (R))), .D⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (h2)))
+
+/-- The left tape at the end of `copy_out_d_raw`, rebracketed. -/
+theorem copy_out_d_l (c : Nat) (L : Tape) :
+    cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (L)))) = rep (c + 1) [false, true, false, true] (cons false (cons true (cons false (L)))) := by
+  have e0 : cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (L)))) = cons false (cons true (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (L)))))))) := by
+    rw [show rep (c + 1) [true, false, true, false] (L) = rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (L))))) from rep_add (c) 1 [true, false, true, false] (L)]
+  have e1 : cons false (cons true (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (L)))))))) = cons false (cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))))) := by
+    rw [show cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (L)))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))) from rep_rotate (c) [false] [true, false, true, false] [false, true, false, true] rfl (cons true (cons false (cons true (cons false (L)))))]
+  have e2 : cons false (cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))))) = cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) := by
+    rw [show cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L))))))) = rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L))))))) from rep_rotate (c) [true] [false, true, false, true] [true, false, true, false] rfl (cons false (cons true (cons false (cons true (cons false (L))))))]
+  have e3 : cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) := by
+    rw [show cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) from rep_rotate (c) [false] [true, false, true, false] [false, true, false, true] rfl (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))]
+  have f0 : rep (c + 1) [false, true, false, true] (cons false (cons true (cons false (L)))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) := by
+    rw [show rep (c + 1) [false, true, false, true] (cons false (cons true (cons false (L)))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) from rep_add (c) 1 [false, true, false, true] (cons false (cons true (cons false (L))))]
+  exact (e0.trans (e1.trans (e2.trans (e3)))).trans (f0).symm
+
+/-- From the separator to the next turn at X, one pair of X further. -/
+theorem copy_out_d (c : Nat) (L R : Tape) :
+    steps (4 * c + 9) (⟨L, cons true (Y c (cons true (cons false R))), .B⟩) = some (⟨XTe c L, cons true (cons false (cons false R)), .D⟩) := by
+  have h := copy_out_d_raw c L R
+  have e : (some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (L)))), cons true (cons false (cons false (R))), .D⟩ : Option Config) = some ⟨rep (c + 1) [false, true, false, true] (cons false (cons true (cons false (L)))), cons true (cons false (cons false (R))), .D⟩ := by
+    rw [copy_out_d_l c L]
+  rw [e] at h
+  exact h
+
+/-- The symbolic run of `round_odd`, ending as the run writes it. -/
+theorem round_odd_raw (c : Nat) (L R : Tape) :
+    steps (8 * c + 18) ⟨rep (c + 1) [false, true, false, true] (cons false (cons true (cons true (L)))), cons true (cons false (cons false (cons true (cons false (R))))), .D⟩ = some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (cons true (cons false (L)))))), cons true (cons false (cons false (R))), .D⟩ := by
+  have hn : (c + 1) * 4 + (5 + (0 + ((c + 1) * 4 + (5)))) = 8 * c + 18 := by omega
+  have c0 : ∀ L R : Tape, steps 4 ⟨app [false, true, false, true] L, app [true] R, .D⟩ = some ⟨L, app [true] (app [true, false, true, false] R), .D⟩ := fun _ _ => rfl
+  have h0 : steps ((c + 1) * 4) ⟨rep (c + 1) [false, true, false, true] (cons false (cons true (cons true (L)))), cons true (cons false (cons false (cons true (cons false (R))))), .D⟩ = some ⟨cons false (cons true (cons true (L))), cons true (rep (c + 1) [true, false, true, false] (cons false (cons false (cons true (cons false (R)))))), .D⟩ :=
+    cross_l trans c0 (c + 1) (cons false (cons true (cons true (L)))) (cons false (cons false (cons true (cons false (R)))))
+  have h1 : steps 5 ⟨cons false (cons true (cons true (L))), cons true (rep (c + 1) [true, false, true, false] (cons false (cons false (cons true (cons false (R)))))), .D⟩ = some ⟨cons true (cons false (L)), cons true (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (cons true (cons false (R))))))), .B⟩ := rfl
+  have h2 : steps 0 ⟨cons true (cons false (L)), cons true (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (cons true (cons false (R))))))), .B⟩ = some ⟨cons true (cons false (L)), rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ := by
+    simp only [steps_zero, show cons true (cons false (rep (c + 1) [true, false, true, false] (cons false (cons false (cons true (cons false (R))))))) = rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))) from
+      rep_rotate (c + 1) [true, false] [true, false, true, false] [true, false, true, false] rfl (cons false (cons false (cons true (cons false (R)))))]
+  have c3 : ∀ L R : Tape, steps 4 ⟨app [] L, app [true, false, true, false] R, .B⟩ = some ⟨app [] (app [true, false, true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h3 : steps ((c + 1) * 4) ⟨cons true (cons false (L)), rep (c + 1) [true, false, true, false] (cons true (cons false (cons false (cons false (cons true (cons false (R))))))), .B⟩ = some ⟨rep (c + 1) [true, false, true, false] (cons true (cons false (L))), cons true (cons false (cons false (cons false (cons true (cons false (R)))))), .B⟩ :=
+    cross_r trans c3 (c + 1) (cons true (cons false (L))) (cons true (cons false (cons false (cons false (cons true (cons false (R)))))))
+  have h4 : steps 5 ⟨rep (c + 1) [true, false, true, false] (cons true (cons false (L))), cons true (cons false (cons false (cons false (cons true (cons false (R)))))), .B⟩ = some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (cons true (cons false (L)))))), cons true (cons false (cons false (R))), .D⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- The left tape at the end of `round_odd_raw`, rebracketed. -/
+theorem round_odd_l (c : Nat) (L : Tape) :
+    cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (cons true (cons false (L)))))) = rep (c + 2) [false, true, false, true] (cons false (L)) := by
+  have e0 : cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (cons true (cons false (L)))))) = cons false (cons true (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) := by
+    rw [show rep (c + 1) [true, false, true, false] (cons true (cons false (L))) = rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L))))))) from rep_add (c) 1 [true, false, true, false] (cons true (cons false (L)))]
+  have e1 : cons false (cons true (cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) = cons false (cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) := by
+    rw [show cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))) from rep_rotate (c) [false] [true, false, true, false] [false, true, false, true] rfl (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))]
+  have e2 : cons false (cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) = cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) := by
+    rw [show cons true (rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))))) = rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))))) from rep_rotate (c) [true] [false, true, false, true] [true, false, true, false] rfl (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L))))))))]
+  have e3 : cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) := by
+    rw [show cons false (rep (c) [true, false, true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) from rep_rotate (c) [false] [true, false, true, false] [false, true, false, true] rfl (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))]
+  have f0 : rep (c + 2) [false, true, false, true] (cons false (L)) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) := by
+    rw [show rep (c + 2) [false, true, false, true] (cons false (L)) = rep (c) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false (L)))))))))) from rep_add (c) 2 [false, true, false, true] (cons false (L))]
+  exact (e0.trans (e1.trans (e2.trans (e3)))).trans (f0).symm
+
+/-- A round with an odd number of pairs after the front's last separator 1, for every front: it never reads the front, turns the separator into a 0, and moves one pair of X. -/
+theorem round_odd (c : Nat) (L R : Tape) :
+    steps (8 * c + 18) (⟨XTo c L, cons true (cons false (cons false (cons true (cons false R)))), .D⟩) = some (⟨XTd (c + 1) L, cons true (cons false (cons false R)), .D⟩) := by
+  have h := round_odd_raw c L R
+  have e : (some ⟨cons false (cons true (cons false (rep (c + 1) [true, false, true, false] (cons true (cons false (L)))))), cons true (cons false (cons false (R))), .D⟩ : Option Config) = some ⟨rep (c + 2) [false, true, false, true] (cons false (L)), cons true (cons false (cons false (R))), .D⟩ := by
+    rw [round_odd_l c L]
+  rw [e] at h
+  exact h
+
+/-- The middle for a front ending in a separator 0: from that separator in state D back to it in state B. -/
+def DMid (L L' : Tape) : Prop := ∀ R : Tape, ∃ n, steps n ⟨L, cons false R, .D⟩ = some ⟨L', cons true R, .B⟩
+
+/-- The left-end tick of `F . 3`, for any front with such a middle. -/
+theorem main_of_dmid {L L' : Tape} (h : DMid L L') : ∃ n,
+    steps n ⟨ThreeD L, cons true (cons true blank), .A⟩ = some ⟨FourD L', cons true (cons true blank), .A⟩ := by
+  obtain ⟨n, hn⟩ := h M1
+  exact ⟨_, steps_seq trans (main_in_d L) (steps_seq trans hn (main_out_d L'))⟩
+
+/-- The copy round over a front `F .`, for any front with such a middle: the same middle as the tick of `F . 3`. -/
+theorem round_of_dmid {L L' : Tape} (h : DMid L L') (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c L, cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c L', cons true (cons false (cons false R)), .D⟩ := by
+  obtain ⟨n, hn⟩ := h (Y c (cons true (cons false R)))
+  exact ⟨_, steps_seq trans (copy_in_d c L _) (steps_seq trans hn (copy_out_d c L' R))⟩
+
+/-- The front `L  | e .` (v0 = 0). -/
+def S_d_LIe_v0eq0 (L : Tape) : Tape := cons false (cons true (cons false (cons true (cons true (L)))))
+/-- The same after the middle. -/
+def S'_d_LIe_v0eq0 (L : Tape) : Tape := cons true (cons true (cons false (cons true (cons true (L)))))
+
+/-- The symbolic run of `dmid_d_LIe_v0eq0`, ending as the run writes it. -/
+theorem dmid_d_LIe_v0eq0_raw (L R : Tape) :
+    steps (2) ⟨cons false (cons true (cons false (cons true (cons true (L))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons true (L))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons false (cons true (cons true (L))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons true (L))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  | e .`. -/
+theorem dmid_d_LIe_v0eq0 (L R : Tape) :
+    steps (2) (⟨S_d_LIe_v0eq0 L, cons false R, .D⟩) = some (⟨S'_d_LIe_v0eq0 L, cons true R, .B⟩) := by
+  have h := dmid_d_LIe_v0eq0_raw L R
+  exact h
+
+/-- The copy round over the front `L  | e .` (a first round of a copy tick). -/
+theorem round_d_LIe_v0eq0 (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_LIe_v0eq0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_LIe_v0eq0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_LIe_v0eq0 L R⟩) c R
+
+/-- The left-end tick of `L  | e . 3`. -/
+theorem tickd3_d_LIe_v0eq0 (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_LIe_v0eq0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_LIe_v0eq0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_LIe_v0eq0 L R⟩)
+
+/-- The front `L  | e .` (v0 ≥ 1). -/
+def S_d_LIe (v0 : Nat) (L : Tape) : Tape := rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L))))))
+/-- The same after the middle. -/
+def S'_d_LIe (v0 : Nat) (L : Tape) : Tape := cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L))))))))))
+
+/-- The symbolic run of `dmid_d_LIe`, ending as the run writes it. -/
+theorem dmid_d_LIe_raw (v0 : Nat) (L R : Tape) :
+    steps (2) ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L)))))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons true (L)))))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  | e .`. -/
+theorem dmid_d_LIe (v0 : Nat) (L R : Tape) :
+    steps (2) (⟨S_d_LIe v0 L, cons false R, .D⟩) = some (⟨S'_d_LIe v0 L, cons true R, .B⟩) := by
+  have h := dmid_d_LIe_raw v0 L R
+  exact h
+
+/-- The copy round over the front `L  | e .` (a first round of a copy tick). -/
+theorem round_d_LIe (v0 : Nat) (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_LIe v0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_LIe v0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_LIe v0 L R⟩) c R
+
+/-- The left-end tick of `L  | e . 3`. -/
+theorem tickd3_d_LIe (v0 : Nat) (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_LIe v0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_LIe v0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_LIe v0 L R⟩)
+
+/-- The front `L  | o .` (v0 = 0). -/
+def S_d_LIo_v0eq0 (L : Tape) : Tape := cons false (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))
+/-- The same after the middle. -/
+def S'_d_LIo_v0eq0 (L : Tape) : Tape := cons true (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))
+
+/-- The symbolic run of `dmid_d_LIo_v0eq0`, ending as the run writes it. -/
+theorem dmid_d_LIo_v0eq0_raw (L R : Tape) :
+    steps (2) ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (L))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (cons true (cons true (L))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons false (cons true (cons false (cons true (cons true (L))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (cons true (cons true (L))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  | o .`. -/
+theorem dmid_d_LIo_v0eq0 (L R : Tape) :
+    steps (2) (⟨S_d_LIo_v0eq0 L, cons false R, .D⟩) = some (⟨S'_d_LIo_v0eq0 L, cons true R, .B⟩) := by
+  have h := dmid_d_LIo_v0eq0_raw L R
+  exact h
+
+/-- The copy round over the front `L  | o .` (a first round of a copy tick). -/
+theorem round_d_LIo_v0eq0 (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_LIo_v0eq0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_LIo_v0eq0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_LIo_v0eq0 L R⟩) c R
+
+/-- The left-end tick of `L  | o . 3`. -/
+theorem tickd3_d_LIo_v0eq0 (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_LIo_v0eq0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_LIo_v0eq0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_LIo_v0eq0 L R⟩)
+
+/-- The front `L  | o .` (v0 ≥ 1). -/
+def S_d_LIo (v0 : Nat) (L : Tape) : Tape := rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L))))))))
+/-- The same after the middle. -/
+def S'_d_LIo (v0 : Nat) (L : Tape) : Tape := cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L))))))))))))
+
+/-- The symbolic run of `dmid_d_LIo`, ending as the run writes it. -/
+theorem dmid_d_LIo_raw (v0 : Nat) (L R : Tape) :
+    steps (2) ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (cons true (L)))))))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  | o .`. -/
+theorem dmid_d_LIo (v0 : Nat) (L R : Tape) :
+    steps (2) (⟨S_d_LIo v0 L, cons false R, .D⟩) = some (⟨S'_d_LIo v0 L, cons true R, .B⟩) := by
+  have h := dmid_d_LIo_raw v0 L R
+  exact h
+
+/-- The copy round over the front `L  | o .` (a first round of a copy tick). -/
+theorem round_d_LIo (v0 : Nat) (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_LIo v0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_LIo v0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_LIo v0 L R⟩) c R
+
+/-- The left-end tick of `L  | o . 3`. -/
+theorem tickd3_d_LIo (v0 : Nat) (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_LIo v0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_LIo v0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_LIo v0 L R⟩)
+
+/-- The front `L  . e .` (v0 = 0). -/
+def S_d_L_e_v0eq0 (L : Tape) : Tape := cons false (cons true (cons false (cons true (cons false (L)))))
+/-- The same after the middle. -/
+def S'_d_L_e_v0eq0 (L : Tape) : Tape := cons true (cons true (cons false (cons true (cons false (L)))))
+
+/-- The symbolic run of `dmid_d_L_e_v0eq0`, ending as the run writes it. -/
+theorem dmid_d_L_e_v0eq0_raw (L R : Tape) :
+    steps (2) ⟨cons false (cons true (cons false (cons true (cons false (L))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (L))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons false (cons true (cons false (L))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (L))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  . e .`. -/
+theorem dmid_d_L_e_v0eq0 (L R : Tape) :
+    steps (2) (⟨S_d_L_e_v0eq0 L, cons false R, .D⟩) = some (⟨S'_d_L_e_v0eq0 L, cons true R, .B⟩) := by
+  have h := dmid_d_L_e_v0eq0_raw L R
+  exact h
+
+/-- The copy round over the front `L  . e .` (a first round of a copy tick). -/
+theorem round_d_L_e_v0eq0 (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_L_e_v0eq0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_L_e_v0eq0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_L_e_v0eq0 L R⟩) c R
+
+/-- The left-end tick of `L  . e . 3`. -/
+theorem tickd3_d_L_e_v0eq0 (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_L_e_v0eq0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_L_e_v0eq0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_L_e_v0eq0 L R⟩)
+
+/-- The front `L  . e .` (v0 ≥ 1). -/
+def S_d_L_e (v0 : Nat) (L : Tape) : Tape := rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L))))))
+/-- The same after the middle. -/
+def S'_d_L_e (v0 : Nat) (L : Tape) : Tape := cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L))))))))))
+
+/-- The symbolic run of `dmid_d_L_e`, ending as the run writes it. -/
+theorem dmid_d_L_e_raw (v0 : Nat) (L R : Tape) :
+    steps (2) ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (L)))))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  . e .`. -/
+theorem dmid_d_L_e (v0 : Nat) (L R : Tape) :
+    steps (2) (⟨S_d_L_e v0 L, cons false R, .D⟩) = some (⟨S'_d_L_e v0 L, cons true R, .B⟩) := by
+  have h := dmid_d_L_e_raw v0 L R
+  exact h
+
+/-- The copy round over the front `L  . e .` (a first round of a copy tick). -/
+theorem round_d_L_e (v0 : Nat) (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_L_e v0 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_L_e v0 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_L_e v0 L R⟩) c R
+
+/-- The left-end tick of `L  . e . 3`. -/
+theorem tickd3_d_L_e (v0 : Nat) (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_L_e v0 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_L_e v0 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_L_e v0 L R⟩)
+
+/-- The front `L  | 1 .` (-). -/
+def S_d_LI1 (L : Tape) : Tape := cons false (cons true (cons true (L)))
+/-- The same after the middle. -/
+def S'_d_LI1 (L : Tape) : Tape := cons true (cons true (cons true (L)))
+
+/-- The symbolic run of `dmid_d_LI1`, ending as the run writes it. -/
+theorem dmid_d_LI1_raw (L R : Tape) :
+    steps (2) ⟨cons false (cons true (cons true (L))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons true (L))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons true (L))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons true (L))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `L  | 1 .`. -/
+theorem dmid_d_LI1 (L R : Tape) :
+    steps (2) (⟨S_d_LI1 L, cons false R, .D⟩) = some (⟨S'_d_LI1 L, cons true R, .B⟩) := by
+  have h := dmid_d_LI1_raw L R
+  exact h
+
+/-- The copy round over the front `L  | 1 .` (a first round of a copy tick). -/
+theorem round_d_LI1 (L : Tape) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_LI1 L), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_LI1 L), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_LI1 L R⟩) c R
+
+/-- The left-end tick of `L  | 1 . 3`. -/
+theorem tickd3_d_LI1 (L : Tape) : ∃ n,
+    steps n ⟨ThreeD (S_d_LI1 L), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_LI1 L), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_LI1 L R⟩)
+
+/-- The front `e .` (v0 = 0). -/
+def S_d_Ze_v0eq0  : Tape := cons false (cons true (cons false (cons true (blank))))
+/-- The same after the middle. -/
+def S'_d_Ze_v0eq0  : Tape := cons true (cons true (cons false (cons true (blank))))
+
+/-- The symbolic run of `dmid_d_Ze_v0eq0`, ending as the run writes it. -/
+theorem dmid_d_Ze_v0eq0_raw (R : Tape) :
+    steps (2) ⟨cons false (cons true (cons false (cons true (blank)))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (blank)))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons false (cons true (blank)))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (blank)))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `e .`. -/
+theorem dmid_d_Ze_v0eq0 (R : Tape) :
+    steps (2) (⟨S_d_Ze_v0eq0 , cons false R, .D⟩) = some (⟨S'_d_Ze_v0eq0 , cons true R, .B⟩) := by
+  have h := dmid_d_Ze_v0eq0_raw R
+  exact h
+
+/-- The copy round over the front `e .` (a first round of a copy tick). -/
+theorem round_d_Ze_v0eq0  (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_Ze_v0eq0 ), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_Ze_v0eq0 ), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_Ze_v0eq0  R⟩) c R
+
+/-- The left-end tick of `e . 3`. -/
+theorem tickd3_d_Ze_v0eq0  : ∃ n,
+    steps n ⟨ThreeD (S_d_Ze_v0eq0 ), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_Ze_v0eq0 ), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_Ze_v0eq0  R⟩)
+
+/-- The front `e .` (v0 ≥ 1). -/
+def S_d_Ze (v0 : Nat) : Tape := rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (blank)))))
+/-- The same after the middle. -/
+def S'_d_Ze (v0 : Nat) : Tape := cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (blank)))))))))
+
+/-- The symbolic run of `dmid_d_Ze`, ending as the run writes it. -/
+theorem dmid_d_Ze_raw (v0 : Nat) (R : Tape) :
+    steps (2) ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (blank))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (blank))))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (blank))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (blank))))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `e .`. -/
+theorem dmid_d_Ze (v0 : Nat) (R : Tape) :
+    steps (2) (⟨S_d_Ze v0, cons false R, .D⟩) = some (⟨S'_d_Ze v0, cons true R, .B⟩) := by
+  have h := dmid_d_Ze_raw v0 R
+  exact h
+
+/-- The copy round over the front `e .` (a first round of a copy tick). -/
+theorem round_d_Ze (v0 : Nat) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_Ze v0), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_Ze v0), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_Ze v0 R⟩) c R
+
+/-- The left-end tick of `e . 3`. -/
+theorem tickd3_d_Ze (v0 : Nat) : ∃ n,
+    steps n ⟨ThreeD (S_d_Ze v0), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_Ze v0), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_Ze v0 R⟩)
+
+/-- The front `o .` (v0 = 0). -/
+def S_d_Zo_v0eq0  : Tape := cons false (cons true (cons false (cons true (cons false (cons true (blank))))))
+/-- The same after the middle. -/
+def S'_d_Zo_v0eq0  : Tape := cons true (cons true (cons false (cons true (cons false (cons true (blank))))))
+
+/-- The symbolic run of `dmid_d_Zo_v0eq0`, ending as the run writes it. -/
+theorem dmid_d_Zo_v0eq0_raw (R : Tape) :
+    steps (2) ⟨cons false (cons true (cons false (cons true (cons false (cons true (blank)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (cons true (blank)))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨cons false (cons true (cons false (cons true (cons false (cons true (blank)))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (cons false (cons true (blank)))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `o .`. -/
+theorem dmid_d_Zo_v0eq0 (R : Tape) :
+    steps (2) (⟨S_d_Zo_v0eq0 , cons false R, .D⟩) = some (⟨S'_d_Zo_v0eq0 , cons true R, .B⟩) := by
+  have h := dmid_d_Zo_v0eq0_raw R
+  exact h
+
+/-- The copy round over the front `o .` (a first round of a copy tick). -/
+theorem round_d_Zo_v0eq0  (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_Zo_v0eq0 ), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_Zo_v0eq0 ), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_Zo_v0eq0  R⟩) c R
+
+/-- The left-end tick of `o . 3`. -/
+theorem tickd3_d_Zo_v0eq0  : ∃ n,
+    steps n ⟨ThreeD (S_d_Zo_v0eq0 ), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_Zo_v0eq0 ), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_Zo_v0eq0  R⟩)
+
+/-- The front `o .` (v0 ≥ 1). -/
+def S_d_Zo (v0 : Nat) : Tape := rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank)))))))
+/-- The same after the middle. -/
+def S'_d_Zo (v0 : Nat) : Tape := cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank)))))))))))
+
+/-- The symbolic run of `dmid_d_Zo`, ending as the run writes it. -/
+theorem dmid_d_Zo_raw (v0 : Nat) (R : Tape) :
+    steps (2) ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))))), cons true (R), .B⟩ := by
+  have hn : 2 = 2 := by omega
+  have h0 : steps 2 ⟨rep (v0 + 1) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))), cons false (R), .D⟩ = some ⟨cons true (cons true (cons false (cons true (rep (v0) [false, true, false, true] (cons false (cons true (cons false (cons true (cons false (cons true (blank))))))))))), cons true (R), .B⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- The middle for the front `o .`. -/
+theorem dmid_d_Zo (v0 : Nat) (R : Tape) :
+    steps (2) (⟨S_d_Zo v0, cons false R, .D⟩) = some (⟨S'_d_Zo v0, cons true R, .B⟩) := by
+  have h := dmid_d_Zo_raw v0 R
+  exact h
+
+/-- The copy round over the front `o .` (a first round of a copy tick). -/
+theorem round_d_Zo (v0 : Nat) (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c (S_d_Zo v0), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c (S'_d_Zo v0), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_d_Zo v0 R⟩) c R
+
+/-- The left-end tick of `o . 3`. -/
+theorem tickd3_d_Zo (v0 : Nat) : ∃ n,
+    steps n ⟨ThreeD (S_d_Zo v0), cons true (cons true blank), .A⟩ =
+      some ⟨FourD (S'_d_Zo v0), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_d_Zo v0 R⟩)
+
 end H103746
