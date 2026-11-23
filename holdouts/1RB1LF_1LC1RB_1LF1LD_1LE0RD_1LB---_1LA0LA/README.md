@@ -312,6 +312,145 @@ Trust: computations, exact by construction. The phase jumps reproduce the twin's
 (kinds ×256, ×16 and ×1) and agree with plain batches on 6 words with a ×64 phase; the cached transitions agree
 with the plain steps over the first 700 phases.
 
+## The descents as arithmetic, and the factory rule (22–23 November 2026)
+
+**What was asked:** prove the descent recursion and skip whole descents, to reach the eighth right-end event.
+**What came out:** the laws between phases, measured on 12,482 phases and proved as arithmetic in Lean
+(`lean/Descent.lean`); three fixes that let the accelerator run past phase 30 again; the rule of the *factory*
+that writes the fresh fuels (11 hits make one rung), checked with symbolic counts, and law A derived from it in
+Lean (`lean/Factory.lean`). The bottom word does not grow: what looked like a growing list of runs is one run
+stored in many pieces. The event is still out of reach, and no new bound: the logged phases give exactly the
+bound above.
+
+*Three fixes in the twin's `py/lsa_phase.py` and `py/lsa_region.py`.* Run again from the word at wall visit
+10^3200 (saved as `g07/lead12/start2_visit1e3200.pkl` in the project files; 43 min to rebuild), the accelerator
+stalled for more than half an hour after phase 30. Causes, all fixed:
+* when an eater stops with a little fuel, say 9 rungs of one rotation, the next run of the same word follows in
+  another rotation: `(t s)^9 t (s t)^F`. That is `t (s t)^(F+9)`, one fuel, but as tokens it is two, so no known
+  eater shape matched. Copies of a run's word just before it are now folded into it, digit by digit
+  (`fold_toks`, also in `head_split`, so the cache key of a transition stays the same);
+* single-hit feeding asserted that the bottom gets exactly one hit per batch, but one hit of a level can pass
+  two; it now takes them (`Region.feed`);
+* a cached transition starts with single hits (the next eater can take its regular shape at any hit of its
+  cycle), but there it only looks up shapes already known; a new super-cycle search at every hit took minutes.
+
+The run then went at about 17 phases a second, slowing to about one a second at phase 12,000.
+
+*The laws* (`python3 py/lsa_laws.py LOG` in the twin's folder, on the log written with `LSA_LOG=LOG`). The eaters
+of the ×64 kind leave a slack F − 4K of 5 to 9. Their fuel is a run of the 20-digit rung, and the rung is a
+*frozen* word: a hit crosses a run of rungs unchanged (494 steps a rung), so the 21 hits a super-cycle passes down
+go through every run of rungs to the next part of the word that is not frozen. Of the next fuels after a ×64
+phase:
+* 6,936 are fresh and follow **law A**, 11 F' = 21 K + e with −913 ≤ e ≤ 224 (almost all between 24 and 150):
+  one rung for every 11 hits passed down, a ratio of 44/21 ≈ 2.1 per phase;
+* 1,401 are fresh and follow **law B**, F' = K + δ with 2 ≤ δ ≤ 12: one rung for every 21 hits, a ratio of 4;
+* 4,063 are older runs of the word, met when a chain of fresh fuels has run out.
+
+*Descents of descents.* A run of fresh fuels is a descent. In the log they come in families: from phase 5,379
+the descents start on fuels of 120, 120, 119.7, 119.3, ..., 106.9 digits (0.32 digit less each time, the ratio of
+law A once more) and last 185, 171, 146, 129, 108, 93, ..., 4, 2 phases. Then a new family starts on 124 digits.
+
+*The bottom word does not grow.* Counted as tokens, the long runs below the eater went from 362 at the start to
+5,257 at phase 12,000, which first read as a growing list of "staircases" (an earlier version of this section
+said so). They are not separate runs: the digits across each junction are periodic with the rung's period 20, so
+neighbouring pieces in different rotations are one run that the engine stored as several tokens. Merged
+(`groups` in the twin's `py/lsa_laws.py`, and now in the accelerator itself, `MERGE` in `py/lsa_phase.py`):
+
+| after phase | long runs | their digits | of them fuels (1 0 0)^F |
+|---|---|---|---|
+| 0 (wall visit 10^3200) | 279 | 24,236 | 262 |
+| 13,999 | 306 | 27,474 | 272 |
+
+So the word below the eater is a list of about 270 fuels (1 0 0)^M and a few dozen rung runs, and it barely changes
+over 14,000 phases. Merging also makes most "older run" transitions disappear: on the first 1,404 phases of the
+merged run, 1,294 follow law A, 80 law B and only 18 are other transitions (−58 ≤ e ≤ 174).
+
+*The factory: where law A comes from.* Behind a ×64 eater the word reads
+
+    (10) 4 0^6 (10) 4 0^4 3 [100]^M 3 4 0^3 4 3 4 0^3 (10) X
+
+and every hit the eater passes down lands there. Run with symbolic counts n and M (`python3 py/lsa_factory.py` in
+the twin's folder), each of the 11 states of its cycle gives the same rule, for every n ≥ 1 and M ≥ 7 (25
+recorded conditions, all of that form):
+
+    11 hits:  (10) [rung]^n 4 0^6 ... [100]^M ... X   ->   (10) [rung]^(n+1) 4 0^6 ... [100]^(M−6) ... h^2(X)
+
+So the factory writes one rung of the next fuel for every 11 hits, burns 6 units of its [100] fuel and passes 2
+hits on. An eater phase of K super-cycles passes about 21 K hits down, so the next fuel F' has 11 F' ≈ 21 K: law
+A. In Lean (`lean/Factory.lean`, for every value, the rule as a hypothesis): `iter` (q cycles add q rungs, burn
+6 q fuel, pass 2 q hits), `rungs_bounds` (t + 11 lo ≤ 11 n_t + 10 and 11 n_t ≤ t + 11 hi) and
+`lawA_of_factory` (a phase of k super-cycles whose H hits, 21 k − s0 ≤ H ≤ 21 k + s1, all reach the factory
+writes a fuel satisfying `Descent.LawA` with offsets 10 + s0 and s1 + 11 hi). The offset e of law A is the
+factory's phase in its cycle plus the hits at the ends of the phase.
+
+*No new bound.* With phase j needing at least a_j^(K_j) times the hits of what is below it (`blk_ge`), a stack
+of phases needs at least 2^(Σ K_j log2 a_j) top hits (`phases_compose`). Over the 12,482 phases that is
+2^(2.8989·10^147), the bound of the 42,000-phase run (wall visit 10^(8.73·10^146)): it all comes from the first
+phases, whose fuels have 146 to 148 digits; after phase 5,000 no fuel had more than 127 digits. The word still
+holds fuels of up to 147 digits further down, and when the eater gets to them the exponent grows again, but each
+phase adds at most about 10^148 to it (the fuel times log2 a, while fuels stay below 10^148). So the bound grows
+only like the number of phases, and skipping descents raises it only if it skips very many of them; the event
+itself comes when the whole list is used up.
+
+*In Lean* (`lean/Descent.lean`, for all values; the offsets are hypotheses, the run's constants an instance):
+`lawA_step_lower`/`upper`, `lawB_step` for one phase; `descent_A_lower`/`upper` (21^j (23 F_0 + c) ≤ 44^j
+(23 F_j + c) and 44^j · 23 F_j ≤ 21^j · 23 F_0 + 44^j · 4 hi) and `descent_B_lower`/`upper` (factor 4) for a
+descent; `phases_compose` and `blk_ge` for the top hits over a stack of phases. This is the arithmetic only. That
+the machine's phases satisfy the laws is the log, not a proof.
+
+*What a level skip still needs.* The picture is now a flow of hits through a few kinds of parts: an eater
+turns 4 rungs into 21 hits (multiplying the hits needed above by 64), a factory turns 11 hits into one rung and 2
+hits further down while it burns its [100] fuel, and below it the next factory. A skip one level above the eater
+phases would run this flow as arithmetic. The three missing pieces (law B, a factory out of fuel, where the 2
+hits go) are in the next section.
+
+Trust: computations, exact by construction; the laws are observations over 12,482 phases; the factory rule is
+a symbolic run of the digit recursion (the engine, not Lean); the Lean files are the arithmetic, with the
+factory rule as a hypothesis.
+
+## Law B, the ladder, and refuelling (23 November 2026)
+
+**What was asked:** the three pieces a level skip still needed: the rule behind law B, what a factory does when
+its fuel runs out, and where the 2 hits it passes on go.
+**What came out:** law B is not a rule of the machine; the hits go to a base-4 *ladder*; and when the fuel runs out
+the factory burns the top block of that ladder. Each rule is checked on the digit recursion (the engine), not in
+Lean. No new bound yet.
+
+*Law B was the engine's bookkeeping.* Every law-B transition was the eater crossing from one piece of a run of the
+rung to the next piece of the same run (the junction digits are periodic). The merge of such pieces was not
+applied where the cached transitions pick the next fuel (`head_split` in the twin's `py/lsa_phase.py`). With that
+fixed, the first 1,050 phases from wall visit 10^3200 have no law-B transition at all: 1,018 follow law A
+(−42 ≤ e ≤ 174), and the 20 others are the ends of descents (every ~440 phases the eater moves on to the next
+fuel [100]^M) and one stretch of 17 phases on older rung runs. They give the same bound as the 1,404 unmerged
+phases (Σ K log2 a = 2.8986·10^147). The twin's seventh event comes out the same.
+
+*Where the 2 hits go: a ladder.* Below the factory's fuel the word holds five blocks (10)^R0 ... (10)^R4
+(R0 = 10^143.5, each about a quarter of the one before), with counter digits 0^7, 0^4 3, 3 0^2 3 in the junctions,
+then the next fuel [100]^(10^146.5) and below it the next, larger ladder. The ladder counts the factory's hits in
+base 4: after 11 q hits to the factory, block i has grown by q / 4^i, up to the carries (|error| ≤ 1). So R0 is
+about the number of hits the factory has had, divided by 11.
+
+*When the fuel runs out the factory refuels from the ladder.* A few hits after [100]^M is used up, the top block
+becomes the next fuel and the ladder moves up by one block:
+
+    (10)^R0  ->  [100]^(2 floor((R0 − 1) / 3) − 4),     R'_j = R_(j+1) + (R0 / 3) / 4^(j+1)  (|error| ≤ 3)
+
+and the fuel after the ladder gains at most one unit. So the new ladder is about the old one divided by 3, and
+the factory goes on. Its new fuel lasts about 11 R0 / 9 more hits.
+
+`python3 py/lsa_refuel.py N` in the twin's folder checks both rules on N random ladders (40 checked: worst carry
+error 0.75 for counting and 2.75 for refuelling). The word there is the one after phase 999, with the block lengths
+and the fuels as parameters. With the factory rule (`py/lsa_factory.py`) this gives the whole flow below an eater:
+
+* an eater turns 4 rungs into 21 hits and multiplies the hits needed above it by 64;
+* the factory turns 11 hits into one rung of the next fuel and 2 hits for the ladder, and burns 6 units of
+  [100] fuel;
+* the ladder counts the hits in base 4;
+* when the fuel is gone, the ladder's top block becomes the next fuel.
+
+A level skip would run this flow as arithmetic until the ladder and the fuel after it are used up. That is the
+next step. The rules here are observations of the engine on many values, not yet proofs.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
@@ -327,6 +466,8 @@ gcc -O2 -o tmrun ../../../tools/c/tmrun.c && TMRUN=./tmrun python3 bscheck.py 1R
 cd ../../../tools/py && python3 -m bbtools.ctl 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 6
 gcc -O2 -o wv ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/c/wv.c && ./wv 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA 3e6 0 1 > ref.txt && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_check.py 2 ref.txt   # accelerator against direct simulation
 python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/calibrate.py 2 && python3 ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/accel_run.py 2 60 100 7                 # step constants; the accelerated run
+cd ../../1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py && LSA_LOG=log.pkl LSA_CKPT=ck.pkl python3 lsa_run.py 2 3200   # the phases from visit 10^3200, logged
+python3 lsa_laws.py log.pkl --ckpt ck.pkl                       # the laws between phases; the bottom word of the checkpoint
 ```
 
 <!-- related machines: written by holdouts/related.py -->

@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape. Seen in pairs of cells, each visit of the growing left end applies one recursive map to the tape; that map runs a counter in base 4 whose levels are long blocks of the word 111010. The counter itself can never halt; what the head does on the rare occasions it reaches the right end is not understood."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 23 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The map from one wall visit to the next is known exactly as a recursion on words of pairs, with exact step counts, and the counter phases are proved in Lean. An accelerated simulator that finds its own rules, checked against direct simulation at every one of 1,425 wall visits (word and step number), runs through the seventh right-end event (wall visit 4.137&middot;10<sup>148</sup>) to wall visit about 10<sup>25600</sup> (step about 1.733&middot;10<sup>51200</sup>) without a halt, and a level-stripping accelerator built on it shows that the next event cannot come before wall visit 10<sup>8.73&middot;10<sup>146</sup></sup>. It is exact by construction but has not been re-derived independently. The right-end events do not stop, each one can in principle leave a halting word (such words exist, proved in Lean), and no invariant is known."
  ],
@@ -100,6 +100,36 @@
    "where": "<code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_run.py 2 3200</code>, README"
   },
   {
+   "level": "trusted",
+   "title": "The laws between phases",
+   "text": "Logged over 12,482 phases from the word at wall visit 10<sup>3200</sup>: after a &times;64 phase (slack F &minus; 4K of 5 to 9) the next fuel is fresh by law A, 11F&prime; = 21K + e with &minus;913 &le; e &le; 224 (6,936 times), fresh by law B, F&prime; = K + &delta; with 2 &le; &delta; &le; 12 (1,401 times), or the rest of the same run (4,063 times). The rung is a frozen word, so the hits a phase passes down cross every run of rungs. The bottom word does not grow: its long runs, stored by the engine as many pieces in different rotations, are 279 runs (24,236 digits) at the start and 306 (27,474 digits) after 14,000 phases, about 270 of them fuels (1 0 0)<sup>M</sup>. With the pieces merged, 1,294 of the first 1,404 phases follow law A. The logged phases give the same bound as before (2<sup>2.899&middot;10<sup>147</sup></sup> top hits), all of it from the first phases. Three fixes made the accelerator run past phase 30 again.",
+   "where": "<code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_laws.py</code> on the log of <code>LSA_LOG=log lsa_run.py 2 3200</code>, README"
+  },
+  {
+   "level": "kernel",
+   "title": "The arithmetic of a descent",
+   "text": "For every value: under law A the fuel after j phases satisfies 21<sup>j</sup>(23F<sub>0</sub> + c) &le; 44<sup>j</sup>(23F<sub>j</sub> + c) and 44<sup>j</sup>&middot;23F<sub>j</sub> &le; 21<sup>j</sup>&middot;23F<sub>0</sub> + 44<sup>j</sup>&middot;4hi, under law B the same with a factor of 4, and a stack of phases whose maps grow at least like a<sup>K<sub>j</sub></sup> needs at least a<sup>&Sigma;K<sub>j</sub></sup> times the hits below it. The arithmetic only: that the machine's phases follow the laws is the log above.",
+   "where": "<code>descent_A_lower</code>, <code>descent_A_upper</code>, <code>descent_B_lower</code>, <code>descent_B_upper</code>, <code>phases_compose</code>, <code>blk_ge</code>, <code>lean/Descent.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The factory rule: 11 hits make one rung",
+   "text": "Behind a &times;64 eater the word reads (10) 4 0<sup>6</sup> (10) 4 0<sup>4</sup> 3 [100]<sup>M</sup> 3 4 0<sup>3</sup> 4 3 4 0<sup>3</sup> (10) X, and the hits the eater passes down all land there. Run with symbolic counts from each of the 11 states of its cycle, the digit recursion gives the same rule, for every n &ge; 1 and M &ge; 7: 11 hits turn [rung]<sup>n</sup> into [rung]<sup>n+1</sup> and [100]<sup>M</sup> into [100]<sup>M&minus;6</sup>, and pass 2 hits on to X. So an eater phase of K super-cycles (21K hits) writes a fuel of about 21K/11 rungs: law A.",
+   "where": "<code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_factory.py</code>, README"
+  },
+  {
+   "level": "kernel",
+   "title": "Law A from the factory rule",
+   "text": "For every value, with the factory rule as a hypothesis: q cycles of 11 hits add q rungs, burn 6q units of fuel and pass 2q hits down; after t hits the rung count n<sub>t</sub> satisfies t + 11lo &le; 11n<sub>t</sub> + 10 and 11n<sub>t</sub> &le; t + 11hi; and a phase of k super-cycles whose hits H (21k &minus; s<sub>0</sub> &le; H &le; 21k + s<sub>1</sub>) all reach the factory writes a fuel that obeys law A with offsets 10 + s<sub>0</sub> and s<sub>1</sub> + 11hi.",
+   "where": "<code>iter</code>, <code>rungs_bounds</code>, <code>fuel_and_down</code>, <code>lawA_of_factory</code>, <code>lean/Factory.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Law B, the ladder, and refuelling",
+   "text": "Law B was the engine's bookkeeping: with the pieces of one run merged where the next fuel is picked, the first 1,050 phases have no law-B transition (1,018 law A, the others ends of descents) and give the same bound. The 2 hits the factory passes on go to a <i>ladder</i> of blocks (10)<sup>R<sub>0</sub></sup> &hellip; (10)<sup>R<sub>4</sub></sup>, each about a quarter of the one before, that counts them in base 4: 11q hits to the factory add q/4<sup>i</sup> to block i. When the factory's fuel runs out, the top block becomes the next fuel, [100]<sup>2&lfloor;(R<sub>0</sub>&minus;1)/3&rfloor;&minus;4</sup>, and the ladder moves up by one block (R&prime;<sub>j</sub> = R<sub>j+1</sub> + R<sub>0</sub>/(3&middot;4<sup>j+1</sup>), up to carries of at most 3). Checked on the digit recursion for 40 random ladders.",
+   "where": "<code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_refuel.py</code>, <code>py/lsa_laws.py</code> on the log of <code>lsa_run.py 2 3200</code>, README"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The counter cannot halt; a right-end event could leave a halting word, and no rule for these events is known.",
@@ -108,7 +138,7 @@
   {
    "level": "open",
    "title": "The right-end events",
-   "text": "A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word.",
+   "text": "A right-end event is a hit that reaches the last digit of the word. Some are resets (the levels are crushed into single digits), some only turn the youngest ladder rungs back into fuel. They are simulated on cells; a rule for them on digits (a second recursion for the return sweep) is not known, and they keep happening: every event is a new chance for a halting word. The list of runs below the eater grows as the phases go on (see above), so the next event needs that list used up, and no rule for it is known.",
    "where": "README, Next steps"
   },
   {
@@ -208,6 +238,7 @@
      "<svg viewBox='0 0 640 96' width='100%' role='img' aria-label='wall, ladder of levels, eater, fuel, right end'><rect x='4' y='30' width='10' height='36' fill='#555'/><text x='4' y='84' font-size='11'>wall</text><rect x='22' y='30' width='150' height='36' fill='#9bc' stroke='#345'/><text x='30' y='52' font-size='12'>(10)^n&#8321;</text><rect x='178' y='30' width='90' height='36' fill='#9bc' stroke='#345'/><text x='184' y='52' font-size='12'>(10)^n&#8322;</text><rect x='274' y='30' width='50' height='36' fill='#9bc' stroke='#345'/><text x='278' y='52' font-size='12'>&#8230;</text><rect x='330' y='30' width='44' height='36' fill='#e9a' stroke='#933'/><text x='334' y='52' font-size='12'>eater</text><rect x='380' y='30' width='150' height='36' fill='#fd8' stroke='#a80'/><text x='390' y='52' font-size='12'>fuel (100)^m</text><rect x='536' y='30' width='70' height='36' fill='#ddd' stroke='#777'/><text x='540' y='52' font-size='12'>old tape</text><text x='22' y='20' font-size='11'>each level is 4 times shorter and 4 times slower</text><text x='500' y='84' font-size='11'>a hit that gets here: event</text></svg>",
      "<p>A program that works on the digits, finds the repeating patterns by itself and jumps over them (it keeps the counts as big numbers) was checked against a plain simulation of the machine at 1,425 wall visits: the same tape and the same step number every time. It then runs on: through 4.137&middot;10<sup>148</sup> quiet wall visits, in which a ladder of 243 levels grows, up to the next event, at step 2.97&middot;10<sup>297</sup>. No halt. There it meets a run of fuel too long for the patterns it knows, and stops.</p>",
      "<p>The ladder can also be treated as arithmetic: each level is a counter digit with a known cycle, and an eater that burns its fuel a few units at a time builds the same block of levels again and again, so K of its rounds can be jumped at once with a geometric sum (proved in Lean for every K). At wall visit 10<sup>3200</sup> one eater has fuel for K = 2.4&middot;10<sup>146</sup> rounds, and every round makes the next one 256 times more expensive: the next event cannot come before wall visit 256<sup>K</sup>, a number with about 5.8&middot;10<sup>146</sup> digits. After that eater come long <i>descents</i>: eaters on fuels that shrink by a factor of about 2 each time, down to nothing, and then the next fuel. 42,000 of these phases push the bound to a number with 8.7&middot;10<sup>146</sup> digits, but the bottom of the tape refills its fuels as fast as they are used, so the event itself is still out of reach.</p>",
+     "<p>Run on from there, with three fixes to the accelerator, for 12,482 phases: the next fuel of an eater is either built fresh by the hits the phase passes down (one new rung for every 11 hits, or for every 21) or an older run of the word. The fresh fuels are written by a <i>factory</i> behind the eater: run with symbolic counts, 11 hits always add one rung to it, burn 6 units of its fuel [100]<sup>M</sup> and pass 2 hits further down, which is law A. The word below the eater does not grow: it is about 300 long runs, most of them fuels [100]<sup>M</sup>, at the start and after 14,000 phases (an earlier version said it grows; that was one run stored in many pieces). The arithmetic of a descent (how fast the fuel shrinks, and that the bounds of the phases multiply) and law A from the factory rule are proved in Lean; the factory rule itself is a symbolic run of the digit recursion.</p>",
      "<p>Why this does not settle the question: the events never stop coming, each one rewrites the far end of the tape in a way that is only known by running it, and there are words on which the machine halts. Nothing so far says that such a word can never be left behind.</p>"
     ]
    },

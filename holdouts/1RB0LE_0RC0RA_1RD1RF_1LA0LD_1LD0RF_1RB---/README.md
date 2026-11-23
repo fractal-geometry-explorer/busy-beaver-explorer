@@ -175,12 +175,15 @@ holds for every list of blocks (two inductions on the list), and `loop` (inducti
 (`lean/Copy.lean`). For each front shape of the run (each block of P a variable of fixed parity, as in `lean/Front.lean`) the entry and
 the two exits (`exit3` when the chain goes on, `exit1` when it has one block) are symbolic runs, and
 `copy_<shape>_long` / `copy_<shape>_one` are the whole tick from one right-end turn to the next, for every X, every
-value of the blocks of P, every chain and every number of pairs (`lean/CopyS1.lean` … `CopyS8.lean`). 21 front
-shapes are proved; **51 of the 54 copy ticks** of the first 10¹⁰ steps are instances, and the end of each theorem, read as a block list, is the list the run
-reaches (`py/copyloop.py check`). Not covered: the two ticks with front `3|1|Y` (which copy Y) and
-`3|1|7|9.26|…|1583` (front shape `o|1|o|o.e|e|o|o.e|e|o`, whose entry needs a split the generator does not find).
-The entry, the rework of P, is still one symbolic run per shape: its block law (the transducer above) is not a
-theorem.
+value of the blocks of P, every chain and every number of pairs (`lean/CopyS1.lean` … `CopyS9.lean`). The two
+ticks with front `3|1|Y` copy Y instead of X: two rounds make the front a single block, and the same loop then
+copies Y's pairs, with X (moved, 7 pairs longer) and the chain after them (`lean/CopyY.lean`, `copy_oI1Io_long`, for
+every Y, X and chain). In `3|1|7|9.26|…|1583` (front shape `o|1|o|o.e|e|o|o.e|e|o`) the front `3|1|7` comes up
+during the entry and copies its 7, a loop inside the entry, so that entry is one symbolic run only with that block
+fixed at 7 (every other block, X and the chain stay variables); that run is long, so it is proved in 18
+segments, three to a file (`lean/CopyS3_p1.lean` … `CopyS3_p6.lean`, `py/splitraw.py`). The loop then copies blocks of one fixed length; the exits are proved with a variable for that block and used at its value, since a run with a literal block length made Lean unfold the steps (over 13 GB; with the variable, under 1 GB). 23 front shapes are proved; **all 54 copy ticks** of
+the first 10¹⁰ steps are instances, and the end of each theorem, read as a block list, is the list the run reaches
+(`py/copyloop.py check`).
 
 **Copy rounds are left-end ticks (Lean, 22 November 2026).** Cut a copy tick at the turns at the edge of X: each
 round from one turn to the next runs the same *middle* as the left-end tick of the list `F | 3`, F the front at that
@@ -198,14 +201,23 @@ induction on the list). In front of them the middle turns, and that turn is a sy
 blocks: `L | o -> L . o+1` for an odd block after a 1, whatever L is (`round_od`); `e -> e+2` for an even first
 block (`round_e0`, the copy loop); `o -> 3 | o` for an odd first block (`round_o0`); and 19 more turn shapes with
 a separator 0 or a block 1 near the turn (`round_b_<shape>`, each block a variable, split at 0 where the run needs
-it), e.g. `L | o . e -> L | o-1 | e+2`. The 54 copy ticks of the first 10^10 steps have 2,094 rounds (and 56 last
-turns at X, where no pair is left and the exit starts); `py/transfer.py check classify.txt` finds 2,013 of them to be
-rounds of these theorems, for every value of the blocks and every number of passive blocks. The other 81: the first
-round of every tick and the second of 22 (the front does not yet end in a separator 1, or an odd number of pairs
-stands after it), and 7 rounds over the fronts `1 | …` and `3 | 0 | …`, where the middle reaches past the separator.
+it), e.g. `L | o . e -> L | o-1 | e+2`. The 54 copy ticks of the first 10^10 steps have 2,094 turns at X before the
+last (and 56 last turns at X, where no pair is left and the exit starts); `py/transfer.py check classify.txt` finds 2,013 of them to be
+rounds of these theorems, for every value of the blocks and every number of passive blocks.
 
-What is still open here: gluing these rounds into the 3 copy ticks not yet proved, the first rounds as a rule, and
-the replay as a statement on lists.
+The first rounds are rules too. When the front ends in a separator 0 (the first round of 34 ticks, the second of
+20), the round runs the middle of the tick of `F . 3`: the head comes to that 0 in state D and back to it in state B
+(`DMid`, `main_of_dmid`, `round_of_dmid`), and the middle is a symbolic run for 6 turn shapes (`round_d_<shape>`:
+`L | e .`, `L | o .`, `L . e .`, `L | 1 .`, `e .` and `o .` at the left end). When an odd number of pairs stands
+after the front's last separator 1 (the first round of 20 ticks), the round never reads the front: it turns that
+separator into a 0 and moves one pair (`round_odd`, for every front). Over the front `1 | e | …` the middle reads
+the next block too, so that block goes into the base (`^1|e`). With these, all 2,091 rounds are rounds of a theorem
+for every front of their shape. The other 3 of the 2,094 turns at X before the last are no rounds: over the
+front `3 | 0 | …` inside a copy of Y the head takes the pairs of X one by one (a loop, not a single pair moved), and
+those ticks are proved whole above.
+
+What is still open here: the turn shapes as one rule (a finite list of turn shapes is proved, each for every value of
+its blocks, not a rule for every shape), and the replay as a statement on lists.
 
 ## What is open, next steps
 
@@ -213,10 +225,10 @@ the replay as a statement on lists.
    parities). The pieces of `lean/Chain.lean` should cover most of them with new turn pieces.
 2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
    for every chain length (`lean/Front.lean`); the 54 copy ticks are checked to depend on the block X only through
-   the new block 2X − c(P), and 51 of them are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
-   per front shape). Every later round of a copy tick is the left-end tick of `F | 3` on its front, and 2,013 of
-   the 2,094 rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
-   Open: the first rounds of a copy tick as a rule.
+   the new block 2X − c(P), and all 54 are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
+   per front shape). Every round of a copy tick is the left-end tick of `F | 3` or `F . 3` on its front, and all 2,091
+   rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
+   Open: one rule for every turn shape.
 3. An invariant of the block lists, kept by all rules, that keeps B off `0 1 1`.
 
 Why the method that proves 1RB0LE_1RC---_1RD1RE_1LA0RF_0RC0LA_0LC0RB (a finite table of forms, then linear
@@ -376,9 +388,9 @@ gcc -O2 -o tick holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/c/tick.c
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/front.py classify < blocks.txt > classify.txt   # 30 s
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick < classify.txt                  # 3 minutes
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classify.txt      # rewrites lean/Copy*.lean
-python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # 51 of 54 copy ticks
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # all 54 copy ticks
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
-python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,013 of 2,094 rounds
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,091 rounds, 3 loop starts, 56 exits
 ```
 
 <!-- related machines: written by holdouts/related.py -->

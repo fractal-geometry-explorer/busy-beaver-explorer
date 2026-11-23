@@ -8,6 +8,7 @@ the ladder is a mixed-radix counter (lsa_ladder, lsa_region), and an eater's K s
 closed form, counts too large to write down are kept as BigF: a mantissa and an exact exponent).  Prints the phases met and
 the event's visit: exact, or as that closed form.  'explicit' turns the phase jumps off (only batches of hits:
 the same answer, slower, for a cross-check).  'file': save the starting word (pickle) or read it if it exists.
+LSA_CKPT=file: checkpoint every LSA_EVERY phases and resume from it; LSA_LOG=file: log every phase (for lsa_laws.py).
 """
 import sys, os, time, threading, pickle
 sys.set_int_max_str_digits(0)
@@ -62,6 +63,18 @@ def main():
                                                                time.time() - t0), flush=True)
     R = PRegion(d['toks'], op='G', Q=int(os.environ.get('LSA_Q', '200')))
     print("%d levels on top of a bottom word" % len(R.levels), flush=True)
+    lg = os.environ.get('LSA_LOG')
+    if lg:
+        # one record per phase, appended: (phase, eater tokens with the fuel, fuel index, first 120 tokens of the
+        # rest, K, P, fuel per super-cycle, hits down, block multiplier); read by the twin's py/lsa_laws.py
+        logf = open(lg, 'ab')
+        from lsa_region import prefix_tokens
+
+        def hook(nph, sc, E, fi, rest, K):
+            a = lsa_phase.block_map_c(sc, E)[1]
+            pickle.dump((nph, list(E), fi, prefix_tokens(rest, 120)[0], K, sc['P'], sc['dm'], sc['c'], a), logf)
+            logf.flush()
+        lsa_phase.HOOK[0] = hook
     ck = os.environ.get('LSA_CKPT')
     if ck and os.path.exists(ck):
         R, frames, nph = lsa_phase.load_state(ck)

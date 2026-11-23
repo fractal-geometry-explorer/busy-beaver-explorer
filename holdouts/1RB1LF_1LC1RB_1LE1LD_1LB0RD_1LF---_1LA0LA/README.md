@@ -332,6 +332,16 @@ too.
 sweep (18,135 to 15,799 runs of cells left in 2 h), so it is not part of this change. The eighth event's return is
 still open.
 
+*Three fixes, 23 November 2026* (found on the other machine's run from visit 10^3200, described in its README):
+copies of a run's word written out just before the run, also in another rotation, are folded into it
+(`fold_toks`), so that an eater whose fuel ran out next to a new run of the same word is recognised; a level that
+passes two hits on one hit no longer trips `Region.feed`; and the single hits at the start of a cached transition
+only look up eater shapes already known. `LSA_LOG=file` logs every phase, `py/lsa_laws.py` reads the log.
+Also, a long run followed by a few short tokens and another long run of the same period is now merged into one
+run when the digits across the junction are periodic (`MERGE`, `_merge_prev` in `py/lsa_phase.py`; the word is
+unchanged on 162 sampled junctions and the 7th event of this machine comes out the same). `py/lsa_factory.py`
+checks the factory rule behind the ×64 eater of the other machine (11 hits make one rung) with symbolic counts.
+
 Trust: computations, exact by construction; the accelerator agrees with the digit engine on the stretch it was
 compared on. The Lean file covers the arithmetic only, not the symbolic runs that supply its constants.
 

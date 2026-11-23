@@ -209,12 +209,13 @@ theorem G_Hs : ∀ (bs : List Nat) (L : Tape), G (Hs bs L) = XTs bs (G L) := by
 # a shape: '^' (the left end) or 'L' (any tape), then blocks e (even), o (odd >= 3), 1, each after its separator
 # ('|' or '.'; none for a first block after '^'); the front is the shape followed by passive even blocks.
 BASES = ["L|o.e", "^o.e", "L.e.e", "^e.e", "L|1", "L|e.e", "^e.e.o", "^e.o", "L|o|o.o", "^o|1.o", "L|1|o.e.o",
-         "L|1.e", "^o|o.o", "L|o|o.e.e.e.o", "^o|o.e.o", "^e|e.o", "L|e.e.o", "L|o|o.e.o", "^o|1.e.e.o"]
+         "L|1.e", "^o|o.o", "L|o|o.e.e.e.o", "^o|o.e.o", "^e|e.o", "L|e.e.o", "L|o|o.e.o", "^o|1.e.e.o",
+         "^1|e"]
 
 
 def base_tokens(shape):
     import re as _re
-    parts = _re.findall(r"([|.]?)([eo1])", shape[1:])
+    parts = _re.findall(r"([|.]?)([eo1z])", shape[1:])
     return parts
 
 
@@ -227,6 +228,8 @@ def base_start(shape, off):
             out.append("1" if sep == "|" else "0")
         if k == "1":
             out.append("1 0")
+            continue
+        if k == "z":     # an empty block: two separators 1 side by side
             continue
         v = f"v{i}"
         o = off.get(v, 0)
@@ -251,7 +254,7 @@ def base_doc(shape):
     return shape.replace("^", "").replace("L", "L ").replace("|", " | ").replace(".", " . ").strip()
 
 
-def gen_base(shape, off=None, depth=0):
+def gen_base(shape, off=None, depth=0, dot=False):
     """the cases of a shape: on a split of a block variable v (v + k), the case v = k and the case v ≥ k + 1"""
     from bbtools.symtm import Config, run, NeedSplit, TouchContext, Ctx
     from bbtools.machine import Machine
@@ -262,20 +265,23 @@ def gen_base(shape, off=None, depth=0):
         raise RuntimeError(f"{shape}: too many splits")
     if True:
         st, vs = base_start(shape, off)
-        c = Config.parse(st + " D> 1 R")
+        c = Config.parse(st + (" D> 0 R" if dot else " D> 1 R"))
+        out_state, out_sym = (1, 1) if dot else (0, 0)
         try:
-            run(m, c, lambda c: c.state == 0 and len(c.right) == 2 and c.right[0] == 0 and isinstance(c.right[1], Ctx),
-                max_moves=200000, rotate=True)
+            run(m, c, lambda c: c.state == out_state and len(c.right) == 2 and c.right[0] == out_sym
+                and isinstance(c.right[1], Ctx), max_moves=200000, rotate=True)
         except NeedSplit as e:
             mm = _re.search(r"\(\w+\)\^(v\d+)", str(e))
             if not mm:
                 raise
             v = mm.group(1)
             k = off.get(v, 0)
-            return (gen_base(shape, {**off, v: (k,)}, depth + 1)
-                    + gen_base(shape, {**off, v: k + 1}, depth + 1))
+            return (gen_base(shape, {**off, v: (k,)}, depth + 1, dot)
+                    + gen_base(shape, {**off, v: k + 1}, depth + 1, dot))
         end = str(c)
-        left_end = end.split(" A> ")[0]
+        left_end = end.split(" B> " if dot else " A> ")[0]
+        if dot:
+            return [(dot_parts(shape, off, st, vs, left_end), off)]
         nm = "b_" + shape.replace("^", "Z").replace("|", "I").replace(".", "_") + off_name(off)
         args = (" ".join(vs) + (" L" if shape[0] == "L" else "")).strip()
         bnd = (f"({' '.join(vs)} : Nat)" if vs else "") + (" (L : Tape)" if shape[0] == "L" else "")
@@ -303,6 +309,79 @@ theorem tick3_{nm} {bnd} (bs : List Nat) : ∃ n,
   rwa [four_eq, G_Hs] at h
 """)
         return [(parts, off)]
+
+
+def dot_parts(shape, off, st, vs, left_end):
+    nm = "d_" + shape.replace("^", "Z").replace("|", "I").replace(".", "_") + off_name(off)
+    args = (" ".join(vs) + (" L" if shape[0] == "L" else "")).strip()
+    bnd = ((f"({' '.join(vs)} : Nat)" if vs else "") + (" (L : Tape)" if shape[0] == "L" else "")).strip()
+    F, F2 = "S_" + nm, "S'_" + nm
+    parts = [f"/-- The front `{base_doc(shape)} .` ({off_str(off)}). -/\n"
+             f"def {F} {bnd} : Tape := {left_term(tokens(st))}\n"
+             f"/-- The same after the middle. -/\ndef {F2} {bnd} : Tape := {left_term(tokens(left_end))}\n"]
+    parts += rule("dmid_" + nm, st + " D> 0 R", left_end + " B> 1 R", vs,
+                  f"⟨{F} {args}, cons false R, .D⟩", f"⟨{F2} {args}, cons true R, .B⟩",
+                  f"The middle for the front `{base_doc(shape)} .`.")
+    parts.append(f"""/-- The copy round over the front `{base_doc(shape)} .` (a first round of a copy tick). -/
+theorem round_{nm} {bnd} (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c ({F} {args}), cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c ({F2} {args}), cons true (cons false (cons false R)), .D⟩ :=
+  round_of_dmid (fun R => ⟨_, dmid_{nm} {args} R⟩) c R
+
+/-- The left-end tick of `{base_doc(shape)} . 3`. -/
+theorem tickd3_{nm} {bnd} : ∃ n,
+    steps n ⟨ThreeD ({F} {args}), cons true (cons true blank), .A⟩ =
+      some ⟨FourD ({F2} {args}), cons true (cons true blank), .A⟩ :=
+  main_of_dmid (fun R => ⟨_, dmid_{nm} {args} R⟩)
+""")
+    return parts
+
+
+DOT_BASES = ["L|e", "L|o", "L.e", "L|1", "^e", "^o"]
+
+DOT_DEFS = [
+    ("ThreeD", "(L : Tape)", "l", "L 0 1 0 1 0 1 0", "`L . 3`."),
+    ("FourD", "(L : Tape)", "l", "L 0 1 0 1 0 1 0 1 0 1 0", "`L 0 (10)^5`: the same after the tick."),
+    ("XTd", "(c : Nat) (L : Tape)", "l", "L 0 (1010)^c+1", "`L . (10)^(2c+2)`: a turn at X, the front ending in a 0."),
+    ("XTe", "(c : Nat) (L : Tape)", "l", "L 0 1 0 (1010)^c+1", "The next turn at X after a round over such a front."),
+    ("XTo", "(c : Nat) (L : Tape)", "l", "L 1 1 0 (1010)^c+1", "`L | (10)^(2c+3)`: a turn at X, an odd number of pairs."),
+]
+
+DOT_PIECES = [
+    ("main_in_d", "L 0 1 0 1 0 1 0 A> 1 1 0^inf", "L D> 0 0 1 0 1 0 1 0 1 0^inf", [],
+     "⟨ThreeD L, cons true (cons true blank), .A⟩", "⟨L, cons false M1, .D⟩",
+     "The tick of `L . 3` from the right-end turn to the separator."),
+    ("main_out_d", "L B> 1 0 1 0 1 0 1 0 1 0^inf", "L 0 1 0 1 0 1 0 1 0 1 0 A> 1 1 0^inf", [],
+     "⟨L, cons true M1, .B⟩", "⟨FourD L, cons true (cons true blank), .A⟩", "From the separator to the right-end turn."),
+    ("copy_in_d", "L 0 (1010)^c+1 D> 1 0 0 R", "L D> 0 (0101)^c+1 0 0 0 R", ["c"],
+     "⟨XTd c L, cons true (cons false (cons false R)), .D⟩", "⟨L, cons false (Y c R), .D⟩",
+     "A copy round over a front ending in a 0, from the turn at X to the separator."),
+    ("copy_out_d", "L B> 1 (0101)^c+1 0 0 0 1 0 R", "L 0 1 0 (1010)^c+1 D> 1 0 0 R", ["c"],
+     "⟨L, cons true (Y c (cons true (cons false R))), .B⟩", "⟨XTe c L, cons true (cons false (cons false R)), .D⟩",
+     "From the separator to the next turn at X, one pair of X further."),
+    ("round_odd", "L 1 1 0 (1010)^c+1 D> 1 0 0 1 0 R", "L 0 (1010)^c+2 D> 1 0 0 R", ["c"],
+     "⟨XTo c L, cons true (cons false (cons false (cons true (cons false R)))), .D⟩",
+     "⟨XTd (c + 1) L, cons true (cons false (cons false R)), .D⟩",
+     "A round with an odd number of pairs after the front's last separator 1, for every front: it never reads the "
+     "front, turns the separator into a 0, and moves one pair of X."),
+]
+
+DOT_THMS = """/-- The middle for a front ending in a separator 0: from that separator in state D back to it in state B. -/
+def DMid (L L' : Tape) : Prop := ∀ R : Tape, ∃ n, steps n ⟨L, cons false R, .D⟩ = some ⟨L', cons true R, .B⟩
+
+/-- The left-end tick of `F . 3`, for any front with such a middle. -/
+theorem main_of_dmid {L L' : Tape} (h : DMid L L') : ∃ n,
+    steps n ⟨ThreeD L, cons true (cons true blank), .A⟩ = some ⟨FourD L', cons true (cons true blank), .A⟩ := by
+  obtain ⟨n, hn⟩ := h M1
+  exact ⟨_, steps_seq trans (main_in_d L) (steps_seq trans hn (main_out_d L'))⟩
+
+/-- The copy round over a front `F .`, for any front with such a middle: the same middle as the tick of `F . 3`. -/
+theorem round_of_dmid {L L' : Tape} (h : DMid L L') (c : Nat) (R : Tape) : ∃ n,
+    steps n ⟨XTd c L, cons true (cons false (cons false (cons true (cons false R)))), .D⟩ =
+      some ⟨XTe c L', cons true (cons false (cons false R)), .D⟩ := by
+  obtain ⟨n, hn⟩ := h (Y c (cons true (cons false R)))
+  exact ⟨_, steps_seq trans (copy_in_d c L _) (steps_seq trans hn (copy_out_d c L' R))⟩
+"""
 
 
 # ---------------------------------------------------------------- the check against the run
@@ -358,19 +437,25 @@ def front_at(tp, h0):
 
 
 def kind(n):
-    return "1" if n == 1 else "eo"[n % 2]
+    return "z" if n == 0 else "1" if n == 1 else "eo"[n % 2]
 
 
 def round_theorem(blocks, m):
     """the theorem of lean/Transfer.lean whose round this is, or why none is"""
     if m is None:
         return "the last turn: no pair of X left (the exit)"
-    if not blocks or blocks[-1][1] != "|":
-        return "first rounds: the front does not end in a separator 1"
-    if m % 2:
-        return "first rounds: an odd number of pairs after the front"
     seps = [None] + [sp for _, sp in blocks[:-1]]
     bl = [(n, seps[i]) for i, (n, _) in enumerate(blocks)]
+    if blocks and blocks[-1][1] == "|" and m % 2:
+        return "round_odd"
+    if not blocks or m % 2:
+        return "no theorem: odd number of pairs after a front ending in a 0"
+    if blocks[-1][1] == ".":
+        for k in range(1, len(bl) + 1):
+            shape = ("^" if k == len(bl) else "L") + "".join((sp or "") + kind(n) for n, sp in bl[-k:])
+            if shape in DOT_BASES:
+                return f"round_d_<{shape}>"
+        return "no theorem: front ending in a 0"
     i = len(bl) - 1
     while i >= 1 and bl[i][0] % 2 == 0 and bl[i][0] >= 2 and bl[i][1] == "|":
         i -= 1
@@ -379,10 +464,15 @@ def round_theorem(blocks, m):
         return "round_e0" if core[0][0] % 2 == 0 else "round_o0"
     if core[-1][1] == "|" and core[-1][0] % 2 and core[-1][0] >= 3:
         return "round_od"
-    for k in range(1, len(core) + 1):
-        shape = ("^" if k == len(core) else "L") + "".join((sp or "") + kind(n) for n, sp in core[-k:])
-        if shape in BASES:
-            return f"round_b_<{shape}>"
+    if [kind(n) for n, _ in core] == ["o", "z"]:
+        return ("front 3|0: no round, a copy loop starts here (the head takes the pairs of X one by one), "
+                "inside the copy tick of lean/Copy*.lean")
+    # the front `1` alone: its middle reads the next block, so the base takes it in (`^1|e`)
+    for ext in ([core] + ([bl[:i + 2]] if i + 1 < len(bl) else [])):
+        for k in range(1, len(ext) + 1):
+            shape = ("^" if k == len(ext) else "L") + "".join((sp or "") + kind(n) for n, sp in ext[-k:])
+            if shape in BASES:
+                return f"round_b_<{shape}>"
     return f"no theorem: turn shape {('^' + ''.join((sp or '') + kind(n) for n, sp in core))}"
 
 
@@ -434,6 +524,19 @@ def main():
         for ps, off in cases:
             parts += ps
         print(f"{shape:16s} ok: {'; '.join(off_str(o) for _, o in cases)}")
+    parts.append(defs(DOT_DEFS))
+    for p in DOT_PIECES:
+        parts += rule(*p)
+    parts.append(DOT_THMS)
+    for shape in DOT_BASES:
+        try:
+            cases = gen_base(shape, dot=True)
+        except Exception as e:
+            print(f"{shape:16s} . FAILED: {type(e).__name__}: {str(e)[:200]}")
+            continue
+        for ps, off in cases:
+            parts += ps
+        print(f"{shape + ' .':16s} ok: {'; '.join(off_str(o) for _, o in cases)}")
     doc = ("# Copy rounds are left-end ticks\n\n" + __doc__.split("\n\n", 2)[2].strip()
            + "\n\nGenerated by `py/transfer.py` (symbolic runs: `tools/py/bbtools/symtm.py`).")
     txt = rules_file("Machine", NS, parts, doc)

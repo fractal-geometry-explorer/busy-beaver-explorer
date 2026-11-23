@@ -21,6 +21,27 @@ namespace H99431
 
 open TM
 
+/-- Engine move R on D 0: CfgR L (D 0 · R) reaches CfgR (L · S 0) R (G: 3 steps). -/
+theorem pr93_rightD0 (L R : Tape) :
+    steps (5) ⟨L, cons false (cons true (cons false (cons false (cons true (cons false (cons false (R))))))), .A⟩ = some ⟨cons true (cons false (cons true (L))), cons false (cons true (cons false (cons false (R)))), .A⟩ := by
+  have hn : 5 = 5 := by omega
+  have h0 : steps 5 ⟨L, cons false (cons true (cons false (cons false (cons true (cons false (cons false (R))))))), .A⟩ = some ⟨cons true (cons false (cons true (L))), cons false (cons true (cons false (cons false (R)))), .A⟩ := rfl
+  exact steps_congr trans hn (h0)
+
+/-- Engine move R: CfgR L (D (n+1) · R) reaches CfgR (L · S (n+1)) R (G: 6n+9 steps; the last copy of 11 is stepped, since the run passes CfgR inside it). -/
+theorem pr93_rightD (n : Nat) (L R : Tape) :
+    steps (8 * n + 13) ⟨L, cons false (cons true (cons false (cons false (cons true (rep (n) [true, true] (cons true (cons true (cons false (cons false (R)))))))))), .A⟩ = some ⟨cons true (cons false (rep (n) [true, false] (cons true (cons false (cons true (L)))))), cons false (cons true (cons false (cons false (R)))), .A⟩ := by
+  have hn : 6 + (0 + ((n) * 8 + (7))) = 8 * n + 13 := by omega
+  have h0 : steps 6 ⟨L, cons false (cons true (cons false (cons false (cons true (rep (n) [true, true] (cons true (cons true (cons false (cons false (R)))))))))), .A⟩ = some ⟨cons true (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (cons true (cons false (cons false (R)))))), .B⟩ := rfl
+  have h1 : steps 0 ⟨cons true (cons true (cons false (cons true (L)))), cons true (rep (n) [true, true] (cons true (cons true (cons false (cons false (R)))))), .B⟩ = some ⟨cons true (cons true (cons false (cons true (L)))), rep (n) [true, true] (cons true (cons true (cons true (cons false (cons false (R)))))), .B⟩ := by
+    simp only [steps_zero, show cons true (rep (n) [true, true] (cons true (cons true (cons false (cons false (R)))))) = rep (n) [true, true] (cons true (cons true (cons true (cons false (cons false (R)))))) from
+      rep_rotate (n) [true] [true, true] [true, true] rfl (cons true (cons true (cons false (cons false (R)))))]
+  have c2 : ∀ L R : Tape, steps 8 ⟨app [true] L, app [true, true] R, .B⟩ = some ⟨app [true] (app [true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h2 : steps ((n) * 8) ⟨cons true (cons true (cons false (cons true (L)))), rep (n) [true, true] (cons true (cons true (cons true (cons false (cons false (R)))))), .B⟩ = some ⟨cons true (rep (n) [true, false] (cons true (cons false (cons true (L))))), cons true (cons true (cons true (cons false (cons false (R))))), .B⟩ :=
+    cross_r trans c2 (n) (cons true (cons false (cons true (L)))) (cons true (cons true (cons true (cons false (cons false (R))))))
+  have h3 : steps 7 ⟨cons true (rep (n) [true, false] (cons true (cons false (cons true (L))))), cons true (cons true (cons true (cons false (cons false (R))))), .B⟩ = some ⟨cons true (cons false (rep (n) [true, false] (cons true (cons false (cons true (L)))))), cons false (cons true (cons false (cons false (R)))), .A⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (h3))))
+
 /-- PR 93 `rule_left`: CfgL (L · S n) R reaches CfgL L (D n · R). Same as T3. -/
 theorem pr93_left (n : Nat) (L R : Tape) :
     steps (2 * n + 4) ⟨rep (n + 1) [false, true] (L), cons true (cons true (R)), .B⟩ = some ⟨L, cons true (cons true (rep (n) [true, true] (cons false (cons false (R))))), .C⟩ := by

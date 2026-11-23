@@ -268,6 +268,47 @@ one at position 201 from the right. So the A phase of round 16,952,683,091 is ex
 round 49,668: a new charged block that is far longer-lived than its neighbour. That is a forecast on today's front,
 not on the front of that round.
 
+## The A phase of round 16,952,683,091, run exactly (23 November 2026)
+
+**Trusted, bounded: the counter model does not halt in its first 16,952,683,091 rounds** (up from 561,525,639),
+and it passes the deciding A phase of the previous section without a halt; the A phase makes a new charged pair at the front.
+
+- **Run.** `py/cycle.py` resumed from round 613,061,665 (25,822 groups) and reached round 16,952,683,090 in
+  about 33 hours on one core. Two right-end events on the way were exact-model rounds: the last group ran out near
+  round 1.481·10^10 and the groups at the right end merged, with no halt. The list grew to 135,700 groups. The A
+  round itself could not be done by `cycle.py`: `model.jump` keeps the prefix values `L[i]` of the whole list, which
+  is O(m) integers of size 3^m, and the process ran out of the 15 GB of memory there, twice.
+- **`py/aphase.py`** does those rounds with `jump_fast`. It gives exactly `model.jump`'s result, and the module
+  docstring has the argument. It only computes the low k digits, where 3^k is the first power above the jump length.
+  Above k a borrow moves through the zero digits, so only the counts it passes change, and every division is by 3.
+  Tests:
+  - `aphase.py test 300000`: 300,000 random states, 0 mismatches.
+  - 8 jumps on a real 25,782-group state, the actual one and one with the last group emptied as in an A phase, all
+    equal to `model.jump`; 0.07 to 0.4 s each instead of 8 to 28 s.
+- **The A round** (round 16,952,683,090 to 16,952,683,091, 42 jumps, 17 minutes):
+  - Events: E, A, F, D, then a normal round start.
+  - 37 groups ran out and the list went from 135,700 to 135,663 groups.
+  - The groups at the right end afterwards agree with what `py/rightpart.py` computed for them on 21 November, as
+    they must.
+- **A new charge, at the front (corrected 23 November).** At the round start right after the A round, the only
+  charged pair is still the one from round 49,668 (now 201st from the right end). But that state has n0 ≡ 1 and
+  d1 = 2, so n0 + d1 ≡ 0, not 1 (mod 3). The end of the next round makes a pair of residue 2 at the very front:
+  at round 16,952,683,092, one more exact round, the charged pairs are (135,664th from the right, residue 2) and
+  (201st, residue 1). So the forecast of the previous section was right: this A phase made a new charge. Its left
+  block is the newborn front block, lifetime about 2^75 rounds, and its right neighbour's is about 2^71.6. If
+  the new charged block ran out before that neighbour, the model would halt. The sizes say the neighbour goes
+  first, as with the round-49,668 charge, but that is a heuristic, not a proof. (The first version of this section
+  said "no new charge". It had only looked at the state before that round end.)
+- **Next deciding event.** `py/rightpart.py run` from the new state lists the right-end events. Before round
+  1.636·10^16 there are only merges, and the next A phase is in round 16,359,800,336,602,988, a million times further
+  than this run reached. At about 1.5·10^5 rounds a second, `cycle.py` cannot get there. That needs the front in
+  closed form ("For later").
+- **Files.** `py/aphase.py`. The states are in the project files under `countdown-hunt/1RB1RF_run/` (`ckpt.pkl`,
+  1.8 GB, round 16,913,371,741; `postA_round16952683091.pkl`); they are too big for the repository.
+
+Reproduce: `python3 py/aphase.py test`; from a `cycle.py` state at round 16,952,683,090,
+`python3 py/aphase.py run preA.pkl postA.pkl` (17 min, about 4 GB).
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html`](../../pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html)
