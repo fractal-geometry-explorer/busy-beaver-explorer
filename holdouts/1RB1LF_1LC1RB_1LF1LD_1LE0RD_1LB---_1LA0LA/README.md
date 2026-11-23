@@ -466,6 +466,27 @@ phase 13,008 the run stalls again, this time inside the engine. A ×16 phase pas
 ladders, (10)^N blocks from 10^45 down to 10^36, and the engine carries them level by level. The ladder rule of
 `py/lsa_refuel.py`, done as arithmetic, is what is needed there.
 
+*Past phase 13,008 (23 November 2026, day).* The stall is where the descents first run out of [100] fuel under a
+×16 phase: at phase 12,886 a [100]^5.7·10^43 fuel lay there, at 13,008 the next thing down is the top block
+(10)^n of the base-4 ladder (n ≈ 2.6·10^42). Three hits turn that block into fuel [100]^(2n/3), and the rest of the
+4.8·10^41 hits pile up in a new block above it, (10)^(q/2), which the engine built one hit at a time (13 s per
+million). Under it lies a ladder of about 70 blocks; a run of x hits adds x/12 to the first and a quarter less to each
+next one. Three changes in the accelerator (twin's `py/lsa_phase.py`, `py/lsa_ladder.py`):
+* the ladder now also takes levels that keep every hit, levels with a literal fuel inside, and levels whose count
+  falls (it counts them down in closed form; when one runs out, one plain hit takes it through its refuel). When a
+  word cannot be cut into levels, 256 plain hits are done and it is cut again. The engine's own large powers
+  (h^q and G^q met inside its recursion) go this way too. The 4.8·10^41 hits now take under a second;
+* after 64 batches with no phase the batches double (up to 65,536 hits; exact either way);
+* an eater region may take in more than 16 tokens of the rest while the hits it passes down still need more of it.
+  The ×16 eater after phase 13,010 passes its hits through the next [100] fuel and needs 17.
+
+Checks: the twin's 7th event from 10^1600 is the same exact visit; at phases 12,000 and 12,886 the new code gives the
+same tape (a polynomial hash over the digits) and the same step count as plain hits. The phases themselves can come
+out at another hit of an eater's cycle, since the word is cut into tokens differently. The run now goes on past
+13,008: 13,009 is a ×16 phase on the leftover fuel, 13,010 a ×256 phase on the new [100]^1.7·10^42 fuel, and from
+there ×16 and ×256 phases on the [100] fuels of the stack (10^42 to 10^45) follow; phase 13,021 by the time of
+writing. The 8th right-end event is not reached yet.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
