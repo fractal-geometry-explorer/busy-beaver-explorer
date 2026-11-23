@@ -366,7 +366,10 @@ the block on the right merges back as one block of 11,232 movers:
 `block_sim.py` runs a stretch of a rebuild at once: two bounces are run and checked against the shape above, the
 rest applied with the cost `s(t+2) = s(t) + 16` (`n` grows by six pairs, +24 steps; `f` loses two, −8). To 1.3
 million bounces it skips 540,118 bounces in 5,399 stretches and gives the same step count as the plain run,
-1,880,381,285,307.
+1,880,381,285,307 (6 seconds). Accelerated, the one-block moments go on at bounce 11,499,387 (step 1.26·10^14), 480,093
+movers: `4737114 4764475 177395 563003 5705 6657 24446 737 772 (105 377)^n 88 (17 33)^n … (3 11)^n`. Beyond that the
+simulator slows down: a block with hundreds of thousands of one-pair gaps at its near end is rebuilt gap by gap each
+bounce, so going further needs gap lists stored run-length coded.
 
 **A finite abstraction does not close.** `py/block_search.py` runs the abstract bounce with pair counts capped at K
 and each block a queue with explicit ends and a learned middle. With K = 6 there is no halt in 1.76 million abstract
@@ -379,6 +382,7 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 1.2e7 # one-block moments, accelerated, to 1.26e14 steps
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # every rebuild event checked as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED

@@ -92,9 +92,10 @@ def pred(a): return sorted({u for (u, v) in GQ if v == a}, key=repr)
 
 # ---------------------------------------------------------------- a block's gaps: near end E, middle, far end F
 class AQ:
-    __slots__ = ('E', 'mid', 'F')
+    __slots__ = ('E', 'mid', 'F', 'S')
     def __init__(self, gaps=()):
         self.E = collections.deque(); self.mid = None; self.F = collections.deque(gaps)
+        self.S = sum(int(g) for g in self.F)    # the sum of the explicit gaps (used in exact mode, for the cost)
     def key(self): return (tuple(self.E), self.mid, tuple(self.F))
     def __bool__(self): return bool(self.E) or self.mid is not None or bool(self.F)
     def exact(self): return self.mid is None
@@ -115,10 +116,11 @@ class AQ:
     def first(self): self.refill(); return self.E[0]
     def add_first(self, k):
         self.refill(); g = self.E[0]
-        self.E[0] = norm(g + k) if k >= 0 else sub(g, -k)
-    def pop_first(self): self.refill(); return self.E.popleft()
+        self.E[0] = norm(g + k) if k >= 0 else sub(g, -k); self.S += int(self.E[0]) - int(g)
+    def pop_first(self):
+        self.refill(); x = self.E.popleft(); self.S -= int(x); return x
     def pop_last(self):
-        if self.F: return self.F.pop()
+        if self.F: x = self.F.pop(); self.S -= int(x); return x
         if self.mid is not None:
             t0, tl = self.mid; opts = []
             if t0 == tl: opts.append(None)
@@ -127,16 +129,16 @@ class AQ:
             if not opts: raise Infeasible()
             self.mid = opts[ORA.choose(len(opts))]
             return tl
-        return self.E.pop()
-    def append(self, g): self.F.append(norm(g))
-    def prepend(self, g): self.E.appendleft(norm(g))
+        x = self.E.pop(); self.S -= int(x); return x
+    def append(self, g): self.F.append(norm(g)); self.S += int(self.F[-1])
+    def prepend(self, g): self.E.appendleft(norm(g)); self.S += int(self.E[0])
     def lead_ones(self):
         """pop the leading gaps of one pair: returns (k, more) -- k popped exactly, and more = True when an
         unknown number (at least one) more were popped from the abstract middle"""
         k = 0; more = False
         while True:
             if self.E:
-                if self.E[0] == 1: self.E.popleft(); k += 1; continue
+                if self.E[0] == 1: self.E.popleft(); k += 1; self.S -= 1; continue
                 return k, more
             if self.mid is not None:
                 t0, tl = self.mid
@@ -150,7 +152,7 @@ class AQ:
                 if o[0] == 'v': self.mid = None if False else (o[1], tl); continue
                 self.mid = None; continue
             if self.F:
-                if self.F[0] == 1: self.F.popleft(); k += 1; continue
+                if self.F[0] == 1: self.F.popleft(); k += 1; self.S -= 1; continue
                 return k, more
             return k, more
     def fold(self):
@@ -175,14 +177,18 @@ class AQ:
         for a, b in zip(seq, seq[1:]):
             addQ((a[2] if isinstance(a, tuple) else a, b[1] if isinstance(b, tuple) else b))
     def cost(self):
-        g = self.gaps(); return sum(g), len(g)
+        assert self.mid is None
+        return self.S, len(self.E) + len(self.F)
 
 def concat(q1, q2):
     """q1 then q2 (near to far)"""
     if not q1: return q2
     if not q2: return q1
     if q1.mid is None and q2.mid is None:
-        q = AQ(); q.E = collections.deque(q1.E); q.F = collections.deque(list(q1.F) + list(q2.E) + list(q2.F)); return q
+        # in place, into the longer one
+        if len(q1.E) + len(q1.F) >= len(q2.E) + len(q2.F):
+            q1.F.extend(q2.E); q1.F.extend(q2.F); q1.S += q2.S; return q1
+        q2.E.extendleft(reversed(q1.F)); q2.E.extendleft(reversed(q1.E)); q2.S += q1.S; return q2
     q1.record(); q2.record()
     sq = list(q1.E) + ([('MID',) + q1.mid] if q1.mid else []) + list(q1.F) + list(q2.E) + \
         ([('MID',) + q2.mid] if q2.mid else []) + list(q2.F)
@@ -469,6 +475,18 @@ def main():
                       s if len(s) < 400 else s[:200] + ' ... ' + s[-160:]))
             single = one
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
+    if mode == 'blocks':
+        # accelerated: every bounce at which the tape is one block, with its gaps (run length coded)
+        i = 0; single = False; t0 = time.time()
+        while i < nb:
+            ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            one = len(Y) == 3 and isM(Y[2])
+            if one and not single:
+                g = Y[2][1].gaps(); s_ = _rle(g)
+                print('one block at bounce %d (step %d), %d movers: %s' % (i, steps, len(g),
+                      s_ if len(s_) < 400 else s_[:200] + ' ... ' + s_[-160:]), '%.0fs' % (time.time() - t0), flush=True)
+            single = one
+        print('end: bounce', i, 'step', steps, dict(STAT))
     if mode == 'rule':
         # The rebuild transducer.  A gap's transfer starts as `M[g ..] 0 n0 M[f ..]` with n0 = 4 (S1, g whole),
         # 3 (S0, one pair already taken) or 2 (S2, after a drain end).  With fuel f larger than the gap the new gap
