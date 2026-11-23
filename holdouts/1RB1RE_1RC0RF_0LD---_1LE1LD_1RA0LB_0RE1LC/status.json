@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 23 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 2.16&middot;10<sup>12</sup> steps (no halt; accelerated past 5&middot;10<sup>11</sup>) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (about 120,000 cells) is touched only at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones."
+  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 4.5&middot;10<sup>12</sup> steps (no halt; accelerated past 5&middot;10<sup>11</sup>) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (about 120,000 cells) is touched only at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones."
  ],
  "claims": [
   {
@@ -53,9 +53,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 2.16&middot;10<sup>12</sup> steps (accelerated run)",
-   "text": "The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks) runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 2.16&middot;10<sup>12</sup> without a halt. The tool is not verified; it gives the same tape, head and state as the plain simulator at 10<sup>8</sup> steps from blank tape and on four stretches between 10<sup>11</sup> and 5&middot;10<sup>11</sup> started from plain tapes.",
-   "where": "<code>c/bacc.cpp</code>, <code>py/tapecmp.py</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>",
+   "title": "No halt in the first 4.5&middot;10<sup>12</sup> steps (accelerated run)",
+   "text": "The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks) runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 4.52&middot;10<sup>12</sup> without a halt (restarted once from its own checkpoint at 2.14&middot;10<sup>12</sup>). The tool is not verified; it gives the same tape, head and state as the plain simulator at 10<sup>8</sup> steps from blank tape and on four stretches between 10<sup>11</sup> and 5&middot;10<sup>11</sup> started from plain tapes.",
+   "where": "<code>c/bacc.cpp</code>, <code>py/tapecmp.py</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>, <code>evidence/bacc-2.14e12-to-4.5e12.txt</code>",
    "added": true
   },
   {
@@ -95,7 +95,7 @@
   {
    "level": "heuristic",
    "title": "Phases past 5&middot;10<sup>11</sup> steps",
-   "text": "The regular phase ends at about 5.95&middot;10<sup>11</sup> steps. A hand-over then eats part of the irregular stretch and rebuilds the tape (about 9.2&middot;10<sup>11</sup>). A longer regular phase follows (to 1.86&middot;10<sup>12</sup>), and then a second hand-over in which the irregular stretch grows to about 880,000 cells (2.16&middot;10<sup>12</sup>). The hand-overs, the only places a halt could come from so far, are not decoded.",
+   "text": "The regular phase ends at about 5.95&middot;10<sup>11</sup> steps. A hand-over then eats part of the irregular stretch and rebuilds the tape (about 9.2&middot;10<sup>11</sup>). A longer regular phase follows (to 1.86&middot;10<sup>12</sup>), and then a second hand-over in which the irregular stretch grows to about 880,000 cells (2.16&middot;10<sup>12</sup>). The hand-overs, the only places a halt could come from so far, are not decoded. Continued: by 3.58&middot;10<sup>12</sup> the left zone has become 385,143 five-cell words; it then grows back while the irregular stretch is eaten, and at about 4.45&middot;10<sup>12</sup> the word block starts to become a new irregular stretch. Each cycle is two to three times the size of the one before.",
    "where": "<code>README.md</code> (Past 5&middot;10<sup>11</sup> steps with a block accelerator)",
    "added": true
   },

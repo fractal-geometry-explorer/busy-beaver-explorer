@@ -133,6 +133,18 @@ tape as its big blocks every 10^10 steps). What the run did:
 | 9.3·10^11 to 1.86·10^12 | a new regular phase: a grows from 104,120 to 360,930 and Z goes down from 374,882 to 0; the 5-word block, the 13-word block and the irregular stretch do not change |
 | 1.86·10^12 to 2.16·10^12 | the second hand-over: the left zone (now `(100)^a`, a about 385,000) is fixed and slowly shrinks, the 5-word block is turned into blocks of 13- and 19-cell words, and the irregular stretch grows to about 880,000 cells |
 
+**Continued to 4.52·10^12 steps, no halt** (restarted from the accelerator's checkpoint at 2.14·10^12;
+`evidence/bacc-2.14e12-to-4.5e12.txt`, one summary per 10^10 steps):
+
+| steps | what happens |
+|---|---|
+| 2.14·10^12 to 3.58·10^12 | left end fixed: `(100)^a` goes from about 367,000 to 0 and becomes one block of 385,143 five-cell words; the irregular stretch goes from about 860,000 cells down to 130,000 |
+| 3.58·10^12 to 4.45·10^12 | left end moving: the left zone grows back from 0 to about 209,000 copies; the irregular stretch is eaten down to about 47,000 cells while the 5-word block loses about 30,000 words |
+| about 4.45·10^12 | the 5-word block (280,807 words left) starts to be turned into a new irregular stretch of about 400,000 cells |
+
+Each cycle so far (left end fixed, then moving, then a block turned into irregular stretch) repeats the one before at
+two to three times the scale, with blocks 66,518 → 135,383 → 385,143 words.
+
 So far the run looks like a slow hierarchy. Each regular phase builds the left zone `(100)^a` (or `(001)^a`) at the
 expense of a run of ones or of `(11)`. Each hand-over turns blocks into a larger irregular stretch and then a larger
 regular phase. A halt would need C to read a 1 next to six 1s inside a hand-over. The hand-overs are where the
