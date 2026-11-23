@@ -258,6 +258,24 @@ static void finish(const char *dumpfile,long pos){
   if(dumpfile) dump(dumpfile,pos);
   exit(0);
 }
+// Checkpoints (env CKPT=file, CKPTEVERY=rounds): with no round in flight, the tape between lo and the highest cell
+// written, the top-level state and the prefix bookkeeping. RESUME=file starts from one. Rules are learned again.
+static long ckpt_every=0; static const char *ckpt_file=NULL;
+static void save_ckpt(long pos,int st){
+  for(int i=0;i<NT;i++) while(atomic_load(&W_[i].busy)) sched_yield();
+  long hi=0; for(int i=0;i<NT;i++) if(W_[i].hi>hi) hi=W_[i].hi; hi+=64;
+  char tmp[4096]; snprintf(tmp,sizeof tmp,"%s.tmp",ckpt_file); FILE *f=fopen(tmp,"wb"); if(!f) DIEF("ckpt open",0);
+  long hdr[8]={0x56495350,topvis,pos,st,lo,hi,Vlo,Bv}; fwrite(hdr,sizeof hdr,1,f);
+  long n1=atomic_load(&n1011); fwrite(&n1,8,1,f);
+  for(long i=lo;i<hi;i+=8){ uint8_t b=0; for(int k=0;k<8;k++) if(i+k<hi) b|=tape[i+k]<<k; fputc(b,f); }
+  fclose(f); rename(tmp,ckpt_file); report("ckpt"); }
+static void load_ckpt(const char *fn,long *pos,int *st){
+  FILE *f=fopen(fn,"rb"); if(!f) DIEF("resume open",0); long hdr[8]; if(fread(hdr,sizeof hdr,1,f)!=1||hdr[0]!=0x56495350) DIEF("bad ckpt",0);
+  topvis=hdr[1]; *pos=hdr[2]; *st=(int)hdr[3]; lo=hdr[4]; long hi=hdr[5]; Vlo=hdr[6]; Bv=hdr[7];
+  long n1; if(fread(&n1,8,1,f)!=1) DIEF("bad ckpt",1); atomic_store(&n1011,n1);
+  for(long i=lo;i<hi;i+=8){ int b=fgetc(f); if(b<0) DIEF("short ckpt",i); for(int k=0;k<8;k++) if(i+k<hi) tape[i+k]=(b>>k)&1; }
+  fclose(f); for(int i=0;i<NT;i++) W_[i].hi=hi;
+  fprintf(stderr,"resumed at topvis %ld pos %ld lo %ld hi %ld\n",topvis,*pos,lo,hi); }
 int main(int argc,char **argv){
   const char *s=argv[1]; if(argc>2) maxround=atol(argv[2]); const char *dumpfile=(argc>3&&strcmp(argv[3],"-"))?argv[3]:NULL;
   if(argc>4) NT=atoi(argv[4]); if(argc>5) reportevery=atol(argv[5]);
@@ -273,6 +291,8 @@ int main(int argc,char **argv){
   t0=time(0);
   // top-level raw simulation (vis.c raw(0,1)), every top-level visit becomes a wave
   long pos=0; int st=0;
+  ckpt_file=getenv("CKPT"); if(getenv("CKPTEVERY")) ckpt_every=atol(getenv("CKPTEVERY"));
+  if(getenv("RESUME")) load_ckpt(getenv("RESUME"),&pos,&st);
   for(;;){
     if(atomic_load_explicit(&halted_round,memory_order_relaxed)!=LONG_MAX) finish(dumpfile,pos);
     wait_clear(pos+MARGIN);
@@ -280,6 +300,7 @@ int main(int argc,char **argv){
       topvis++;
       if(maxround && topvis>maxround) finish(dumpfile,pos);
       if((topvis%reportevery)==0) report("run");
+      if(ckpt_file && ckpt_every && (topvis%ckpt_every)==0){ topvis--; save_ckpt(pos,st); topvis++; }
       dispatch(pos); pos-=2; st=SOUT; continue;
     }
     int c=tape[pos];
