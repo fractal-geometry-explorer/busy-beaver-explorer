@@ -6,7 +6,7 @@ multiplier a; logs without a are read too).  For each pair of consecutive phases
 the next fuel F' is classified against K, the super-cycles of the phase before:
 
     law A   11 F' = 21 K + e   (a fresh fuel, one rung for every 11 hits passed down)
-    law B   F' = K + delta     (a fresh fuel, one rung for every 21 hits)
+    law B   F' = K + delta     (the next piece of the same run, when the engine stores a run in pieces; gone with MERGE)
     list    anything else: the next fuel is an older run of the word (the eater has used up its fresh fuel)
 
 and the ranges of e, delta and the slack F - 4K are printed: they are the constants of lean/Descent.lean of

@@ -369,13 +369,15 @@ def _merge_prev(out, t, thr, maxmid=2000):
 def fold_front(T, n=64):
     pt, tail = prefix_tokens(T, n)
     ft = fold_toks(pt)
-    return T if len(ft) == len(pt) else build(ft, tail)
+    return T if ft == pt else build(ft, tail)
 
 
 def head_split(W, n=400):
     """(head, F, tail): F the first big fuel of W.  Copies of F's word written out just before F (left there when a
     unit of the run is opened) are folded into F, so that the head, and with it the cache key, stays the same."""
     pt, tail = prefix_tokens(W, n)
+    if MERGE[0]:
+        pt = fold_toks(pt)          # pieces of one run, stored as several tokens, become one fuel
     for i, t in enumerate(pt):
         if type(t) is tuple and t[0] == 'P' and t[1] > BIGF:
             w = t[2]

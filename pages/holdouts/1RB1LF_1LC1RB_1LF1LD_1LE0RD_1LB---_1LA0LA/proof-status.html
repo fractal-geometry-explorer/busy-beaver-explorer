@@ -208,6 +208,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_factory.py</code>, README</p>
       </div>
       <div class="card">
+        <h3>Law B, the ladder, and refuelling</h3>
+        <p>Law B was the engine's bookkeeping: with the pieces of one run merged where the next fuel is picked, the first 1,050 phases have no law-B transition (1,018 law A, the others ends of descents) and give the same bound. The 2 hits the factory passes on go to a <i>ladder</i> of blocks (10)<sup>R<sub>0</sub></sup> &hellip; (10)<sup>R<sub>4</sub></sup>, each about a quarter of the one before, that counts them in base 4: 11q hits to the factory add q/4<sup>i</sup> to block i. When the factory's fuel runs out, the top block becomes the next fuel, [100]<sup>2&lfloor;(R<sub>0</sub>&minus;1)/3&rfloor;&minus;4</sup>, and the ladder moves up by one block (R&prime;<sub>j</sub> = R<sub>j+1</sub> + R<sub>0</sub>/(3&middot;4<sup>j+1</sup>), up to carries of at most 3). Checked on the digit recursion for 40 random ladders.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_refuel.py</code>, <code>py/lsa_laws.py</code> on the log of <code>lsa_run.py 2 3200</code>, README</p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 2.16&times;10<sup>18</sup> steps (exact macro run)</h3>
         <p>A macro simulator (blocks of 6 cells, long runs of equal blocks crossed in one go; exact: every macro step is a run of the machine, counted step for step) ran from blank tape to step 2,166,473,947,245,007,495 without a halt. At this block size it gives the same state, head position and tape as the direct simulator after 2,000,010,334 steps. This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/deep.py run 240</code>, <code>verify</code>; <code>holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/data/deep.json</code></p>
