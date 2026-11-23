@@ -326,8 +326,44 @@ def fold_toks(pt, thr=200, back=48):
                 del out[k:]
                 out.extend(to_tokens(geng.from_digits(left)))
                 t = ('P', t[1] + r, t[2])
+            if MERGE[0] and _merge_prev(out, t, thr):
+                continue
         out.append(t)
     return out
+
+
+MERGE = [True]
+
+
+def _merge_prev(out, t, thr, maxmid=2000):
+    """if out ends with ('P', a, v), a > thr, then a few short tokens, and the digits v^a mid w^n are one periodic
+    word (v a rotation of w), replace all of it in out by ('P', N // L, v) and the first N % L digits of v, and return
+    True: one run instead of two.  The engine writes a long run of the rung in pieces; merged, an eater burns it in
+    one phase.  Otherwise return False (out unchanged)."""
+    w = t[2]; L = len(w)
+    p = len(out) - 1
+    mid = []
+    while p >= 0:
+        u = out[p]
+        if type(u) is tuple and u[0] == 'P' and u[1] > thr:
+            break
+        d = _tok_digits(u)
+        if d is None or len(mid) + len(d) > maxmid:
+            return False
+        mid = d + mid; p -= 1
+    if p < 0:
+        return False
+    v = out[p][2]
+    if len(v) != L:
+        return False
+    s = list(v) * 2 + mid + list(w) * 2
+    if any(s[i] != s[i - L] for i in range(L, len(s))):
+        return False
+    N = out[p][1] * L + len(mid) + t[1] * L
+    del out[p:]
+    out.append(('P', N // L, v))
+    out.extend(to_tokens(geng.from_digits(list(v[:N % L]))))
+    return True
 
 
 def fold_front(T, n=64):

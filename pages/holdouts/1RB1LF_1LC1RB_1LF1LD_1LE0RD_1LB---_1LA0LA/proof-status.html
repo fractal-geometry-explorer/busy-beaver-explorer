@@ -141,6 +141,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For every value: under law A the fuel after j phases satisfies 21<sup>j</sup>(23F<sub>0</sub> + c) &le; 44<sup>j</sup>(23F<sub>j</sub> + c) and 44<sup>j</sup>&middot;23F<sub>j</sub> &le; 21<sup>j</sup>&middot;23F<sub>0</sub> + 44<sup>j</sup>&middot;4hi, under law B the same with a factor of 4, and a stack of phases whose maps grow at least like a<sup>K<sub>j</sub></sup> needs at least a<sup>&Sigma;K<sub>j</sub></sup> times the hits below it. The arithmetic only: that the machine's phases follow the laws is the log above.</p>
         <p class="where"><code>descent_A_lower</code>, <code>descent_A_upper</code>, <code>descent_B_lower</code>, <code>descent_B_upper</code>, <code>phases_compose</code>, <code>blk_ge</code>, <code>lean/Descent.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Law A from the factory rule</h3>
+        <p>For every value, with the factory rule as a hypothesis: q cycles of 11 hits add q rungs, burn 6q units of fuel and pass 2q hits down; after t hits the rung count n<sub>t</sub> satisfies t + 11lo &le; 11n<sub>t</sub> + 10 and 11n<sub>t</sub> &le; t + 11hi; and a phase of k super-cycles whose hits H (21k &minus; s<sub>0</sub> &le; H &le; 21k + s<sub>1</sub>) all reach the factory writes a fuel that obeys law A with offsets 10 + s<sub>0</sub> and s<sub>1</sub> + 11hi.</p>
+        <p class="where"><code>iter</code>, <code>rungs_bounds</code>, <code>fuel_and_down</code>, <code>lawA_of_factory</code>, <code>lean/Factory.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -193,9 +198,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_run.py 2 3200</code>, README</p>
       </div>
       <div class="card">
-        <h3>The laws between phases, and a bottom word that grows</h3>
-        <p>Logged over 12,482 phases from the word at wall visit 10<sup>3200</sup>: after a &times;64 phase (slack F &minus; 4K of 5 to 9) the next fuel is fresh by law A, 11F&prime; = 21K + e with &minus;913 &le; e &le; 224 (6,936 times), fresh by law B, F&prime; = K + &delta; with 2 &le; &delta; &le; 12 (1,401 times), or an older run of the word (4,063 times). The rung is a frozen word, so the hits a phase passes down cross every run of rungs. Below the eater the word is a list of staircases (runs a factor of 4 apart, about 210 each) between fuels (1 0 0)<sup>F</sup>, and the list grows: 362 runs longer than 1000 (25,957 digits) at the start, 1,164 (81,669) after 8,000 phases, 5,257 (322,122) after 12,000. The logged phases give the same bound as before (2<sup>2.899&middot;10<sup>147</sup></sup> top hits), all of it from the first phases. Three fixes made the accelerator run past phase 30 again.</p>
+        <h3>The laws between phases</h3>
+        <p>Logged over 12,482 phases from the word at wall visit 10<sup>3200</sup>: after a &times;64 phase (slack F &minus; 4K of 5 to 9) the next fuel is fresh by law A, 11F&prime; = 21K + e with &minus;913 &le; e &le; 224 (6,936 times), fresh by law B, F&prime; = K + &delta; with 2 &le; &delta; &le; 12 (1,401 times), or the rest of the same run (4,063 times). The rung is a frozen word, so the hits a phase passes down cross every run of rungs. The bottom word does not grow: its long runs, stored by the engine as many pieces in different rotations, are 279 runs (24,236 digits) at the start and 306 (27,474 digits) after 14,000 phases, about 270 of them fuels (1 0 0)<sup>M</sup>. With the pieces merged, 1,294 of the first 1,404 phases follow law A. The logged phases give the same bound as before (2<sup>2.899&middot;10<sup>147</sup></sup> top hits), all of it from the first phases. Three fixes made the accelerator run past phase 30 again.</p>
         <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_laws.py</code> on the log of <code>LSA_LOG=log lsa_run.py 2 3200</code>, README</p>
+      </div>
+      <div class="card">
+        <h3>The factory rule: 11 hits make one rung</h3>
+        <p>Behind a &times;64 eater the word reads (10) 4 0<sup>6</sup> (10) 4 0<sup>4</sup> 3 [100]<sup>M</sup> 3 4 0<sup>3</sup> 4 3 4 0<sup>3</sup> (10) X, and the hits the eater passes down all land there. Run with symbolic counts from each of the 11 states of its cycle, the digit recursion gives the same rule, for every n &ge; 1 and M &ge; 7: 11 hits turn [rung]<sup>n</sup> into [rung]<sup>n+1</sup> and [100]<sup>M</sup> into [100]<sup>M&minus;6</sup>, and pass 2 hits on to X. So an eater phase of K super-cycles (21K hits) writes a fuel of about 21K/11 rungs: law A.</p>
+        <p class="where"><code>1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA/py/lsa_factory.py</code>, README</p>
       </div>
       <div class="card">
         <h3>No halt in the first 2.16&times;10<sup>18</sup> steps (exact macro run)</h3>
