@@ -18,7 +18,7 @@ the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel on
 C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 Lean (`lean/Halt.lean`, kernel only): a halt needs state B reading 0 with 0, 0, 1 to its left
 (`halt_needs_pattern`). Coq (`coq/`): a halting proof built from busycoq pull request 93 that compiles with one
-assumption, that its accelerated engine stops; the engine has not stopped in more than 10^5363 steps (see below).
+assumption, that its accelerated engine stops; the engine has not stopped in more than 10^7765 steps (see below).
 
 ## Structure
 
@@ -81,7 +81,7 @@ halt needs B reading 0 with the cells 0, 0, 1 to its left.
 `coq/mkU.py` turns PR 93's file into a proof that this machine halts, complete except for `run_ok`, the claim that
 PR 93's accelerated engine (run on T3 without its halt) stops. The engine, extracted from that file, ran 18,449,229
 fast steps from blank tape without stopping; the tape then holds more than 2^4439 cells, so the machine does not halt
-in its first 10^5363 steps (computed with extracted code, not by the kernel).
+in its first 10^7765 steps (computed with extracted code, not by the kernel).
 
 Where the sibling would halt: T3 halts (from A at fast step 4,452, from C at fast step 2,452,241, PR 93's halt) just after C reads 0 with
 `1 1 1` on its left at the left end of the written tape. In this machine's run that configuration recurs once per lap

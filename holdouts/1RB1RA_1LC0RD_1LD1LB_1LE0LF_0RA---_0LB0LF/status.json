@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 20 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Up to renaming, the machine is the table of a DeepMind proof (busycoq pull request 93) with its halting transition replaced. A Coq proof built from that file needs only one more thing, a stop of its accelerated engine, and the engine has not stopped in more than 10<sup>5363</sup> steps. The place where the sibling halts recurs in this run once per lap, and this machine gets past it the same way every time; nothing in the run comes near the one pattern that could halt it."
+  "<b>The question is open.</b> Up to renaming, the machine is the table of a DeepMind proof (busycoq pull request 93) with its halting transition replaced. A Coq proof built from that file needs only one more thing, a stop of its accelerated engine, and the engine has not stopped in more than 10<sup>7765</sup> steps. The place where the sibling halts recurs in this run once per lap, and this machine gets past it the same way every time; nothing in the run comes near the one pattern that could halt it."
  ],
  "claims": [
   {
@@ -89,8 +89,8 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>5363</sup> steps",
-   "text": "The engine of that proof file, extracted to OCaml with Coq's binary numbers realized by Zarith (the same engine as for starts B and D of the table, whose full compressed states equal those of the plain extraction at fast steps 35,227,304 and 29,077,778 of those runs; the plain extraction was checked against direct simulation through 3&times;10<sup>9</sup> steps), ran 309,343,765 fast steps from blank tape without stopping (22 November 2026). Its tape then has more than 2<sup>17817</sup> cells, each visited at least once. Every entry into raw mode (where a halt would have to happen; the engine checks each raw step for one) falls into the same few classes as in the earlier runs: D moving right with a 0 on its left, D moving left onto a 1, B moving right, or the sibling’s halting event (C reading 0 with 1 1 1 on its left), which this machine survives each time.",
+   "title": "No halt in the first 10<sup>7765</sup> steps",
+   "text": "The engine of that proof file, extracted to OCaml with Coq's binary numbers realized by Zarith (the same engine as for starts B and D of the table, whose full compressed states equal those of the plain extraction at fast steps 35,227,304 and 29,077,778 of those runs; the plain extraction was checked against direct simulation through 3&times;10<sup>9</sup> steps), ran 601,531,739 fast steps from blank tape without stopping (22 November 2026). Its tape then has more than 2<sup>25798</sup> cells, each visited at least once. Every entry into raw mode (where a halt would have to happen; the engine checks each raw step for one) falls into the same few classes as in the earlier runs: D moving right with a 0 on its left, D moving left onto a 1, B moving right, or the sibling’s halting event (C reading 0 with 1 1 1 on its left), which this machine survives each time.",
    "where": "<code>coq/README.md</code>, <code>runz.ml</code> in the start-A folder of the table"
   },
   {
@@ -122,8 +122,8 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>5363</sup> steps",
-    "text": "No halt: the accelerated engine of the Coq proof file has not stopped in 309,343,765 of its steps."
+    "value": "10<sup>7765</sup> steps",
+    "text": "No halt: the accelerated engine of the Coq proof file has not stopped in 601,531,739 of its steps."
    },
    {
     "level": "kernel",
@@ -185,7 +185,7 @@
     "html": [
      "<p>The only halting transition is E1. State E is entered by D0 (write 1, move left), so the machine halts exactly when one of these moves lands on a 1. At the left end the head enters E on blank tape and goes on; inside the block list the irregular blocks at the run boundaries are where such a landing could happen. Nothing seen so far does it, and no invariant that rules it out is known.</p>",
      "<p>To decide the machine one would need the round map in closed form, including what the odd counts and the irregular blocks at the run boundaries do, and then an argument about where E can land. The halving pattern suggests a counter-like invariant may exist; none has been found.</p>",
-     "<p><b>20 November 2026.</b> Up to swapping E and F this machine is the table of a DeepMind halting proof (busycoq pull request 93) with two changes: the sibling's halting transition becomes a step that keeps erasing to the left, and D0 becomes a detour that halts exactly when D reads 0 with a 1 on its left. Lean proves that a halt needs state B reading 0 with 0, 0, 1 to its left (<code>lean/Halt.lean</code>). The sibling's accelerated engine, rebuilt for this machine, has run past 10<sup>5363</sup> steps without stopping. The configuration where the sibling halts recurs once per lap of its counter (73 times through 3.1&middot;10<sup>8</sup> fast steps), always with the same nearest cells, and each time this machine erases three 1s and carries on. No situation that could lead to a halt has appeared (<code>coq/README.md</code>).</p>"
+     "<p><b>20 November 2026.</b> Up to swapping E and F this machine is the table of a DeepMind halting proof (busycoq pull request 93) with two changes: the sibling's halting transition becomes a step that keeps erasing to the left, and D0 becomes a detour that halts exactly when D reads 0 with a 1 on its left. Lean proves that a halt needs state B reading 0 with 0, 0, 1 to its left (<code>lean/Halt.lean</code>). The sibling's accelerated engine, rebuilt for this machine, has run past 10<sup>7765</sup> steps without stopping. The configuration where the sibling halts recurs once per lap of its counter (111 times through 6.0&middot;10<sup>8</sup> fast steps), always with the same nearest cells, and each time this machine erases three 1s and carries on. No situation that could lead to a halt has appeared (<code>coq/README.md</code>).</p>"
     ]
    },
    {
@@ -199,6 +199,6 @@
    }
   ]
  },
- "summary": "DeepMind pull request 93's table with its halt removed and a detour halt added; the Coq proof waits only for an engine stop, none in 10^5363 steps; the sibling's halting point recurs and is survived each lap. Open.",
+ "summary": "DeepMind pull request 93's table with its halt removed and a detour halt added; the Coq proof waits only for an engine stop, none in 10^7765 steps; the sibling's halting point recurs and is survived each lap. Open.",
  "decision": "open"
 }
