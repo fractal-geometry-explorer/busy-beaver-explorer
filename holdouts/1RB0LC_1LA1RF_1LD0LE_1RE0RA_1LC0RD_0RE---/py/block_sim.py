@@ -184,6 +184,7 @@ def concat(q1, q2):
     """q1 then q2 (near to far)"""
     if not q1: return q2
     if not q2: return q1
+    if isinstance(q1, RQ): return rq_concat(q1, q2)
     if q1.mid is None and q2.mid is None:
         # in place, into the longer one
         if len(q1.E) + len(q1.F) >= len(q2.E) + len(q2.F):
@@ -200,6 +201,80 @@ def concat(q1, q2):
         f = midpart[0]; l = midpart[-1]
         q.mid = (f[1] if isinstance(f, tuple) else f, l[2] if isinstance(l, tuple) else l)
     return q
+
+class RQ:
+    """a block's gaps in exact mode, run length coded: R holds [gap, count] runs, the near end first, and no two
+    neighbouring runs have the same gap.  A run of a hundred thousand one-pair gaps is one entry."""
+    __slots__ = ('R', 'S', 'n')
+    mid = None
+    def __init__(self, gaps=(), runs=None):
+        self.R = collections.deque(); self.S = 0; self.n = 0
+        if runs is not None:
+            for v, c in runs: self.append(v, c)
+        else:
+            for g in gaps: self.append(g)
+    def key(self): return tuple(tuple(r) for r in self.R)
+    def __bool__(self): return self.n > 0
+    def exact(self): return True
+    def size(self): return self.n
+    def it(self):
+        for v, c in self.R:
+            for _ in range(c): yield v
+    def gaps(self): return list(self.it())
+    def runs(self): return [tuple(r) for r in self.R]
+    def first(self): return self.R[0][0]
+    def add_first(self, k):
+        R = self.R; r = R[0]; v = r[0] + k; self.S += k
+        if r[1] == 1:
+            r[0] = v
+            if len(R) > 1 and R[1][0] == v: R.popleft(); R[0][1] += 1
+        else:
+            r[1] -= 1; R.appendleft([v, 1])
+    def pop_first(self):
+        r = self.R[0]; v = r[0]
+        if r[1] == 1: self.R.popleft()
+        else: r[1] -= 1
+        self.S -= v; self.n -= 1; return v
+    def pop_last(self):
+        r = self.R[-1]; v = r[0]
+        if r[1] == 1: self.R.pop()
+        else: r[1] -= 1
+        self.S -= v; self.n -= 1; return v
+    def append(self, g, c=1):
+        if c <= 0: return
+        R = self.R
+        if R and R[-1][0] == g: R[-1][1] += c
+        else: R.append([g, c])
+        self.S += g * c; self.n += c
+    def prepend(self, g, c=1):
+        if c <= 0: return
+        R = self.R
+        if R and R[0][0] == g: R[0][1] += c
+        else: R.appendleft([g, c])
+        self.S += g * c; self.n += c
+    def lead_ones(self):
+        R = self.R
+        if R and R[0][0] == 1:
+            k = R.popleft()[1]; self.S -= k; self.n -= k; return k, False
+        return 0, False
+    def fold(self): pass
+    def record(self): pass
+    def cost(self): return self.S, self.n
+
+def rq_concat(q1, q2):
+    """q1 then q2 (near to far), in place into the one with more runs"""
+    if len(q1.R) >= len(q2.R):
+        for v, c in q2.R: q1.append(v, c)
+        return q1
+    for v, c in reversed(q1.R): q2.prepend(v, c)
+    return q2
+
+def newQ(gaps=(), runs=None):
+    if CFG.get('exact'): return RQ(gaps, runs)
+    return AQ(gaps if runs is None else [v for v, c in runs for _ in range(c)])
+
+def qsize(q): return q.size() if isinstance(q, RQ) else len(q.E) + len(q.F)
+def qit(q): return q.it() if isinstance(q, RQ) else qit(q)
 
 # ---------------------------------------------------------------- stacks
 def isM(t): return isinstance(t, tuple) and t[0] == 'M' and bool(t[1])
@@ -286,7 +361,7 @@ def bounce(Y):
                 if r > 0 or more:
                     if not (L[-1] == '1' and L[-2] == 1 and L[-3] == '0'): raise RuntimeError('rm1 shape')
                     del L[-3:]
-                    q = AQ([1] * r)
+                    q = newQ(runs=[(1, r)])
                     if more:
                         q.E = collections.deque(q.F); q.F = collections.deque(); q.mid = (1, 1); addQ((1, 1))
                     L.append(('M', q)); L.append('0'); L.append(1); L.append('1')
@@ -313,7 +388,7 @@ def collapse(Y):
                 and Y[i + 3] == '0' and isinstance(Y[i + 4], int) and Y[i + 4] >= 1:
             g = Y[i + 4]
             if isM(out[-1]): out[-1][1].prepend(g)
-            else: out.append(('M', AQ([g])))
+            else: out.append(('M', newQ([g])))
             i += 5; continue
         if isinstance(t, tuple) and isM(out[-1]):
             out[-1] = ('M', concat(t[1], out[-1][1])); i += 1; continue
@@ -424,6 +499,8 @@ def _rle(g):
         else: out.append([x, 1])
     return ' '.join('%d^%d' % (a, b) if b > 1 else str(a) for a, b in out)
 
+def _rle_runs(runs): return ' '.join('%d^%d' % (a, b) if b > 1 else str(a) for a, b in runs)
+
 def _exact_start():
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import mover_sim as ms
@@ -437,10 +514,10 @@ def _ones(Y):
     import itertools
     b = next(t[1] for t in Y if isinstance(t, tuple))
     big = 0
-    for j, x in enumerate(itertools.chain(b.E, b.F)):
+    for j, x in enumerate(qit(b)):
         if x == 1 and j > 0: break
         big += 1
-    return big, len(b.E) + len(b.F) - big
+    return big, qsize(b) - big
 
 def main():
     mode, nb = sys.argv[1], int(float(sys.argv[2]))
@@ -477,13 +554,17 @@ def main():
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
     if mode == 'blocks':
         # accelerated: every bounce at which the tape is one block, with its gaps (run length coded)
-        i = 0; single = False; t0 = time.time()
+        i = 0; single = False; t0 = tp = time.time(); PROG = float(os.environ.get('PROGRESS', '0'))
         while i < nb:
             ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            if PROG and time.time() - tp > PROG:
+                tp = time.time(); qs = [t[1] for t in Y if isM(t)]
+                print('  at bounce %d (step %.3e): %d items, %d blocks, %d movers in %d runs' % (i, steps, len(Y),
+                      len(qs), sum(q.size() for q in qs), sum(len(q.R) for q in qs)), flush=True)
             one = len(Y) == 3 and isM(Y[2])
             if one and not single:
-                g = Y[2][1].gaps(); s_ = _rle(g)
-                print('one block at bounce %d (step %d), %d movers: %s' % (i, steps, len(g),
+                q = Y[2][1]; s_ = _rle_runs(q.runs())
+                print('one block at bounce %d (step %d), %d movers: %s' % (i, steps, q.size(),
                       s_ if len(s_) < 400 else s_[:200] + ' ... ' + s_[-160:]), '%.0fs' % (time.time() - t0), flush=True)
             single = one
         print('end: bounce', i, 'step', steps, dict(STAT))
@@ -504,11 +585,11 @@ def main():
             if one and not single:
                 # the bottom: one block [G, h, rest...]: G drains into the reservoir, h becomes the fuel, and rest
                 # is copied: S1 with fuel 2h for odd h, S0 (rest one pair shorter) with fuel 2h + 3 for even h
-                G, h, r0 = list(itertools.islice(itertools.chain(Y[2][1].E, Y[2][1].F), 3))
+                G, h, r0 = list(itertools.islice(qit(Y[2][1]), 3))
                 spend = (1, r0, 2 * h) if h % 2 == 1 else (0, r0 - 1, 2 * h + 3)
             single = one
             if pend and isM(Y[-1]):
-                top = list(itertools.chain(Y[-1][1].E, Y[-1][1].F))
+                top = list(qit(Y[-1][1]))
                 for p_ in pend[:]:
                     want, at = p_
                     if any(top[j:j + len(want)] == want for j in range(len(top) - len(want) + 1)):
@@ -523,7 +604,7 @@ def main():
                 else: bad.append((i, 'one block predicted', spend, 'got', (st, sh[0], f)))
                 spend = None
             Lb, R = Y[-4][1], Y[-1][1]
-            ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
+            ll, rl = qsize(Lb), qsize(R)
             if prev is not None:
                 pst, pg0, pg, pf, pn, pll, prl, pi, pgaps, prgaps = prev
                 k = pll - ll
@@ -533,7 +614,7 @@ def main():
                     for j in range(k):
                         h, s_ = pred(s_, pg0 if j == 0 else pgaps[j])
                         outs.append(h)
-                    got = list(itertools.islice(itertools.chain(R.E, R.F), rl - k, rl))
+                    got = list(itertools.islice(qit(R), rl - k, rl))
                     key = 'gap copied, as predicted' if k == 1 else 'gaps copied, as predicted (%d at once)' % k
                     if (outs, s_) == (got, st): res[key] += 1
                     else: bad.append((pi, 'S%d' % pst, pgaps[:k], pf, 'predicted', (outs, s_), 'got', (got, st)))
@@ -559,13 +640,13 @@ def main():
                 # un-nesting: the inner level's last gap; then its frozen run r is copied like a gap and either
                 # merges into the first gap of the block on its left or joins the right block as a gap of its own
                 h, s_ = pred(st, g0); r = Y[-5]
-                mid = list(itertools.islice(itertools.chain(Y[-7][1].E, Y[-7][1].F), 3))
+                mid = list(itertools.islice(qit(Y[-7][1]), 3))
                 if (r % 2 == 1) if s_ == 1 else (r % 2 == 0):
                     want = [h, mid[0] + 3 * r + (5 if s_ == 1 else 1) + (2 if Y[-6] == '1' else 0)] + mid[1:]
                 else: want = [h, 3 * r + (4 if s_ == 1 else 0)]
                 pend.append((want, i))
-            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)),
-                    list(itertools.islice(itertools.chain(R.E, R.F), 3)))
+            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(qit(Lb), 8)),
+                    list(itertools.islice(qit(R), 3)))
         print(dict(res))
         for b_ in bad: print('  differs at bounce', *b_)
 
