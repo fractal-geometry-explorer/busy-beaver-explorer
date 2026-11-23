@@ -188,9 +188,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1RE/README.md</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 7.6&middot;10<sup>13</sup> steps</h3>
-        <p><code>c/psim.c</code> is the direct simulation with two shortcuts, both theorems of <code>lean/Pulse.lean</code> for every tape around: the right sweep over a stretch of words (<code>right_words</code>) and the packet crossing it back (<code>left_words</code>). They take 99% of the steps. It runs 75,967,097,042,634 steps from blank tape without a halt (7.7 hours; the tape is then 8,320,745 cells long). At all 6,148 returns to the left end in the first 3&middot;10<sup>9</sup> steps its tape is identical to the direct run's.</p>
-        <p class="where"><code>c/psim.c</code>, <code>lean/Pulse.lean</code></p>
+        <h3>No halt in the first 4.0&middot;10<sup>17</sup> steps</h3>
+        <p>Two simulators whose only shortcuts are theorems of <code>lean/Pulse.lean</code> for every tape around: the right sweep over a stretch of words (<code>right_words</code>) and the packet crossing it back (<code>left_words</code>). <code>c/psim.c</code> applies them on a flat tape and runs 75,967,097,042,634 steps (7.6&middot;10<sup>13</sup>) without a halt; it matches the direct run at all 6,148 returns to the left end in the first 3&middot;10<sup>9</sup> steps. <code>c/wsim.cpp</code> keeps the words as blocks, crosses a block in one move and peels single words where the head works; it matches <code>psim.c</code> at all 160,976 returns in the first 10<sup>12</sup> steps and runs 399,758,169,806,655,314 steps (4.0&middot;10<sup>17</sup>) without a halt (tape 610,949,829 cells).</p>
+        <p class="where"><code>c/psim.c</code>, <code>c/wsim.cpp</code>, <code>lean/Pulse.lean</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
