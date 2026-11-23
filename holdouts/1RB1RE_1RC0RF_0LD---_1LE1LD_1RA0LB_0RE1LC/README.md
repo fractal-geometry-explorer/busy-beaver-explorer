@@ -142,8 +142,21 @@ tape as its big blocks every 10^10 steps). What the run did:
 | 3.58·10^12 to 4.45·10^12 | left end moving: the left zone grows back from 0 to about 209,000 copies; the irregular stretch is eaten down to about 47,000 cells while the 5-word block loses about 30,000 words |
 | about 4.45·10^12 | the 5-word block (280,807 words left) starts to be turned into a new irregular stretch of about 400,000 cells |
 
-Each cycle so far (left end fixed, then moving, then a block turned into irregular stretch) repeats the one before at
-two to three times the scale, with blocks 66,518 → 135,383 → 385,143 words.
+**Continued to 6.30·10^12 steps, no halt** (resumed three times from the accelerator's own checkpoints after the
+container restarted; `evidence/bacc-4.5e12-to-6.3e12.txt`, one summary per 10^10 steps):
+
+| steps | what happens |
+|---|---|
+| 4.5·10^12 to 5.07·10^12 | left zone fixed at `(100)^215341`; the 5-word block (`(11100)^224748` at 4.55·10^12) is turned word by word into a block of 13-cell words, which ends with 102,170 words |
+| 5.07·10^12 to 5.77·10^12 | left end fixed: `(100)^a` shrinks from 215,341 to about 79,000 and becomes a new 5-word block; the 13-word block stays at 102,170 words; the irregular stretch shrinks from about 435,000 to 197,000 cells |
+| about 5.78·10^12 | the 13-word block (about 1.33 million cells) dissolves into an irregular stretch of about 1.5 million cells; the left zone stalls at 72,217 until about 5.95·10^12 |
+| 5.95·10^12 to 6.29·10^12 | left end fixed again: `(100)^a` goes from 72,217 to 0; the 5-word block ends with 215,326 words |
+| from 6.29·10^12 | left end moving: a new left zone `(001)^a (11)^b` starts to grow, as at 3.58·10^12 |
+
+Each cycle so far (left end fixed, then moving, then a block turned into irregular stretch) is two to three times
+the scale of the one before, with blocks 66,518 → 135,383 → 385,143 words. The fourth cycle (from 4.45·10^12) is not a
+plain rescaling: it has an extra 13-word block and two hand-overs, and its 5-word block (215,326 words) is smaller
+than the third one's, while the irregular stretch (about 1.36 million cells) is ten times larger.
 
 So far the run looks like a slow hierarchy. Each regular phase builds the left zone `(100)^a` (or `(001)^a`) at the
 expense of a run of ones or of `(11)`. Each hand-over turns blocks into a larger irregular stretch and then a larger
