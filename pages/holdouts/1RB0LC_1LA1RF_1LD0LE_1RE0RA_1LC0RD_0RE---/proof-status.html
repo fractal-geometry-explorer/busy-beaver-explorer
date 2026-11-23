@@ -217,7 +217,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>A rebuild triples gaps, gap by gap</h3>
-        <p>On a stack of single cells, runs of pairs and blocks of movers (exact against direct simulation to 1.1&times;10<sup>11</sup> steps), a rebuild copies each gap g of one block into the next as 3g+c with a small offset c (&minus;4, 0, 4 and 8 seen); what decides c is not found. A finite abstraction of the stack does not close.</p>
+        <p>On a stack of single cells, runs of pairs and blocks of movers (exact against direct simulation to 1.1&times;10<sup>11</sup> steps), a rebuild copies the gaps of one block into the next by a two-state transducer: an even gap g gives 3g+4, odd gaps give 3g+8 and 3g by turns. It holds for 10,620 of the 10,626 consecutive transfers to 1.88&times;10<sup>12</sup> steps; the other six are drain ends. Its stretch is the kernel lemma <code>walkm</code>; the ends of a gap are collisions at Q, not yet composed with it. A finite abstraction of the stack does not close.</p>
         <p class="where"><code>py/block_sim.py</code>, <code>py/block_search.py</code>, README</p>
       </div>
     </div>

@@ -461,6 +461,28 @@ def main():
                       s if len(s) < 400 else s[:200] + ' ... ' + s[-160:]))
             single = one
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
+    if mode == 'rule':
+        # the rebuild transducer: a gap's transfer starts as `M[g ..] 0 4 M[f ..]` (S1, g whole) or `M[g-1 ..] 0 3
+        # M[f ..]` (S0); check each transfer's new gap, read at the start of the next one
+        def pred(st, g0):
+            if st == 1: return (3 * g0 + 4, 1) if g0 % 2 == 0 else (3 * g0 + 8, 0)
+            return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
+        i = 0; prev = None; ok = 0; bad = []; starts = 0; okfuel = []
+        while i < nb:
+            ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            sh = _transfer_shape(Y)
+            if sh and sh[1] == '0' and sh[2] in (3, 4):
+                st = 1 if sh[2] == 4 else 0; g0 = sh[0] + (0 if st == 1 else 1)
+                Lb, R = Y[-4][1], Y[-1][1]
+                ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
+                if prev is not None and rl == prev[1] + 1 and ll == prev[0] - 1:
+                    if pred(prev[2], prev[3]) == (last, st): ok += 1; okfuel.append(prev[5] > prev[3])
+                    else: bad.append((prev[4], 'S%d' % prev[2], prev[3], 'predicted', pred(prev[2], prev[3]),
+                                      'got', (last, st), 'fuel at start', prev[5]))
+                prev = (ll, rl, st, g0, i, sh[3]); starts += 1
+        print('transfers started', starts, 'consecutive pairs checked', ok + len(bad), 'rule holds', ok,
+              '(fuel larger than the gap in all of them: %s)' % all(okfuel))
+        for b in bad: print('  differs (a drain end?) at bounce', *b)
 
 if __name__ == '__main__':
     main()
