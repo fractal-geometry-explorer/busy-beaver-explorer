@@ -492,6 +492,16 @@ became the oldest (`[335]Z`, `[335]O`, `[335]T`). The usual `[0]b2_3` cycle was 
 the ahead-of-time probe showed (section of 20 November). b1's next event, its second segment running out, is still
 forecast near 10^228.
 
+## Through b1's second-segment collapse, to 3.07x10^228 (23 November 2026)
+
+Both runs went on without a halt: b1 to 3.07x10^228 and the twin to 2.0x10^229 (`data/b1_lean5.log`,
+`data/b2_lean5.log`, which continue `data/b?_lean4.log`). Both runs stopped once when the shared folder holding
+their checkpoints failed, and they restart from the last checkpoints saved, at 3.06x10^225 (b1) and 2.75x10^226
+(b2); the logs mark the place. In b1 the second segment ran out near 1.85x10^228, as forecast (section of
+20 November). The empty digit went through `[0]b2_3 [47]T [0]Z`, `[0]O` and `[0]T`, then sat under the 48-block
+top digit as `[48]Z [0]Z`, `[48]Z [0]O` and `[48]Z [0]T`, and was absorbed at 3.07x10^228, leaving
+`[48]b1_1 [2239]T ...` with one segment fewer. No halt, and no new kind of wall.
+
 ## What is proved, and how firmly
 
 | level | claim | where |
@@ -515,6 +525,7 @@ forecast near 10^228.
 | trusted | **No halt in the first 3.09x10^54 steps, through the middle collapse at 2.58x10^54 and the oldest-segment collapse at 2.8x10^54 to 3.0x10^54.** The lean accelerator (closed-form jumps over periods of the low system, every other sweep exact) reproduces all 206 logged states of the counter-macro run to 8.2x10^51 steps, step counts included, and its jumps equal plain sweeps wherever compared. | `py/lean.py run`, `py/lean.py verify`, `py/lean.py test`; `data/b1_lean.log` |
 | trusted | **No halt in the first 6.1x10^135 steps, through the end counter merging at 4.8x10^54 and about 87 more middle collapses.** The lean accelerator with cycle reuse reproduces every logged state of the counter-macro run and of the slower lean runs, step counts included; each middle collapse takes 2 blocks from the oldest segment (241 left) and multiplies the step count by about 9. | `py/lean.py run`, `py/lean.py verify`, `data/b1_lean2.log` |
 | trusted | **No halt in the first 6.5x10^197 (b1) and 7.2x10^196 (b2) steps, through the twin's oldest-segment collapse near 3.6x10^192.** The lean accelerator runs on from 3.0x10^121; in the twin the oldest segment runs out as forecast, the empty digit is absorbed and the usual cycle returns by 1.2x10^194. | `py/lean.py run`, `data/b1_lean4.log`, `data/b2_lean4.log` |
+| trusted | **No halt in the first 3.07x10^228 (b1) and 2.0x10^229 (b2) steps, through b1's second-segment collapse near 1.85x10^228.** The empty digit passes under the top digits and is absorbed at 3.07x10^228, one segment fewer; the twin runs on in its usual cycle. | `py/lean.py run`, `data/b1_lean5.log`, `data/b2_lean5.log` |
 | heuristic | **The next collapses do not halt (tried ahead of time).** On today's tape with the digit that runs out first set to 0 (b2: the oldest segment, due near 10^192; b1: the second segment, due near 10^228), the exact run passes the collapse without a halt and returns to known patterns. The real tape will have more bottom digits by then. | `py/probe.py`, `data/probes/` |
 | trusted | **The sweep rules form a short table.** Every exact rule of a run over one cycle (about 295) is a stop rule plus a carry chain that does not depend on its length: the generic Z and O stops, 3 borrows that start odd walls, the odd-wall cascades that merge back, and the end rule. | `py/ruletable.py table`, `data/rule_table_b1.txt` |
 | open | **Does it halt from blank tape?.** Not known. Halting needs the head in state D on a 0 with `1 1` to its right (D0 → 1RE, E1 → 1RF, F1 halts). The law never produces it, and neither did the first collapse, the middle collapses at 2.06x10^35 and 2.58x10^54, or the oldest-segment collapse at 2.8x10^54 to 3.0x10^54 (exact runs). The next oldest segment holds 293 blocks; the run goes on from 3.09x10^54 steps. |  |
