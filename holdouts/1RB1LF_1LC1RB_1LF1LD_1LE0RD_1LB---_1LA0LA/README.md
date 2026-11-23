@@ -451,6 +451,21 @@ and the fuels as parameters. With the factory rule (`py/lsa_factory.py`) this gi
 A level skip would run this flow as arithmetic until the ladder and the fuel after it are used up. That is the
 next step. The rules here are observations of the engine on many values, not yet proofs.
 
+*The long run, merged (23 November 2026, night).* Two more bugs in the accelerator held the run back. Both were
+eaters it never treated as phases, so they were fed 200 hits a batch for hours:
+* an eater shape was marked as having no super-cycle when its block was not regular at one hit. That depends on
+  the hit, not on the shape. After phase 1,756 an eater on 66,946 rungs was skipped this way. Now a shape with a
+  known super-cycle is always used (`find_phase`), and an irregular block only starts single hits;
+* the head of an eater could have at most 16 tokens before its fuel. After phase 12,174 one had 17. Now it can
+  have 24 (`HEADMAX`).
+
+With both fixed the run went from wall visit 10^3200 to phase 13,008. That is 12,488 law-A transitions, and law A
+holds throughout (−76 ≤ e ≤ 284). The run starts 136 ×256 phases on [100] fuels, and 30 of them begin a long descent (100 phases or more). Their starting fuels fall from 10^147.8 to 10^43:
+the [100] fuels near the eater are used up one after another. The bound is still that of the first phases. At
+phase 13,008 the run stalls again, this time inside the engine. A ×16 phase passes 10^42 hits into a stack of
+ladders, (10)^N blocks from 10^45 down to 10^36, and the engine carries them level by level. The ladder rule of
+`py/lsa_refuel.py`, done as arithmetic, is what is needed there.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)

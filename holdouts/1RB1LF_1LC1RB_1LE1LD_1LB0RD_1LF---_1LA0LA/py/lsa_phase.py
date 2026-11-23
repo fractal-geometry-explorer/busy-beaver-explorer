@@ -19,10 +19,14 @@ def shape(toks):
     return tuple(('P', '*', t[2]) if type(t) is tuple and t[0] == 'P' and t[1] > 200 else t for t in toks)
 
 
+HEADMAX = 24     # an eater's head may have this many tokens before its fuel (16 missed one of 17, after phase 12,174
+                 # from visit 10^3200: it was then fed 200 hits a batch)
+
+
 def find_phase(btoks, known_only=False):
     """an eater super-cycle at the head of the bottom: (sc, E tokens, fuel index, rest tokens, K) or None.
     known_only: only shapes whose super-cycle is already known (no new search)"""
-    fi = fuel_index(btoks[:16], thr=200)
+    fi = fuel_index(btoks[:HEADMAX], thr=200)
     if fi is None:
         return None
     # the shape alone is enough to know a failure: the super-cycle search depends on the fuel only through its size
@@ -31,9 +35,9 @@ def find_phase(btoks, known_only=False):
             break
         E = btoks[:fi + 1 + extra]
         key = shape(E)
-        if key in SCNEG:
-            continue
         sc = SCPOS.get(key)
+        if sc is None and key in SCNEG:
+            continue
         if sc is None and known_only:
             continue
         if sc is None:
@@ -204,7 +208,7 @@ class PRegion(Region):
             nb += 1
             self.B = fold_front(self.B)
             bt, tail = prefix_tokens(self.B, 48)
-            fi = fuel_index(bt[:16], thr=200)
+            fi = fuel_index(bt[:HEADMAX], thr=200)
             if fi is not None:
                 key = shape(bt[:fi + 1])
                 seen = getattr(self, 'seen', None)
@@ -220,8 +224,13 @@ class PRegion(Region):
                             self.Q, self.fine = self.fine_Q, 0
                         return 'phase', ph
                     if ph is not None:
-                        LOG[0]('%s(block of the eater %s not regular at this hit: single hits)' % ('  ' * min(self.depth, 20), show(build(ph[1][:ph[2]], None))))
-                        SCNEG[shape(ph[1])] = 1
+                        k = shape(ph[1])
+                        if k not in NOTREG:
+                            LOG[0]('%s(block of the eater %s not regular at this hit: single hits)' % ('  ' * min(self.depth, 20), show(build(ph[1][:ph[2]], None))))
+                            NOTREG.add(k)
+                        # not SCNEG: whether the block is regular depends on the hit of the eater's cycle, not on the
+                        # shape.  Marking the shape negative made a later eater of that shape (66,946 rungs, after
+                        # phase 1,756 from visit 10^3200) unrecognised, fed 200 hits a batch for hours.
                         if not self.fine:
                             # the super-cycle can start at any hit of the eater's cycle; find one where the block is regular
                             self.fine_Q, self.Q, self.fine = self.Q, 1, 4000
@@ -240,6 +249,7 @@ class PRegion(Region):
 
 
 FRAMES = []
+NOTREG = set()          # eater shapes already reported as not regular (log once)
 
 
 def save_state(path, R, frames, nph):

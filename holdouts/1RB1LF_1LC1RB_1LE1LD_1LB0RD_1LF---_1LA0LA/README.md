@@ -341,6 +341,9 @@ Also, a long run followed by a few short tokens and another long run of the same
 run when the digits across the junction are periodic (`MERGE`, `_merge_prev` in `py/lsa_phase.py`; the word is
 unchanged on 162 sampled junctions and the 7th event of this machine comes out the same). `py/lsa_factory.py`
 checks the factory rule behind the ×64 eater of the other machine (11 hits make one rung) with symbolic counts.
+Two more fixes (the other machine's README, "The long run, merged"): a shape with a known super-cycle is never
+marked negative because its block was irregular at one hit, and an eater's head may have up to 24 tokens
+(`HEADMAX`). The 7th event of this machine comes out the same.
 
 Trust: computations, exact by construction; the accelerator agrees with the digit engine on the stretch it was
 compared on. The Lean file covers the arithmetic only, not the symbolic runs that supply its constants.
