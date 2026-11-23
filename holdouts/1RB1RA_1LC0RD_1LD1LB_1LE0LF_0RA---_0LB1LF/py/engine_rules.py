@@ -57,6 +57,8 @@ def Je(r):  # one step before CfgJ L r
 
 
 RULES = [
+    ("rightD0", R("", D(0)), R(S(0), ""), "Engine move R on D 0: CfgR L (D 0 · R) reaches CfgR (L · S 0) R (G: 3 steps)."),
+    ("rightD", R("", "1 (11)^n 1 1 0 0"), R(S("n+1"), ""), "Engine move R: CfgR L (D (n+1) · R) reaches CfgR (L · S (n+1)) R (G: 6n+9 steps; the last copy of 11 is stepped, since the run passes CfgR inside it)."),
     ("left", Ls("(10)^n+1", "1", ""), Le(D("n")), "PR 93 `rule_left`: CfgL (L · S n) R reaches CfgL L (D n · R). Same as T3."),
     ("even", R("", "(11)^n+1 0 0"), Le(D("n+1") + " 1 0"), "PR 93 `rule_even`: CfgR L ((11)^(n+1) 00 R) reaches CfgL L (D (n+1) · 10 · R). Same as T3."),
     ("leftJ", Js("(10)^n+1", "1", ""), Le(D("n+1")), "PR 93 `rule_leftJ`: CfgJ (L · S n) R reaches CfgL L (D (n+1) · R). Same as T3."),
