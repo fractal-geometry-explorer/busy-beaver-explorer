@@ -213,6 +213,45 @@ switches to A, which turns `01` words into runs of two; at the next `011` word A
 meets the nearest defect (for instance the run E has just made), takes three 1s from it and returns in mode E. A halt
 still needs a pulse to meet `0001`; what is open is whether this recursion can ever leave one.
 
+## Looking for a halt far out (23 November 2026)
+
+- **No `000` away from the head.** `c/zeros.c` runs the machine directly and, every 10^7 steps up to 3·10^11, looks
+  for a run of three or more 0s inside the visited tape and more than 8 cells from the head: none in 30,000 samples
+  (all the `000`s seen sit next to the head, while it writes). So the invariant to prove would be "the tape never
+  holds `000` away from the head"; with it, `pulse_halt` can never fire. No proof: the deciders above (n-gram CPS to
+  width 14, closed tape languages from small automata) find no local invariant of that kind.
+- **Where the time goes.** In the first 3·10^10 steps, 96% of the steps are spent in round trips whose first defect
+  is a `00`, mostly in one trip of 1.4·10^10 steps (from 8.7·10^8 to 1.5·10^10). During it the head does not come
+  back to the left end: the `00` pulse rewrites the `(011)^a` block as `(100)^n`, and the border between that region
+  and the words works as a new left end, with its own round trips, pulses and fuses (at 1.2·10^10 steps, round trips
+  of about 432,000 steps that each burn 3 cells of a run near the right end). Fuse jumps at the outer left end (fold
+  the round trips that only burn a fuse into one step) are exact on the run but save only about 20%.
+- **A simulator whose only shortcuts are Lean theorems.** `c/psim.c` is the direct simulation with two shortcuts:
+  in state A at a stretch of at least 24 cells of words it applies `right_words` (01 → 11, 011 → 100, 2 and 5 steps),
+  and in state A on a packet `111` with images to its left it applies `left_words` (8 and 5 steps). Both are proved
+  in `lean/Pulse.lean` for every tape around, so every jump is exact. Its tape at all 6,148 returns to the left end in
+  the form `C>0 (011)^a 001101 …` in the first 3·10^9 steps is identical to the direct run's (same steps, same hash;
+  `psim 3e9 log 24` against `psim 3e9 log 0`). 99% of the steps are taken by the two shortcuts, and it is about 10
+  times faster than direct simulation: 3·10^11 steps in 99 s. Result: **no halt in 75,967,097,042,634 steps (7.6·10^13)** (7.7 hours with a 6-hour budget, which is checked only at returns to the left end; the tape
+  is then 8,320,745 cells long). Rests on the C program and the two theorems.
+- **The generic accelerated simulator** `rsim_fast` (in the folder of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF)
+  reaches 21,361,111,018,490 steps (2.1·10^13) without a halt in 5.5 hours (jumps validated, not proved), then
+  stops at its memory limit; it reached 1.9·10^13 in its first hour, so for this machine it has stopped gaining.
+- **The checked accelerated simulator** of `tools/lean/TM/RSim.lean` (every move proved, jumps checked by a symbolic
+  period) runs here too: `lean/RSimBound.lean` proves no halt in the first 10^8 steps (`rsim_1e8`, `native_decide`,
+  `lean/check_rsim.sh`, about 20 minutes). A run to 10^10 with compiled code loaded did not finish in two hours, so no longer bound.
+
+Next: the nested round trips have the same shape as the outer ones (a left end, pulses, fuses), so a simulator that
+folds fuse-burning round trips at any border, not only at the left end, would be much faster; and the `(100)` code of
+the left block during the long trips is not yet described as rules.
+
+```sh
+gcc -O2 -o psim holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/psim.c -lm
+./psim 3e9 a.log 24 && ./psim 3e9 b.log 0 && cmp a.log b.log   # shortcuts against direct run, 6,148 returns
+./psim 1e18 - 24 21600                                         # the long run
+gcc -O2 -o zeros holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/zeros.c && ./zeros 300000000000 10000019   # 20 min
+```
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines
