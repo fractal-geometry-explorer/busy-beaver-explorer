@@ -43,8 +43,9 @@ by SAT up to 16×16 and 20×12 states, NGramCPS (widths 2-14, -H, -U) and RepWL 
    Still to do: an invariant, in terms of movers, that shows no other collision ever happens; in particular that a
    gap of one pair is never followed by another swept mover at the right end. A first abstract search for one
    (23 November, below) does not close, nor does one on blocks of movers; in block terms a rebuild maps each gap
-   `g` to `3g`, `3g + 4` or `3g + 8` by a two-state transducer (observed on every transfer away from drain ends);
-   still to do: compose `walkm` with the collisions at the ends of a gap into one theorem for it, and a rule for the drain end.
+   `g` to `3g`, `3g + 4` or `3g + 8` by a three-state transducer, with a rule for drain ends (observed on every
+   consecutive transfer checked); still to do: the end of a block's list, and one composed theorem from `walkm` and
+   the collisions at the ends of a gap.
 
 ## Reproduce
 
@@ -293,9 +294,10 @@ python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_cps.py 3e9  
 **Short answer.** The tape is now a short stack of items (single cells, runs of pairs, and *blocks* of movers at rest,
 each a list of gaps), and the head crosses a block in one step by a Lean lemma in every state it was seen to meet
 one in (`py/block_sim.py`, `lean/BlockTail.lean`). On this stack the whole tape never has more than 21 items to
-1.88·10^12 steps. In these terms a rebuild copies the gaps of one block into the next by a two-state transducer (`3g`,
-`3g + 4` or `3g + 8`), which holds on every transfer to 1.88·10^12 steps except at drain ends: a step toward the
-list-to-list map for a rebuild that is still open above. A finite abstraction of the stack
+1.88·10^12 steps. In these terms a rebuild copies the gaps of one block into the next by a three-state transducer (`3g`,
+`3g + 4` or `3g + 8`), with an exact rule for the drain ends in the middle of a gap; both hold on every consecutive
+transfer checked to 1.88·10^12 steps. This is a step toward the list-to-list map for a rebuild that is still open
+above: what is left is the end of a block's list. A finite abstraction of the stack
 does not close.
 
 **The one-stack simulator.** At each right-end turn the tape is a stack; a bounce runs on it with these hooks:
@@ -316,24 +318,29 @@ rebuild the top of the stack is `… M[g …] X n M[f …]` (`X` a single cell, 
 first mover): each bounce takes one pair from `g`, flips `X`, adds three pairs to `n` and takes one from `f`
 (`walkm` is two of these). When `g` runs out, `n` becomes a new gap at the far end of the right block and the next
 gap of the left block starts; when `f` runs out, the activity moves one block to the right. The new gaps follow a
-two-state transducer. A gap's transfer starts either with the gap whole and `0 4` above it (S1), or with one pair
-already taken and `0 3` above it (S0). Each bounce adds three pairs and flips `X`, and at the end of the gap the run
-`n` joins the right block with three more pairs if `X` is a 1, seven if it is a 0:
+small transducer. A gap's transfer starts with `0 n0` above it: `n0 = 4` with the gap whole (S1), `n0 = 3` with one
+pair already taken (S0), or `n0 = 2` after a drain end (S2). Each bounce adds three pairs to the run and flips `X`; if
+the fuel `f` (the right block's first gap) outlasts the gap, the run joins the right block with three more pairs if
+`X` is a 1 at the end, seven if it is a 0:
 
 | state | g even | g odd |
 |---|---|---|
 | S1 | `3g + 4`, stay in S1 | `3g + 8`, go to S0 |
 | S0 | `3g + 4`, stay in S0 | `3g`, go to S1 |
+| S2 | `3g + 2`, go to S1 | `3g + 6`, go to S0 |
 
-So an even gap always gives `3g + 4`, and odd gaps give `3g + 8` and `3g` by turns (539 → 1617, 128 → 388,
-59 → 185, 99 → 297, 9 → 27, 41 → 131; the reservoir's `1^n` becomes `(3 11)^n`). `block_sim.py rule 1.3e6` checks
-it on every pair of consecutive transfers to 1.3 million bounces: it holds for 10,620 of 10,626, in every one of
-which the fuel (the right block's first gap) is larger than the gap. The other six are drain ends: the fuel is
-smaller (54 against 131, 534 against 808, up to 118,146 against 170,836), runs out in the middle of the gap, and a
-collision at the right end takes over (131 then gives 224, 808 gives 819). The stretch is `walkm` (`lean/Movers.lean`); the two ends
-of a gap are collisions at Q, most likely the two frequent families 4 and 5 of `lean/Collisions.lean` (not yet
-matched). The table is not yet one composed theorem. What is left of the rebuild map is the drain end:
-how the fuel runs out, and how the level above starts. The
+So an even gap gives `3g + 4`, and odd gaps give `3g + 8` and `3g` by turns (539 → 1617, 128 → 388, 59 → 185,
+99 → 297, 9 → 27, 41 → 131; the reservoir's `1^n` becomes `(3 11)^n`). If the fuel is smaller than the gap, it runs
+out after `f` bounces with the run at `n_e = n0 + 3f` (a drain end): a drain moves the run to the right end, one pair
+in, two pairs out, per bounce, and the transfer starts again on the rest of the gap with new fuel. For even `f` it
+starts in S2 with the gap `f + 3` pairs shorter and fuel `2 n_e + 7` (`166` → `339`, `354442` → `708891`); for odd
+`f`, in S0 with the gap `f + 2` shorter and fuel `2 n_e + 6`.
+
+`block_sim.py rule 1.3e6` checks this on every pair of consecutive starts to 1.88·10^12 steps: 10,627 gaps copied
+and 6 drain ends, all as predicted, and 2 where the fuel ends with the gap (`f = g + 1`, not covered). Not checked:
+the 5,642 starts whose predecessor is at another level (the end of a block's list, where the activity moves one block
+over). The stretch is `walkm` (`lean/Movers.lean`); the two ends of a gap are collisions at Q, most likely the two
+frequent families 4 and 5 of `lean/Collisions.lean` (not yet matched). None of this is one composed theorem yet. The
 reservoir drains completely at bounce 1,283,663 (step 1.79·10^12, `B 1 M[1] 0 1 1 8 M[11228]`); eight bounces later
 the block on the right merges back as one block of 11,232 movers:
 `468865 158067 19707 98387 19707 98387 19707 81160 5705 6657 24446 737 772 (105 377)^n 88 (17 33)^n … (3 11)^n 8`
@@ -355,7 +362,7 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # the transducer: holds 10620, 6 drain ends (15 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # the transducer: 10627 gaps and 6 drain ends as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED
 ```

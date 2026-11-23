@@ -462,27 +462,38 @@ def main():
             single = one
         print('end: bounce', nb, 'step', steps, 'leading', big, 'one-pair', ones)
     if mode == 'rule':
-        # the rebuild transducer: a gap's transfer starts as `M[g ..] 0 4 M[f ..]` (S1, g whole) or `M[g-1 ..] 0 3
-        # M[f ..]` (S0); check each transfer's new gap, read at the start of the next one
+        # The rebuild transducer.  A gap's transfer starts as `M[g ..] 0 n0 M[f ..]` with n0 = 4 (S1, g whole),
+        # 3 (S0, one pair already taken) or 2 (S2, after a drain end).  With fuel f larger than the gap the new gap
+        # joins the right block; with less, the fuel runs out after f bounces (run n0 + 3f), a drain follows, and
+        # the transfer starts again: for even f in S2 with the gap 3 pairs shorter and fuel 2 (n0 + 3f) + 7, for odd
+        # f in S0 with the gap 2 pairs shorter and fuel 2 (n0 + 3f) + 6.
         def pred(st, g0):
             if st == 1: return (3 * g0 + 4, 1) if g0 % 2 == 0 else (3 * g0 + 8, 0)
-            return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
-        i = 0; prev = None; ok = 0; bad = []; starts = 0; okfuel = []
+            if st == 0: return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
+            return (3 * g0 + 2, 1) if g0 % 2 == 0 else (3 * g0 + 6, 0)
+        i = 0; prev = None; res = collections.Counter(); bad = []
         while i < nb:
             ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
             sh = _transfer_shape(Y)
-            if sh and sh[1] == '0' and sh[2] in (3, 4):
-                st = 1 if sh[2] == 4 else 0; g0 = sh[0] + (0 if st == 1 else 1)
-                Lb, R = Y[-4][1], Y[-1][1]
-                ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
-                if prev is not None and rl == prev[1] + 1 and ll == prev[0] - 1:
-                    if pred(prev[2], prev[3]) == (last, st): ok += 1; okfuel.append(prev[5] > prev[3])
-                    else: bad.append((prev[4], 'S%d' % prev[2], prev[3], 'predicted', pred(prev[2], prev[3]),
-                                      'got', (last, st), 'fuel at start', prev[5]))
-                prev = (ll, rl, st, g0, i, sh[3]); starts += 1
-        print('transfers started', starts, 'consecutive pairs checked', ok + len(bad), 'rule holds', ok,
-              '(fuel larger than the gap in all of them: %s)' % all(okfuel))
-        for b in bad: print('  differs (a drain end?) at bounce', *b)
+            if not (sh and sh[1] == '0' and sh[2] in (2, 3, 4)): continue
+            st = {4: 1, 3: 0, 2: 2}[sh[2]]; g0 = sh[0] + (1 if st == 0 else 0); f = sh[3]
+            Lb, R = Y[-4][1], Y[-1][1]
+            ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
+            if prev is not None:
+                pst, pg0, pg, pf, pn, pll, prl, pi = prev
+                if pg < pf <= pg + 1: res['fuel ends with the gap (f = g + 1)'] += 1
+                elif pf > pg and rl == prl + 1 and ll == pll - 1:
+                    if pred(pst, pg0) == (last, st): res['gap copied, as predicted'] += 1
+                    else: bad.append((pi, 'S%d' % pst, pg0, pf, 'predicted', pred(pst, pg0), 'got', (last, st)))
+                elif pf < pg and ll == pll and rl == 1:
+                    ne = pn + 3 * pf
+                    want = (2, pg - pf - 3, 2 * ne + 7) if pf % 2 == 0 else (0, pg - pf - 2, 2 * ne + 6)
+                    if (st, sh[0], f) == want: res['drain end, as predicted'] += 1
+                    else: bad.append((pi, 'S%d' % pst, pg0, pf, 'drain end predicted', want, 'got', (st, sh[0], f)))
+                else: res['not consecutive'] += 1
+            prev = (st, g0, sh[0], f, sh[2], ll, rl, i)
+        print(dict(res))
+        for b_ in bad: print('  differs at bounce', *b_)
 
 if __name__ == '__main__':
     main()
