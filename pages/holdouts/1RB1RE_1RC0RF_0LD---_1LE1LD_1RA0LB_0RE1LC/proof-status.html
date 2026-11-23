@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 23 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 5&middot;10<sup>11</sup> steps (no halt) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (about 120,000 cells) is touched only at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones.</p>
+      <p><b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 2.16&middot;10<sup>12</sup> steps (no halt; accelerated past 5&middot;10<sup>11</sup>) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (about 120,000 cells) is touched only at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -153,6 +153,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/snap.c</code>, <code>evidence/phases-5e11.txt</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2.16&middot;10<sup>12</sup> steps (accelerated run)</h3>
+        <p>The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks) runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 2.16&middot;10<sup>12</sup> without a halt. The tool is not verified; it gives the same tape, head and state as the plain simulator at 10<sup>8</sup> steps from blank tape and on four stretches between 10<sup>11</sup> and 5&middot;10<sup>11</sup> started from plain tapes.</p>
+        <p class="where"><code>c/bacc.cpp</code>, <code>py/tapecmp.py</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code></p>
+      </div>
+      <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
         <p>None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 16, history 1 up to width 15, history 2 up to width 13, history 3 up to width 12, LRU history up to width 4 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 12, p = 3 up to width 12, p = 4 up to width 12, p = 6 up to width 12. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in the 47 of 120 parameter sets that were run (sweep not finished). Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..9; n = 10 not finished in 150 s.</p>
         <p class="where">sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet</p>
@@ -184,6 +189,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Two kinds of phase, to 5&middot;10<sup>11</sup> steps</h3>
         <p>Seen from far away the tape is (100)^a, then a run of ones or a block of (011), then a block of 5-cell words (rotations of 00111 or 01011), then an irregular stretch. The run alternates phases with the left end fixed, in which (100)^a is turned into 5-words, and phases with the left end moving, in which (100)^a grows by eating ones. Since 2.8&middot;10<sup>11</sup> steps the 66,518 5-words and the 120,574-cell irregular stretch have not changed; that phase ends when a run of ones further right (54,641 cells at 5&middot;10<sup>11</sup>) is used up.</p>
         <p class="where"><code>README.md</code> (Phases to 5&middot;10<sup>11</sup> steps), <code>py/phases.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Phases past 5&middot;10<sup>11</sup> steps</h3>
+        <p>The regular phase ends at about 5.95&middot;10<sup>11</sup> steps. A hand-over then eats part of the irregular stretch and rebuilds the tape (about 9.2&middot;10<sup>11</sup>). A longer regular phase follows (to 1.86&middot;10<sup>12</sup>), and then a second hand-over in which the irregular stretch grows to about 880,000 cells (2.16&middot;10<sup>12</sup>). The hand-overs, the only places a halt could come from so far, are not decoded.</p>
+        <p class="where"><code>README.md</code> (Past 5&middot;10<sup>11</sup> steps with a block accelerator)</p>
       </div>
       <div class="card">
         <h3>Two pumps, in run lengths</h3>
