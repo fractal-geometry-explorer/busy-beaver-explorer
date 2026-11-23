@@ -201,8 +201,8 @@ induction on the list). In front of them the middle turns, and that turn is a sy
 blocks: `L | o -> L . o+1` for an odd block after a 1, whatever L is (`round_od`); `e -> e+2` for an even first
 block (`round_e0`, the copy loop); `o -> 3 | o` for an odd first block (`round_o0`); and 19 more turn shapes with
 a separator 0 or a block 1 near the turn (`round_b_<shape>`, each block a variable, split at 0 where the run needs
-it), e.g. `L | o . e -> L | o-1 | e+2`. The 54 copy ticks of the first 10^10 steps have 2,094 rounds (and 56 last
-turns at X, where no pair is left and the exit starts); `py/transfer.py check classify.txt` finds 2,013 of them to be
+it), e.g. `L | o . e -> L | o-1 | e+2`. The 54 copy ticks of the first 10^10 steps have 2,094 turns at X before the
+last (and 56 last turns at X, where no pair is left and the exit starts); `py/transfer.py check classify.txt` finds 2,013 of them to be
 rounds of these theorems, for every value of the blocks and every number of passive blocks.
 
 The first rounds are rules too. When the front ends in a separator 0 (the first round of 34 ticks, the second of
@@ -210,10 +210,11 @@ The first rounds are rules too. When the front ends in a separator 0 (the first 
 (`DMid`, `main_of_dmid`, `round_of_dmid`), and the middle is a symbolic run for 6 turn shapes (`round_d_<shape>`:
 `L | e .`, `L | o .`, `L . e .`, `L | 1 .`, `e .` and `o .` at the left end). When an odd number of pairs stands
 after the front's last separator 1 (the first round of 20 ticks), the round never reads the front: it turns that
-separator into a 0 and moves one pair (`round_odd`, for every front). With these, 2,087 of the 2,094 rounds are
-rounds of a theorem for every front of their shape. The other 7 are the rounds over the fronts `1 | …` and
-`3 | 0 | …` inside the two kinds of Y copy, where the middle reaches past the separator; the copy ticks themselves
-are proved above.
+separator into a 0 and moves one pair (`round_odd`, for every front). Over the front `1 | e | …` the middle reads
+the next block too, so that block goes into the base (`^1|e`). With these, all 2,091 rounds are rounds of a theorem
+for every front of their shape. The other 3 of the 2,094 turns at X before the last are no rounds: over the
+front `3 | 0 | …` inside a copy of Y the head takes the pairs of X one by one (a loop, not a single pair moved), and
+those ticks are proved whole above.
 
 What is still open here: the turn shapes as one rule (a finite list of turn shapes is proved, each for every value of
 its blocks, not a rule for every shape), and the replay as a statement on lists.
@@ -225,8 +226,8 @@ its blocks, not a rule for every shape), and the replay as a statement on lists.
 2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
    for every chain length (`lean/Front.lean`); the 54 copy ticks are checked to depend on the block X only through
    the new block 2X − c(P), and all 54 are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
-   per front shape). Every round of a copy tick is the left-end tick of `F | 3` or `F . 3` on its front, and 2,087
-   of the 2,094 rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
+   per front shape). Every round of a copy tick is the left-end tick of `F | 3` or `F . 3` on its front, and all 2,091
+   rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
    Open: one rule for every turn shape.
 3. An invariant of the block lists, kept by all rules, that keeps B off `0 1 1`.
 
@@ -389,7 +390,7 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copy.py ./tick < c
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classify.txt      # rewrites lean/Copy*.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # all 54 copy ticks
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
-python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,087 of 2,094 rounds
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,091 rounds, 3 loop starts, 56 exits
 ```
 
 <!-- related machines: written by holdouts/related.py -->
