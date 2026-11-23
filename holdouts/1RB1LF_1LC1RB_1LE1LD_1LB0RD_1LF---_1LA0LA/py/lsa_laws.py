@@ -12,7 +12,8 @@ the next fuel F' is classified against K, the super-cycles of the phase before:
 and the ranges of e, delta and the slack F - 4K are printed: they are the constants of lean/Descent.lean of
 1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA.  With the block multipliers it also prints sum K log2(a), a lower
 bound for log2 of the top hits needed to get past the logged phases (Descent.phases_compose, Descent.blk_ge).
---ckpt: the bottom word of checkpoints (lsa_phase.save_state): how many long runs it holds, and their digits.
+--ckpt: the bottom word of checkpoints (lsa_phase.save_state): how many long runs it holds, and their digits (pieces
+of one periodic run, stored as several tokens, are counted as one run).
 """
 import sys, pickle, math, os
 from collections import Counter
@@ -55,12 +56,39 @@ def laws(R):
     return st, ex
 
 
+def groups(B, thr=1000):
+    """the long runs of a bottom word B, with neighbouring runs merged when they are one periodic run: the engine
+    often stores one run of the rung as many P tokens in different rotations, with the junction digits between
+    them.  Returns [index, count, pieces, word]."""
+    from lsa_phase import _tok_digits
+    idx = [i for i, t in enumerate(B) if type(t) is tuple and t[0] == 'P' and t[1] > thr]
+    G = []; cur = None
+    for a, b in zip([None] + idx, idx):
+        T = B[b]; same = False
+        if a is not None and cur is not None and len(T[2]) == len(B[a][2]):
+            mid = []; ok = True
+            for t in B[a + 1:b]:
+                dd = _tok_digits(t)
+                if dd is None or len(mid) + len(dd) > 2000:
+                    ok = False; break
+                mid += dd
+            if ok:
+                L = len(T[2]); s = list(B[a][2]) * 2 + mid + list(T[2]) * 2
+                same = all(s[i] == s[i - L] for i in range(L, len(s)))
+                if same:
+                    cur[1] += T[1] + len(mid) // L; cur[2] += 1
+        if not same:
+            cur = [b, T[1], 1, T[2]]; G.append(cur)
+    return G
+
+
 def ckpt_stats(path):
     st = pickle.load(open(path, 'rb'))
     B = st['B']
     big = [t for t in B if type(t) is tuple and t[0] == 'P' and t[1] > 1000]
-    fu = [t for t in big if t[2] == (1, 0, 0)]
-    return st['nph'], len(B), len(big), sum(len(str(t[1])) for t in big), len(fu)
+    G = groups(B)
+    fu = [g for g in G if g[3] == (1, 0, 0)]
+    return st['nph'], len(B), len(big), len(G), sum(len(str(g[1])) for g in G), len(fu)
 
 
 def main():
@@ -83,9 +111,9 @@ def main():
             print('sum K log2(a) = %.6e: the logged phases need at least 2^that top hits (10^%.6e)' % (
                 tot, tot * math.log10(2)))
     for ck in cks:
-        nph, nt, nb, dig, nf = ckpt_stats(ck)
-        print('%s: after phase %d the bottom word has %d tokens, %d runs longer than 1000 (%d digits in all), '
-              '%d of them fuels (1 0 0)^F' % (ck, nph, nt, nb, dig, nf))
+        nph, nt, nb, ng, dig, nf = ckpt_stats(ck)
+        print('%s: after phase %d the bottom word has %d tokens and %d P tokens longer than 1000, which are %d runs '
+              '(%d digits in all), %d of them fuels (1 0 0)^F' % (ck, nph, nt, nb, ng, dig, nf))
 
 
 if __name__ == '__main__':
