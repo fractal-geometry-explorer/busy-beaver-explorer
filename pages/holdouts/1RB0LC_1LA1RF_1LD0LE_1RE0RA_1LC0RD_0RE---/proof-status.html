@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 23 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -140,6 +140,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Every collision seen, for all values of its gaps</h3>
         <p>Up to 1.6&times;10<sup>18</sup> steps the exact simulator runs 46 families of collisions cell by cell at the ends of the movers (plus 43 whole-tape runs made when no mover lies between the two places where the head turns). <code>py/gen_collisions.py</code> turns the first run of each family into a symbolic configuration, every run of pairs a variable and everything the run does not read a context, and proves it with <code>bbtools.symtm</code>: 20 distinct lemmas, each for every value of its gaps. Two of them first appear after 10<sup>15</sup> steps, so new shapes still turn up. At the right end a collision sweeps back over any list of swept movers <code>1 (10)^(g+2)</code> and a last one <code>1 (10)^1</code>: <code>zlist</code> and <code>zend</code> take any such list. None of these can halt. One family (once, crossing about 85 movers stored as cells) and the whole-tape runs are not generalised.</p>
         <p class="where"><code>lean/Collisions.lean</code>, <code>lean/ZList.lean</code>, <code>py/gen_collisions.py</code></p>
+      </div>
+      <div class="card">
+        <h3>A right sweep that ends on one-pair gaps</h3>
+        <p>When a swept block of movers ends with k+1 movers of one-pair gap, the head crosses them in 7(k+1) steps and comes out in state F, leaving k movers at rest with one-pair gaps: for any k, entered in D or in F, after any block crossed by <code>right_gen</code>.</p>
+        <p class="where"><code>tail_D</code>, <code>tail_F</code>, <code>ones_D_movers</code>, <code>ones_F_movers</code>, <code>lean/BlockTail.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -209,6 +214,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The collisions seen so far</h3>
         <p>A halt can only come from a collision run cell by cell: inside the mover lemmas F always reads the first cell of a gap or the 0 that starts the next mover. To 10<sup>13</sup> steps there are 57 different collision runs, all made of a few pieces: the left sweep crossing a gap or a mover, the right sweep passing a mover (<code>E1 D1 A0 B1 F0</code>) or turning at one (<code>E1 D1 A0 B0</code>, <code>D1 A1</code>), and the turns at Q and at the two ends. In all of them F reads a 0. The closest call is at the right end: on a swept mover with a gap of one pair the head reads <code>E1 D1 A0 B1</code>, and F reads the blank only because that mover is the last one; a one-pair gap anywhere earlier in that list would halt. In every list seen the earlier gaps are at least three pairs.</p>
         <p class="where">README, section Movers</p>
+      </div>
+      <div class="card">
+        <h3>A rebuild triples gaps, gap by gap</h3>
+        <p>On a stack of single cells, runs of pairs and blocks of movers (exact against direct simulation to 1.1&times;10<sup>11</sup> steps), a rebuild copies each gap g of one block into the next as 3g+c with a small offset c (&minus;4, 0, 4 and 8 seen); what decides c is not found. A finite abstraction of the stack does not close.</p>
+        <p class="where"><code>py/block_sim.py</code>, <code>py/block_search.py</code>, README</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

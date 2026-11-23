@@ -42,7 +42,8 @@ by SAT up to 16×16 and 20×12 states, NGramCPS (widths 2-14, -H, -U) and RepWL 
    collision at the ends of the movers seen to 1.6·10^18 is a lemma with its gaps as variables (`lean/Collisions.lean`).
    Still to do: an invariant, in terms of movers, that shows no other collision ever happens; in particular that a
    gap of one pair is never followed by another swept mover at the right end. A first abstract search for one
-   (23 November, below) does not close.
+   (23 November, below) does not close, nor does one on blocks of movers; in block terms a rebuild maps each gap
+   `g` to `3g + c` with a small offset `c`; what decides `c` is still to be found.
 
 ## Reproduce
 
@@ -284,6 +285,63 @@ can meet them in, not only E on a 0.
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/gap_patterns.py 1e13    # gap patterns (10 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_cps.py 3e9        # FAIL after ~2,000 states
+```
+
+## Blocks of movers as items; the rebuild's tripling, gap by gap (23 November 2026)
+
+**Short answer.** The tape is now a short stack of items (single cells, runs of pairs, and *blocks* of movers at rest,
+each a list of gaps), and the head crosses a block in one step by a Lean lemma in every state it was seen to meet
+one in (`py/block_sim.py`, `lean/BlockTail.lean`). On this stack the whole tape never has more than 21 items to
+1.88·10^12 steps. In these terms a rebuild copies the gaps of one block into the next as `3g + c` with a small offset `c`,
+a step toward the list-to-list map for a rebuild that is still open above; the rule for `c` is not found yet. A finite abstraction of the stack
+does not close.
+
+**The one-stack simulator.** At each right-end turn the tape is a stack; a bounce runs on it with these hooks:
+
+* `left_all` (head in E on a 0 with a block on its left) and `right_gen` (head in D or F with the swept block on its
+  right), as in `lean/Movers.lean`;
+* a swept block that *ends* with one-pair gaps (the reservoir's words): the head crosses `k + 1` of them in
+  `7(k+1)` steps and comes out in state F, leaving `1 1 0 0`, then `k` movers with one-pair gaps, then `1 0 p`
+  (`tail_D`, `tail_F`, `ones_D_movers`, `ones_F_movers`, new; `p` is 1 from D, 0 from F);
+* a swept block met in another state (seen once, in A) is opened from its far end, `W g` as cells (the definition
+  of `swL`); pairs pushed onto a block join its first gap (`mv_pairs`).
+
+Everything else runs cell by cell. `block_sim.py check` compares the tape with direct simulation: equal after 400,000
+bounces (1.1·10^11 steps).
+
+**Drains and rebuilds as blocks.** The leftmost block is some long gaps, then the reservoir (one-pair gaps). In a
+rebuild the top of the stack is `… M[g …] X n M[f …]` (`X` a single cell, `n` pairs: Q and the gap between Q and the
+first mover): each bounce takes one pair from `g`, flips `X`, adds three pairs to `n` and takes one from `f`
+(`walkm` is two of these). When `g` runs out, `n` becomes a new gap at the far end of the right block and the next
+gap of the left block starts; when `f` runs out, the activity moves one block to the right. The new gaps are
+`3g + c` with a small offset: in the first rebuild that copies a long list (bounces 8,317 to 10,767) `c = 4` for
+every even `g`, and 0 and 8 by turns for the odd ones (539 → 1617, 128 → 388, 59 → 185, 99 → 297, 16 → 52, 17 → 59,
+9 → 27, 41 → 131), and the reservoir's `1^n` becomes `(3 11)^n`. That rule is not general: the next level has
+388 → 1160 (`c = −4`), and a mechanical pairing of each transfer with the gap it appends finds offsets other than 0,
+4 and 8. The rule for `c` is not pinned down. The
+reservoir drains completely at bounce 1,283,663 (step 1.79·10^12, `B 1 M[1] 0 1 1 8 M[11228]`); eight bounces later
+the block on the right merges back as one block of 11,232 movers:
+`468865 158067 19707 98387 19707 98387 19707 81160 5705 6657 24446 737 772 (105 377)^n 88 (17 33)^n … (3 11)^n 8`
+(`block_sim.py cycle`).
+
+`block_sim.py` runs a stretch of a rebuild at once: two bounces are run and checked against the shape above, the
+rest applied with the cost `s(t+2) = s(t) + 16` (`n` grows by six pairs, +24 steps; `f` loses two, −8). To 1.3
+million bounces it skips 540,118 bounces in 5,399 stretches and gives the same step count as the plain run,
+1,880,381,285,307.
+
+**A finite abstraction does not close.** `py/block_search.py` runs the abstract bounce with pair counts capped at K
+and each block a queue with explicit ends and a learned middle. With K = 6 there is no halt in 1.76 million abstract
+tapes and no closure (it ran out of memory: small exact counts everywhere multiply). With K = 2 or 3 it reaches a
+halt, and replaying it shows an artefact of the capping (`K+` plus one pair is `K+`, then minus one pair may be
+`K−1`); every concrete version of the last tapes on that path runs on without a halt. Beyond the capping, the
+abstraction forgets a correlation: it lets the reservoir be short while the block it feeds is small, but every mover
+that leaves the reservoir lands in that block. A proof has to follow the rebuild as arithmetic on gap lists.
+
+```sh
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
+K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
+holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED
 ```
 
 ## Pages
