@@ -44,8 +44,8 @@ by SAT up to 16×16 and 20×12 states, NGramCPS (widths 2-14, -H, -U) and RepWL 
    gap of one pair is never followed by another swept mover at the right end. A first abstract search for one
    (23 November, below) does not close, nor does one on blocks of movers; in block terms a rebuild maps each gap
    `g` to `3g`, `3g + 4` or `3g + 8` by a three-state transducer, with a rule for drain ends (observed on every
-   consecutive transfer checked); still to do: the end of a block's list, and one composed theorem from `walkm` and
-   the collisions at the ends of a gap.
+   consecutive transfer checked), with rules for drain ends and nesting; still to do: un-nesting (15 times to
+   1.88·10^12 steps), and one composed theorem from `walkm` and the collisions at the ends of a gap.
 
 ## Reproduce
 
@@ -295,9 +295,9 @@ python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/mover_cps.py 3e9  
 each a list of gaps), and the head crosses a block in one step by a Lean lemma in every state it was seen to meet
 one in (`py/block_sim.py`, `lean/BlockTail.lean`). On this stack the whole tape never has more than 21 items to
 1.88·10^12 steps. In these terms a rebuild copies the gaps of one block into the next by a three-state transducer (`3g`,
-`3g + 4` or `3g + 8`), with an exact rule for the drain ends in the middle of a gap; both hold on every consecutive
-transfer checked to 1.88·10^12 steps. This is a step toward the list-to-list map for a rebuild that is still open
-above: what is left is the end of a block's list. A finite abstraction of the stack
+`3g + 4` or `3g + 8`), with exact rules for a drain end in the middle of a gap and for nesting one level deeper; they hold on
+every consecutive transfer checked to 1.88·10^12 steps. This is a step toward the list-to-list map for a rebuild
+that is still open above: what is left is un-nesting, when an inner level's list runs out. A finite abstraction of the stack
 does not close.
 
 **The one-stack simulator.** At each right-end turn the tape is a stack; a bounce runs on it with these hooks:
@@ -334,12 +334,16 @@ So an even gap gives `3g + 4`, and odd gaps give `3g + 8` and `3g` by turns (539
 out after `f` bounces with the run at `n_e = n0 + 3f` (a drain end): a drain moves the run to the right end, one pair
 in, two pairs out, per bounce, and the transfer starts again on the rest of the gap with new fuel. For even `f` it
 starts in S2 with the gap `f + 3` pairs shorter and fuel `2 n_e + 7` (`166` → `339`, `354442` → `708891`); for odd
-`f`, in S0 with the gap `f + 2` shorter and fuel `2 n_e + 6`.
+`f`, in S0 with the gap `f + 2` shorter and fuel `2 n_e + 6`. If the fuel block has more gaps `h, rest…` the rebuild
+*nests* instead: the run freezes as an item `X (n_e + 3)` (X a 1 for even `f`), the left gap is left with `g − f − 1`
+pairs, `h` becomes the new fuel (`2h` in S1 for odd `h`, `2h + 3` in S0 for even `h`) and `rest` the left block of
+a transfer one level deeper (at bounce 10,769: fuel 2 in `M[2 809 1617 …]` gives `1 13 M[1617 388 …] 0 4 M[1618]`).
 
 `block_sim.py rule 1.3e6` checks this on every pair of consecutive starts to 1.88·10^12 steps: 10,627 gaps copied
-one at a time, 5,616 times two one-pair gaps at once (too short to show a start of their own), and 6 drain ends, all
-as predicted; 2 where the fuel ends with the gap (`f = g + 1`, not covered). Not checked: the 26 starts whose
-predecessor is at another level (the end of a block's list, where the activity moves one block over). The stretch is `walkm` (`lean/Movers.lean`); the two ends of a gap are collisions at Q, most likely the two
+one at a time, 5,616 times two one-pair gaps at once (too short to show a start of their own), 6 drain ends and 11
+nestings, all as predicted; 2 where the fuel ends with the gap (`f = g + 1`, not covered). Not checked: the 15 times
+an inner level's left block runs out and its output joins the level above (un-nesting); their shapes vary, and a
+rule for them is the missing piece of the rebuild map. The stretch is `walkm` (`lean/Movers.lean`); the two ends of a gap are collisions at Q, most likely the two
 frequent families 4 and 5 of `lean/Collisions.lean` (not yet matched). None of this is one composed theorem yet. The
 reservoir drains completely at bounce 1,283,663 (step 1.79·10^12, `B 1 M[1] 0 1 1 8 M[11228]`); eight bounces later
 the block on the right merges back as one block of 11,232 movers:
@@ -362,7 +366,7 @@ that leaves the reservoir lands in that block. A proof has to follow the rebuild
 ```sh
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check 4e5    # tape equal to direct simulation
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
-python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # the transducer: all 16249 checked starts as predicted (15 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # transducer, drain ends, nestings: all as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED
 ```

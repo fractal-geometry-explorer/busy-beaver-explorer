@@ -377,6 +377,14 @@ def abstract_of(Y):
 
 
 # ---------------------------------------------------------------- the transfer, accelerated (exact mode)
+def _show_top(Y, k=12):
+    o = []
+    for t in Y[-k:]:
+        if isinstance(t, tuple):
+            g = t[1].gaps(); o.append('M[%s%s]' % (' '.join(map(str, g[:4])), ' ..%d' % len(g) if len(g) > 4 else ''))
+        else: o.append(repr(t))
+    return ' '.join(o)
+
 def _transfer_shape(Y):
     """`... M[g ..] X n M[f ..]` at the top of the stack, X a single cell; returns (g, X, n, f) or None"""
     if len(Y) < 5: return None
@@ -480,7 +488,7 @@ def main():
             Lb, R = Y[-4][1], Y[-1][1]
             ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
             if prev is not None:
-                pst, pg0, pg, pf, pn, pll, prl, pi, pgaps = prev
+                pst, pg0, pg, pf, pn, pll, prl, pi, pgaps, prgaps = prev
                 k = pll - ll
                 if pg < pf <= pg + 1: res['fuel ends with the gap (f = g + 1)'] += 1
                 elif pf > sum(pgaps[:k]) + 1 and k >= 1 and rl == prl + k:
@@ -497,8 +505,21 @@ def main():
                     want = (2, pg - pf - 3, 2 * ne + 7) if pf % 2 == 0 else (0, pg - pf - 2, 2 * ne + 6)
                     if (st, sh[0], f) == want: res['drain end, as predicted'] += 1
                     else: bad.append((pi, 'S%d' % pst, pg0, pf, 'drain end predicted', want, 'got', (st, sh[0], f)))
-                else: res['not checked (another level)'] += 1
-            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)))
+                elif pf < pg and len(prgaps) >= 3:
+                    # nesting: the run freezes, the fuel block's next gap h is the new fuel, the rest a new left block
+                    h = prgaps[1]; ne = pn + 3 * pf
+                    want = ['1' if pf % 2 == 0 else '0', ne + 3, pg - pf - 1]
+                    if h % 2 == 1: want += [prgaps[2], 1, 2 * h]
+                    else: want += [prgaps[2] - 1, 0, 2 * h + 3]
+                    got = [Y[-6], Y[-5], Y[-7][1].first() if isM(Y[-7]) else None, sh[0], st, f] if len(Y) >= 7 else None
+                    if got == want: res['nesting, as predicted'] += 1
+                    else: bad.append((pi, 'S%d' % pst, pg, pf, prgaps[:3], 'nesting predicted', want, 'got', got))
+                else:
+                    res['not checked (another level)'] += 1
+                    if os.environ.get('SHOW'): print('unchecked at bounce', i, '\n   before:', pshow, '\n   now:   ', _show_top(Y))
+            pshow = _show_top(Y) if os.environ.get('SHOW') else None
+            prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)),
+                    list(itertools.islice(itertools.chain(R.E, R.F), 3)))
         print(dict(res))
         for b_ in bad: print('  differs at bounce', *b_)
 
