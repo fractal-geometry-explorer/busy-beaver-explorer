@@ -77,28 +77,45 @@ two top-level visits per round for machines whose A1 is 0LB, one for A1 = 1LD); 
 <!-- F02-visit-law:end -->
 
 <!-- visp-run:begin -->
-## The visit law to round 1,000,000 (22 November 2026)
+## The visit law to round 4,000,000 (22 to 23 November 2026)
 
-**Computed (not proved): no halt in the first 1,000,000 rounds.** `c/visp.c` runs the visit law about 15 times
-faster than `vis.c` (round 200,000 in 3 minutes on 4 cores, round 1,000,000 in 80 minutes). Through round 1,000,000 no
-visit meets `111`. A visit meets `1011` (and writes `1000`) only four times, each time at the right end of the word:
+**Computed (not proved): no halt in the first 4,000,000 rounds.** `c/visp.c` runs the visit law about 15 times
+faster than `vis.c`: round 200,000 in 3 minutes on 4 cores, round 1,000,000 in 80 minutes, and round 4,000,000 in
+about 17 hours from a checkpoint at round 1,799,999. Through round 4,000,000 no visit meets `111`. A visit meets `1011`
+(and writes `1000`) only 20 times, each time a few cells from the right end of the word. The positions below are in
+the simulator's cell numbering:
 
-| round | position (right end of the word) |
+| round | cell |
 |---|---|
 | 161,211 | (the round where the PR59 machines halt) |
-| 194,647 | 819,721 (of 842,000) |
+| 194,647 | 819,721 |
 | 757,566 | 3,191,503 |
 | 906,776 | 3,820,394 |
+| 1,042,307 | 4,391,628 |
+| 1,731,289 | 7,295,578 |
+| 1,768,131 | 7,450,689 |
+| ... | three more between rounds 1,768,131 and 1,799,999 (log lost at a container restart; the count is in the checkpoint) |
+| 1,975,597 | 8,325,010 |
+| 2,717,690 | 11,452,858 |
+| 2,783,756 | 11,731,381 |
+| 3,281,058 | 13,826,689 |
+| 3,287,695 | 13,854,540 |
+| 3,424,111 | 14,429,576 |
+| 3,538,057 | 14,909,797 |
+| 3,621,507 | 15,261,604 |
+| 3,701,314 | 15,598,059 |
+| 3,988,383 | 16,807,815 |
 
-At round 1,000,000 the word runs from cell -1,999,998 to 4,212,925. Every round sends a count of about 2^(r/2) visits
-along the whole word, so one round costs time proportional to the length of the word, and the whole run grows with
-the square of the number of rounds. The run continues toward round 4,000,000.
+The events come at irregular rounds, roughly a few per million, and the number of rounds between them does not grow.
+At round 4,000,000 the word runs from cell -8,000,000 to 16,856,787. Every round sends a count of about 2^(r/2)
+visits along the whole word, so one round costs time proportional to the length of the word, and the whole run grows
+with the square of the number of rounds.
 
 **What the count does.** The prefix `(10)^a` (a = r plus a constant) sends 2^(a/2) visits to the word behind it,
-alternately at two entry points two cells apart. The two entries lead into two parse chains through the same
-cells, used by odd and even rounds, with no position in common (measured at round 4,000). Along each chain the
-count is 2^e - c with c small (mostly 1 to 10) and e falling by about one every 9 cells, so a round is a small
-finite-state pass over the whole word that rewrites about a quarter of its cells. The rare `1011` events happen at
+alternately at two entry points two cells apart. Those lead into two parse chains through the same cells, one used by
+odd rounds and one by even rounds; at round 4,000 they have no position in common. Along each chain the count is
+2^e - c with c small (mostly 1 to 10) and e falling by about one every 9 cells. So a round is a small
+finite-state pass over the whole word, and it rewrites about a quarter of the word's cells. The rare `1011` events happen at
 the right end, where e has run out and the count is small.
 
 **How `visp.c` is faster, and why it is still exact.**
@@ -109,14 +126,17 @@ the right end, where e has run out and the count is small.
    This is proved in Lean: `visN_rep1010` in `lean/VisitPow.lean` (kernel only).
 3. A short lead-in followed by a cycle (e.g. `010 -> 110 -> 000 -> 100 -> 000 ...`) is compressed in one step when all
    its nested visits go to the same cell.
+4. Checkpoints (`CKPT`, `CKPTEVERY`, `RESUME`) taken with no round in flight. A resumed run equals an uninterrupted
+   one (dump compared at round 20,000 after resuming at round 6,999).
 
 **Checks.** Dumps of the whole tape equal those of `vis.c` at rounds 5,000 and 20,000 (1 and 3 threads). On
-`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` (busycoq PR59) both `visp.c` and `vis.c` halt in top visit 322,423
+`1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC---` (busycoq PR59), `visp.c` and `vis.c` both halt in top visit 322,423
 (round 161,211), at cell 678,829, with the same 81-cell window.
 
 ```sh
 gcc -O2 -o visp holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/visp.c -lpthread
 ./visp 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000001 - 3 50000     # 80 minutes on 4 cores; prints E1011 lines
+CKPT=ck.bin CKPTEVERY=50000 ./visp 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 4000001 - 3 50000   # about a day
 ./visp 1RB0LB_0RC0LD_1LD1RE_0LA0RF_0RD1RF_0RC--- 400000 - 3            # PR59 machine: HALT during top visit 322423
 ```
 <!-- visp-run:end -->

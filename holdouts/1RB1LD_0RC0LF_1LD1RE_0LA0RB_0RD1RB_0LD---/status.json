@@ -13,7 +13,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it halts only if a visit meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>1000</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 1,000,000 (a faster simulator, <code>c/visp.c</code>; a visit meets <code>1011</code> only in rounds 161,211, 194,647, 757,566 and 906,776, always at the right end of the word). <b>Proved in Lean:</b> in every round a visit can meet <code>1011</code> or <code>111</code> only from two cells before the cell where the previous round's cascade stopped, so the machine halts exactly when some round's cascade halts there: halting is a question about the right end of the word. No halt in the first 10<sup>10</sup> steps of a direct run."
+  "<b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it halts only if a visit meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>1000</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 4,000,000 (a faster simulator, <code>c/visp.c</code>; a visit meets <code>1011</code> only 20 times, always at the right end of the word). <b>Proved in Lean:</b> in every round a visit can meet <code>1011</code> or <code>111</code> only from two cells before the cell where the previous round's cascade stopped, so the machine halts exactly when some round's cascade halts there: halting is a question about the right end of the word. No halt in the first 10<sup>10</sup> steps of a direct run."
  ],
  "claims": [
   {
@@ -121,7 +121,7 @@
   {
    "level": "trusted",
    "title": "It does not halt where the PR59 machines halt",
-   "text": "The first four rules are also the rules of the three machines that busycoq PR59 proves to halt (they halt on <code>1011</code>, in round 161,211). An accelerated simulator of the visit law (counts of visits kept as 2<sup>e</sup> &minus; c; rules learned from the table; checked against a direct run, against exact integers for 1,500 rounds, and against PR59's halting round on the reference machine) finds: rounds 1 to 161,210 use only the four shared rules, round 161,211 meets <code>1011</code> at the right end of the word, writes <code>1000</code> and continues. Observed: no halt and no visit to <code>111</code> up to round 200,000 (<code>vis.c</code>). A faster simulator, <code>c/visp.c</code> in this machine's folder (several rounds in flight at once, the prefix (1010)<sup>j</sup> passed in one jump by the Lean lemma <code>visN_rep1010</code>, cycles with a lead-in compressed; same tape as <code>vis.c</code> cell for cell at rounds 5,000 and 20,000, and the PR59 machine halts in round 161,211 as proved), extends this to round 1,000,000: no visit to <code>111</code>, and <code>1011</code> only in rounds 161,211, 194,647, 757,566 and 906,776, each time at the right end of the word. Computed, not proved.",
+   "text": "The first four rules are also the rules of the three machines that busycoq PR59 proves to halt (they halt on <code>1011</code>, in round 161,211). An accelerated simulator of the visit law (counts of visits kept as 2<sup>e</sup> &minus; c; rules learned from the table; checked against a direct run, against exact integers for 1,500 rounds, and against PR59's halting round on the reference machine) finds: rounds 1 to 161,210 use only the four shared rules, round 161,211 meets <code>1011</code> at the right end of the word, writes <code>1000</code> and continues. Observed: no halt and no visit to <code>111</code> up to round 200,000 (<code>vis.c</code>). A faster simulator, <code>c/visp.c</code> in this machine's folder (several rounds in flight at once, the prefix (1010)<sup>j</sup> passed in one jump by the Lean lemma <code>visN_rep1010</code>, cycles with a lead-in compressed; same tape as <code>vis.c</code> cell for cell at rounds 5,000 and 20,000, and the PR59 machine halts in round 161,211 as proved), extends this to round 4,000,000: no visit to <code>111</code>, and <code>1011</code> only 20 times (rounds 161,211, 194,647, 757,566, 906,776, ..., 3,701,314, 3,988,383; full list in the README), each time at the right end of the word. Computed, not proved.",
    "where": "<code>c/vis.c</code>, <code>py/vis.py</code>, <code>py/vis_check.py</code> in <code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/</code>"
   },
   {
@@ -192,7 +192,7 @@
    },
    {
     "level": "trusted",
-    "value": "round 1,000,000",
+    "value": "round 4,000,000",
     "text": "No halt in the accelerated run; the PR59 machines halt in round 161,211."
    },
    {
@@ -224,7 +224,7 @@
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>the stream begins</th><th>after the visit</th><th>Lean</th></tr></thead><tbody><tr><td><code>0 s</code></td><td><code>1 s</code></td><td><code>vis_0</code></td></tr><tr><td><code>100 s</code></td><td><code>000</code> then one visit to <code>s</code></td><td><code>vis_100</code></td></tr><tr><td><code>110 s</code></td><td><code>000</code> then one visit to <code>s</code></td><td><code>vis_110</code></td></tr><tr><td><code>1010 s</code></td><td><code>1010</code> then <b>two</b> visits to <code>s</code></td><td><code>vis_1010</code></td></tr><tr><td><code>1011 s</code></td><td><code>1000 s</code></td><td><code>vis_1011</code></td></tr><tr><td><code>111 s</code></td><td>the machine halts</td><td><code>vis_111_halts</code></td></tr></tbody></table></div>",
      "<p>So a block <code>000</code>/<code>100</code> is a binary digit: it passes every second visit on. A block <code>1010</code> is a doubler: it passes every visit on twice. <code>111 s</code> halts the machine. The six prefixes 0, 100, 110, 111, 1010 and 1011 cover every stream, so these rules are the whole machine: it can halt only when a visit meets <code>111</code>.</p>",
      "<p>The run from blank tape is a sequence of <em>rounds</em>: the tape is <code>0<sup>&infin;</sup> A&gt; 1 0 S</code>, and one round puts <code>1 0</code> in front of S and makes one visit. After k rounds S begins with k copies of <code>10</code>, that is k/2 doublers, so 2<sup>k/2</sup> visits reach the word behind them. That word is the right-hand counter of the earlier descriptions.</p>",
-     "<p><b>The same rules, a different ending.</b> The three machines that busycoq PR59 proves to halt have the same first four rules; they halt when a visit meets <code>1011</code>, which first happens in round 161,211. This machine writes <code>1000</code> there instead. In our accelerated run (computed, checked three ways, not proved) it does exactly that in round 161,211 and carries on; no halt up to round 1,000,000.</p>"
+     "<p><b>The same rules, a different ending.</b> The three machines that busycoq PR59 proves to halt have the same first four rules; they halt when a visit meets <code>1011</code>, which first happens in round 161,211. This machine writes <code>1000</code> there instead. In our accelerated run (computed, checked three ways, not proved) it does exactly that in round 161,211 and carries on; no halt up to round 4,000,000.</p>"
     ]
    },
    {
@@ -357,6 +357,6 @@
   ]
  },
  "family": "PR59 visit law (0, 100, 110, 1010 shared with the machines proved to halt; 1011 -> 1000)",
- "summary": "A rewriting system on streams (visit law, proved in Lean): the first four rules are those of the PR59 machines that halt on 1011 in round 161,211; this one rewrites 1011 to 1000 and runs on (computed: no halt up to round 1,000,000); it halts only if a visit meets 111, and (proved) only at the right end, from two cells before the previous round's stop; open.",
+ "summary": "A rewriting system on streams (visit law, proved in Lean): the first four rules are those of the PR59 machines that halt on 1011 in round 161,211; this one rewrites 1011 to 1000 and runs on (computed: no halt up to round 4,000,000); it halts only if a visit meets 111, and (proved) only at the right end, from two cells before the previous round's stop; open.",
  "decision": "open"
 }
