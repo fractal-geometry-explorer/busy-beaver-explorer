@@ -161,6 +161,8 @@ from the block 9440 behind it), so the list is a counter whose top digit restart
 big block, at every scale. This is the "same sequence of lists on larger scales" of the first section.
 
 The other 6 left-end ticks (steps 4 to 274,716) have at most one block after the front, too few for the passes.
+Each is proved as a concrete run, from its right-end turn to the next, by the kernel (`lean/Early.lean`,
+`early_0` … `early_5`, written by `py/early.py`), so all 258 left-end ticks of the first 10¹⁰ steps have a Lean proof.
 
 **The copy ticks in Lean (22 November 2026).** After its first rounds (the *entry*) a copy tick settles into a
 loop whose state, at the left end of the tape in state D, is
@@ -224,7 +226,7 @@ its blocks, not a rule for every shape), and the replay as a statement on lists.
 1. The other tick patterns: 166 ticks of the first 10¹⁰ steps, besides the 238 rebuilds (blocks of length 1, mixed
    parities). The pieces of `lean/Chain.lean` should cover most of them with new turn pieces.
 2. The rebuilds: decoded in the previous section. 198 of the 258 left-end ticks of the first 10¹⁰ steps are proved
-   for every chain length (`lean/Front.lean`); the 54 copy ticks are checked to depend on the block X only through
+   for every chain length (`lean/Front.lean`), the 6 early ones as concrete runs (`lean/Early.lean`); the 54 copy ticks are checked to depend on the block X only through
    the new block 2X − c(P), and all 54 are proved in Lean for every X and chain (`lean/Copy.lean`, one theorem
    per front shape). Every round of a copy tick is the left-end tick of `F | 3` or `F . 3` on its front, and all 2,091
    rounds of the run are rounds of rules proved for every front of their shape (`lean/Transfer.lean`).
@@ -391,6 +393,7 @@ python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py classi
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/copyloop.py check classify.txt  # all 54 copy ticks
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py                    # rewrites lean/Transfer.lean
 python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/transfer.py check classify.txt  # 2,091 rounds, 3 loop starts, 56 exits
+python3 holdouts/1RB0LE_0RC0RA_1RD1RF_1LA0LD_1LD0RF_1RB---/py/early.py   # writes lean/Early.lean (the 6 early left-end ticks)
 ```
 
 <!-- related machines: written by holdouts/related.py -->
