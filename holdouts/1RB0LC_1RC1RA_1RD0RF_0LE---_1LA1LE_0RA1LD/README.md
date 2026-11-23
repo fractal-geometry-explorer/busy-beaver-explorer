@@ -241,14 +241,31 @@ still needs a pulse to meet `0001`; what is open is whether this recursion can e
   period) runs here too: `lean/RSimBound.lean` proves no halt in the first 10^8 steps (`rsim_1e8`, `native_decide`,
   `lean/check_rsim.sh`, about 20 minutes). A run to 10^10 with compiled code loaded did not finish in two hours, so no longer bound.
 
-Next: the nested round trips have the same shape as the outer ones (a left end, pulses, fuses), so a simulator that
-folds fuse-burning round trips at any border, not only at the left end, would be much faster; and the `(100)` code of
-the left block during the long trips is not yet described as rules.
+**Words as blocks (23 November 2026).** Folding repeated round trips at any turning point does not help: tried with
+the tape compressed into blocks with linearly changing counts, it is exact but catches few trips, because the
+nested round trips burn short fuses (about four trips each, at 1.2·10^10 steps) and then meet another defect. What
+does help is to stop paying for the words: `c/wsim.cpp` keeps the tape as a zipper of cells and *blocks* of words
+(`01` / `011`, one byte each). A block is crossed in one move by `right_words` or `left_words` (the same two
+theorems as `psim.c`, so every move is still exact); where the head meets a block in any other way, one word is
+peeled off the near end into cells, and adjacent blocks in the same form are merged. Fewer than 0.5% of the steps
+are then taken one at a time.
+
+- Its tape matches `psim.c` at all 160,976 returns to the left end in the form `C>0 (011)^a 001101 …` in the first
+  10^12 steps (same steps, same hash), and it runs 3·10^11 steps in 7 s (`psim.c`: 99 s).
+- **No halt in 399,758,169,806,655,314 steps (4.0·10^17)**, the last progress line before it was stopped for memory
+  after 3.9 hours (tape 610,949,829 cells, 14 GB). At this size the run is close to a plain bouncer: most of the
+  time goes into long crossings, and the tape length grows like the square root of the steps.
+
+Next: the `(100)` code of the left block during the long trips is not yet described as rules, and memory (one
+deque per block) limits the run; two bits per word would reach about 10^18.
 
 ```sh
 gcc -O2 -o psim holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/psim.c -lm
 ./psim 3e9 a.log 24 && ./psim 3e9 b.log 0 && cmp a.log b.log   # shortcuts against direct run, 6,148 returns
 ./psim 1e18 - 24 21600                                         # the long run
+g++ -O2 -std=c++17 -o wsim holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/wsim.cpp
+./wsim 1e12 c.log 1e9 8 && ./psim 1e12 d.log 24 && cmp c.log d.log   # 160,976 returns (about 30 min)
+./wsim 9e18 - 21600 8                                          # the 4e17 run (needs more than 14 GB)
 gcc -O2 -o zeros holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/zeros.c && ./zeros 300000000000 10000019   # 20 min
 ```
 
