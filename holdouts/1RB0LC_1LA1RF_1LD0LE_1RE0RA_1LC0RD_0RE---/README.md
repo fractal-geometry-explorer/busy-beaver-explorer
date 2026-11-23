@@ -449,6 +449,39 @@ K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.p
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED
 ```
 
+## Toward a non-halting proof: why it is not in reach yet (23 November 2026)
+
+Both simulators show the same thing: rebuild after rebuild, the tape comes back to one block of movers, and no
+halt occurs up to 2.9·10^73 steps. Turning that into a proof would take two things, and neither exists.
+
+**1. Every event of a rebuild as a theorem, with its gaps as variables.**
+- *Proved:* the stretch inside a transfer is `walkm` (`lean/Movers.lean`). The collisions seen at the ends of the
+  movers are lemmas (`lean/Collisions.lean`).
+- *Not proved:* the copy of one gap. That is the few bounces where the fuel passes from one gap to the next,
+  giving the transducer row and the fuel drop of `rule_sim.py`. Also not proved: drain ends, nesting, un-nesting,
+  the one-block start, and the two drains into the last run found today. These are observed rules only.
+- *Feasible:* each of them is a short run around symbolic gaps, the same kind of lemma as the collisions. The copy
+  of one gap, from one transfer start to the next, is the natural first one.
+- *But the list of events is not closed.* It has five level changes at the reservoir that are not characterised,
+  the boundary case f = g + 1, and shapes that were found only today, when the long run first reached them.
+
+**2. An invariant on the whole tape that is closed under those events and excludes `D> 1 0 1 1`.**
+- *The recurrence does not have a fixed shape.* From the one-block moment at 1.26·10^14 to the one at 2.9·10^73:
+  - the movers grow from 4.8·10^5 to 2.5·10^34;
+  - the coded gap list grows from about 25 entries to about 150;
+  - between moments, the stack nests up to about 27 items deep.
+- *What a proof would need.* A description of every gap list that can occur: an infinite family, such as a
+  grammar of runs with arithmetic side conditions. Then an induction over rebuilds of growing depth.
+- *Why the arithmetic is hard.* The events branch on parities and on comparisons between gaps at different levels:
+  whether the fuel exceeds the gap plus one, and whether f = g + 1. The fuel at each level is about twice a gap
+  from the level below, so the invariant must bound gaps across levels.
+- *What has been tried.* Finite abstractions of the stack (`py/block_search.py`) do not close, because they forget
+  that every mover leaving the reservoir lands in the block it feeds.
+
+So a proof is a research project, not a next step. The useful next steps are proving the copy of one gap in Lean,
+which turns the transducer table into a theorem, and characterising the reservoir's level changes, so that the rule
+list is complete and `rule_sim.py` can run without the bounce-level fallback.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/explainer.html`](../../pages/holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/explainer.html)
