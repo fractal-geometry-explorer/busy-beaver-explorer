@@ -413,6 +413,23 @@ The lists show the tripling rules above at work: `(9 41)^n` comes back as `(35 1
 `(1139 315)^n`, each with a new reservoir at the far end. Before the exact-mode cap on numbers was removed (`norm`),
 the run stopped at step 2.7·10^61 on a number above 10^30.
 
+**The same lists from the copy rule alone.** `py/rule_sim.py` runs the same stack without `Periodic`. A copy at the
+start of a transfer `M[g ..] 0 n0 M[f ..]` is done by the transducer: the gap leaves the left block, its image goes
+to the far end of the right block, and the fuel drops by the gap as shown plus 2 when the next state is S1 and plus
+3 when it is S0 (read off the traced transfers; a gap is copied only while the fuel is more than the gap plus one).
+A run `(a b)^c` in the left block is copied a period at a time, as many periods as the fuel allows. Everything else
+is run bounce by bounce, with the checked skips of `run_bounces`, which now has two more of the same kind: a block or
+run whose first gap drains into the last run (`A X n`: each bounce takes a pair off A, puts two on n and flips X), and
+a transfer out of a run instead of a block. Each of them runs four bounces and checks the shape and that the cost
+grows by a fixed amount per pair. With them `goto` still gives `mover_sim`'s step counts at the four bounces above.
+`rule_sim.py` keeps no step count, since the copy rule says what a copy leaves but not what it costs.
+
+Its one-block lists are the same as those of `block_sim.py blocks` at all 37 moments to step 2.9·10^73: the same
+number of movers and the same hash of the whole gap list (`qhash`, the sum of gap_i · R^i mod 2^61 − 1, which does
+not depend on how the list is coded). The two simulators share the bounce code and the lemma-shaped skips, but one
+fills in a whole period by extrapolating, the other by the tripling rule. `rule_sim.py` goes on to 48 one-block
+moments in five minutes, the last with 6.9·10^45 movers, without a halt.
+
 **A finite abstraction does not close.** `py/block_search.py` runs the abstract bounce with pair counts capped at K
 and each block a queue with explicit ends and a learned middle. With K = 6 there is no halt in 1.76 million abstract
 tapes and no closure (it ran out of memory: small exact counts everywhere multiply). With K = 2 or 3 it reaches a
@@ -426,6 +443,7 @@ python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py check
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py cycle 1.3e6  # reservoir lows, one-block moments (25 min)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py blocks 2.2e9 # one-block moments, accelerated, to 4.84e18 steps (3 s)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py goto 318337968 # step count at that bounce, as mover_sim (2 min)
+python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/rule_sim.py 37          # the same 37 one-block lists from the copy rule (seconds)
 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_sim.py rule 1.3e6   # every rebuild event checked as predicted (15 min)
 K=3 python3 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/py/block_search.py       # FAIL: a capping artefact
 holdouts/1RB0LC_1LA1RF_1LD0LE_1RE0RA_1LC0RD_0RE---/lean/check.sh                        # ALL CHECKED

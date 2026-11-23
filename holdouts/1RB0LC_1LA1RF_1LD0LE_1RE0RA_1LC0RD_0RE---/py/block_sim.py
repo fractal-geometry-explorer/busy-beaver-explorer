@@ -280,6 +280,19 @@ class RQ:
     def record(self): pass
     def cost(self): return self.S, self.n
 
+HASH_P, HASH_R = (1 << 61) - 1, 1000003
+
+def qhash(q):
+    """sum of gap_i * R^i mod P over the gaps, near end first: the same for the same list however it is coded"""
+    P, r = HASH_P, HASH_R; h = 0; i = 0
+    for pat, c in q.R:
+        L = len(pat)
+        one = sum(g * pow(r, i + j, P) for j, g in enumerate(pat)) % P
+        rl = pow(r, L, P)
+        geo = c % P if rl == 1 else (pow(rl, c, P) - 1) * pow(rl - 1, P - 2, P) % P
+        h = (h + one * geo) % P; i += L * c
+    return h
+
 def rq_concat(q1, q2):
     """q1 then q2 (near to far), in place into the one with more entries"""
     if len(q1.R) >= len(q2.R):
@@ -507,12 +520,70 @@ def _drain(Y, margin, room=10**40):
     STAT['drain'] += 1; STAT['drain bounces'] += p
     return s0 + s1 + p * s1 + 10 * p * (p + 1), 2 + p
 
+def _tail_val(t):
+    if type(t) is int: return t
+    if isM(t) and isinstance(t[1], RQ): return t[1].first()
+    return None
+
+def _tail(Y, margin, room=10**40):
+    """the tape ends `A X n`, A a block (its first gap G) or a run of G pairs: each bounce takes a pair off G, puts
+    two on n and flips X.  Four bounces are run and checked against that, with each pair of bounces costing a
+    fixed amount more than the pair before; then p more pairs are applied at once."""
+    kind = type(Y[-3]) is int; q = Y[-3][1] if not kind else None
+    G = _tail_val(Y[-3]); x = Y[-2]; n = Y[-1]; sz = None if kind else q.size()
+    def same(dg, dn):
+        return (len(Y) >= 4 and type(Y[-1]) is int and Y[-2] == x and Y[-1] == n + dn
+                and ((type(Y[-3]) is int) if kind else (isM(Y[-3]) and Y[-3][1].size() == sz)) and _tail_val(Y[-3]) == G - dg)
+    c = []
+    for k in range(4):
+        c.append(bounce(Y)); normalize(Y)
+        if k == 1 and not same(2, 4): return sum(c), len(c)
+    if not (same(4, 8) and c[2] - c[0] == c[3] - c[1]): return sum(c), 4
+    p = min((G - 4 - 2 * margin) // 2, (room - 4) // 2)
+    if p <= 0: return sum(c), 4
+    P0 = c[0] + c[1]; dP = c[2] + c[3] - P0
+    if kind: Y[-3] -= 2 * p
+    else: Y[-3][1].add_first(-2 * p)
+    Y[-1] = n + 8 + 4 * p
+    STAT['tail'] += 1; STAT['tail bounces'] += 2 * p
+    return sum(c) + p * P0 + dP * (p * (p + 3) // 2), 4 + 2 * p
+
+def _run_transfer_shape(Y):
+    """`... A X n M[f ..]` with A a run of g pairs: (g, X, n, f, size of the block) or None"""
+    if len(Y) < 5: return None
+    a, x, n, b_ = Y[-4], Y[-3], Y[-2], Y[-1]
+    if not (type(a) is int and isM(b_) and isinstance(b_[1], RQ) and x in ('0', '1') and type(n) is int): return None
+    return a, x, n, b_[1].first(), b_[1].size()
+
+def _run_transfer(Y, margin, room=10**40):
+    """a transfer out of a run of pairs instead of a block: each bounce takes a pair off the run and the fuel, puts
+    three on n and flips X.  Four bounces are run and checked, with each pair of bounces costing a fixed amount
+    more than the pair before; then p more pairs are applied at once."""
+    g, x, n, f, sz = _run_transfer_shape(Y)
+    c = []
+    for k in range(4):
+        c.append(bounce(Y)); normalize(Y)
+        if k == 1 and _run_transfer_shape(Y) != (g - 2, x, n + 6, f - 2, sz): return sum(c), len(c)
+    if not (_run_transfer_shape(Y) == (g - 4, x, n + 12, f - 4, sz) and c[2] - c[0] == c[3] - c[1]): return sum(c), 4
+    p = min((min(g, f) - 4 - 2 * margin) // 2, (room - 4) // 2)
+    if p <= 0: return sum(c), 4
+    P0 = c[0] + c[1]; dP = c[2] + c[3] - P0
+    Y[-4] -= 2 * p; Y[-2] += 6 * p; Y[-1][1].add_first(-2 * p)
+    STAT['run transfer'] += 1; STAT['run transfer bounces'] += 2 * p
+    return sum(c) + p * P0 + dP * (p * (p + 3) // 2), 4 + 2 * p
+
 def run_bounces(Y, accel=True, margin=6, room=10**40):
     """one bounce, or with accel a whole stretch of a transfer: while `... M[g ..] X n M[f ..]` holds, each bounce
     takes g-1, flips X, adds 3 to n and takes f-1.  Two bounces are run and checked against that; then 2p more
     are applied at once, their cost from s(t+2) = s(t) + 16.  Returns (steps, bounces)."""
     if accel and len(Y) == 3 and Y[1] == '1' and isM(Y[2]) and isinstance(Y[2][1], RQ) and Y[2][1].first() >= 4 * margin:
         return _drain(Y, margin, room)
+    if accel and room >= 8 and len(Y) >= 4 and type(Y[-1]) is int and Y[-2] in ('0', '1') \
+            and (_tail_val(Y[-3]) or 0) >= 4 * margin + 8:
+        return _tail(Y, margin, room)
+    if accel and room >= 8:
+        rs = _run_transfer_shape(Y)
+        if rs and min(rs[0], rs[3]) >= 4 * margin + 8: return _run_transfer(Y, margin, room)
     sh = _transfer_shape(Y) if accel else None
     if sh is None or min(sh[0], sh[3]) < margin + 4:
         return bounce(Y), 1
@@ -701,7 +772,7 @@ def main():
             one = len(Y) == 3 and isM(Y[2])
             if one and not single:
                 q = Y[2][1]; s_ = _rle_runs(q.runs())
-                print('one block at bounce %d (step %d), %d movers: %s' % (i, steps, q.size(),
+                print('one block at bounce %d (step %d), %d movers, hash %d: %s' % (i, steps, q.size(), qhash(q),
                       s_ if len(s_) < 400 else s_[:200] + ' ... ' + s_[-160:]), '%.0fs' % (time.time() - t0), flush=True)
             single = one
         print('end: bounce', i, 'step', steps, dict(STAT))
