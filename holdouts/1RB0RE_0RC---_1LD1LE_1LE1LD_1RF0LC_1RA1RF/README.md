@@ -387,6 +387,14 @@ the words the growing phase builds; none has been found. A halting proof would n
 failing crossing, which at the present growth (epoch step counts about 3 times larger each time) may be far beyond
 reach. A bit-parallel list machine would push the halt hunt further.
 
+**The halt hunt on the real orbit (23 November 2026, `c/bitlist.cpp`).** A bit-parallel list machine (64 letters per
+machine word, one fused pass per bounce, threads for long zones) matches `c/listmachine.cpp` state for state on the
+first 150,000 steps and reproduces its 10^6-step counts exactly, about 20 to 50 times faster. From blank tape it has
+run 4.1·10^7 list steps without a failure of `astep` (still running): the zone has grown to 2.8·10^7 letters, E has
+read the last 1 35 times, and the last time it did so during a crossing was at list step 471,169. Since about list
+step 10^6 there has been no crossing turn with blank end at all (192,818 in all, 12 without a witness, all in the
+first 10^6 steps). On a failure it saves the state, and `./bitlist tm H state` rebuilds the tape and runs the machine.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
