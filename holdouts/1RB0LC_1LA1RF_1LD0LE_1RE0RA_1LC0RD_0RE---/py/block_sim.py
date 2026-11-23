@@ -479,9 +479,16 @@ def main():
             if st == 1: return (3 * g0 + 4, 1) if g0 % 2 == 0 else (3 * g0 + 8, 0)
             if st == 0: return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
             return (3 * g0 + 2, 1) if g0 % 2 == 0 else (3 * g0 + 6, 0)
-        i = 0; prev = None; res = collections.Counter(); bad = []; pend = []
+        i = 0; prev = None; res = collections.Counter(); bad = []; pend = []; single = False; spend = None
         while i < nb:
             ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            one = len(Y) == 3 and isM(Y[2])
+            if one and not single:
+                # the bottom: one block [G, h, rest...]: G drains into the reservoir, h becomes the fuel, and rest
+                # is copied: S1 with fuel 2h for odd h, S0 (rest one pair shorter) with fuel 2h + 3 for even h
+                G, h, r0 = list(itertools.islice(itertools.chain(Y[2][1].E, Y[2][1].F), 3))
+                spend = (1, r0, 2 * h) if h % 2 == 1 else (0, r0 - 1, 2 * h + 3)
+            single = one
             if pend and isM(Y[-1]):
                 top = list(itertools.chain(Y[-1][1].E, Y[-1][1].F))
                 for p_ in pend[:]:
@@ -493,6 +500,10 @@ def main():
             sh = _transfer_shape(Y)
             if not (sh and sh[1] == '0' and sh[2] in (2, 3, 4)): continue
             st = {4: 1, 3: 0, 2: 2}[sh[2]]; g0 = sh[0] + (1 if st == 0 else 0); f = sh[3]
+            if spend is not None:
+                if (st, sh[0], f) == spend: res['one block, as predicted'] += 1
+                else: bad.append((i, 'one block predicted', spend, 'got', (st, sh[0], f)))
+                spend = None
             Lb, R = Y[-4][1], Y[-1][1]
             ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
             if prev is not None:
