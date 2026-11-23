@@ -13,9 +13,13 @@ def fuel_index(toks, start=0, thr=10 ** 6):
     return None
 
 
+OPQ = [False]      # the last supercycle failed because the hits it passed down needed more of the rest
+
+
 def supercycle(E, fi, Pmax=400, extra=0):
     """E: token list of the eater region (fuel at index fi), followed by an opaque rest.
     returns dict(P, dm, c, blk (tokens), cost (a, b) in m, nmin) or None"""
+    OPQ[0] = False
     m0 = E[fi][1]
     m = Lin.var(0, m0)
     toks = list(E[:fi]) + [('P', m, E[fi][2])] + list(E[fi + 1:])
@@ -68,6 +72,7 @@ def supercycle(E, fi, Pmax=400, extra=0):
             break
     except (Opaque, Budget, Event, RecursionError) as e:
         res = None
+        OPQ[0] = isinstance(e, Opaque)
     finally:
         Rec.cons = None; geng.C[0] = cs
     return res

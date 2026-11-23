@@ -25,11 +25,12 @@ JMAX = 24         # longest segment (tokens)
 MAXST = 24        # most states of a segment automaton
 
 TR = {}
+NEG = [False]     # also accept levels whose count falls (dn < 0, fuel-like); they run out, advance stops there
 
 
 def trans(opn, pre, sym, post):
     """one op on pre (1 0)^n post Omega (sym) or pre Omega (not sym).  -> (pre', post', dn, c, a, b, nmin) or None"""
-    key = (opn, pre, sym, post)
+    key = (opn, pre, sym, post, NEG[0])
     r = TR.get(key, 0)
     if r != 0:
         return r
@@ -69,8 +70,8 @@ def trans(opn, pre, sym, post):
                     if sym:
                         i = si[0]
                         dn = body[i][1].k
-                        if dn >= 0:
-                            res = (tuple(body[:i]), tuple(body[i + 1:]), dn, c, a, b, nmin)
+                        if dn >= 0 or NEG[0]:
+                            res = (tuple(body[:i]), tuple(body[i + 1:]), dn, c, a, b, max(nmin, 1 - dn))
                     else:
                         res = (tuple(body), (), 0, c, 0, b, 0)
     except (Opaque, Budget, Event, RecursionError, AssertionError, TypeError):
@@ -86,7 +87,7 @@ CYC = {}
 
 def cycle(opn, sym, st):
     """the path of states from st: (tail, cyc) lists of (state, dn, c, a, b, nmin); None if not closed"""
-    key = (opn, sym, st)
+    key = (opn, sym, st, NEG[0])
     r = CYC.get(key, 0)
     if r != 0:
         return r
@@ -139,35 +140,55 @@ def agg(cyc):
 AG = {}
 
 
-def advance(L, q):
-    """apply q hits to level L in place; returns (passes, steps)"""
+def advance(L, q, stop=None):
+    """apply q hits to level L in place; returns (passes, steps).  A level whose count falls runs out: then
+    only the hits it can take are applied, and if stop is a list, the number of hits not applied is put in it"""
     passes = 0; steps = 0
     while q > 0:
         tail, cyc = L.path()
         if tail:
             (st, dn, c, a, b, nm) = tail[0]
+            if NEG[0] and L.sym and L.n < nm:
+                break
             steps += a * L.n + b; L.n += dn; passes += c; q -= 1
             L.st = trans(L.op, st[0], L.sym, st[1])[:2]
             continue
-        key = (L.op, L.sym, L.st)
+        key = (L.op, L.sym, L.st, NEG[0])
         g = AG.get(key)
         if g is None:
             g = AG[key] = agg(cyc)
         p, D, Cc, A, B, cum = g
         j = q // p
+        if NEG[0] and D < 0 and j and L.sym:
+            NR = max(nm - cd for (cd, nm) in zip(cumdn(cyc), (t[5] for t in cyc)))
+            j = min(j, 0 if L.n < NR else (L.n - NR) // (-D) + 1)
         if j:
             n = L.n
             steps += j * (A * n + B) + A * D * (j * (j - 1) // 2)
             passes += j * Cc
             L.n = n + j * D
             q -= j * p
+        k = 0
         for (st, dn, c, a, b, nm) in cyc[:q]:
-            steps += a * L.n + b; L.n += dn; passes += c
-        if q:
-            st = cyc[q][0] if q < p else cyc[0][0]
-            L.st = st
-        q = 0
+            if NEG[0] and L.sym and L.n < nm:
+                break
+            steps += a * L.n + b; L.n += dn; passes += c; k += 1
+        if k:
+            L.st = cyc[k][0] if k < p else cyc[0][0]
+        q -= k
+        break
+    if q and stop is None:
+        raise AssertionError('level ran out')
+    if stop is not None:
+        stop.append(q)
     return passes, steps
+
+
+def cumdn(cyc):
+    out = []; D = 0
+    for t in cyc:
+        out.append(D); D += t[1]
+    return out
 
 
 def first_pass(L, m):
@@ -178,7 +199,7 @@ def first_pass(L, m):
         q += 1; P += c
         if P >= m:
             return q
-    key = (L.op, L.sym, cyc[0][0])
+    key = (L.op, L.sym, cyc[0][0], NEG[0])
     g = AG.get(key)
     if g is None:
         g = AG[key] = agg(cyc)
@@ -224,7 +245,7 @@ def segment(toks, i0, opn0):
             big = [k for k, t in enumerate(seg) if type(t) is tuple and t[0] == 'R' and t[1] > BIG]
             if len(big) > 1:
                 continue
-            if len(seg) > 1 and any(type(t) is tuple and t[0] in ('P', 'Z') and t[1] > 10 ** 6 for t in seg):
+            if len(seg) > 1 and not NEG[0] and any(type(t) is tuple and t[0] in ('P', 'Z') and t[1] > 10 ** 6 for t in seg):
                 continue
             cands = []
             if big:
@@ -241,8 +262,8 @@ def segment(toks, i0, opn0):
                     continue
                 if sym and any(nm > n for (_, _, _, _, _, nm) in pc[0] + pc[1]):
                     continue
-                if not any(c for (_, _, c, _, _, _) in pc[0] + pc[1]):
-                    continue      # never passes a hit on: not a level of a ladder
+                if not any(c for (_, _, c, _, _, _) in pc[0] + pc[1]) and not NEG[0]:
+                    continue      # never passes a hit on: not a level of a ladder (with NEG: a level that keeps them)
                 found = (j, Level(opn, sym, st, n), peel)
                 break
             if found:
@@ -278,6 +299,21 @@ def apply(levels, q):
         if q == 0:
             break
     return q, steps
+
+
+def apply_stop(levels, q):
+    """like apply, but a level that runs out stops it: returns (i, r, passes to the bottom, steps), where levels[i]
+    is the level that ran out with r hits not applied (i = None: none ran out)"""
+    steps = 0
+    for i, L in enumerate(levels):
+        stop = []
+        q, s = advance(L, q, stop)
+        steps += s
+        if stop[0]:
+            return i, stop[0], q, steps
+        if q == 0:
+            break
+    return None, 0, q, steps
 
 
 def word(levels, B):

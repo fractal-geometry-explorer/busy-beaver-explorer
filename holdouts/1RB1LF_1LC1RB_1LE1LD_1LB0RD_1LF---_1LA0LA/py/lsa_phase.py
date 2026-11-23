@@ -4,7 +4,9 @@ import sys, copy, time, math, pickle, os
 from fractions import Fraction
 from lsa_ladder import *
 from lsa_eater import supercycle, fuel_index
-from lsa_region import Region, prefix_tokens, MultiPassEvent
+import lsa_eater
+from lsa_region import Region, prefix_tokens, MultiPassEvent, seg_prefix
+import lsa_ladder
 import geng
 from geng import show, to_tokens, build
 
@@ -23,6 +25,10 @@ HEADMAX = 24     # an eater's head may have this many tokens before its fuel (16
                  # from visit 10^3200: it was then fed 200 hits a batch)
 
 
+EXTRAMAX = 40     # tokens of the rest an eater region may take in (16 was one short after phase 13,010 from visit
+                  # 10^3200: a x16 eater whose passed hits run through the next [100] fuel into the rest)
+
+
 def find_phase(btoks, known_only=False):
     """an eater super-cycle at the head of the bottom: (sc, E tokens, fuel index, rest tokens, K) or None.
     known_only: only shapes whose super-cycle is already known (no new search)"""
@@ -30,13 +36,17 @@ def find_phase(btoks, known_only=False):
     if fi is None:
         return None
     # the shape alone is enough to know a failure: the super-cycle search depends on the fuel only through its size
-    for extra in range(0, 16):
+    opq = False
+    for extra in range(0, EXTRAMAX):
         if fi + 1 + extra >= len(btoks):
             break
+        if extra >= 16 and not opq:
+            break       # past 16 tokens only while the rest was too short for the hits passed down
         E = btoks[:fi + 1 + extra]
         key = shape(E)
         sc = SCPOS.get(key)
         if sc is None and key in SCNEG:
+            opq = SCNEG[key] == 'opaque'
             continue
         if sc is None and known_only:
             continue
@@ -45,7 +55,8 @@ def find_phase(btoks, known_only=False):
             if sc is not None:
                 SCPOS[key] = sc
         if sc is None:
-            SCNEG[key] = 1
+            opq = lsa_eater.OPQ[0]
+            SCNEG[key] = 'opaque' if opq else 1
             continue
         K = (E[fi][1] - sc['mmin']) // sc['dm'] + 1
         if K < KMIN:
@@ -207,7 +218,7 @@ class PRegion(Region):
         while nb < maxbatch:
             nb += 1
             self.B = fold_front(self.B)
-            bt, tail = prefix_tokens(self.B, 48)
+            bt, tail = prefix_tokens(self.B, 96)
             fi = fuel_index(bt[:HEADMAX], thr=200)
             if fi is not None:
                 key = shape(bt[:fi + 1])
@@ -241,6 +252,12 @@ class PRegion(Region):
                 self.fine -= 1
                 if not self.fine:
                     self.Q = self.fine_Q
+            if not self.fine:
+                # no phase for a while: larger batches (exact either way; the levels above cost the same per batch,
+                # after phase 13,010 from visit 10^3200 there were 1.6 million hits to feed in batches of 200)
+                self.nobatch = getattr(self, 'nobatch', 0) + 1
+                if self.nobatch % QGROW == 0 and self.Q < QMAX:
+                    self.Q *= 2
             u = self.used
             ev = self.feed(None, maxbatch=1)
             if ev != 'budget':
@@ -248,6 +265,8 @@ class PRegion(Region):
         return 'budget', None
 
 
+QGROW = 64
+QMAX = 1 << 16
 FRAMES = []
 NOTREG = set()          # eater shapes already reported as not regular (log once)
 
@@ -515,7 +534,7 @@ def run_to_event(R, ckpt=None, every=200, frames=None, nph=0):
             HOOK[0](nph, sc, E, fi, rest, K)
         # the rest gets c hits per super-cycle, whatever it does with them (the eater never looks at it)
         geng.C[0] = 0
-        W, done = geng.hpow(c * K, rest)
+        W, done = ladder_hpow(c * K, rest)
         del rest
         if done is not True:
             pos = pass_positions(sc, E, fi)
@@ -540,6 +559,123 @@ def run_to_event(R, ckpt=None, every=200, frames=None, nph=0):
         del W
     FRAMES[:] = frames
     return unwind(frames, z)
+
+
+LADDER_MIN = 10 ** 6
+LSTAT = {'ladder': 0, 'plain': 0}
+
+
+LADDER_ROUNDS = 20000
+LADDER_BATCH = 256
+LADDER_DEPTH = 3
+
+
+def ladder_hpow(q, T):
+    """geng.hpow(q, T), with the front of T cut into ladder levels first when q is large: the levels count the hits
+    in closed form (lsa_ladder.apply) and only the hits that get through reach the engine.  Plain hpow on a stack of
+    ladders carries 10^41 hits level by level (after phase 13,008 from visit 10^3200 that took hours).  Levels whose
+    count falls (fuel) are accepted too: when one runs out, the levels above it are kept, the hits it passed so far
+    go below it, and one plain hit takes it through its refuel, then the rest is cut into levels again.  If the
+    engine answers with an event anywhere, the plain computation is done instead (exact either way).
+    With ENGINE_HOOK the engine's own large powers (h^q and G^q met inside its recursion) go this way too."""
+    r = ladder_power('h', q, T)
+    if r is None:
+        return _power(geng.h, 'h', q, T)
+    return r, True
+
+
+OPF = {'h': geng.h, 'G': geng.G}
+HDEPTH = [0]
+HMAX = 4
+_power = geng.power
+
+
+def ladder_power(op, q, T):
+    """op^q(T) by the ladder, or None (q small, nested too deep, or an event)"""
+    if type(q) is not int or q < LADDER_MIN or HDEPTH[0] >= HMAX or T is None:
+        return None
+    neg0 = lsa_ladder.NEG[0]
+    lsa_ladder.NEG[0] = True
+    HDEPTH[0] += 1
+    c0 = geng.C[0]
+    try:
+        r = _ladder(q, T, 0, op)
+    finally:
+        lsa_ladder.NEG[0] = neg0
+        HDEPTH[0] -= 1
+    if r is None:
+        geng.C[0] = c0
+        LSTAT['plain'] += 1
+        return None
+    LSTAT['ladder'] += 1
+    return r
+
+
+def _power_hook(op, name, q, T):
+    if geng.Rec.cons is None and HDEPTH[0] < HMAX and type(q) is int and q >= LADDER_MIN:
+        r = ladder_power(name, q, T)
+        if r is not None:
+            return r, True
+    return _power(op, name, q, T)
+
+
+ENGINE_HOOK = os.environ.get('LSA_NOHOOK') is None
+if ENGINE_HOOK:
+    geng.power = _power_hook
+
+
+def _plain(op, k, T):
+    return geng.power(OPF[op], op, k, T)
+
+
+def _ladder(q, T, depth=0, op='h'):
+    """the word op^q(T) as computed by ladder_power, or None on an event.  Below LADDER_DEPTH nested bottoms the
+    engine gets the hits (cutting every bottom again costs more than it saves: phase 12,000 from visit 10^3200)"""
+    if depth >= LADDER_DEPTH:
+        T, done = _plain(op, q, T)
+        return T if done is True else None
+    head = []
+    rounds = miss = 0
+    while q:
+        rounds += 1
+        lv = None
+        if q >= LADDER_BATCH and rounds <= LADDER_ROUNDS:
+            lv, B = seg_prefix(T, op)
+        if not lv:
+            # not cut into levels (yet): a few plain hits, then try again (a few hits can turn a block into fuel);
+            # after a second miss in a row the engine gets them all (its own rules may well jump them)
+            miss += 1
+            k = q if (rounds > LADDER_ROUNDS or miss > 1) else min(q, LADDER_BATCH)
+            T, done = _plain(op, k, T)
+            if done is not True:
+                return None
+            q -= k
+            continue
+        miss = 0
+        lv = [copy.copy(L) for L in lv]
+        i, rem, p, s = lsa_ladder.apply_stop(lv, q)
+        geng.C[0] += s
+        if i is None:
+            if p:
+                B = _ladder(p, B, depth + 1)
+                if B is None:
+                    return None
+            T = lsa_ladder.word(lv, B)
+            break
+        LSTAT['runout'] = LSTAT.get('runout', 0) + 1
+        below = lsa_ladder.word(lv[i + 1:], B)
+        if p:
+            below = _ladder(p, below, depth + 1)
+            if below is None:
+                return None
+        for L in lv[:i]:
+            head += L.tokens()
+        T, done = _plain(lv[i].op, 1, lsa_ladder.word([lv[i]], below))
+        if done is not True:
+            return None
+        op = lv[i].op
+        q = rem - 1
+    return build(head, T) if head else T
 
 
 def short(n):

@@ -345,6 +345,11 @@ Two more fixes (the other machine's README, "The long run, merged"): a shape wit
 marked negative because its block was irregular at one hit, and an eater's head may have up to 24 tokens
 (`HEADMAX`). The 7th event of this machine comes out the same.
 
+Three more (the other machine's README, "Past phase 13,008"): the ladder (`lsa_ladder.py`, with `NEG` on) also takes
+levels that keep every hit, hold a literal fuel, or count down and refuel, and `lsa_phase.ladder_power` runs it on
+the engine's own large powers too; batches double after 64 batches without a phase; an eater region may take in
+up to 40 tokens of the rest while its passed hits need them. The 7th event of this machine comes out the same.
+
 Trust: computations, exact by construction; the accelerator agrees with the digit engine on the stretch it was
 compared on. The Lean file covers the arithmetic only, not the symbolic runs that supply its constants.
 
