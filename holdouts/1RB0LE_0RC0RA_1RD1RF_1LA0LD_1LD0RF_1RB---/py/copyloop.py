@@ -26,7 +26,9 @@ exits (`exit3` when the chain goes on, k >= 3; `exit1` when k = 1) are symbolic 
 block of P, for j and for the chain; the entry's end (j0, bs, r0 as linear forms) is found by running it on a few
 values and is then proved symbolically.  `copy_<S>_long` and `copy_<S>_one` compose the pieces with `enter`,
 `left_pass`, `lu`, `right_pass`, `leave` into the whole tick, for every X, every value of P's blocks, every chain
-and every list of pairs.  Not covered: the shape `o|1|o`, whose two copy ticks copy the block between the two 1s.
+and every list of pairs.  The shape `o|1|o` copies the block Y between the two 1s instead of X (`gen_y`, the same
+loop with Y's pairs in place of X's); in `o|1|o|o.e|e|o|o.e|e|o` the front `3|1|7` comes up during the entry and
+copies its 7, so that entry is a symbolic run for the one value 7 of that block (`FIX`).
 """
 import os
 import re
@@ -166,12 +168,20 @@ def kr_s(j, bs, r, Z):
 OFF = {}     # shape -> {variable: offset}: the block variable v stands for v + offset (found by gen_shape)
 
 
+# shape -> {variable: value}: a block of the front fixed to one value.  In `o|1|o|o.e|e|o|o.e|e|o` the front
+# `3|1|Y` comes up during the entry and copies Y (as in gen_y), a loop of its own inside the entry, so the entry is
+# one symbolic run only for one value of Y.
+FIX = {"o|1|o|o.e|e|o|o.e|e|o": {"v2": 2}}
+
+
 def fc_s(shape):
     kinds, seps = shape_parse(shape)
     off = OFF.get(shape, {})
+    fix = FIX.get(shape, {})
     parts = ["0^inf"]
     for j, k in enumerate(kinds):
-        parts.append(block_str(k, f"v{j}+{off[f'v{j}']}" if off.get(f"v{j}") else f"v{j}"))
+        v = f"v{j}"
+        parts.append(block_str(k, str(fix[v]) if v in fix else f"{v}+{off[v]}" if off.get(v) else v))
         if j < len(seps):
             parts.append("1" if seps[j] == "|" else "0")
     return " ".join(parts + ["1 1 0"])
@@ -179,7 +189,7 @@ def fc_s(shape):
 
 def shape_vars(shape):
     kinds, _ = shape_parse(shape)
-    return [f"v{j}" for j, k in enumerate(kinds) if k != "1"]
+    return [f"v{j}" for j, k in enumerate(kinds) if k != "1" and f"v{j}" not in FIX.get(shape, {})]
 
 
 def subst(s, env):
@@ -328,53 +338,131 @@ def gen_shape1(shape):
     blist = "[" + ", ".join(b.lean() for b in bs) + "]"
     bsl = [str(b) for b in bs]
     jj = Lin("j")
-    g3 = end_config("0^inf D> " + kr_s(jj, bsl, 0, "0 1 0 (1010)^c+1 0 1 0 1 0 1 0 (1010)^d 0 R"), at_target)
-    g1 = end_config("0^inf D> " + kr_s(jj, bsl, 0, "0 (1010)^e+1 1 0^inf"), at_end)
+    W3, W1 = "0 1 0 (1010)^c+1 0 1 0 1 0 1 0 (1010)^d 0 R", "0 (1010)^e+1 1 0^inf"
+    g3 = end_config("0^inf D> " + kr_s(jj, bsl, 0, W3), at_target)
+    g1 = end_config("0^inf D> " + kr_s(jj, bsl, 0, W1), at_end)
+    # A shape with a fixed block has blocks of one value in the loop.  A literal count in a run is costly in Lean
+    # (it lets the kernel unfold the steps), so the exits are proved with a variable w_i for each such block and
+    # used at its value.
+    cix = [i for i, b in enumerate(bs) if not b.vars()] if shape in FIX else []
+    wv = [f"w{i}" for i in cix]
+    bsl_e = [f"w{i}" if i in cix else s for i, s in enumerate(bsl)]
+    blist_e = "[" + ", ".join(f"w{i}" if i in cix else b.lean() for i, b in enumerate(bs)) + "]"
+    wargs = "".join(f" ({bs[i].lean()})" for i in cix)
+    bnd_e = f" ({' '.join(vs + wv)} : Nat)" if vs + wv else ""
+    args_e = (" " + " ".join(vs + wv)) if vs + wv else ""
+    g3e = end_config("0^inf D> " + kr_s(jj, bsl_e, 0, W3), at_target) if cix else g3
+    g1e = end_config("0^inf D> " + kr_s(jj, bsl_e, 0, W1), at_end) if cix else g1
     parts = [f"/-- `{shape} | 1 .`: the tape left of X in a copy tick with front `{shape}`. -/\n"
              f"def FC_{nm}{bnd} : Tape := {left_term(tokens(fc_s(shape)))}\n"
              f"/-- What the copy loop leaves on the left, front `{shape}`, when the chain goes on. -/\n"
-             f"def G3_{nm}{bnd} (j c : Nat) : Tape := {left_term(g3.left)}\n"
+             f"def G3_{nm}{bnd_e} (j c : Nat) : Tape := {left_term(g3e.left)}\n"
              f"/-- The same when the chain has one block. -/\n"
-             f"def G1_{nm}{bnd} (j e : Nat) : Tape := {left_term(g1.left)}\n"]
+             f"def G1_{nm}{bnd_e} (j e : Nat) : Tape := {left_term(g1e.left)}\n"]
     xs = xk.lean()
     parts += rule(f"entry_{nm}", subst_x(entry_start(shape), xk),
                   "0^inf D> " + kr_s(j0, bsl, r0, "0 Z"), vs + ["x"],
                   f"⟨Rot ({xs}) (FC_{nm}{args}), D010 Z, .D⟩",
                   f"⟨blank, Kj ({j0.lean()}) (CS {blist} (X0 ({r0.lean()}) (cons false Z))), .D⟩",
                   f"Front `{shape}`: from the end of the left pass at X into the copy loop.")
-    parts += rule(f"exit3_{nm}", "0^inf D> " + kr_s(jj, bsl, 0, "0 1 0 (1010)^c+1 0 1 0 1 0 1 0 (1010)^d 0 R"),
-                  " ".join(map(str, g3.left)) + " A> (0101)^d 0 1 0 0 R", vs + ["j", "c", "d"],
-                  f"⟨blank, Kj j (CS {blist} (X0 0 (cons false (U (c + 1) d R)))), .D⟩",
-                  f"⟨G3_{nm}{args} j c, A0100 d R, .A⟩",
+    parts += rule(f"exit3_{nm}", "0^inf D> " + kr_s(jj, bsl_e, 0, W3),
+                  " ".join(map(str, g3e.left)) + " A> (0101)^d 0 1 0 0 R", vs + wv + ["j", "c", "d"],
+                  f"⟨blank, Kj j (CS {blist_e} (X0 0 (cons false (U (c + 1) d R)))), .D⟩",
+                  f"⟨G3_{nm}{args_e} j c, A0100 d R, .A⟩",
                   f"Front `{shape}`: the end of the loop when the chain goes on, back to the right pass.")
-    parts += rule(f"exit1_{nm}", "0^inf D> " + kr_s(jj, bsl, 0, "0 (1010)^e+1 1 0^inf"),
-                  " ".join(map(str, g1.left)) + " A> 1 1 0^inf", vs + ["j", "e"],
-                  f"⟨blank, Kj j (CS {blist} (X0 0 (cons false (R0 e)))), .D⟩",
-                  f"⟨G1_{nm}{args} j e, cons true (cons true blank), .A⟩",
+    parts += rule(f"exit1_{nm}", "0^inf D> " + kr_s(jj, bsl_e, 0, W1),
+                  " ".join(map(str, g1e.left)) + " A> 1 1 0^inf", vs + wv + ["j", "e"],
+                  f"⟨blank, Kj j (CS {blist_e} (X0 0 (cons false (R0 e)))), .D⟩",
+                  f"⟨G1_{nm}{args_e} j e, cons true (cons true blank), .A⟩",
                   f"Front `{shape}`: the end of the loop when the chain has one block, the next right-end turn.")
     jf = f"{j0.lean()} + 2 * ({r0.lean()})"
     parts.append(f"""/-- A whole copy tick of `{shape} | 1 . X . m1 . … . mk`, k ≥ 3 (X = 2({xs})+2, m1 = 2c+4, then the pairs `ps`,
 then the last two blocks d, e), from one right-end turn to the next. -/
 theorem copy_{nm}_long{bnd} (x c d e : Nat) (ps : List (Nat × Nat)) : ∃ n,
     steps n ⟨Q d e (P ps (Pc (c + 1) ({xs}) (FC_{nm}{args}))), cons true (cons true blank), .A⟩ =
-      some ⟨Fin d e (W ps d (G3_{nm}{args} ({jf}) c)), cons true (cons true blank), .A⟩ := by
+      some ⟨Fin d e (W ps d (G3_{nm}{args}{wargs} ({jf}) c)), cons true (cons true blank), .A⟩ := by
   obtain ⟨n1, h1⟩ := left_pass (Pc (c + 1) ({xs}) (FC_{nm}{args})) ps d (R0 e)
   obtain ⟨n2, h2⟩ := loop {blist} ({r0.lean()}) ({j0.lean()}) (cons false (U (c + 1) (LP ps d (R0 e)).1 (LP ps d (R0 e)).2))
-  obtain ⟨n3, h3⟩ := right_pass (G3_{nm}{args} ({jf}) c) ps d (R0 e)
+  obtain ⟨n3, h3⟩ := right_pass (G3_{nm}{args}{wargs} ({jf}) c) ps d (R0 e)
   exact ⟨_, steps_seq trans (enter d e _) (steps_seq trans h1 (steps_seq trans (lu ({xs}) (c + 1) _ _ _)
-    (steps_seq trans (entry_{nm}{args} x _) (steps_seq trans h2 (steps_seq trans (exit3_{nm}{args} _ c _ _)
+    (steps_seq trans (entry_{nm}{args} x _) (steps_seq trans h2 (steps_seq trans (exit3_{nm}{args}{wargs} _ c _ _)
       (steps_seq trans h3 (leave d e _)))))))⟩
 
 /-- A whole copy tick of `{shape} | 1 . X . m1` (k = 1; X = 2({xs})+2, m1 = 2e+2), from one right-end turn to the
 next. -/
 theorem copy_{nm}_one{bnd} (x e : Nat) : ∃ n,
     steps n ⟨Q ({xs}) e (FC_{nm}{args}), cons true (cons true blank), .A⟩ =
-      some ⟨G1_{nm}{args} ({jf}) e, cons true (cons true blank), .A⟩ := by
+      some ⟨G1_{nm}{args}{wargs} ({jf}) e, cons true (cons true blank), .A⟩ := by
   obtain ⟨n2, h2⟩ := loop {blist} ({r0.lean()}) ({j0.lean()}) (cons false (R0 e))
   exact ⟨_, steps_seq trans (enter ({xs}) e _) (steps_seq trans (entry_{nm}{args} x _)
-    (steps_seq trans h2 (exit1_{nm}{args} _ e)))⟩
+    (steps_seq trans h2 (exit1_{nm}{args}{wargs} _ e)))⟩
 """)
     return parts, (j0, bs, r0, k, " ".join(map(str, g3.left)), " ".join(map(str, g1.left)))
+
+
+# ---------------------------------------------------------------- the front o|1|o: the copy of the block between the 1s
+Y_SHAPE = "o|1|o"
+Y_W = "1 0 0 0 (1010)^x 1 0 0 Z"      # what stands right of Y's pairs in the loop: X, moved, and the chain Z
+
+
+def gen_y():
+    """`3|1|Y|1 . X . C` (shape o|1|o, Y = 2v2+3): two rounds turn the front into `v0+2`-block and the loop copies Y
+    (its v2+1 double pairs and one pair go into the new first block); X, untouched, ends 7 pairs longer."""
+    shape, nm = Y_SHAPE, lean_name(Y_SHAPE)
+    vs = shape_vars(shape)
+    bnd, args = f" ({' '.join(vs)} : Nat)", " " + " ".join(vs)
+    blist, bsl = "[v0 + 2]", ["v0+2"]
+    jj = Lin("j")
+    z3 = "1 0 (1010)^c+1 0 1 0 1 0 1 0 (1010)^d 0 R"
+    z1 = "(1010)^e+1 1 0^inf"
+    w3, w1 = Y_W.replace("Z", z3), Y_W.replace("Z", z1)
+    g3 = end_config("0^inf D> " + kr_s(jj, bsl, 0, w3), at_target)
+    g1 = end_config("0^inf D> " + kr_s(jj, bsl, 0, w1), at_end)
+    parts = [f"/-- `{shape} | 1 .`: the tape left of X in a copy tick with front `{shape}`. -/\n"
+             f"def FC_{nm}{bnd} : Tape := {left_term(tokens(fc_s(shape)))}\n"
+             f"/-- Right of Y's pairs in its copy loop: X, and the chain Z. -/\n"
+             f"def WY (x : Nat) (Z : Tape) : Tape := {right_term(tokens(Y_W))}\n"
+             f"/-- What the copy of Y leaves on the left when the chain goes on. -/\n"
+             f"def G3_{nm}{bnd} (x j c : Nat) : Tape := {left_term(g3.left)}\n"
+             f"/-- The same when the chain has one block. -/\n"
+             f"def G1_{nm}{bnd} (x j e : Nat) : Tape := {left_term(g1.left)}\n"]
+    parts += rule(f"entry_{nm}", entry_start(shape), "0^inf D> " + kr_s(Lin(0), bsl, "v2+1", Y_W), vs + ["x"],
+                  f"⟨Rot x (FC_{nm}{args}), D010 Z, .D⟩", f"⟨blank, Kj 0 (CS {blist} (X0 (v2 + 1) (WY x Z))), .D⟩",
+                  f"Front `{shape}`: from the end of the left pass at X into the loop that copies Y.")
+    parts += rule(f"exit3_{nm}", "0^inf D> " + kr_s(jj, bsl, 0, w3),
+                  " ".join(map(str, g3.left)) + " A> (0101)^d 0 1 0 0 R", vs + ["x", "j", "c", "d"],
+                  f"⟨blank, Kj j (CS {blist} (X0 0 (WY x (U (c + 1) d R)))), .D⟩",
+                  f"⟨G3_{nm}{args} x j c, A0100 d R, .A⟩",
+                  f"Front `{shape}`: the end of the loop when the chain goes on, back to the right pass.")
+    parts += rule(f"exit1_{nm}", "0^inf D> " + kr_s(jj, bsl, 0, w1),
+                  " ".join(map(str, g1.left)) + " A> 1 1 0^inf", vs + ["x", "j", "e"],
+                  f"⟨blank, Kj j (CS {blist} (X0 0 (WY x (R0 e)))), .D⟩",
+                  f"⟨G1_{nm}{args} x j e, cons true (cons true blank), .A⟩",
+                  f"Front `{shape}`: the end of the loop when the chain has one block, the next right-end turn.")
+    jf = "2 * (v2 + 1)"
+    parts.append(f"""/-- A whole copy tick of `{shape} | 1 . X . m1 . … . mk`, k ≥ 3 (Y = 2 v2 + 3, X = 2x+2, m1 = 2c+4, then the
+pairs `ps`, then the last two blocks d, e), from one right-end turn to the next: Y is copied, X moves on. -/
+theorem copy_{nm}_long{bnd} (x c d e : Nat) (ps : List (Nat × Nat)) : ∃ n,
+    steps n ⟨Q d e (P ps (Pc (c + 1) x (FC_{nm}{args}))), cons true (cons true blank), .A⟩ =
+      some ⟨Fin d e (W ps d (G3_{nm}{args} x ({jf}) c)), cons true (cons true blank), .A⟩ := by
+  obtain ⟨n1, h1⟩ := left_pass (Pc (c + 1) x (FC_{nm}{args})) ps d (R0 e)
+  obtain ⟨n2, h2⟩ := loop {blist} (v2 + 1) 0 (WY x (U (c + 1) (LP ps d (R0 e)).1 (LP ps d (R0 e)).2))
+  obtain ⟨n3, h3⟩ := right_pass (G3_{nm}{args} x ({jf}) c) ps d (R0 e)
+  rw [show 0 + 2 * (v2 + 1) = {jf} by omega] at h2
+  exact ⟨_, steps_seq trans (enter d e _) (steps_seq trans h1 (steps_seq trans (lu x (c + 1) _ _ _)
+    (steps_seq trans (entry_{nm}{args} x _) (steps_seq trans h2 (steps_seq trans (exit3_{nm}{args} x _ c _ _)
+      (steps_seq trans h3 (leave d e _)))))))⟩
+
+/-- A whole copy tick of `{shape} | 1 . X . m1` (k = 1; X = 2x+2, m1 = 2e+2), from one right-end turn to the next. -/
+theorem copy_{nm}_one{bnd} (x e : Nat) : ∃ n,
+    steps n ⟨Q x e (FC_{nm}{args}), cons true (cons true blank), .A⟩ =
+      some ⟨G1_{nm}{args} x ({jf}) e, cons true (cons true blank), .A⟩ := by
+  obtain ⟨n2, h2⟩ := loop {blist} (v2 + 1) 0 (WY x (R0 e))
+  rw [show 0 + 2 * (v2 + 1) = {jf} by omega] at h2
+  exact ⟨_, steps_seq trans (enter x e _) (steps_seq trans (entry_{nm}{args} x _)
+    (steps_seq trans h2 (exit1_{nm}{args} x _ e)))⟩
+""")
+    return parts, " ".join(map(str, g3.left)), " ".join(map(str, g1.left))
 
 
 def subst_x(s, xk):
@@ -413,14 +501,41 @@ each block of P), and `copy_*_long` (k ≥ 3, any list of pairs) and `copy_*_one
 every X and every chain."""
 
 
+SPLIT = 3_000_000   # a symbolic run longer than this many bytes is proved in segments (py/splitraw.py)
+SPLIT_FIX = 100_000  # the same for the runs of a shape with a fixed block, whose tapes are long
+SEGS_PER_FILE = 3   # segments (of 40 steps of the run each) per file
 GROUP = 2_500_000   # at most about this many bytes of Lean per file of shapes (a bigger file runs Lean out of memory)
 
 
-def write_lean(name, imports, parts, doc):
-    txt = rules_file(imports, NS, parts, doc)
+def write_lean(name, imports, parts, doc, split=None):
+    """writes lean/<name>.lean; a symbolic run longer than SPLIT is proved in segments, written to files of their
+    own (lean/<name>_p1.lean, …, each importing the one before) that the main file imports.  Returns the files,
+    in the order to check them."""
+    from splitraw import split_theorem
+    files, segs, out = [], [], []
+    for p in parts:
+        if len(p) > (split or SPLIT) and "  have hn : " in p:
+            ps = split_theorem(p, pieces=True)
+            segs += ps[:-1]
+            out.append(ps[-1])
+        else:
+            out.append(p)
+    imp = imports
+    for i in range(0, len(segs), SEGS_PER_FILE):
+        pn = f"{name}_p{i // SEGS_PER_FILE + 1}"
+        txt = rules_file(imp, NS, segs[i:i + SEGS_PER_FILE], f"# Segments of the long symbolic runs of `{name}.lean`\n\n"
+                         "Generated by `py/copyloop.py` (`py/splitraw.py`).")
+        txt = txt.replace("open TM\n", "open TM\n\nset_option maxRecDepth 100000\nset_option maxHeartbeats 4000000\n", 1)
+        with open(os.path.join(HERE, "..", "lean", pn + ".lean"), "w") as f:
+            f.write(txt)
+        files.append(pn + ".lean")
+        imp = pn
+    parts = out
+    txt = rules_file(imp, NS, parts, doc)
     txt = txt.replace("open TM\n", "open TM\n\nset_option maxRecDepth 100000\nset_option maxHeartbeats 4000000\n", 1)
     with open(os.path.join(HERE, "..", "lean", name + ".lean"), "w") as f:
         f.write(txt)
+    return files + [name + ".lean"]
 
 
 def gen():
@@ -447,12 +562,18 @@ def gen():
         j0, bs, r0, k, g3s, g1s = info
         table.append((shape, k, OFF.get(shape, {}), str(j0 + 2 * r0), g3s, g1s))
         print(f"{shape:28s} x -> x+{k}, blocks +{OFF.get(shape, {})}: j0 = {j0}, bs = {[str(b) for b in bs]}, r0 = {r0}")
-    files = []
+    yparts, yg3, yg1 = gen_y()
+    write_lean("CopyY", "Copy", yparts, f"# Copy ticks, front shape `{Y_SHAPE}`: the block Y between the two 1s is copied\n\n"
+               "Generated by `py/copyloop.py` (`gen_y`); the loop is in `Copy.lean`.")
+    table.append((Y_SHAPE, 0, {}, str(Lin(2, {"v2": 2})), yg3, yg1))
+    done += 1
+    print(f"{Y_SHAPE:28s} copies Y: j0 = 0, bs = [v0+2], r0 = v2+1")
+    files = ["CopyY.lean"]
     for i, g in enumerate(groups, 1):
         names = ", ".join(f"`{sh}`" for sh, _ in g)
-        write_lean(f"CopyS{i}", "Copy", [x for _, ps in g for x in ps],
-                   f"# Copy ticks, front shapes {names}\n\nGenerated by `py/copyloop.py`; the loop is in `Copy.lean`.")
-        files.append(f"CopyS{i}.lean")
+        files += write_lean(f"CopyS{i}", "Copy", [x for _, ps in g for x in ps],
+                            f"# Copy ticks, front shapes {names}\n\nGenerated by `py/copyloop.py`; the loop is in "
+                            "`Copy.lean`.", split=SPLIT_FIX if any(sh in FIX for sh, _ in g) else None)
     print(f"wrote lean/Copy.lean and {' '.join('lean/' + f for f in files)}: {done} shapes")
     with open(RESULTS, "w") as f:
         f.write("# P shape, k, offsets: copy_<shape>_* holds for X = 2(x+k)+2 and the block variables v + offset\n")
@@ -461,7 +582,7 @@ def gen():
                     f" ; {g3s} ; {g1s}\n")
     check_sh = os.path.join(HERE, "..", "lean", "check.sh")
     txt = open(check_sh).read()
-    txt = re.sub(r" Copy\.lean( CopyS\d+\.lean)*", "", txt).rstrip("\n") + " Copy.lean " + " ".join(files) + "\n"
+    txt = re.sub(r" Copy\.lean( Copy\w+\.lean)*", "", txt).rstrip("\n") + " Copy.lean " + " ".join(files) + "\n"
     with open(check_sh, "w") as f:
         f.write(txt)
 
@@ -518,6 +639,7 @@ def check(path):
                 vals[f"v{j}"] = (v - 2) // 2 if v % 2 == 0 else (v - 3) // 2
         X, chain = rest[0], rest[1:]
         ok = (X % 2 == 0 and (X - 2) // 2 >= k and all(vals[v] >= a for v, a in off.items())
+              and all(vals[v] == a for v, a in FIX.get(shape, {}).items())
               and (len(chain) == 1 or (len(chain) % 2 == 1 and chain[0] >= 4)))
         thm = f"copy_{lean_name(shape)}_{'one' if len(chain) == 1 else 'long'}"
         # the theorem's end, read as a block list, against the run
