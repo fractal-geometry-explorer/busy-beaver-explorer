@@ -479,12 +479,31 @@ def main():
             if st == 1: return (3 * g0 + 4, 1) if g0 % 2 == 0 else (3 * g0 + 8, 0)
             if st == 0: return (3 * g0, 1) if g0 % 2 == 1 else (3 * g0 + 4, 0)
             return (3 * g0 + 2, 1) if g0 % 2 == 0 else (3 * g0 + 6, 0)
-        i = 0; prev = None; res = collections.Counter(); bad = []
+        i = 0; prev = None; res = collections.Counter(); bad = []; pend = []; single = False; spend = None
         while i < nb:
             ds, db = run_bounces(Y); normalize(Y); i += db; steps += ds
+            one = len(Y) == 3 and isM(Y[2])
+            if one and not single:
+                # the bottom: one block [G, h, rest...]: G drains into the reservoir, h becomes the fuel, and rest
+                # is copied: S1 with fuel 2h for odd h, S0 (rest one pair shorter) with fuel 2h + 3 for even h
+                G, h, r0 = list(itertools.islice(itertools.chain(Y[2][1].E, Y[2][1].F), 3))
+                spend = (1, r0, 2 * h) if h % 2 == 1 else (0, r0 - 1, 2 * h + 3)
+            single = one
+            if pend and isM(Y[-1]):
+                top = list(itertools.chain(Y[-1][1].E, Y[-1][1].F))
+                for p_ in pend[:]:
+                    want, at = p_
+                    if any(top[j:j + len(want)] == want for j in range(len(top) - len(want) + 1)):
+                        res['un-nesting, as predicted'] += 1; pend.remove(p_)
+                    elif i - at > 3 * want[0] + 100:
+                        bad.append((at, 'un-nesting predicted', want, 'not found')); pend.remove(p_)
             sh = _transfer_shape(Y)
             if not (sh and sh[1] == '0' and sh[2] in (2, 3, 4)): continue
             st = {4: 1, 3: 0, 2: 2}[sh[2]]; g0 = sh[0] + (1 if st == 0 else 0); f = sh[3]
+            if spend is not None:
+                if (st, sh[0], f) == spend: res['one block, as predicted'] += 1
+                else: bad.append((i, 'one block predicted', spend, 'got', (st, sh[0], f)))
+                spend = None
             Lb, R = Y[-4][1], Y[-1][1]
             ll, rl = len(Lb.E) + len(Lb.F), len(R.E) + len(R.F); last = R.F[-1] if R.F else R.E[-1]
             if prev is not None:
@@ -518,6 +537,15 @@ def main():
                     res['not checked (another level)'] += 1
                     if os.environ.get('SHOW'): print('unchecked at bounce', i, '\n   before:', pshow, '\n   now:   ', _show_top(Y))
             pshow = _show_top(Y) if os.environ.get('SHOW') else None
+            if ll == 1 and len(Y) >= 7 and type(Y[-5]) is int and Y[-6] in ('0', '1') and isM(Y[-7]) and f > sh[0] + 1:
+                # un-nesting: the inner level's last gap; then its frozen run r is copied like a gap and either
+                # merges into the first gap of the block on its left or joins the right block as a gap of its own
+                h, s_ = pred(st, g0); r = Y[-5]
+                mid = list(itertools.islice(itertools.chain(Y[-7][1].E, Y[-7][1].F), 3))
+                if (r % 2 == 1) if s_ == 1 else (r % 2 == 0):
+                    want = [h, mid[0] + 3 * r + (5 if s_ == 1 else 1) + (2 if Y[-6] == '1' else 0)] + mid[1:]
+                else: want = [h, 3 * r + (4 if s_ == 1 else 0)]
+                pend.append((want, i))
             prev = (st, g0, sh[0], f, sh[2], ll, rl, i, list(itertools.islice(itertools.chain(Lb.E, Lb.F), 8)),
                     list(itertools.islice(itertools.chain(R.E, R.F), 3)))
         print(dict(res))
