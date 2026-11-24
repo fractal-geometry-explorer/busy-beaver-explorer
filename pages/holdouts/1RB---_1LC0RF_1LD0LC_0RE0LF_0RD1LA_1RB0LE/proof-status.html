@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The head bounces between a block that grows at the left end and a wall of exactly 1,573 cells at the right end that it rewrites every sweep like a counter; the counter would need something like 3<sup>48</sup> sweeps to fill the wall, and what happens then is the question.</p>
+      <p><b>The question is open.</b> The head bounces between a block that grows at the left end and a wall of exactly 1,573 cells at the right end. The wall is a counter, now decoded: 46 digits of 25 cells, 15 trips of the head per sweep and a carry table of 73 entries, which reproduces every sweep to 2&middot;10<sup>10</sup> steps. The carries reach the end of the wall only near 10<sup>38</sup> steps; what happens then is the question.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The same equivalence, proved independently on top of busycoq's definitions: <code>TailWord.eqv : halts tm c0 &lt;-&gt; halts tm' c0</code> with 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC on the other side. A model configuration is read as a configuration of either machine (the second with the word <code>10001101</code> after the rightmost visited cell); its invariant is a window of the last four cells with 28 abstract configurations, closed under the abstract step (<code>check_S0</code>, one <code>vm_compute</code>). <code>Print Assumptions TailWord.eqv</code>: closed under the global context. Compiles in about 2.4 s with Coq 8.20.1 (busycoq's version) and with 8.18.0; changing the extra word, one transition, or one entry of the invariant makes it fail.</p>
         <p class="where"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v</code>; build: <code>sh holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq</code> (BB6 branch)</p>
       </div>
+      <div class="card">
+        <h3>The carry table never gets stuck (a theorem about the model)</h3>
+        <p>On digit strings whose neighbours are among 240 allowed pairs, each trip of the table lands on such a string again and never meets a pair (carry, digit) outside the 73 entries, for strings of every length; from the 46 digits of the wall at step 20,018,306 the table never gets stuck, at any number of trips, until a carry runs off the last digit. About the table only: its link to the machine is the simulation above.</p>
+        <p class="where"><code>trip_good</code>, <code>wall0_never_stuck</code>, <code>lean/Carry.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -173,6 +178,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code></p>
       </div>
       <div class="card">
+        <h3>The digit carry rule</h3>
+        <p>The wall is a head part of 44 cells, 46 digits <code>a110 b110 c011 0011 0d11 0e11 0</code> and an end part of 139 cells. Each sweep is 15 trips from the head part into the digits; trips 1, 6, 11 feed carry Y, the others carry X, and a table of 73 entries (carries X, Y, P, Q, R) gives what a carry does to a digit. The table reproduces all 4,500 trips of the first 300 sweeps (machine simulated step by step) and all 29,299 sweeps from 2&middot;10<sup>7</sup> to 2&middot;10<sup>10</sup> steps.</p>
+        <p class="where"><code>python3 py/carry.py trips 300</code>, <code>python3 py/carry.py check</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -189,6 +199,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Proposed family: F06, block-list counters</h3>
         <p>During the present epoch the description of the tape does not grow: 146 to 176 level-2 tokens at the four left-end records from 2.6&middot;10<sup>8</sup> to 1.6&middot;10<sup>10</sup> steps, and in the macro simulator (blocks of 5 cells) exactly 314 runs at each of 80 sampled left-end records from 3&middot;10<sup>7</sup> to 10<sup>16</sup> steps. Only the block <code>(11010)^n</code> grows. The wall is a counter with digits of 25 cells. After its first 44 cells, each of the first 40 digits has the form <code>x110 x110 x011 0011 0x11 0x11 0</code> at every one of 2,819 sweeps (steps 2&middot;10<sup>7</sup> to 3&middot;10<sup>8</sup>): five free cells per digit. The first digit returns to the same contents every 8 sweeps, the first two digits together every 64 sweeps and the first three every 512 sweeps, taking 8, 64 and 512 different values (<code>py/digits.py</code>). The deepest digit changed by a sweep is digit 2 on 1,336 sweeps, digit 3 on 782, digit 4 on 326, digit 5 on 124, and so on down to digit 11 once. The counter has overflowed before. At the left-end record at step 1,428,412 the tape was <code>(11010)^244</code> followed by about 240 cells that end in 16 eight-cell words. No new cell was added at the left end for the next three million steps, and at the next left-end record (step 4,487,735) the block was gone, a 25-cell word <code>0101100110111001100110111</code> stood 45 times in a row (new digits, all equal) and the tape ended in 30 eight-cell words. So the machine is a counter that is rebuilt longer when it overflows, with the block as its clock, and the next overflow is far beyond simulation. That is the shape of the counter families (F06), not of a bounded engine (F01): the wall is bounded only within an epoch.</p>
         <p class="where">the README, section &ldquo;Family screen&rdquo;</p>
+      </div>
+      <div class="card">
+        <h3>When the carries reach the end of the wall</h3>
+        <p>In 10<sup>6</sup> sweeps of the table, a quarter of the trips pass digit 0 and from digit 4 on each digit is reached by 3/8 of the trips that reach the one before. At that rate the carries pass digit 45 about once in 6&middot;10<sup>19</sup> trips, near 10<sup>38</sup> steps. Forced carries on made-up walls show the end part counting in a fresh form and, after 56 carries, rewritten with the far end one word longer; no halt in 400.</p>
+        <p class="where"><code>python3 py/carry.py far 1e6</code>, <code>python3 py/endregion.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
