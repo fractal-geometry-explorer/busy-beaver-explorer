@@ -27,7 +27,7 @@ plus the sweeps over `(10)^n` / `(01)^n` shared with the sibling machine.
 
 ## Halting
 
-Only F1 halts; F is entered only from D1 (1LF): halts iff `1 D> 1`. CTL K = 3..6: halts remain; n-gram CPS 3..7
+Only F1 halts; F is entered only from D1 (1LF): halts iff `1 D> 1`. backward reasoning fails at every depth up to 20,000 (a 20,000-step backward chain exists, [`../deciders_rerun/backward_chains/`](../deciders_rerun/backward_chains/)); CTL K = 3..6: halts remain; n-gram CPS 3..7
 fails; no invariant mod 2..12; no halt in 10^9 steps.
 
 ## Notes for later
