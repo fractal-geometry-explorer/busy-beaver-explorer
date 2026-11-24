@@ -237,12 +237,16 @@ follows 1,500 overflows, to about 10^874 events, with no halt. What it shows abo
 
 - **N loses d low base-3 digits, then counts on:** at every one of the 1,500 overflows the next full event has
   N' = floor(N / 3^d) + 1 and lies 3d cells further left. d is read off N's low digits like a prefix code and the
-  chain; d = 1 never occurs. d counts: 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1.
+  chain; d = 1 never occurs. **The rule for d > 0 (trusted, asserted at every overflow):** read N's base-3 digits
+  lowest first, skip the 0s, take one nonzero digit, skip the 2s, take one more digit (a 0 or a 1); d is the number
+  of digits read. Whether d = 0 is decided by the chain: after the carry leaves R the head sweeps back left through
+  every word, and reaches the left end of Z in state C (then d = 0: N counts on, two words merge) or E (then it walks
+  into N), which matched 597 overflows traced cell by cell. d counts: 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1.
 - d = 0 merges two neighbouring words of the chain (the widths add up, plus 2); d ≥ 2 shifts the list of word
   widths by one slot, which is how the long chains grow (19 items by overflow 750). The last item alternates between
   (Q12, R0) and (Q2, R13).
 
-What is still open is the exact map from (N's low digits, chain) to d and the new words, and with it a proof that the
+What is still open is when the sweep arrives in C or E (in terms of the words), the new words, and with it a proof that the
 overflows never reach the halting cell.
 
 ## Status

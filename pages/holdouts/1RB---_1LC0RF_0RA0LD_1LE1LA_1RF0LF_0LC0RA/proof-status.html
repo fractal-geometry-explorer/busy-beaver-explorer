@@ -203,7 +203,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Overflow after overflow, far beyond the run</h3>
-        <p>Between two overflows the layer law is applied in closed form (m events add m to N and Z, and the units sent down the chain add up with carries); each overflow event is run cell by cell on the machine. From step 118,003 this reproduces the 7 overflows of the run and then follows 1,500 overflows, to about 10<sup>874</sup> events, with no halt. At every overflow the next full event has N' = ⌊N / 3<sup>d</sup>⌋ + 1: the overflow eats d low base-3 digits of N (d = 1 never occurs; d counts 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1).</p>
+        <p>Between two overflows the layer law is applied in closed form (m events add m to N and Z, and the units sent down the chain add up with carries); each overflow event is run cell by cell on the machine. From step 118,003 this reproduces the 7 overflows of the run and then follows 1,500 overflows, to about 10<sup>874</sup> events, with no halt. At every overflow the next full event has N' = ⌊N / 3<sup>d</sup>⌋ + 1: the overflow eats d low base-3 digits of N (d = 1 never occurs; d counts 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1). When d &gt; 0 it is read off N alone: lowest digit first, skip the 0s, one nonzero digit, skip the 2s, one more digit (0 or 1); this is asserted at all 1,500.</p>
         <p class="where"><code>py/overflow_jump.py</code> with <code>c/overflow_event.c</code></p>
       </div>
       <div class="card">
@@ -223,7 +223,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>What an overflow of R hands on</h3>
-        <p>The exact law: which d and which new words follow from N's low digits and the chain. Seen so far: d = 0 merges two neighbouring words, d ≥ 2 shifts the word widths by one slot, and the last item alternates between (Q12, R0) and (Q2, R13). Then halting. No event of any layout can halt, since every rule is a run of the machine.</p>
+        <p>The exact law: whether d = 0 (decided by the state in which the return sweep through the chain reaches Z) and which new words follow. Seen so far: d = 0 merges two neighbouring words, d ≥ 2 shifts the word widths by one slot, and the last item alternates between (Q12, R0) and (Q2, R13). Then halting. No event of any layout can halt, since every rule is a run of the machine.</p>
       </div>
     </div>
   </section>
