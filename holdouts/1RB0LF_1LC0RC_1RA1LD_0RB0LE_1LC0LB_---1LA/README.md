@@ -190,6 +190,14 @@ python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py test 6
 python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py run saved 42 3 2.2e6 1700 out.pkl
 ```
 
+## Long region-memo run (24 November 2026)
+
+**Trusted, bounded: no halt in the first 2.08·10^227 steps.** `python3 tools/py/bbtools/regaccel.py 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA 6 16200 mirror`, one
+uninterrupted run of 4.5 hours on one core (the step count is in `data/regaccel_16200s.json`). Memory grew to about 0.8 GB.
+Do not resume `regaccel.Sim.run` after it returns on its time limit: the `Budget` exception can leave the tape
+half-updated, and chunked runs resumed that way reported false halts (seen here on both machines, at different
+places each time).
+
 ## Neighbour invariant Q (24 November 2026)
 
 **Kernel (abstract digit model): a conserved quantity over three neighbouring digits, and only two kinds of merge
