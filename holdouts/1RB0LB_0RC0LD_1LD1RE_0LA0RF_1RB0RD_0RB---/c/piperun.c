@@ -5,7 +5,8 @@
 // take rounds in turn, each waiting on the position of the round before.  The rounds, and so the words, are exactly
 // those of c/deficit.c and c/wordrun.c (check with DUMP: the files must be equal).
 //
-// usage: gcc -O2 -pthread -o piperun piperun.c && ./piperun THREADS ROUNDS [EVERY [DUMP]]
+// usage: gcc -O2 -pthread -o piperun piperun.c && ./piperun THREADS ROUNDS [EVERY [DUMP [START R0]]]
+//   START R0: go on from START, a DUMP of the word after R0 rounds
 // stdout: JUNK (the pass ends on a 0 with a 1 right after it), 1011, 111 (with HALT for 1111 and STOP for 11100,
 //   which has no proved rule), positions counted from the front of the word of that round, with the cells from
 //   4 before the position to 24 after it (further left the rounds behind may already have changed them).  For a
@@ -18,7 +19,7 @@
 #include <limits.h>
 #include <pthread.h>
 static uint8_t *T; static const long N = 1L << 30; static long F0;
-static long R, every, NT;
+static long R, every, NT, R0;
 #define SLOTS 64
 static long prog[SLOTS];     // position of round r in slot r % SLOTS (LONG_MAX when done)
 static long tag[SLOTS];      // which round the slot holds
@@ -34,7 +35,7 @@ static void event(const char *what, long r, long p, long F, long e, long c) {
 }
 static void *worker(void *arg) {
   long t = (long)arg;
-  for (long r = t + 1; r <= R; r += NT) {
+  for (long r = R0 + t + 1; r <= R; r += NT) {
     long s = r % SLOTS;
     // wait until round r - 1 has started
     while (__atomic_load_n(&tag[s], __ATOMIC_ACQUIRE) != r) ;
@@ -48,7 +49,7 @@ static void *worker(void *arg) {
       __atomic_store_n(&prog[n], LONG_MIN, __ATOMIC_RELAXED);
       __atomic_store_n(&tag[n], r + 1, __ATOMIC_RELEASE);
     }
-    long p = F, e = 0, c = 0, q = r == 1 ? LONG_MAX : __atomic_load_n(&prog[ps], __ATOMIC_ACQUIRE);
+    long p = F, e = 0, c = 0, q = r == R0 + 1 ? LONG_MAX : __atomic_load_n(&prog[ps], __ATOMIC_ACQUIRE);
     for (;;) {
       if (e < 62 && c == (1L << e)) break;
       while (q < p + 8) q = __atomic_load_n(&prog[ps], __ATOMIC_ACQUIRE);
@@ -88,7 +89,13 @@ int main(int argc, char **argv) {
   if (argc < 3) { fprintf(stderr, "usage: %s THREADS ROUNDS [EVERY [DUMP]]\n", argv[0]); return 2; }
   NT = atol(argv[1]); R = atol(argv[2]); every = argc > 3 ? atol(argv[3]) : 10000;
   T = calloc(N, 1); F0 = N / 4; T[F0] = 1; Emax = F0 + 1;   // after 0 rounds the word is 1
-  tag[1 % SLOTS] = 1; prog[1 % SLOTS] = LONG_MIN;
+  if (argc > 6) {  // resume: START is a DUMP of the word after R0 rounds
+    R0 = atol(argv[6]); F0 = N / 4 + 2 * R0; T[F0] = 0;
+    FILE *f = fopen(argv[5], "r"); if (!f) { perror(argv[5]); return 1; }
+    long i = F0 - 2 * R0; int ch; while ((ch = fgetc(f)) == '0' || ch == '1') T[i++] = ch - '0';
+    fclose(f); Emax = i;
+  }
+  tag[(R0 + 1) % SLOTS] = R0 + 1; prog[(R0 + 1) % SLOTS] = LONG_MIN;
   pthread_t th[64];
   for (long t = 0; t < NT; t++) pthread_create(&th[t], NULL, worker, (void *)t);
   for (long t = 0; t < NT; t++) pthread_join(th[t], NULL);
