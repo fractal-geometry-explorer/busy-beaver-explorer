@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt (10<sup>7387</sup> with the local version <code>py/accel2.py</code>), never with more than one irregular pattern inside the counter at a time.</p>
+      <p><b>The question is open.</b> The machine is a base-4 counter whose digits carry timers. Lean proves the sweep rule (one increment, any number of carries) for all values, and also that tapes of the same counter shape with short timers halt: so nonhalting cannot follow from the shape of the tape alone, it depends on the timer values the run from blank tape produces. An accelerated simulation that applies the rule in closed form and simulates every irregular sweep exactly reaches 10<sup>2000</sup> steps without a halt (10<sup>7387</sup> with the local version <code>py/accel2.py</code>, and 10<sup>70169</sup> with the lazy-timer version <code>py/accel3.py</code>), never with more than one irregular pattern inside the counter at a time.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -163,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/accel2.py run 1e30000 CKPT</code>, <code>py/accel2.py compare 1e700</code></p>
       </div>
       <div class="card">
+        <h3>No halt in 10<sup>70169</sup> steps</h3>
+        <p><code>py/accel3.py</code> keeps the low part of the tape (chunk 0 up to the topmost irregular chunk, where every irregular pattern sits) concrete and runs it as <code>accel2.py</code> does, and keeps the upper digits lazily: indexed from the top, digit j has the timer N<sub>j</sub> = A<sub>j</sub> &minus; 4<sup>j</sup>E &minus; &lfloor;V/4<sup>K&minus;j</sup>&rfloor; with a constant A<sub>j</sub> (V the value of the upper digits, K their number, E the number of overflows), and block j runs out at the constant time (4(A<sub>j</sub>&minus;2)+3)/4<sup>j+1</sup> in units of overflow cycles. A bulk is then a few big-integer operations. It agrees with <code>accel2.py</code> at all 64,912 non-bulk sweeps up to 10<sup>3000</sup> steps and on 300 random counter tapes to 10<sup>150</sup> steps (21 halt, each at the same step), and halts the two tapes of <code>lean/Perturbed.lean</code> at the proved steps. From blank tape it reaches 10<sup>70169</sup> steps without a halt (10<sup>35084</sup> sweeps, 58,272 digits, 205,632 overflows, every irregular sweep simulated exactly), in about 6 hours of one core; memory (about K<sup>2</sup> bits) is what stops it there.</p>
+        <p class="where"><code>python3 py/accel3.py run 1e70169 CKPT</code>, <code>py/accel3.py compare 1e3000</code>, <code>py/accel3.py randcheck 300 150</code>, <code>py/accel3.py halttest</code></p>
+      </div>
+      <div class="card">
         <h3>Many counter tapes with other timers halt</h3>
         <p>All tapes with one or two digits, blocks 1..4 and n0 = 2..12: 136 halt within 10<sup>7</sup> steps. 300 random tapes with 2..7 digits and the block after digit i up to 4<sup>i+2</sup>: 22 halt within 10<sup>150</sup> steps, 20 of them at steps of 6 to 25 digits, one near 10<sup>52</sup> and one near 10<sup>89</sup>.</p>
         <p class="where"><code>py/perturb.py</code></p>
@@ -200,6 +205,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/lean/check.sh
 python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py check 3e6
 python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel.py run 1e300
+python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel3.py compare 1e3000
+python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/accel3.py run 1e8000
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA--- 1000000000
 python3 holdouts/1RB1RE_1LC0RF_1LA0LD_1LE1LC_0RA0LC_1RA---/py/perturb.py random 7 300 150</code></pre>
   </section>
