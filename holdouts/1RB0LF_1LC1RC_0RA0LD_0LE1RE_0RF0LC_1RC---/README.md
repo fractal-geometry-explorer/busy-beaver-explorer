@@ -98,6 +98,18 @@ So the two machines now stand or fall on one statement, and the twin's 500,000-r
 is a run of this machine's rounds too. A resumed 2,000,000-round run of that engine (from its checkpoint at round
 300,000) is under way in `/mnt/project-files/defect-pair-run`.
 
+## Update, 24 November 2026: the far end is a conveyor
+
+This machine's rounds are the twin's token tapes, so the twin's eighth pass applies word for word
+([its README](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#eighth-pass-24-november-2026-the-far-end-is-a-conveyor-and-what-the-value-v-pins-down),
+`py/conveyor.py` there). The clean tape after each round's visit has value v = 16/15 - c 2^-m + O(2^-2m)
+(c = 288/127 or 145/127, m the leading doublers). Its digit-only end is exactly the binary expansion of that number
+below height 2m - 11. Below height m that end is a conveyor: every round appends 4 digits, and every digit moves
+4 heights up unchanged, so an error there is pushed out instead of stored. These exact layers form a floor about
+2m high. A defect that reaches the floor dies within 20 words, with at most one visit needed. The open statement
+becomes weaker than `nx W <= 1` in every round: no defect dies inside the floor, and heights in the doubler-rich
+part never drop over two rounds. Neither is proved, and nothing of this is in Lean.
+
 ## The rule of the middle (14 November 2026)
 
 The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
@@ -124,7 +136,7 @@ disappears in time.
 
 ## Next steps
 
-Prove that from round 9 on every round's defect needs at most one visit (`nx W ≤ 1`, the twin's missing lemma); everything else is in Lean.
+Prove that from round 9 on every round's defect needs at most one visit (`nx W ≤ 1`, the twin's missing lemma); everything else is in Lean. By the twin's eighth pass, it is enough that no defect dies inside the exact layers and that the two-round height monotonicity holds.
 
 ## Pages
 
