@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 23 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 6.3&middot;10<sup>12</sup> steps (no halt; accelerated past 5&middot;10<sup>11</sup>) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch, now about 1.36 million cells, grows at the hand-overs and is not understood. A halt needs a 1 read in state C next to a long run of ones.</p>
+      <p><b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). Over 1.9&middot;10<sup>13</sup> steps (no halt; accelerated past 5&middot;10<sup>11</sup>) the run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (up to about 1.5 million cells) is built at the hand-overs and eaten in the next growth phase; it is not understood. From 1.68&middot;10<sup>13</sup> steps the right tail grows for the first time. A halt needs a 1 read in state C next to a long run of ones.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -153,9 +153,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/snap.c</code>, <code>evidence/phases-5e11.txt</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 6.3&middot;10<sup>12</sup> steps (accelerated run)</h3>
-        <p>The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks) runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 6.30&middot;10<sup>12</sup> without a halt (restarted several times from its own checkpoints). The tool is not verified; it gives the same tape, head and state as the plain simulator at 10<sup>8</sup> steps from blank tape and on four stretches between 10<sup>11</sup> and 5&middot;10<sup>11</sup> started from plain tapes.</p>
-        <p class="where"><code>c/bacc.cpp</code>, <code>py/tapecmp.py</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>, <code>evidence/bacc-2.14e12-to-4.5e12.txt</code>, <code>evidence/bacc-4.5e12-to-6.3e12.txt</code></p>
+        <h3>No halt in the first 1.9&middot;10<sup>13</sup> steps (accelerated run)</h3>
+        <p>The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks) runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 1.90&middot;10<sup>13</sup> without a halt (restarted several times from its own checkpoints). The tool is not verified; it gives the same tape, head and state as the plain simulator at 10<sup>8</sup> steps from blank tape and on four stretches between 10<sup>11</sup> and 5&middot;10<sup>11</sup> started from plain tapes.</p>
+        <p class="where"><code>c/bacc.cpp</code>, <code>py/tapecmp.py</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>, <code>evidence/bacc-2.14e12-to-4.5e12.txt</code>, <code>evidence/bacc-4.5e12-to-6.3e12.txt</code>, <code>evidence/bacc-6.3e12-to-1.9e13.txt</code></p>
       </div>
       <div class="card">
         <h3>Regular-language deciders tried (F11)</h3>
