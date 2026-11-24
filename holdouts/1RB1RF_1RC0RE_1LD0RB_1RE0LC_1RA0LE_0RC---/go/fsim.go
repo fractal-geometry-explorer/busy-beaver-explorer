@@ -15,6 +15,9 @@
 //   fsim D check0           plain rope engine against a cell-by-cell simulator of the table, at every visit
 //   fsim D check1           bulk feeding against the plain rope engine, at every visit of the faster one
 //   fsim D check2           bulk feeding with jumps against bulk feeding alone
+//   fsim D quiet cf         the same, and at each triple also the counterfactual of cf.go: the tape as it would be had
+//                           the end block run out at that visit (a birth leaving the triple standing), run until the
+//                           first cursor reaches the triple (CF ... HALT, or destroyed)
 //   fsim D dump=F,LO,HI     write "steps hash-of-tape" for the visits with 10^LO <= steps < 10^HI (compare runs
 //                           with other settings: norun, nopack, four)
 package main
@@ -1474,6 +1477,7 @@ func ctx(L []Item, i, w int) string {
 	}
 	return abbreviate(strings.Join(parts, " "))
 }
+
 // expand: the cells of an item of the left stack, left to right
 func expand(x Item) string {
 	switch x.k {
@@ -1511,6 +1515,7 @@ func main() {
 	}
 	m := NewSim()
 	quiet, full, births, heads := false, false, false, false
+	cf := false
 	lastHead := ""
 	trace, ntrace := 0, 0
 	pairlog := false
@@ -1535,6 +1540,8 @@ func main() {
 			m.runrule = false
 		case "quiet":
 			quiet = true
+		case "cf":
+			cf = true
 		case "full":
 			full = true
 		case "births":
@@ -1728,6 +1735,9 @@ func main() {
 					if L[n-1].k == I0 && L[n-2].k == SS && cmpi(L[n-2].q, 1) == 0 {
 						M := L[n-2].n
 						fmt.Printf("MARGIN triple=%d steps~1e%d active=%v endblock M has %d digits, M mod 8 = %d, visits to the next birth >= M/2 = %s\n", ntriple, digits(m.steps)-1, act, digits(M), new(big.Int).Mod(M, bi(8)).Int64(), abbreviate(new(big.Int).Rsh(M, 1).String()))
+						if cf && act && m.pending == nil {
+							reportCF(ntriple, L, m.steps)
+						}
 					} else {
 						fmt.Printf("MARGIN triple=%d end not of the form b a^M 0: %s\n", ntriple, tail(m, 3))
 					}

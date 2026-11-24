@@ -1,0 +1,187 @@
+import Ones
+
+/-!
+# 1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE: the phase map at its stops is the doubling map
+
+At the left and right stops `E(x, z)` (`z` even) and `R(x, y)` (`y` odd) put `s = z + 1`, `L = 2x + z + 7` and
+`s = y + 5`, `L = 2x + y + 8` (`sv`).  Then the next stop, one to three phases on, has modulus `L + 2` and
+`s' = 2s` if `2s ≤ L`, `s' = 2s - L` otherwise (`doubling`): the run is the doubling map `s ↦ 2s mod L` with a
+modulus that grows by 2 a stop.  It fails only at `s = 3` (`E(x, 2)`, `low`: `s' = 12 = 4s`) and at `2s = L + 1`,
+where the next stop is the all-ones tape of even length `L - 5` (`mid_ones`).  The safe all-ones tapes, of odd
+length, come from `2s = L - 1` and are stops like the others.  Fatal lengths (`Fatal`) are 0 and `20·2^k - 2k - 12`,
+all even.
+-/
+
+namespace H70028
+
+theorem iter_step {p q : Ph} (j : Nat) (h : next p = some q) : iter (j + 1) p = iter j q := by
+  simp [iter, h]
+
+theorem n_e (x z : Nat) (h : 2 ≤ z) : next (.e x z) = some (.q x 0 (z - 2)) := by
+  obtain ⟨u, rfl⟩ : ∃ u, z = u + 2 := ⟨z - 2, by omega⟩; simp [next]
+theorem n_q5 (k t : Nat) (h : 5 ≤ t) : next (.q 0 k t) = some (.e (k + 4) (t - 4)) := by
+  obtain ⟨u, rfl⟩ : ∃ u, t = u + 5 := ⟨t - 5, by omega⟩; simp [next]
+theorem n_q4 (k : Nat) : next (.q 0 k 4) = some (.r 0 (2 * k + 8)) := by simp [next]
+theorem n_q2 (m k : Nat) : next (.q m k 2) = some (.r m (2 * k + 5)) := by simp [next]
+theorem n_qall (m k t : Nat) (h1 : 1 ≤ m) (h2 : 2 * m + 1 ≤ t) :
+    next (.q m k t) = some (.q 0 (k + 2 * m) (t - 2 * m)) := by
+  obtain ⟨a, rfl⟩ : ∃ a, m = a + 1 := ⟨m - 1, by omega⟩
+  obtain ⟨u, rfl⟩ : ∃ u, t = u + 3 := ⟨t - 3, by omega⟩
+  simp only [next, Nat.min_eq_left (show a + 1 ≤ (u + 2) / 2 by omega), Nat.sub_self]
+theorem n_qeven (m k b : Nat) (h1 : 1 ≤ b) (h2 : b ≤ m) :
+    next (.q m k (2 * b + 2)) = some (.q (m - b) (k + 2 * b) 2) := by
+  obtain ⟨a, rfl⟩ : ∃ a, m = a + 1 := ⟨m - 1, by omega⟩
+  obtain ⟨u, rfl⟩ : ∃ u, b = u + 1 := ⟨b - 1, by omega⟩
+  rw [show 2 * (u + 1) + 2 = (2 * u + 1) + 3 by omega]
+  simp only [next, Nat.min_eq_right (show (2 * u + 1 + 2) / 2 ≤ a + 1 by omega), Option.some.injEq, Ph.q.injEq]
+  omega
+theorem n_r (X y : Nat) (h : 1 ≤ y) : next (.r (X + 2) y) = some (.q X 1 (y + 1)) := by
+  obtain ⟨u, rfl⟩ : ∃ u, y = u + 1 := ⟨y - 1, by omega⟩; simp [next]
+theorem n_r1 (y : Nat) (h : 3 ≤ y) : next (.r 1 y) = some (.e 3 (y - 1)) := by
+  obtain ⟨u, rfl⟩ : ∃ u, y = u + 3 := ⟨y - 3, by omega⟩; simp [next]
+theorem n_r0 (y : Nat) (h : 1 ≤ y) : next (.r 0 y) = some (.e 1 (y + 1)) := by
+  obtain ⟨u, rfl⟩ : ∃ u, y = u + 1 := ⟨y - 1, by omega⟩; simp [next]
+
+/-- The doubling coordinates of a left or right stop: `s` and the modulus `L`. -/
+def sv : Ph → Nat × Nat
+  | .e x z => (z + 1, 2 * x + z + 7)
+  | .r x y => (y + 5, 2 * x + y + 8)
+  | .q _ _ _ => (0, 0)
+
+/-- `p'` is the doubling-map image of `p`: the modulus grows by 2 and `s' = 2s mod L`. -/
+def Dbl (p p' : Ph) : Prop :=
+  (sv p').2 = (sv p).2 + 2 ∧
+    ((2 * (sv p).1 ≤ (sv p).2 ∧ (sv p').1 = 2 * (sv p).1) ∨
+     ((sv p).2 < 2 * (sv p).1 ∧ (sv p').1 + (sv p).2 = 2 * (sv p).1))
+
+/-- The stops of the doubling map: `E(x, z)` with `z` even, `z ≥ 2`, and `R(x, y)` with `y` odd (an even phase, or for
+`x = 0` an all-ones tape of odd length). -/
+def Good (p : Ph) : Prop := (∃ x z, p = .e x z ∧ z % 2 = 0 ∧ 2 ≤ z) ∨ (∃ x y, p = .r x y ∧ y % 2 = 1)
+
+theorem ex_e (x z : Nat) (he : z % 2 = 0) (h4 : 4 ≤ z) (hm : z ≠ 2 * x + 6) :
+    ∃ j p', 1 ≤ j ∧ j ≤ 3 ∧ iter j (.e x z) = some p' ∧ Good p' ∧ Dbl (.e x z) p' := by
+  obtain ⟨c, rfl⟩ : ∃ c, z = 2 * c + 2 := ⟨(z - 2) / 2, by omega⟩
+  rcases Nat.lt_or_ge c 2 with hc | hc
+  · -- c = 1
+    obtain rfl : c = 1 := by omega
+    refine ⟨2, _, by omega, by omega,
+      (by rw [iter_step 1 (n_e x _ (by omega)), iter_step 0 (n_q2 x 0)]; rfl), ?_, ?_⟩
+    · rcases Nat.eq_zero_or_pos x with rfl | hx
+      · exact Or.inr ⟨_, _, rfl, by omega⟩
+      · exact Or.inr ⟨_, _, rfl, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  rcases Nat.eq_zero_or_pos x with rfl | hx
+  · -- x = 0, c ≥ 3
+    have : 3 ≤ c := by omega
+    refine ⟨2, _, by omega, by omega,
+      (by rw [iter_step 1 (n_e 0 _ (by omega)), iter_step 0 (n_q5 0 _ (by omega))]; rfl), ?_, ?_⟩
+    · exact Or.inl ⟨_, _, rfl, by omega, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  rcases Nat.lt_or_ge (c - 1) x with hb | hb
+  · -- partial bounce
+    refine ⟨3, _, by omega, by omega,
+      (by rw [iter_step 2 (n_e x _ (by omega)),
+              show 2 * c + 2 - 2 = 2 * (c - 1) + 2 by omega,
+              iter_step 1 (n_qeven x 0 (c - 1) (by omega) (by omega)), iter_step 0 (n_q2 _ _)]; rfl), ?_, ?_⟩
+    · exact Or.inr ⟨_, _, rfl, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  rcases Nat.lt_or_ge c (x + 2) with hc2 | hc2
+  · -- c = x + 1: full bounce leaves two 1s, an odd all-ones tape
+    obtain rfl : c = x + 1 := by omega
+    refine ⟨3, _, by omega, by omega,
+      (by rw [iter_step 2 (n_e x _ (by omega)), iter_step 1 (n_qall x 0 _ (by omega) (by omega)),
+              show 2 * (x + 1) + 2 - 2 - 2 * x = 2 by omega, iter_step 0 (n_q2 _ _)]; rfl), ?_, ?_⟩
+    · exact Or.inr ⟨_, _, rfl, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  · have : x + 3 ≤ c := by omega
+    refine ⟨3, _, by omega, by omega,
+      (by rw [iter_step 2 (n_e x _ (by omega)), iter_step 1 (n_qall x 0 _ (by omega) (by omega)),
+              iter_step 0 (n_q5 _ _ (by omega))]; rfl), ?_, ?_⟩
+    · exact Or.inl ⟨_, _, rfl, by omega, by omega⟩
+    · simp [Dbl, sv] <;> omega
+
+theorem ex_r (x y : Nat) (hx : 1 ≤ x) (hy : y % 2 = 1) (hm : y + 1 ≠ 2 * x) :
+    ∃ j p', 1 ≤ j ∧ j ≤ 3 ∧ iter j (.r x y) = some p' ∧ Good p' ∧ Dbl (.r x y) p' := by
+  obtain ⟨d, rfl⟩ : ∃ d, y = 2 * d + 1 := ⟨y / 2, by omega⟩
+  rcases Nat.lt_or_ge x 2 with hx2 | hx2
+  · obtain rfl : x = 1 := by omega
+    refine ⟨1, _, by omega, by omega, (by rw [iter_step 0 (n_r1 _ (by omega))]; rfl), ?_, ?_⟩
+    · exact Or.inl ⟨_, _, rfl, by omega, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  obtain ⟨X, rfl⟩ : ∃ X, x = X + 2 := ⟨x - 2, by omega⟩
+  rcases Nat.eq_zero_or_pos d with rfl | hd
+  · refine ⟨2, _, by omega, by omega,
+      (by rw [iter_step 1 (n_r X _ (by omega)), iter_step 0 (n_q2 _ _)]; rfl), ?_, ?_⟩
+    · rcases Nat.eq_zero_or_pos X with rfl | hX
+      · exact Or.inr ⟨_, _, rfl, by omega⟩
+      · exact Or.inr ⟨_, _, rfl, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  rcases Nat.eq_zero_or_pos X with rfl | hX
+  · have : 2 ≤ d := by omega
+    refine ⟨2, _, by omega, by omega,
+      (by rw [iter_step 1 (n_r 0 _ (by omega)), iter_step 0 (n_q5 _ _ (by omega))]; rfl), ?_, ?_⟩
+    · exact Or.inl ⟨_, _, rfl, by omega, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  rcases Nat.lt_or_ge X d with hb | hb
+  · have : X + 2 ≤ d := by omega
+    refine ⟨3, _, by omega, by omega,
+      (by rw [iter_step 2 (n_r X _ (by omega)), iter_step 1 (n_qall X 1 _ (by omega) (by omega)),
+              iter_step 0 (n_q5 _ _ (by omega))]; rfl), ?_, ?_⟩
+    · exact Or.inl ⟨_, _, rfl, by omega, by omega⟩
+    · simp [Dbl, sv] <;> omega
+  · refine ⟨3, _, by omega, by omega,
+      (by rw [iter_step 2 (n_r X _ (by omega)), show 2 * d + 1 + 1 = 2 * d + 2 by omega,
+              iter_step 1 (n_qeven X 1 d (by omega) (by omega)), iter_step 0 (n_q2 _ _)]; rfl), ?_, ?_⟩
+    · exact Or.inr ⟨_, _, rfl, by omega⟩
+    · simp [Dbl, sv] <;> omega
+
+theorem ex_r0 (y : Nat) (hy : y % 2 = 1) :
+    ∃ j p', 1 ≤ j ∧ j ≤ 3 ∧ iter j (.r 0 y) = some p' ∧ Good p' ∧ Dbl (.r 0 y) p' :=
+  ⟨1, _, by omega, by omega, (by rw [iter_step 0 (n_r0 _ (by omega))]; rfl),
+    (Or.inl ⟨_, _, rfl, by omega, by omega⟩), (by simp [Dbl, sv] <;> omega)⟩
+
+/-- **The doubling map.**  From a stop `p` (`Good`) with `s ≠ 3` and `2s ≠ L + 1`, the next stop `p'`, one to three
+phases on, is again a stop, with modulus `L + 2` and `s' = 2s mod L`. -/
+theorem doubling (p : Ph) (hg : Good p) (h3 : (sv p).1 ≠ 3) (hm : 2 * (sv p).1 ≠ (sv p).2 + 1) :
+    ∃ j p', 1 ≤ j ∧ j ≤ 3 ∧ iter j p = some p' ∧ Good p' ∧ Dbl p p' := by
+  rcases hg with ⟨x, z, rfl, hz, hz2⟩ | ⟨x, y, rfl, hy⟩
+  · simp only [sv] at h3 hm
+    exact ex_e x z hz (by omega) (by omega)
+  · simp only [sv] at h3 hm
+    rcases Nat.eq_zero_or_pos x with rfl | hx
+    · exact ex_r0 y hy
+    · exact ex_r x y hx hy (by omega)
+
+/-- **The only all-ones tapes of even length.**  At a stop with `2s = L + 1` the next stop is the all-ones tape of
+even length `L - 5`. -/
+theorem mid_ones (p : Ph) (hg : Good p) (hm : 2 * (sv p).1 = (sv p).2 + 1) :
+    ∃ j, 1 ≤ j ∧ j ≤ 3 ∧ iter j p = some (.r 0 ((sv p).2 - 5)) ∧ ((sv p).2 - 5) % 2 = 0 := by
+  rcases hg with ⟨x, z, rfl, hz, hz2⟩ | ⟨x, y, rfl, hy⟩
+  · simp only [sv] at hm ⊢
+    obtain rfl : z = 2 * x + 6 := by omega
+    rcases Nat.eq_zero_or_pos x with rfl | hx
+    · refine ⟨2, by omega, by omega, ?_, by omega⟩
+      rw [iter_step 1 (n_e 0 _ (by omega)), iter_step 0 (n_q4 _)]; rfl
+    · refine ⟨3, by omega, by omega, ?_, by omega⟩
+      rw [iter_step 2 (n_e x (2 * x + 6) (by omega)), iter_step 1 (n_qall x 0 (2 * x + 6 - 2) hx (by omega)),
+          show 2 * x + 6 - 2 - 2 * x = 4 by omega, iter_step 0 (n_q4 _)]
+      simp only [iter, Option.some.injEq, Ph.r.injEq, true_and]; omega
+  · simp only [sv] at hm ⊢
+    obtain rfl : y = 2 * x - 1 := by omega
+    rcases Nat.lt_or_ge x 2 with hx | hx
+    · obtain rfl : x = 1 := by omega
+      exact ⟨1, by omega, by omega, by simp [iter, next], by omega⟩
+    obtain ⟨X, rfl⟩ : ∃ X, x = X + 2 := ⟨x - 2, by omega⟩
+    rcases Nat.eq_zero_or_pos X with rfl | hX
+    · exact ⟨2, by omega, by omega, by simp [iter, next], by omega⟩
+    · refine ⟨3, by omega, by omega, ?_, by omega⟩
+      rw [iter_step 2 (n_r X (2 * (X + 2) - 1) (by omega)), iter_step 1 (n_qall X 1 (2 * (X + 2) - 1 + 1) hX (by omega)),
+          show 2 * (X + 2) - 1 + 1 - 2 * X = 4 by omega, iter_step 0 (n_q4 _)]
+      simp only [iter, Option.some.injEq, Ph.r.injEq, true_and]; omega
+
+/-- **The low exception.**  At `s = 3` (`E(x, 2)`, `x ≥ 2`) the next stop is `R(x - 2, 7)`: modulus `L + 2` again,
+but `s' = 12 = 4s`. -/
+theorem low (x : Nat) : iter 3 (.e (x + 2) 2) = some (.r x 7) := by
+  rw [iter_step 2 (n_e _ _ (by omega))]; simp [iter, next]
+
+end H70028

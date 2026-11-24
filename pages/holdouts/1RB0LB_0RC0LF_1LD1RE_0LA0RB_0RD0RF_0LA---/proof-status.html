@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>This six-state machine is a holdout of the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on: the structure of its run (two counters ticking together), the rules proved in Lean, and the open question.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it halts only if a visit meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>0001</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 500,000. No halt in the first 10<sup>11</sup> steps of a direct run. The only junk a word can hold is <code>11</code>, made when a count runs out with one visit just before a 1 at the word end; there have been two, both harmless, and one would be dangerous only after a digit block that took exactly 3 visits.</p>
+      <p><b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it halts only if a visit meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>0001</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 2,000,000. No halt in the first 10<sup>11</sup> steps of a direct run. The only junk a word can hold is <code>11</code>, made when a count runs out with one visit just before a 1 at the word end; there have been 12 in 2,000,000 rounds, all harmless, and one would be dangerous only if the deficit of the count entering its last digit block were odd (in the deficit form of <code>lean/Deficit.lean</code>).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -140,6 +140,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The word computation is the machine</h3>
         <p>A computable pass over the word (exact counts, one block at a time) gives the tape after every round; if it reports a halt the machine halts, and if every number of rounds computes to a word the machine never halts. After a junk event, a round entering at offset 1 is harmless (through <code>1011</code>), and one entering at offset 2 halts the machine.</p>
         <p class="where"><code>run_sound</code>, <code>halts_of_run</code>, <code>not_halts_of_run</code>, <code>junk_offset1</code>, <code>junk_offset2_halts</code>, <code>lean/Word.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The pass in deficit form</h3>
+        <p><code>visd</code> carries the count as 2<sup>e</sup> &minus; c: the level e goes up at every doubler and down at every digit block, the deficit c goes up by one at every zero at a block start and at <code>1011</code>, halves (rounded down) at every digit block and doubles at every doubler; a digit block becomes <code>100</code> or <code>000</code> by the parity of c, and the pass stops where c = 2<sup>e</sup>. It is exactly the pass of <code>lean/Word.lean</code> (<code>visd_eq</code>), and a round is <code>visd</code> from level 0, deficit 0 (<code>roundW_visd</code>). An exact power of two leaves digit blocks unchanged (<code>visd_digit_exact</code>).</p>
+        <p class="where"><code>visd_eq</code>, <code>roundW_visd</code>, <code>visd_digit_exact</code>, <code>lean/Deficit.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -203,6 +208,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss.c</code>, <code>py/nearmiss_check.py</code></p>
       </div>
       <div class="card">
+        <h3>The deficit is small; most near misses are impossible</h3>
+        <p>Over all block starts of the first 200,000 rounds the deficit is 0 at 28%, at most 5 at 96%, and never above 1,025. Of the 141 changed runs (one to four visits more, 60 cells before the end, in 98 of the first 200,000 rounds) that reach <code>11100</code>, 91 need a count above 2<sup>level</sup> there, which no run can bring. The other 50 need deficit 0 (19) or 1 (31) where the run had 1 to 3, and nothing found so far excludes them. The rules of this machine (every <code>111</code> halts) give the same 141 cases, all at <code>11100</code>. A junk event can be dangerous only if the deficit entering its last <code>000</code> block is odd; all 12 so far (2,000,000 rounds) had it even (6), after a doubler.</p>
+        <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c</code>, <code>nearmiss_level.c</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt to round 2,000,000</h3>
+        <p><b>Computed:</b> the deficit pass run to round 2,000,000 (<code>c/piperun.c</code>, 3 rounds in flight; its words equal those of <code>c/wordrun.c</code> and <code>c/deficit.c</code>, checked cell for cell): no halt and no <code>111</code>. The word is 12,427,700 cells long. All 12 junk events (rounds 161,210 to 1,975,596) have the same safe shape: doubler, <code>000</code> with 2 visits, junk; the next round passes through <code>1011</code> each time.</p>
+        <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same tapes at another pace, whatever the states, as 4 other holdouts (listed on the explainer page).</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -230,7 +245,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word.</p>
+        <p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word. In the deficit form (<code>lean/Deficit.lean</code>) the danger is a parity: the deficit entering the last <code>000</code> block of a junk round must be odd.</p>
       </div>
     </div>
   </section>
@@ -241,7 +256,9 @@ holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- 1000000000
 python3 holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/visit.py 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- H112145 /dev/stdout | diff - holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/lean/Visit.lean
 gcc -O2 -o vis holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/vis.c &amp;&amp; (ulimit -s unlimited; ./vis 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- 400000)   # accelerated run to round 200,000, about 45 minutes
-gcc -O2 -o wordrun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c &amp;&amp; ./wordrun 0LF 300000   # the pass over the word, about 8 minutes</code></pre>
+gcc -O2 -o wordrun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c &amp;&amp; ./wordrun 0LF 300000   # the pass over the word, about 8 minutes
+gcc -O2 -o deficit holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c &amp;&amp; ./deficit 200000   # deficit statistics, a few minutes
+gcc -O2 -pthread -o piperun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c &amp;&amp; ./piperun 3 2000000   # the long run, 3 threads</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

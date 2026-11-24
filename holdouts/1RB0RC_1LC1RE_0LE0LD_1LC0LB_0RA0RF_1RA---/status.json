@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. It writes a word of blocks 1100 and 10 that grows to the right logarithmically slowly, like a counter. This page lists what has been established."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Only first-look facts are established: no halt in 2·10<sup>10</sup> steps, logarithmic growth, and the local pattern that halting needs."
+  "<b>The question is open.</b> The run is two binary counters at a hub, counting down on the left and up on the right; the counting rules are proved in Lean, and an accelerated run reaches 4.96·10<sup>15</sup> steps without a halt. The overflows, where the counters are laid out again, are not decoded."
  ],
  "claims": [
   {
@@ -58,6 +58,24 @@
    "where": "observed"
   },
   {
+   "level": "kernel",
+   "title": "The counter rules",
+   "text": "One hub event of the two counters, for every borrow length k and carry length j and every tape beyond the cells shown: <code>borrow</code> (10k + 20 steps), <code>carry0</code>, <code>carry1</code> and <code>plain</code>.",
+   "where": "<code>lean/Counter.lean</code>, written by <code>py/rules.py</code> (<code>tools/py/bbtools/hubrules.py</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 4.96·10<sup>15</sup> steps",
+   "text": "A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 4,961,958,653,181,237 (4.96·10<sup>15</sup>) with 549 cells visited and no halt, through 11 overflows. After the overflow at step 4.96·10<sup>15</sup> it found no model in the remaining time.",
+   "where": "<code>tools/py/bbtools/cjump.py</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Two binary counters at a hub",
+   "text": "At the hub turn (E reading 0) each event takes 1 from the left counter and adds 1 to the right; cost 10 steps per left digit changed, 12 per right digit changed, 32 per left separator crossed, plus a constant. When the left counter runs out the hub moves and the layout is rebuilt; the rule of that overflow is not decoded.",
+   "where": "learned by <code>cjump.py</code>, checked on every event it jumps from"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Open; halting needs <code>E&gt;1 1</code>, not seen.",
@@ -69,11 +87,17 @@
   "holdouts/1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---/lean/check.sh",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1000000000",
   "./tmrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 20000000000 records 1500",
-  "./tokrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 2000000000 a=1100,b=10 R 300"
+  "./tokrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 2000000000 a=1100,b=10 R 300",
+  "python3 tools/py/bbtools/cjump.py 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1e3000 1800"
  ],
  "explainer": {
-  "lede": "Nobody knows whether it halts. This machine grows a word of 1100 and 10 blocks to the right, each new cell costing a constant factor more time.",
+  "lede": "Nobody knows whether it halts. It runs two binary counters at a hub, one counting down and one counting up; an accelerated run reaches 4.96·10<sup>15</sup> steps without a halt.",
   "facts": [
+   {
+    "level": "trusted",
+    "value": "4.96·10<sup>15</sup> steps",
+    "text": "Accelerated run, no halt."
+   },
    {
     "level": "trusted",
     "value": "359 cells",
@@ -94,6 +118,18 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "counters",
+    "eyebrow": "Decoded",
+    "heading": "Two counters at a hub",
+    "html": [
+     "<p>At every visit of one turn of the head (E reading 0) the tape reads as two binary counters back to back, lowest digits next to the hub. Left: 4-cell digits <code>1001</code> (1) and <code>0101</code> (0), the lowest digit <code>10</code> (1) / <code>01</code> (0), in stretches separated by the 9-cell word <code>100110101</code> that borrows cross unchanged. Right: 5-cell digits <code>10101</code> (1) and <code>10100</code> (0), the lowest digit one cell (<code>1</code> is 1), with separator words such as <code>10010100</code>.</p>",
+     "<p>Each visit takes 1 from the left counter and adds 1 to the right. It costs 10 steps per left digit changed, 12 per right digit changed, 32 per left separator crossed, plus a constant, so a long borrow or carry costs a little more and the counting is fast to jump over.</p>",
+     "<p>Proved in Lean for every length <i>k</i> of a borrow and <i>j</i> of a carry (<code>lean/Counter.lean</code>):</p><ul><li><code>borrow</code> (10k + 20 steps): <code>L 1001 (0101)^k 01 E> 0 0 0 R</code> -> <code>L 0101 (1001)^k 10 E> 0 0 1 R</code>, the left counter borrowing through <code>k</code> digits;</li><li><code>carry0</code> (12j + 22 steps): <code>L 1 0 E> 0 0 (11010)^j 1 1 0 1 0 0 R</code> -> <code>L 0 1 E> 0 (00101)^j 0 0 1 0 1 0 1 R</code>, the right counter carrying through <code>j</code> digits;</li><li><code>carry1</code> (12j + 106 steps): the same beyond a 30-cell stretch that holds a separator, the right counter carrying through <code>j</code> digits;</li><li><code>plain</code> (22 steps): <code>L 1 0 E> 0 0 1 1 0 1 0 0 R</code> -> <code>L 0 1 E> 0 0 0 1 0 1 0 1 R</code>, the most frequent short event.</li></ul>",
+     "<p>When the left counter runs out the hub moves and the counters are laid out again. At each of the overflows seen the left counter has just reached 0 and the right counter holds one more digit than the left counter had; the excursion that follows lasts up to 10<sup>8</sup> steps and leaves a left counter of n digits with a value close to 2<sup>n</sup>. That rule is the open part.</p>",
+     "<p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 4,961,958,653,181,237 (4.96·10<sup>15</sup>) with 549 cells visited and no halt, through 11 overflows. After the overflow at step 4.96·10<sup>15</sup> it found no model in the remaining time.</p>"
+    ]
+   },
    {
     "id": "growth",
     "eyebrow": "First look",
@@ -127,5 +163,5 @@
   ]
  },
  "family": "word counter on 1100 / 10 (right end)",
- "summary": "Grows a word of 1100 / 10 blocks slowly to the right (one cell per constant factor of time), like a counter; halting needs E>1 1; sibling of 1RB0RD_1LC1RE_1LD0LC_0LE0LC_0RA0RF_1RA---."
+ "summary": "Two binary counters at a hub (left counts down, right counts up; counting rules proved in Lean); accelerated run to 4.96·10^15 steps, no halt; overflows not decoded."
 }

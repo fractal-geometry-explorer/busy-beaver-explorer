@@ -379,6 +379,75 @@ theorem w_restart2 (x : Nat) (L R : Tape) :
   have h4 : steps 2 ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons true (cons false (cons false (R))))))))))))))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons true (cons false (cons false (R))))))))))))))))), .A⟩ := rfl
   exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
 
+/-- `L 1 B> (10)^x+4 0 1 (10)^z+2 R` reaches `L A> 1 1 0 (10)^x 0 1 1 0 0 1 0 1 0 1 0 0 (10)^z R`. -/
+theorem w_mid_db (x z : Nat) (L R : Tape) :
+    steps (4 * x + 41) ⟨cons true (L), rep (x + 4) [true, false] (cons false (cons true (rep (z + 2) [true, false] (R)))), .B⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))))))), .A⟩ := by
+  have hn : (x + 4) * 2 + (30 + (1 + (0 + ((x) * 2 + (2))))) = 4 * x + 41 := by omega
+  have c0 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, false] R, .B⟩ = some ⟨app [] (app [true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : steps ((x + 4) * 2) ⟨cons true (L), rep (x + 4) [true, false] (cons false (cons true (rep (z + 2) [true, false] (R)))), .B⟩ = some ⟨rep (x + 4) [true, false] (cons true (L)), cons false (cons true (rep (z + 2) [true, false] (R))), .B⟩ :=
+    cross_r trans c0 (x + 4) (cons true (L)) (cons false (cons true (rep (z + 2) [true, false] (R))))
+  have h1 : steps 30 ⟨rep (x + 4) [true, false] (cons true (L)), cons false (cons true (rep (z + 2) [true, false] (R))), .B⟩ = some ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))), .F⟩ := rfl
+  have h2 : steps 1 ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))), .F⟩ = some ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R)))))))))))))), .A⟩ := rfl
+  have h3 : steps 0 ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R)))))))))))))), .A⟩ = some ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R)))))))))))))), .A⟩ := by
+    simp only [steps_zero, show cons false (rep (x) [true, false] (cons true (L))) = rep (x) [false, true] (cons false (cons true (L))) from
+      rep_rotate (x) [false] [true, false] [false, true] rfl (cons true (L))]
+  have c4 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, false] R), .A⟩ := fun _ _ => rfl
+  have h4 : steps ((x) * 2) ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R)))))))))))))), .A⟩ = some ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))))), .A⟩ :=
+    cross_l trans c4 (x) (cons false (cons true (L))) (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))))
+  have h5 : steps 2 ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons false (cons true (cons true (cons false (cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (z) [true, false] (R))))))))))))))))), .A⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 (h5))))))
+
+/-- `L 1 B> (10)^x+1 0 1 0 (10)^w+1 R` reaches `L A> 1 1 0 (10)^x 1 0 1 (10)^w+1 R`. -/
+theorem w_mid0_d (w x : Nat) (L R : Tape) :
+    steps (4 * x + 15) ⟨cons true (L), rep (x + 1) [true, false] (cons false (cons true (cons false (rep (w + 1) [true, false] (R))))), .B⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons true (cons false (cons true (rep (w + 1) [true, false] (R)))))))), .A⟩ := by
+  have hn : (x + 1) * 2 + (11 + (0 + ((x) * 2 + (2)))) = 4 * x + 15 := by omega
+  have c0 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, false] R, .B⟩ = some ⟨app [] (app [true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : steps ((x + 1) * 2) ⟨cons true (L), rep (x + 1) [true, false] (cons false (cons true (cons false (rep (w + 1) [true, false] (R))))), .B⟩ = some ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons false (rep (w + 1) [true, false] (R)))), .B⟩ :=
+    cross_r trans c0 (x + 1) (cons true (L)) (cons false (cons true (cons false (rep (w + 1) [true, false] (R)))))
+  have h1 : steps 11 ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons false (rep (w + 1) [true, false] (R)))), .B⟩ = some ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons true (cons false (cons true (rep (w + 1) [true, false] (R))))), .A⟩ := rfl
+  have h2 : steps 0 ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons true (cons false (cons true (rep (w + 1) [true, false] (R))))), .A⟩ = some ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons true (cons false (cons true (rep (w + 1) [true, false] (R))))), .A⟩ := by
+    simp only [steps_zero, show cons false (rep (x) [true, false] (cons true (L))) = rep (x) [false, true] (cons false (cons true (L))) from
+      rep_rotate (x) [false] [true, false] [false, true] rfl (cons true (L))]
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, false] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((x) * 2) ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons true (cons false (cons true (rep (w + 1) [true, false] (R))))), .A⟩ = some ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons true (cons false (cons true (rep (w + 1) [true, false] (R)))))), .A⟩ :=
+    cross_l trans c3 (x) (cons false (cons true (L))) (cons true (cons false (cons true (rep (w + 1) [true, false] (R)))))
+  have h4 : steps 2 ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons true (cons false (cons true (rep (w + 1) [true, false] (R)))))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons true (cons false (cons true (rep (w + 1) [true, false] (R)))))))), .A⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- `L 1 B> (10)^x+1 0 1 1 (10)^w+2 R` reaches `L A> 1 1 0 (10)^x 1 0 1 0 1 0 0 (10)^w R`. -/
+theorem w_mid0_b (w x : Nat) (L R : Tape) :
+    steps (4 * x + 31) ⟨cons true (L), rep (x + 1) [true, false] (cons false (cons true (cons true (rep (w + 2) [true, false] (R))))), .B⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R)))))))))))), .A⟩ := by
+  have hn : (x + 1) * 2 + (27 + (0 + ((x) * 2 + (2)))) = 4 * x + 31 := by omega
+  have c0 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, false] R, .B⟩ = some ⟨app [] (app [true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : steps ((x + 1) * 2) ⟨cons true (L), rep (x + 1) [true, false] (cons false (cons true (cons true (rep (w + 2) [true, false] (R))))), .B⟩ = some ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons true (rep (w + 2) [true, false] (R)))), .B⟩ :=
+    cross_r trans c0 (x + 1) (cons true (L)) (cons false (cons true (cons true (rep (w + 2) [true, false] (R)))))
+  have h1 : steps 27 ⟨rep (x + 1) [true, false] (cons true (L)), cons false (cons true (cons true (rep (w + 2) [true, false] (R)))), .B⟩ = some ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R))))))))), .A⟩ := rfl
+  have h2 : steps 0 ⟨cons false (rep (x) [true, false] (cons true (L))), cons true (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R))))))))), .A⟩ = some ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R))))))))), .A⟩ := by
+    simp only [steps_zero, show cons false (rep (x) [true, false] (cons true (L))) = rep (x) [false, true] (cons false (cons true (L))) from
+      rep_rotate (x) [false] [true, false] [false, true] rfl (cons true (L))]
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, false] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((x) * 2) ⟨rep (x) [false, true] (cons false (cons true (L))), cons true (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R))))))))), .A⟩ = some ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R)))))))))), .A⟩ :=
+    cross_l trans c3 (x) (cons false (cons true (L))) (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R)))))))))
+  have h4 : steps 2 ⟨cons false (cons true (L)), cons true (rep (x) [true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R)))))))))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (x) [true, false] (cons true (cons false (cons true (cons false (cons true (cons false (cons false (rep (w) [true, false] (R)))))))))))), .A⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
+/-- `L 1 B> (10)^x+1 1 1 (10)^z 1 R` reaches `L A> 1 1 0 (10)^x+1 (10)^z 1 R`. -/
+theorem w_merge_b (x z : Nat) (L R : Tape) :
+    steps (4 * x + 7) ⟨cons true (L), rep (x + 1) [true, false] (cons true (cons true (rep (z) [true, false] (cons true (R))))), .B⟩ = some ⟨L, cons true (cons true (cons false (rep (x + 1) [true, false] (rep (z) [true, false] (cons true (R)))))), .A⟩ := by
+  have hn : (x + 1) * 2 + (1 + (0 + ((x + 1) * 2 + (2)))) = 4 * x + 7 := by omega
+  have c0 : ∀ L R : Tape, steps 2 ⟨app [] L, app [true, false] R, .B⟩ = some ⟨app [] (app [true, false] L), R, .B⟩ := fun _ _ => rfl
+  have h0 : steps ((x + 1) * 2) ⟨cons true (L), rep (x + 1) [true, false] (cons true (cons true (rep (z) [true, false] (cons true (R))))), .B⟩ = some ⟨rep (x + 1) [true, false] (cons true (L)), cons true (cons true (rep (z) [true, false] (cons true (R)))), .B⟩ :=
+    cross_r trans c0 (x + 1) (cons true (L)) (cons true (cons true (rep (z) [true, false] (cons true (R)))))
+  have h1 : steps 1 ⟨rep (x + 1) [true, false] (cons true (L)), cons true (cons true (rep (z) [true, false] (cons true (R)))), .B⟩ = some ⟨cons false (rep (x + 1) [true, false] (cons true (L))), cons true (rep (z) [true, false] (cons true (R))), .A⟩ := rfl
+  have h2 : steps 0 ⟨cons false (rep (x + 1) [true, false] (cons true (L))), cons true (rep (z) [true, false] (cons true (R))), .A⟩ = some ⟨rep (x + 1) [false, true] (cons false (cons true (L))), cons true (rep (z) [true, false] (cons true (R))), .A⟩ := by
+    simp only [steps_zero, show cons false (rep (x + 1) [true, false] (cons true (L))) = rep (x + 1) [false, true] (cons false (cons true (L))) from
+      rep_rotate (x + 1) [false] [true, false] [false, true] rfl (cons true (L))]
+  have c3 : ∀ L R : Tape, steps 2 ⟨app [false, true] L, app [true] R, .A⟩ = some ⟨L, app [true] (app [true, false] R), .A⟩ := fun _ _ => rfl
+  have h3 : steps ((x + 1) * 2) ⟨rep (x + 1) [false, true] (cons false (cons true (L))), cons true (rep (z) [true, false] (cons true (R))), .A⟩ = some ⟨cons false (cons true (L)), cons true (rep (x + 1) [true, false] (rep (z) [true, false] (cons true (R)))), .A⟩ :=
+    cross_l trans c3 (x + 1) (cons false (cons true (L))) (rep (z) [true, false] (cons true (R)))
+  have h4 : steps 2 ⟨cons false (cons true (L)), cons true (rep (x + 1) [true, false] (rep (z) [true, false] (cons true (R)))), .A⟩ = some ⟨L, cons true (cons true (cons false (rep (x + 1) [true, false] (rep (z) [true, false] (cons true (R)))))), .A⟩ := rfl
+  exact steps_congr trans hn (steps_seq trans h0 (steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (h4)))))
+
 /-- `0^inf A> 1 (10)^x 0 (10)^y+2 R` reaches `0^inf A> 1 1 0 1 (01)^x 0 1 (10)^y+1 R`. -/
 theorem own_pair_dot (x y : Nat) (R : Tape) :
     steps (4 * x + 18) ⟨blank, cons true (rep (x) [true, false] (cons false (rep (y + 2) [true, false] (R)))), .A⟩ = some ⟨blank, cons true (cons true (cons false (cons true (rep (x) [false, true] (cons false (cons true (rep (y + 1) [true, false] (R)))))))), .A⟩ := by

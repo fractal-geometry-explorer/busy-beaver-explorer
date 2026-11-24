@@ -186,12 +186,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1RA1RF_0RB--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 24 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RD_1LC0RA_1LA0LB_1RE0LC_1RA1RF_0RB---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
   <div class="col"><p class="lede">Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>2.18&times;10<sup>16</sup> steps</b><span class="small">No halt in the exact accelerated engine shared by the trio (no extrapolation).</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>9</sup> steps</b><span class="small">No halt in the C simulator; 63,240 cells visited.</span></div>
     <div class="fact"><span class="ev n">native_decide</span><b>10<sup>7</sup> steps</b><span class="small">No halt, proved in Lean; the first 10,000 by the kernel alone.</span></div>
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
@@ -206,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#drain">A bouncer that drains a block</a><a href="#rebuild">Rebuilding the block</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#drain">A bouncer that drains a block</a><a href="#rebuild">Rebuilding the block</a><a href="#nested">Blocks inside blocks</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -295,6 +296,12 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Rebuilding the block</h2>
 <p>The middle part is hierarchical: long stretches of <code>a^2 w a^10 w</code>, then <code>a^8 w a^40 w</code> (four times as large), then a handful of large blocks (21, 333, 922, 530, 2289, ...). When the right block is used up, the head stays in the middle and right for a long time and builds the next right block out of this part (6363 pairs at step 3.85&middot;10<sup>9</sup>). Each rebuild takes longer. A halt (F reading 1) would have to happen during a rebuild; the rebuild rule is not written down.</p>
 </section>
+<section id="nested">
+  <span class="eyebrow">Emergent structure</span>
+  <h2>Blocks inside blocks</h2>
+<p>The inner phases build blocks inside blocks. The repeated words of the tape have 38, 110, 326, 974, 2918, 8750, 26246, 78734 and 236198 cells: at level <i>j</i>, 2 + 4&middot;3<sup><i>j</i>+2</sup> cells, each level three times the last minus 4. Each is two <code>c</code>s in a sea of <code>a</code>s, <code>c a^x c a^y</code> with x + y = 6&middot;3<sup><i>j</i>+1</sup> &minus; 6 (12, 48, 156, 480, ...). Level 0 is the <code>c a^2 c a^10</code> of the first inner phase. The same sizes appear in the three machines that share the outer phase. Observed in the runs, not proved.</p>
+<p>An exact engine shared by the three machines (<code>trio.py</code>) followed this run for 2.18&times;10<sup>16</sup> steps without a halt. It never guesses: each jump over many bounces is applied only after one bounce, run with symbolic counts, proved the rule for all counts that meet its guards.</p>
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -333,7 +340,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 24 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -350,6 +357,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>a_r_01</code>, <code>b_l_01</code>, <code>b_r_10</code>, <code>c_l_10</code>, <code>a_r_1010101</code>, <code>a_r_10101</code>, <code>a_r_0110101</code>, <code>b_r_1101010</code>, <code>lean/Rules.lean</code></div></div><div><b>Sweep rules</b><p>The head sweeps over long runs of a repeated word, rewriting each copy, for any number n of copies and any surrounding tape. Examples: <ul><li><code>L A&gt; (01)^n R</code> &rarr; <code>L (10)^n A&gt; R</code></li><li><code>L (01)^n B&gt; 0 R</code> &rarr; <code>L B&gt; 0 (01)^n R</code></li><li><code>L B&gt; (10)^n R</code> &rarr; <code>L (01)^n B&gt; R</code></li><li><code>L (10)^n C&gt; 1 R</code> &rarr; <code>L C&gt; 1 (10)^n R</code></li></ul>Generated by <code>py/rules.py</code> (tools/py/bbtools/symtm.py).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>Draining phases</b><p>At left extensions from step 302,136,397 the tape ends <code>... w^n 1 a^k w</code> with (n, k) = (648, 10159), (1048, 9759), ..., (10648, 159): n + k stays 10807 and one bounce moves one unit. A later phase starts at step 3,847,811,442 with a block of 6363 and drains the same way (n + k = 16925).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">this page</div></div><div><b>Rebuild phases</b><p>Between active phases the head stays away from the left end: steps 39.6&middot;10<sup>6</sup> to 295.8&middot;10<sup>6</sup> and 2.17&middot;10<sup>9</sup> to 3.85&middot;10<sup>9</sup>. The active phases started at steps 24.4&middot;10<sup>6</sup> (block 569), 295.8&middot;10<sup>6</sup> (10236) and 3.85&middot;10<sup>9</sup> (6363).</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>sweep0</code> .. <code>sweep3</code>, <code>lean/Rules.lean</code> (from <code>py/rules.py</code>)</div></div><div><b>The outer round trip</b><p>The round trip of the other two machines of the trio holds here too, since E0 is not read in it: <code>11010 w (10)^(k+2) 1</code> &rarr; <code>11010 c w (10)^(k+1) 1</code> for every word <i>w</i> with up to four blocks of <code>c</code>s and all exponents symbolic (sweep0 .. sweep3). The first outer phase, at step 19,276, has five blocks (<code>c^2 a^3 c a^40 c a^8 c a^5 c</code>, <code>k</code> = 46); the five-block rule is generated by the same code but its kernel check did not finish in 50 minutes.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio.py</code>, <code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio_far.py</code>, <code>data/trio_far.jsonl</code>, <code>data/trio_check.json</code></div></div><div><b>No halt in the first 2.18&times;10<sup>16</sup> steps of an exact accelerated run</b><p>The engine <code>trio.py</code>, shared by the three machines that differ only in E0, ran 2.18&times;10<sup>16</sup> steps from blank tape without reaching a halting transition. It never extrapolates: runs of a word are crossed by rules proved by induction on the copies, and a jump over many bounces is applied only after one bounce, run with symbolic counts and guards on every count-dependent decision, has proved the rule X(x) &rarr; X(x + d) for all counts meeting the guards. Its tape, state and head agree with a plain C simulator at every checkpoint, the last at 10,018,574,273 steps. The code itself is not proved.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio.py</code> (its group items)</div></div><div><b>Blocks inside blocks</b><p>The repeated words that the inner phases build have 2 + 4&middot;3<sup><i>j</i>+2</sup> cells at level <i>j</i> (38, 110, 326, 974, ... 236198), each two <code>c</code>s in a sea of <code>a</code>s with 6&middot;3<sup><i>j</i>+1</sup> &minus; 6 <code>a</code>s in all. Observed in the run, not proved.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The decider pipeline of bbchallenge left it open; no proof either way is recorded here yet.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB0LE_1RC1RF_1RD0RA_1LE0RC_1LC0LD_0RD--- up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1LC1LF_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1LB1LF_0LC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

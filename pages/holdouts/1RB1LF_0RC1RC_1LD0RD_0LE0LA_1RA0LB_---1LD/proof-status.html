@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">24 November 2026</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -179,6 +179,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Top-part forecast: the first timer exhaustions after 3.10&times;10<sup>89</sup> steps (start B) do not halt (124,266 overflow cycles)</h3>
         <p>The digit model counts at the bottom, so the first P digits (the top part) only see carries arriving from below. <code>py/forecast.py</code> keeps the top P digits of an exact state, replaces the rest by three zero digits with runs of 10<sup>60</sup>, runs this reduced tape with the exact condition-macro engine <code>cmacro.py</code> (the same digits.py window rules), and jumps K whole overflow cycles at once while every top run only moves by a constant per cycle. The model is the twin's (1RB1LE_..._---1LE started in state B, lean/Twin.lean). From the 16 November state at 3.10&times;10<sup>89</sup>, with P = 40: the timers 317,669 (about 40,000 cycles) and 1,186,943 are used up and refilled, and no window rule halts, splits or fails to parse in 124,266 cycles. The step counts are not computed (they depend on the lower part), and that the reduced model predicts the real top part is an argument (a merge at index j changes only digits j-1 and j) checked on data, not a proof. This is a bounded forecast.</p>
         <p class="where"><code>python3 holdouts/1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD/py/forecast.py run STATE.pkl P 3 CYCLES SECONDS</code> (test: <code>... test 60</code>); README, section of 21 November 2026 (group C)</p>
+      </div>
+      <div class="card">
+        <h3>Forecast from state B: the first two run-outs of the top timer do not halt (3.3&times;10<sup>6</sup> overflow cycles)</h3>
+        <p>This machine halts exactly when 1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE started in state B halts (proved). The top-part forecast of that run, from 3.10&times;10<sup>89</sup> steps, passed the top timer's run-out near overflow cycle 378,000 (residue 0) and near cycle 1,106,860 (residue 2: the two top timers are used up and the deeper ones rebuilt) without a halt, a split or an unreadable tape. The new top timer, 2,331,944,982 words, lasts about 7.8&times;10<sup>8</sup> more cycles. A forecast, not a bound on steps.</p>
+        <p class="where"><a href="../1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/README.md">the twin's README</a>, section of 24 November 2026</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

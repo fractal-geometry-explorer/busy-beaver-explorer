@@ -83,6 +83,51 @@ Observed, not proved: the accelerated simulator `rsim.py` ran 3.69x10^11 steps f
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB--- 400
 ```
 
+## Shared exact engine (24 November 2026)
+
+The three machines `1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---`, `1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---` and
+`1RB0RD_1LC0RA_1LA0LB_1RE0LC_1RA1RF_0RB---` differ only in E0, which their outer round trip never reads; one engine,
+[`trio.py`](../1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio.py), runs all three. It is exact: it never
+extrapolates.
+
+- *Sweeps.* A run of n copies of a word is crossed at once when one copy, run on its own with up to three cells of
+  context, gives back the same state and context (induction on n).
+- *Bounce jumps.* From a turn of the head, every run it touches gets a variable for its count; counts and the step
+  counter are carried along as affine forms and every decision that depended on a count is recorded as a guard. If a
+  later turn has the same state, head cells and (after a string-preserving canonical form: each run turned to the least
+  rotation of its word, absorbing the whole copies next to it) the same tape with every count shifted by a constant,
+  that stretch of run is a proof, for all counts that meet the guards, of a rule `X(x) -> X(x + d)`. The jump applies
+  it as many times as the guards allow, with the exact step sum.
+- *Groups.* Repeated sequences of runs become one run of a longer word, up to 4096 cells.
+
+So a jump here is a theorem about the machine checked by running it symbolically, not an observation; what is not
+proved is the Python code itself. [`trio_check.py`](../1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio_check.py)
+compares tape, state and head with the plain C simulator.
+
+**Result.** From blank tape the engine ran 1.76·10^13 steps of this machine in 2 hours on one core without reaching a halting transition. Its tape, state and head were equal to the C simulator's at 6 step counts, the last at 10,630,096,004 (`data/trio_check.json`). Unlike the older `rsim.py` run above, the steps after the last check rest on exact rules, with no extrapolation; they are still a computation, not a Lean proof.
+
+**Returns to the left end** (start of an outer phase), from `data/trio_far.jsonl`: the step, the visited width in cells, and the front and back of the tape as the engine stores it (`[n]` is a group word of n cells, `0110101` and `0101011` are the front c's seen from a pass).
+
+| step | cells | front | back |
+|---|---|---|---|
+| 12,999,583 | 6,433 | `01^18 1 01^17 [39]^2 01^34 1 01^19 1 01^35 1 01^19 1` | `1 01^179 1 01^120 1 01^559 1 01^324 1 01^269 1 01^1188` |
+| 42,506,134 | 12,362 | `0101011^1181 01^10 1 01^5 1 01^19 1 01^17 [39] 01^17 0 [110]` | `1 01^179 1 01^120 1 01^559 1 01^324 1 01^269 1 01^2` |
+| 4,182,562,330 | 126,348 | `0110101^1159 01^6 [110]^11 01^12 [23]^2 01^42 1 01^11 1 01^9` | ` 01^168 1 01^2971 1 01^3888 1 01^19919 1 01^14454 1 01^15402` |
+| 10,630,465,330 | 203,348 | `0110101^16558 01 1 01 [110]^13 01^76 1 01 [974]^3 01^60 1 01` | `1 01^168 1 01^2971 1 01^3888 1 01^19919 1 01^14454 1 01^2` |
+| 97,911,523,842 | 563,570 | `10^2 1 01011010101^2 [38]^8279 01^10 1 01 [326]^6 01^28 1 01` | `01^1411 1 01^2963 1 01^1512 1 01^26755 1 01^34992 1 01^42512` |
+| 170,952,673,512 | 776,116 | `0110101^42504 01 1 01 [38]^8281 01^2 1 01 [326]^5 01^89 1 01` | `1 01^1411 1 01^2963 1 01^1512 1 01^26755 1 01^34992 1 01^2` |
+
+**Nested blocks (observed).** The inner phases build blocks inside blocks. The groups the engine forms are runs of
+words of 38, 110, 326, 974, 2918, 8750, 26246, 78734 and 236198 cells: 2 + 4·3^(j+2) cells at level j, each level 3
+times the last minus 4. Each such word is two c's in a sea of a's, `c a^x c a^y`, with x + y = 6·3^(j+1) − 6 (12, 48,
+156, 480, ...); level 0 is the `c a^2 c a^10` of the first inner phase. The same sizes appear in all three machines
+(the largest ones only in runs that allowed longer groups than the 4096 cells of the final runs).
+
+```sh
+python3 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio_check.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB--- 1e6,1e7,1e8,1e9,3e9,1e10    # a few minutes
+python3 holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio_far.py 1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB--- 7200 out.jsonl snap.pkl            # the far run (resumable)
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/explainer.html`](../../pages/holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LD1RF_0RB---/explainer.html)

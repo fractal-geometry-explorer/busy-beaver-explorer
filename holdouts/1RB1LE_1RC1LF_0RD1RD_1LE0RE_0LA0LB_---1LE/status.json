@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "24 November 2026",
  "verdict": [
   "<b>The question is open.</b> The counter rounds and the E-chain that leads to the halting transition are proved in Lean for all lengths; the map from one right-end visit to the next is computed exactly when no timer runs out, and by examples when one does. No invariant that rules out the halting residue has been found."
  ],
@@ -112,9 +112,27 @@
    "where": "<code>python3 holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/forecast.py run STATE.pkl P 3 CYCLES SECONDS</code> (test: <code>... test 60</code>); README, section of 21 November 2026 (group C)"
   },
   {
+   "level": "kernel",
+   "title": "The arithmetic of the timer map",
+   "text": "For any list of timers, K translation cycles (timer k losing 3 for k = 1 and 2&middot;4<sup>k&minus;1</sup> below) equal one jump by K times the decrements (<code>step_iter</code>); a cycle keeps the top timer's residue mod 3 (<code>top_residue</code>), so it runs out with the residue it has now (<code>top_runout</code>); and the residues and lifetimes of the top timers recorded in the long runs (<code>A_second_runout</code> &hellip; <code>B_third_runout</code>). The map itself is computed, not proved here.",
+   "where": "<code>lean/TimerMap.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The exact timer map on the real run: 75 timers",
+   "text": "An exact overflow cycle of the full state at 5.71&times;10<sup>90</sup> steps (no reduction) reads the tape as <code>W0 W0 ([T<sub>k</sub>] W2 [0] W0)</code> for k = 1 &hellip; 75, and every timer moves by exactly T<sub>1</sub> &minus; 3, T<sub>k</sub> &minus; 2&middot;4<sup>k&minus;1</sup> (9, 24, 96, 384 &hellip; cells). Lifetimes at that point: 377,828 cycles for T<sub>1</sub>, 39,741 for T<sub>2</sub>, 99,526 for T<sub>3</sub>, a few cycles at the bottom, where run-outs happen almost every cycle.",
+   "where": "<code>python3 holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/timermap.py exact</code>; README, section of 24 November 2026"
+  },
+  {
+   "level": "heuristic",
+   "title": "Forecast: the first two run-outs of the top timer do not halt, from blank tape and from state B (3.3&times;10<sup>6</sup> overflow cycles)",
+   "text": "The top-part forecast (top 40 digits, lower part replaced) continued to 3.3 million overflow cycles from 5.71&times;10<sup>90</sup> (start A) and from 3.10&times;10<sup>89</sup> (start B, the twin's question). The top timer ran out near cycle 378,000 in both runs (residue 0: every timer moves up one level) and again near cycle 1,107,000 (A: residue 0; B: residue 2, which also uses up the second timer and rebuilds the deeper ones). No window rule halted, split or failed to parse. Run-outs at residues 0, 1 and 2 set up by hand do not halt either. At overflow level the reduced model agrees with an exact run on all 138 cycles compared (top 4 timers); that it keeps agreeing is an argument checked on data. A forecast, not a bound on steps.",
+   "where": "<code>py/timermap.py cont</code>, <code>runout</code>, <code>compare</code>; README, section of 24 November 2026; logs in the project's halt-hunt/99198-timer-map"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known: the exhaustion cases of the right-end map are not in closed form, and no invariant excluding a chain on a run of length 2 mod 3 is known. Regular-language (CTL) searches over counter tokens failed.",
+   "text": "Not known. The timer map at overflows is known (computed) and the top timer's three run-out cases do not halt in the contexts tried, but there is no proof that no run-out ever produces the E-chain on a run of length 2 mod 3, and no exact run reaches the top run-outs (the full state costs 10 to 20 s per cycle).",
    "where": ""
   }
  ],
@@ -191,9 +209,174 @@
      "<p>At a right-end visit the tape is just a list of blocks of ones. If none is too small, the next visit is exact: a new block 6·4<sup>m</sup>+4 appears on the left and the block j places from the right loses 9 (j = 0) or 6·4<sup>j</sup>. When a block runs out, the result depends on it modulo 12 and neighbouring blocks can merge; this part, and an invariant on block lists that keeps the bad residue away, are what a proof still needs.</p>",
      "<p>Searches for a regular invariant (CTL) failed: forgetting the sizes of the blocks lets a tiny timer be eaten into a run of the bad length.</p>"
     ]
+   },
+   {
+    "id": "timermap",
+    "eyebrow": "24 November 2026",
+    "heading": "The timer map, and what a run-out does",
+    "html": [
+     "<p>At every overflow the whole tape is a stack of timers: runs T<sub>1</sub>, T<sub>2</sub>, &hellip; of the word <code>110</code>, top first. One overflow cycle takes 3 words from T<sub>1</sub> and 2&middot;4<sup>k&minus;1</sup> from T<sub>k</sub> (measured exactly on all 75 timers of the real run at 5.71&times;10<sup>90</sup> steps). Deep timers run out almost every cycle; that is the counter at work. The top timer lasts hundreds of thousands of cycles, and when it runs out what happens depends on its residue mod 3, which only a run-out of T<sub>2</sub> can change.</p>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>T<sub>1</sub> at run-out</th><th>what happens</th></tr></thead><tbody><tr><td>0 mod 3</td><td>dropped; every timer moves up a level</td></tr><tr><td>1 mod 3</td><td>leaves <code>[1]W0</code>, used up next cycle, then the same shift</td></tr><tr><td>2 mod 3</td><td>a carry through every digit; T<sub>1</sub> and T<sub>2</sub> both go and the deeper timers are rebuilt</td></tr></tbody></table></div>",
+     "<p>None of the three halts. The forecast runs reached two top run-outs in each start (blank tape: residues 0 and 0; state B: 0 and 2) within 3.3 million cycles, without a halt. Try the map below: the step jumps whole cycles until the top timer is about to run out.</p>"
+    ],
+    "stepper": {
+     "tape": "overflow: W0 W0 [T1] W2 [0] W0 [T2] W2 [0] W0 [T3] W2 [0] W0 [T4] W2 …",
+     "vars": [
+      {
+       "name": "T1",
+       "label": "top timer T1",
+       "start": "8170395"
+      },
+      {
+       "name": "T2",
+       "label": "T2",
+       "start": "38953792"
+      },
+      {
+       "name": "T3",
+       "label": "T3",
+       "start": "2488339020"
+      },
+      {
+       "name": "T4",
+       "label": "T4",
+       "start": "26779351298"
+      }
+     ],
+     "counters": [
+      {
+       "name": "c",
+       "label": "overflow cycles",
+       "start": "380960"
+      }
+     ],
+     "rules": [
+      {
+       "name": "1000 cycles",
+       "level": "trusted",
+       "text": "Every timer loses 1000 times its decrement: 3000, 8000, 32000, 128000 words.",
+       "guard": [
+        {
+         "form": {
+          "T1": 1,
+          "_": -3003
+         },
+         "text": "T1 &ge; 3003"
+        },
+        {
+         "form": {
+          "T2": 1,
+          "_": -8008
+         },
+         "text": "T2 &ge; 8008"
+        }
+       ],
+       "set": {
+        "T1": {
+         "T1": 1,
+         "_": -3000
+        },
+        "T2": {
+         "T2": 1,
+         "_": -8000
+        },
+        "T3": {
+         "T3": 1,
+         "_": -32000
+        },
+        "T4": {
+         "T4": 1,
+         "_": -128000
+        }
+       },
+       "add": {
+        "c": {
+         "_": 1000
+        }
+       }
+      },
+      {
+       "name": "one cycle",
+       "level": "trusted",
+       "text": "T1 &minus; 3, T2 &minus; 8, T3 &minus; 32, T4 &minus; 128.",
+       "guard": [
+        {
+         "form": {
+          "T1": 1,
+          "_": -3
+         },
+         "text": "T1 &ge; 3"
+        },
+        {
+         "form": {
+          "T2": 1,
+          "_": -8
+         },
+         "text": "T2 &ge; 8"
+        }
+       ],
+       "set": {
+        "T1": {
+         "T1": 1,
+         "_": -3
+        },
+        "T2": {
+         "T2": 1,
+         "_": -8
+        },
+        "T3": {
+         "T3": 1,
+         "_": -32
+        },
+        "T4": {
+         "T4": 1,
+         "_": -128
+        }
+       },
+       "add": {
+        "c": {
+         "_": 1
+        }
+       }
+      },
+      {
+       "name": "run-out, residue 0",
+       "level": "heuristic",
+       "text": "T1 = 0: the timers move up one level and lose 4, 22, 94 words in that cycle (seen in both runs). T4 becomes the next timer down, not shown here, so it is left as it was.",
+       "guard": [
+        {
+         "form": {
+          "T1": -1
+         },
+         "text": "T1 = 0"
+        }
+       ],
+       "set": {
+        "T1": {
+         "T2": 1,
+         "_": -4
+        },
+        "T2": {
+         "T3": 1,
+         "_": -22
+        },
+        "T3": {
+         "T4": 1,
+         "_": -94
+        }
+       },
+       "add": {
+        "c": {
+         "_": 1
+        }
+       }
+      }
+     ],
+     "note": "Start: run A (blank tape) at log cycle 380,960, just after its first top run-out. T1 is 0 mod 3, so it reaches exactly 0 (rule 3). The 1 and 2 mod 3 cases need the deeper tape and are not modelled here."
+    }
    }
   ]
  },
- "summary": "A base-4 counter on the left; its overflows reach timer blocks on the right that lose 9, 24, 96, 384, … ones per visit (exact map when none runs out); halting needs an E-chain on a run of length 2 mod 3 (proved). Twin: 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD, which halts exactly when this machine started in state B halts (proved); two separate questions.",
+ "summary": "A base-4 counter on the left; its overflows reach timer blocks on the right that lose 9, 24, 96, 384, … ones per visit (exact map when none runs out); halting needs an E-chain on a run of length 2 mod 3 (proved). Twin: 1RB1LF_0RC1RC_1LD0RD_0LE0LA_1RA0LB_---1LD, which halts exactly when this machine started in state B halts (proved); two separate questions. Timer map at overflows measured exactly on all 75 timers; forecast through the first two run-outs of the top timer (both starts), no halt.",
  "decision": "open"
 }
