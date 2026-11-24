@@ -66,6 +66,12 @@
    "where": "<code>step1</code>, <code>lean/StepRule.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Every step of the walk from five of its reading states",
+   "text": "Lean proves 65 step theorems: for the reading states 1001 (both headers), 11, 1 and 001 of the walk, and every family of digits the walk reads from them (a run of r digits for every r, and the short cases), the machine goes from the clean configuration to the next one with the rest of the counter untouched, and the new down-counter is a known block of low digits followed by a rest z whose length and value are given (val z is an affine function of val v0 and 2<sup>2r</sup>), for every down-counter v0 above a bound 2<sup>2r+b</sup>. Each step is a chain of local passes, phases of ticks and carries. The passes are proved by symtm on the counters' own blocks, with the re-bracketing proved in Lean (<code>py/symglue.py</code>); the phases use <code>Phase.lean</code>; a carry with a borrow through any number of trailing zeros of V is one new general lemma (<code>carry_dec</code>). <code>py/gen_fam.py</code> finds the passes by fitting concrete runs and writes the theorems. Still missing for a proof of the whole map: the reading states 0001 (whose families have two runs), the first step of a rebuild, and the induction over the digits that composes the steps.",
+   "where": "<code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/Steps_*.lean</code>, <code>StepKit.lean</code>, <code>Glue.lean</code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -152,15 +158,16 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Lean proves the ticks, any phase of ticks, 38 short rebuild classes and one family of rebuilds for every k. The whole rebuild is now written in closed form (checked against the exact rebuild, not proved in Lean), and Lean proves that for this map only a walk over more than (2L &minus; 1)/9 of the counter's L digits can halt. What is missing is a proof of that map and, above all, an invariant of the counter that keeps every walk away from its top: the long walks keep reading about 9% of the counter, generation after generation, and nothing proved prevents a longer one.",
+   "text": "Not known. Lean proves the ticks, any phase of ticks, 38 short rebuild classes, one family of rebuilds for every k, and every step of the walk from the reading states 1001, 11, 1 and 001 (65 step theorems). The whole rebuild is now written in closed form (checked against the exact rebuild, not proved in Lean), and Lean proves that for this map only a walk over more than (2L &minus; 1)/9 of the counter's L digits can halt. What is missing is a proof of that map and, above all, an invariant of the counter that keeps every walk away from its top: the long walks keep reading about 9% of the counter, generation after generation, and nothing proved prevents a longer one.",
    "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase (any run of ticks), Family + FamilyRule (the family, every k), DeltaBound (delta < 2^((7j-1)/2)), StepPasses + StepRule (one walk step, every length)",
+  "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase (any run of ticks), Family + FamilyRule (the family, every k), DeltaBound (delta < 2^((7j-1)/2)), StepPasses + StepRule (one walk step, every length), Glue + StepKit + Steps_* (65 walk steps)",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/delta_cases.py 3000 > /tmp/DeltaCheck.lean && (cd holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean && LEAN_PATH=$LEANLIB:out:../../../tools/lean/out lean /tmp/DeltaCheck.lean)   # the Lean walk = py/map.py walk",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_steps.py > holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/StepPasses.lean",
+  "(cd holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py && python3 gen_all_steps.py)      # writes lean/Steps_*.lean",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB validate 120          # macro run = counters.py run, state by state",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB run 1500        # the macro run, one line per rebuild",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB halting 12      # which rebuilds halt, N < 2^12",
