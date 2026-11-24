@@ -149,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>A set of residue classes that holds the orbit, is kept by the map and misses every h<sub>k</sub> would prove non-halting. There is none for any modulus dividing 2<sup>16</sup>&middot;3<sup>9</sup> = 1,289,945,088 (so for every 2<sup>j</sup>&middot;3<sup>i</sup> with j &le; 16, i &le; 9). With v = n + k + 6 &minus; 5&middot;2<sup>k</sup> (zero exactly at h<sub>k</sub>) the step is v&prime; = 3v + 2 + 5&middot;2<sup>k</sup> + k&prime; &minus; 5&middot;2<sup>k&prime;</sup>; a congruence sees only (v, k, 2<sup>k</sup>) mod M, and at a high level every residue of v occurs both where the level stays and where it goes up by one (<code>realize</code>), so a congruence invariant has to survive both choices. A path of 34 choices leads from the residues of the run to v = 0, which rules out every invariant (<code>no_inv</code>, <code>no_inv_dvd</code>). The paths are found by <code>py/congruence.py</code> and checked by the kernel, for the starts of all three machines that iterate this map (n = 4, 10 and 1 after 40 map steps).</p>
         <p class="where"><code>no_cong_4</code>, <code>no_cong_10</code>, <code>no_cong_1</code>, <code>no_inv</code>, <code>realize</code>, <code>lean/Congruence.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No congruence of any modulus can prove it never halts</h3>
+        <p>For <b>every</b> modulus M: every property of the residues of v = n &minus; h<sub>k</sub>, k and 2<sup>k</sup> mod M that misses the h<sub>k</sub> and is kept by the macro step from level K on holds at no value of any level &ge; K. The proof builds the path for every M at once: moving a level increment one step later changes v by &minus;3<sup>r</sup>&middot;&delta;(k), &delta;(k) = 3 &minus; 10&middot;2<sup>k</sup>, with &delta;(k+1) = 2&delta;(k) &minus; 3; for M = 3<sup>a</sup>&middot;m (3 &#8740; m), m periodic segments with two such swaps each reach every residue mod m, and a tail of a steps at a level with 2&middot;3<sup>a</sup> | k + 2 makes v &equiv; 0 mod 3<sup>a</sup>. So no congruence, and no closed set of 2-adic classes, traps the run from any start, for all three machines that iterate this map. Core Lean, standard axioms.</p>
+        <p class="where"><code>no_cong_ever</code>, <code>no_cong_any</code>, <code>reach</code>, <code>run_swap</code>, <code>run_zeros</code>, <code>lean/CongAll.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -186,6 +191,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/congruence.py all 20000</code>, <code>py/congruence.py grid 12 7</code></p>
       </div>
       <div class="card">
+        <h3>No trap from the size of n combined with residues</h3>
+        <p>In x = v/(5&middot;2<sup>k</sup>) the map is x &rarr; 3x (x &lt; 1/3, level stays) or x &rarr; (3x&minus;1)/2 (x &ge; 1/3, level up), two full branches; the halt is landing exactly on x = 0 from x = 1/3. Combining up to 81 cells of x with v and k mod 2<sup>j</sup> (j &le; 5), every one of up to 82,944 abstract states reaches a halting transition, so no trap of that shape exists either.</p>
+        <p class="where"><code>py/trapsize.py</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB1RE_1LC0RA_1RD0LB_1LB1RC_1LF0RD_---0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LC_1RC0LD_1LA0RB_1LB1LE_1RF0LA_---0RE up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -213,7 +223,8 @@ holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/lean/check.sh
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py check 200000
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py orbit 1e10
 gcc -O2 -o pevents holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/c/pevents.c &amp;&amp; ./pevents 10000000000
-python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5</code></pre>
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/trapsize.py   # ~2 min</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

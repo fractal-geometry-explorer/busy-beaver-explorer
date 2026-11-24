@@ -310,6 +310,41 @@ theorem restart2 (n x : Nat) (ds : List Nat) (hds : ∀ w ∈ ds, 2 ≤ w) (R : 
       some (cfg (n + 1) ((x + 4) :: ds) (rep 2 [true, false] (cons true (cons true (cons false (cons false R)))))) :=
   sweep_gen n ds hds _ _ _ (fun L => w_restart2 x L R)
 
+/-! ## Rarer window rules, first met far out in the run (`py/blockmap.py`) -/
+
+/-- `x . 0 ! z` with `z ≥ 2` becomes `x sep 3 . z-2`: `x` is done (first met at sweep about 2·10^16). -/
+theorem mid_db (n x z : Nat) (ds : List Nat) (hds : ∀ w ∈ ds, 2 ≤ w) (R : Tape) :
+    ∃ k, steps k (cfg (n + 3) ds (rep (x + 4) [true, false] (cons false (cons true (rep (z + 2) [true, false] R))))) =
+      some (cfg (n + 1) ((x + 4) :: ds) (rep 3 [true, false] (cons false (rep z [true, false] R)))) :=
+  sweep_gen n ds hds _ _ _ (fun L => w_mid_db x z L R)
+
+/-- `x . 0 ! 0 . w` with `w ≥ 1` becomes `x+4 ! w`. -/
+theorem mid0_d (n x w : Nat) (ds : List Nat) (hds : ∀ w ∈ ds, 2 ≤ w) (R : Tape) :
+    ∃ k, steps k (cfg (n + 3) ds (rep (x + 1) [true, false] (cons false (cons true (cons false
+        (rep (w + 1) [true, false] R)))))) =
+      some (cfg (n + 1) ds (rep (x + 5) [true, false] (cons true (rep (w + 1) [true, false] R)))) := by
+  obtain ⟨k, h⟩ := sweep_gen n ds hds _ _ _ (fun L => w_mid0_d w x L R)
+  refine ⟨k, h.trans (congrArg (fun t => some (cfg (n + 1) ds t)) ?_)⟩
+  simp only [preA]; rw [sfxw]; rfl
+
+/-- `x . 0 ! 0 ! w` with `w ≥ 2` becomes `x+6 . w-2`. -/
+theorem mid0_b (n x w : Nat) (ds : List Nat) (hds : ∀ w ∈ ds, 2 ≤ w) (R : Tape) :
+    ∃ k, steps k (cfg (n + 3) ds (rep (x + 1) [true, false] (cons false (cons true (cons true
+        (rep (w + 2) [true, false] R)))))) =
+      some (cfg (n + 1) ds (rep (x + 7) [true, false] (cons false (rep w [true, false] R)))) := by
+  obtain ⟨k, h⟩ := sweep_gen n ds hds _ _ _ (fun L => w_mid0_b w x L R)
+  refine ⟨k, h.trans (congrArg (fun t => some (cfg (n + 1) ds t)) ?_)⟩
+  simp only [preA]; rw [sfxw, sfxw, sfxw]; rfl
+
+/-- `x ! 0 ! z !` becomes `x+4+z !` (as `merge`, with `!` after `z`). -/
+theorem merge_b (n x z : Nat) (ds : List Nat) (hds : ∀ w ∈ ds, 2 ≤ w) (R : Tape) :
+    ∃ k, steps k (cfg (n + 3) ds (rep (x + 1) [true, false] (cons true (cons true (rep z [true, false] (cons true R)))))) =
+      some (cfg (n + 1) ds (rep (x + 5 + z) [true, false] (cons true R))) := by
+  obtain ⟨k, h⟩ := sweep_gen n ds hds _ _ _ (fun L => w_merge_b x z L R)
+  refine ⟨k, h.trans (congrArg (fun t => some (cfg (n + 1) ds t)) ?_)⟩
+  show rep (x + 5) [true, false] (rep z [true, false] (cons true R)) = _
+  rw [← rep_add]
+
 /-! ## The pair rule on the fuel block itself -/
 
 /-- `A>1 (10)^x s (10)^(y+2) R`. -/

@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href="../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p></p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -186,6 +186,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No small finite-automata certificate</h3>
         <p>A finite-automata-reduction search (a DFA of n states on one side of the head, the least co-closed NFA on (state × DFA state) + bottom for the other) finds no certificate with n &le; 7 (23,836,540 DFAs at n = 7), with the DFA on the left or on the right.</p>
         <p class="where"><code>../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c</code>: <code>./far M 7</code>, <code>./far M 7 m</code></p>
+      </div>
+      <div class="card">
+        <h3>The far end is a conveyor (the twin's eighth pass)</h3>
+        <p>This machine's rounds are the twin's token tapes. There the clean tape after each visit has v = 16/15 &minus; c&middot;2<sup>&minus;m</sup> + O(2<sup>&minus;2m</sup>), its digit-only end is exactly that number's binary expansion below height 2m &minus; 11, and below height m every digit climbs 4 heights per round unchanged. A defect that reaches these exact layers dies within 20 words, with at most one visit needed. Open in this form: that no defect dies inside them, and the two-round height monotonicity.</p>
+        <p class="where"><code>python3 ../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200</code></p>
       </div>
       <div class="card">
         <h3>The run as rounds of one function</h3>

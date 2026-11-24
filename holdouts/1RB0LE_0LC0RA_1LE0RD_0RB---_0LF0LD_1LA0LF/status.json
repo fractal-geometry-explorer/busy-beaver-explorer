@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt.",
   "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.",
@@ -72,6 +72,24 @@
    "title": "A counter",
    "text": "A word per visit and twice the time per word is the signature of a binary counter whose digits are the gaps; the drops of k are its carries reaching further into the tape.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The value law, to second order",
+   "text": "For the clean tape W<sub>k</sub> that round k's visit leaves: v(W<sub>k</sub>) = 16/15 &minus; c&middot;2<sup>&minus;m</sup> + r with c = 288/127 (k even) or 145/127 (k odd) and |r| &lt; 351&middot;2<sup>&minus;2m</sup>, in every round from 40 to 6,000 (exact integers). In even rounds the digit-only end Z is, digit for digit, the binary expansion of 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup> below height 2m &minus; 11: the period-4 and period-28 layers are this number.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The far end is a conveyor",
+   "text": "Each round appends 4 digits at the far end and moves every digit of Z below height m exactly 4 heights up, unchanged. A digit flipped in round 200 at height 5 stays the only difference and climbs 4 heights per round for 25 rounds, until the front starts to rewrite it at height m. So an error in the tail shrinks 16 times per round in v: v pins the tail by pushing errors out, not by storing them.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A floor no defect crosses",
+   "text": "A defect that enters the exact layers of Z (heights 5 to 2m &minus; 8), as <code>x</code>, <code>1</code> or <code>z</code>, dies within 20 words. Its path never goes below height m &minus; 1, so it then needs at most one visit. So any round tape with Z exact below 2m &minus; 11 and its doubler-rich part at height m &minus; 1 or more kills its defect, whatever the irregular digits are. This is not an induction: a death inside the floor would lower it by up to about 20 heights, and nothing rules out such deaths repeating. In the run every death is at least 2m &minus; 9 high, and at least 2m + 211 from round 500 on.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
   },
   {
    "level": "open",
@@ -246,7 +264,8 @@
   "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py rec.bin",
   "cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py && python3 vasym.py 420",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000",
-  "python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py"
+  "python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py",
+  "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200   # the value law, exact Z, the floor, the conveyor (about 20 min)"
  ],
  "explainer": {
   "lede": "Nobody knows whether it halts. Read in the words <code>1010</code>, <code>000</code> and <code>100</code>, its tape is a binary counter with doublers, and each round sends one defect through it. Lean proves that a tape with at most one defect never halts within a round, and that from round 9 on the machine never halts if each round's defect needs at most one visit, a number read off the round's starting tape. In the run the defect needs 3 or 4 visits and gets 2<sup>k/2</sup>.",
@@ -281,6 +300,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "conveyor",
+    "eyebrow": "New, 24 November 2026",
+    "heading": "The far end is a conveyor",
+    "html": [
+     "<p>Take the clean tape a round's visit leaves, and give each digit 1 the weight 2<sup>&minus;h</sup> (h = doublers minus digits in front of it). The total is pinned to second order in every round checked (40 to 6,000):</p>",
+     "<p style=\"text-align:center\"><code>v = 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup> + O(2<sup>&minus;2m</sup>)</code> &nbsp; (k even; 145/127 for k odd; m = leading doublers)</p>",
+     "<p>The digit-only end of the tape <em>is</em> this number. Read from the far end, its digits are the binary expansion of 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup>, digit for digit, up to height 2m &minus; 11. Below height m that is 1.0001&nbsp;0001&nbsp;&hellip;, the period-4 layer; between m and 2m it is the period-28 layer.</p>",
+     "<svg viewBox=\"0 0 560 170\" role=\"img\" aria-label=\"The digit-only end of the tape by height: exact layers from the far end up to 2m, then the frozen and irregular digits, then the doubler-rich part where the defect dies\" style=\"width:100%;max-width:640px;height:auto;font:11px var(--mono);\"><rect x=\"20\" y=\"60\" width=\"110\" height=\"34\" fill=\"var(--head)\" stroke=\"var(--bg)\"/><rect x=\"130\" y=\"60\" width=\"110\" height=\"34\" fill=\"var(--accent)\" stroke=\"var(--bg)\"/><rect x=\"240\" y=\"60\" width=\"200\" height=\"34\" fill=\"var(--muted)\" stroke=\"var(--bg)\"/><rect x=\"440\" y=\"60\" width=\"100\" height=\"34\" fill=\"var(--line)\" stroke=\"var(--bg)\"/><text x=\"75\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">period 4</text><text x=\"185\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">period 28</text><text x=\"340\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">frozen, irregular</text><text x=\"490\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">doubler-rich</text><text x=\"20\" y=\"130\" text-anchor=\"start\" fill=\"var(--muted)\">0 (far end)</text><text x=\"134\" y=\"130\" text-anchor=\"start\" fill=\"var(--muted)\">m</text><text x=\"240\" y=\"130\" text-anchor=\"middle\" fill=\"var(--muted)\">2m</text><text x=\"440\" y=\"130\" text-anchor=\"middle\" fill=\"var(--muted)\">&asymp; 1.8 k</text><text x=\"130\" y=\"150\" text-anchor=\"middle\" fill=\"var(--fg2)\">front writes here</text><text x=\"440\" y=\"150\" text-anchor=\"middle\" fill=\"var(--halt, #d33)\">defect dies here</text><text x=\"130\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg2)\">exact: a floor no defect crosses</text><line x1=\"30\" y1=\"50\" x2=\"230\" y2=\"50\" stroke=\"var(--fg2)\"/><polygon points=\"230,46 238,50 230,54\" fill=\"var(--fg2)\"/><text x=\"30\" y=\"20\" text-anchor=\"start\" fill=\"var(--muted)\">4 new digits per round; every digit climbs 4 heights</text></svg>",
+     "<p><b>A conveyor.</b> Each round appends 4 digits at the far end, and every digit below height m climbs exactly 4 heights, unchanged. Flip one digit at height 5 in round 200 and it stays the only difference, climbing 4 per round, until the front starts rewriting at height m. An error in the tail is pushed out, 16 times smaller in v every round, so it never builds up.</p>",
+     "<p><b>A floor.</b> A defect that enters the exact layers anywhere, in any of its three forms, dies within 20 words. Its path never drops below height m &minus; 1, so it never needs more than one visit. Any round whose tape has these exact layers therefore kills its defect, however irregular the digits above them are.</p>",
+     "<p><b>Still open.</b> This works for one round, not yet for all of them. A defect that died <em>inside</em> the floor would lower it by up to about 20 heights, and nothing rules out such deaths repeating. In the run no defect ever comes close: from round 500 on every death is at least 211 heights above 2m (5,060 in round 6,000). The other missing piece is that the doubler-rich part keeps its heights, the two-round monotonicity, seen on 19,910 more random tapes with no exception.</p>"
+    ]
+   },
    {
     "id": "doublers",
     "eyebrow": "Decoded, 14 November 2026",

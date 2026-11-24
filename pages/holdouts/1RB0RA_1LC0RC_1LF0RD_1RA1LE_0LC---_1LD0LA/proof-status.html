@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>Open.</b> A counter with many digits: blocks (011)<sup>n</sup> separated by separators that cycle through a few forms and carry rightward, while the first block grows by one 011 every two sweeps. Block lengths fall off roughly geometrically to the right. The digit rules have not been written down completely.</p>
+      <p><b>Open.</b> A counter with many digits: blocks (011)<sup>n</sup> separated by separators <code>1</code>, <code>01</code>, <code>111</code> that the sweeps rewrite like odometer digits. The lowest three levels are exactly periodic, with periods 8, 16 and 64 sweeps; the levels above have no period up to 4,096 sweeps. Lean proves four of the eight sweeps of the lowest level for every block length. No halt in 3.1&middot;10<sup>16</sup> steps (run-length accelerator).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -121,6 +121,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Sweep rules</h3>
+        <p>D and A take turns crossing the blocks going right, turning each <code>011</code> into <code>100</code>. A whole sweep from the left end, for every length of the first two blocks and any tape beyond: with an even first block and separator <code>1</code>, the block gains one <code>011</code> and the separator becomes <code>01</code>; with an odd first block and separator <code>01</code>, the block gains two, the separator becomes <code>111</code> and the next block loses one. <code>1 D&gt; 1</code> halts.</p>
+        <p class="where"><code>walk_DA</code>, <code>sweep_1</code>, <code>sweep_01</code>, <code>halt_D</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -142,6 +147,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 3600 seconds and reached step 6.45&times;10<sup>14</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 99 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA 6 3600</code>; <code>holdouts/regaccel.json</code></p>
       </div>
+      <div class="card">
+        <h3>The counter's low levels are periodic</h3>
+        <p>In the 21,693 sweeps of the first 3&middot;10<sup>9</sup> steps, level 1 (S1, n1, S2) is exactly periodic with period 8 from sweep 10, level 2 with period 16 from sweep 60, level 3 with period 64 from sweep 224; levels 4 to 6 have no period up to 4,096.</p>
+        <p class="where"><code>c/leftsnaps.c</code>, <code>py/levels.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 3.1&middot;10<sup>16</sup> steps (run-length accelerator)</h3>
+        <p><code>tools/c/rleaccel.cpp</code> with blocks of 6 cells runs from blank tape to step 3.1&middot;10<sup>16</sup> without a halt; the tape is then 2.8&middot;10<sup>8</sup> cells wide.</p>
+        <p class="where"><code>g++ -O2 tools/c/rleaccel.cpp</code>; <code>rleaccel 1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA 6 N ck.bin</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -150,17 +165,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.503). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.169).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
-      <div class="card">
-        <h3>The structure of the run</h3>
-        <p>Bouncer growing to the left: the tape is blocks of the word 011 separated by short separators (1, 0 1, 1 1 1); the separators near the left end cycle with period 4 sweeps and carry to the right like counter digits, moving block material.</p>
-        <p class="where">README; <code>tools/c/tokrun.c</code>-style samples</p>
-      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. No closed rule set has been found; see the README for what a proof would need.</p>
+        <p>Not known. The low digits of the counter are regular; a proof would need a rule for what a carry does at every level, and the levels above the third show no regularity yet.</p>
       </div>
     </div>
   </section>

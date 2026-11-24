@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is always an alternating block <code>(10)^x</code> next to a solid block <code>1^y</code>, and the machine moves cells between them by doubling, back and forth. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -92,6 +92,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>What Lean proves.</b> The whole phase map, every case for all sizes (E(x, z) = <code>E&gt;0 (10)^x 1^z</code>, R(x, y) = <code>(10)^x 1^y C&gt;0</code> and the bounce frame Q(m, k, t) = <code>(10)^m 1 A&gt;0 0 (10)^k 1^t</code>), and <code>halts_iff</code>: the machine halts from blank tape if and only if the map, iterated from R(0, 2), which the blank tape reaches in 2 steps,, reaches E(x, 0) or E(x, 1). By <code>native_decide</code> the first 10<sup>8</sup> phases (about 4.1&middot;10<sup>21</sup> machine steps) do not. Lean also proves that the <em>even</em> phases lead only to even phases or to an all-ones tape, and checks, for every all-ones tape of length n &lt; 10<sup>5</sup>, that its run halts before the next even phase or all-ones tape exactly when n is 0, 6 or 32&middot;2<sup>k</sup> &minus; 2k &minus; 12 (20, 50, 112, 238, &hellip;). <code>lean/Fatal.lean</code> proves that list for every n, by the kernel (<code>ones_fatal_all</code>, <code>ones_safe_all</code>), and <code>lean/Ones.lean</code> puts this together (<code>halt_needs_ones</code>, strong induction on the number of phases): the machine halts from blank tape if and only if its run reaches an all-ones tape of fatal length. What is not proved: that the run never lands on a fatal length.</p>
       <p><b>Where a halt would come from.</b> F0 halts, and F is entered only from E0: E stands on the 0 at the left end and walks right with F over <code>0101&hellip;</code>, so a halt needs at most one 1 after the alternating block. Probing every two-block tape with sizes below 150, a parity rule keeps that from happening except right after the tape has become all ones; from <code>1^n C&gt;0</code> it halts for n = 20, 50, 112, 238 (n = 32&middot;2<sup>k</sup> &minus; 2k &minus; 12) and for 15 values of n below 40 (all n &le; 400 checked).</p>
       <p><b>Why it has not halted.</b> All-ones moments are rare: in the first 10<sup>9</sup> steps the tape was <code>1^n C&gt;0</code> at n = 2, 5, 10, 71, 279, 466, 763 and 3002, and between 10<sup>9</sup> and 10<sup>15</sup> steps only at n = 5882, 10234, 12114, 24455, 37818, 48395, 53042 and 405563. None is in the list. The machine very probably never halts, but nothing here proves it.</p>
+      <p><b>The recurrence, in closed form (24 November 2026).</b> Lean proves (<code>lean/Doubling.lean</code>) that at its left and right stops the run is the doubling map s &#8614; 2s mod L, with a modulus L that grows by 2 a stop; the all-ones tapes of the fatal parity reached from a stop come only from its midpoint 2s = L + 2, and have length L &minus; 4. A halt needs that midpoint exactly when L = 32&middot;2<sup>k</sup> &minus; 2k &minus; 8 (the only other source of all-ones tapes, an all-ones tape straight after another one, gives lengths that are never fatal, checked for n &lt; 3&middot;10<sup>5</sup>). A residue search on the whole phase map (moduli up to 48, and 2-adic up to 256) finds no congruence that rules this out, and in the doubling coordinates there can be none.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -162,6 +163,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>halt_needs_ones</code>: the machine halts from blank tape <b>if and only if</b> some iterate of <code>next</code> from R(0, 2), which the blank tape reaches in 2 steps, is an all-ones tape R(0, n) with n fatal (n = 0, 6 or 32&middot;2<sup>k</sup> &minus; 2k &minus; 12 (20, 50, 112, 238, &hellip;)). <code>halt_passes_ones</code> says the same in machine steps: a halting run passes through the configuration R(0, n) for a fatal n. The proof is a strong induction on the number of phases: by <code>ones_safe_all</code> a halt after a non-fatal all-ones tape comes after a later all-ones tape, so the last all-ones tape before the halt is fatal; conversely a fatal one halts (<code>ones_fate</code>).</p>
         <p class="where"><code>lean/Ones.lean</code></p>
       </div>
+      <div class="card">
+        <h3>At its stops the phase map is the doubling map s &#8614; 2s mod L</h3>
+        <p>At a left stop E(x, z) (z even) put s = z + 2, L = 2x + z + 8; at a right stop R(x, y) (y odd) put s = y + 5, L = 2x + y + 7. From every stop except the few below the next stop, one to three phases on, is again a stop, with L&prime; = L + 2 and s&prime; = 2s if 2s &le; L, s&prime; = 2s &minus; L otherwise (<code>doubling</code>, all sizes). The exceptions: the low end, s = 4 (E(x, 2), which goes to R(x, 3): s&prime; = 8 = 2s, but L stays) (<code>low</code>), and the midpoint 2s = L + 2, where the next stop is the all-ones tape of even length L &minus; 4 (<code>mid_ones</code>). The all-ones tapes of the other parity, the safe one, come from 2s = L inside the map. So the recurrence behind the all-ones lengths, in closed form, is the doubling map with a modulus that grows by 2 a stop; <code>1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE</code>, <code>1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE</code>, <code>1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE</code> run the same map with other offsets.</p>
+        <p class="where"><code>lean/Doubling.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -218,6 +224,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The run-length simulator <code>tools/c/rleaccel.cpp</code> (blocks of 2 cells, runs of a block crossed in one step, and cycle jumps, each used only after its one-cycle rule has been proved symbolically for all lengths above the minimums it needs; tested cell for cell against direct runs) runs 2,239,000,000 macro steps from blank tape without a halt, in 600 seconds. That is more than 8.16&middot;10<sup>23</sup> machine steps. It found no rule that repeats forever, so it does not decide the machine.</p>
         <p class="where"><code>g++ -O2 -o rleaccel tools/c/rleaccel.cpp && ./rleaccel 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 2 2239000000</code></p>
       </div>
+      <div class="card">
+        <h3>No congruence keeps the run off the fatal list</h3>
+        <p>The residue search of the doubling-map trio, on the whole phase map: for every modulus N from 2 to 48 and for N = 64, 96, 128, 192 and 256, the phase map taken mod N (every branch the residues allow, both halves of every bounce count) is run to a closed set of classes from the start; in every case some reachable all-ones class is a fatal length mod N. In the coordinates (s, L) there can be none: the two branches s &#8614; 2s and s &#8614; 2s &minus; L, with L &#8614; L + 2, reach every pair of residues of the right parity mod every N &le; 64. What keeps the run off the list is only which branch is taken, that is the size of s, not a residue (24 November 2026).</p>
+        <p class="where"><code>python3 holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/py/doubling.py residues 2 3 4 ... 48 64 96 128 192 256</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -236,6 +247,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From every two-block tape with x, y, z &lt; 150 the next one was computed. E(x,z) with z even &ge; 2 and C(x,y) with x &ge; 1, y odd lead only to tapes of the same kind or to an all-ones tape <code>1^n C&gt;0</code>, never to a halt; the machine halts only from E(x,0) and E(x,1). From <code>1^n C&gt;0</code> the run goes to E(0, n+1) and then E(4, n&minus;5); the alternating block grows 4, 12, 28, 60, &hellip; (x &#8614; 2x+4), and the run halts when the ones run out leaving exactly one: n = 20, 50, 112, 238, &hellip; = 32&middot;2<sup>k</sup> &minus; 2k &minus; 12. For n &le; 37 there are 15 more fatal values (1, 3, 6, 7, 9, 16, 18, 21, 22, 24, 29, 30, 31, 34, 37). All n &le; 400 checked directly; proved for all sizes in Lean since (the parity classes, the fatal lengths for every n and <code>halt_needs_ones</code>, below).</p>
         <p class="where"><code>py/phases.py probe</code>, <code>py/phases.py ones</code></p>
       </div>
+      <div class="card">
+        <h3>The chance of a halt from here on</h3>
+        <p>Leaving aside the relay lengths, whose targets are never fatal, a halt needs the midpoint 2s = L + 2 at a stop whose modulus is L = 32&middot;2<sup>k</sup> &minus; 2k &minus; 8 (then L &minus; 4 is a fatal length); those moduli double from one to the next. If s sits at a random place below L, the midpoint at a given stop has chance about 1/L, so the expected number of midpoint all-ones tapes up to modulus L is about &frac12; ln L: 7.1 for the first 20,000,000 phases (L up to 13,300,000), against 10 seen. The chance of ever reaching a fatal one beyond the 10<sup>11</sup> phases already run (L about 6.7&middot;10<sup>10</sup>) is about the sum of 1/L over the fatal moduli above it, below 10<sup>&minus;10</sup>.</p>
+        <p class="where"><code>python3 holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/py/doubling.py ones 20000000</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
@@ -250,7 +266,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 1000000000
-gcc -O2 -o mrun holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/c/mrun.c &amp;&amp; ./mrun 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 2 1000000000000</code></pre>
+gcc -O2 -o mrun holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/c/mrun.c &amp;&amp; ./mrun 1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE 2 1000000000000
+python3 holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/py/doubling.py check</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>
