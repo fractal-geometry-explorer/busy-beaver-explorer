@@ -8,11 +8,11 @@
  "home": "../index.html",
  "source": "holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/status.json",
  "intro": [
-  "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> followed by a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on."
+  "This six-state, two-symbol Turing machine, one of the holdouts left open by the bbchallenge project, <b>halts</b> when started on a blank tape, after 346,613,804,468,191,894,895,080,818,748,230,768,977,389 &asymp; 3.47&middot;10<sup>41</sup> steps. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> followed by a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on."
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.",
+  "<b>It halts.</b> The rules on A(a, b), proved in Lean (<code>halts_iff_rules</code>: the machine halts if and only if they lead from A(2, 9) to some A(a, 3)), reach A(139754396279488, 139754396279492) at visit 79,859,656,218,973: a even and b &minus; a = 4, so the next visit is A(279508792558980, 3) and the machine halts after 346,613,804,468,191,894,895,080,818,748,230,768,977,389 &asymp; 3.47&middot;10<sup>41</sup> steps. The orbit was followed in C three ways (blocks proved sound in Lean, one visit at a time in 80 segments with exact step counts, and the old runner over the last stretch), all agreeing.",
   "<b>What Lean proves.</b> The whole frame map: 6 tape shapes, 30 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 1 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 5.95&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.",
   "<b>The rules in Lean.</b> The wiki's recursion on the tapes A(a, b) is proved for all sizes from the frame map, so the machine halts if and only if the rules lead from A(2, 9) to some A(a, 3) (<code>halts_iff_rules</code>); by <code>native_decide</code> not in the first 10<sup>8</sup> visits (about 6.8&middot;10<sup>23</sup> machine steps). Iterated in C, up to 48 visits at a time with a block check proved sound in Lean (<code>block_ok</code>), the rules give no halt in the first 3.1&middot;10<sup>12</sup> visits (about 2.0&middot;10<sup>37</sup> steps). No congruence excludes the halt, and the orbit looks random: in that model it halts with probability 1, but only after many more decades."
  ],
@@ -139,9 +139,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 6.6&middot;10<sup>12</sup> visits (about 2.0&middot;10<sup>38</sup> steps)",
-   "text": "<code>c/abfast.c</code> follows the rules from A(2, 9) up to 48 visits at a time: it reads the next grow/swap digits off the binary expansion of b / (a + b), applies them formally and keeps the block only if both coordinates end at least 16&middot;2<sup>K</sup>, which <code>block_ok</code> in <code>lean/Block.lean</code> proves sound for any guessed digits (refused blocks are redone one visit at a time). 6.6&middot;10<sup>12</sup> visits without b = 3, ending at A(8096170023751, 15003829348773); 41 near visits (1 &le; b &minus; a &le; 8), none with a even and b &minus; a = 4. It reproduces <code>c/abrun.c</code>'s states and near visits at 10<sup>11</sup> and 3&middot;10<sup>12</sup> visits. Steps by T &asymp; 0.68&nbsp;N<sup>3</sup>.",
-   "where": "<code>gcc -O3 -march=native -o abfast c/abfast.c && ./abfast 6600000000000 100000000000</code> (about 1.7&middot;10<sup>9</sup> visits a second; resumable from any <code>prog</code> line of <code>c/abfast_log.txt</code>)"
+   "title": "No halt in the first 7.985&middot;10<sup>13</sup> visits (about 3.5&middot;10<sup>41</sup> steps)",
+   "text": "<code>c/abfast.c</code> follows the rules from A(2, 9) up to 48 visits at a time: it reads the next grow/swap digits off the binary expansion of b / (a + b), applies them formally and keeps the block only if both coordinates end at least 16&middot;2<sup>K</sup>, which <code>block_ok</code> in <code>lean/Block.lean</code> proves sound for any guessed digits (refused blocks are redone one visit at a time). 7.985&middot;10<sup>13</sup> visits without b = 3, ending at A(271312121921225, 8162873912833); 43 near visits (1 &le; b &minus; a &le; 8), none with a even and b &minus; a = 4. It reproduces <code>c/abrun.c</code>'s states and near visits at 10<sup>11</sup> and 3&middot;10<sup>12</sup> visits. Steps by T &asymp; 0.68&nbsp;N<sup>3</sup>.",
+   "where": "<code>gcc -O3 -march=native -o abfast c/abfast.c && ./abfast 79850000000000 100000000000</code> (about 1.7&middot;10<sup>9</sup> visits a second; resumable from any <code>prog</code> line of <code>c/abfast_log.txt</code>)"
   },
   {
    "level": "heuristic",
@@ -162,10 +162,10 @@
    "where": "<code>c/abstat.c</code>, <code>c/abrand.c</code>"
   },
   {
-   "level": "open",
-   "title": "Does it halt from blank tape?",
-   "text": "Not known.",
-   "where": ""
+   "level": "trusted",
+   "title": "It halts from blank tape after 3.47&middot;10<sup>41</sup> steps",
+   "text": "The orbit of the rules from A(2, 9) reaches A(139754396279488, 139754396279492) (a even, b &minus; a = 4) at visit 79,859,656,218,973 and A(279508792558980, 3) at the next, so by <code>halts_iff_rules</code> the machine halts: after exactly 346,613,804,468,191,894,895,080,818,748,230,768,977,389 steps (52 to reach A(2, 9), the exact step counts of the rules, and 11 at the end). <code>c/abfast.c</code> found it; <code>c/abseg.c</code> redid all 79,859,656,218,974 visits one at a time with the full rules in 80 segments, each ending at the next checkpoint, and summed the steps in 256-bit; <code>c/abrun.c</code> redid the last 9.66&middot;10<sup>9</sup> visits.",
+   "where": "<code>c/abseg_log.txt</code>, <code>c/abfast_log.txt</code>"
   }
  ],
  "check": [
@@ -177,12 +177,17 @@
   "gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c && ./abrun 140000000000 10000000000"
  ],
  "explainer": {
-  "lede": "Nobody knows. Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts.",
+  "lede": "It halts, after about 3.47&middot;10<sup>41</sup> steps. Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. After about 8&middot;10<sup>13</sup> rounds the leftover lands on the one value that stops it.",
   "facts": [
    {
     "level": "trusted",
-    "value": "2.0&middot;10<sup>38</sup> steps",
-    "text": "No halt in the first 6.6&middot;10<sup>12</sup> visits of the wiki's rules (blocks of visits proved sound in Lean)."
+    "value": "3.47&middot;10<sup>41</sup> steps",
+    "text": "Halts from blank tape: the A(a, b) orbit reaches A(279508792558980, 3) at visit 79,859,656,218,974."
+   },
+   {
+    "level": "trusted",
+    "value": "3.5&middot;10<sup>41</sup> steps",
+    "text": "No halt in the first 7.985&middot;10<sup>13</sup> visits of the wiki's rules (blocks of visits proved sound in Lean)."
    },
    {
     "level": "kernel",
@@ -386,5 +391,5 @@
   ]
  },
  "family": "doubling between an alternating and a solid block",
- "summary": "Its tape is an alternating block followed by a solid block; at the left end the alternating block about doubles again and again, eating into the solid block, until the solid block is used up and a new round starts. The wiki's rules are proved in Lean (halts iff they reach b = 3); no halt in 2e38 steps by the rules; no congruence rules the halt out."
+ "summary": "Its tape is an alternating block followed by a solid block; the rules on A(a, b) (proved in Lean) are a doubling map, and their orbit reaches the halting case A(a, a + 4), a even, at visit 79,859,656,218,973: the machine halts after 346,613,804,468,191,894,895,080,818,748,230,768,977,389 &asymp; 3.47&middot;10<sup>41</sup> steps."
 }
