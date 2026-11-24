@@ -83,7 +83,22 @@ def qUnit(k, q, p, s):
     return q, p, s
 
 
+def qAdd3(q):
+    """Stage.lean `qAdd3`: three increments of a non-empty word, None if one of them wraps."""
+    if not q:
+        return None
+    for _ in range(3):
+        q, c = incB(q)
+        if c:
+            return None
+    return q
+
+
 def dU(its, l):
+    """Layers.lean `dU`; with an open last item l = (Q, None) (Q followed by any tape), Stage.lean `dUo`."""
+    if not its and l[1] is None:
+        q = qAdd3(l[0])
+        return None if q is None else ([], (q, None))
     if not its:
         x = qUnit(lambda s: None, l[0], l[1], ())
         return None if x is None else ([], (x[0], x[1]))
@@ -187,6 +202,8 @@ def read(s, e):
             qw.append(QD[tuple(t[j:j + 4])])
             j += 4
         if tuple(t[j:j + 2]) != (0, 1):
+            if qw:      # an open last item: 11 [Q] and then any tape (Stage.lean `encO`)
+                return us, z, items, (qw, None)
             return None if not items else (us, z, items[:-1], items[-1])
         j += 2
         pw = []
@@ -224,6 +241,8 @@ def write(s, e, ev):
         for d in qw:
             t[j:j + 4] = bytes(QW[d])
             j += 4
+        if pw is None:
+            break
         j += 2
         for d in pw:
             t[j:j + 4] = bytes(PW[d])
@@ -270,7 +289,7 @@ def add_left(us, n):
 
 def add_right(z, its, l, n):
     """n events on the right: Z + n, every wrap sends 3 to the next word; None if a carry leaves R."""
-    ws = [z] + [w for it in its + [l] for w in it]
+    ws = [z] + [w for it in its + [l] for w in it if w is not None]
     out = [list(w) for w in ws]
     carry = n
     for i, w in enumerate(out):
@@ -282,8 +301,9 @@ def add_right(z, its, l, n):
         carry = 3 * c
     if carry:
         return None
-    pairs = [(out[1 + 2 * i], out[2 + 2 * i]) for i in range(len(its) + 1)]
-    return out[0], pairs[:-1], pairs[-1]
+    pairs = [(out[1 + 2 * i], out[2 + 2 * i]) for i in range(len(its))]
+    last = (out[-1], None) if l[1] is None else (out[-2], out[-1])
+    return out[0], pairs, last
 
 
 def jump(ev, n):
@@ -336,7 +356,7 @@ def after_chain(s, e, ev, n=120):
     us, z, its, l = ev
     j = e + 1 + 4 * len(z)
     for k, (q, p) in enumerate(its + [l]):
-        j += 4 + 4 * len(q) + 4 * len(p) + (2 if k < len(its) else 0)
+        j += 2 + 4 * len(q) if p is None else 4 + 4 * len(q) + 4 * len(p) + (2 if k < len(its) else 0)
     names = {(0, 0): 'z', (1, 0): 'a', (0, 1): 'c', (1, 1): 'd'}
     return ''.join(names[(s.t[i], s.t[i + 1])] for i in range(j, j + 2 * n, 2))
 
@@ -448,9 +468,11 @@ def run(stages, nspot):
             continue
         shown = stage
         print('stage %d (%d returns): event cell %d, %d events run cell by cell, about 10^%d events in all so far; '
-              'left words %s, right words %s' % (stage, resumes, e, n_stage, len(str(total)) - 1,
+              'left words %s, right words %s; pairs by the law %d, off it %d; self-checks %d, mismatches %d'
+              % (stage, resumes, e, n_stage, len(str(total)) - 1,
                                                   [len(w) for w in words_of(prev[0])][:6] if prev else None,
-                                                  [len(w) for it in prev[2] + [prev[3]] for w in it][:8] if prev else None))
+                                                  [len(w) for it in prev[2] + [prev[3]] for w in it if w is not None][:8] if prev else None,
+                 by_cell, mism, checks[0], checks[1]))
         sys.stdout.flush()
     print('%s after 10^128 events: %d stages (event cells), %d returns to the same cell after a carry left a chain, '
           'about 10^%d events (so at least that many more steps), %s; %d pairs of events run cell by cell follow '
@@ -459,4 +481,5 @@ def run(stages, nspot):
 
 
 if __name__ == '__main__':
+    sys.setrecursionlimit(100000)   # linc recurses once per left unit (a top word of about 1000 digits)
     run(int(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else 2)

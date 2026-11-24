@@ -227,13 +227,19 @@ With b = 1 the stage reading `0 b 1 W1 c U1 a d W2 ...` is exactly this with Z e
 
 **The run against the proved law (trusted, `py/stage_law.py`).** This script does what `py/stages.py` does, but with the ported Lean functions `linc` and `evNext` instead of fitted gifts. At each stage it finds the event cell. It checks every event run cell by cell against the one before it. It jumps by the law iterated (+1 per event on the left with ×2 at each wrap, Z + 1 on the right with ×3 at each wrap), as far as no carry leaves either chain. Each jump is spot-checked: random points are rebuilt and 3 events are run cell by cell.
 
-- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_law.py run 600 3`: from blank tape to about 10^128 events with `defects.py`, then 13 stages (13 event cells; 508 times a carry left a chain and the run came back to the same cell) and about 10^137 events (so at least that many more steps), no halt. 630 consecutive pairs of events run cell by cell follow the law and none fail it; 5,172 spot-check events, 0 mismatches.
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_law.py run 500 3` (with the open item below): from blank tape to about 10^128 events with `defects.py`, then 500 stages (500 event cells; 158 times a carry left a chain and the run came back to the same cell) and about 10^480 events (so at least that many more steps), no halt. 4,558 consecutive pairs of events run cell by cell follow the law and none fail it; 23,450 spot-check events, 0 mismatches. This goes past the 10^409 of `py/stages.py`, with a proved law in place of fitted gifts. (Without the open item the same script stalls at about 10^137 events, in stage 13.)
 
 So up to that point the run from blank tape follows a proved law. What is trusted is that each tape is in the layout (the tape is read off at every event), the port of the Lean functions, and the jump arithmetic.
 
-**Where the proved law stops.** In stage 13, at about 10^137 events, the chain read in the layout ends at R. After R the tape reads `a d` and then an item `11 [Q] 11 [Q'] 01 [P]`: two Q words with a bare `11` between them, where the grammar has `11 [Q] 01 [P] 10 11 [Q']`. Every carry out of R goes into that item. The run crosses it cell by cell and comes back to the same cell and the same widths, so each jump only reaches the next carry out of R. After 500 such crossings in a row the script stops. (`py/stages.py` went on to about 10^409 with fitted gifts, which are checked but not derived.)
+**The half-digit item (Lean, `chain_event_open`).** Without it the proved law stalls at about 10^137 events, in stage 13. There the chain read in the layout ends at R, and after R the tape reads `10 11 [Q] 00 11 [Q'] 01 [P] 10 11 …`. It is an item whose Q runs into `0011` where the grammar has `01 [P] 10 11`: half a digit out of phase. Every carry out of R goes into that item, so without a law for it each jump only reaches the next carry out of R.
 
-Open: the law for that item (the half-digit shifts of the right chain), and whether the stages go on forever.
+- What a carry does there: run cell by cell, each carry out of R is one unit into the item, and it only adds 3 to its Q (in that run Q has 31 digits and goes 74, 77, 80, 83, …). Q is followed by any tape at all: no visit reads past Q unless Q wraps.
+- The law: `Stage.lean` proves the chain law with such an *open* last item, `11 [Q]` and then any tape (`encO`, `dUo`, `evNextO`, `chain_event_open`), for every layout. It stops (`none`) only where that Q would wrap.
+- When Q wraps: in a test that set the 31 digits of Q to 1, the wrap was run cell by cell. The `0011` became a separator of the grammar, and the chain after it read in the layout again. So that wrap heals the defect, but this is seen in one test, not proved.
+
+`py/stage_law.py` reads such an item as the open last item and jumps with the law up to its wrap.
+
+Open: what a wrap of the open Q hands on in general (the half-digit shifts), and whether the stages go on forever.
 
 A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 
@@ -246,8 +252,8 @@ A halt can only come when a carry leaves the last word of the grammar prefix: at
 - Lean (kernel): `Visit.lean` (32 token rows of the visit law) and `Stream.lean` (`vb_even`, `vb_odd`, `ve_odd`, `m_inc`, `m_wrap`: the a/z stream and M for every size).
 - Lean (kernel): `Cascade.lean`, the cascade rule of the later layout (N + 1, Z + 1, C + 3 when Z wraps, R + 3 when C wraps) in 162 theorems for every size.
 - Trusted: in a 3·10^8-step run the full events have the plain cascade layout only at steps 361,628 to 743,696 with C of 2 digits and R of 13 (7,284 events), and 7,283 consecutive pairs follow the rule, no mismatch (`py/cascade_check.py`); the layered shapes after are listed above.
-- Lean (kernel): `Stage.lean`, the chain law with left words (`chain_event`): one event, for every Z (empty or not), every chain of base-3 words on the left and any tape after either chain; the five left rows `lv_d0` … `lv_top`.
-- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"); the half-digit shifts of the right chain; halting.
+- Lean (kernel): `Stage.lean`, the chain law with left words (`chain_event`): one event, for every Z (empty or not), every chain of base-3 words on the left and any tape after either chain; the five left rows `lv_d0` … `lv_top`. Also `chain_event_open`: the same with an open last item `11 [Q]` followed by any tape, up to a wrap of that Q.
+- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"); what a wrap at a half-digit shift hands on; halting.
 
 ## Scripts
 
