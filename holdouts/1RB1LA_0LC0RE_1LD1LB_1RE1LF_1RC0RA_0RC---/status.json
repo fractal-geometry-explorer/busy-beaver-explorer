@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>100</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length) for every edge event seen: the overflow, four kinds of merger and seven left-end cases; an exact digit simulator, checked against the direct run, ran to 2.2&middot;10<sup>15</sup> steps without a halt or an unknown event (accelerated by symbolic macros, 16 November: to 2.88&middot;10<sup>90</sup> steps). No closed set of digit configurations has been found: the safe mergers depend on a mod-4 relation between neighbouring digits."
  ],
@@ -102,14 +102,20 @@
   {
    "level": "heuristic",
    "title": "Why it probably never halts",
-   "text": "Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. The dangerous mergers (an S1 of run 0 after S0 or S1, which would leave the vocabulary) never occur, because of a mod-4 relation: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live, and is 2 or 3 in 2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps (the rest inside S[0]S0 compounds).",
-   "where": "<code>py/closure.py kinv</code>; README, Notes for later"
+   "text": "Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. For neighbouring digits y x, K = phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live (proved for the abstract carry rule, lean/Invariant.lean), and it decides the merge in advance. Early in the run K is 2 or 3 (2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps, the rest inside S[0]S0 compounds), so only the safe merges after S2 or S3 happen. At depth this no longer holds: in the 2.88&middot;10<sup>90</sup> state K takes the values 0, 1, 2, 3 in 17, 19, 18 and 20 of 74 pairs, and the merges after S0 and S1 (walls X5 and U) do occur; they too have so far ended in known walls.",
+   "where": "<code>py/closure.py kinv</code>; <code>holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/invariant.py states</code>; README"
   },
   {
    "level": "heuristic",
    "title": "No small closed language",
    "text": "The fixpoint search <code>py/closure.py ngram</code> (every place a sweep can happen in a word of the language, run symbolically) does not close for bigrams or trigrams with run classes 0, 1, &ge;2, nor for bigrams with residues mod 4, a marked left end and the compounds S[0]S0, S[0]S1 (536 bigrams, then windows with X5 or X6 before an S1 of run 0, which the real run never shows).",
    "where": "<code>py/closure.py</code>; README, Notes for later"
+  },
+  {
+   "level": "kernel",
+   "title": "The neighbour invariant K fixes every merge in advance",
+   "text": "In the abstract digit model (a pair y x: their phases S0..S3 and the left run of x, changed by a carry into x as in the sweep theorems: S0&rarr;S1, S1&rarr;S2 with the run one shorter, S2&rarr;S3, S3&rarr;S0 with a carry into y), K = phase(y) + run(x) + [x is S2 or S3] mod 4 is unchanged by every carry that is not a merge, and when x reaches S1 with run 0 the phase of y is K. So the kind of merge a pair ends with (after S2, S3, S0 or S1) is fixed when the pair is created. On the digit model: K changed in 0 of 617,671 neighbour pairs over 98,667 plain sweeps. The link between the abstract rule and the tape is read off <code>lean/Sweeps.lean</code>, not proved as one theorem.",
+   "where": "<code>carry_K</code>, <code>iter_K</code>, <code>merge_phase</code>, <code>lean/Invariant.lean</code>"
   },
   {
    "level": "open",
@@ -178,9 +184,190 @@
     "heading": "Overflows and mergers",
     "html": [
      "<p><b>Overflow.</b> When every digit reads 3, the head runs to the left end: every S3 becomes S0 and a new digit S1 is born at the right end, the old last run in front of it (<code>overflow</code>, proved for any number of digits). At step 3,364,427,683 the tape was <code>[0]S [13]S0 [487]S0 [910]S0 [1595]S0 [239]S0 [5182]S0 [12291]S0 [16383]S1 [1]</code>. These overflows are the rare visits of the left end, about four times further apart each time.</p>",
-     "<p><b>Merger.</b> When the gap in front of an S1 is used up, the next carry cannot shorten it, and the S1 fuses with the wall before it: after S the two become one S0 (<code>merge_s_s1</code>), after S3 they become S and S0 (<code>merge_s3_s1</code>), after S2 a long wall X6 = <code>1000000</code> (<code>merge_s2_s1</code>), which the next carry splits again (<code>sweep_x6</code>). After S0 or S1 it would make walls outside the list; that never happens in the run, because of a mod-4 relation between a digit's phase and its neighbour's run (see the README).</p>",
+     "<p><b>Merger.</b> When the gap in front of an S1 is used up, the next carry cannot shorten it, and the S1 fuses with the wall before it: after S the two become one S0 (<code>merge_s_s1</code>), after S3 they become S and S0 (<code>merge_s3_s1</code>), after S2 a long wall X6 = <code>1000000</code> (<code>merge_s2_s1</code>), which the next carry splits again (<code>sweep_x6</code>). Which of these happens is decided long before: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 never changes while both live, and it is the phase of y when x's gap runs out (Lean, <code>lean/Invariant.lean</code>). Early in the run it is always 2 or 3, so only the merges after S2 and S3 happen. Deep in the run (2.88&middot;10<sup>90</sup> steps) it takes all four values, and S1s also merge after S0 (wall X5 = <code>100000</code>) and after S1 (wall <code>11000</code>); so far these too have ended in known walls.</p>",
      "<p><b>The first block.</b> The gap behind the leading <code>10</code> loses one word per overflow; when it is gone, <code>10 110</code> becomes <code>1000</code> (<code>left_s_s1</code>). The seven other ways the left end was seen to look are Lean theorems too (<code>left_s0</code> &hellip; <code>left_s3_s</code>): none halts, all come back to the digit form.</p>"
     ]
+   },
+   {
+    "id": "kinv",
+    "eyebrow": "Decided in advance",
+    "heading": "Which merge a pair will end with",
+    "html": [
+     "<p>Take two neighbouring digits y x. Carries arrive at x from below; x steps S0&rarr;S1&rarr;S2&rarr;S3, and its S3&rarr;S0 step carries into y. Only one step changes x's gap: S1&rarr;S2 takes one word from it. So the sum <b>phase(y) + gap(x) + [x is S2 or S3]</b> never changes except by 4 (when y wraps from S3 to S0): mod 4 it is fixed for the whole life of the pair. When the gap is used up, x is S1 with gap 0 and the next carry merges it with y, and at that moment the sum is just phase(y). So the kind of merge (after S2, S3, S0 or S1) is decided the moment the pair is made.</p>",
+     "<p>Step the pair below and watch the sum. A newborn digit starts as S1 with a gap that is 3 mod 4 next to an S0, so its sum is 3 mod 4 and it will merge after an S3. Early in the run every pair has sum 2 or 3 (the safe merges after S2 and S3); deep in the run (2.88&middot;10<sup>90</sup> steps) all four values occur, and the merges after S0 and S1 happen too. Lean proves the invariant for this pair model (<code>lean/Invariant.lean</code>).</p>"
+    ],
+    "stepper": {
+     "tape": "y = S{py}   x = S{px}   gap of x = {r}   sum = {k}",
+     "vars": [
+      {
+       "name": "py",
+       "label": "phase of y",
+       "start": "0"
+      },
+      {
+       "name": "px",
+       "label": "phase of x",
+       "start": "1"
+      },
+      {
+       "name": "r",
+       "label": "gap of x (words 100)",
+       "start": "7"
+      },
+      {
+       "name": "k",
+       "label": "phase(y) + gap + [x is S2/S3]",
+       "start": "7"
+      }
+     ],
+     "rules": [
+      {
+       "name": "carry: x S0 → S1",
+       "text": "nothing else changes",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": -1
+         },
+         "text": "x in S0"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 1
+        }
+       }
+      },
+      {
+       "name": "carry: x S1 → S2",
+       "text": "the gap loses one word; the indicator gains one",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -1
+         },
+         "text": "x at S1 or later"
+        },
+        {
+         "form": {
+          "px": -1,
+          "_": 1
+         },
+         "text": "x at S1 or earlier"
+        },
+        {
+         "form": {
+          "r": 1,
+          "_": -1
+         },
+         "text": "a gap of at least 1 (with gap 0 this carry is the merge, after a wall in phase sum mod 4)"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 2
+        },
+        "r": {
+         "r": 1,
+         "_": -1
+        }
+       }
+      },
+      {
+       "name": "carry: x S2 → S3",
+       "text": "nothing else changes",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -2
+         },
+         "text": "x at S2 or later"
+        },
+        {
+         "form": {
+          "px": -1,
+          "_": 2
+         },
+         "text": "x at S2 or earlier"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 3
+        }
+       }
+      },
+      {
+       "name": "carry: x S3 → S0, y steps",
+       "text": "x's indicator drops by one and y's phase rises by one",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in S3"
+        },
+        {
+         "form": {
+          "py": -1,
+          "_": 2
+         },
+         "text": "y in S0, S1 or S2"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "py": 1,
+         "_": 1
+        }
+       }
+      },
+      {
+       "name": "carry: x S3 → S0, y S3 → S0",
+       "text": "y wraps and carries on; the sum drops by 4",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in S3"
+        },
+        {
+         "form": {
+          "py": 1,
+          "_": -3
+         },
+         "text": "y in S3"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 0
+        },
+        "k": {
+         "k": 1,
+         "_": -4
+        }
+       }
+      }
+     ],
+     "note": "Arithmetic only: these are the carry rules of the sweep theorems in <code>lean/Sweeps.lean</code>, applied to one pair."
+    }
    },
    {
     "id": "halt",

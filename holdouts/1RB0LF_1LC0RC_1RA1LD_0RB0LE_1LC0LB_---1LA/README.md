@@ -190,6 +190,28 @@ python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py test 6
 python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/forecast.py run saved 42 3 2.2e6 1700 out.pkl
 ```
 
+## Neighbour invariant Q (24 November 2026)
+
+**Kernel (abstract digit model): a conserved quantity over three neighbouring digits, and only two kinds of merge
+can come out of a cycle.** For digits w y x (left to right, all W0..W3),
+
+    Q = run(x) + h(x) + g(y) + 4·phase(w)   mod 16,    h = (0, 1, 3, 3) for W0..W3,  g = (0, 0, 2, 2)
+
+does not change while the three live. The run of x changes by -1, -2, 0, +3 at x's own steps, and by -2 at y's
+steps W1→W2 and W3→W0 (the digit to the left takes 2), and w steps once per cycle of y; h, g and 4·phase(w) are
+exactly what makes the sum constant. The run of x is odd exactly when x is W0.
+
+- `lean/Invariant.lean`: `carry_Q` (one carry into x), `carry_parity`, and `merge_left`: a cycle of x that ends with
+  x in W0 with run 1 (the next carry then finds a W1 with run 0, the merge case) leaves y in W0 or W2. These are
+  the only two merges in the catalogue (`merge_w0_w1`, `merge_w2_w1`), so a third kind can only come from a W1 of
+  run 0 that did not get there by a full cycle (for example a digit just made by a merge). At the merge, Q = 1 mod 4
+  means y is W0 and Q = 3 mod 4 means y is W2, and in both cases w is in phase (Q - 1 - g(y))/4.
+  The link to the tape is read off the sweep theorems of `lean/Sweeps.lean`, not proved as one statement.
+- Checked on the digit model (`python3 py/invariant.py check 1e5`): in 61,990 plain sweeps out of 10^5, Q changed in
+  0 of 286,401 neighbour triples.
+- In the deep states Q is mostly 13 (14 of 28 triples at 3.55·10^38, 38 of 50 at 4.79·10^63, `py/invariant.py
+  states`), so most coming merges are W0 [0]W1 with w in W3.
+
 ## Pages
 
 - [`pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html`](../../pages/holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/explainer.html)

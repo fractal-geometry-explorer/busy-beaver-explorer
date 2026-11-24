@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -135,6 +135,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The overflow, the mergers and the left end</h3>
         <p><code>0^inf 10</code> followed only by S3 digits (any number): one sweep crosses the whole tape, every S3 becomes S0 and a new digit S1 is born at the right end (<code>overflow</code>). An S1 with left run 0 receiving a carry fuses with the wall before it: after S into one S0 (<code>merge_s_s1</code>), after S3 into S and S0 (<code>merge_s3_s1</code>), after S2 into X6 = <code>1000000</code> (<code>merge_s2_s1</code>); X6 and X5 as stops (<code>sweep_x6</code>, <code>sweep_x5</code>). At the left end, eight cases with a first digit of run 0 (<code>left_s_s1</code>, <code>left_s0</code>, <code>left_s1</code>, <code>left_s2</code>, <code>left_s3</code>, <code>left_s_s0</code>, <code>left_s_s2</code>, <code>left_s3_s</code>). Each for any carry chain.</p>
         <p class="where"><code>lean/Sweeps.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>The neighbour invariant K fixes every merge in advance</h3>
+        <p>In the abstract digit model (a pair y x: their phases S0..S3 and the left run of x, changed by a carry into x as in the sweep theorems: S0&rarr;S1, S1&rarr;S2 with the run one shorter, S2&rarr;S3, S3&rarr;S0 with a carry into y), K = phase(y) + run(x) + [x is S2 or S3] mod 4 is unchanged by every carry that is not a merge, and when x reaches S1 with run 0 the phase of y is K. So the kind of merge a pair ends with (after S2, S3, S0 or S1) is fixed when the pair is created. On the digit model: K changed in 0 of 617,671 neighbour pairs over 98,667 plain sweeps. The link between the abstract rule and the tape is read off <code>lean/Sweeps.lean</code>, not proved as one theorem.</p>
+        <p class="where"><code>carry_K</code>, <code>iter_K</code>, <code>merge_phase</code>, <code>lean/Invariant.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -192,8 +197,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Why it probably never halts</h3>
-        <p>Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. The dangerous mergers (an S1 of run 0 after S0 or S1, which would leave the vocabulary) never occur, because of a mod-4 relation: for neighbouring digits y x, phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live, and is 2 or 3 in 2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps (the rest inside S[0]S0 compounds).</p>
-        <p class="where"><code>py/closure.py kinv</code>; README, Notes for later</p>
+        <p>Every event seen is one of a small catalogue of local rewrites of digits, each a Lean rule, none of which reaches F on a 1. For neighbouring digits y x, K = phase(y) + run(x) + [x is S2 or S3] mod 4 is fixed while both live (proved for the abstract carry rule, lean/Invariant.lean), and it decides the merge in advance. Early in the run K is 2 or 3 (2,091,564 of 2,092,788 neighbour pairs over the first 3&middot;10<sup>5</sup> sweeps, the rest inside S[0]S0 compounds), so only the safe merges after S2 or S3 happen. At depth this no longer holds: in the 2.88&middot;10<sup>90</sup> state K takes the values 0, 1, 2, 3 in 17, 19, 18 and 20 of 74 pairs, and the merges after S0 and S1 (walls X5 and U) do occur; they too have so far ended in known walls.</p>
+        <p class="where"><code>py/closure.py kinv</code>; <code>holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/invariant.py states</code>; README</p>
       </div>
       <div class="card">
         <h3>No small closed language</h3>

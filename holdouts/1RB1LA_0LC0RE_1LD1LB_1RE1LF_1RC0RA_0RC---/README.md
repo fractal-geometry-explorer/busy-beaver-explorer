@@ -186,6 +186,34 @@ python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/forecast.py test  
 python3 holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/py/forecast.py run saved 19 3 1.09e6 900 out.pkl
 ```
 
+## Neighbour invariant K (24 November 2026)
+
+**Kernel (abstract digit model): K is conserved, and it fixes the kind of every merge in advance.** For neighbouring
+digits y x (both S0..S3),
+
+    K = phase(y) + run(x) + [x is S2 or S3]   mod 4
+
+does not change while both digits live: S0→S1 and S2→S3 change nothing in it, S1→S2 takes one from run(x) and adds
+one to the indicator, and S3→S0 takes one from the indicator and carries one into y. When x's run is used up (x in
+S1, run 0, a carry arriving) y is in phase K. So the merge a pair will end with (after S2: X6; after S3: S and S0;
+after S0: X5; after S1: the wall `11000`, U) is decided when the pair is created.
+
+- `lean/Invariant.lean`: `carry_K` (one carry), `iter_K` (any number of carries without a merge), `merge_phase`
+  (at the merge y is in phase K). The model is the pair (phase y, phase x, run x) and the carry rule of the sweep
+  theorems in `lean/Sweeps.lean`. The link between the two (that the tape's sweeps act on pairs this way) is read off
+  the sweep theorems, not proved as one statement.
+- Checked on the digit model (`python3 holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/py/invariant.py check 1e5 twin`): in
+  98,667 plain sweeps out of 10^5 (no merge, birth or special wall), K changed in 0 of 617,671 neighbour pairs.
+- **The mod-4 relation of the Notes does not hold at depth.** Early on K is 2 or 3 (the safe merges, after S2 or S3).
+  In the 2.88·10^90 state (`py/state_2.88e90.json`) the 74 neighbour pairs have K = 0, 1, 2, 3 in 17, 19, 18 and 20
+  of them (`invariant.py states`). So the merges after S0 and S1 are not avoided at depth. They do occur: the U and V
+  walls of the 16 November run come from them, and in the 21 November forecast the digit with run 0 at cycle
+  584,625 (`[995904]S0 [0]S0`, K = 0) merges after an S0 and is absorbed. A closed language therefore has to contain
+  all four merge kinds and what follows them, not exclude two of them.
+- Births: a digit born at an overflow normally has K = 3 with the digit before it. Its run is the old last run, and
+  the last run is 3 mod 4 when the last digit is S3 (`last run ≡ phase(last digit) mod 4` holds at all but 12 samples,
+  Notes item 2). So pairs with K ≠ 3 come mostly from merges.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html`](../../pages/holdouts/1RB1LA_0LC0RE_1LD1LB_1RE1LF_1RC0RA_0RC---/explainer.html)

@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -140,6 +140,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Mergers, the walk of T and the top</h3>
         <p>A W1 with left run 0 that receives a carry fuses with the W0 before it (one digit fewer, <code>merge_w0_w1</code>) or turns a W2 before it into W1 and itself into W0 (<code>merge_w2_w1</code>); after an overflow a T walks left through the U's (<code>sweep_u_t</code>); two steps of the top's cycle (<code>prefix_w1</code>, <code>prefix_10_w0</code>). Each for any carry chain.</p>
         <p class="where"><code>lean/Sweeps.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>A neighbour invariant mod 16, and only two kinds of merge out of a cycle</h3>
+        <p>In the abstract digit model (three digits w y x: their phases W0..W3 and the left run of x, changed by a carry into x as in the sweep theorems: x's own steps change its run by &minus;1, &minus;2, 0, +3, y's steps W1&rarr;W2 and W3&rarr;W0 take 2 from it, w steps once per cycle of y), Q = run(x) + h(x) + g(y) + 4&middot;phase(w) mod 16 with h = (0,1,3,3) and g = (0,0,2,2) is unchanged by every carry; the run of x is odd exactly when x is W0; and a cycle of x that ends in W0 with run 1 (next: a W1 with run 0, the merge case) leaves y in W0 or W2, the two merges of the catalogue. On the digit model: Q changed in 0 of 286,401 neighbour triples over 61,990 plain sweeps. The link between the abstract rule and the tape is read off <code>lean/Sweeps.lean</code>, not proved as one theorem.</p>
+        <p class="where"><code>carry_Q</code>, <code>carry_parity</code>, <code>merge_left</code>, <code>lean/Invariant.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
