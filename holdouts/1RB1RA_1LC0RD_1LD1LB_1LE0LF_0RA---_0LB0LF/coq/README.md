@@ -98,10 +98,24 @@ above: D moving right with a 0 on its left, D moving left onto a 1, B moving rig
 `1 1 1` on its left, the sibling's halting event. That event came 111 times from start A (97 from B, 105 from D)
 and was survived every time. Every raw step is checked for the halt by the engine itself.
 
+## The two left-end rules (22 November 2026)
+
+Besides PR 93's 21 macro rules the run uses two rules at the left end of the tape, where B arrives at blank tape or at
+a single 1. `wall_rules.v` proves them for all parameter values; `build.sh` appends it to the head of `U_A.v` (the file
+up to `rule_pairR`) to make `Wall.v`, and `Print Assumptions` shows that both are closed under the global context.
+
+    rule_wall1 : CfgL (0inf <* [1]) (D_word a *> r) -->* CfgL (0inf <* [1; 0]^^(a + 3)) ([1; 0] *> r)
+    rule_wall0 : CfgL 0inf (D_word a *> [1] *> [1; 1]^^b *> [0] *> r)
+                   -->* CfgL (0inf <* [1; 0] <* [1; 1]^^(a + 1) <* [1; 0]^^(b + 2)) ([1] *> r)
+
+`../py/macro.py` runs W on these 23 rules; after its first 12 steps the run from blank tape never leaves them
+(3,000,000 macro steps checked). See the main README for the invariant searches built on this model.
+
 ## Files
 
 - `mkU.py PR93.v OUT.v MACHINE START K [fast]`: the proof for this machine (`... A K`); `fast` admits `run_ok`.
 - `build.sh PR93.v OUTDIR`: the proof (with `run_ok` admitted), then the engine extracted from it, and the tools.
+- `wall_rules.v`: the two left-end rules (see above).
 - `extra.v`, `ExtT4C.v`: printing helpers added to the engine module, and the extraction command.
 - `run.ml`: `run A MAXFAST [CHECKPOINT]`, saves an OCaml Marshal checkpoint every 10 minutes and resumes from it.
 - `ev2.ml`: `ev2 A MAXFAST [CHECKPOINT|none] [SAVE]`, the same with every raw C0, D0 and F1 printed with its context.

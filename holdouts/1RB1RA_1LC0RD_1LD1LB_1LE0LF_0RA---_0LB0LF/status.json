@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 20 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Up to renaming, the machine is the table of a DeepMind proof (busycoq pull request 93) with its halting transition replaced. A Coq proof built from that file needs only one more thing, a stop of its accelerated engine, and the engine has not stopped in more than 10<sup>7765</sup> steps. The place where the sibling halts recurs in this run once per lap, and this machine gets past it the same way every time; nothing in the run comes near the one pattern that could halt it."
  ],
@@ -98,6 +98,18 @@
    "title": "The sibling's halting point recurs and is survived",
    "text": "A halt can only happen where the engine leaves its macro rules. Through 18.4 million fast steps it left them only in 14 kinds of local situation, all at the left end of the written tape. One of them, C reading 0 with 1 1 1 on its left, is exactly where the sibling of pull request 93 halts; here it recurred 10 times, with the same nearest cells each time, and each time the machine erased three 1s and went back to the macro rules. No exit met the cells 0, 1 that a halt needs. So the sibling's halting point predicts no halting point for this machine, and a halt would need a kind of exit the run has never produced.",
    "where": "<code>coq/README.md</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Two rules at the left end, for all parameters",
+   "text": "Besides the 21 macro rules of pull request 93, the run uses two rules at the left end of the tape, where B arrives at blank tape or at a single 1. Both are proved in Coq for every parameter value, on top of the pull request's file, and depend on no axioms.",
+   "where": "<code>rule_wall0</code>, <code>rule_wall1</code>, <code>coq/wall_rules.v</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "23 rules cover the run; no invariant found",
+   "text": "Simulated on the 23 proved rules, the run from blank tape leaves them only in its first 12 steps (3,000,000 macro steps checked), so a halt would need the rule system to get stuck away from the left end. Searches for a closed set of tape shapes (automata over cells, and checkers over runs of 10, 1 and 0 in Python and C++, up to about 60 million abstract states) never met a stuck shape but never closed: the left side of the tape keeps producing new patterns, even in the real run.",
+   "where": "<code>py/macro.py</code>, <code>py/val_macro.py</code>, <code>README.md</code>"
   },
   {
    "level": "open",
