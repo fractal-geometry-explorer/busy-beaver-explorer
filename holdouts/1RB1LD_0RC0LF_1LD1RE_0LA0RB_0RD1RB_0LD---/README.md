@@ -233,6 +233,86 @@ view that busycoq PR #110 uses; what is missing is a potential or invariant at t
 
 <!-- dfa-search:end -->
 
+<!-- shift-law:begin -->
+## The next round's blocks, and the dirty stop (24 November 2026)
+
+**Proved in Lean (`lean/Shift.lean`, kernel only, standard axioms): where the next round cuts the stream, and what a
+dirty stop can do.**
+
+*Tokens.* A block that passes visits on is left as `000`, `100` or `1010` (`Blk.out`). So a round leaves its stream, up
+to its stop, as a row of these three *tokens* (`Casc.tokens`), and after round r+1 the stream `1 0 S` is `10`
+followed by that row, with the stop F right after it (`reach_toks`).
+
+*The shift law.* The next round reads the row again from the front, and its blocks are cut in a fixed way (`shift`).
+Every block starts one or two cells before the end of a token, one block per token, and never at a token boundary.
+What is left of the token ahead of the block is `0`, `10` or `00`:
+
+| left before the token | token | the block reads | left before the next token |
+|---|---|---|---|
+| `0`, `10` or `00` | `1010` | `0 10`, `10 10` or `00 10` | `10` |
+| `0`, `10` or `00` | `100` | `0 10`, `10 10` or `00 10` | `0` |
+| `0` | `000` | `0 00` | `0` |
+| `10` or `00` | `000` | `10 0` or `00 0` | `00` |
+
+The front `10` of `1 0 S` is the first thing left. Every block start the rules allow, for any counts, is one of these
+positions or lies at least 3 cells past the last of them (`Starts`, which contains every block of an actual cascade:
+`Casc.starts`, `CascH.starts`). The last position is 1 or 2 cells before F, so **the block of round r+2 that holds
+round r+1's stop starts at F−1 or F−2 and never at F** (`never_at_stop`). This explains why the run never showed a
+block starting at F after any stop.
+
+*The dirty stop.* A stop leaves two adjacent 1s at F and F+1 when its block is `010` hit once (it becomes `110`), or
+`011` hit once (it becomes `111`). Then the next round's block at the last position reads `0 11` if `0` is left. That
+is `011`, and with a second visit the machine halts. If `10` or `00` is left, the block reads `1011` or `0011`, and
+here both become `1000`, so the visit is safe. `dirty` and `dirty_next` state this exactly: a halt of round r+2 lies
+at F−1, or at F+1 or beyond. A halt at F−1 needs `0` left. By `fin_r0`, `0` is left exactly when **the last token other
+than `000` before the stop is `100`** (`LastO`).
+
+**Derived from these theorems, not in Lean: the count condition.** A dirty stop is a block `010` that gets exactly
+one visit. Take a dirty stop that lies inside the row of the round before, as all observed ones do. The shift law,
+applied to that round, says that after the dirty round's last doubling block (`1010` or `0010`, which leaves `1010`)
+the only blocks are `000` and `010`. Both halve the count, rounding down, and are left `000` after an even number of
+visits and `100` after an odd number. So if the last doubling block sends c visits, the blocks behind it get c,
+⌊c/2⌋, …, 2 or 3, then 1 at the stop. All of them are left `000` exactly when c is a power of 2. That gives:
+
+> After a dirty stop, the next round meets it one cell to the left (and can halt there) exactly when the count c
+> sent by the last doubling block before the stop is not a power of 2.
+
+**Computed (`c/vispl.c`, rounds 1 to 1,000,000, and `py/dirty_counts.py`).**
+
+| rounds 1 to 1,000,000 with a halving chain after the last doubling block | next round's block holding F at F−2 | at F−1 |
+|---|---|---|
+| c not a power of 2 | 0 | 454,327 |
+| c a power of 2, clean stop | 330,167 | 61,631 (a `100`-type block in the chain, which rounds up) |
+| c a power of 2, dirty stop | 4 | 0 |
+
+| dirty stop (round, as in the tables above) | stop F | counts from the last doubling block on | next round's block |
+|---|---|---|---|
+| 161,210 | 678,828 | 2, 1 (sent by a `0010` that got 2) | F−2 |
+| 194,646 | 819,723 | 2, 1 | F−2 |
+| 757,565 | 3,191,505 | 2, 1 | F−2 |
+| 906,775 | 3,820,396 | 2, 1 | F−2 |
+
+With k blocks after the last doubling block (the stop included), c lies in [2^(k−1), 2^k), and c is even (a
+doubling block sends 2n or 2(n−1) visits). So k = 2 forces c = 2: **a dirty stop with only one block between it and
+the last doubling block is safe whatever the counts.** All four dirty stops have k = 2, while over all rounds k is 2
+in only 37.5% of them (19.2% have k = 3, 12.4% k = 4, 30.9% k ≥ 5). A halt therefore needs a dirty stop with k ≥ 3
+and c not a power of 2 (c = 6 for k = 3).
+
+So c is a power of 2 at every dirty stop, though in most rounds it is not. Through round 4,000,000 a visit met
+`1011` 20 times and the machine never halted. If dirty stops came out safe at the rate c is a power of 2 overall,
+46.3% of the rounds with a halving chain, the four safe ones here would have a chance of about 5%, and twenty of about 2·10^-7. A structural
+reason for c = 2 at dirty stops is therefore likely, but it has not been found. It would have to tie the counts of two
+consecutive rounds together near the stop. A dirty stop comes from a round that falls one cell short of the previous
+stop (F = previous F − 1), with counts like 10, 5, 2 (`0010`), 2, 1 in its last blocks.
+
+```sh
+gcc -O2 -o vispl holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/vispl.c -lpthread
+VLOG=v1m.log ./vispl 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000001 - 3 100000     # about 90 minutes on 3 cores
+python3 holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/py/dirty_counts.py v1m.log
+```
+
+<!-- shift-law:end -->
+
 ## What is established
 
 **Proved in Lean, kernel only:**
@@ -240,6 +320,8 @@ view that busycoq PR #110 uses; what is missing is a potential or invariant at t
 - **The halting configurations.** The machine stops exactly when it reads the symbol of a halting transition (F1); the generated statement covers every configuration. (`step_none_iff`, `lean/Blank.lean`)
 - **No halt in the first 10,000 steps.** The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel. (`blank_runs_kernel`, `lean/Blank.lean`)
 - **The three moves of the left counter.** For every n and any tape around them: **increment** `L 1000 (1010)^n 1 D>0 R` reaches `L 1010 1 (0001)^n E>0 R` (n trailing one-digits become zero-digits, the zero-digit before them becomes a one); **overflow without prefix** `0^inf (1010)^n 1 D>0 R` reaches `0^inf 1 0 1 (0001)^n 0 D> R`; **overflow with the prefix 10** `0^inf 1 0 (1010)^n 1 D>0 R` reaches `0^inf 1 0 1 0 0 (0100)^n 0 C> R`. Each is a theorem about the machine's step function with an exact step count. (`left_increment`, `left_overflow_even`, `left_overflow_odd`, `lean/Rules.lean` (generated by `py/gen_rules.py`))
+
+- **The shift law and the dirty stop.** Each round leaves tokens `000`, `100`, `1010` up to its stop. The next round's blocks start 1 or 2 cells before the end of each token and never at a boundary, so the block holding the stop starts at F−1 or F−2. After a dirty stop, the next round can halt there only at F−1, and only if the last token other than `000` before the stop is `100`. (`shift`, `never_at_stop`, `dirty`, `dirty_next`, `fin_r0`, `lean/Shift.lean`)
 
 **Proved in Lean with `native_decide`:**
 
@@ -347,7 +429,7 @@ From the repository root:
 
 ```sh
 . /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
-holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/lean/check.sh      # includes lean/Cascade.lean
+holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/lean/check.sh      # includes lean/Cascade.lean and lean/Shift.lean
 gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000000000
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 10000000000
 cd tools/py && python3 -m bbtools.ctl 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 5
