@@ -172,6 +172,14 @@ class Model:
         self.coef = coef
         return True
 
+    def counters(self, sim):
+        """the two counters as read now: per side (number of digits, value, digit indices followed by a separator)"""
+        out = []
+        for side in 'LR':
+            digs, pos, sa = self.parse(sim, side, True)
+            out.append(f"{side}: n={len(digs)} v={digits_value(digs)} seps={[j for j, x in enumerate(sa) if x]}")
+        return '; '.join(out)
+
     def desc(self):
         f = lambda m: None if m is None else (m[0], m[1], ''.join(map(str, m[2])), ''.join(map(str, m[3])), m[4], ''.join(map(str, m[5])), ''.join(map(str, m[6])))
         g = lambda ss: [''.join(map(str, x)) for x in ss]
@@ -413,7 +421,12 @@ def learn(sim, key, nev=64, log=None):
                 good.append((score, m))
     if good:
         good.sort(key=lambda x: x[0])
-        return good[-1][1]
+        m = good[-1][1]
+        # the model was checked on every per-th event from the first: step on to the next such event, so that jumps
+        # start in the phase the model was learned in
+        for _ in range((-(len(evs) - 1)) % m.period):
+            if sim.run(sim.steps + 10 ** 8, key=key, skip_first=True) != 'event': return None
+        return m
     return None
 
 
@@ -453,12 +466,28 @@ def learn_sep_online(model, before, after, lo):
                 if pr is None or pr[0] != after: model.sepR = old
 
 
-def hub_key(sim, window):
+def hub_key(sim, window, n=1):
+    """the most frequent turn of the next `window` steps (with n > 1: the n most frequent, most frequent first)"""
     turns = Counter()
     res = sim.run(sim.steps + window, turns=turns)
     if res == 'halt' or not turns: return None
-    mx = max(turns.values())
-    return sorted(k for k, v in turns.items() if v == mx)[0]
+    keys = sorted(turns, key=lambda k: (-turns[k], k))
+    return keys[0] if n == 1 else keys[:n]
+
+
+def learn_best(sim, keys, nev):
+    """learn at each candidate hub turn and keep the model with the most room to jump (None if none fits)"""
+    best = None
+    for key in keys:
+        m = learn(sim, key, nev=nev)
+        if sim.halted: return None
+        if m is None: continue
+        r = room(m, sim)[0]
+        if best is None or r > best[0]: best = (r, m)
+    if best is None: return None
+    if best[1].key == keys[-1] or len(keys) == 1: return best[1]
+    # the run is at an event of another key: learn the chosen one again, which ends in its own phase
+    return learn(sim, best[1].key, nev=nev)
 
 
 def event_step(sim, model):
@@ -478,10 +507,11 @@ def accel(tm, maxsteps, maxtime=60.0, log=sys.stdout, warm=100000, verbose=1, sn
     while sim.steps < maxsteps and time.time() - t0 < maxtime:
         if model is None:
             window = min(2 * 10 ** 6, max(30000, 30000 * (1 + fails)))
-            key = hub_key(sim, window)
+            keys = hub_key(sim, window, n=4)
             if sim.halted: break
-            if key is None: continue
-            model = learn(sim, key, nev=nev)
+            if not keys: continue
+            key = keys[0]
+            model = learn_best(sim, keys, nev)
             if sim.halted: break
             if model is None:
                 fails += 1
@@ -494,7 +524,7 @@ def accel(tm, maxsteps, maxtime=60.0, log=sys.stdout, warm=100000, verbose=1, sn
                 if midoff: nev = 64
             elif model.desc() != lastdesc: midoff = False
             lastdesc = model.desc()
-            if verbose: print(f"[{sim.steps:.4e}] learned {model.desc()}", file=log, flush=True)
+            if verbose: print(f"[{sim.steps:.4e}] learned {model.desc()}\n    counters {model.counters(sim)}", file=log, flush=True)
         k, parsed = room(model, sim)
         small = small + 1 if k < 64 and not midoff else 0
         mid = mid + 1 if k < 1 << 14 and not midoff else 0
@@ -506,6 +536,14 @@ def accel(tm, maxsteps, maxtime=60.0, log=sys.stdout, warm=100000, verbose=1, sn
             small = 0; mid = 0; model = None
             if verbose: print(f"[{sim.steps:.4e}] small jumps: relearning over {nev} events", file=log, flush=True)
             continue
+        if k >= 2 and sim.steps + model.cost_of(features_k(model, parsed, k))[0] > maxsteps - 10 ** 6:
+            # do not jump past maxsteps: the largest k that stays below it (costs grow with k)
+            a, b = 0, k
+            while a < b:
+                c = (a + b + 1) // 2
+                if sim.steps + model.cost_of(features_k(model, parsed, c))[0] <= maxsteps - 10 ** 6: a = c
+                else: b = c - 1
+            k = a
         didjump = k >= 2
         if k >= 2:
             cost, ex = apply_events(sim, model, k, parsed)
@@ -517,7 +555,7 @@ def accel(tm, maxsteps, maxtime=60.0, log=sys.stdout, warm=100000, verbose=1, sn
         res = event_step(sim, model)
         if res == 'halt': break
         if res != 'event':
-            if verbose: print(f"[{sim.steps:.4e}] no event at {model.key} in 10^8 steps", file=log, flush=True)
+            if verbose: print(f"[{sim.steps:.4e}] no event at {model.key} in 10^8 steps\n    counters before {model.counters(Fake(bytearray(snap), lo, lo + 4, hi - 4))}", file=log, flush=True)
             model = None; continue
         now = sim.seg(lo, hi) if (sim.lo - 4, sim.hi + 4) == (lo, hi) else None
         if now is not None: learn_sep_online(model, snap, now, lo)
@@ -526,6 +564,7 @@ def accel(tm, maxsteps, maxtime=60.0, log=sys.stdout, warm=100000, verbose=1, sn
         pr = predict_one(model, snap, lo, lo, hi)
         if pr is None: continue
         if now != pr[0] or not model.add_row(pr[1], sim.steps - st0):
+            if verbose: print(f"    counters before {model.counters(Fake(bytearray(snap), lo, lo + 4, hi - 4))}", file=log)
             if verbose: print(f"[{sim.steps:.4e}] model broke ({'tape' if now != pr[0] else 'cost'})", file=log, flush=True)
             model = None
         if verbose and time.time() - lastrep > 30:

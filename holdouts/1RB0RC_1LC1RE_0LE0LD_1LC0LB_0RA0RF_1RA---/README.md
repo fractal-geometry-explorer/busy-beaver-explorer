@@ -53,9 +53,25 @@ stretches of counting at once; it matched direct runs exactly at every check.
 - `plain` (22 steps): `L 1 0 E> 0 0 1 1 0 1 0 0 R` -> `L 0 1 E> 0 0 0 1 0 1 0 1 R`, the most frequent short event.
 
 **Overflows.** When the left counter runs out the hub moves and the counters are laid out again; the accelerator
-then simulates directly until it can learn the new layout. Seen so far: the hub turn moved to cells 122, 128, 143, 153, 168, 182, 192 and 202 at steps 3.5·10^7, 2.1·10^8, 1.3·10^9, 4.6·10^9, 1.6·10^10, 1.3·10^11, 6.1·10^11 and 9.9·10^12, each layout lasting 3 to 16 times longer than the one before.
+then simulates directly until it can learn the new layout. The hub turn moves to a new cell at each overflow (table below).
 
-**Accelerated halt hunt.** A 25-minute run of `cjump.py` reached step 39,282,271,415,780 (3.93·10^13) with 458 cells visited and no halt. From step 3.9·10^13 on the learner finds only short jumps (a layout with a 45-cell hub region), so the run slows to direct speed there.
+At each overflow the left counter has just counted down to 0 and the right counter holds one more digit than the left counter had (`cjump.py`, the counters as read at the last hub event before the head leaves on the overflow excursion, which lasts up to 10^8 steps; afterwards the left counter has n digits and a value close to 2^n):
+
+| overflow at step | left counter (digits) | right counter (digits) | right counter (value) |
+|---|---|---|---|
+| 2.1011·10^8 | 18 | 19 | 228,440 |
+| 1.2920·10^9 | 23 | 24 | 8,316,170 |
+| 4.5633·10^9 | 26 | 27 | 64,999,639 |
+| 1.6005·10^10 | 25 | 26 | 29,229,807 |
+| 1.2801·10^11 | 31 | 32 | 2,128,592,315 |
+| 6.0541·10^11 | 31 | 32 | 1,876,710,861 |
+| 9.9268·10^12 | 38 | 39 | 272,461,191,975 |
+| 3.9152·10^13 | 37 | 38 | 120,108,424,947 |
+| 1.5808·10^14 | 39 | 40 | 530,410,399,330 |
+| 1.4603·10^15 | 41 | 42 | 2,181,240,383,542 |
+| 4.9618·10^15 | 46 | 47 | 68,151,962,712,175 |
+
+**Accelerated halt hunt.** A 30-minute run of `cjump.py` reached step 4,961,958,653,181,237 (4.96·10^15) with 549 cells visited and no halt, through 11 overflows. After the overflow at step 4.96·10^15 it found no model in the remaining time.
 
 ## Status
 
@@ -64,7 +80,7 @@ Open.
 - Lean (`lean/Blank.lean`): `step_none_iff`, no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`.
 - Lean, kernel (`lean/Counter.lean`): the borrow and carry rules of the two counters.
 - C: no halt in 2·10^10 steps.
-- Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 3.93·10^13 steps.
+- Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 4.96·10^15 steps.
 
 ## Next steps
 

@@ -16,7 +16,7 @@ bbchallenge id 125234. One of the six-state holdouts whose halting from blank ta
 Open. Lean (kernel): halting configurations and bounded runs (`lean/Blank.lean`), the halt from `0 C> 0`
 (`halt_ctx`; that every halt passes through it is from the table) and shift rules (`lean/Rules.lean`), 49 event rules
 for all sizes (`lean/Events.lean`), the borrow and carry rules of the two counters (`lean/Counter.lean`). C: no halt
-in 2·10^10 steps. Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 3.75·10^11 steps.
+in 2·10^10 steps. Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 3.09·10^11 steps.
 
 ## What it does
 
@@ -57,7 +57,7 @@ stretches of counting at once; it matched direct runs exactly at every check.
 **Overflows.** When the left counter runs out the hub moves and the counters are laid out again; the accelerator
 then simulates directly until it can learn the new layout. Seen so far: the hub turn moved to cells -109 and -136 at steps 1.4·10^8 and 9.5·10^8, and at step 1.34·10^11 to a layout with four alternating turns.
 
-**Accelerated halt hunt.** A 30-minute run of `cjump.py` reached step 375,369,479,393 (3.75·10^11) with 389 cells visited and no halt. After step 1.34·10^11 the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.
+**Accelerated halt hunt.** A 30-minute run of `cjump.py` reached step 309,371,550,811 (3.09·10^11; re-run with the phase fix of 24 November) with 387 cells visited and no halt. After step 1.34·10^11 the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.
 
 
 ## Files

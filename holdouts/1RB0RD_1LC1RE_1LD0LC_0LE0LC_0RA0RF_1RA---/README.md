@@ -53,9 +53,22 @@ stretches of counting at once; it matched direct runs exactly at every check.
 - `plain` (54 steps): `L 1 0 E> 0 0 1 1 0 1 0 1 0 1 0 1 1 0 1 0 0 R` -> `L 0 1 E> 0 0 0 1 0 1 0 1 0 1 0 1 1 0 1 0 1 R`, the most frequent short event.
 
 **Overflows.** When the left counter runs out the hub moves and the counters are laid out again; the accelerator
-then simulates directly until it can learn the new layout. Seen so far: the hub turn moved to cells 87, 111, 113, 132, 146, 156, 158, 176 and 186 at steps 1.1·10^8, 2.5·10^9, 2.7·10^10, 2.2·10^11, 2.0·10^12, 9.5·10^12, 1.7·10^14, 7.0·10^14 and 3.4·10^15.
+then simulates directly until it can learn the new layout. The hub turn moves to a new cell at each overflow (table below).
 
-**Accelerated halt hunt.** A 30-minute run of `cjump.py` reached step 3,446,148,086,008,046 (3.45·10^15) with 455 cells visited and no halt. 
+At each overflow the left counter has just counted down to 0 and the right counter holds one digit fewer than the left counter had (`cjump.py`, the counters as read at the last hub event before the head leaves on the overflow excursion, which lasts up to 10^8 steps; afterwards the left counter has n digits and a value close to 2^n):
+
+| overflow at step | left counter (digits) | right counter (digits) | right counter (value) |
+|---|---|---|---|
+| 1.0840·10^8 | 16 | 15 | 24,568 |
+| 3.0193·10^8 | 21 | 20 | 1,030,851 |
+| 1.1158·10^9 | 23 | 22 | 3,931,266 |
+| 3.0225·10^9 | 23 | 22 | 3,113,491 |
+| 9.5873·10^9 | 25 | 24 | 15,594,836 |
+| 2.4898·10^10 | 25 | 24 | 12,435,756 |
+| 1.0974·10^11 | 27 | 26 | 65,925,904 |
+| 8.3885·10^11 | 31 | 30 | 1,056,827,025 |
+
+**Accelerated halt hunt.** A 30-minute run of `cjump.py` (with the phase fix of 24 November) reached step 1,011,583,489,816 (1.01·10^12) with 386 cells visited and no halt, through 8 overflows. After the overflow at step 8.39·10^11 a third counter sits between the two and the learner finds no model; the rest of the run is direct. (An earlier figure of 3.45·10^15 came from a version that could jump from the wrong phase of a period-2 or period-4 model and is withdrawn.)
 
 ## Status
 
@@ -65,7 +78,7 @@ Open.
 - Lean, kernel (`lean/Sweeps.lean`): the sweep rules of the self-loops.
 - Lean, kernel (`lean/Counter.lean`): the borrow and carry rules of the two counters.
 - C: no halt in 2·10^10 steps.
-- Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 3.45·10^15 steps.
+- Accelerated (`tools/py/bbtools/cjump.py`, trusted computation): no halt in 1.01·10^12 steps.
 
 ## Next steps
 

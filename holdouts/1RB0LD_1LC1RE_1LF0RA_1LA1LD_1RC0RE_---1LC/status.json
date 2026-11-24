@@ -13,7 +13,7 @@
   ],
   "asof": "Status as of 24 November 2026.",
   "verdict": [
-    "<b>The question is open.</b> The run is two binary counters at a hub, counting down on the left and up on the right; the counting rules are proved in Lean, and an accelerated run reaches 3.75·10<sup>11</sup> steps without a halt. The overflows, where the counters are laid out again, are not decoded."
+    "<b>The question is open.</b> The run is two binary counters at a hub, counting down on the left and up on the right; the counting rules are proved in Lean, and an accelerated run reaches 3.09·10<sup>11</sup> steps without a halt. The overflows, where the counters are laid out again, are not decoded."
   ],
   "claims": [
     {
@@ -102,8 +102,8 @@
     },
     {
       "level": "trusted",
-      "title": "No halt in 3.75·10<sup>11</sup> steps",
-      "text": "A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 375,369,479,393 (3.75·10<sup>11</sup>) with 389 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.",
+      "title": "No halt in 3.09·10<sup>11</sup> steps",
+      "text": "A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 309,371,550,811 (3.09·10<sup>11</sup>; re-run with the phase fix of 24 November) with 387 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.",
       "where": "<code>tools/py/bbtools/cjump.py</code>"
     },
     {
@@ -127,11 +127,11 @@
     "python3 tools/py/bbtools/cjump.py 1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC 1e3000 1800"
   ],
   "explainer": {
-    "lede": "Nobody knows whether it halts. It runs two binary counters at a hub, one counting down and one counting up; an accelerated run reaches 3.75·10<sup>11</sup> steps without a halt.",
+    "lede": "Nobody knows whether it halts. It runs two binary counters at a hub, one counting down and one counting up; an accelerated run reaches 3.09·10<sup>11</sup> steps without a halt.",
     "facts": [
       {
         "level": "trusted",
-        "value": "3.75·10<sup>11</sup> steps",
+        "value": "3.09·10<sup>11</sup> steps",
         "text": "Accelerated run, no halt."
       },
       {
@@ -173,7 +173,7 @@
           "<p>Each visit takes 1 from the left counter and adds 1 to the right. It costs 4 steps per left digit changed, 8 per right digit changed, 20 or 140 per separator crossed, plus a constant, so a long borrow or carry costs a little more and the counting is fast to jump over.</p>",
           "<p>Proved in Lean for every length <i>k</i> of a borrow and <i>j</i> of a carry (<code>lean/Counter.lean</code>):</p><ul><li><code>borrow</code> (4k + 32 steps): <code>L 00 (11)^k 11 A> 0 1 0 1 0 1 0 1 1 R</code> -> <code>L 11 (00)^k 00 A> 0 1 0 1 0 1 0 1 0 R</code>, the left counter borrowing through <code>k</code> digits;</li><li><code>carry0</code> (8j + 84 steps): <code>L 0 0 A> (a 25-cell stretch) (1010)^j 1 0 1 1 R</code>, the right counter carrying through <code>j</code> digits;</li><li><code>carry1</code> (28j + 92 steps): the same beyond a separator, with the 10-cell word <code>0101010111</code> repeated, the right counter carrying through <code>j</code> digits;</li><li><code>plain</code> (36 steps): <code>L 0 0 A> 0 1 0 1 0 1 0 1 0 1 0 1 1 R</code> -> <code>L 1 1 A> 0 1 0 1 0 1 0 1 1 1 0 1 0 R</code>, the most frequent short event.</li></ul>",
           "<p>When the left counter runs out the hub moves and the counters are laid out again. Seen so far: the hub turn moved to cells -109 and -136 at steps 1.4·10<sup>8</sup> and 9.5·10<sup>8</sup>, and at step 1.34·10<sup>11</sup> to a layout with four alternating turns. That rule is the open part.</p>",
-          "<p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 375,369,479,393 (3.75·10<sup>11</sup>) with 389 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.</p>"
+          "<p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 309,371,550,811 (3.09·10<sup>11</sup>; re-run with the phase fix of 24 November) with 387 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.</p>"
         ]
       },
       {
@@ -226,6 +226,6 @@
       }
     ]
   },
-  "summary": "Two binary counters at a hub (left counts down, right counts up; counting rules proved in Lean); accelerated run to 3.75·10^11 steps, no halt; overflows not decoded.",
+  "summary": "Two binary counters at a hub (left counts down, right counts up; counting rules proved in Lean); accelerated run to 3.09·10^11 steps, no halt; overflows not decoded.",
   "family": "10 and 1110 words, two-ended"
 }
