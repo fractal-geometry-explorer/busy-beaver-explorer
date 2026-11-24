@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is a few long runs of the word <code>110</code> separated by short groups of 0s. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 110 (Alex Havrilla, 2026-11-23) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. After 6,937 steps from blank tape the run is, with its states renamed (A→C, B→D, C→E, D→F, E→B, F→A), in the same family of configurations as 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF, and the same argument covers both: the left counter of <code>110</code>-like blocks is a clock that, in each round, asks the right end for a fixed sequence of sweeps, and the right end is analysed one column at a time by two small transducers that keep a weighted average of the gaps between sweeps below a bound, which rules out the halt. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 12 cells) finds no halt in the first 10<sup>12</sup> steps."
  ],
  "claims": [
@@ -170,5 +171,7 @@
   ]
  },
  "family": "a sea of 110 blocks cut by a moving marker",
- "summary": "Its tape is a few long runs of <code>110</code> separated by short groups of 0s; a marker cuts the first run at a point that moves from round to round, and a solid tail on the right grows two cells at a time."
+ "summary": "Its tape is a few long runs of <code>110</code> separated by short groups of 0s; a marker cuts the first run at a point that moves from round to round, and a solid tail on the right grows two cells at a time. Decided outside: busycoq PR 110 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
