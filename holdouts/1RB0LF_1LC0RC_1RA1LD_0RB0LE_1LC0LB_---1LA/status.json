@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a base-4 counter of walls in a sea of <code>110</code>, incremented from the right end. Lean proves one sweep for every carry chain (any length), the two kinds of merger, the walk of T after an overflow and steps of the top's cycle; an exact digit simulator, checked against the direct run to 2&middot;10<sup>9</sup> steps, ran to 8.6&middot;10<sup>15</sup> steps without a halt or an unknown event; accelerated by symbolic macros (16 November), to 3.55&middot;10<sup>38</sup> steps. A closed set of digit configurations is not yet assembled."
  ],
@@ -106,6 +106,12 @@
    "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA 6 1200 mirror</code>; <code>holdouts/regaccel.json</code>"
   },
   {
+   "level": "trusted",
+   "title": "No halt in the first 2.08&times;10<sup>227</sup> steps (region-memo accelerator, 4.5 hours)",
+   "text": "The same region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> (mirrored table, blocks of 6 cells, exact, step count included) ran from blank tape for 16,200 seconds in one uninterrupted run (24 November 2026) and reached step 2.08&times;10<sup>227</sup> without a halt, past the 20-minute bound of 6.97&times;10<sup>153</sup>. Note: the accelerator must not be resumed after its time limit (its Budget exception can leave the tape half-updated); chunked runs resumed that way reported false halts, which is why this is one run. This is a bounded run and says nothing about later steps.",
+   "where": "<code>python3 tools/py/bbtools/regaccel.py 1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA 6 16200 mirror</code>; <code>holdouts/1RB0LF_1LC0RC_1RA1LD_0RB0LE_1LC0LB_---1LA/data/regaccel_16200s.json</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Top-part forecast: no halt at the top-level timer events for 2.26&times;10<sup>6</sup> overflow cycles after 4.79&times;10<sup>63</sup> steps",
    "text": "The digit model counts at the bottom, so the first P digits (the top part) only see carries arriving from below. <code>py/forecast.py</code> keeps the top P digits of an exact state, replaces the rest by three zero digits with runs of 10<sup>60</sup>, runs this reduced tape with the exact condition-macro engine <code>cmacro.py</code> (the same digits.py window rules), and jumps K whole overflow cycles at once while every top run only moves by a constant per cycle. Check: from 3.55&times;10<sup>38</sup> the exact run and the reduced model (P = 16) give the same top 7 digits at 1,984 top events (0 mismatches). From the exact state at 4.79&times;10<sup>63</sup> (reached by <code>cmacro.py</code>, exact, from the 16 November state), with P = 42: the timer events are at cycles 10,968 (run 11,231,167 at index 5), 1,742,014 and 1,805,240 (the left-edge run), all ordinary merges, and nothing halts, splits or fails to parse up to 2.2&times;10<sup>6</sup> cycles (the horizon of index 41), nor up to 1.1&times;10<sup>8</sup> cycles. The step counts are not computed (they depend on the lower part), and that the reduced model predicts the real top part is an argument (a merge at index j changes only digits j-1 and j) checked on data, not a proof. This is a bounded forecast.",
@@ -116,6 +122,12 @@
    "title": "Why it probably never halts",
    "text": "Every event seen (sweeps, mergers, overflows, the T walk, the top's cycle, the first run being used up) is one of a small catalogue of local rewrites of digits, none of which passes the halting shape <code>0 1 F&gt; 1</code>; the catalogue stopped growing except for longer carry chains. A proof needs that catalogue closed under the rules.",
    "where": "README, Notes for later"
+  },
+  {
+   "level": "kernel",
+   "title": "A neighbour invariant mod 16, and only two kinds of merge out of a cycle",
+   "text": "In the abstract digit model (three digits w y x: their phases W0..W3 and the left run of x, changed by a carry into x as in the sweep theorems: x's own steps change its run by &minus;1, &minus;2, 0, +3, y's steps W1&rarr;W2 and W3&rarr;W0 take 2 from it, w steps once per cycle of y), Q = run(x) + h(x) + g(y) + 4&middot;phase(w) mod 16 with h = (0,1,3,3) and g = (0,0,2,2) is unchanged by every carry; the run of x is odd exactly when x is W0; and a cycle of x that ends in W0 with run 1 (next: a W1 with run 0, the merge case) leaves y in W0 or W2, the two merges of the catalogue. On the digit model: Q changed in 0 of 286,401 neighbour triples over 61,990 plain sweeps. The link between the abstract rule and the tape is read off <code>lean/Sweeps.lean</code>, not proved as one theorem.",
+   "where": "<code>carry_Q</code>, <code>carry_parity</code>, <code>merge_left</code>, <code>lean/Invariant.lean</code>"
   },
   {
    "level": "open",
@@ -188,6 +200,343 @@
      "<p><b>Overflow.</b> When every digit reads 3 the head goes all the way to the left end. Every W3 becomes the wall U = <code>11000</code> and a new lowest digit is born at the right end: at step 18,340,104, <code>[0]S [0]W1 [36]W3 [84]W3 [32]W3 [738]W3 [1153]</code> became <code>[0]W0 [0]U [37]U [85]U [33]U [737]U [1151]W1 [1]</code>. Then a marker T = <code>1110</code> walks left through the U's, one U per carry that reaches it (<code>sweep_u_t</code>), turning them back into ordinary digits; at the left end the top goes through a short cycle of its own (<code>prefix_w1</code>, <code>prefix_10_w0</code>) before the next overflow.</p>",
      "<p><b>The left edge.</b> The run right behind the top loses 4 words per overflow. Near 6&middot;10<sup>9</sup> steps it was used up; the top digits rearranged and the next run (about 250 words) took its place. Same rules, nothing new.</p>"
     ]
+   },
+   {
+    "id": "qinv",
+    "eyebrow": "Decided in advance",
+    "heading": "A sum that three digits keep",
+    "html": [
+     "<p>Take three neighbouring digits w y x. Carries arrive at x from below. x's gap changes by &minus;1, &minus;2, 0 and +3 at its own four steps, and y takes 2 from it at y's steps W1&rarr;W2 and W3&rarr;W0; w steps once per cycle of y. Weighted by h = 0, 1, 3, 3 for x's phase and g = 0, 0, 2, 2 for y's, the sum <b>gap(x) + h(x) + g(y) + 4&middot;phase(w)</b> never changes except by 16 (when w wraps): mod 16 it is fixed for the life of the three.</p>",
+     "<p>It also says which merge comes. A W1 whose gap is used up merges with the digit before it; if x got there by a full cycle, y is W0 or W2 (the two merges in the catalogue), and the sum mod 4 says which (1: W0, 3: W2). Deep in the run (4.79&middot;10<sup>63</sup> steps) 38 of 50 triples have sum 13: a W0 merge with w in W3. Lean proves this for the triple model (<code>lean/Invariant.lean</code>).</p>"
+    ],
+    "stepper": {
+     "tape": "w = W{pw}   y = W{py}   x = W{px}   gap of x = {r}   sum = {q}",
+     "vars": [
+      {
+       "name": "pw",
+       "label": "phase of w",
+       "start": "0"
+      },
+      {
+       "name": "py",
+       "label": "phase of y",
+       "start": "0"
+      },
+      {
+       "name": "px",
+       "label": "phase of x",
+       "start": "0"
+      },
+      {
+       "name": "r",
+       "label": "gap of x (words 110)",
+       "start": "9"
+      },
+      {
+       "name": "q",
+       "label": "gap + h(x) + g(y) + 4 phase(w)",
+       "start": "9"
+      }
+     ],
+     "rules": [
+      {
+       "name": "carry: x W0 → W1",
+       "text": "x's gap loses 1",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": -1
+         },
+         "text": "x in W0"
+        },
+        {
+         "form": {
+          "r": 1,
+          "_": -1
+         },
+         "text": "a gap of at least 1"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 1
+        },
+        "r": {
+         "r": 1,
+         "_": -1
+        }
+       }
+      },
+      {
+       "name": "carry: x W1 → W2",
+       "text": "x's gap loses 2",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -1
+         },
+         "text": "x at W1 or later"
+        },
+        {
+         "form": {
+          "px": -1,
+          "_": 1
+         },
+         "text": "x at W1 or earlier"
+        },
+        {
+         "form": {
+          "r": 1,
+          "_": -2
+         },
+         "text": "a gap of at least 2 (with gap 0 this carry is a merge)"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 2
+        },
+        "r": {
+         "r": 1,
+         "_": -2
+        }
+       }
+      },
+      {
+       "name": "carry: x W2 → W3",
+       "text": "nothing else changes",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -2
+         },
+         "text": "x at W2 or later"
+        },
+        {
+         "form": {
+          "px": -1,
+          "_": 2
+         },
+         "text": "x at W2 or earlier"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 3
+        }
+       }
+      },
+      {
+       "name": "carry: x W3 → W0, y W0 → W1",
+       "text": "x's gap gains 3",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in W3"
+        },
+        {
+         "form": {
+          "py": -1
+         },
+         "text": "y in W0"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 1
+        },
+        "r": {
+         "r": 1,
+         "_": 3
+        }
+       }
+      },
+      {
+       "name": "carry: x W3 → W0, y W1 → W2",
+       "text": "x's gap gains 3, y takes 2: net +1",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in W3"
+        },
+        {
+         "form": {
+          "py": 1,
+          "_": -1
+         },
+         "text": "y at W1 or later"
+        },
+        {
+         "form": {
+          "py": -1,
+          "_": 1
+         },
+         "text": "y at W1 or earlier"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 2
+        },
+        "r": {
+         "r": 1,
+         "_": 1
+        }
+       }
+      },
+      {
+       "name": "carry: x W3 → W0, y W2 → W3",
+       "text": "x's gap gains 3",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in W3"
+        },
+        {
+         "form": {
+          "py": 1,
+          "_": -2
+         },
+         "text": "y at W2 or later"
+        },
+        {
+         "form": {
+          "py": -1,
+          "_": 2
+         },
+         "text": "y at W2 or earlier"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 3
+        },
+        "r": {
+         "r": 1,
+         "_": 3
+        }
+       }
+      },
+      {
+       "name": "carry: x W3 → W0, y W3 → W0, w steps",
+       "text": "net +1 for x's gap; w's phase rises",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in W3"
+        },
+        {
+         "form": {
+          "py": 1,
+          "_": -3
+         },
+         "text": "y in W3"
+        },
+        {
+         "form": {
+          "pw": -1,
+          "_": 2
+         },
+         "text": "w in W0, W1 or W2"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 0
+        },
+        "r": {
+         "r": 1,
+         "_": 1
+        },
+        "pw": {
+         "pw": 1,
+         "_": 1
+        }
+       }
+      },
+      {
+       "name": "carry: x, y and w all wrap",
+       "text": "w wraps too; the sum drops by 16",
+       "level": "kernel",
+       "guard": [
+        {
+         "form": {
+          "px": 1,
+          "_": -3
+         },
+         "text": "x in W3"
+        },
+        {
+         "form": {
+          "py": 1,
+          "_": -3
+         },
+         "text": "y in W3"
+        },
+        {
+         "form": {
+          "pw": 1,
+          "_": -3
+         },
+         "text": "w in W3"
+        }
+       ],
+       "set": {
+        "px": {
+         "_": 0
+        },
+        "py": {
+         "_": 0
+        },
+        "pw": {
+         "_": 0
+        },
+        "r": {
+         "r": 1,
+         "_": 1
+        },
+        "q": {
+         "q": 1,
+         "_": -16
+        }
+       }
+      }
+     ],
+     "note": "Arithmetic only: the carry rules of the sweep theorems in <code>lean/Sweeps.lean</code>, applied to one triple."
+    }
    },
    {
     "id": "halt",
