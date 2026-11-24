@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The two long passes of an excursion over the <code>11010</code> block are proved in Lean for every block length (kernel). In between, the head works on a counter whose digits and carry rule are not decoded yet. The C simulator runs 10<sup>11</sup> steps without a halt."
  ],
@@ -86,6 +86,12 @@
    "title": "The condition holds in the first 10<sup>11</sup> steps (now proved for all steps)",
    "text": "In the first 10<sup>11</sup> steps of the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost visited cell 100 times, always in state B on a 1, and all before step 4.5&middot;10<sup>6</sup>, while the counter in the wall was rebuilt after its first overflows; afterwards the right end of the tape does not move. At 270,284 visits of the head to the left end in state C, the tape of the run from C is the tape of the run from A followed by <code>10001101</code>. Proving the condition needs the theory of the counter's rebuild.",
    "where": "<code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The digit carry rule (from the sister machine)",
+   "text": "By the proved correspondence of the two runs, this machine's counter is the decoded counter of <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> in a mirror: 15 trips per sweep and a carry table of 73 entries that reproduces every sweep of that run to 2&middot;10<sup>10</sup> steps.",
+   "where": "<code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/carry.py</code>"
   },
   {
    "level": "open",
@@ -194,6 +200,12 @@
      "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>leftmost cell</th><th>1299</th><th>1274–82</th><th>1249–57</th><th>1224–32</th><th>1199–1207</th><th>1174–82</th><th>1149–57</th><th>1124–32</th><th>≤ 1107</th></tr></thead><tbody><tr><td>returns</td><td>352</td><td>2,680</td><td>1,568</td><td>648</td><td>249</td><td>91</td><td>35</td><td>13</td><td>9</td></tr></tbody></table></div>",
      "<p>Each class is about 2.6 times rarer than the one before: a counter whose digits are about 25 cells long, with a carry reaching digit j about once every 2.6<sup>j</sup> excursions. Each digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>, five bits a to e; 28 of the 32 patterns occur. What one visit does to the bits, and so the exact growth factor, is not decoded yet.</p>"
     ]
+   },
+   {
+    "id": "carry",
+    "eyebrow": "The counter, decoded",
+    "heading": "The digit carry rule (on the sister page)",
+    "html": "<div class=\"col\">\n<p>This machine's run is the run of <a href=\"../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html#carry\"><code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code></a> in a mirror, with\none more word at the far end (proved: see the sections below). So its counter is that machine's counter read right\nto left: each 25-cell digit <code>11a0 11b0 1100 110c 0 11d0 11e0</code> here is a digit\n<code>a110 b110 c011 0011 0d11 0e11 0</code> there read right to left (its free cells a, b, c, d, e are e, d, c, b, a\nhere), and the decoded carry rule there, a 15-trip sweep and\na table of 73 entries that reproduces every sweep to 2&middot;10<sup>10</sup> steps, is the rule here.\n<a href=\"../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html#carry\">That page</a> lets you run it.</p>\n</div>"
    },
    {
     "id": "pair-tables",

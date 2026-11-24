@@ -179,6 +179,57 @@ needs a handle on that deficit along the whole word (for PR59 this is what the 1
 not an invariant of the last few blocks.
 <!-- T8-end-invariant:end -->
 
+<!-- T23-deficit:begin -->
+## The carry as arithmetic: the count is 2^e − c with a small deficit c (24 November 2026)
+
+**Proved in Lean (kernel), `lean/Deficit.lean`** (namespace `H112145`; the same file as for 1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB--- except that `111` halts). Write the count of visits that the pass of `lean/Word.lean` carries
+as `n = 2^e − c`. The *level* `e` starts at 0 in every round (the round's single visit), goes up by one at every
+doubler and down by one at every digit block (not below 0). The *deficit* `c` obeys four rules:
+
+| the pass meets | it writes | deficit after |
+|---|---|---|
+| a `0` at a block start | `1` (and reads that cell again) | `c + 1` |
+| a digit block `1?0` | `100` if `c` is even, `000` if `c` is odd (`000` at level 0) | `⌊c/2⌋` |
+| a doubler `1010` | `1010` | `2c` |
+| `1011` | `0001` (and reads that cell again) | `c + 1` |
+
+and the pass stops where `c = 2^e` (no visit left). `visd` is this computation and `visd_eq` proves that it is `visc`
+with the count `2^e − c`, for every word, level and deficit `c ≤ 2^e`; `roundW_visd`: a round is `visd` from level 0,
+deficit 0. So, with no big numbers anywhere:
+
+- **A round writes parity bits.** Each digit block a round crosses becomes `100` or `000` by the parity of the
+  deficit there. A count that is an exact power of two (`c = 0`) leaves every digit block as it is
+  (`visd_digit_exact`); only the zeros at block starts (and `1011`) change the deficit, by one each.
+- **The count can never exceed 2^level.** The deficit is a natural number, so `n ≤ 2^e` at every block of every
+  round. The level is a path that goes up at doublers and down at digits, and the pass ends where the deficit
+  catches up with `2^e`, which needs a small level: the word end is where this path comes down.
+- **The deficit is small along the whole word (computed).** Over all 3.5·10^10 block starts of the first 200,000
+  rounds (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c`): `c = 0` at 28%, `c ≤ 5` at 96%, `c ≤ 9` at 99.8%; the largest is 1,025 = 2^10 + 1 (round
+  109,218, 26,110 cells before the end). The tail sits on 2^k and 2^k + 1: a deficit of 1 doubled by a run of
+  doublers.
+
+**The danger as arithmetic.** A junk event is the pass stopping on a `0` at a block start, `c + 1 = 2^e` there,
+with a `1` right after it. In the first two junk events (rounds 161,210 and 194,646) the round's last blocks were, as
+(cells before the end, block, level, deficit): `9 L 2 3`, then the `000` at 5 entered with count 2 (level 3, deficit 6),
+its `0` taking one (deficit 7), the digit writing `000` (7 is odd) and handing on count 1, which stops on the `0`
+2 cells before the end. The section on the word end shows that a junk event can be dangerous only when that last
+digit block takes 3 visits instead of 2. In deficit terms: **a junk event can be dangerous only when the count entering
+its last `000` block is odd**, i.e. the deficit there is odd. A doubler doubles the deficit, so a doubler right
+before that block always makes it safe; danger needs the parity of the deficit arriving through the digit blocks
+before it, which is the parity of a bit of the deficit further left (a run of `k` digit blocks `1?0` with no zero between them turns
+`2^e − c` into `2^(e−k) − ⌊c/2^k⌋`).
+
+**The near misses, re-checked.** The changed runs of the section before, with the level kept (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss_level.c 0LF`, first 200,000 rounds), give the same 141 cases as for 1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---, all at `11100`, which halts here: in 91 the changed count is above `2^level`, which no round can produce; the other 50 need deficit 0 (19) or 1 (31) where the run had 1, 2 or 3.
+
+**Where this leaves the question.** Halting needs one round whose last digit block before a junk `0` receives an odd
+count, followed by a round that reaches the junk with two visits; here that second round halts the machine (`junk_offset2_halts`). The deficit form turns every step of that into
+small-number arithmetic on the level path and the deficit bits along the word, with no 2^e − c bookkeeping, but it is
+still a property of the whole word, not of its end.
+
+**The run, further.** `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c` runs the same deficit pass with several rounds in flight (each round stays 8 or
+more cells behind the one before; its words are those of `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c`, checked cell for cell after 20,000 rounds,
+and `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c` after 200,000 rounds). Result, 2,000,000 rounds (about 2 hours with 3 threads; the word is then 12,427,700 cells long): no halt and no `111`. There are 12 junk events, in rounds 161,210, 194,646, 757,565, 906,775, 1,042,306, 1,489,725, 1,731,288, 1,768,130, 1,794,988, 1,799,191, 1,802,854 and 1,975,596, and all 12 have the same shape: the round's last blocks are a doubler, then `000` (count 2, even deficit), then the junk `0` before the word's last `1` (the cells read `1010 000 1 1`); each time the next round enters at offset 1 and passes through `1011` (12 uses of `1011`, one after each junk event). No junk event has yet had a digit block before its last `000`, the only way to an odd deficit there.
+<!-- T23-deficit:end -->
 
 
 ## Events, third round
@@ -192,12 +243,12 @@ halts if a B1 or an E1 is ever followed by a 1 (in the reference's run, B1 and E
 
 ## Status
 
-Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the increments of both counters and the junk crossings, the reference's 9 theorems plus the E1 detour (`lean/Events.lean`). `native_decide`: 10^7 steps. C: no halt in
-10^11 steps.
+Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the increments of both counters and the junk crossings, the reference's 9 theorems plus the E1 detour (`lean/Events.lean`). The pass over the word in deficit form, the count as 2^e − c (`lean/Deficit.lean`). `native_decide`: 10^7 steps and the first 2,000 rounds. C: no halt in
+10^11 steps, and no `111` in the first 2,000,000 rounds of the word pass.
 
 ## Next steps
 
-The last few blocks of the word cannot exclude the dangerous junk on their own (see "No invariant of the word end alone" above): the run stays safe because of the exact counts it brings to the end, and one visit more 60 cells before the end leads to `111` two rounds later in about one round in 3,500. Next: an invariant on the deficit c of the count 2^e − c along the whole word (the quantity busycoq PR59 follows), or a long run that meets `111`.
+The last few blocks of the word cannot exclude the dangerous junk on their own, and the deficit form (see "The carry as arithmetic" above) says exactly what has to be excluded: a junk round whose last `000` block receives an odd deficit. Next: follow the parity of the deficit through the last digit blocks back to the bits it comes from (a run of k digit blocks reads bit k of the deficit), to see whether the zeros that feed it can ever line up; or keep the run going (`../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c`) until a junk round with an odd deficit appears.
 
 ## Scripts
 

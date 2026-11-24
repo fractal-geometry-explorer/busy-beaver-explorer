@@ -109,8 +109,15 @@ def wiki_link(page):
 def deepmind_entry(M, e, decision):
     """The "elsewhere" entry for a machine's Lean file in google-deepmind/cryptids."""
     dm = external()["deepmind"]
-    link = (f"<a href=\"{dm['base']}{e['path']}\">{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
-            f"<a href=\"{dm['repo']}\">google-deepmind/cryptids</a> (commit <code>{dm['commit']}</code>, {dm['date']})")
+    if e.get("pr"):
+        # A file from an open cryptids pull request (not on main): link the PR's head commit.
+        link = (f"<a href=\"{dm['repo']}/blob/{e['commit']}/BusyBeaver/BB6/{e['path']}\">"
+                f"{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
+                f"<a href=\"{dm['repo']}/pull/{e['pr']}\">google-deepmind/cryptids pull request {e['pr']}</a> "
+                f"(commit <code>{e['commit']}</code>, {e['date']}; open, not merged into their main branch)")
+    else:
+        link = (f"<a href=\"{dm['base']}{e['path']}\">{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
+                f"<a href=\"{dm['repo']}\">google-deepmind/cryptids</a> (commit <code>{dm['commit']}</code>, {dm['date']})")
     k = e["kind"]
     if k in CLAIM:
         same = (" It agrees with the proof here." if decision == k else
@@ -336,8 +343,10 @@ def standing_line(M, decision, level="lean"):
                         "not one written in this repository; the ledger below says what this repository checked on its own."}
     if kind == "outside":
         k = CLAIM[e["deepmind"]["kind"]]
+        where = (f"An open pull request ({e['deepmind']['pr']}) to DeepMind's cryptids repository proves it in Lean"
+                 if e["deepmind"].get("pr") else "DeepMind's cryptids repository proves it in Lean")
         return {"kind": "merged", "label": f"Decided by an outside Lean proof: it {k}",
-                "text": "DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the "
+                "text": where + ", and the proof was compiled here with only the "
                         "standard axioms. It is their proof, on their definitions, not one written in this repository; "
                         "the ledger below says what this repository checked on its own."}
     if kind == "computed":
@@ -482,6 +491,14 @@ def reductions():
     return _REDUCTIONS
 
 
+def dm_url(dm):
+    """Link to a machine's Lean file in google-deepmind/cryptids: main at the recorded commit, or an open PR's head."""
+    ext = external()["deepmind"]
+    if dm.get("pr"):
+        return f"{ext['repo']}/blob/{dm['commit']}/BusyBeaver/BB6/{dm['path']}"
+    return ext["base"] + dm["path"]
+
+
 def lean_results(M, folder, spec):
     """The index fields of a machine's Lean results: its map (mp), halt-together partners (ht), Lean no-halt bound
     (bl, bk), DeepMind's Lean file (dm, from external.json) and the link to its Lean folder."""
@@ -496,7 +513,7 @@ def lean_results(M, folder, spec):
     lean = folder + "/lean" if os.path.isdir(os.path.join(REPO, folder, "lean")) else folder
     return {"mp": mp, "mt": 0 if not mp else (1 if mp["t"] == "iff" else 2), "mn": mp["n"] if mp else None,
             "ht": red["together_by"].get(M, []), "bl": round(b[0], 2) if b else None, "bk": b[1] if b else "",
-            "dm": {"k": dm["kind"], "h": dm.get("here", ""), "c": 1 if dm.get("compiled") else 0, "u": external()["deepmind"]["base"] + dm["path"]} if dm else None,
+            "dm": {"k": dm["kind"], "h": dm.get("here", ""), "c": 1 if dm.get("compiled") else 0, "u": dm_url(dm)} if dm else None,
             "lean": GITHUB.replace("/blob/", "/tree/") + lean}
 
 
@@ -692,7 +709,7 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>Built by <code>holdouts/build_pages.py</code> from <code>holdouts/triage.json</code> (the triage run,
  <code>tools/c/triage.c</code> and <code>tools/py/bbtools/triage.py</code>), each machine's <code>status.json</code>,
  <code>holdouts/known.json</code> (community names from the bbchallenge wiki), <code>holdouts/reductions.json</code> (the proved maps and halt-together groups; the no-halt bounds are read from each ledger's Lean claims) and <code>holdouts/external.json</code>
- (outside proofs: busycoq pull requests __ASOF__, DeepMind's cryptids at commit 3647718 of 12 November 2026, the wiki export of 17 November 2026; and the community tracker's labels). The growth class is a heuristic read off one
+ (outside proofs: busycoq pull requests __ASOF__, DeepMind's cryptids at commit 3647718 of 12 November 2026 and its open pull request 37 (commit ee4318b, 21 November 2026), the wiki export of 17 November 2026; and the community tracker's labels). The growth class is a heuristic read off one
  bounded run. Larger, outlined dots in the plot are the machines that are not simply open.</p>
 </footer>
 </main>
@@ -792,7 +809,7 @@ const RF = [
   ["iff", "proved map", r => r.mt === 1, "Lean proves: halts from blank tape iff the orbit of an explicit map on a fixed list of numbers reaches its halting case"],
   ["cond", "map, with a condition", r => r.mt === 2, "a map is proved, but the iff needs an assumption Lean does not check, or only the no-halt direction is proved"],
   ["ht", "halts together with another holdout", r => r.ht.length > 0, "one halting question shared with another machine on the list"],
-  ["dma", "in DeepMind's Lean", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; 26 of them compiled here"],
+  ["dma", "in DeepMind's Lean", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; 46 of them compiled here"],
   ["dms", "solved in DeepMind's Lean", DMS, "google-deepmind/cryptids has a Lean proof that it halts or never halts; those built here are marked compiled"],
   ["both", "map formalized here and in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h === "iff", "both repositories prove a halts-iff map, written independently"],
   ["dmm", "map only in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h !== "iff", "google-deepmind/cryptids proves a halts-iff map that this repository has only with a condition, or not at all; all 15 compiled here"],

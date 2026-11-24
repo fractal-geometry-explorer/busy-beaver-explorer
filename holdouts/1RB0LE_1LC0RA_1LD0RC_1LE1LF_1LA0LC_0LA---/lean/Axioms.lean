@@ -13,3 +13,7 @@ import Macro
 #print axioms H122192.next
 #print axioms H122192.restart2
 #print axioms H122192.own_dot
+#print axioms H122192.mid_db
+#print axioms H122192.mid0_d
+#print axioms H122192.mid0_b
+#print axioms H122192.merge_b

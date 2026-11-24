@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves the shift rules of a sweep and the only halting shape (<code>1 D&gt; 0</code>). In 10<sup>9</sup> steps D read a 0 66,714,267 times, always with a 0 to its left. The phase structure is observed, not proved.</p>
+      <p><b>The question is open.</b> Lean proves the sweeps' shift rules, the head's whole trip through the long block for every length, and the only halting shape (<code>1 D&gt; 0</code>). The phase map, run exactly (steps included) to phase 800, about 10<sup>483</sup> steps, never produced it; the law of the phases is observed, not proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -131,6 +131,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>E on a 1 halts; E is entered only from D on a 0 (1LE). D comes from C on a 0 moving right (C wrote a 0 where E would land) or from E on a 0 moving left. So it halts iff D reads a 0 with a 1 to its left: <code>1 D&gt; 0</code> puts E on that 1 (the converse by reading the table, not formalized).</p>
         <p class="where"><code>halt_shape</code>, <code>halt_after_shape</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The trip through the block, for every length</h3>
+        <p>Leaving the counter as <code>0 0 D&gt;</code> (or <code>1 0 C&gt; 0</code>) with <code>(10)^(k+1) (11)^(2j+2)</code> and blank tape to its right, the head crosses the block, turns and comes back, F (or A) on the block's first cell, in 8j + 12k + 32 (or + 34) steps, with 4 more ones and the counter unread. With an odd number of ones the same trip halts at the far end. So a sweep depends only on the counter (and K mod 4), and the right end never halts.</p>
+        <p class="where"><code>pass_d</code>, <code>pass_c</code>, <code>pass_d_halt</code>, <code>pass_c_halt</code>, <code>lean/Passes.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -157,6 +162,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran the mirrored table (so that the counter is at the left end), with blocks of 6 cells, from blank tape for 600 seconds and reached step 7.46&times;10<sup>35</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 21 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 6 600 mirror</code>; <code>holdouts/regaccel.json</code></p>
       </div>
+      <div class="card">
+        <h3>No halt to phase 800, about 10<sup>483</sup> steps (phase map)</h3>
+        <p><code>py/phasemap.py</code> runs the machine exactly, step count included: each sweep on the counter with the block cut to 32 + K mod 4 cells and lifted (the trip above), runs of sweeps that stay in a suffix of the counter cached as an odometer would be, and phase changes run in full (checked linear in Z). It reached the start of phase 800, step 1.60&middot;10<sup>483</sup>, with no halt. Check: the starts of phases 1 to 13 (to step 2,411,853,311) agree, tape and step, with the same sweeps run on the whole tape without the cut or the cache; block cuts of 32, 40 and 48 give the same first 60 phases. A bounded run: it says nothing about later phases.</p>
+        <p class="where"><code>py/phasemap.py</code>, <code>c/sweep.c</code>, <code>results/phases.tsv</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -166,16 +176,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
       </div>
       <div class="card">
-        <h3>Sweeps and phases</h3>
-        <p>Sampled with C on a 0 at the right end (once a sweep), the tape is a short counter followed by <code>1^K 0^Z</code>. One sweep (about 4.6 times the tape length in steps) takes K down by 1 or 3 and Z up by 4 while the counter on the left ticks. When K is used up a new phase starts with K about the whole tape: phases began near steps 5.8&middot;10<sup>5</sup>, 2.3&middot;10<sup>6</sup>, 9.4&middot;10<sup>6</sup>, 3.8&middot;10<sup>7</sup>, 1.5&middot;10<sup>8</sup>, 6.0&middot;10<sup>8</sup> with tape lengths 838, 1678, 3358, 6718, 13446, 26894.</p>
-        <p class="where"><code>c/tok.c</code></p>
+        <h3>The law of the phases (phases 1 to 800)</h3>
+        <p>Phase n starts with <code>w 1^K 0^1</code> (phase 1 at step 13 with K = 6). Then K<sub>n+1</sub> = 2K<sub>n</sub> + c<sub>n</sub> with c = 2 except at phases 3 to 6 and 11, 94, 122, 218, 490 (c = 10), so from phase 11 on K<sub>n</sub> + 2 = 13448&middot;2<sup>n&minus;11</sup> + 8&Sigma;2<sup>n&minus;m</sup> over those m &le; n; t<sub>n</sub>/K<sub>n</sub><sup>2</sup> &rarr; 5/6. An event follows exactly the phases whose counter ends in <code>1^2 0^2</code>; the counter's last block <code>1^b 0^3</code> loses one 1 a phase, so events are about a block length apart.</p>
+        <p class="where"><code>results/phases.tsv</code>; README, <i>The phase map</i></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. Halting needs <code>1 D&gt; 0</code>, which the sweeps never produce; it would have to come from the counter on the left or from the change of phase, whose rules have not been worked out.</p>
+        <p>Not known. A halt needs <code>1 D&gt; 0</code> inside the counter. Deciding it needs the counter word as numbers: the odometer of a phase and the list of blocks across phases.</p>
       </div>
     </div>
   </section>
@@ -184,7 +194,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000
-gcc -O2 -o nbhd holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/c/nbhd.c &amp;&amp; ./nbhd 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000 D 0</code></pre>
+gcc -O2 -o nbhd holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/c/nbhd.c &amp;&amp; ./nbhd 1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA 1000000000 D 0
+python3 holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/py/phasemap.py --check
+python3 holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/py/phasemap.py 300</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LF_1RC1RB_0RD0RC_1LE1LF_1LD---_0LB1LA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

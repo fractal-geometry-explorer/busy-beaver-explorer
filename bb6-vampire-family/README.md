@@ -101,11 +101,66 @@ evaluated, where K is the halting pass. Two things are missing:
    the halting entry is among the table's, but the contexts between 2^30 and the halt have not been listed. Running
    `c/orbit.c` to the halt with context counting would list them (one more run per orbit, of the size of the
    outside repository's), then `py/contexts.py` and `py/gen.py` regenerate the table.
-2. **The evaluation.** At the halt n has 2.7·10^11 to 7.3·10^11 bits. `check` on plain `Nat` cannot reach that:
-   GMP caps a number at about 1.37·10^11 bits, and evaluating 10^12 passes one by one is far too slow. It needs a
-   chunked check (the 2-adic method of `orbit.c`: k passes depend only on n mod 2^(k+1)) written in Lean with a
-   soundness proof, and then a run of `native_decide` on a large machine. In Rocq the busycoq big-number code
-   multiplies numbers of up to about 1.5·10^8 bits, three orders of magnitude short.
+2. **The evaluation.** At the halt n has 2.7·10^11 to 7.3·10^11 bits, so `check` on plain `Nat` cannot reach it
+   (GMP, under Lean's `Nat`, caps one number at about 1.37·10^11 bits, and 10^12 passes one by one are far too
+   slow). The **2-adic checker** below does it: written in Lean, proved sound, checked against `c/orbit.c`. What is
+   left is to run it once, with `native_decide`, on a machine with a few hundred GB of memory.
+
+## The 2-adic checker (`lean/Adic/`)
+
+The map is (c, n) ↦ (c', (3n + d)/2) with c' and d fixed by c and n mod 4. So k passes depend only on
+n mod 2^(k+1), and 2^k n_k = 3^k n + B_k with B_k a function of c and n mod 2^(k+1). The checker computes
+(c_k, B_k) by divide and conquer, the method of `c/orbit.c`:
+
+- `Adic.solve` does k/2 passes from the low k/2 + 1 bits, then the low k − k/2 + 1 bits of n_(k/2) from those, then
+  the other half. The leaves (`Adic.leaf`) do up to `Lf` passes one at a time on small numbers.
+- `Adic.seg` strings segments of L passes together on the full n. It keeps n as a list of L-bit digits, so no single
+  number is longer than about 2.6·L bits. With L = 2^35 every number stays under GMP's cap, and n can be as long as
+  memory allows.
+- The table is `Core.tbl` numbered (`Adic.mkTab`): entry 4c + r is the next context number and d for n mod 4 = r, or
+  "halts", or "outside the table".
+
+**Proved in Lean, kernel only** (no `native_decide`; axioms `propext`, `Classical.choice`, `Quot.sound`):
+
+- `Adic.leaf_sound`, `Adic.solve_sound`: for every n with the given low bits, a result `go c' B` is what k passes of
+  the abstract map give, with 2^k n_k = 3^k n + B. A result `halt` means the orbit meets a halting entry within k
+  passes.
+- `Adic.seg_sound`: `seg … = true` means the orbit of (c, val ds) meets a halting entry.
+- `Adic.halts_of_meets`, `Adic.halts_of_seg` (`Adic/Link.lean`): the abstract orbit is the orbit of `nextE`, and a
+  halting entry is a halt of the machine. They use two facts about each variant's E-pass, `V*.Adic.nextOK` and
+  `V*.Adic.haltOK` (`Adic/V*.lean`, which restate `V*.nextE_sound` and `V*.haltE_sound`, with omega).
+- For each of the seven machines, `H<id>.halts_of_seg` (`Adic/Machines.lean`): if `Adic.seg V.Adic.tab L Lf f (3^L)
+  s i [n]` returns true from the machine's first E-event, the machine halts from blank tape.
+- `Adic.Test.halt_example`: the whole chain on a real halting E-event, evaluated by the kernel. From context 43 of
+  the table with n = 13,913, the core with F0 = 1LC meets a halting entry at pass 20. The checker finds it, so that
+  configuration halts.
+
+**Checked** (`Adic/Test.lean`, `native_decide`): over 4,096 passes from the starts of the three variants, `solve`,
+the abstract map and the existing `V*.oiter` agree on every context and n, and 2^k n_k = 3^k n + B_k holds.
+
+**Checked by computation, not proved:** compiled, the checker gives the same n_K mod 2^64, bit length and final
+context as `c/orbit.c` on `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` after 2^14, 2^20, 2^24 and 2^28 passes, with one
+segment or several, and on `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA---` after 2^20 passes (`lean/Adic/bench/`). It takes about 1.4 times as long as `c/orbit.c`: 2^28 passes in 61 s (4 segments of 2^26 passes,
+leaves of 24) against 42 s.
+
+### What the final run needs
+
+1. A table with every context of the orbit up to the halt (the run of item 1 above, then `py/contexts.py`,
+   `py/gen.py`, `py/gen_adic.py`). The current table holds the first 2^30 passes, and the checker reports
+   `out` (no proof) if the orbit leaves it.
+2. One evaluation per orbit, for example for `1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---` (orbit O2):
+
+   ```lean
+   theorem halts : H121010.HaltsFromBlank :=
+     H121010.halts_of_seg (2 ^ 35) 24 64 22 (by decide) (by native_decide)
+   ```
+
+   with 22 segments of 2^35 passes covering the reported halting pass, about 7.3·10^11. Checked with
+   `tools/lean/check_native.sh`, so that the evaluation runs compiled code.
+3. A large machine. Scaling the 2^28 timing by K log² K gives very roughly 4 days for O1 and O2 and 10 to 12 days
+   for O3 and O4, on one core (GMP under Lean is single-threaded). That is an extrapolation, not a measurement. The
+   state n alone is 34 to 91 GB at the halt, and the products of a 2^35-pass segment need tens of GB more, so
+   256 GB of memory is the safe size.
 
 ## Files
 
@@ -113,6 +168,9 @@ evaluated, where K is the halting pass. Two things are missing:
 - [`py/contexts.py`](py/contexts.py): chooses the table's contexts (writes [`py/contexts.txt`](py/contexts.txt)).
 - [`py/gen.py`](py/gen.py): writes every Lean file (symbolic proofs from `tools/py/bbtools/symtm`).
 - [`c/orbit.c`](c/orbit.c): the fast orbit, for any member of the family.
+- [`py/gen_adic.py`](py/gen_adic.py): writes `lean/Adic/V*.lean` and `lean/Adic/Machines.lean`.
+- `lean/Adic/`: the 2-adic checker (Basic: the checker and its soundness; Link: the table and the tie to the
+  machines; V*: each variant's E-pass in the checker's form; Machines: the seven halting criteria; Test).
 - `lean/Core/` (Machine, Rules, Defs, Ctx), `lean/VLC/`, `lean/VLA/`, `lean/VRB/` (Machine, Rules, Map),
   `lean/Machines/H<bbchallenge id>.lean` (21328, 119593, 121010, 92948, 160156, 82614, 134470, in the order of the
   table above).
@@ -121,9 +179,11 @@ evaluated, where K is the halting pass. Two things are missing:
 
 ```sh
 . /etc/profile.d/lean.sh
-bb6-vampire-family/lean/check.sh          # every file, about 6 minutes from scratch
+bb6-vampire-family/lean/check.sh          # every file, the checker included, about 6 minutes from scratch
 python3 bb6-vampire-family/py/gen.py      # regenerate the Lean files (from py/contexts.txt)
 python3 bb6-vampire-family/py/family.py check
+bb6-vampire-family/lean/Adic/bench/build.sh    # the compiled checker, after check.sh
+bb6-vampire-family/lean/out/bench/bench LC 0 19 65536 16   # 2^20 passes; compare ./orbit 0 check 1048576
 cd bb6-vampire-family/c && gcc -O2 -o orbit orbit.c -l:libgmp.so.10
 ./orbit 20                                # 2^20 passes of 1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LC---, context counts
 MACH=1RB0LA_0RC0RB_1LD1LA_1LC1RE_1RF0RD_1LA--- C0=11 N0=15 ./orbit 20

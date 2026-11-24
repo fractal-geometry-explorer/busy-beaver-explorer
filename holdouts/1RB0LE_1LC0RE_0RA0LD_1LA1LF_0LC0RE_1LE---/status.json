@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. It belongs to a family of six holdouts with almost the same table (F0 = 1LE, E1 = 0RE). Their tapes are made of the words 10 and 110, grouped in sections split by 000, and they grow slowly to the left. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The engine is decoded and proved in Lean for every size and every layout. At an event the tape is a base-3 counter N, then a binary counter Z, then a chain of binary words; N and Z get 1 per event, and every word is a counter that, when it wraps, sends 3 to the next word (so a carry is multiplied by 3 at every separator, and an empty word passes 3 times what it got). This chain law covers every layout the run has shown (the plain cascade, the X layer and all later eras are special cases) and is proved in <code>lean/Layers.lean</code> for any number of words of any widths. Inside a layout the whole right side is one number that grows by 1 per event, so an era change happens only when a carry runs off the last word. Using this, a simulator that jumps from one era change to the next and runs each change cell by cell has followed the run through 74 changes of era, 5.1·10<sup>41</sup> events (so at least that many steps), with no halt. What an era change hands on (the new widths and values, and how many base-3 digits it takes from N) is the open part; C never runs out of digits: instead the chain keeps gaining words."
  ],
@@ -145,13 +145,31 @@
    "level": "trusted",
    "title": "The stage after 10<sup>128</sup> events",
    "where": "py/latestage.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
-   "text": "At about 10<sup>128</sup> events the head starts turning back at a cell 17 cells into the chain. Around that cell the tape is two chains: on the left, base-3 words of N parted by the cells <code>1010</code> (each one cell off from the next), where the lowest word gets 16 per pair of visits and a word that wraps sends 2 to the next; on the right, the chain of binary words, where the first word (one cell and U1) gets 2 and W2 gets 6 per pair, and a word that wraps sends 3. In 10<sup>8</sup> steps 226,899 consecutive pairs of visits follow this law with 0 mismatches. A simulator that jumps by it covers about 10<sup>127</sup> more visits with no halt; 3,178 self-checks against cell-by-cell runs found no mismatch. Then a carry leaves the right chain and the turning cell moves 31 cells further in, where the law is not decoded."
+   "text": "At about 10<sup>128</sup> events the head starts turning back at a cell 17 cells into the chain. Around that cell the tape is two chains: on the left, base-3 words of N parted by the cells <code>1010</code> (each one cell off from the next), where the lowest word gets 16 per pair of visits and a word that wraps sends 2 to the next; on the right, the chain of binary words, where the first word (one cell and U1) gets 2 and W2 gets 6 per pair, and a word that wraps sends 3. In 10<sup>8</sup> steps 226,899 consecutive pairs of visits follow this law with 0 mismatches. A simulator that jumps by it covers about 10<sup>127</sup> more visits with no halt; 3,178 self-checks against cell-by-cell runs found no mismatch. Then a carry leaves the right chain and the turning cell moves 31 cells further in."
+  },
+  {
+   "level": "trusted",
+   "title": "The stages after it",
+   "where": "py/stages.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
+   "text": "Each stage ends when a carry leaves the right chain, and the turning cell moves (mostly by 2 cells). Around the new cell the tape is the same two chains, with other gifts per visit. A simulator that fits those gifts on 40 cell-by-cell visits of each stage, checks them on every later cell-by-cell visit and jumps with them follows 400 stages from blank tape, about 10<sup>409</sup> visits (so at least that many steps), with no halt; 18,882 self-checks against cell-by-cell runs found no mismatch. The gifts are fitted here; the next two entries derive them."
+  },
+  {
+   "level": "kernel",
+   "title": "The stage law, for every layout",
+   "where": "<code>chain_event</code>, <code>lean/Stage.lean</code>",
+   "text": "The stages are events of the chain law with the word Z empty, and with a chain of base-3 words on the left (parted by <code>1010</code>) in place of the single counter N. From one event to the next the left words get one increment, and a word that wraps sends 2 to the next, because a separator passes two increments on (five left rows, <code>lv_d0</code> … <code>lv_top</code>). With Z empty, the right side gets one unit (Q + 3, a wrap sends 3 to the next word). The head passes the turning cell twice per event. So the fitted gifts of the stages are this law read two visits at a time. Proved for every Z, every list of left words and any tape after either chain."
+  },
+  {
+   "level": "trusted",
+   "title": "The run follows the stage law",
+   "where": "py/stage_law.py (in 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---)",
+   "text": "With the proved law ported in place of fitted gifts, the run from blank tape goes through 13 stages to about 10<sup>137</sup> events (so at least that many steps), with no halt. 630 consecutive pairs of events run cell by cell follow the law and 5,172 spot-check events match it. There the tape after the chain holds an item <code>11 [Q] 11 [Q'] 01 [P]</code>, outside the grammar. Every carry out of the chain crosses it cell by cell, so the proved law no longer jumps far."
   },
   {
    "level": "open",
    "title": "Half-digit shifts",
    "where": "",
-   "text": "The other kind of defect, a separator missing altogether or a separator after Z read as <code>a</code>, <code>ad</code>, <code>zd</code> or <code>ac</code>, makes the words after it be read again with W and U swapped when a carry meets it. Its law is not decoded, and neither is the stage after the turning cell moves a second time (about 10<sup>128</sup> events and 10<sup>127</sup> visits on)."
+   "text": "The other kind of defect, a separator missing altogether or a separator after Z read as <code>a</code>, <code>ad</code>, <code>zd</code> or <code>ac</code>, makes the words after it be read again with W and U swapped when a carry meets it. Its law is not decoded. It stops the proved stage law at about 10<sup>137</sup> events, at an item <code>11 [Q] 11 [Q'] 01 [P]</code>. Also open: whether the stages go on forever."
   },
   {
    "level": "trusted",
@@ -172,7 +190,8 @@
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 1000000000",
   "python3 -m bbtools.ctl 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 6   # from tools/py",
   "gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c && ./cascade_events 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py",
-  "python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- jump 74 10"
+  "python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/wordchain.py 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE--- jump 74 10",
+  "python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_law.py run 600 3"
  ],
  "explainer": {
   "lede": "Nobody knows whether it halts. Its engine is decoded and proved: a base-3 counter on the left and a chain of binary words on the right tick together, and each word that wraps sends 3 to the next. So between two changes of era the whole right side is one counter. A simulator built on this has followed the run for 5.1·10<sup>41</sup> events without a halt; what a change of era hands on is the open question.",
@@ -371,6 +390,6 @@
    }
   ]
  },
- "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt, and with the law on the grammar prefix past the defects of the chain (each erased cell takes one unit of carry) to about 10^128 events; there the event cell moves 17 cells into the chain, and two chain laws around the new cell (base-3 words on the left, each wrap sending 2) carry the run about 10^127 more steps, until the cell moves again. The era changes, the half-digit shifts and the stage after that second move are open.",
+ "summary": "Two-word sweeper: a base-3 counter N and a chain of binary words; each event adds 1 to N and to Z, and each wrap of a word sends 3 to the next (proved in Lean for every layout). The run has been followed through 74 changes of era (5.1·10^41 events) with no halt, and with the law on the grammar prefix past the defects of the chain (each erased cell takes one unit of carry) to about 10^128 events; there the event cell moves 17 cells into the chain, and two chain laws around the new cell (base-3 words on the left, each wrap sending 2) carry the run about 10^127 more steps, until the cell moves again; a simulator that fits each later stage's gifts and checks them follows 400 such stages, to about 10^409 steps, with no halt. Why the gifts take their forms is proved in Lean: the stages are events with Z empty and a chain of base-3 words on the left, and with that law the run is followed to about 10^137 events. The era changes and the half-digit shifts are open.",
  "family": "two-word sweeper"
 }

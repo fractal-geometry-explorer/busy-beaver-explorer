@@ -399,6 +399,61 @@ machine stays open.
     python3 py/fuel.py --dump dump.txt     # the margin of one round-start tape written by c/toksim.cpp
     python3 py/potential.py 800            # fuel against height, every defect step
 
+## Eighth pass (24 November 2026): the far end is a conveyor, and what the value v pins down
+
+This pass asks how far the conserved value v can bound a defect's reach. Notation: W_k is the clean tape that the
+visit of round k leaves (before the next `x` goes in front), m is the number of leading doublers of round k's tape,
+and the height h of a word is the number of doublers minus the number of digits in front of it. v(W) is the sum of
+2^-h over the digits `I`. `py/conveyor.py` checks the following with exact integers in every round from 40 to 6,000.
+
+**The value law.** v(W_k) = 16/15 - c 2^-m + r, with c = 288/127 for even k and c = 145/127 for odd k, and
+|r| < 351 2^-2m (r 2^2m settles to -84.25 in even rounds). So each round moves v by exactly (2/127) 2^-m or
+(143/127) 2^-m, up to an error of order 2^-2m. (The fifth pass measured the value of the round's starting tape, with
+its defect; this is the clean tape after the visit, where the law is sharper.)
+
+**Z is that number, digit for digit.** In even rounds the digit-only end Z of W_k is exactly the binary expansion of
+16/15 - (288/127) 2^-m at every height below 2m - 11. The period-4 and period-28 layers of the fifth pass are
+this expansion: period 4 below height m (16/15 = 1.000100010001... in binary), period 28 between m and 2m.
+
+**The conveyor.** Each round appends 4 digits at the far end, and every digit of Z below height m keeps its value and
+moves exactly 4 heights up. A test makes this visible: flip one digit of Z at height 5 (or m/2) in round 200 and run
+both tapes. The flipped digit stays the only difference and moves up exactly 4 heights per round (25 rounds in a
+row from height 7 to 103) until it reaches height m, where the front starts to rewrite it. It never moves down.
+In terms of v, an error in the low part of the tape shrinks 16 times per round. This is the sense in which v pins
+the tail: an error in it is not stored, it is pushed to finer digits at 4 bits per round. The digits change in only
+two places. Near height m, the defect's first steps take one visit each, which subtracts 2^-m and writes the
+period-28 layer. Near the death point, the defect's last steps leave the irregular layer. In between, digits ride up
+unchanged.
+
+**Where the defect goes.** Its path never goes below height m - 1. It dies at height at least 2m - 9 (in practice
+about 1.8 k: 2m + 1,900 in round 2,350). A defect that enters Z anywhere in the exact layers (heights 5 to 2m - 8),
+as `x`, `1` or `z` and with ample visits, dies within 20 words. So the exact layers form a floor about 2m high that
+no defect can cross.
+
+**What this proves for one round, and what it does not.** Suppose a round tape has (a) Z exact below height
+2m - 11, and (b) every word between the leading doublers and those layers at height at least m - 1. Then the
+round's defect dies at height at least 2m - 31, and its need is at most one visit (the fuel argument of the
+seventh pass, with every height on the path at least m - 1). The irregular digits do not matter for that round,
+because a defect that eats all of them still stops on the floor. But (a) and (b) are not yet an induction, for two
+reasons:
+
+1. A death inside the exact layers writes doublers there. The conveyor rebuilds the layers from below at 4 heights
+   per round, but one such death can lower the top of the floor by up to about 20 heights. So in the worst case,
+   repeated deep deaths could wear the floor down, and nothing here rules that out. In the run no death ever came
+   near it: the death height minus 2m is at least -9 in rounds 40 to 500 and at least +211 from round 500 on (+5,060 in round 6,000), a margin
+   of about 0.8 k heights. That margin is the irregular and frozen layers.
+2. (b) needs the heights of the doubler-rich part to stay up. The two-round monotonicity of the seventh pass would
+   give this. It held again on 19,910 new random tapes with W up to 300 words, with 0 violations; the two-round
+   changes seen were 0, 1, 2, 3, 4, 6 and 8, never negative. Also needed: the front's exact form, which fixes c and
+   the drift; this is measured, not derived.
+
+So the open statement can now be put more weakly than `nx W <= 1` in every round: the defect never dies inside
+the exact layers (below height 2m - 11), and the two-round monotonicity holds. Given those two, the conveyor keeps
+the floor, and the floor kills every defect in time. Neither is proved. Nothing of this pass is in Lean. It applies
+word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose rounds are the same token tapes.
+
+    python3 py/conveyor.py 6000 200      # the value law, exact Z, path, death height, floor window, perturbation test
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -426,6 +481,11 @@ machine stays open.
   halts. Trusted: the need is 3 or 4 visits against 2^(k/2) in rounds 13 to 3,000 and at rounds 20,000, 50,000 and
   300,000; heights before the death point never drop over two rounds (rounds 40 to 3,000, 19,991 random tapes).
   Open: `nx W <= 1` in every round.
+- Trusted, 24 November 2026 (`py/conveyor.py`, rounds 40 to 6,000): the value law v(W_k) = 16/15 - c 2^-m + O(2^-2m)
+  (c = 288/127 or 145/127); Z is exactly the binary expansion of that number below height 2m - 11; below height m,
+  Z is a conveyor (4 new digits per round at the far end, every digit 4 heights up, errors pushed up and never
+  stored); every defect dies at least 2m - 9 high, and a defect entering the exact layers dies within 20 words.
+  Open in this form: that no defect dies inside the exact layers, and the two-round height monotonicity.
 
 ## Scripts
 
@@ -445,6 +505,9 @@ machine stays open.
 - `py/fuel.py ROUNDS [TRIALS]`: the fuel each round's defect needs (`nx` of `lean/Fuel.lean`) against the 2^m visits
   it gets, and the two-round height check on the run and on random tapes; `py/potential.py ROUNDS`: fuel against
   height at every defect step.
+
+- `py/conveyor.py ROUNDS [ROUND]`: the eighth pass. The value law, Z against the expansion of 16/15 - c 2^-m, the
+  defect's lowest height and death height, the floor window, and the perturbation test started in round ROUND.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 

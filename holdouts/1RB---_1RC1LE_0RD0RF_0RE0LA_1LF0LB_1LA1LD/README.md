@@ -89,6 +89,16 @@ for some k >= 0.
   (t = 0, or the point before it does not make a C step with s = 0). `crit_m1`: for m = 1 (after R with s = 0) the
   condition is x = 2^(k+3) - k - 5; `crit_m3`: for m = 3 (after R with s = 1) it is x = 5·2^(k+1) - k - 6
   (`#print axioms`: propext, Classical.choice, Quot.sound).
+- Lean, kernel (`lean/Early.lean`, by hand): the first 200 rounds of the orbit, exactly. `jstep` is one step of the
+  map except that a whole B phase (m even, x >= 1) is one jump of x map steps (`bphase`, by induction on x);
+  `jrun_ok`: `jrun` returns `iter` of the map steps it counts. Evaluated by `decide +kernel` (about 6 s):
+  `orbit_round20`: after 271 jumps, 109,233 map steps with 20 R steps, the orbit is at (109379, 3, 0);
+  `orbit_round200`: after 12,815 jumps, 91,065,045,402,056,075,917,728,632,641,862,099 map steps with 200 R steps,
+  it is at (91065045402056075917728632641863651, 3, 0). No H on the way, so no chain of these rounds meets the
+  criterion of `halts_iff_chain`, and `no_halt_round200`: the machine runs more than 9.1·10^34 steps from blank
+  tape without halting. These rounds carry 0.318695 of the heuristic sum below, all of it but less than 10^-30
+  (every chain after round 200 ends at h > 2^115). `py/rounds.py chains 20` lists the 29 chains of the first 20
+  rounds and their remainders; the closest call is round 10, remainder 16 of h = 1279.
 - Lean (`lean/Blank.lean`): no halt in 10^4 steps (kernel) and 10^7 (`native_decide`).
 - C + Python (`py/samplemap.py check`): every sample of the first 10^10 steps from step 216 on follows the map
   (51,486 B, 173 C, 43 A, 18 R steps; 22 samples show a solid tape: one inside each R step and 4 before step 216).
@@ -105,7 +115,7 @@ for some k >= 0.
    (7, 1, 0) under `mstep` ever meet `x + k + 1 = (m+7)(2^(k+1)-1)/2` at the start of a chain of C steps with
    s = 0? A proof of non-halting would need an invariant of the orbit (for instance a congruence that the chain
    starts never satisfy); none is known, and the remainders cover all of [0, h), so this is likely as hard as a
-   Collatz-type problem.
+   Collatz-type problem. The first 200 rounds are checked exactly in Lean (`lean/Early.lean`).
 2. Done: the chain criterion is proved in Lean (`lean/Chain.lean`). Not done: a Lean statement that names which
    steps can start a chain (R, A, A' or the start); `halts_iff_chain_start` only says the previous point does not
    make a C step with s = 0.
@@ -125,6 +135,8 @@ python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py orbit
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/samplemap.py small               # the map from small samples, ~1 s
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/exact.py                       # the rule table and its step counts against direct simulation, ~2 s
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/heuristic.py 1000                # the chance-of-a-hit sum, ~1 min
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/rounds.py jrun 200                   # the numbers lean/Early.lean checks
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/rounds.py chains 20                 # the chains of the first 20 rounds
 ```
 
 <!-- related machines: written by holdouts/related.py -->
