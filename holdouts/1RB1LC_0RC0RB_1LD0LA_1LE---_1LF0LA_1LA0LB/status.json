@@ -60,6 +60,12 @@
    "where": "<code>walk_delta_lt</code>, <code>no_halt_if_short</code>, <code>lean/DeltaBound.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "One step of the walk, for every length",
+   "text": "The first single step of the rebuild's walk proved for every length: from the clean configuration with suffix <code>1001</code> and header <code>0110111</code> whose lowest unread digits are, from the top, <code>0 0 1<sup>2t+3</sup></code> (t &ge; 1), for every rest of the counter and every down-counter v<sub>0</sub> of value at least 2<sup>2t</sup>, the machine reaches the clean configuration with suffix <code>000</code> and the same header, the rest of the counter untouched and the down-counter <code>1<sup>5t+7</sup> 0 1</code> followed by 16 v<sub>0</sub> + 4 &minus; 2<sup>2t+3</sup> (5t + 13 more digits). Three local passes (<code>lean/StepPasses.lean</code>, written by <code>py/gen_steps.py</code>, found by fitting the cells the passes visit in concrete runs) and two phases of 2<sup>2t+2</sup> &minus; 2 and 2<sup>2t+2</sup> &minus; 1 ticks. This is the template for the other step families of the walk; a proof of the whole map needs all of them and the induction over the digits.",
+   "where": "<code>step1</code>, <code>lean/StepRule.lean</code>"
+  },
+  {
    "level": "native",
    "title": "No halt in the first 10<sup>7</sup> steps",
    "text": "The same run, evaluated by compiled code.",
@@ -152,8 +158,9 @@
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
-  "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase (any run of ticks), Family + FamilyRule (the family, every k), DeltaBound (delta < 2^((7j-1)/2))",
+  "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/check.sh          # Machine, Blank, Rules (ticks), Rebuild (rebuild rules), Phase (any run of ticks), Family + FamilyRule (the family, every k), DeltaBound (delta < 2^((7j-1)/2)), StepPasses + StepRule (one walk step, every length)",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/delta_cases.py 3000 > /tmp/DeltaCheck.lean && (cd holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean && LEAN_PATH=$LEANLIB:out:../../../tools/lean/out lean /tmp/DeltaCheck.lean)   # the Lean walk = py/map.py walk",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/gen_steps.py > holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/lean/StepPasses.lean",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB validate 120          # macro run = counters.py run, state by state",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB run 1500        # the macro run, one line per rebuild",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB halting 12      # which rebuilds halt, N < 2^12",
