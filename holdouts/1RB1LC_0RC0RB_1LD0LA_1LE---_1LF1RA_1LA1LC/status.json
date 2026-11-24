@@ -11,10 +11,10 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The tape holds two binary counters, U up and V down. When V runs out the machine rebuilds V from the bottom digits of U; the rebuild is now computed exactly as a map on the counters."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 58 (Dennis Koshta, 2026-11-05) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: its only axiom is functional extensionality from Coq's standard library (<code>Print Assumptions</code>), and its transition table is this machine. The file proves it for the left-right mirror image and transfers it with busycoq's <code>flip</code> lemma. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
-  "<b>The question is open.</b> Lean proves the ticks; the exact macro map finds no halt in the first 10<sup>656</sup> steps.",
+  "<b>The question is open here.</b> Lean proves the ticks; the exact macro map finds no halt in the first 10<sup>9624</sup> steps, and every halt it can produce comes from one walk over the counter's digits running off its top.",
   "<b>Where a halt would come from.</b> Only from a rebuild after V reaches 0; which rebuilds halt is listed for small counters."
  ],
  "claims": [
@@ -56,20 +56,38 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 10<sup>656</sup> steps (macro run)",
-   "text": "The macro run from blank tape goes through 6 rebuilds without a halt; at the end V has 2,176 digits and the step count is about 10<sup>656</sup>.",
-   "where": "<code>holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0R... run</code>"
+   "title": "A faster exact rebuild",
+   "text": "<code>py/fastrebuild.py</code> runs the same exact rebuild as <code>rebuild.py</code> (tick runs jumped by the proved tick rules, the rest cell by cell), but its C loop stops only where state D reads 0 between the gap and one of the two headers, instead of at each of the millions of 0s it reads in state D, and it decodes and rewrites the counters with byte slices. Rebuild 6 from blank tape (V of 2,176 digits) took more than 25 minutes and takes 4 s. Tested: the first 7 macro states from blank tape (to about 10<sup>991</sup> steps) equal those of the family's own code, state by state.",
+   "where": "<code>py/fastrebuild.py speed 7</code>, <code>c/stops.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in the first 10<sup>9624</sup> steps (macro run)",
+   "text": "The macro run from blank tape goes through 9 rebuilds without a halt; at the end V has 31,967 digits and the step count is about 10<sup>9624</sup>. The run uses the faster exact rebuild below (rebuild 8 takes 18 s).",
+   "where": "<code>py/fastrebuild.py run</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Four kinds of rebuild, two of them in closed form",
+   "text": "Write the counter as its top word (<code>1</code> or <code>1000x</code>) and L digits U. <b>A</b> (header <code>0110101</code>, top <code>1</code>) reads every digit: new header <code>0110111</code>, top <code>10000</code>, all L digits 0, V gains 1 digit, and &delta; = 2<sup>L</sup> &minus; U, so V' = 2<sup>n+1</sup> &minus; 2<sup>L</sup> + U. <b>C</b> (header <code>0110111</code>, top <code>1</code>) reads the j digits of a walk from the bottom: a first pair 01 or 10 stops it (j = 2); otherwise add 1 to U if its lowest pair is 11 and stop at the first pair whose upper digit is 1 (j = 2k). Then the new header is <code>0110101</code>, the top <code>10000</code> over L &minus; j zero digits, V gains 5j/2 + 1 digits and &delta; = c + 2<sup>L&minus;j</sup> &minus; (U &gt;&gt; j), with c depending only on the j digits read (U &gt;&gt; j &gt; 0). <b>B</b> (header <code>0110111</code>, top <code>1000x</code>) and <b>D</b> (header <code>0110101</code>, top <code>1000x</code>) read every digit and leave N' = 2. Checked against the exact rebuild: A and C for every U &lt; 2<sup>10</sup> with n &minus; L in {0, 1, 3}; in the run, A twice and C three times (walks of 34, 444 and 8,182 digits), all as stated.",
+   "where": "<code>py/fastrebuild.py kinds 10</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where the rebuilds halt: the walk runs off the top",
+   "text": "For every U &lt; 2<sup>L</sup>, L = 3 .. 9, both values of x and n &minus; L in {0, 1, 2, 3} (112 cases): B halts exactly for the U whose walk (the one of C) does not stop below the top of U (the all-ones U aside), when x = 0 or L is even, and never when x = 1 and L is odd; D never halts when n &minus; L &ge; 2, and with n &minus; L = 1 halts exactly where B does when L is even and never when L is odd. A never halts (every U &lt; 2<sup>10</sup>), nor did C for any U &lt; 2<sup>14</sup> with n = L + 1. (D with n &minus; L = 0 has other halting sets; no D rebuild of the run has n = L.) So the run halts only at a B or D rebuild whose counter has no 1 in the upper place of any pair, after the walk's carry. That is the invariant of the outside proof: busycoq PR 58's walls carry <code>marked 1 bs</code>, a 1 at an odd position of the digits.",
+   "where": "<code>py/fastrebuild.py halting 9</code>"
   },
   {
    "level": "heuristic",
-   "title": "What the rebuild map looks like in the run",
-   "text": "Only 6 rebuilds fit in the 10-minute run (the seventh, with V of 2,176 digits, is run cell by cell and did not finish). Header and top word go round the cycle <code>0110111/1000</code>, <code>0110111/1</code>, <code>0110101/1000</code>, <code>0110101/1</code>. Every rebuild with top word <code>1</code> (3 of 3) left only a two-digit counter N' (2 or 3), so the next counter is 2<sup>n'</sup> + N' &minus; &delta;, written almost entirely by the rebuild. The two with header <code>0110111</code> and top word <code>1000x</code> kept the counter and V gained one digit; the one with <code>0110101/1000</code> read 33 digits. Six rebuilds are too few to call any of this a rule.",
-   "where": "<code>py/rebuild_stats.py 1RB1LC_0RC0R... run</code>"
+   "title": "The walks in the run",
+   "text": "The kinds follow each other as A, B, C, D, then A or C again (D went to A once and to C once). The two B rebuilds of the run stopped their walk after 12 of 23 and 444 of 619 digits; the D rebuild with n &minus; L = 1 (L = 3,286, even) after 16. A halt needs a walk that runs off the top, which for random digits has probability about 2<sup>&minus;L/2</sup>, and L grows about threefold per rebuild. A heuristic only, now superseded by the outside proof.",
+   "where": "<code>py/fastrebuild.py run</code>"
   },
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The macro map on (H, n, N) is computed exactly; its rebuilds have not been described for all N, so neither a non-halting invariant nor a halting run is known. The stopping walk found for <code>1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB</code> (round 3) does not describe this machine's rebuilds: of the 584 rebuilds with N &lt; 2<sup>9</sup> (both headers, n &minus; len(N) + 1 in {0, 1}) on which the walk stops below the top digit, none gives the predicted (header, n', N'). No rebuild rule is proved in Lean for this machine (there is no <code>lean/Rebuild.lean</code>).",
+   "text": "Not decided by this repository (the outside Rocq proof of busycoq PR 58 decides it). The kinds A and C are in closed form apart from the constant c of C, and the halting rebuilds are described for small counters; what is missing here is c as a formula, the maps of B and D, and a proof of any of it in Lean.",
    "where": ""
   }
  ],
@@ -77,16 +95,19 @@
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/lean/check.sh          # Machine, Blank, Rules (ticks)",
   "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC validate 120          # macro run = counters.py run, state by state",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC run 1500        # the macro run, one line per rebuild",
-  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC halting 12      # which rebuilds halt, N < 2^12"
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF0LA_1LA0LB/py/rebuild_stats.py 1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC halting 12      # which rebuilds halt, N < 2^12",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/fastrebuild.py speed 7     # the faster rebuild = the family's, state by state (30 min, most of it the old code)",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/fastrebuild.py run 600     # the macro run, one line per rebuild",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/fastrebuild.py kinds 10    # the formulas of A and C, every U < 2^10",
+  "python3 holdouts/1RB1LC_0RC0RB_1LD0LA_1LE---_1LF1RA_1LA1LC/py/fastrebuild.py halting 9   # halting B and D rebuilds = the walk off the top, L <= 9"
  ],
  "explainer": {
   "lede": "Nobody knows. Started on a blank tape, this Turing machine has run for 10<sup>9</sup> steps without stopping. This page runs the real machine in your browser, shows the shape of its run, and lists what is known, each result marked by what it rests on.",
   "facts": [
    {
     "level": "trusted",
-    "value": "10<sup>656</sup> steps",
-    "text": "No halt in the exact macro simulation (6 rebuilds)."
+    "value": "10<sup>9624</sup> steps",
+    "text": "No halt in the exact macro simulation (9 rebuilds)."
    },
    {
     "level": "native",
@@ -150,7 +171,7 @@
   ]
  },
  "family": "Up/down two counters with resets (G12 family 3b)",
- "summary": "Up/down counters with proved ticks; in the run every rebuild with top word 1 reads almost all of U; macro map on (H, n, N) computed exactly; no halt in ~10^656 steps. Decided outside: busycoq PR 58 proves in Rocq that it never halts (compiled here).",
+ "summary": "Up/down counters with proved ticks; four kinds of rebuild, and a halt only where a walk over the digits of U runs off its top (checked for small counters); exact macro map, no halt in ~10^9624 steps. Decided outside: busycoq PR 58 proves in Rocq that it never halts (compiled here).",
  "decision": "nonhalting",
  "decision_level": "outside"
 }
