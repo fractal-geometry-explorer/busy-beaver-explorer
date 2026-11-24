@@ -218,6 +218,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>gcc -O2 -o abrun c/abrun.c && ./abrun 3000000000000 10000000000</code> (about 7 hours; resumable from any logged <code>prog</code> line)</p>
       </div>
       <div class="card">
+<<<<<<< HEAD
         <h3>No halt in the first 7.985&middot;10<sup>13</sup> visits (about 3.5&middot;10<sup>41</sup> steps)</h3>
         <p><code>c/abfast.c</code> follows the rules from A(2, 9) up to 48 visits at a time: it reads the next grow/swap digits off the binary expansion of b / (a + b), applies them formally and keeps the block only if both coordinates end at least 16&middot;2<sup>K</sup>, which <code>block_ok</code> in <code>lean/Block.lean</code> proves sound for any guessed digits (refused blocks are redone one visit at a time). 7.985&middot;10<sup>13</sup> visits without b = 3, ending at A(271312121921225, 8162873912833); 43 near visits (1 &le; b &minus; a &le; 8), none with a even and b &minus; a = 4. It reproduces <code>c/abrun.c</code>'s states and near visits at 10<sup>11</sup> and 3&middot;10<sup>12</sup> visits. Steps by T &asymp; 0.68&nbsp;N<sup>3</sup>.</p>
         <p class="where"><code>gcc -O3 -march=native -o abfast c/abfast.c && ./abfast 79850000000000 100000000000</code> (about 1.7&middot;10<sup>9</sup> visits a second; resumable from any <code>prog</code> line of <code>c/abfast_log.txt</code>)</p>
@@ -226,6 +227,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>It halts from blank tape after 3.47&middot;10<sup>41</sup> steps</h3>
         <p>The orbit of the rules from A(2, 9) reaches A(139754396279488, 139754396279492) (a even, b &minus; a = 4) at visit 79,859,656,218,973 and A(279508792558980, 3) at the next, so by <code>halts_iff_rules</code> the machine halts: after exactly 346,<wbr>613,<wbr>804,<wbr>468,<wbr>191,<wbr>894,<wbr>895,<wbr>080,<wbr>818,<wbr>748,<wbr>230,<wbr>768,<wbr>977,<wbr>389 steps (52 to reach A(2, 9), the exact step counts of the rules, and 11 at the end). <code>c/abfast.c</code> found it; <code>c/abseg.c</code> redid all 79,859,656,218,974 visits one at a time with the full rules in 80 segments, each ending at the next checkpoint, and summed the steps in 256-bit; <code>c/abrun.c</code> redid the last 9.66&middot;10<sup>9</sup> visits.</p>
         <p class="where"><code>c/abseg_log.txt</code>, <code>c/abfast_log.txt</code></p>
+=======
+        <h3>No halt in the first 6.6&middot;10<sup>12</sup> visits (about 2.0&middot;10<sup>38</sup> steps)</h3>
+        <p><code>c/abfast.c</code> follows the rules from A(2, 9) up to 48 visits at a time: it reads the next grow/swap digits off the binary expansion of b / (a + b), applies them formally and keeps the block only if both coordinates end at least 16&middot;2<sup>K</sup>, which <code>block_ok</code> in <code>lean/Block.lean</code> proves sound for any guessed digits (refused blocks are redone one visit at a time). 6.6&middot;10<sup>12</sup> visits without b = 3, ending at A(8096170023751, 15003829348773); 41 near visits (1 &le; b &minus; a &le; 8), none with a even and b &minus; a = 4. It reproduces <code>c/abrun.c</code>'s states and near visits at 10<sup>11</sup> and 3&middot;10<sup>12</sup> visits. Steps by T &asymp; 0.68&nbsp;N<sup>3</sup>.</p>
+        <p class="where"><code>gcc -O3 -march=native -o abfast c/abfast.c && ./abfast 6600000000000 100000000000</code> (about 1.7&middot;10<sup>9</sup> visits a second; resumable from any <code>prog</code> line of <code>c/abfast_log.txt</code>)</p>
+>>>>>>> 3182105017acbbdbe597133c4c677935f943f62a
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
