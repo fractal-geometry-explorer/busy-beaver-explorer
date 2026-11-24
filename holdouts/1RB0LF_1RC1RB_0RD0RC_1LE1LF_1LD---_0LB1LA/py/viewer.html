@@ -1,0 +1,52 @@
+<div class="panel" id="pmv">
+  <div class="controls">
+    <label class="small" for="pmN">Phase</label>
+    <input type="range" id="pmN" min="1" max="260" value="94" style="flex:1;min-width:160px">
+    <button type="button" id="pmPrev">&#8592;</button><button type="button" id="pmNext">&#8594;</button>
+    <button type="button" id="pmEv">Next event</button>
+  </div>
+  <div id="pmStat" class="small" style="margin-top:10px;font-family:var(--mono);overflow-wrap:anywhere"></div>
+  <div class="config" id="pmTail"></div>
+  <div style="overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:8px" id="pmBox"><canvas id="pmCv" height="10" style="display:block"></canvas></div>
+  <div class="cap">One row per phase start (phase 1 at the top), the counter word right-aligned so that its right end, where it meets the block, is at the right edge; one pixel a cell (scroll left for the rest). Zeros are dark, ones light; the orange row is the phase chosen above (click a row to choose it). Each dark diagonal is a separator <code>0^3</code> between blocks: the tail of the word moves one cell to the right every phase (its last block loses a 1), so the separators drift right, and where one reaches the right edge an event (c&nbsp;=&nbsp;10) follows and neighbouring blocks merge (the lines that stop). The ragged top edge is the part on the left that changes in every phase.</div>
+</div>
+<script>
+(function(){
+  var P = __PDATA__;
+  var cv = document.getElementById("pmCv"), box = document.getElementById("pmBox"), sl = document.getElementById("pmN");
+  var RH = 2, maxLen = 0;
+  P.forEach(function(p){ p.r = p.w.split(".").map(function(x){return parseInt(x,16);}); p.len = p.r.reduce(function(a,b){return a+b;},0); if (p.len > maxLen) maxLen = p.len; });
+  // exact K from K_1 = 6 and K_n = 2 K_(n-1) + c_n
+  var K = [], k = 6n; P.forEach(function(p,i){ if (i) k = 2n*k + BigInt(p.c); K.push(k); });
+  sl.max = P.length;
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || "#888"; }
+  function draw(sel){
+    var W = maxLen + 4; cv.width = W; cv.height = P.length * RH; cv.style.width = W + "px"; cv.style.height = cv.height + "px"; cv.style.maxWidth = "none";
+    var g = cv.getContext("2d"), c0 = css("--sunk"), c1 = css("--accent-soft"), cz = css("--ink"), ch = css("--head");
+    g.fillStyle = c0; g.fillRect(0,0,W,cv.height);
+    P.forEach(function(p,i){
+      var x = W - 2 - p.len, y = i * RH;
+      for (var j = 0; j < p.r.length; j++){ g.fillStyle = (j % 2) ? cz : c1; g.fillRect(x, y, p.r[j], RH); x += p.r[j]; }
+      if (i + 1 === sel){ g.fillStyle = ch; g.fillRect(0, y, W - 2 - p.len, RH); g.fillRect(W-2, y, 2, RH); }
+    });
+  }
+  function fmtBig(b){ var s = b.toString(); return s.length > 40 ? s.slice(0,12) + "…" + s.slice(-12) + " (" + s.length + " digits)" : s.replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function show(n){
+    n = Math.max(1, Math.min(P.length, n)); sl.value = n; var p = P[n-1];
+    var lt = p.lt, ex = Math.floor(lt), mant = Math.pow(10, lt - ex).toFixed(2);
+    document.getElementById("pmStat").innerHTML = "phase " + n + " starts at step ≈ " + mant + "·10<sup>" + ex + "</sup> with K = " + fmtBig(K[n-1]) +
+      " and Z = 1;  c = K − 2·K<sub>prev</sub> = " + (n > 1 ? p.c : "–") + (p.c !== 2 && n > 1 ? "  (event)" : "") + ";  |w| = " + p.len + " cells, " + p.r.length + " runs";
+    var t = [], r = p.r, lo = Math.max(0, r.length - 16);
+    for (var j = lo; j < r.length; j++) t.push((j % 2 ? "0^" : "1^") + r[j]);
+    document.getElementById("pmTail").textContent = "w = " + (lo ? "… " : "") + t.join(" ") + "   [then 1^K 0^1]";
+    draw(n);
+  }
+  sl.addEventListener("input", function(){ show(+sl.value); });
+  document.getElementById("pmPrev").onclick = function(){ show(+sl.value - 1); };
+  document.getElementById("pmNext").onclick = function(){ show(+sl.value + 1); };
+  document.getElementById("pmEv").onclick = function(){ for (var n = +sl.value + 1; n <= P.length; n++) if (P[n-1].c !== 2) return show(n); show(P.length); };
+  cv.addEventListener("click", function(e){ var r = cv.getBoundingClientRect(); show(Math.floor((e.clientY - r.top) / RH) + 1); });
+  show(+sl.value); box.scrollLeft = box.scrollWidth;
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){ show(+sl.value); });
+})();
+</script>
