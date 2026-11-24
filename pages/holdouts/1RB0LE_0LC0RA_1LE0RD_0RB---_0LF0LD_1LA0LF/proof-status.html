@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -207,6 +207,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6</code></p>
       </div>
       <div class="card">
+        <h3>The value law, to second order</h3>
+        <p>For the clean tape W<sub>k</sub> that round k's visit leaves: v(W<sub>k</sub>) = 16/15 &minus; c&middot;2<sup>&minus;m</sup> + r with c = 288/127 (k even) or 145/127 (k odd) and |r| &lt; 351&middot;2<sup>&minus;2m</sup>, in every round from 40 to 6,000 (exact integers). In even rounds the digit-only end Z is, digit for digit, the binary expansion of 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup> below height 2m &minus; 11: the period-4 and period-28 layers are this number.</p>
+        <p class="where"><code>python3 py/conveyor.py 6000 200</code></p>
+      </div>
+      <div class="card">
+        <h3>The far end is a conveyor</h3>
+        <p>Each round appends 4 digits at the far end and moves every digit of Z below height m exactly 4 heights up, unchanged. A digit flipped in round 200 at height 5 stays the only difference and climbs 4 heights per round for 25 rounds, until the front starts to rewrite it at height m. So an error in the tail shrinks 16 times per round in v: v pins the tail by pushing errors out, not by storing them.</p>
+        <p class="where"><code>python3 py/conveyor.py 6000 200</code></p>
+      </div>
+      <div class="card">
+        <h3>A floor no defect crosses</h3>
+        <p>A defect that enters the exact layers of Z (heights 5 to 2m &minus; 8), as <code>x</code>, <code>1</code> or <code>z</code>, dies within 20 words. Its path never goes below height m &minus; 1, so it then needs at most one visit. So any round tape with Z exact below 2m &minus; 11 and its doubler-rich part at height m &minus; 1 or more kills its defect, whatever the irregular digits are. This is not an induction: a death inside the floor would lower it by up to about 20 heights, and nothing rules out such deaths repeating. In the run every death is at least 2m &minus; 9 high, and at least 2m + 211 from round 500 on.</p>
+        <p class="where"><code>python3 py/conveyor.py 6000 200</code></p>
+      </div>
+      <div class="card">
         <h3>Events in the run</h3>
         <p>With this ENGINE and PREFIX, events run from step 78,415 (left counter 32, M = 1): 110 consecutive events add 1 to both counters (27 of them wraps of M), up to left counter 142; then the PREFIX is rebuilt (one of the drops of the left-end count noted above).</p>
         <p class="where"><code>python3 py/track.py 3000000</code></p>
@@ -314,7 +329,8 @@ g++ -O2 -o toksim holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cp
 python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py rec.bin
 cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py &amp;&amp; python3 vasym.py 420
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000
-python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py</code></pre>
+python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py
+python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200   # the value law, exact Z, the floor, the conveyor (about 20 min)</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>
