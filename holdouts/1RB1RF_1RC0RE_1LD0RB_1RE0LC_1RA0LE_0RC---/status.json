@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 16 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
-  "<b>The question is open; heuristically the machine does not halt.</b> The tape is a queue of blocks (01)^k of sizes 4<sup>j</sup> &minus; 2 with single-cell cursors travelling through it; all local rules are proved in Lean. The form of the tape does not exclude a halt: a tape of that form that halts is proved in Lean. An exact accelerated simulator (its jumps validated, not proved) runs 10<sup>5000</sup> steps without a halt. In that run the dangerous shape (three cursor cells 1 side by side) appeared nine times, and each time the birth of a cursor that would have left it standing was still at least M/2 visits away, M of the order of the square root of the step count (7,038 visits the first time, more than 10<sup>196</sup> afterwards). No closed invariant is known."
+  "<b>The question is open; heuristically the machine does not halt.</b> The tape is a queue of blocks (01)^k of sizes 4<sup>j</sup> &minus; 2 with single-cell cursors travelling through it; all local rules are proved in Lean. The form of the tape does not exclude a halt: tapes of that form that halt are proved in Lean, among them a whole family (a standing triple of cursor cells with one block of any even size &ge; 12 after it). An exact accelerated simulator (its jumps validated, not proved) runs 10<sup>7500</sup> steps without a halt. In the first 10<sup>5000</sup> steps the dangerous shape (three cursor cells 1 side by side) appeared nine times, never at the moment of a birth; and rerun with a birth forced at each of them, none halts: a halt also needs a single copy of <code>a</code> in front of the triple, where the run has 2 or 14, and a short queue after it. No closed invariant is known."
  ],
  "claims": [
   {
@@ -75,15 +75,15 @@
   },
   {
    "level": "heuristic",
-   "title": "No halt in the first 10<sup>5000</sup> steps of an accelerated run",
-   "text": "<code>go/fsim.go</code> is the same exact rope engine in Go with big integers, plus exact bulk feeding (all visits of one feeding run at once, with their step count) and periodic jumps over whole visits, each validated by the period after it. Checked: the plain engine against a cell-by-cell simulator of the table at each of the 38,111 visits of the first 10<sup>9</sup> steps; bulk feeding against the plain engine at 11,838 visits up to 1.1&times;10<sup>12</sup> steps; jumps against bulk feeding alone up to 1.1&times;10<sup>16</sup> steps; runs with other settings give the same tape at every common visit between 10<sup>300</sup> and 10<sup>400</sup> steps. It reaches 10<sup>5000</sup> steps without a halt in 29 minutes (43,426,874 visits stopped at, 12,064 jumps, no rollback). The jumps are validated, not proved.",
+   "title": "No halt in the first 10<sup>7500</sup> steps of an accelerated run",
+   "text": "<code>go/fsim.go</code> is the same exact rope engine in Go with big integers, plus exact bulk feeding (all visits of one feeding run at once, with their step count) and periodic jumps over whole visits, each validated by the period after it. Checked: the plain engine against a cell-by-cell simulator of the table at each of the 38,111 visits of the first 10<sup>9</sup> steps; bulk feeding against the plain engine at 11,838 visits up to 1.1&times;10<sup>12</sup> steps; jumps against bulk feeding alone up to 1.1&times;10<sup>16</sup> steps; runs with other settings give the same tape at every common visit between 10<sup>300</sup> and 10<sup>400</sup> steps. It reaches 10<sup>5000</sup> steps without a halt in 29 minutes (43,426,874 visits stopped at, 12,064 jumps, no rollback), and 10<sup>7500</sup> steps in a longer run (24 November 2026). The jumps are validated, not proved.",
    "where": "<code>go/fsim.go</code>: <code>fsim 5000 quiet</code>; <code>check0</code>, <code>check1</code>, <code>check2</code>, <code>dump=</code>",
    "added": true
   },
   {
    "level": "kernel",
    "title": "A tape of the block form that halts",
-   "text": "The tape <code>1 a b a 0 a 1 1 1 0 a^22 0 B&gt;</code> (blocks, one separator, cursor cells) halts after 213 steps: three cursor cells 1 side by side, with the next cursor arriving as a 0 directly right of them, is the halting shape. So &ldquo;blocks, separators and cursors&rdquo; is not an invariant that excludes halting. This is not a statement about the run from blank tape.",
+   "text": "The tape <code>1 a b a 0 a 1 1 1 0 a^22 0 B&gt;</code> (blocks, one separator, cursor cells) halts after 213 steps: three cursor cells 1 side by side, with the next cursor arriving as a 0 directly right of them, is the halting shape (when the cells left of it are right, see below). So &ldquo;blocks, separators and cursors&rdquo; is not an invariant that excludes halting. This is not a statement about the run from blank tape.",
    "where": "<code>esc_halts</code>, <code>lean/Escape.lean</code>; found by <code>py/escape.py</code>",
    "added": true
   },
@@ -95,9 +95,37 @@
    "added": true
   },
   {
+   "level": "kernel",
+   "title": "A family of halting tapes, for every block size",
+   "text": "For every j, the tape <code>0^inf 1 a b a 0 a 1 1 1 a^10 b a^(2j+12) 0 a 1 B&gt;</code> halts: a triple left standing by a birth, with one block of any even size &ge; 12 after it (so every size 4<sup>i</sup> &minus; 2 &ge; 14). The new cursor walks through the block, crosses the separator, walks through <code>a^10</code> and arrives as a 0; the next round trip halts. Proved from the rules for all j, not by running.",
+   "where": "<code>triple_halts</code>, <code>lean/Triple.lean</code>; <code>hop0c</code>, <code>hop0d</code>, <code>tohalt</code> in <code>lean/HaltRules.lean</code> (generated by <code>py/haltq_rules.py</code>)",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "Which queues after a triple lead to a halt",
+   "text": "With a single copy of <code>a</code> in front of the triple, the part right of it runs on its own until a cursor reaches the triple. For q equal blocks of size 4<sup>j</sup> &minus; 2 &ge; 254 it halts for q = 1 and q = 9 to 19; for q = 2 to 8 a cursor arrives without a halt; for q &ge; 20 the cursors cancel before any reaches it (the run right of the triple is then the same for every q, checked to q = 100,000). Size 62: q = 1 and 10 to 16; size 14: q = 1; size 2: never. Two sizes give a band in which four blocks of one size weigh about one of the next; it does not close (5 blocks of 1022 carry the cursor across 5,000 of 254).",
+   "where": "<code>py/haltq.py</code>, <code>py/haltq_maps.txt</code>",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "The cells left of a triple decide too",
+   "text": "An arriving 0 halts the machine only if the cursor stranded in front of the triple follows a single copy of <code>a</code> after a separator or a cursor 0 (<code>b a 0 a 1 1 1</code> and similar: 12 of 400 small contexts tested). That stranded cursor is the one a birth caught half way across a separator, and the block left of it is the one it was about to enter: in all 124 such births up to 10<sup>7500</sup> steps that block has 2 copies (114 times) or 14 (10 times), never 1. With two copies, no queue tested gives a halt.",
+   "where": "<code>py/haltq.py left</code>; <code>fsim</code> log, <code>BIRTH mid-hop</code> lines",
+   "added": true
+  },
+  {
+   "level": "heuristic",
+   "title": "The nine near misses, rerun with a birth forced",
+   "text": "For each of the nine triples of the first 10<sup>5000</sup> steps, the tape that a birth at exactly that visit would have left was run until the first cursor reached the triple. None halts (triples 1, 2, 8, 9: a cursor arrives; triples 3 to 7: no cursor arrives). So the coincidence that the probabilistic estimate counts would not have been enough at any of them.",
+   "where": "<code>go/cf.go</code>: <code>fsim 5000 quiet cf</code>",
+   "added": true
+  },
+  {
    "level": "heuristic",
    "title": "A probabilistic estimate: it does not halt",
-   "text": "A triple ends in a halt only if a birth falls on its visit, that is if the active cursor's end block, which holds M copies (M of the order of the square root of the step count), runs out exactly there. If that moment fell at random within the cursor's life the chance would be about 2/M: about 1/7000 for the first triple, below 10<sup>-196</sup> for each later one. Triples come about once in 550 decades of the step count (nine in 5000), so the chance that any later one ends in a halt is below 10<sup>-2490</sup>. The schedule is deterministic, so this is an estimate, not a proof; a halt by a structured coincidence that the random model does not see is not excluded.",
+   "text": "A triple ends in a halt only if a birth falls on its visit, that is if the active cursor's end block, which holds M copies (M of the order of the square root of the step count), runs out exactly there. If that moment fell at random within the cursor's life the chance would be about 2/M: about 1/7000 for the first triple, below 10<sup>-196</sup> for each later one. Triples come about once in 550 decades of the step count (nine in 5000), so the chance that any later one ends in a halt is below 10<sup>-2490</sup>. The schedule is deterministic, so this is an estimate, not a proof; a halt by a structured coincidence that the random model does not see is not excluded. It is also too generous: at the nine triples of the run a birth at the right moment would not have been enough (see the reruns above).",
    "where": "<code>README.md</code>",
    "added": true
   },
@@ -126,10 +154,13 @@
   "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/escape.py                   # the tape of the block form that halts",
   "(cd holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/go && go build -o /tmp/fsim .)",
   "/tmp/fsim 9 check0; /tmp/fsim 12 check1; /tmp/fsim 16 check2   # validations",
-  "/tmp/fsim 5000 quiet     # 10^5000 steps, no halt, nine near misses (about 30 minutes)"
+  "/tmp/fsim 5000 quiet     # 10^5000 steps, no halt, nine near misses (about 30 minutes)",
+  "/tmp/fsim 5000 quiet cf  # each triple rerun with a birth forced at it",
+  "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/haltq.py sizes 40   # which runs of equal blocks after a triple halt",
+  "python3 holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---/py/haltq.py left       # which cells left of a triple let a 0 halt"
  ],
  "explainer": {
-  "lede": "Nobody knows, but probably not. The tape is a queue of blocks <code>0101&hellip;</code> separated by a five-cell marker, and single odd cells (cursors) travel through it, making every block four times longer. The machine can only stop if three such cursors pile up at exactly the moment a new one is born. In 10<sup>5000</sup> steps the pile-up happened nine times, never at that moment.",
+  "lede": "Nobody knows, but probably not. The tape is a queue of blocks <code>0101&hellip;</code> separated by a five-cell marker, and single odd cells (cursors) travel through it, making every block four times longer. The machine can only stop if three such cursors pile up at exactly the moment a new one is born, next to a block of a single copy, with a short queue after them. In 10<sup>5000</sup> steps the pile-up happened nine times, never at that moment, and never next to such a block.",
   "facts": [
    {
     "level": "kernel",
@@ -144,15 +175,21 @@
     "added": true
    },
    {
+    "level": "kernel",
+    "value": "every size",
+    "text": "A triple with one block of any even size &ge; 12 after it halts: a family proved in Lean.",
+    "added": true
+   },
+   {
     "level": "heuristic",
-    "value": "10<sup>5000</sup> steps",
+    "value": "10<sup>7500</sup> steps",
     "text": "No halt in an exact accelerated simulator (validated against plain simulation; jumps not proved).",
     "added": true
    },
    {
     "level": "heuristic",
     "value": "9 near misses",
-    "text": "Visits with three cursor cells 1 side by side in 10<sup>5000</sup> steps; at each, the next birth was at least 7,038 visits (later more than 10<sup>196</sup>) away.",
+    "text": "Visits with three cursor cells 1 side by side in 10<sup>5000</sup> steps; none at a birth, and rerun with a birth forced, none halts (2 or 14 copies in front of the triple, not 1).",
     "added": true
    },
    {
@@ -196,6 +233,19 @@
     ]
    },
    {
+    "id": "queues",
+    "eyebrow": "Which tapes halt",
+    "heading": "Which queues lead to a halt",
+    "html": [
+     "<p>A triple left standing by a birth is not a halt yet. The part of the tape right of it now runs like a machine of its own, with its own births and its own cursors meeting and cancelling, until the first cursor reaches the triple. Three things can happen then: the machine <b>halts</b>, or a cursor <b>arrives</b> and the triple dissolves, or <b>no cursor arrives</b> at all (they all cancel, the triple's own 1 becomes the active cursor again and walks on).</p>",
+     "<p><b>Left of the triple.</b> An arriving 0 halts the machine only if the cursor stranded in front of the triple sits right after a single copy of <code>a</code>, as in <code>b a 0 a 1 1 1</code>. The stranded cursor is the one a birth caught half way across a separator, and the block left of it is the one it was about to walk into. In the run that block always has 2 copies (114 of the 124 such births up to 10<sup>7500</sup> steps) or 14 (the other 10). With two copies there, no queue on the right gives a halt.</p>",
+     "<p><b>Right of the triple</b>, with the single copy on the left. One block <code>b a^n</code>: the machine halts for every even n &ge; 12, proved in Lean for all such n. A run of q equal blocks of size 4<sup>j</sup> &minus; 2 (254 or more): it halts for q = 1 and for q = 9 to 19; for q = 2 to 8 a cursor arrives without a halt; from q = 20 on, the cursors cancel before any of them gets 20 blocks deep. Two sizes: pick a map, then point at a square.</p>",
+     "<div class=\"panel hq\"><style>\n.hq .hqgrid{display:grid;grid-template-columns:repeat(40,minmax(0,1fr));gap:1px;max-width:560px;margin:10px 0;background:var(--line)}\n.hq .hqgrid span{aspect-ratio:1;display:block;background:var(--surface);cursor:pointer}\n.hq .hqgrid span.H{background:var(--open)} .hq .hqgrid span.d{background:var(--line-strong)} .hq .hqgrid span._{background:var(--heur-bg)}\n.hq .hqgrid span.sel{outline:2px solid var(--accent);outline-offset:-1px}\n.hq .key i{display:inline-block;width:.9em;height:.9em;vertical-align:-.1em;margin:0 .3em 0 .8em;border:1px solid var(--line)}\n</style>\n<div class=\"controls\"><label>map <select id=\"hqmap\"><option value=\"254/1022\">c1 blocks of 254, then c2 of 1022</option><option value=\"254/4094\">c1 blocks of 254, then c2 of 4094</option></select></label></div>\n<div class=\"small key\">rows c1 = 0 to 39 (down), columns c2 = 0 to 39 (right):<i style=\"background:var(--open)\"></i>halts<i style=\"background:var(--line-strong)\"></i>a cursor arrives<i style=\"background:var(--heur-bg)\"></i>no cursor arrives</div>\n<div class=\"hqgrid\" id=\"hqgrid\" role=\"img\" aria-label=\"map of queues that lead to a halt\"></div>\n<div class=\"small\" id=\"hqout\">Point at a square.</div>\n<script>\n(function(){\nvar D={\"254/1022\": [\" H.......HHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \"._......HHHHHHHHHHH_____________________\", \"._.....HHHHHHHHHHHH_____________________\", \"._.....HHHHHHHHHHHH_____________________\", \"._.....HHHHHHHHHHHH_____________________\", \"._.....HHHHHHHHHHH______________________\", \"H_....HHHHHHHHHHHH______________________\", \"H_....HHHHHHHHHHHH______________________\", \"H_....HHHHHHHHHHHH______________________\", \"H_....HHHHHHHHHHH_______________________\", \"H_...HHHHHHHHHHHH_______________________\", \"H_...HHHHHHHHHHHH_______________________\", \"H_...HHHHHHHHHHHH_______________________\", \"H_...HHHHHHHHHHH________________________\", \"H_...HHHHHHHHHHH________________________\", \"H_...HHHHHHHHHHH________________________\", \"H__..HHHHHHHHHHH________________________\", \"___..HHHHHHHHHH_________________________\", \"___..HHHHHHHHHH_________________________\", \"___..HHHHHHHHHH_________________________\", \"___..HHHHHHHHHH_________________________\", \"___..HHHHHHHHH__________________________\", \"___..HHHHHHHHH__________________________\", \"___..HHHHHHHHH__________________________\", \"___..HHHHHHHHH__________________________\", \"___..HHHHHHHH___________________________\", \"___..HHHHHHHH___________________________\", \"___..HHHHHHHH___________________________\", \"___..HHHHHHHH___________________________\", \"___..HHHHHHH____________________________\", \"___..HHHHHHH____________________________\", \"___..HHHHHHH____________________________\", \"___..HHHHHHH____________________________\", \"___...HHHHH_____________________________\", \"___...HHHHH_____________________________\", \"___...HHHHH_____________________________\", \"___...HHHHH_____________________________\"], \"254/4094\": [\" H.......HHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \".H......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"HH......HHHHHHHHHHHH____________________\", \"H.......HHHHHHHHHHH_____________________\", \"H......HHHHHHHHHHHH_____________________\", \"H......HHHHHHHHHHHH_____________________\", \"H......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_......HHHHHHHHHHHH_____________________\", \"_H.....HHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\", \"_H....HHHHHHHHHHHH______________________\"]};\nvar g=document.getElementById('hqgrid'),out=document.getElementById('hqout'),sel=document.getElementById('hqmap');\nvar W={H:'the machine halts',d:'a cursor arrives and the triple dissolves: no halt',_:'no cursor arrives (they cancel first): no halt'};\nfunction draw(){var m=sel.value,rows=D[m],sz=m.split('/');g.innerHTML='';\n for(var r=0;r<40;r++)for(var c=0;c<40;c++){var ch=rows[r][c];var s=document.createElement('span');\n  var k=ch==='H'?'H':(ch==='.'?'d':(ch==='_'?'_':''));if(k)s.className=k;\n  (function(r,c,k,s){var f=function(){var p=g.querySelector('.sel');if(p)p.classList.remove('sel');s.classList.add('sel');\n   out.textContent=(r||c)?('triple, then '+r+' block'+(r==1?'':'s')+' of '+sz[0]+', then '+c+' of '+sz[1]+': '+W[k]):'no queue';};\n   s.addEventListener('mouseenter',f);s.addEventListener('click',f);})(r,c,k,s);g.appendChild(s);}}\nsel.addEventListener('change',draw);draw();})();\n</script></div>",
+     "<p>Four blocks of 254 weigh about as much as one of 1022 (the upper edge of the band drops by one column every four rows), sixteen as much as one of 4094. Further down the band does not close: with 5 blocks of 1022, even 5,000 blocks of 254 before them are crossed. A few large blocks carry a cursor across many small ones; twenty large ones stop it. (Exact accelerated simulation, <code>py/haltq.py</code>; its shortcuts are checked against the plain machine, not proved.)</p>",
+     "<p><b>The run's own near misses.</b> For each of the nine triples of the first 10<sup>5000</sup> steps, the simulator was rerun from the tape a birth at exactly that visit would have left. None halts: the left of every one of them is wrong (<code>a^2</code> or <code>a^14</code> before the stranded cursor), so the coincidence the dice count above would not have been enough. Which queue sizes reach the halting form? With the run's left end, none; with a single copy left of the triple, the ones in the map.</p>"
+    ]
+   },
+   {
     "id": "related-machines",
     "eyebrow": "Family",
     "heading": "Related machines",
@@ -206,7 +256,7 @@
    }
   ]
  },
- "summary": "Block queue with cursors (block sizes 4^j - 2): all local rules proved in Lean; a tape of the same form that halts is proved in Lean; an exact accelerated simulator runs 10^5000 steps without a halt, the halting coincidence was missed nine times by margins near the square root of the step count; open, heuristically non-halting.",
+ "summary": "Block queue with cursors (block sizes 4^j - 2): all local rules proved in Lean; tapes of the same form that halt are proved in Lean (a family for all sizes); an exact accelerated simulator runs 10^7500 steps without a halt; the nine near misses would not have halted even with the coincidence (wrong left context); open, heuristically non-halting.",
  "family": "block queue with cursors (counter-like), sizes 4^j - 2",
  "decision": "open"
 }

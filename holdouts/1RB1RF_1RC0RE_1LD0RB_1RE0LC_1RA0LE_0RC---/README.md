@@ -5,9 +5,11 @@ growth), family **block queue with cursors (counter-like), block sizes 4^j - 2**
 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- (a different machine with the same kind of run), its tape is a queue of
 blocks (01)^k that cursors travel through. The local rules are proved in Lean; the form of the tape that the run
 keeps does **not** by itself exclude a halt (a tape of that form that halts is proved in Lean). An exact accelerated
-simulator (`go/fsim.go`) runs it to 10^5000 steps without a halt; in that run the halting shape came within one
-coincidence nine times, each time missed by a margin of about the square root of the step count. Halting is open;
-heuristically it does not halt.
+simulator (`go/fsim.go`) runs it to 10^7500 steps without a halt; in the first 10^5000 steps the halting shape came
+within one coincidence nine times, each time missed by a margin of about the square root of the step count. A closer
+look (see "Which queues lead to a halt") shows that those nine could not have halted even with the coincidence: a
+halt also needs a block of a single copy just left of the triple, where the run always has 2 or 14 copies, and a
+short queue right of it. Halting is open; heuristically it does not halt.
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -31,7 +33,14 @@ established:
   periodic jumps are not proved;
 * in those steps the dangerous shape (three cursor cells 1 side by side) stood on the tape at nine of the visits of
   the right end that the simulator stopped at (the first at step 1.057x10^11); each time it would have had to coincide with a birth to be left
-  standing, and each time the end block still held about 10^(d/2) copies, d the number of digits of the step count.
+  standing, and each time the end block still held about 10^(d/2) copies, d the number of digits of the step count;
+* which standing triples halt (`py/haltq.py`, `go/cf.go`): the cells left of the triple must be `b a 0 a 1 1 1` (a
+  block of one copy before the stranded cursor; the run always has `a^2` or `a^14` there), and the queue right of it
+  must bring a cursor 0 to it, which with blocks of size 4^j - 2 happens for one block, and for 9 to 19 equal blocks,
+  not for 2 to 8 or for 20 or more. A triple with one block of any even size >= 12 after it halts: proved in Lean for
+  all sizes (`lean/Triple.lean`, kernel). Rerun with a birth forced at each of the nine triples of the run, none
+  halts;
+* no halt to 10^7500 steps (`fsim 20000 quiet`, stopped at 10^7500).
 
 ## What it does
 
@@ -73,7 +82,11 @@ head's round trips cross the whole tape, so the right end grows like the square 
 
 The machine halts only on F reading 1, and F is entered from A reading 1 (A moves right): a halt needs A to read a
 1 followed by another 1. In the block form this happens in one situation: **three cursor cells 1 side by side with
-the next cursor, a 0, arriving directly right of them** (`... a 1 1 1 0 a^m 0 B>`; four 1s in a row on the tape).
+the next cursor, a 0, arriving directly right of them** (`... a 1 1 1 0 a^m 0 B>`; four 1s in a row on the tape),
+and the right cells left of the triple: the head goes on to the left end on that visit and comes back in a state
+that halts only if the stranded cursor before the triple follows a single copy of a after a separator or a cursor 0
+(`b a 0 a 1 1 1`, `0 0 a 0 a 1 1 1`, ...; `python3 py/haltq.py left` lists the 12 of 400 small contexts that halt).
+With `a^2` or more copies there (`b a^2 0 a 1 1 1 0 a^m 0 B>`) the same arrival does not halt.
 `lean/Escape.lean` proves that the tape
 
     0^inf 1 a b a 0 a 1 1 1 0 a^22 0 B> 0^inf
@@ -91,6 +104,7 @@ with block sizes left free the form reaches a halt. The way to this tape (`pytho
 Three things have to happen: (1) a birth while a cursor is half way across a separator, which leaves
 `0 a 1 1 a b`; (2) a later cursor reaching that place; this gives `1 1 1` for one visit and `0 a 1 a^14` at the
 next; (3) a birth at exactly that one visit, so that `1 1 1` is left standing, and the new cursor arriving as a 0.
+And (1) has to happen next to a block of a single copy, which the run never offers (see below).
 
 **How often in the run from blank tape** (`python3 py/births.py 1e18`, accelerated simulator):
 
@@ -132,11 +146,93 @@ machine does not halt. This is an estimate, not a proof: the end block's size at
 and an exact statement needs the global schedule of the cursors, which is not understood. The sibling
 1RB1RF_0RC0RE_0RD1RA_1LE0LA_1LB0LD_0RD--- has an outside proof in review that it halts; its folder here does not
 contain that proof, so its mechanism could not be compared; a halt by a structured coincidence that the random model
-misses cannot be ruled out.
+misses cannot be ruled out. The model is also too generous: the next section shows that the nine triples of the run
+could not have halted even with the coincidence.
 
 Closed-tape-language searches do not close: `tools/c/ngramcps.c` up to width 16 (and 20 to 36 with 4 or 6 bits of
 history) ends UNKNOWN or at its limit, and a run-length version of the same idea reaches a halt as soon as block
 sizes are forgotten, as it must, given `lean/Escape.lean`.
+
+## Which queues lead to a halt
+
+A triple that a birth leaves standing is not yet a halt. Two more things decide it: the cells left of the triple,
+and the queue right of it. The tape just after such a birth is
+
+    L 0 a 1 1 1 a^10 Q 0 a 1 B>         Q = (b a^n1)^q1 (b a^n2)^q2 ...: the queue right of the triple
+
+and the part right of the triple runs like a machine of its own (its own births, cursors meeting and cancelling)
+until the first cursor reaches the triple. Then either the machine halts, or a cursor arrives and the triple is
+destroyed, or no cursor arrives: every cursor right of the triple is used up first, the triple's own 1 is the
+rightmost cursor again and moves on, as in the run. `py/haltq.py` decides which, with the exact accelerated
+simulator (`qsim.py`, jumps validated, not proved); its output is in `py/haltq_maps.txt`.
+
+**Left of the triple.** A cursor 0 arriving at `0 a 1 1 1` halts the machine on the next round trip only if the
+stranded cursor 0 follows a single copy of a after a separator or a cursor 0: `b a 0 a 1 1 1`, `0 0 a 0 a 1 1 1`,
+... (`python3 py/haltq.py left`: 12 of 400 small contexts halt, all of this kind). The stranded cursor is the one
+that a birth caught half way across a separator, and what stands left of it is the block it was about to enter. In
+the run that block is never a single copy: in all 124 births half way across a separator up to 10^7500 steps
+(`fsim` log, `BIRTH mid-hop`), it is a block of the run `(b a^2)^N` at the left end (114 times) or of `(b a^14)^N`
+(10 times). With `a^2` there, `PRE="1 a b a^2 b a^2 0 a 1 1 1 a^10" python3 py/haltq.py sizes 30` finds no halt for
+any queue: a cursor arrives, as a 0 or a 1, and the triple dissolves.
+
+**Right of the triple**, with the left part `1 a b a 0 a` of `Escape.lean` (one copy, so that an arriving 0 halts):
+
+* **One block** `Q = b a^n`: halts for **every even n >= 12**, proved in Lean for all such n (`lean/Triple.lean`,
+  `triple_halts`, kernel): the new cursor walks through a^n, crosses the separator, walks through a^10 and arrives as
+  a 0 with 2n - 22 copies of end block left (`hop0c`, `hop0d`, `tohalt` in `lean/HaltRules.lean`, generated by
+  `py/haltq_rules.py`; `feedbs` iterates `feedb0`/`feedb1`). For odd n the cursor arrives as a 1; for n <= 10 the end
+  block runs out on the way. So every size 4^j - 2 >= 14 halts here.
+* **q equal blocks** `(b a^n)^q`, n = 4^j - 2 (`python3 py/haltq.py sizes 40`):
+
+  | n | halts | a cursor arrives, no halt | no cursor arrives |
+  |---|---|---|---|
+  | 2 | never | q = 1, 2 | q >= 3 |
+  | 14 | q = 1 | q = 2 .. 13 | q >= 14 |
+  | 62 | q = 1 and q = 10 .. 16 | q = 2 .. 9 | q >= 17 |
+  | 254, 1022, 4094, 16382, 65534 | q = 1 and q = 9 .. 19 | q = 2 .. 8 | q >= 20 |
+
+  From 254 on only the count matters, not the size. For q >= 20 the run right of the triple does not depend on q
+  (n = 1022: 1,374 visits stopped at for every q from 20 to 100,000): the cursors born at the right end cancel each
+  other before any of them gets 20 blocks deep, and the triple is never reached.
+* **Two sizes** `(b a^254)^c1 (b a^1022)^c2` (`python3 py/haltq.py grid 254 1022 40`; rows c1, columns c2;
+  `H` halt, `.` a cursor arrives, `_` none arrives):
+
+     c1\c2 0         1         2         3
+         0  H.......HHHHHHHHHHH____________________
+         4 ._......HHHHHHHHHHH_____________________
+         9 H_....HHHHHHHHHHHH______________________
+        13 H_...HHHHHHHHHHHH_______________________
+        20 ___..HHHHHHHHHH_________________________
+        28 ___..HHHHHHHH___________________________
+        36 ___...HHHHH_____________________________
+
+  The upper edge is c2 <= 19 - floor(c1/4) for c1 <= 48: four blocks of 254 weigh as one of 1022. Further out the
+  band does not close: c2 = 6, 7 halt for c1 = 48 .. 80, c2 = 5 .. 7 for c1 = 84 .. 300, and c2 = 5 alone for c1 =
+  500, 1000, 2000, 5000. A few large blocks carry the cursor across thousands of smaller ones; twenty large ones
+  stop it. With 254 and 4094 (two sizes apart) the edge moves by one per 16 rows. The same map holds for 62/254 and
+  1022/4094 (first rows checked).
+
+**The run's own triples.** `fsim D quiet cf` (`go/cf.go`) takes the tape at each triple of the run, builds the tape
+that a birth at exactly that visit would have left (the end block taken away, the last separator a new cursor) and
+runs it until the first cursor reaches the triple:
+
+| triple | step count | what the rerun gives | its length |
+|---|---|---|---|
+| 1 | 1.057x10^11 | a cursor arrives, no halt | 1.86x10^12 more steps |
+| 2 | ~10^394 | a cursor arrives, no halt | 396-digit number of steps |
+| 3 | ~10^1735 | no cursor arrives | 1736 digits |
+| 4 | ~10^2720 | no cursor arrives | 1361 digits |
+| 5 | ~10^3274 | no cursor arrives | 1638 digits |
+| 6 | ~10^3533 | no cursor arrives | 3535 digits |
+| 7 | ~10^3570 | no cursor arrives | 3571 digits |
+| 8 | ~10^3723 | a cursor arrives, no halt | 3727 digits |
+| 9 | ~10^4994 | a cursor arrives, no halt | 4996 digits |
+
+None halts, which the left of the triples already decides (`(b a^2)^N 0 a 1 1 1` or `b a^14 0 a 1 1 1`). So the
+coincidence that the heuristic above counts would not have been enough at any of the nine near misses: a halt needs
+a cursor stranded next to a block of a single copy, then a triple at that place, a birth at exactly that visit, and
+a queue right of it that brings a 0 to it. Which queue sizes reach the halting form, in short: with the run's left
+end, none; with a single copy left of the triple, the ones in the maps above.
 
 ## Evidence and proofs
 
@@ -144,6 +240,14 @@ sizes are forgotten, as it must, given `lean/Escape.lean`.
   `feedb1`, `hop0a`, `hop0b`, `hop1a`, `hop1b`, `birth0`, `birth1`, `birth2`, each for all sizes and every tape L to
   the left. `lean/Phase.lean`: the feeding rules restated and iterated (`feed2`, `feeds`).
 * `lean/Escape.lean` (kernel): `esc_halts`, the tape above halts.
+* `lean/HaltRules.lean` (kernel; generated by `py/haltq_rules.py`): `hop0c`, `hop0d` (crossing a separator with no
+  separator right of the cursor), `tohalt` (`0^inf 1 a b a 0 a 1 1 1 0 a^(m+1) b a^n 0 B>` reaches F reading 1, for
+  all m, n). `lean/Triple.lean` (kernel): `feedb0'`, `feedb1'`, `feedb2`, `feedbs` (feeding with a separator,
+  restated and iterated) and `triple_halts`: for every j the tape `0^inf 1 a b a 0 a 1 1 1 a^10 b a^(2j+12) 0 a 1 B>`
+  halts.
+* `py/haltq.py` (trusted program on `qsim.py`, jumps heuristic): the outcome for a standing triple with a given left
+  part and queue; `py/haltq_maps.txt` its maps. `go/cf.go`: the same question asked of the run's own triples
+  (`fsim D quiet cf`).
 * `py/qsim.py` (trusted program, jumps heuristic): an exact rope simulator with macro rules for a^n, b and
   (b a^n)^q, plus jumps: when the same tape shape recurs with constant changes of the counts for 4 periods, many
   periods are applied at once and the next period is checked (rolled back and halved when it fails). Without jumps
@@ -165,11 +269,19 @@ sizes are forgotten, as it must, given `lean/Escape.lean`.
   the bulk feedings inside a period compare large counts with each other, which the shape does not record; that is
   why the jumps are checked afterwards and are not proofs.
 * `py/births.py`, `py/escape.py`: the counts and the escaping tape above.
+* `fsim 20000 quiet` stopped after 2 hours (24 November 2026): no halt in 10^7500 steps (97,918,976 visits stopped
+  at, 18,133 jumps, 78,307 births, 121 of them half way across a separator); twelve triples, the three new ones at
+  about 10^6570, 10^6629 and 10^7085, again with an end block of about half as many digits as the step count, and
+  again with `(b a^2)^N` in front of them.
 
 ## What is open, and next steps
 
 * A decision by computation alone looks out of reach: if the random model is right the machine never halts, and a
-  halt, if there is one, comes far beyond 10^5000 steps.
+  halt, if there is one, comes far beyond 10^7500 steps.
+* A sharper target for a proof of non-halting: show that a birth never catches a cursor half way across a separator
+  next to a block of a single copy (`b a 0 a 1 1 a b`, or the other halting contexts of `haltq.py left`). In the run
+  such births happen only in the runs `(b a^2)^N` and `(b a^14)^N` at the left end; if that could be proved, no
+  triple could ever halt, whatever the timing of births.
 * The global schedule: which cursor is where when a birth happens. A proof of non-halting needs to show that a
   birth never falls on the visit at which three 1s stand together (or that the next cursor then arrives as a 1); a
   proof of halting needs to find the time when it does. Either way the counter of equal blocks
@@ -185,7 +297,7 @@ sizes are forgotten, as it must, given `lean/Escape.lean`.
 
 ```sh
 M=holdouts/1RB1RF_1RC0RE_1LD0RB_1RE0LC_1RA0LE_0RC---
-. /etc/profile.d/lean.sh && $M/lean/check.sh        # Rules, Phase, Escape (kernel)
+. /etc/profile.d/lean.sh && $M/lean/check.sh        # Rules, Phase, Escape, HaltRules, Triple (kernel)
 python3 $M/py/rules.py > /tmp/Rules.lean            # regenerate lean/Rules.lean
 python3 $M/py/qsim_check.py direct 1500             # macro rules against the plain machine
 python3 $M/py/qsim_check.py jumps 3e8               # jumps on against jumps off (3e10: some minutes)
@@ -195,6 +307,11 @@ python3 $M/py/escape.py                             # the tape of the block form
 (cd $M/go && go build -o /tmp/fsim .)               # Go 1.21 or later
 /tmp/fsim 9 check0; /tmp/fsim 12 check1; /tmp/fsim 16 check2   # validations (seconds)
 /tmp/fsim 5000 quiet                                # 10^5000 steps, no halt, the nine triples (about 30 minutes)
+/tmp/fsim 5000 quiet cf                             # the same, and each triple rerun with a birth forced at it
+python3 $M/py/haltq_rules.py > /tmp/HaltRules.lean  # regenerate lean/HaltRules.lean
+python3 $M/py/haltq.py sizes 40                     # which runs of equal blocks after a triple halt (minutes)
+python3 $M/py/haltq.py grid 254 1022 40             # two sizes (about 10 minutes)
+python3 $M/py/haltq.py left                         # which cells left of a triple let an arriving 0 halt
 ```
 
 <!-- related machines: written by holdouts/related.py -->
