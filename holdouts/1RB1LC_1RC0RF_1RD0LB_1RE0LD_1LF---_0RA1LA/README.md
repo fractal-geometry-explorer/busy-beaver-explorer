@@ -253,6 +253,47 @@ budget stopping between steps 2,000 and 40,000 taken as equally likely, and the 
 Chained over levels (each new budget treated as random) the chance of an eventual halt is about 6.2% from the start
 of level 2. Most likely the machine falls into one of the proved loops, but nothing here proves which.
 
+## A closed form for the base-31/10 digits? What is exact, and 10^8 steps of the orbit (24 Nov)
+
+The question left by `DigitMap.lean` is the state of the orbit of 22 under f(10a + d) = 31a + K[d/2] about
+2·10^770 steps along, where it runs out of the 772-digit budget of level 2. `lean/DigitClosed.lean` (kernel, core
+Lean, no `sorry`; axioms propext, Quot.sound, Classical.choice) proves what can be said in closed form:
+
+* **The last bit never matters** (`fd_parity`, `fd_half`): on y = x / 2 the map is g(10c + j) = 31c + G[j] with
+  G = 7, 13, 23, 17, 18, 23, 29, 39, 33, 33. So the orbit of 22 is the orbit of 11 under a mod-10 map of slope 31/10 in
+  which every last digit counts, and r = j mod 5.
+* **The exact identity** (`orbit_identity`): with d_i = x_i mod 10 and K_i = K[r_i],
+  `10^k x_k + 31 Σ_{i<k} 31^(k-1-i) 10^i d_i = 31^k x_0 + 10 Σ_{i<k} 31^(k-1-i) 10^i K_i`. Divided by 31^k this
+  writes x_0 = 22 in the rational base 31/10 with the digits (31 d_i - 10 K_i)/31 (the rational base number systems of
+  Akiyama, Frougny and Sakarovitch). It is the closed form there is, and it is in terms of the digits themselves: the
+  last digit of x_k is digit k of a sum over all earlier digits.
+* **The digits re-encode the start** (`rlist_mod`, `rlist_onto`, `inv31`): the first k values of r depend only on the
+  start mod 10^k, and every list of k values below 5 is the start of the orbit of some x < 10^k. Before, this was a
+  check for k <= 4 (`py/endgame.py`); now it holds for every k. Any finite pattern of r values can be followed by
+  anything, so no finite-state rule reading the orbit so far forbids a halting row: a proof that the machine never
+  halts cannot come from an automatic invariant of the r sequence alone.
+* `fd_split`, `orb_split`: f(10^(m+1) A + B) = 10^m (31 A) + f(B), so c steps from 10^(c+n) A + B are
+  10^n 31^c A + f^c(B). The high digits ride along untouched.
+
+`py/orbitfast.py` uses `orb_split` recursively (halve the steps, run the low half of the digits, multiply the high
+part by 31^c; GMP through gmpy2) and follows the orbit exactly: 10^6 steps in 2 s, 10^7 in 30 s, **10^8 in 6 minutes**
+(x_(10^8) has 49,136,172 digits; checked against the plain orbit for random lengths, `--check`). `py/orbitstats.py`
+measures it (`runs/orbit22_1e8_stats.txt`):
+
+* r frequencies 19.996% to 20.005%; mean cost 4.40022 words per step against 4.4 for uniform r; the word count
+  W(k) - 4.4k stays within 1.6 standard deviations of a random walk at k = 10^3 .. 10^8.
+* All 5^L blocks of r values occur for every L <= 9 (1,953,125 blocks of length 9, min count 18); chi-square against
+  uniform has |z| <= 2.03 at every L. Nothing distinguishes the sequence from random digits.
+* Ending a level at each of 440,229 sampled steps (x_k mod 10^20 is exact there; no outcome needed more digits),
+  level 2 ends in a proved loop 59.8%, level 3 22.7%, level 1 7.6%, level 2 4.5%, **halt 5.44%**; chained over levels
+  the chance of an eventual halt is 6.2% from the start of level 2. The 40,000-step figures stand.
+
+**So no closed form decides the machine.** The digit sequence is a rational-base expansion of 22, it re-encodes all
+digits of the start, and 10^8 steps show no structure. The end of level 2 is fixed by B2 to within about
+σ·sqrt(2·10^770) ≈ 10^385 steps of the orbit, and nothing known gives the digits of a rational-base expansion that far
+out faster than computing them (this is Mahler's 3/2 problem in another base). A decision would need a new
+idea about this one orbit, not about the map.
+
 ## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
 
 The method that closed another holdout (keep the big counts free, track only remainders; it proves non-halting if no
@@ -313,9 +354,11 @@ Open.
   at a nearly empty tail, `loop5`, the `*_never_halts` classes, `s2_r2_t2_halts`, `s2_r0_t6_halts`),
   `lean/Level3Rules.lean` and `lean/Level3.lean` (the third level and the closed list of short tails, `y0_r2_halts`,
   `s2_r2_t1_to_y_halts`), `lean/Walk.lean` (the whole table as one map, `halts_iff_walk`), `lean/DigitMap.lean` (every level is a prefix of one
-  orbit of f(10a + d) = 31a + K[d/2], `halts_iff_level2_end`). The first level
+  orbit of f(10a + d) = 31a + K[d/2], `halts_iff_level2_end`), `lean/DigitClosed.lean` (the exact rational-base
+  identity `orbit_identity`, `rlist_onto`: the digits re-encode the start, `fd_half`). The first level
   is a theorem: from a phase end (n, r, t) the machine follows the phase map, with exact step counts, as long as t is
   at least 4 per phase. All kernel-checked, no `sorry`, no `native_decide` outside `blank_runs_native`.
+* The orbit of 22 followed exactly for 10^8 steps (`py/orbitfast.py`): indistinguishable from random digits.
 * No halt to 4.5*10^17 steps (exact, accelerated). From blank tape to the first record of level 2 (through the phase
   end (17, 0, 6805) at step 374,475,636 and 2177 phases of level 1, more than 10^1543 steps): a theorem
   (`blank_to_level2`).
@@ -344,6 +387,8 @@ gcc -O2 -o firstrec c/firstrec.c && python3 py/closure_table.py > runs/closure_t
 python3 lean/level3.py   # regenerate the third-level rules (seconds)
 python3 lean/walk.py   # regenerate Walk.lean from the rule statements (instant)
 python3 py/endgame.py 40000   # digit map vs the walk, level 1 replayed, how levels end (16 s)
+pip install gmpy2 && python3 py/orbitfast.py --check && python3 py/orbitfast.py 1e8 /tmp/o8 16777216 1000   # the exact orbit (6 min)
+python3 py/orbitstats.py /tmp/o8 9   # its statistics and how a level would end (30 s)
 ```
 
 ## Pages
