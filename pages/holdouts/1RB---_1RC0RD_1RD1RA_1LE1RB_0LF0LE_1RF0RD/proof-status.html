@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and it is now exactly a question about an integer map.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> the orbit of an explicit, computable map <code>phase</code> on three numbers gets stuck, which happens exactly when the orbit meets (m, m + 2, 2<sup>m+1</sup> + 1), the all-ones pattern (<code>halts_iff_stuck</code>, <code>halts_iff_family</code>). Iterated for 100,000 phases (about 10<sup>153,000</sup> steps) the orbit never meets it, but no proof that it never does is known.</p>
+      <p><b>The question is open, and it is now exactly a question about an integer map.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> the orbit of an explicit, computable map <code>phase</code> on three numbers gets stuck, which happens exactly when the orbit meets (m, m + 2, 2<sup>m+1</sup> + 1), the all-ones pattern (<code>halts_iff_stuck</code>, <code>halts_iff_family</code>). Iterated for 10<sup>10</sup> phases (about 10<sup>1.5·10<sup>10</sup></sup> steps) the orbit never meets it, but no proof that it never does is known.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -221,9 +221,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
       <div class="card">
-        <h3>100,000 phases of the map</h3>
-        <p>Iterated from the first event, the map runs 100,000 phases (each phase a run of additions ended by an overflow) without its odd pairs ever reaching the top bit (without getting stuck): M grows to 508,578, which is about 10<sup>153,000</sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 92). A halt needs k ≥ M/2.</p>
-        <p class="where"><code>py/macro.py 100000</code></p>
+        <h3>10<sup>10</sup> phases of the map</h3>
+        <p>Iterated from the first event, the map runs 10<sup>10</sup> phases (each a run of additions ended by an overflow) and never gets stuck and never lands on the family: after every overflow the program tests both halting conditions directly. M grows to 51,003,339,348 bits, about 10<sup>1.5·10<sup>10</sup></sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 776, where a halt needs k ≥ M/2, about 2.5·10<sup>10</sup>). The fast iterator gives the same (M, j) as <code>py/macro.py</code> at each of the first 100,000 overflows and the same string at every 500th.</p>
+        <p class="where"><code>c/phasefast.c</code>, <code>evidence/phasefast-1e10.txt</code>; <code>py/macro.py 100000</code></p>
       </div>
       <div class="card">
         <h3>Blockers pile up</h3>
