@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd); this reset map is proved in Lean for the head of the tape, for this machine and its twin, given that every carry into the tail comes back (<code>lean/ResetMap.lean</code>); every carry of the first 36 phases of both runs is checked in Lean (<code>lean/ResetExcLong.lean</code>), so there the map holds with no assumption, so the long run is a Collatz-like question about the tail; random block lists that look like records can halt, so no simple invariant is available."
+  "<b>The question is open.</b> At each left record the tape is <code>0^inf ell B&gt;c (10)^D1 x1 (10)^D2 x2 &hellip;</code> with single cells x = 1 or 0. The blocks form a binary counter, incremented once per long sweep while the first block counts down by 2. An exact <b>block macro machine</b> (<code>py/blockmm.py</code>) maps each record to the next by cached symbolic crossings; it agrees with direct simulation at all 15,144 records of the first 3&middot;10<sup>8</sup> steps. Its 387 crossing rules used in the first 300,000 records are proved in Lean (kernel) for every block size and tape, and so is the even long sweep over any list of blocks (<code>carry_even</code>). The composition of rules is trusted Python, not Lean. The macro run: no halt through 16,409,053 left records and 338,536,834,271,065 steps (3.39&middot;10<sup>14</sup>), across 28 resets. At the resets the countdown block follows X &rarr; 3X/2 + 1 (X even) or (3X + 5)/2 (X odd); this reset map is proved in Lean for the head of the tape, for this machine and its twin, given that every carry into the tail comes back (<code>lean/ResetMap.lean</code>); every carry of the first 130 phases of both runs is checked in Lean, by a proved Hashlife over the carries (<code>lean/TailHashLong.lean</code>, X &asymp; 3.3&middot;10<sup>24</sup>, about 6&middot;10<sup>49</sup> steps), so there the map holds with no assumption, so the long run is a Collatz-like question about the tail; random block lists that look like records can halt, so no simple invariant is available."
  ],
  "claims": [
   {
@@ -86,6 +86,18 @@
    "title": "The reset map without hypotheses: 36 phases",
    "text": "The same for the first 36 phases: this machine's run reaches the reset with X = 93,454,756 (about 4&middot;10<sup>16</sup> steps) and the twin's the reset with X = 121,081,390 (<code>reach_own_phases36</code>, <code>reach_twin_phases36</code>). Checked by hand (59 min and 76 min); the cost grows by about 1.5 per phase, since a phase has about X/4 carries.",
    "where": "<code>lean/check_native.sh ResetExcLong.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "Hashlife over the carries, proved",
+   "text": "An excursion simulator with symbolic counts (linear forms, with the conditions its decisions used), every move proved for every valuation satisfying them; transforms of many carries for a whole family of tails, and their composition; a memoized phase checker whose success proves <code>GoodN k</code>.",
+   "where": "<code>exc_spec</code>, <code>compose_sound</code>, <code>cOrbitF_spec</code>; <code>lean/SymSim.lean</code>, <code>lean/TailHash.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The reset map without hypotheses: 130 phases",
+   "text": "Every carry of the first 130 phases of both runs is checked, the carries 2<sup>j</sup> at a time by the proved transforms: this machine reaches the reset with X = 3,335,644,625,007,427,579,461,373 (about 6&middot;10<sup>49</sup> steps by the growth per phase), the twin the reset with X = 4,321,711,362,379,564,880,782,897. 40 phases (6 s) are in CI.",
+   "where": "<code>reachF_own130</code>, <code>reachF_twin130</code>, <code>lean/TailHashLong.lean</code> (by hand, about 12 min each); <code>lean/TailHashRuns.lean</code> (CI)"
   },
   {
    "level": "native",
@@ -198,7 +210,7 @@
   "python3 holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/py/tail_ops.py r3e7.txt 400      # the tail operators (recp output of 3e7 steps)"
  ],
  "explainer": {
-  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps. The 3/2 reset map is proved in Lean for the head of the tape, and every carry into the far part of the tape is checked in Lean for the first 36 phases; whether the carries always come back is the open part.",
+  "lede": "Nobody knows yet. The tape is a binary counter on blocks of <code>10</code>s, each closed by one cell. Every sweep adds one while a countdown block shrinks; when it runs out, the blocks come back about 3/2 larger, by a Collatz-like rule. An exact macro machine, its rules proved in Lean, finds no halt in 3.39&middot;10<sup>14</sup> steps. The 3/2 reset map is proved in Lean for the head of the tape, and every carry into the far part of the tape is checked in Lean for the first 130 phases (about 6&middot;10<sup>49</sup> steps); whether the carries always come back is the open part.",
   "facts": [
    {
     "level": "kernel",
@@ -217,8 +229,8 @@
    },
    {
     "level": "native",
-    "value": "36 phases",
-    "text": "Every carry of the first 36 phases checked in Lean, so the reset map holds there with no hypothesis (to X = 93,454,756, about 4&middot;10<sup>16</sup> steps)."
+    "value": "130 phases",
+    "text": "Every carry of the first 130 phases checked in Lean, the carries skipped 2<sup>j</sup> at a time by transforms proved for whole families of tails; so the reset map holds there with no hypothesis (to X &asymp; 3.3&middot;10<sup>24</sup>, about 6&middot;10<sup>49</sup> steps)."
    }
   ],
   "presets": [
@@ -312,6 +324,12 @@
     ]
    },
    {
+    "id": "hashlife",
+    "eyebrow": "24 November",
+    "heading": "Skipping the carries, with proofs",
+    "html": "<p>Inside a phase the far part of the tape (the tail) only ever undergoes one operation: the carry of the counter, applied about X/4 times. Checking each carry made phase 36 cost an hour. Now the carries are skipped 2<sup>j</sup> at a time, as Hashlife skips generations of the Game of Life.</p>\n<p>A <b>transform</b> says what n carries do to every tail whose first runs have given words and counts: small counts are fixed, large ones are variables, and the new counts are linear in them, under linear conditions. One carry becomes a transform by running the machine with symbolic counts (<code>lean/SymSim.lean</code>, every move proved for every value of the variables); two transforms compose by substitution (<code>compose_sound</code>). A memo of proved transforms then does a phase in a few thousand steps instead of X/4 runs.</p>\n<p>Result: every carry of the first 130 phases of both this machine and its twin is checked in Lean (<code>lean/TailHashLong.lean</code>), to X &asymp; 3.3&middot;10<sup>24</sup>, about 6&middot;10<sup>49</sup> machine steps; 40 phases take 6 seconds and run in CI. This is still one phase at a time: whether <em>every</em> phase passes is the open question.</p>"
+   },
+   {
     "id": "steer",
     "eyebrow": "Experiment",
     "heading": "Is the tail safe on its own?",
@@ -353,6 +371,6 @@
   ]
  },
  "family": "binary counter on (10)^D x blocks with a countdown block; Collatz-like 3/2 reset map",
- "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map, proved in Lean for the head of the tape given that the carries into the tail come back, and without that assumption for the first 36 phases (every carry checked in Lean); no invariant excluding the halt is known.",
+ "summary": "A binary counter on blocks (10)<sup>D</sup> x with a countdown block; an exact block macro machine (387 crossing rules, all kernel-proved in Lean for every block size) runs it with no halt in 3.39&middot;10<sup>14</sup> steps. The resets follow a Collatz-like 3/2 map, proved in Lean for the head of the tape given that the carries into the tail come back, and without that assumption for the first 130 phases (every carry checked in Lean by a proved Hashlife, about 6&middot;10<sup>49</sup> steps); no invariant excluding the halt is known.",
  "decision": "open"
 }

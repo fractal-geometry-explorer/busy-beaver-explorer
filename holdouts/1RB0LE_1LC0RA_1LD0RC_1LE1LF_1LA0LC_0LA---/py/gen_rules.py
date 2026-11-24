@@ -42,6 +42,11 @@ RULES = [
     ("w_next1", "L 1 B> (10)^x+4 0 0 (10)^z 1 R", "L A> 1 1 0 (10)^x 0 1 1 0 0 1 0 1 (10)^z 1 R"),
     ("w_end_b", "L 1 B> (10)^x+4 1 0^inf", "L A> 1 1 0 (10)^x+1 0 1 1 0 0 1 0 1 0^inf"),
     ("w_restart2", "L 1 B> (10)^x+4 0 0 0 1 1 0 0 R", "L A> 1 1 0 (10)^x 0 1 1 0 0 1 0 1 0 1 1 0 0 R"),
+    # rarer windows, first met far out in the run (py/blockmap.py, 24 November 2026)
+    ("w_mid_db", "L 1 B> (10)^x+4 0 1 (10)^z+2 R", "L A> 1 1 0 (10)^x 0 1 1 0 0 1 0 1 0 1 0 0 (10)^z R"),
+    ("w_mid0_d", "L 1 B> (10)^x+1 0 1 0 (10)^w+1 R", "L A> 1 1 0 (10)^x 1 0 1 (10)^w+1 R"),
+    ("w_mid0_b", "L 1 B> (10)^x+1 0 1 1 (10)^w+2 R", "L A> 1 1 0 (10)^x 1 0 1 0 1 0 0 (10)^w R"),
+    ("w_merge_b", "L 1 B> (10)^x+1 1 1 (10)^z 1 R", "L A> 1 1 0 (10)^x+1 (10)^z 1 R"),
     # the window is the fuel block itself
     ("own_pair_dot", "0^inf A> 1 (10)^x 0 (10)^y+2 R", "0^inf A> 1 1 0 1 (01)^x 0 1 (10)^y+1 R"),
     ("own_pair_bang", "0^inf A> 1 (10)^x 1 (10)^y+2 R", "0^inf A> 1 1 0 1 (01)^x 0 0 (10)^y+1 R"),

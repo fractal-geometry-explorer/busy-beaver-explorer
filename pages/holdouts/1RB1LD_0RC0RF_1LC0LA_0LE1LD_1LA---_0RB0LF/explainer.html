@@ -207,7 +207,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#abacus">A few blocks of 1s</a><a href="#split">Splitting by thirds</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#abacus">A few blocks of 1s</a><a href="#split">Dealing by thirds: a base-3 cascade</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -297,9 +297,15 @@ step  14,048,610   1^14 0^2 1^345 0^2 1^231 0^2 1^464 0 1 C&gt;0</pre>
 </section>
 <section id="split">
   <span class="eyebrow">Dynamics</span>
-  <h2>Splitting by thirds</h2>
-<p>Large blocks are cut up in a ratio close to 1:2. At step 12,174,442 the tape is essentially one block of 1,041; at step 12,902,116 it is 347 and 700. The next sweeps cut the 700 again (345, 231, 464). This splitting by thirds is reminiscent of Collatz-like maps. Here, though, several blocks interact, and the lengths do not follow any rule found so far. The total number of 1s grows slowly (6,891 after 3&middot;10<sup>9</sup> steps), the left side grows like the square root of the step count and the right side like a smaller power.</p>
-<p><b>What halting would need.</b> The machine stops when E reads a 1. E is entered from D on a 0 (writing 0, moving left). A halt would need some block arrangement that sends D left onto a 1 where it usually finds a 0. Ruling that out needs a description of the block dynamics, which is not known yet.</p>
+  <h2>Dealing by thirds: a base-3 cascade</h2>
+<p>During a sweep right the tape near the head is <code>1<sup>k+1</sup> 000 F&gt; 1<sup>n</sup> 0 1<sup>m</sup></code>: a finished block, the block being dealt and the next one. Each <em>deal</em> takes three ones from the dealt block and gives one to the left and two to the right (Lean: <code>deal</code>, and <code>deals</code> for j deals at once). That is the 1 : 2 split.</p>
+<p>When fewer than three ones are left, the remainder decides. <b>1</b>: the finished block is dealt again, so it is cut by 3 again (348 is dealt as 346, then 115, then 38). <b>2</b>: the finished block is closed with a <code>00</code> and the next block is dealt. <b>0</b>: the two blocks merge. The sweep left adds one to every block but the last long one and cuts the block after a <code>00000</code>, n = 3t, into t + 1 and 2t + 2.</p>
+<pre>R  12,902,116   347 . 700 _ 1        (. = 00, ___ = 00000, _ = 0)
+L               348 _ 700 _ 2
+R  13,724,275   14 . 345 ___ 693 _ 1
+L               15 _ 346 _ 232 _ 464 _ 2
+R  14,048,610   14 . 345 . 231 . 464 _ 1</pre>
+<p>The number of re-deals is a base-3 valuation, which is why the lengths look chaotic. Its sibling 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE has the same kind of sweep with halving instead of thirds, and there the exact pass map is known and halting comes down to restarts whose buffer is 2 mod 3. Writing the pass map here is the next step.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -330,9 +336,9 @@ step  14,048,610   1^14 0^2 1^345 0^2 1^231 0^2 1^464 0 1 C&gt;0</pre>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: power/sqrt</b><p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.353). Right of the start it grows like a power of the step count other than 1/2 (fitted exponent 0.287).</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>c_shift</code>, <code>lean/Rules.lean</code></div></div><div><b>Travelling 0</b><p><code>0 C&gt; 1^n</code> becomes <code>1^n 0 C&gt;</code> in 3n steps, for every n and any tape around.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun ... at C R</code></div></div><div><b>Block picture</b><p>In 3&middot;10<sup>9</sup> steps, every time C stands at the right end the tape is 2 to 8 blocks of 1s separated by 0^2, 0^3 or 0^5, with <code>0 1 0 C&gt;0</code> at the end. The last block is close to twice the one before it in most samples (347, 700; 1,113, 2,230; 730, 1,468).</p></div></div>
-    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>c_shift</code>, <code>lean/Rules.lean</code></div></div><div><b>Travelling 0</b><p><code>0 C&gt; 1^n</code> becomes <code>1^n 0 C&gt;</code> in 3n steps, for every n and any tape around.</p></div></div>
-    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tmrun ... at C R</code></div></div><div><b>Block picture</b><p>In 3&middot;10<sup>9</sup> steps, every time C stands at the right end the tape is 2 to 8 blocks of 1s separated by 0^2, 0^3 or 0^5, with <code>0 1 0 C&gt;0</code> at the end. The last block is close to twice the one before it in most samples (347, 700; 1,113, 2,230; 730, 1,468).</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when E reads a 1. The block lengths change chaotically, and no invariant that keeps E away from a 1 has been found. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, with history) fail.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>deal</code> in <code>lean/Rules.lean</code> (generated by <code>lean/rules.py</code>); <code>deal_step</code>, <code>deals</code> in <code>lean/Deal.lean</code></div></div><div><b>One deal, and j deals at once</b><p><code>L 1 000 F&gt; 1<sup>n+4</sup> 0 R</code> reaches <code>L 1 1 000 F&gt; 1<sup>n+1</sup> 0 1 1 R</code> in 4n + 23 steps: three ones leave the dealt block, one to the left and two to the right. By induction, j deals take <code>1<sup>k+1</sup> 000 F&gt; 1<sup>n+1+3j</sup> 0 1<sup>m</sup></code> to <code>1<sup>k+j+1</sup> 000 F&gt; 1<sup>n+1</sup> 0 1<sup>m+2j</sup></code> in 4nj + 6j<sup>2</sup> + 17j steps.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">README, "What it does"</div></div><div><b>The base-3 cascade</b><p>When fewer than three ones are left in the dealt block, the remainder decides: 1, the finished block is dealt again (so a block is cut by 3 again and again while the remainder is 1); 2, the finished block is closed and the next block is dealt; 0, the two blocks merge. The sweep left adds one to every block but the last long one and cuts the block after a <code>00000</code> (n = 3t) into t + 1 and 2t + 2. Read off traces of the run; the exact pass map is not written yet.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. The machine halts only when E reads a 1. The sweeps are a base-3 cascade (README); the exact pass map, and where in it E could meet a 1, are not worked out yet. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, with history) fail.</p></div></div>
 </section>
 <section id="check">
   <span class="eyebrow">Check it yourself</span>

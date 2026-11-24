@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 13 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine is a macro machine on lists of numbers: the tape at the left end is <code>A&gt;1 (10)^N sep (10)^w1 sep &hellip; (10)^wk sep W</code>, and one sweep takes the fuel N to N&minus;2 and rewrites the start of W by one of a dozen local rules. Lean (kernel) proves such a sweep, with the done blocks w1&hellip;wk arbitrary (any number, any values &ge; 2), for the window rules that carry the run; the machine has no halting move inside them. The full list of rules (<code>py/mac14.py</code>) is checked against the machine for 2&middot;10<sup>7</sup> steps sweep by sweep and at all 33 refills up to 10<sup>10</sup> steps, and runs 187,450 sweeps without meeting a case it does not cover. Not proved: the rare fuel-1 sweep and windows with small values, and above all that the run never leaves the rules."
  ],
@@ -36,7 +36,7 @@
   {
    "level": "kernel",
    "title": "The window rules",
-   "text": "With fuel &ge; 3 and any done blocks: the pair rule <code>x s y &rarr; x+4 s&#773; y&minus;1</code> (<code>pair_dot</code>, <code>pair_bang</code>), <code>append</code>, <code>p1_bd</code>, <code>p1_bb</code>, <code>p1_db</code>, <code>p1_dd</code> (two blocks merge), <code>merge</code>, <code>end_db</code>, <code>next</code>, <code>end_b</code>, <code>restart2</code>; and the pair rule on the fuel block itself (<code>own_dot</code>, <code>own_bang</code>, with step counts).",
+   "text": "With fuel &ge; 3 and any done blocks: the pair rule <code>x s y &rarr; x+4 s&#773; y&minus;1</code> (<code>pair_dot</code>, <code>pair_bang</code>), <code>append</code>, <code>p1_bd</code>, <code>p1_bb</code>, <code>p1_db</code>, <code>p1_dd</code> (two blocks merge), <code>merge</code>, <code>end_db</code>, <code>next</code>, <code>end_b</code>, <code>restart2</code>, and the rarer <code>mid_db</code>, <code>merge_b</code>, <code>mid0_d</code>, <code>mid0_b</code>; and the pair rule on the fuel block itself (<code>own_dot</code>, <code>own_bang</code>, with step counts).",
    "where": "<code>lean/Macro.lean</code>"
   },
   {
@@ -70,6 +70,12 @@
    "where": "<code>py/far.py</code>"
   },
   {
+   "level": "trusted",
+   "title": "10<sup>2708</sup> sweeps of the block-list map",
+   "text": "<code>py/blockmap.py</code> (run-length lists, jumps across runs of equal blocks) runs 55,882 refills, 10<sup>2708</sup> sweeps, from blank tape. With six rules added (<code>mid.!</code>, <code>merge!!</code>, <code>mid0.</code>, <code>mid0!</code> and two folds, each checked against the machine on random lists by <code>py/check_rules.py</code>), it never meets a window or fuel case outside its rules, and at every refill there is a done block to refill from. The jumps are checked against the plain map for the first 143 refills (<code>py/check_jump.py</code>).",
+   "where": "<code>py/blockmap.py</code>, <code>py/run_far.py</code>, <code>data/run_far_20261124.txt</code>"
+  },
+  {
    "level": "heuristic",
    "title": "Growth shape: fixed/sqrt",
    "text": "Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.498). Right of the start it stopped growing in the second half of the run (bounded so far, or growing so slowly that no record fell in the last half).",
@@ -84,7 +90,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. A proof would need an invariant on the lists that the macro rules preserve (so that no window ever falls outside them), plus Lean proofs of the remaining cases: the sweep with fuel 1 (two rules in one visit), the windows with small values, and the rules on the fuel block other than the pair rule.",
+   "text": "Not known. A proof would need an invariant on the lists that the macro rules preserve (so that no window ever falls outside them), plus Lean proofs of the remaining cases: the sweep with fuel 1 (two rules in one visit), the windows with small values, and the rules on the fuel block other than the pair rule. The block-list map ran 10<sup>2708</sup> sweeps without a gap once six rarer rules were added, but rare new windows may keep appearing.",
    "where": ""
   },
   {
@@ -100,7 +106,9 @@
   "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/gen_rules.py      # rewrites lean/Rules.lean",
   "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check.py 2e7",
   "gcc -O2 -o r14 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/r14.c && ./r14 1e10 100000 > r14.txt && python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/cmp.py r14.txt",
-  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/far.py 1e12 300 600"
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/far.py 1e12 300 600",
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check_rules.py 3000 1 mid; python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check_jump.py 112",
+  "python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/run_far.py 3000 500      # 50 minutes, to 10^2708 sweeps"
  ],
  "explainer": {
   "lede": "Nobody knows. The tape turns out to be a list of numbers, written as blocks of 10s, with a fuel counter at the left end. Each sweep of the head spends 2 units of fuel and does one small piece of arithmetic at the first unfinished block; when the fuel runs out, a finished block becomes the new fuel. Lean proves the sweep exactly; the rules have run 187,450 sweeps without a gap.",
@@ -119,6 +127,11 @@
     "level": "trusted",
     "value": "187,450 sweeps",
     "text": "The macro rules never meet a case they do not cover."
+   },
+   {
+    "level": "trusted",
+    "value": "10<sup>2708</sup> sweeps",
+    "text": "55,882 refills of the block-list map; the fuel never runs out and no window falls outside the rules (six rarer rules added)."
    },
    {
     "level": "heuristic",
@@ -173,7 +186,8 @@
     "heading": "A dozen local rules",
     "html": [
      "<p>What happens at the window depends only on its first few entries (x is the value there):</p>",
-     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>window</th><th>becomes</th><th>Lean</th></tr></thead><tbody><tr><td><code>x s y</code>, y &ge; 2</td><td><code>x+4 s&#773; y&minus;1</code></td><td><code>pair_dot</code>, <code>pair_bang</code></td></tr><tr><td><code>x ! 1 .</code> / <code>x ! 1 !</code></td><td><code>x+4 . 0 .</code> / <code>x+4 . 0 !</code></td><td><code>p1_bd</code>, <code>p1_bb</code></td></tr><tr><td><code>x . 1 !</code></td><td><code>x+4 ! 0 !</code></td><td><code>p1_db</code></td></tr><tr><td><code>x . 1 . z</code></td><td><code>x+5+z</code></td><td><code>p1_dd</code></td></tr><tr><td><code>x ! 0 ! z .</code></td><td><code>x+4+z .</code></td><td><code>merge</code></td></tr><tr><td><code>x . 0 . z</code></td><td><code>x</code> done, window <code>1 ! z</code></td><td><code>next</code></td></tr><tr><td><code>x . 0 . 0 . 0 ! 1 .</code></td><td><code>x</code> done, window <code>2 ! 1 .</code></td><td><code>restart2</code></td></tr><tr><td><code>x sep 1 ! 0</code> at the end</td><td><code>x sep 2 sep 1 ! 0</code></td><td><code>append</code></td></tr><tr><td><code>x ! 0</code> / <code>x . 0 ! 0</code> at the end</td><td><code>x+1</code> done, <code>1 ! 0</code> / <code>x+4 ! 0</code></td><td><code>end_b</code>, <code>end_db</code></td></tr></tbody></table></div>",
+     "<div style=\"overflow-x:auto\"><table class=\"tbl\"><thead><tr><th>window</th><th>becomes</th><th>Lean</th></tr></thead><tbody><tr><td><code>x s y</code>, y &ge; 2</td><td><code>x+4 s&#773; y&minus;1</code></td><td><code>pair_dot</code>, <code>pair_bang</code></td></tr><tr><td><code>x ! 1 .</code> / <code>x ! 1 !</code></td><td><code>x+4 . 0 .</code> / <code>x+4 . 0 !</code></td><td><code>p1_bd</code>, <code>p1_bb</code></td></tr><tr><td><code>x . 1 !</code></td><td><code>x+4 ! 0 !</code></td><td><code>p1_db</code></td></tr><tr><td><code>x . 1 . z</code></td><td><code>x+5+z</code></td><td><code>p1_dd</code></td></tr><tr><td><code>x ! 0 ! z .</code></td><td><code>x+4+z .</code></td><td><code>merge</code></td></tr><tr><td><code>x . 0 . z</code></td><td><code>x</code> done, window <code>1 ! z</code></td><td><code>next</code></td></tr><tr><td><code>x . 0 . 0 . 0 ! 1 .</code></td><td><code>x</code> done, window <code>2 ! 1 .</code></td><td><code>restart2</code></td></tr><tr><td><code>x sep 1 ! 0</code> at the end</td><td><code>x sep 2 sep 1 ! 0</code></td><td><code>append</code></td></tr><tr><td><code>x ! 0</code> / <code>x . 0 ! 0</code> at the end</td><td><code>x+1</code> done, <code>1 ! 0</code> / <code>x+4 ! 0</code></td><td><code>end_b</code>, <code>end_db</code></td></tr><tr><td><code>x . 0 ! z</code>, z &ge; 2</td><td><code>x</code> done, window <code>3 . z&minus;2</code></td><td><code>mid_db</code></td></tr><tr><td><code>x ! 0 ! z !</code></td><td><code>x+4+z !</code></td><td><code>merge_b</code></td></tr><tr><td><code>x . 0 ! 0 . w</code> / <code>x . 0 ! 0 ! w</code></td><td><code>x+4 ! w</code> / <code>x+6 . w&minus;2</code></td><td><code>mid0_d</code>, <code>mid0_b</code> (never used so far)</td></tr><tr><td><code>x . 0 ! 0 ! 1 . z</code></td><td>read as the single value <code>x+3+z</code>; the sweep goes on to the next window</td><td>tested only</td></tr><tr><td><code>x ! 0 . z</code> (not at the end)</td><td>read as the single value <code>x+1+z</code>; the sweep goes on</td><td>tested only</td></tr></tbody></table></div>",
+     "<p>The last five rows are rarer windows that first appeared far out in the run (from sweep 2&middot;10<sup>16</sup> on); each was read off the real machine and checked on thousands of random lists (<code>py/check_rules.py</code>).</p>",
      "<p>When the window is the fuel block itself, its own pair rule runs (<code>own_dot</code>, <code>own_bang</code>). When the fuel is 0, the sweep refills it: the list <code>0 sep v1 &hellip;</code> becomes <code>2 . v1 &hellip;</code>, so the first done block joins the fuel (<code>sweep_gen0</code>). Fuel 1 is a special case where one visit applies two rules; that case is not yet proved in Lean.</p>"
     ]
    },
@@ -188,13 +202,25 @@
     ]
    },
    {
+    "id": "far",
+    "eyebrow": "Run to 10<sup>2708</sup> sweeps",
+    "heading": "Running the fuel counter out",
+    "html": [
+     "<p>Does the fuel ever run out for good, with no done block left to refill it? <code>py/blockmap.py</code> runs the same macro machine on run-length lists, so a sweep costs a constant amount of work, and crosses a run of equal blocks in one jump once one block of it has shown the pattern. It equals <code>py/mac14.py</code> sweep by sweep (30,000 sweeps), and its jumps change nothing at the 143 refills a plain run reaches (2.2&middot;10<sup>10</sup> sweeps, <code>py/check_jump.py</code>).</p>",
+     "<p>In 50 minutes it ran <b>55,882 refills and 10<sup>2708</sup> sweeps</b>. Every time the fuel reached 0 there was a done block to refill from, so the fuel never ran out. The exponent grows in a straight line, about 0.048 decimal digits per refill, so each refill multiplies the work by about 1.12. The list held 6,030 runs of equal blocks at the end, and the largest block had about 2,700 digits.</p>",
+     "<svg viewBox=\"0 0 560 240\" role=\"img\" aria-label=\"sweeps against refills: the exponent grows linearly\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><line x1=\"48\" x2=\"548\" y1=\"210.0\" y2=\"210.0\" stroke=\"var(--line)\"/><text x=\"44\" y=\"214.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^0</text><line x1=\"48\" x2=\"548\" y1=\"161.0\" y2=\"161.0\" stroke=\"var(--line)\"/><text x=\"44\" y=\"165.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^700</text><line x1=\"48\" x2=\"548\" y1=\"112.0\" y2=\"112.0\" stroke=\"var(--line)\"/><text x=\"44\" y=\"116.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^1400</text><line x1=\"48\" x2=\"548\" y1=\"63.0\" y2=\"63.0\" stroke=\"var(--line)\"/><text x=\"44\" y=\"67.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^2100</text><line x1=\"48\" x2=\"548\" y1=\"14.0\" y2=\"14.0\" stroke=\"var(--line)\"/><text x=\"44\" y=\"18.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^2800</text><text x=\"48.0\" y=\"226\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><text x=\"173.0\" y=\"226\" text-anchor=\"middle\" fill=\"var(--muted)\">14,000</text><text x=\"298.0\" y=\"226\" text-anchor=\"middle\" fill=\"var(--muted)\">28,000</text><text x=\"423.0\" y=\"226\" text-anchor=\"middle\" fill=\"var(--muted)\">42,000</text><text x=\"548.0\" y=\"226\" text-anchor=\"middle\" fill=\"var(--muted)\">56,000</text><polyline fill=\"none\" stroke=\"var(--accent)\" stroke-width=\"2\" points=\"48.0,210.0 52.5,208.0 56.9,206.2 61.4,204.1 65.9,202.4 70.3,201.0 74.8,198.7 79.2,197.1 83.7,194.9 88.2,192.8 92.6,190.7 97.1,188.9 101.6,187.4 106.0,185.6 110.5,183.6 115.0,181.7 119.4,179.6 123.9,178.0 128.4,176.6 132.8,175.0 137.3,173.5 141.8,171.5 146.2,169.8 150.7,167.9 155.1,165.8 159.6,164.5 164.1,162.8 168.5,161.4 173.0,159.4 177.5,156.7 181.9,155.1 186.4,153.7 190.9,152.1 195.3,150.8 199.8,149.5 204.2,147.8 208.7,146.4 213.2,145.2 217.6,143.9 222.1,142.5 226.6,140.8 231.0,139.0 235.5,137.3 240.0,136.1 244.4,134.9 248.9,133.6 253.4,132.4 257.8,131.1 262.3,129.4 266.8,128.0 271.2,126.8 275.7,124.8 280.1,123.1 284.6,121.0 289.1,119.5 293.5,118.2 298.0,116.2 302.5,114.4 306.9,113.0 311.4,111.0 315.9,109.7 320.3,107.9 324.8,106.8 329.2,105.6 333.7,104.3 338.2,101.8 342.6,100.1 347.1,98.6 351.6,96.5 356.0,95.0 360.5,93.7 365.0,92.3 369.4,90.6 373.9,89.1 378.4,87.1 382.8,85.3 387.3,83.7 391.8,81.5 396.2,80.2 400.7,78.5 405.1,76.1 409.6,74.0 414.1,72.0 418.5,70.4 423.0,68.9 427.5,67.4 431.9,65.7 436.4,63.8 440.9,62.4 445.3,60.6 449.8,58.9 454.2,57.1 458.7,55.2 463.2,53.0 467.6,51.4 472.1,49.6 476.6,47.9 481.0,46.1 485.5,44.6 490.0,43.3 494.4,41.7 498.9,40.2 503.4,38.3 507.8,36.5 512.3,34.8 516.8,33.0 521.2,31.2 525.7,29.3 530.1,27.7 534.6,25.6 539.1,23.7 543.5,21.7\"/><text x=\"546\" y=\"204\" text-anchor=\"end\" fill=\"var(--fg2)\">refills</text><text x=\"54\" y=\"24\" fill=\"var(--fg2)\">sweeps</text></svg>",
+     "<p>The first refills of the far run, written as before, show the powers of four taking over: <code>0 | 6 | 16777214&times;3 | 1685 | 4193877 | 4181686 | 262142&times;32 | 11338 ! 62701 | 65534&times;10 | &hellip; | 14&times;561076 | 10 | 2&times;2947758 | 1 ! 0</code> (refill 82). Blocks 4<sup>k</sup>&minus;2 come in runs, a carry turns a run of 4<sup>k</sup>&minus;2 into a run of 4<sup>k+1</sup>&minus;2 as it passes, and the tail of 2-blocks grows to millions.</p>",
+     "<p>Six windows outside the old rules turned up along the way. The first, <code>x . 0 ! z</code>, at sweep 2.15&middot;10<sup>16</sup> (refill 226). Then a folding window at 10<sup>114</sup>, another at 10<sup>119</sup>, <code>x ! 0 ! z !</code> at 10<sup>203</sup>, and nothing new after sweep 10<sup>873</sup>. None of them leads to the halting move. New rare cases may keep appearing, so this run is evidence, not a proof.</p>"
+    ]
+   },
+   {
     "id": "proved",
     "eyebrow": "Status",
     "heading": "What is proved and what is missing",
     "html": [
-     "<p><b>Lean, kernel</b>: the cell pieces of a sweep (<code>lean/Rules.lean</code>, written by <code>bbtools.symtm</code>), one whole sweep for any done blocks and the window rules above (<code>lean/Macro.lean</code>).</p>",
+     "<p><b>Lean, kernel</b>: the cell pieces of a sweep (<code>lean/Rules.lean</code>, written by <code>bbtools.symtm</code>), one whole sweep for any done blocks and the window rules above, including three of the five rarer ones (<code>lean/Macro.lean</code>).</p>",
      "<p><b>Computed</b>: the full macro machine (<code>py/mac14.py</code>) checked against the machine sweep by sweep for 2&middot;10<sup>7</sup> steps and at every refill up to 10<sup>10</sup>; 187,450 sweeps without leaving its rules.</p>",
-     "<p><b>Missing</b>: the fuel-1 sweep, small-value windows and the other fuel-block rules in Lean; a statement that puts all rules together as one map on lists; and an invariant showing the lists always stay inside the rules. Halting would need a window outside every rule; inside the rules proved in Lean the machine never reaches the halting move F1.</p>"
+     "<p><b>Missing</b>: the fuel-1 sweep, small-value windows, the two folding windows and the other fuel-block rules in Lean; a statement that puts all rules together as one map on lists; and an invariant showing the lists always stay inside the rules. Halting would need a window outside every rule; inside the rules proved in Lean the machine never reaches the halting move F1.</p>"
     ]
    },
    {
@@ -209,6 +235,6 @@
   ]
  },
  "family": "Counter with fuel (sweeps over a list of blocks; carries like base-4 arithmetic)",
- "summary": "The tape is a list of blocks of 10s; each sweep spends 2 units of a fuel counter on the left and applies one local rule at the first unfinished block. Lean proves one sweep exactly for any list of finished blocks and 12 window rules; the macro machine matches the real run to 10<sup>10</sup> steps and runs 187,450 sweeps without leaving its rules.",
+ "summary": "The tape is a list of blocks of 10s; each sweep spends 2 units of a fuel counter on the left and applies one local rule at the first unfinished block. Lean proves one sweep exactly for any list of finished blocks and 12 window rules; the macro machine matches the real run to 10<sup>10</sup> steps and a run-length version of it runs 10<sup>2708</sup> sweeps (55,882 refills) without leaving its rules once six rarer rules are added.",
  "decision": "open"
 }
