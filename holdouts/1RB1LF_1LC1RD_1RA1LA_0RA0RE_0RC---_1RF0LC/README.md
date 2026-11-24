@@ -107,6 +107,8 @@ Lean, all by the kernel:
   `stepRes_complete`), so non-halting follows from the integer orbit alone (`not_halts_of_model`); the first 50,000
   steps of that orbit satisfy the hypothesis (`model_first`, kernel evaluation); the bound "each counter at least 5
   times the one below" is not kept by the rules (`ratio5_not_enough`).
+* `lean/Closed.lean`: every set of walls closed under both parities contains `1 K(0) K(9i + 7)` for every i
+  (`family`, `closed_family`; see "A closed set of walls" below).
 
 Computed: `py/zonemap.py` is the Lean step map in Python: `check 4000` compares it with the plain step map
 (`py/stepmap.py`, one step simulated in C by `c/stepc.c`, three values of `N` per case) for 4,000 steps from
@@ -313,6 +315,44 @@ So the statement left for a proof is not the 5x bound but the one of "What the 2
 pair that occurs, the top count is not in the sparse residue classes that fail. With `not_halts_of_model` that
 statement, about integers only, is now exactly what non-halting needs.
 
+## A closed set of walls (24 November)
+
+The wall changes only through the parity of N, so a set of walls that contains `1`, is closed under `mstep` for
+**both** parities and never lets a count fail would prove non-halting with no information about N. The natural
+candidate, "every counter at least 5 times the one below", is not closed (`ratio5_not_enough`). `lean/Closed.lean`
+shows why no set of that kind can work:
+
+- **The family (kernel).** From the wall `1`, the parities `1 (01)^n` build `1 K'(0)^n K(0)` (`mrun_pile`); an odd
+  parity dissolves the pile into the count, `1 K(2n + 2)` (`odd_on_pile`); on a single counter an odd parity makes
+  `K(4i + 2)` into `K(6i + 5)` (`single_even`) and that into `K(0) K(9i + 7)` (`single_odd`). So
+  `1 (01)^(2i) 1 1 1` leads to `1 K(0) K(9i + 7)` for every i (`family`), and every set of walls that contains `1`
+  and is closed under both parities contains all of them and every wall of the odd runs from them
+  (`closed_family`).
+- **Their safety is a digit statement.** Over `K(0)` (pile height 0, m = 0 in "Odd runs of a pair") the top count k
+  stays odd for t steps exactly when k agrees with the 2-adic number rho(0, 0) in t binary digits, and the bound
+  theta_t of `py/pairs.py` grows like t, so a run fails only after about k steps. Below 2^3000 the only start value
+  that fails is k = 1, which is not in the family (`closed.py bad 3000`). A larger k fails only if rho(0, 0) has a
+  run of about k zero digits starting near digit log2 k (the first 3,000 digits have no run longer than 12). So a
+  closed set of walls, whatever its form, proves that rho(0, 0) has no such runs: the same kind of statement as
+  the rest of "What the 2-adic condition says". Inequalities between neighbouring counts cannot express it,
+  because they cannot see residues modulo powers of 2; in particular no bound of the form "each counter at least c
+  times the one below" can give a proof by itself.
+- **Not only this family.** Under free parities, every lower stack met so far carries a whole arithmetic
+  progression of top counts (`closed.py families 400 600`: 26 lower stacks with at least 8 top counts each, such as
+  `K(23)` with tops 4,479 + 9n and `K(0) K(31)` with tops 4,749 + 243n), and no member of any of these progressions
+  is a bad start value below 2^600.
+
+This holds for closed sets inside the counter-stack model. When a count fails the machine leaves the model's walls
+(in the cases seen it went on without halting), so a failure in the model is not by itself a halt; a closed set
+that also contains the walls after a failure would have to describe those walls too. The closed-set route
+therefore does not avoid number theory; it moves the question into the digits of 2-adic numbers like rho(0, 0).
+
+```sh
+python3 py/closed.py family 2000
+python3 py/closed.py bad 3000
+python3 py/closed.py families 400 600
+```
+
 ## Regular invariants tried (21 November)
 
 The machine halts only through A0 → B1 → D1 → E1, so a halt needs the head in state A on a 0 with 111 to its right.
@@ -350,6 +390,7 @@ python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py graph 8
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stack.py random 3000
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/modelorbit.py 100000   # 20 seconds
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/closed.py family 2000
 ```
 
 <!-- related machines: written by holdouts/related.py -->
