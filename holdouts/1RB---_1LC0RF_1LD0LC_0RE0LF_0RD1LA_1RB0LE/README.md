@@ -13,7 +13,7 @@ bbchallenge id 30773.
 
 ## Status
 
-**Open.** A bouncer between a growing block and a wall of exactly 1,573 cells that changes every sweep like a counter (changes start at cell 44, carries reach 25 cells further about every three times as many sweeps); what happens when the carries reach the end of the wall is unknown. It shares its halting question with 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC, proved in Lean (section "One halting question for two machines").
+**Open.** A bouncer between a growing block and a wall of exactly 1,573 cells that is a counter. The counter is now decoded (section "The digit carry rule"): 46 digits of 25 cells, 15 trips of the head per sweep, and a carry table of 73 entries that reproduces every sweep to 2·10^10 steps; Lean proves that this table never needs an entry it does not have. Carries reach each further digit 3/8 as often, so they reach the end of the wall only after about 10^38 steps; what happens then is the open question. It shares its halting question with 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC, proved in Lean (section "One halting question for two machines").
 
 ## What it does
 
@@ -38,7 +38,7 @@ question. Decoding the digits would turn this into an exact statement.
 - `py/view.py` (with `c/blocks.c`, `c/gaps.c`) prints the views of the run quoted above; `python3 py/view.py 2e10 3000` is the block view at the left end; `python3 py/wall.py 2e10` (with `c/walldump.c`) compares consecutive walls.
 - Lean (`lean/Blank.lean`): no halt in 10^7 steps; C (`tools/c/triage.c`): none in 10^9.
 - Lean (`lean/Lockstep.lean`, `lean/RightEnd.lean`): the run of 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC is this run with one word more at the right end, and the two machines halt together or not at all (below).
-- No macro rule of the counter is proved yet. Next step: decode the wall as digits, prove the increment with symtm, and work out what the carry does at the end of the wall.
+- The digit carry rule (`py/carry.py`, `lean/Carry.lean`, `py/endregion.py`): see the section below. The table is checked against the machine by simulation; its rules are not yet proved for the machine.
 
 ## First look
 
@@ -141,6 +141,93 @@ the two runs drawn on one clock, the far-end crossing for k = 0..4 extra words, 
 [`py/pair/pair.js`](py/pair/pair.js), is tested by `node py/pair/test_pair.js` against the numbers
 above; `python3 py/pair_page.py` writes the sections into both `status.json` files.
 
+
+## The digit carry rule (F09, 24 November 2026)
+
+**The wall, cell by cell.** From step 2·10^7 on, at every sweep,
+
+    W = H  D_0 D_1 … D_45  E  (10001101)^30
+    H    01100011000110001100110011010110011011100110      44 cells, the same at every sweep
+    D_j  a110 b110 c011 0011 0d11 0e11 0                    25 cells: digit j, five free cells a b c d e
+    E    139 cells, the same at every sweep so far (more counter, not yet used: below)
+
+A digit is written below as its five free cells `abcde`. Of the 32 values, 28 occur.
+
+**A sweep is 15 trips.** Between two visits to the left end the head goes from `H` into the digits and back to
+cell 32 of `H` (12 cells left of digit 0) exactly 15 times. At the start of trip number p (p = 0 … 14) the cells of `H` are the same at every
+sweep, so `H` is a fixed sequencer of 15 phases: trip p feeds carry **Y** into digit 0 if p is 1, 6 or 11, and
+carry **X** otherwise. A carry reaching a digit rewrites it and passes a carry on to the next digit, or stops.
+Five carries occur, X, Y, P, Q and R, and the whole rule is one table of 73 entries (`d > d'` for "the carry turns
+d into d' and stops", `d > d':c` for "… and passes c on"):
+
+| carry | entries |
+|---|---|
+| X | `00001>10001 00010>10010 00011>10011 00100>10100 00101>10101 00110>10110 01000>11000 01001>11001 01011>11011 01101>11101 01110>11110 01111>11111 10000>01000 10001>01001 10010>01010 10011>01011 10100>01100 10101>01101 10110>01110 10111>01111 11000>00100 11010>00110 11011>00111 11101>00010:Y 11111>00001:X` |
+| Y | `00001>01001 00010>11111:P 00110>01110 00111>11010:P 01000>00100 01010>10000:X 01100>10111:Y 01111>00001:X 10001>00101 10011>11011 10100>00011:Y 10101>11101 11000>10100 11001>01101 11101>10010:Y 11110>01000:X` |
+| P | `00001>00101 00011>11011 00100>00011:Y 00101>11101 01000>10100 01001>01101 01101>10010:Y 01110>01000:X 10000>00100 10010>10000:X 10100>10111:Y 10111>00001:X 11010>01110 11011>11010:P 11101>11111:Q 11111>01001:X` |
+| Q | `00001>01101 00110>01000:X 01000>00011:Y 01111>00101:X 10011>11010:P 10101>11111:Q 11000>10111:Y 11101>10000:R` |
+| R | `00001>11001 00110>11110 01000>10100 01111>10001:X 10011>00111 10101>00010:Y 11000>01100 11101>01010:Y` |
+
+Carry X is plain binary counting in `a b c` (a lowest): it sets the lowest 0 and clears the 1s below it. When
+`a = b = c = 1` the digit overflows to `a b c = 0 0 0`, and `d e` steps from 11 to 01 (passing X on) or from 01
+to 10 (passing Y on). The other carries add more at once (Y mostly 2 or 3 to `a b c`, P 3 or 4, R always 3) and
+move `d e` along when `a b c` overflows. We looked for a value of each digit, and an amount for each carry, that
+every entry conserves, as in a numeral in base 8/3: for no base between 1 and 10^4 do the 73 linear equations
+have a solution. So the counter is a finite transducer, not a numeral in a base.
+
+**Checks** (`python3 py/carry.py trips|check|far|closure`):
+
+* trip by trip, simulating the machine: all 4,500 trips of the first 300 sweeps are the table, and `H` is the same
+  at the start of trip p of every sweep;
+* sweep by sweep: the table predicts all 29,299 sweeps from step 2·10^7 to 2·10^10 (from the walls of
+  `c/walldump.c`); in all of them `H` and `E` do not change;
+* as a model, 10^6 sweeps from the wall at 2·10^10: every one of the 73 entries is used and no other is needed;
+  the carries reach digit 17 once;
+* **closure**: take the strings of digits whose first digit is in a set F_p (8 values for each trip number p) and
+  whose neighbouring digits are among 240 allowed pairs. Trip p maps them into the strings of trip p+1 and never
+  meets a pair (carry, digit) outside the table. **Lean** (`lean/Carry.lean`, kernel only, `decide`) proves this for
+  strings of every length (`trip_good`), and that the model started from the 46 digits of the wall at step
+  20,018,306 never gets stuck, for any number of trips, until a carry runs off the last digit
+  (`wall0_never_stuck`). This is a theorem about the model; its link to the machine is the simulation above.
+
+**How deep the carries go.** In the model, 3/4 of all trips change digit 0 only, 1/4 reach digit 1, 29/320 reach
+digit 2, 43/1280 reach digit 3, and from there on each digit is reached by 3/8 of the trips that reach the one
+before (ratios 2.6667 ± 0.001 from digit 4 to digit 10, in 1.5·10^7 trips). That is why the first k digits have
+period exactly 8^k sweeps while deep changes are only 8/3 times rarer per digit. The carries pass digit 45 in
+about one trip in (1280/43)·(8/3)^43 ≈ 6·10^19, which is about 4·10^18 sweeps and, with the block one word longer
+every sweep, about 10^38 steps. That is when the end of the wall is first used.
+
+**What the end of the wall does with a carry** (`python3 py/endregion.py`, an experiment on made-up walls). Set
+digits 1 … 45 to `11111` (X turns each into `00001` and passes X on), run one sweep, set them back, and repeat.
+The first carry only turns cell 0 of `E` from 0 to 1; the next ones count in binary in cells 0, 4, 8 of `E`, like
+`a b c` of a digit: `E` begins with more digits in a form not used yet. At the 56th carry `E` is rewritten as a
+whole, two more words `10001101` stand at the right end, and the right end moves 8 cells (the crossing `far_B` of
+`lean/FarEnd.lean`). No halt in 400 such carries. Real carries arrive in the five kinds and from digits that are
+not all `11111`, so this shows the kind of thing the end does, not what the run will do.
+
+**Earlier counters.** The present counter is the fourth. Before it the right end moved nine times, and three times
+the block was turned into a new counter: at about 3,200 steps (block of 7 words), 66,700 steps
+(11 words) and 4.49·10^6 steps (246 words, which became the 45 equal fresh digits
+`0101100110111001100110111` of the present wall). The last change began at step 1,445,347, when the head came back
+to the left end in state D instead of C, having gone only about 30 cells into the old wall: the old counter
+ended at its low end, not at its far end. The present counter cannot end that way as far as we can see: `H` is
+the same at every sweep. Whether a carry reaching the far end can make the head turn the block into a fifth
+counter, and whether that can go wrong, is the next question.
+
+**Next steps.** (1) Prove the 73 entries for the machine (each is a finite run on one or two digits, but the head
+crosses a cell up to 27 times in one trip, so the interface between digits needs care); with `trip_good` that gives
+"no halt before a carry reaches E". (2) Decode `E` and the tail as digits, and find what ends a counter.
+
+Reproduce (from this folder):
+
+    python3 py/carry.py trips 300      # 4,500 trips, machine vs table (dumps the walls to 3·10^9 first, 15 seconds)
+    python3 py/carry.py check          # 29,299 sweeps to 2·10^10 (dumps the walls first, about 2 minutes)
+    python3 py/carry.py far 1e6        # the model alone (15 seconds)
+    python3 py/carry.py closure        # the closure check
+    python3 py/carry.py lean > lean/CarryData.lean
+    . /etc/profile.d/lean.sh && lean/check.sh
+    python3 py/endregion.py            # the end of the wall under 400 forced carries
+
 ## Pages
 
 - [`pages/holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html`](../../pages/holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html)
@@ -152,6 +239,8 @@ above; `python3 py/pair_page.py` writes the sections into both `status.json` fil
 . /etc/profile.d/lean.sh && holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/check.sh
 python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/farend.py check                    # far_B by simulation, k = 0..4
 python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/rightend.py check                  # the 32 configurations of RightEnd.lean
+python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/carry.py trips 300                   # the carry table, trip by trip against the machine
+python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/carry.py check                       # the carry table, all sweeps to 2*10^10 (about 2 minutes)
 python3 holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/farend.py > /tmp/FarEnd.lean       # regenerates lean/FarEnd.lean
 gcc -O2 -o good holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c && ./good 1e11            # the condition of Lockstep.lean, about 8 minutes
 gcc -O2 -o lockstep holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/lockstep.c && ./lockstep 1e11   # the two runs at every left-end visit, about 17 minutes
