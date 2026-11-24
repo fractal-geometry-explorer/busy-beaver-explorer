@@ -12,9 +12,9 @@
   "<p>Seen at the moments the head, in state E, reaches a new cell on the right, the tape is a list of numbers: <code>1^(3a) 0 1^(3m<sub>1</sub>+2) 0 1^(3m<sub>2</sub>+2) 0 &hellip; 1^(3m<sub>k</sub>+2) 0 E&gt;0</code>, a first run of 1s whose length is a multiple of 3 and then blocks of 1s each two more than a multiple of 3, each followed by a single 0. In the 10<sup>11</sup>-step run 107 of the 130 such moments have exactly this form; the others are the moments when the head has just come back from the left end. The list ends in <code>2 0 0 &hellip; 0</code>, and each new cell on the right appends one more 0 (a block <code>1 1 0</code>). Further left one or two numbers change at each record, a pattern that walks left one block per record, and the time between records doubles each time: a binary clock. When the walk reaches the left part, the head visits the left end, the list is rewritten and a new walk starts.</p>",
   "<p>At each new cell on the right in state E the tape is <code>1^(3a) 0</code> followed by numbers m written as blocks <code>1^(3m+2) 0</code> (most m are 0, 1 or 2), ending in a 2 and a run of 0s that grows by one at each record. Between two records the head runs over the list many times and the time doubles. From record to record a disturbance (a 3 or a 4) moves one number to the left; when it reaches the left end the first number a changes and, a few records later, the phase ends and the list is rewritten.</p>"
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The machine halts exactly from <code>C&gt; x 1 1</code> (both directions in Lean), never seen in 10<sup>11</sup> steps. The run goes in phases: inside a phase every new right cell in state E takes twice as long as the previous one (up to a few hundred steps), one more 0 is appended to the list and a carry walks one number to the left. The phases seen end at steps 142,951,915, 776,063,293 and 1,601,996,125, each after the carry has reached the left end and changed the first number; the fourth ended at step 136,228,769,152 exactly as the earlier ones (first number 4, then 1, <code>1 3</code>, 5, end), and the fifth repeats the corrections to doubling of the fourth, record for record, 7.7 times slower."
+  "<b>The question is open.</b> The machine halts exactly from <code>C&gt; x 1 1</code> (both directions in Lean), never seen in 1.5·10<sup>12</sup> steps. The run goes in phases: inside a phase every new right cell in state E takes twice as long as the previous one (up to a few hundred steps), one more 0 is appended to the list and a carry walks one number to the left. The phases seen end at steps 142,951,915, 776,063,293 and 1,601,996,125, each after the carry has reached the left end and changed the first number; the fourth ended at step 136,228,769,152 exactly as the earlier ones (first number 4, then 1, <code>1 3</code>, 5, end), and the fifth repeats the corrections to doubling of the fourth, record for record, 7.7 times slower."
  ],
  "claims": [
   {
@@ -85,9 +85,9 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 2.2·10<sup>11</sup> steps",
-   "text": "The C simulator ran past step 222,918,842,017 (a record) without a halt.",
-   "where": "<code>tmrun M 250000000000 records 100000</code>"
+   "title": "No halt in the first 1.5·10<sup>12</sup> steps",
+   "text": "The C simulator ran 1,500,000,000,000 steps without a halt (498 ones at the end, 615 cells visited). An earlier recorded run reached step 222,918,842,017. The visited width, read every 2·10<sup>10</sup> steps, stays at 516 to 520 cells from 5·10<sup>11</sup> to 10<sup>12</sup> and jumps to 600 by 1.18·10<sup>12</sup>, as it jumped from 439 to 492 at the end of phase 4 (step 136,228,769,152): phase 5 ends between 1.0·10<sup>12</sup> and 1.18·10<sup>12</sup> steps, as the doubling foretold, and the halting context did not appear there.",
+   "where": "<code>tmrun M 1500000000000</code> (about 2 hours); <code>tmrun M 250000000000 records 100000</code> for the records"
   },
   {
    "level": "trusted",
