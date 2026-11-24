@@ -83,14 +83,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves three crossings the run uses and the situations that lead to a halt (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
-      <p><b>What it does.</b> The head sweeps the whole tape, which is made of the three-cell words <code>011</code>, <code>110</code>, <code>100</code> and the pair <code>01</code>, mixed with longer blocks of 1s. Going right, A turns <code>011</code> into <code>100</code>; going left, C turns <code>110</code> into <code>011</code> and passes <code>01</code> unchanged. The mixture has no visible order.</p>
-      <p><b>Where a halt would come from.</b> Only F reading a 0 halts; F is entered from E reading a 0, so <code>E&gt;0 0</code> halts. In 2&middot;10<sup>8</sup> steps F always reads a 1.</p>
+      <p><b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 8.8&middot;10<sup>15</sup> steps of the real machine.</p>
+      <p><b>What it does.</b> A zone of about 300 to 600 cells at the left end of the tape has no visible order. Everything right of it is one ten-cell word, <code>1011011011</code>, repeated. The head shuttles between the zone and the right end; each round trip adds a cell at the right end and moves the body one cell right. Now and then the zone extends the tape on the left, always by 30 cells at a time.</p>
+      <p><b>Why the zone is all that matters.</b> Lean's <code>trip</code> shows that a round trip through a body of <i>n</i>+1 words takes 70<i>n</i>+143 steps and gives back the same cells next to the zone for every <i>n</i>. The body never has two 0s side by side, and a halt needs <code>A&gt;0 1 0 0</code>, so a halt can only happen in the zone.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -133,6 +133,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>E&gt;0 0</code> halts after one step, <code>B&gt;1 0 0</code> after two, <code>A&gt;0 1 0 0</code> after three: two 0s in a row in the wrong place.</p>
         <p class="where"><code>halt_E</code>, <code>halt_B</code>, <code>halt_A</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Body crossings and the round trip</h3>
+        <p>Going right, E with <code>010</code> travelling along turns each <code>1011110101</code> into <code>1110110110</code> (58 steps a word); going left, D turns each <code>0110110111</code> into <code>1011110101</code> (12 steps a word). A whole round trip from the zone through a body of <i>n</i>+1 words to the right end and back takes 70<i>n</i>+143 steps and gives the same cells next to the zone for every <i>n</i>.</p>
+        <p class="where"><code>body_right</code>, <code>body_left</code>, <code>trip</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -155,6 +160,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/visits.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 2&middot;10<sup>11</sup> steps</h3>
+        <p>The real machine, run directly: no halt in 1.98&middot;10<sup>11</sup> steps; the zone is never wider than 521 cells.</p>
+        <p class="where"><code>c/zonemodel.c</code> with nothing cut</p>
+      </div>
+      <div class="card">
+        <h3>The zone model follows the real machine</h3>
+        <p>With the body cut to 31 words at every right record, the zone, the state and the exact step count agree with the real machine at every 1,000th of the first 30,000 right records (4.55&middot;10<sup>9</sup> steps). After the first 1,000 right records, every right record so far has the right end that <code>trip</code> ends with; a symbolic run from real configurations (right records 3,000 and 20,000) with the body length as a variable uses only the two body crossings.</p>
+        <p class="where"><code>c/zonemodel.c</code> (option <code>check</code>), <code>py/trip_check.py</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the zone model</h3>
+        <p>No halt in 42,000,000 right records of the zone model: 8.8&middot;10<sup>15</sup> steps of the real machine, a tape of about 6&middot;10<sup>7</sup> cells. The zone is never wider than 633 cells; the cut configuration never repeats (Brent's method).</p>
+        <p class="where"><code>c/zonemodel.c 30 &hellip; check</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LE_1LC1RD_1LA0RB_1RC1RB_1LF0LC_---0RC up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB1LD_1RC0LA_1LA0RE_1LB1LA_1RF0RB_---0LB up to renaming, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -172,7 +192,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. NGramCPS with n &le; 10 and window CTL with K &le; 7 leave it open.</p>
+        <p>Not known. It is the zone's question: a deterministic system of a few hundred cells with no visible order, beside a mirror. NGramCPS with n &le; 10 and window CTL with K &le; 7 leave it open. That every round trip has the form of <code>trip</code> is observed, not proved.</p>
       </div>
     </div>
   </section>
