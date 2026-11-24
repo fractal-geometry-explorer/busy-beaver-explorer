@@ -3,7 +3,7 @@ import Layers
 /-! # The events after 10^128 events of 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---: an empty Z and a chain of left words
 
 The five left rows (`lv_d0` … `lv_top`) were written by
-`holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_rows.py`; the rest was written by hand.
+`py/stage_rows.py` in the folder of 1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB--- ; the rest was written by hand.
 
 **Why the stage law has the gifts it has.** After about 10^128 events the run reaches *stages* (`py/latestage.py`,
 `py/stages.py`), where the head turns back again and again at one cell in state C on a 0. Those turning points are
