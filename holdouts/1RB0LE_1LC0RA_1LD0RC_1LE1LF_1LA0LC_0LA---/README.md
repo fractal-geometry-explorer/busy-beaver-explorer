@@ -3,7 +3,9 @@
 bbchallenge id 122192, a six-state holdout of group G05 (growth class fixed/sqrt). **Open.** The machine is an
 exact macro machine on lists of numbers (a fuel counter, done blocks, a window with a dozen local rules). Lean
 (kernel) proves one sweep for any list of done blocks and twelve window rules. The full macro machine has been
-checked against the real run and runs 187,450 sweeps without meeting a case outside its rules.
+checked against the real run and runs 187,450 sweeps without meeting a case outside its rules. A run-length version
+(`py/blockmap.py`) runs it 10^2708 sweeps (55,882 refills): the fuel never runs out, and six rarer window rules had to
+be added on the way (see [Running the fuel counter out](#running-the-fuel-counter-out-24-november-2026)).
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -87,6 +89,7 @@ pair rule on the fuel block (`own_pair_dot`, `own_pair_bang`).
 
 **Not proved:**
 - the fuel-1 sweep;
+- the two folding windows (`x . 0 ! 0 ! 1 . z`, `x ! 0 . z`), tested against the machine only;
 - windows whose value is below the bound in the lemma (x ≥ 1, or x ≥ 4 for `next`, `end_b`, `restart2`,
   `append`);
 - the rules other than pair on the fuel block;
@@ -104,6 +107,9 @@ python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check.py 2e7     #
 gcc -O2 -o r14 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/r14.c && ./r14 1e10 100000 > r14.txt
 python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/cmp.py r14.txt
 python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/far.py 1e12 300 600
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check_rules.py 3000 1 mid   # also fold, fold2, mid0, merge!!
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/check_jump.py 112          # about a minute
+python3 holdouts/1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA---/py/run_far.py 3000 500        # 50 minutes, to 10^2708 sweeps
 ```
 
 ## Accelerated run (13 November 2026)
@@ -113,6 +119,54 @@ Observed, not proved: the accelerated simulator `rsim.py` ran 1.87x10^14 steps f
 ```sh
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LE_1LC0RA_1LD0RC_1LE1LF_1LA0LC_0LA--- 400
 ```
+
+## Running the fuel counter out (24 November 2026)
+
+**The question.** Each sweep spends 2 fuel; at fuel 0 the leftmost done block becomes the new fuel. Does the fuel
+ever run out for good, with no done block left, or does the run reach a window that no rule covers?
+
+**The block-list map.** `py/blockmap.py` is the macro machine of `py/mac14.py` on a run-length list: the part left of
+the window is a list of `[value, count]` runs of done blocks, the part from the window on is a reversed stack whose items
+are raw entries or runs `(v D)^c`. A sweep is O(1) work instead of O(length). `fast()` batches pair runs and appends as
+before, and `jump()` crosses a run of equal blocks: it simulates the window across one block, and if the window comes
+back to the same pattern in front of the shorter run, with the fuel high enough that no refill can happen, it does the
+remaining blocks of the run at once (fuel, sweep count and the done blocks it leaves all scale linearly).
+
+Checks (computed, trusted):
+- `py/blockmap.py` equals `py/mac14.py` list for list over the first 30,000 sweeps.
+- `py/check_jump.py 143`: with and without jumps the whole list and the sweep count agree at each of the first 143
+  refills (2.2·10^10 sweeps). Beyond that only the jump version is fast enough.
+- `py/check_rules.py`: every rule, old and new, against one sweep of the real machine (`py/tmsweep.py`) on thousands of
+  random lists with a realistic right end; no mismatch.
+
+**New window rules.** The run met six windows the old rules did not cover. Each was read off the real machine with
+small values and then tested on random lists:
+
+| window | becomes | first met | Lean |
+|---|---|---|---|
+| `x . 0 ! z`, z ≥ 2 | x done, window `3 . z−2` | sweep 2.15·10^16 (refill 226) | `mid_db` (x ≥ 4) |
+| `x . 0 ! 0 ! 1 . z` | read as one value `x+3+z`, the sweep goes on to the next window | 10^114 (refill 2,110) | tested only |
+| `x ! 0 . z` (not at the end) | read as one value `x+1+z`, the sweep goes on | 10^119 (refill 2,252) | tested only |
+| `x ! 0 ! z !` | `x+4+z !` | 10^203 (refill 3,829) | `merge_b` |
+| `x . 0 ! 0 . w`, w ≥ 1 | `x+4 ! w` | not met | `mid0_d` |
+| `x . 0 ! 0 ! w`, w ≥ 2 | `x+6 . w−2` | not met | `mid0_b` |
+
+The last two were added with the folds; the run never used them. `lean/Rules.lean` has the cell lemmas
+(`w_mid_db`, `w_mid0_d`, `w_mid0_b`, `w_merge_b`), `lean/Macro.lean` the sweeps (kernel only, axioms `propext` and
+`Quot.sound`). The two folds are not in Lean: their right pass leaves the tape in a shape that only the left pass
+makes equal to the folded one.
+
+**Result** (`py/run_far.py 3000 500`, log in `data/run_far_20261124.txt`). In 50 minutes the map ran **55,882
+refills and 10^2708 sweeps** from blank tape without meeting a window or fuel case outside its rules. At every refill
+there was a done block to refill from, so the fuel never ran out. Nothing new appeared after sweep 10^873 (a fold
+followed by `next`, refill 17,186). The exponent of the sweep count grows linearly, about 0.048 digits per refill (each
+refill does about 1.12 times the work of the one before). At the end the list held 6,030 runs of equal blocks and the
+largest block had about 2,700 digits. The picture is the one seen earlier, scaled up: runs of 4^k − 2 blocks, a carry
+turning a run of 4^k − 2 into a run of 4^(k+1) − 2 as it passes, and a tail of millions of 2-blocks.
+
+**What this means for halting.** Nothing is settled. Halting needs a window outside every rule whose sweep reaches F1.
+The run keeps producing rare new windows (six in the first 10^873 sweeps), so more may come. None found so far leads to
+the halting move.
 
 ## Pages
 
