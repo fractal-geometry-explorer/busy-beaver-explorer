@@ -311,6 +311,32 @@ VLOG=v1m.log ./vispl 1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD--- 1000001 - 3 10000
 python3 holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/py/dirty_counts.py v1m.log
 ```
 
+**Two rounds in a row near the stop (computed, exact simulation of rounds 1 to 6,000, `py/next_round.py`).** Take a
+round whose row ends in `100`, then j blocks `000`, then the stop, and suppose the next round's block reading into
+that `100` is a doubling block. Then the next round sends c visits through j + 1 halving blocks, and the block at
+F−1 gets ⌊c/2^j⌋ of them. A dirty stop there needs exactly 1. In rounds 1 to 6,000 this value is never 1:
+
+| j | ⌊c/2^j⌋ | next round's visits to the doubling block minus this round's to the `100` |
+|---|---|---|
+| 0 | 2 (65 rounds) or ≥ 4 (953) | −1 to +2 |
+| 1 | ≥ 4 (57) | 0 to +4 |
+| 2 | 3 (63) or ≥ 4 (1) | 0 to +4 |
+| ≥ 3 | 3 (61) | −1 to +3 |
+
+So in an ordinary round the next round brings about as many visits to the `100` as this one, or a few more. That is
+roughly twice what a dirty stop needs, so the visit at F−1 passes on and the round runs past the stop. A dirty stop
+needs a round that falls short. At the dirty stops of rounds 161,210 and 194,646 the next round brought 2 visits
+where this one had 4. That gap is j = 1, which forces c = 2 and is safe. For a dangerous dirty stop (j ≥ 2), the shortfall
+would have to be larger still: the next round would need only about a third of the usual count at that point. No
+local law fixes the next round's counts. Over all blocks, the next round's count minus twice this round's count at
+the same token is spread widely. Also, a model of the last few blocks that lets the incoming count be anything can
+produce the dangerous case (for example, j = 2 and c = 6). So a proof has to use where the counts come from: the
+front of the stream, which gets 2^a visits from the left counter in each round.
+
+```sh
+python3 holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/py/next_round.py 6000     # about 40 seconds
+```
+
 <!-- shift-law:end -->
 
 ## What is established
