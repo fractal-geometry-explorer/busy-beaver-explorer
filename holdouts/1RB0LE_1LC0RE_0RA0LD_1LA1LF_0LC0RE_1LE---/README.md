@@ -199,9 +199,22 @@ On the left, L0, L1 and L2 are base-3 words in the digits of N (100 = 0, 110 = 1
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/latestage.py check 100000000`: from blank tape to the stage (about 10^128 events), then 10^8 steps run cell by cell: 226,899 consecutive pairs of visits follow the law, 0 mismatches; 31 more were carries out of L0 in the first stretch, before L1 and L2 settle.
 - `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/latestage.py run 20`: jumps by both laws. From the stage's start it covers about 10^127 visits (so at least that many more steps) in 53 jumps, with 106 visits run cell by cell and no halt; self-checks (20 random points of each jump, rebuilt and run cell by cell for 3 pairs): 3,178 pairs, 0 mismatches. Then a carry leaves the right chain, and the visit cell moves again, 31 cells further right.
 
-So the stage ends the way the first one did: a carry runs off the right end of the chain, and the cell where the head turns back moves further into the chain. At the next cell the first word is (b, W1) with W1 no longer empty, and over a pair of visits W1 gets 2 and U1 gets 3. Its left side has more words than L0, L1 and L2, and it is not decoded.
+**The stages after it (trusted, `py/stages.py`).** The stage ends the way the first one did: a carry runs off the right end of the chain, and the turning cell moves. The tape around the new cell has the same two chains, with other word widths and other gifts. On the left, each word that wraps sends 2 and an empty word passes twice what it got. On the right, each wrap sends 3. Over the stages the cell moves both ways, mostly by 2 cells but sometimes by tens of cells. Next to it lies a block `1010…1`, which can be read two ways:
 
-Open: the half-digit shifts of the right chain, and the stages after the visit cell moves a second time.
+- As fixed cells: in the run from the 10^128 tape the block shrinks from 15 cells to 11, 7, 3 and then none, and the left gift per visit halves with each step (16, 8, 4, 2, 1).
+- As left words: the same tape reads with the block as left words, with the lowest digit ending at the turning cell itself. Then the left gift is 1 at every stage.
+
+So every 4 cells of the block act as one more empty left word, which passes on twice what it got. In the run from blank tape the right gifts take three forms: (b, W1) + 5 when b = 1 in 396 of the 400 stages, the first word + 17 in 3, and the first word + 1 and the next + 3 in 1. `py/stages.py` follows the stages with this form of law and fits its numbers per stage:
+
+- At each move it takes the cell with the most visit-shaped passes where the tape reads as the two chains, and fits the smallest gifts that match 40 consecutive visits run cell by cell.
+- It checks every later visit run cell by cell against those gifts, and fits again after a mismatch.
+- It jumps by pairs of visits as far as no carry leaves either chain, and checks itself: random points of each jump are rebuilt and run cell by cell for 3 pairs.
+
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stages.py run 400 3`: from blank tape to about 10^128 events with `defects.py`, then 400 stages of this kind, about 10^409 visits (so at least that many more steps), no halt. 494 fits of the gifts (94 visits run cell by cell left a fitted law and started a new fit), and 18,882 self-check pairs with 0 mismatches.
+
+A fitted law is a description, not a proof: each stage's gifts are checked on its own cell-by-cell visits and spot checks, not derived.
+
+Open: the half-digit shifts of the right chain, why the gifts take these forms, and whether the stages go on forever.
 
 A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 

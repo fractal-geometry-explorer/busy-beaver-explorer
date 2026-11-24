@@ -361,6 +361,7 @@ halting 1.
 - `py/defects.py MACHINE check STEPS | run DIGITS [SPOT]`: the defect law of the E1 = 0RE siblings (an erased separator cell takes one unit of carry and is restored), checked on a run, and a simulator that uses it.
 - `py/prefixjump.py MACHINE JUMPS [SPOT]`: for chains with a defect (the E1 = 0RE siblings), jumps by the chain law on the longest grammar prefix, with the tail kept as it is.
 - `py/latestage.py check STEPS | run [SPOT]`: the stage of `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---` after about 10^128 events, where the event cell has moved 17 cells into the chain: the law of its two chains checked on a run, and a simulator that jumps with it.
+- `py/stages.py run STAGES [SPOT]`: the stages of that machine after the first one: each time the turning cell moves, it fits the gifts of the same two-chain law on cell-by-cell visits, checks them, and jumps with them.
 - `py/layers_gen.py MACHINE NAMESPACE > lean/Layers.lean` (with `py/Layers.lean.tpl`, `py/rowgen.py`, `py/layers_bounce.json`): the chain law in Lean, for the whole family.
 - `py/chain_page.py collect|write`: the chain law and the runs (`py/chain_runs.json`) into the five status.json files.
 
