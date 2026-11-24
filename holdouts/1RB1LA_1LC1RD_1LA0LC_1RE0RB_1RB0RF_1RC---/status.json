@@ -13,7 +13,7 @@
  "asof": "Status as of 8 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean now proves the counter itself: read the tape as two binary numbers, E in the odd blocks left of the head and N in the gaps right of it, and every countdown of E, for every size of E and N, runs as the counter says (<code>run3</code>, <code>run5</code>). Lean also proves that the blank-tape run enters this counter after 160 steps and runs its first countdown. The pass rules (including the halting one) are proved too.",
-  "Coq now proves that halting is <em>equivalent</em> to a question about one explicit map, for 1a and 1b at once: the machine halts if and only if the round map of a closed counter model, iterated from (2, 5), reaches a corner X = 2<sup>L</sup> (<code>halts_iff_corner</code>). Whether it does is open; in 400,000 rounds (L up to 132 million) it stayed at least 0.47&middot;L bits away, and a hit would need the unread top of X to equal, exactly, a number of about 0.7&middot;L bits computed from its bottom."
+  "Coq now proves that halting is <em>equivalent</em> to a question about one explicit map, for 1a and 1b at once: the machine halts if and only if the round map of a closed counter model, iterated from (2, 5), reaches a corner X = 2<sup>L</sup> (<code>halts_iff_corner</code>). The second-overflow cascade is proved too, and it narrows the door to one equation: a corner comes only from rule R5 with the unread rest m of the right counter equal to (2D + 1)&middot;2<sup>s</sup> &minus; 1, D being how far the left counter is below full (<code>halts_iff_r5_match</code>, also in Lean for the model). Whether the orbit ever meets it is open; in 400,000 rounds (L up to 132 million) it stayed at least 0.47&middot;L bits away."
  ],
  "claims": [
   {
@@ -63,6 +63,18 @@
    "title": "Every corner halts, so halting is equivalent to reaching a corner (Coq)",
    "text": "<code>halts_iff_corner bb : halts (machine bb) c0 &lt;-&gt; exists j len, iter_n j (cfgL 2 0 5) = Some (cfgL len 0 (2^len))</code>, for both 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB--- and 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---. The new half is <code>corner_halts</code>: from a corner <code>cfgL len 0 (2^len)</code>, for every len &ge; 1, the machine halts. The path is the same for every len: the overflow of the left counter (<code>LC_Ov</code>) turns the full right counter into a shifted counter that is twice too large, and the left counter is counted all the way down (2<sup>len</sup> &minus; 1 pairs); the left counter overflows a second time, gains one digit (rule <code>E1</code>), and the right part becomes a counter of len &minus; 1 digits ended by <code>0011</code>; that counter is counted up through all its values twice, the carry between the two passes turning <code>0011</code> into <code>1011</code>; then a fixed sweep halts (rule <code>Hend</code>). <code>E1</code> and <code>Hend</code> are tape rules with free parameters, proved for both tables by busycoq's symbolic execution; the rest reuses the counter lemmas of <code>SOC23Model.v</code>. <code>Print Assumptions</code>: closed under the global context. Coq 8.20.1 on busycoq's BB6 branch (commit <code>33209bc</code>), 31 seconds for the three files.",
    "where": "<code>halts_iff_corner</code>, <code>corner_halts</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/SOC23Corner.v</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/build.sh</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "A corner can only come from one equation at one rule (Coq)",
+   "text": "<code>halts_iff_r5_match bb : halts (machine bb) c0 &lt;-&gt; exists j x, iter_n j (cfgL 2 0 5) = Some x /\\ r5match x</code>, for both 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB--- and 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC---. After the left counter overflows, the right counter is read as a cascade of second overflows (the place where busycoq's <code>SOC_2_3_v2</code> template needs its rules <code>ROv2_0</code> and <code>ROv2_1</code>; here rules R1 to R5 of <code>SOC23Model.v</code>). Call a configuration <em>doomed</em> when its plain countdown ends at a corner (<code>cfgR len k n</code> with k + n + 1 = 2<sup>len</sup>). <code>doom_step</code>: the only step of the model that makes a doomed configuration out of one that is not doomed is rule R5, a shifted counter <code>cfgS1</code> with an odd number h = 2a + 1 of digits running out, and only when the unread rest m of the right counter satisfies m + 1 = (2D + 1)&middot;2<sup>3a+3</sup>, where D = 2<sup>len</sup> &minus; 1 &minus; k is how far the left counter is below full (<code>r5match</code>). The three ends with nothing left to read (R1, R2, R3) never give a corner: the new left counter is an odd number times 2<sup>s</sup>, minus 1, so the countdown ends one or two short of a power of two. The one exception, <code>cfgS0 len (2^len-1) 0 0 0</code>, is reached by no step (<code>bad0_step</code>). So the second-overflow cascade is proved for every parameter, and what it would take to make a corner is exactly one equation; whether the orbit ever satisfies it is the open question. <code>Print Assumptions</code>: closed under the global context. Coq 8.20.1 on busycoq's BB6 branch (commit <code>33209bc</code>), 2 seconds on top of the other three files.",
+   "where": "<code>halts_iff_r5_match</code>, <code>doom_step</code>, <code>bad0_step</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/SOC23Match.v</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/build.sh</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The cascade lemma in Lean",
+   "text": "<code>lean/Cascade.lean</code> copies the model step <code>f</code> of <code>SOC23Model.v</code> case for case and proves the same lemmas for the model alone: <code>doom_step</code>, <code>bad0_step</code>, and <code>corner_iff_r5</code>, the orbit from <code>cfgL 2 0 5</code> reaches a corner if and only if it reaches an R5 configuration with m + 1 = (2D + 1)&middot;2<sup>3a+3</sup>. It takes as a hypothesis that every step keeps the invariant P, which Coq proves (<code>f_spec</code>); the link to the machines (<code>halts_iff_corner</code>) is in Coq. Core Lean 4.34, no Mathlib, no <code>sorry</code>.",
+   "where": "<code>corner_iff_r5</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/lean/Cascade.lean</code>"
   },
   {
    "level": "native",
@@ -131,9 +143,15 @@
    "where": "<code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/model23.c</code>"
   },
   {
+   "level": "heuristic",
+   "title": "How a round reads X, and why sizes do not settle it",
+   "text": "A round reads X from its low end as runs <code>0^h 1</code>, and the model only looks at the parity of each h, so the cascade is a reader with four states (S0 or S1, h even or odd): in S0 an even run moves to S1 and an odd run stays in S0; in S1 with h even, a 0 next starts another run in S1 and a 1 next swallows a whole block <code>1^j 0</code> and moves to S0 with h = j; in S1 with h odd the round stops (rule R5). All 3,000 first rounds but two (rounds 3 and 8, which read all of X) end at R5. At R5 the equation m + 1 = (2D + 1)&middot;2<sup>s</sup> first needs the low s bits of m to be 1s and the next one 0; that happens in 129 of the 2,998 R5 rounds (4.3%). Then the bits of 2D + 1 must match: the best of the 2,998 matched 6 bits (out of 10 to 73). Length alone does not decide it either: the target (2D + 1)&middot;2<sup>s</sup> was longer than m + 1 in rounds 0, 1, 2, 4, 9 and 33 of the first 30,000 (round 33 read 515 bits of an X of about 1,560), so the two lengths cross; after that m + 1 was always longer.  In 20,000 rounds (L up to 3.9 million) the low s bits matched in 887 of 19,998 R5 rounds, and the longest agreement was at round 6634, where all 5 bits of 2D+1 matched, but m+1 there is millions of bits longer than the target; in 30,000 rounds the target was longer than m+1 only in the same six early rounds. A proof of non-halting needs a reason why the unread top of X can never equal what the round built from its bottom; none is known.",
+   "where": "<code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_match.py</code> (exact integers, the model step of <code>SOC23Model.v</code> in the deficit form)"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. Coq proves the question equivalent to one about the model orbit from (2, 5): the machine halts exactly when a round reaches a corner X = 2<sup>L</sup> (<code>halts_iff_corner</code>). In 400,000 rounds X stayed at least 0.47&middot;L bits away from 2<sup>L</sup>. A corner needs one round to leave unread a top part of X that equals, exactly, a number of about 0.7&middot;L bits computed from the bits it read; no invariant ruling that out is known.",
+   "text": "Not known. Coq proves the question equivalent to one equation in the model orbit from (2, 5): the machine halts exactly when, at some rule R5 (the end of a second-overflow cascade), the unread rest m of the right counter satisfies m + 1 = (2D + 1)&middot;2<sup>s</sup> (<code>halts_iff_r5_match</code>). In 400,000 rounds X stayed at least 0.47&middot;L bits away from a corner, and in 3,000 rounds no R5 matched more than 6 bits of 2D + 1 past the first s. No invariant ruling the equation out is known.",
    "where": ""
   },
   {
@@ -153,7 +171,8 @@
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/gen_init.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC--- H114206 160 5 17 1   # regenerates lean/Init.lean",
   "gcc -O2 -o holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/ps.c",
   "MON=1 VAL=100000000 timeout 1500 python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/jump2.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC--- 100000 12 /tmp/log.txt",
-  "sh holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/build.sh /path/to/busycoq   # BB6 branch; prints Closed under the global context twice",
+  "sh holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/build.sh /path/to/busycoq   # BB6 branch; prints Closed under the global context four times",
+  "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_match.py 3000",
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/corner_check.py 12",
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/model23.py 20000",
   "gcc -O2 -o model23 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/model23.c -lgmp && ./model23 400000 10000"
@@ -169,7 +188,7 @@
    {
     "level": "kernel",
     "value": "Coq",
-    "text": "A closed model of the whole run: it halts if and only if the round map hits a corner X = 2<sup>L</sup>."
+    "text": "A closed model of the whole run: it halts if and only if one rule (R5) meets one equation, which makes a corner X = 2<sup>L</sup>."
    },
    {
     "level": "trusted",
@@ -318,11 +337,91 @@
     ]
    },
    {
+    "id": "cascade",
+    "eyebrow": "Coq and Lean",
+    "heading": "The cascade has one door",
+    "html": [
+     "<p>A round of the model has two halves. First the left counter is counted down against the right counter X until it overflows. Then comes the <em>cascade</em>: the right counter is read from its low end, block by block, by a chain of second overflows (rules R1 to R5). The cascade decides everything. Once it hands over to the plain counter, the rest of the round is a fixed countdown whose end is known in advance.</p>",
+     "<p>The cascade reads X as runs <code>0^h 1</code> and only looks at whether each h is even or odd. That makes it a reader with four states, S0 or S1 times even or odd h. In S0, an even run moves to S1 and an odd run stays in S0. In S1 with h even, a 0 next starts another run, and a 1 next swallows a whole block <code>1^j 0</code> and moves to S0. In S1 with h odd the round stops: that is rule R5, and the part m of X not yet read stays on the tape. Along the way the left counter grows. Write D for how far it is below full. Each block read adds to D, and each overflow that appends s digits turns D into (2D + 1)&middot;2<sup>s</sup>.</p>",
+     "<p>Coq now proves that this cascade has exactly one way to make a corner (<code>SOC23Match.v</code>, <code>halts_iff_r5_match</code>). If X runs out first (R1, R2, R3 with nothing left to read), the next countdown starts from an odd number times a power of two, and that is never a power of two minus one. So it cannot end at a corner. Only R5 can, and only when the unread part satisfies <b>m + 1 = (2D + 1)&middot;2<sup>s</sup></b>. The top of X, which earlier rounds left behind, would have to spell exactly the number the round has just built from the bottom of X. The same lemma is checked in Lean for the model (<code>lean/Cascade.lean</code>). So each of the two machines halts if and only if one R5 round meets this equation.</p>",
+     "<p>The panel below runs the model and checks every R5 against the equation. The low s bits are the easy part: m must end in exactly s ones. About one R5 in 23 gets that far. After that the bits of 2D + 1 have to match too, and in the first 3,000 rounds the best was 6 of them. Size does not rule a match out either. In six early rounds (the last is round 33) the target was longer than m + 1, and later it is always shorter, so the two lengths cross. A proof that the machine never halts needs a reason why this equation never holds, and none is known.</p>",
+     "<div class=\"panel\" id=\"r5p\">",
+     "  <div class=\"controls\">",
+     "    <label for=\"r5N\">rounds</label>",
+     "    <select id=\"r5N\"><option value=\"300\">300</option><option value=\"1000\" selected>1,000</option><option value=\"3000\">3,000</option></select>",
+     "    <button id=\"r5Go\" class=\"primary\" type=\"button\">Check every R5</button>",
+     "    <span class=\"small\" id=\"r5Msg\">Exact integers (BigInt), from (L, X) = (2, 5).</span>",
+     "  </div>",
+     "  <div class=\"readout\">",
+     "    <span>rounds <b id=\"r5R\">0</b></span>",
+     "    <span>R5 ends <b id=\"r5C\">&ndash;</b></span>",
+     "    <span>low s bits match <b id=\"r5Low\">&ndash;</b></span>",
+     "    <span>most bits of 2D+1 matched <b id=\"r5Best\">&ndash;</b></span>",
+     "    <span>target longer than m+1 <b id=\"r5S\">&ndash;</b></span>",
+     "  </div>",
+     "  <div class=\"cap\">The last R5 rounds that got past the low s bits, and how far into 2D + 1 they matched.</div>",
+     "  <div class=\"log\" id=\"r5Log\" style=\"font-family:var(--mono);font-size:.82rem;white-space:pre;overflow-x:auto\"></div>",
+     "</div>",
+     "<script>",
+     "(function () {",
+     "  \"use strict\";",
+     "  function bl(x){return x===0n?0:x.toString(2).length;}",
+     "  function split(x){var i=bl(x&-x)-1;return [x>>BigInt(i+1),i];}",
+     "  function P2(e){return 1n<<BigInt(e);}",
+     "  function round(L,X){",
+     "    var sp=split(X),m=sp[0],h=sp[1],S1=false,nodd=0n,D=0n,ln=L,s,a;",
+     "    for(;;){",
+     "      D+=(P2(h)-1n)*2n+nodd; a=Math.floor(h/2);",
+     "      if(!S1){",
+     "        if(h%2===0){s=3*a;if(m===0n){ln+=1+s;return {L:ln,X:P2(ln)-(2n*D+1n)*P2(s)+1n};}",
+     "          D=(2n*D+1n)*P2(s);ln+=1+s;sp=split(m);m=sp[0];h=sp[1];S1=true;nodd=0n;}",
+     "        else{s=3*a+2;if(m===0n){ln+=1+s;return {L:ln,X:P2(ln)-(2n*D+1n)*P2(s)};}",
+     "          D=(2n*D+1n)*P2(s);ln+=1+s;sp=split(m);m=sp[0];h=sp[1];S1=false;nodd=1n;}",
+     "      } else if(h%2===0){",
+     "        if(m===0n){s=3*a+2;ln+=1+s;return {L:ln,X:P2(ln)-(2n*D+1n)*P2(s)};}",
+     "        if(m%2n===0n){s=3*a+2;D=(2n*D+1n)*P2(s);ln+=1+s;sp=split(m>>1n);m=sp[0];h=sp[1];S1=true;nodd=1n;}",
+     "        else{s=3*a+1;D=(2n*D+1n)*P2(s);ln+=1+s;sp=split(m+1n);m=sp[0];h=sp[1];S1=false;nodd=0n;}",
+     "      } else {",
+     "        s=3*a+3;var T=(2n*D+1n)*P2(s),M=m+1n;ln+=1+s;",
+     "        var x=M^T,ag=x===0n?-1:bl(x&-x)-1;",
+     "        return {L:ln,X:P2(ln)-T+M,r5:true,s:s,tb:bl(T),mb:bl(M),ag:ag};",
+     "      }",
+     "    }",
+     "  }",
+     "  var go=document.getElementById(\"r5Go\"); if(!go) return;",
+     "  function $(id){return document.getElementById(id);}",
+     "  go.addEventListener(\"click\",function(){",
+     "    var N=parseInt($(\"r5N\").value,10),L=2,X=5n,t=0,r5=0,low=0,best=0,bestT=-1,shorter=0,rows=[];",
+     "    go.disabled=true;$(\"r5Msg\").textContent=\"running…\";",
+     "    function chunk(){",
+     "      var stop=Math.min(N,t+100);",
+     "      for(;t<stop;t++){",
+     "        var r=round(L,X);L=r.L;X=r.X;",
+     "        if(r.r5){r5++;",
+     "          if(r.ag<0){rows.push(\"round \"+t+\": MATCH, a corner\");}",
+     "          if(r.tb>r.mb)shorter++;",
+     "          if(r.ag>r.s){low++;var k=r.ag-r.s;",
+     "            if(k>best){best=k;bestT=t;}",
+     "            rows.push(\"round \"+t+\": s = \"+r.s+\", low s bits match, then \"+k+\" of \"+(r.tb-r.s)+\" bits of 2D+1; m+1 has \"+r.mb+\" bits\");}",
+     "        }",
+     "      }",
+     "      $(\"r5R\").textContent=t;$(\"r5C\").textContent=r5;$(\"r5Low\").textContent=low;",
+     "      $(\"r5Best\").textContent=best+(bestT>=0?\" (round \"+bestT+\")\":\"\");$(\"r5S\").textContent=shorter;",
+     "      $(\"r5Log\").textContent=rows.slice(-12).join(\"\\n\");",
+     "      if(t<N)setTimeout(chunk,0);else{go.disabled=false;$(\"r5Msg\").textContent=\"Exact integers (BigInt), from (L, X) = (2, 5).\";}",
+     "    }",
+     "    chunk();",
+     "  });",
+     "})();",
+     "</script>"
+    ]
+   },
+   {
     "id": "open",
     "eyebrow": "Why it is open",
     "heading": "What is missing",
     "html": [
-     "<p>The counter is proved; the transitions are not. A transition is a cascade whose course depends on the low bits of E and N and on where earlier defects sit, and no closed formula for the configuration after it is known, in the language of passes. The Coq model above sidesteps this: it describes whole rounds as one explicit map, so the question is now about that map alone. What is missing is an invariant of the map that rules out the halting rounds.</p>",
+     "<p>The counter is proved; the transitions are not. A transition is a cascade whose course depends on the low bits of E and N and on where earlier defects sit, and no closed formula for the configuration after it is known, in the language of passes. The Coq model above sidesteps this: it describes whole rounds as one explicit map, so the question is now about that map alone. What is missing is an invariant of the map that rules out the one halting equation, m + 1 = (2D + 1)&middot;2<sup>s</sup> at rule R5.</p>",
      "<p>Because the phases grow so fast, simulation can only ever check a few dozen transitions; whatever decides this machine has to be an argument about all transitions at once.</p>"
     ]
    },
