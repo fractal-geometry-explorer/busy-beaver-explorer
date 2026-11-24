@@ -215,6 +215,24 @@ gcc -O2 -o visps holdouts/1RB1LD_0RC0LF_1LD1RE_0LA0RB_0RD1RB_0LD---/c/visps.c -l
 
 <!-- right-end:end -->
 
+<!-- dfa-search:begin -->
+## No small automaton certificate (24 November 2026)
+
+**Computed (SAT, not proved): no assume-guarantee automaton of up to 7 states proves the visit law safe.** This is the
+style of busycoq PR #112, applied to the visit law: `py/vsat.py` asks for a DFA that reads a stream from its first
+cell, a map `g` with `v(L_q) ⊆ L_g(q)` for every state `q`, closure under the round `S -> v(1 0 S)`, `1 0^inf` accepted,
+and every halting prefix rejected. With pysat (CaDiCaL) it is UNSAT for every size from 1 to 7 states, for this
+machine (`python3 py/vsat.py a 7`) and for `1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---` (`b`, where `1011 s -> 0001 s`).
+It is also UNSAT up to 6 states on the PR59 rules (`pr59`), as it must be, since those machines halt.
+
+This was expected. The four shared rules are exactly those of the PR59 machines, which run 161,210 rounds before they
+meet `1011`, and here the danger lies only at the right end of the cascade, where the counts are small and depend on
+the whole history. A certificate would have to separate this machine from PR59 by what happens after a dirty stop,
+which a few states reading from the front of the stream cannot see. The cascade above is already the column-by-column
+view that busycoq PR #110 uses; what is missing is a potential or invariant at the stop.
+
+<!-- dfa-search:end -->
+
 ## What is established
 
 **Proved in Lean, kernel only:**
