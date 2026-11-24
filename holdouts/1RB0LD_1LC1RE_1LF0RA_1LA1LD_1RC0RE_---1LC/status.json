@@ -11,9 +11,9 @@
     "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
     "<p>The tape is made of the words <code>10</code> and <code>1110</code> (runs of one or three 1s, each followed by a single 0), with a few longer runs of 1s; at the left end it begins with a run of <code>11010</code> (7 copies around step 1.9·10<sup>9</sup>) followed by one long run of 1s (47 of them). Both ends grow logarithmically. No exact rule has been found.</p>"
   ],
-  "asof": "Status as of 8 November 2026.",
+  "asof": "Status as of 24 November 2026.",
   "verdict": [
-    "<b>The question is open.</b> 49 event rules, proved in Lean for every size, cover 65,854,171 of the 65,868,043 visits of the head to cell &minus;134 in state E in the first 3&middot;10<sup>9</sup> steps (99.98%); none of them halts (each ends at the next event). Every halt passes through <code>0 C&gt; 0</code> (from the table; from there it halts, Lean <code>halt_ctx</code>), which never occurs in 3&middot;10<sup>9</sup> steps; C read a 0 with a 1 on its left only 25 times, 19 before the first event and 6 in the 13,872 uncovered events."
+    "<b>The question is open.</b> The run is two binary counters at a hub, counting down on the left and up on the right; the counting rules are proved in Lean, and an accelerated run reaches 3.75·10<sup>11</sup> steps without a halt. The overflows, where the counters are laid out again, are not decoded."
   ],
   "claims": [
     {
@@ -95,6 +95,24 @@
       "where": "<code>evcov ... C:&lt;00</code>, <code>C:&lt;10</code>"
     },
     {
+      "level": "kernel",
+      "title": "The counter rules",
+      "text": "One hub event of the two counters, for every borrow length k and carry length j and every tape beyond the cells shown: <code>borrow</code> (4k + 32 steps), <code>carry0</code>, <code>carry1</code> and <code>plain</code>.",
+      "where": "<code>lean/Counter.lean</code>, written by <code>py/rules.py</code> (<code>tools/py/bbtools/hubrules.py</code>)"
+    },
+    {
+      "level": "trusted",
+      "title": "No halt in 3.75·10<sup>11</sup> steps",
+      "text": "A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 375,369,479,393 (3.75·10<sup>11</sup>) with 389 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.",
+      "where": "<code>tools/py/bbtools/cjump.py</code>"
+    },
+    {
+      "level": "heuristic",
+      "title": "Two binary counters at a hub",
+      "text": "At the hub turn (A reading 0) each event takes 1 from the left counter and adds 1 to the right; cost 4 steps per left digit changed, 8 per right digit changed, 20 or 140 per separator crossed, plus a constant. When the left counter runs out the hub moves and the layout is rebuilt; the rule of that overflow is not decoded.",
+      "where": "learned by <code>cjump.py</code>, checked on every event it jumps from"
+    },
+    {
       "level": "open",
       "title": "Does it halt from blank tape?",
       "text": "Not known. Halting needs C on a 0 with a 0 on its left; the words <code>10</code> and <code>1110</code> never put two 0s side by side, so only the irregular places (the ends, the long runs) could; without the rule of the counter this is not proved.",
@@ -105,11 +123,17 @@
     ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
     "holdouts/1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC/lean/check.sh",
     "gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC 20000000000",
-    "gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c && ./ctxcount 1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC 1e9 C 2 -1"
+    "gcc -O2 -o ctxcount holdouts/1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/c/ctxcount.c && ./ctxcount 1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC 1e9 C 2 -1",
+    "python3 tools/py/bbtools/cjump.py 1RB0LD_1LC1RE_1LF0RA_1LA1LD_1RC0RE_---1LC 1e3000 1800"
   ],
   "explainer": {
-    "lede": "Nobody knows. The head works at one cell, alternating a short event with a long one that clears a run of 1s on the left and rewrites words on the right; all but 0.02% of these events follow rules proved for every size. The one way to stop has never come up.",
+    "lede": "Nobody knows whether it halts. It runs two binary counters at a hub, one counting down and one counting up; an accelerated run reaches 3.75·10<sup>11</sup> steps without a halt.",
     "facts": [
+      {
+        "level": "trusted",
+        "value": "3.75·10<sup>11</sup> steps",
+        "text": "Accelerated run, no halt."
+      },
       {
         "level": "kernel",
         "value": "49 rules",
@@ -140,6 +164,18 @@
       "steps": 20000
     },
     "sections": [
+      {
+        "id": "counters",
+        "eyebrow": "Decoded",
+        "heading": "Two counters at a hub",
+        "html": [
+          "<p>At every visit of one turn of the head (A reading 0) the tape reads as two binary counters back to back, lowest digits next to the hub. Left: 2-cell digits <code>00</code> (1) and <code>11</code> (0), separators <code>001011</code> and <code>110000101110111011</code>. Right: 4-cell digits <code>1011</code> and <code>1010</code>, separators <code>111010</code> and <code>111011</code>.</p>",
+          "<p>Each visit takes 1 from the left counter and adds 1 to the right. It costs 4 steps per left digit changed, 8 per right digit changed, 20 or 140 per separator crossed, plus a constant, so a long borrow or carry costs a little more and the counting is fast to jump over.</p>",
+          "<p>Proved in Lean for every length <i>k</i> of a borrow and <i>j</i> of a carry (<code>lean/Counter.lean</code>):</p><ul><li><code>borrow</code> (4k + 32 steps): <code>L 00 (11)^k 11 A> 0 1 0 1 0 1 0 1 1 R</code> -> <code>L 11 (00)^k 00 A> 0 1 0 1 0 1 0 1 0 R</code>, the left counter borrowing through <code>k</code> digits;</li><li><code>carry0</code> (8j + 84 steps): <code>L 0 0 A> (a 25-cell stretch) (1010)^j 1 0 1 1 R</code>, the right counter carrying through <code>j</code> digits;</li><li><code>carry1</code> (28j + 92 steps): the same beyond a separator, with the 10-cell word <code>0101010111</code> repeated, the right counter carrying through <code>j</code> digits;</li><li><code>plain</code> (36 steps): <code>L 0 0 A> 0 1 0 1 0 1 0 1 0 1 0 1 1 R</code> -> <code>L 1 1 A> 0 1 0 1 0 1 0 1 1 1 0 1 0 R</code>, the most frequent short event.</li></ul>",
+          "<p>When the left counter runs out the hub moves and the counters are laid out again. Seen so far: the hub turn moved to cells -109 and -136 at steps 1.4·10<sup>8</sup> and 9.5·10<sup>8</sup>, and at step 1.34·10<sup>11</sup> to a layout with four alternating turns. That rule is the open part.</p>",
+          "<p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 375,369,479,393 (3.75·10<sup>11</sup>) with 389 cells visited and no halt. After step 1.34·10<sup>11</sup> the hub moves to a layout with four alternating hub turns (cells -215, -203, -197, -173) that the learner does not fit, so the rest of the run is direct.</p>"
+        ]
+      },
       {
         "id": "shape",
         "eyebrow": "First look",
@@ -190,6 +226,6 @@
       }
     ]
   },
-  "summary": "One engine (E on cell -134) alternates an 8-step event with one that turns a run of 1s on its left into 0s and rewrites 10-words into 1110-words on its right; 49 event rules proved for all sizes cover 99.98% of 6.6·10^7 events in 3·10^9 steps; 0 C> 0 (from it the machine halts) never occurs.",
+  "summary": "Two binary counters at a hub (left counts down, right counts up; counting rules proved in Lean); accelerated run to 3.75·10^11 steps, no halt; overflows not decoded.",
   "family": "10 and 1110 words, two-ended"
 }
