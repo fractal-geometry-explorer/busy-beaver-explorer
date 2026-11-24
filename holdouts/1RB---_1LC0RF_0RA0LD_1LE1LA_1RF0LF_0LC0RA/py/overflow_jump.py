@@ -70,6 +70,15 @@ def overflow_event(exe, n, nw, z, items, maxsteps=10 ** 9):
         skipped += 1
     return ('END', None)
 
+def d_rule(n, nw):
+    """d of an overflow that takes digits of N, from N's base-3 digits (lowest first): skip the 0s, one nonzero digit,
+    skip the 2s, one more digit (a 0 or a 1).  None if N's digits run out first."""
+    ds = [(n // 3 ** i) % 3 for i in range(nw)]; i = 0
+    while i < nw and ds[i] == 0: i += 1
+    i += 1
+    while i < nw and ds[i] == 2: i += 1
+    return i + 1 if i < nw else None
+
 def shape(z, items):
     return 'Z%d |' % len(z) + ''.join(' (%d, %d)' % (len(q), len(p)) for q, p in items)
 
@@ -87,6 +96,7 @@ if __name__ == '__main__':
         _, k, p, (n2, nw2), (z2, its2, l2), sk = res
         d = -p // 3; dcount[d] += 1
         assert p % 3 == 0 and p <= 0 and n2 == n // 3 ** d + 1, 'N rule'
+        assert d == 0 or d_rule(n, nw) == d, 'd rule'
         low = ''.join(str((n // 3 ** i) % 3) for i in range(6))
         print('%d  %.1f  %s  d=%d  %s -> %s  %d' % (it, math.log10(events + 1), low, d, shape(z, items), shape(z2, its2 + [l2]), k), flush=True)
         events += 1 + sk
