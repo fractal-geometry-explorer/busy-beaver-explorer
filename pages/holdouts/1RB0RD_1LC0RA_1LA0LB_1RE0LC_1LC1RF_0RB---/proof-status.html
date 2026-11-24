@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p>It is one of a pair, <code>1RB0RD_1LC0RA_1LA0LB_1RE0LC_1L?1RF_0RB---</code>, that differ only in E0 (here <code>1LC</code>, there <code>1LD</code>). The outer sweeps never read E0, so the two machines share them; the inner phases differ.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -170,6 +170,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/jumps.c</code></p>
       </div>
       <div class="card">
+        <h3>No halt in the first 7.92&times;10<sup>15</sup> steps of an exact accelerated run</h3>
+        <p>The engine <code>trio.py</code>, shared by the three machines that differ only in E0, ran 7.92&times;10<sup>15</sup> steps from blank tape without reaching a halting transition. It never extrapolates: runs of a word are crossed by rules proved by induction on the copies, and a jump over many bounces is applied only after one bounce, run with symbolic counts and guards on every count-dependent decision, has proved the rule X(x) &rarr; X(x + d) for all counts meeting the guards. Its tape, state and head agree with a plain C simulator at every checkpoint, the last at 10,794,936,210 steps. The code itself is not proved.</p>
+        <p class="where"><code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio.py</code>, <code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio_far.py</code>, <code>data/trio_far.jsonl</code>, <code>data/trio_check.json</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same table as 1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each. The same table as 1RB0RC_1LC0LD_1RA0LB_1LE0RA_1RA1LF_0LC--- up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -185,6 +190,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 1.16&times;10<sup>14</sup> steps of an accelerated run</h3>
         <p>Observed, not proved: the accelerated simulator <code>rsim.py</code> ran 1.16&times;10<sup>14</sup> steps from blank tape without reaching a halting transition. Its tape, state and head position were equal to those of a plain C simulator at 6 checkpoints, the last at 1.07&times;10<sup>10</sup> steps. Of these steps, the part after the last checkpoint rests on the simulator alone, including 890 trip-level jumps: a jump applies many identical round trips at once after seeing the same tape shape recur with constant count changes, which is validated against direct simulation but not proved.</p>
         <p class="where"><code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py</code>, <code>holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/data/rsim_screen.json</code></p>
+      </div>
+      <div class="card">
+        <h3>Blocks inside blocks</h3>
+        <p>The repeated words that the inner phases build have 2 + 4&middot;3<sup><i>j</i>+2</sup> cells at level <i>j</i> (38, 110, 326, 974, ... 236198), each two <code>c</code>s in a sea of <code>a</code>s with 6&middot;3<sup><i>j</i>+1</sup> &minus; 6 <code>a</code>s in all. Observed in the run, not proved.</p>
+        <p class="where"><code>holdouts/1RB0RD_1LC0RA_1LA0LB_1RE0LC_1LC1RF_0RB---/py/trio.py</code> (its group items)</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

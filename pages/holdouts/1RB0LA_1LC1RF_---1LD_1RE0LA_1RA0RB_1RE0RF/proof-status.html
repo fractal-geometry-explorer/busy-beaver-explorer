@@ -81,19 +81,28 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF</p>
     <h1>What is known about 1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF</h1>
     <p class="machine">1RB0LA_1LC1RF_---1LD_1RE0LA_1RA0RB_1RE0RF</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+    <p class="stand merged"><b>Decided by an outside Lean proof: it never halts</b><span>An open pull request (37) to DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the standard axioms. It is their proof, on their definitions, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. It behaves like a slow unary counter: the tape starts with a run of copies of <code>110</code>, and on every return to the left end that run is exactly one copy longer. Behind the run sits a second run of <code>110</code> and a short, disordered stretch at the right end, and that stretch is where the open question lives.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 110 (Alex Havrilla, 2026-11-23) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. After 594 steps the tape is <code>A&gt; w1^m x wE r</code>; each round (m → m+1) asks the right stream r for one fixed event word (⌊m/3⌋+1 F-sweeps and one consumed 0). The messy right end is not described as a tape language: the proof peels it one column at a time, with a 7-state and a 23-state transducer that turn the sequence of gaps one column sees into the sequence the columns behind it see, and shows that a weighted average of the gaps (p' = p/3 + g, with 2p ≤ 3g+3 at every gap) is preserved, which keeps the halting cell C0 out of reach. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
       <p><b>The question is open.</b> Lean proves no halt in the first 10<sup>7</sup> steps. The C simulator shows, up to 10<sup>9</sup> steps, 671 returns to the left end, at each of which the counter p has grown by exactly 1 (from 2 at step 52 to 672 at step 997,776,132). What the right end does is not understood.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>An outside Rocq proof, compiled here: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/110">busycoq pull request 110</a> (Alex Havrilla, 2026-11-23) contains a Rocq proof that this machine never halts (<code>verify/M_1RB0LA_1LC1RF_HHH1LD_1RE0LA_1RA0RB_1RE0RF.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 24 November 2026, in 9 s: the theorem <code>nonhalt : ~ halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. It agrees with the verdict on this page, which rests on DeepMind's Lean proof.</p>
+      </div>
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it never halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/ee4318b/BusyBeaver/BB6/NonHalt/M_1RB0LA_1LC1RF_HHH1LD_1RE0LA_1RA0RB_1RE0RF.lean">M_1RB0LA_1LC1RF_HHH1LD_1RE0LA_1RA0RB_1RE0RF.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/37">google-deepmind/cryptids pull request 37</a> (commit <code>ee4318b</code>, 21 November 2026; open, not merged into their main branch) proves that this machine never halts. We built it with Lean v4.35.0-rc4 on 2026-11-24: the theorem <code>BusyBeaver.M_1RB0LA_1LC1RF_HHH1LD_1RE0LA_1RA0RB_1RE0RF.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Bell eats counter</b>. These are labels read off the run by others, not results.</p>

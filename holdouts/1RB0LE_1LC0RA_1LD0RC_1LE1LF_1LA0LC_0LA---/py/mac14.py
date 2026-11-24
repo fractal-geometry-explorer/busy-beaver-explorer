@@ -22,6 +22,17 @@ def step(L, nochange=False):
     L=list(L); N0=L[0]
     i,kind=find_active(L)
     x=L[i]; g=lambda t: get(L,i+t)
+    pre=''
+    while kind is None and i>0 and [g(t) for t in range(1,8)]==['.',0,'!',0,'!',1,'.'] and isinstance(g(8),int):
+        # fold: `x . 0 ! 0 ! 1 . z` is read as the single value x+3+z, and the sweep goes on to the next window
+        L=L[:i]+[x+3+g(8)]+L[i+9:]
+        i,kind=find_active(L)
+        x=L[i]; pre+='fold+'
+    while kind is None and i>0 and [g(t) for t in range(1,4)]==['!',0,'.'] and isinstance(g(4),int) and i+4<len(L)-1:
+        # fold2: `x ! 0 . z` (not at the end) is read as the single value x+1+z
+        L=L[:i]+[x+1+g(4)]+L[i+5:]
+        i,kind=find_active(L)
+        x=L[i]; pre+='fold2+'
     def rep(k,new):
         nonlocal L
         while len(L)<i+k: L=L+(['.',0] if len(L)%2==1 else [0])
@@ -39,9 +50,14 @@ def step(L, nochange=False):
             rep(10,[x]+D+[2,'!',1,'.']); rule='restart2'
         elif y==0 and s=='.' and n=='.': rep(5,[x]+D+[1,'!',g(4)]); rule='next'
         elif y==0 and s=='!' and n=='!' and g(5)=='.': rep(6,[x+4+g(4),'.']); rule='merge!'
+        elif y==0 and s=='!' and n=='!' and g(5)=='!' and i+5<len(L)-1: rep(6,[x+4+g(4),'!']); rule='merge!!'
+        elif y==0 and s=='.' and n=='!' and g(4)>=2: rep(5,[x]+D+[3,'.',g(4)-2]); rule='mid.!'
         elif y==0 and s=='.' and n=='!' and g(4)==0 and i+4>=len(L)-1: rep(5,[x+4,'!',0]); rule='end.!'
         elif y==0 and s=='!' and n=='.' and i+2>=len(L)-1: rep(3,[x+1]+D+TAIL); rule='end!'
+        elif y==0 and s=='.' and n=='!' and g(4)==0 and g(5)=='.' and isinstance(g(6),int) and g(6)>=1: rep(7,[x+4,'!',g(6)]); rule='mid0.'
+        elif y==0 and s=='.' and n=='!' and g(4)==0 and g(5)=='!' and isinstance(g(6),int) and g(6)>=2: rep(7,[x+6,'.',g(6)-2]); rule='mid0!'
         else: raise Unknown(str(L[max(0,i-2):i+12]))
+    rule=pre+rule
     if nochange: return L, rule
     if i==0 and kind!='append':
         L[0]-=2

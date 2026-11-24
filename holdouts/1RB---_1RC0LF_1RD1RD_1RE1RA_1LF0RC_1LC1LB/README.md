@@ -13,7 +13,7 @@ bbchallenge id 43527. One of the six-state holdouts whose halting from blank tap
 
 ## Status
 
-Open. Trusted: the clock test (tick k = 2^k applications of a map on the word, see below). Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `C> x 1 1` and 12 shift rules (`lean/Rules.lean`, kernel); that every halt passes through `C> x 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 2.2·10^11 steps.
+Open. Trusted: the clock test (tick k = 2^k applications of a map on the word, see below). Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `C> x 1 1` and 12 shift rules (`lean/Rules.lean`, kernel); that every halt passes through `C> x 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 1.5·10^12 steps, through the end of phase 5.
 
 ## What it does
 
@@ -41,6 +41,9 @@ step 46,777,495,938, a = 5 at 91,952,651,237, a visit to the left end at 113,640
 93, −179, 197, −179, 113, 9, 9, 361, −395, 29; phase 5 (from step 136,229,099,606) starts with five records more
 (c = 29, 221, 241, 9, 9) and then repeats 177, −347, 93, 113, 9, 93, −179, 197, −179, 113, 9 up to step
 222,918,842,017. Its records are 7.7 times longer than the matching ones of phase 4 (21,164,703 against 2,757,407 steps at c = 177), so if it keeps doing so phase 5 ends near 10^12 steps (an extrapolation).
+A plain run of 1.5·10^12 steps (`tmrun M 1500000000000`, about 2 hours) did not halt. Read every 2·10^10 steps, the
+visited width stays at 516 to 520 cells from 5·10^11 to 10^12 and jumps to 600 by 1.18·10^12, as it jumped from 439 to
+492 at the end of phase 4, so phase 5 ended between 1.0·10^12 and 1.18·10^12 steps without the halting context.
 
 Halting: A follows only D on a 1, D only C (which writes 1 and moves right), so the machine halts exactly from
 `C> x 1 1` (Lean `halt_ctx`, `halt_ctx'`; also `halt_ctx_E` from `E> 1 0 1 1`; the converse, that nothing else halts two steps later, is `halt_iff_2` in `lean/HaltPred.lean`). C is entered from B on 0, E on 1,

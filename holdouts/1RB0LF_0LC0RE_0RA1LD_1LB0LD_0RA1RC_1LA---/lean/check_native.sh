@@ -14,20 +14,20 @@ HERE="$(pwd)"
 export LEAN_PATH="$LEANLIB:$TOOLS/out:$HERE/out"
 C="$HERE/out/c"
 mkdir -p "$C"
-for f in Basic Fin CTL ListFrame Sync Insert Resync Rounds RLE MapOrbit; do
+for f in Basic Fin CTL ListFrame Sync Insert Resync Rounds RLE MapOrbit RSim; do
   (cd "$TOOLS" && "$LEAN" TM/$f.lean -c "$C/TM_$f.c")
 done
 (cd "$TOOLS" && "$LEAN" TM.lean -c "$C/TM.c")
-for f in Machine Twin29537 ResetMapRuns ResetMap ExcSim ResetExc; do
+for f in Machine Twin29537 ResetMapRuns ResetMap ExcSim ResetExc SymSim TailHash; do
   "$LEAN" $f.lean -c "$C/$f.c"
 done
 for f in "$C"/*.c; do
   "$LEANBIN/leanc" -c -O2 -fvisibility=default "$f" -o "${f%.c}.o"
 done
-"$LEANBIN/leanc" -shared -Wl,--no-gc-sections -o "$C/libResetExc.so" "$C"/*.o
+"$LEANBIN/leanc" -shared -Wl,--no-gc-sections -o "$C/libTailHash.so" "$C"/*.o
 for f in "$@"; do
   echo "== $f (native checker)"
   start=$(date +%s)
-  "$LEAN" --load-dynlib="$C/libResetExc.so" "$f"
+  "$LEAN" --load-dynlib="$C/libTailHash.so" "$f"
   echo "   $(( $(date +%s) - start )) s"
 done

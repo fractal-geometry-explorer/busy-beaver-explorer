@@ -484,8 +484,20 @@ Checks: the twin's 7th event from 10^1600 is the same exact visit; at phases 12,
 same tape (a polynomial hash over the digits) and the same step count as plain hits. The phases themselves can come
 out at another hit of an eater's cycle, since the word is cut into tokens differently. The run now goes on past
 13,008: 13,009 is a ×16 phase on the leftover fuel, 13,010 a ×256 phase on the new [100]^1.7·10^42 fuel, and from
-there ×16 and ×256 phases on the [100] fuels of the stack (10^42 to 10^45) follow; phase 13,021 by the time of
-writing. The 8th right-end event is not reached yet.
+there ×16 and ×256 phases on the [100] fuels of the stack (10^42 to 10^45) follow. The 8th right-end event is not
+reached yet.
+
+*To phase 16,282 (24 November 2026).* The run then went on to phase 16,282 (about 400 phases an hour while the fuels
+were small, 10^2 to 10^7, and faster again on the 10^20-scale fuels further down). Phases 16,281 and 16,282 have
+the fuels of 16,168 and 16,169 to the last digit: the word near the top repeats every 113 phases, while the
+levels above it count. At the same point of that period the run stalls again, and it does so reproducibly from a
+checkpoint. One batch of 200 hits takes about 13 minutes. Below the region lies a smaller copy of the ladder stack,
+(10)^n blocks with n ≈ 10^23 and [100] fuels of 10^23. The 8th hit of the batch turns the top block into
+[100]^(2n/3), as at phase 13,008, but here the engine finds no recursion rule for it: G^7(2 (10)^n X) calls
+G^7(2 (10)^(n−2) X′) with a G^3 into X between, and the head of X runs through four states
+(0^4 3 4 …, 3 0^5 4 …, 0^7 4 …, 3 0^2 3 4 …) before it repeats. So the recursion is n/3 levels deep, and the
+time is linear in n (2.7·10^−4 s per unit: 27 s at n = 10^5, so about 10^15 years at n = 10^23). What is needed
+is a recursion rule over several levels at once (the four states of X as one period). That is the next piece.
 
 ## Pages
 

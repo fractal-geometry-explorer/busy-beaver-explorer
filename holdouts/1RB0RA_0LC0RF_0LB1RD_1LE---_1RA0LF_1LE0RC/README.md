@@ -85,8 +85,8 @@ cells the head is working on.
 **Heuristic**: the excursion structure (one `q` word per excursion), the frozen left part, and the geometric
 depth distribution, all from the simulation.
 
-**Open**: the counter's digits and its carry rule. With those, an excursion would be one closed rule, and a
-halts-iff statement on the counter orbit would follow.
+**Open**: a proof that the machine follows the carry rule (found and checked by simulation, section "The digit
+carry rule"), and what happens when the carries reach the end of the counter.
 
 ## Reproduce
 
@@ -193,6 +193,18 @@ the two runs drawn on one clock, the far-end crossing for k = 0..4 extra words, 
 (follow the real run through them, or flip one transition and watch the check fail). Their engine,
 [`../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/pair.js`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/pair.js), is tested by `node ../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair/test_pair.js` against the numbers
 above; `python3 ../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/pair_page.py` writes the sections into both `status.json` files.
+
+## The digit carry rule (F09, 24 November 2026)
+
+The counter is decoded in the folder of the sister machine, [`1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE`](../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/README.md) (section "The digit carry
+rule"). The two runs are proved to be one run in a mirror (section "One halting question for two machines" below),
+so it applies here read right to left: each 25-cell digit `11a0 11b0 1100 110c 0 11d0 11e0` here is a digit
+`a110 b110 c011 0011 0d11 0e11 0` there (its free cells a, b, c, d, e are e, d, c, b, a here). In short: every
+sweep is 15 trips of the head into the digits (12 feed carry X, 3 feed carry Y); one table of 73 entries for the
+five carries X, Y, P, Q, R reproduces every sweep of the sister run to 2·10^10 steps; Lean proves, about the table,
+that it never needs an entry it does not have; and the carries reach each further digit 3/8 as often, so they
+reach the end of the counter only near 10^38 steps. The "For later" plan below is done up to its third step (the
+rule is found and checked; it is not yet proved for the machine).
 
 ## Pages
 

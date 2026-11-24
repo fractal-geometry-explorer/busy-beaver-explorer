@@ -91,6 +91,28 @@ it left them in only 14 kinds of local situation besides the start, none of whic
 So the sibling's halting point gives no halting point here; a halt would need a kind of exit never seen. Observed,
 not proved. Details and tools: [`coq/README.md`](coq/README.md).
 
+## The macro rules and the search for an invariant (21 and 22 November 2026)
+
+`py/macro.py` runs the engine's table W (PR 93's T3 without its halt) on PR 93's 21 macro rules plus two rules at the
+left end of the tape, `rule_wall0` and `rule_wall1`. Both are now proved in Coq for all parameter values
+(`coq/wall_rules.v`, built into `Wall.v` by `coq/build.sh`; `Print Assumptions` shows no axioms). With these 23 rules
+the run from blank tape leaves the rules only in its first 12 steps (3,000,000 macro steps checked, and
+`py/val_macro.py` matches 40,000 macro configurations against a plain simulation of W). So a halt can only come after
+the 23-rule system gets stuck somewhere other than the left end, which it has not done.
+
+What is missing is an invariant: a set of tape shapes that contains the run, is closed under the 23 rules, and never
+gets stuck. Three searches found no stuck shape and did not close:
+
+- automata over cells (window CTL);
+- a checker over runs of `10`, `1` and `0`, with a window near the head and a learned 10-run pattern language behind
+  it (Python, then C++ with the two sides of the tape tracked separately and one-sided rules evaluated once per side).
+  The largest run reached about 60 million side states before running out of memory, with no stuck shape. Smaller
+  settings give stuck shapes that the real run never meets.
+- The reason it does not close: the left side of the tape holds a copy of recent right-side blocks, and the real run
+  keeps producing new left-side 10-run patterns (about 3,700 after 20 million macro steps, still growing with each
+  doubling of the run). A next try would describe the left side by the words the rules write there instead of by
+  runs. Observed, not proved.
+
 ## Pages
 
 - [`pages/holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/explainer.html`](../../pages/holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/explainer.html)

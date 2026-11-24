@@ -158,6 +158,14 @@ the scale of the one before, with blocks 66,518 → 135,383 → 385,143 words. T
 plain rescaling: it has an extra 13-word block and two hand-overs, and its 5-word block (215,326 words) is smaller
 than the third one's, while the irregular stretch (about 1.36 million cells) is ten times larger.
 
+**Continued to 1.90·10^13 steps, no halt** (`evidence/bacc-6.3e12-to-1.9e13.txt`, one summary per 10^11 steps):
+
+| steps | what happens |
+|---|---|
+| 6.29·10^12 to 1.40·10^13 | left end moving: the left zone `(001)^a (11)^b` (b about 3a) grows from 0 to a about 437,000 while the irregular stretch of the fourth cycle is eaten from about 1.36 million cells down to 58,000; the 5-word block stays at 215,026 words |
+| 1.40·10^13 to 1.70·10^13 | the 5-word block is eaten from the right (215,026 → 161,991 words), going through short blocks of 19-cell words; the irregular stretch stays below about 210,000 cells and is used up |
+| from 1.68·10^13 | the right tail `(01)^c`, at c = 3,213 since before 5·10^11, starts to grow for the first time (7,353 at 1.90·10^13); the 5-word block is down to 123,747 words and a is about 606,000 |
+
 So far the run looks like a slow hierarchy. Each regular phase builds the left zone `(100)^a` (or `(001)^a`) at the
 expense of a run of ones or of `(11)`. Each hand-over turns blocks into a larger irregular stretch and then a larger
 regular phase. A halt would need C to read a 1 next to six 1s inside a hand-over. The hand-overs are where the
