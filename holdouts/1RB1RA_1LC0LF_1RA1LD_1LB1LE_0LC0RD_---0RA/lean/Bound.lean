@@ -5,7 +5,7 @@ import Fast
 `c/wrun.c run 2097152` reports visit 2,097,152 at step 13,274,338,602,371 (its step count is two steps past the
 state `RET(1, v)` on the empty stack).  The faster model of `Fast.lean`, run by compiled code (`native_decide`),
 reaches that visit with step count 13,274,338,602,369 = 13,274,338,602,371 − 2, so the machine runs that many steps
-from blank tape without halting.  About eleven hours of one core; check with `check_bound.sh`. -/
+from blank tape without halting.  About 15.5 hours of one core (55,983 s on 24 November 2026); check with `check_bound.sh`. -/
 
 namespace H129887
 

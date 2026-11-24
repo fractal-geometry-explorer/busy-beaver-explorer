@@ -66,7 +66,7 @@ invariant in sight that would prove the opposite.
   (13 steps a frame) and runs of `RET(p + 3)` as tight loops, and is `mstep` otherwise. `fvrun` runs it from visit to
   visit; `blank_runs_of_fvrun`: what it reaches, the machine reaches without halting.
 * **Lean (native)**: `lean/Bound.lean`: **no halt in the first 2,097,152 visits, 13,274,338,602,369 steps**
-  (`blank_runs_2097152_visits`, `native_decide` on `fvrun`; about eight hours of one core, by hand with
+  (`blank_runs_2097152_visits`, `native_decide` on `fvrun`; 15.5 hours of one core (55,983 s), by hand with
   `lean/check_bound.sh`, not in CI). This is the run of `c/wrun.c`, now checked: `c/wrun.c` prints the step two steps
   later, 13,274,338,602,371. The Lean model and `c/wrun.c` also agree at every visit of the first 65,536 (step,
   hash of the word, its length; `lean/Drive.lean dump` against `c/wrun.c dump`, byte-identical) and at every power
@@ -352,8 +352,8 @@ left end shows `(1^8 0)^k` for a while (another word of 9 cells) before `1^5 0 1
 
 * Done (24 November 2026): `mstep` is never stuck on the states of the run and the machine halts exactly when the
   model does (`lean/Inv.lean`), and the run of `c/wrun.c` to visit 2,097,152 is rechecked by Lean on a proved faster
-  model (`lean/Fast.lean`, `lean/Bound.lean`). Going further in Lean costs about 4 times the time per doubling of the
-  visits (8 hours for 2^21); a run-length coded Lean model like `c/wrun.c` would cut the per-copy loops, at most a few
+  model (`lean/Fast.lean`, `lean/Bound.lean`). Going further in Lean costs about 3.5 times the time per doubling of the
+  visits (4.5 hours for 2^20, 15.5 hours for 2^21); a run-length coded Lean model like `c/wrun.c` would cut the per-copy loops, at most a few
   times faster.
 * A proof of non-halting would need an invariant of the frames at the right-end events of this run, and the data
   give no hint of one; a proof of halting needs the run itself, about 2^150 visits by the estimate above. A faster
@@ -425,12 +425,12 @@ python3 py/entropy.py /tmp/wrun prefix 32778 232178         # the two words afte
 python3 py/depth.py /tmp/wrun                               # how deep an increment reaches, by k mod 8 (1 minute)
 gcc -O2 -o /tmp/lz77 c/lz77.c && /tmp/wrun wordat 524288 | /tmp/lz77   # sixth look: z = 13,623 (75 s; 1048576: 4 minutes)
 python3 py/model_lean.py | diff - lean/Model.lean           # the generated Lean file is current
-lean/check_bound.sh                                         # Lean: no halt in 2,097,152 visits (native_decide, ~8 hours)
+lean/check_bound.sh                                         # Lean: no halt in 2,097,152 visits (native_decide, 15.5 hours)
 # the Lean model as a program (after check.sh): visit by visit against c/wrun.c, and the powers of two
 export LEAN_PATH=$LEANLIB:../../tools/lean/out:lean/out && (cd lean && lean Drive.lean -c /tmp/Drive.c)
 $(dirname $LEAN)/leanc -O3 -o /tmp/drive /tmp/Drive.c lean/out/native/*.o   # objects from check_bound.sh
 /tmp/drive dump 65536 | cmp - <(/tmp/wrun dump 65536) && echo identical    # 4 minutes
-/tmp/drive run 2097152                                      # ~8 hours
+/tmp/drive run 2097152                                      # 15 hours
 gcc -O2 -o /tmp/wcheck c/wcheck.c && /tmp/wcheck 2e10     # every visit shows a word over 110, 111 (2 minutes)
 cd py && python3 words.py run 3e7                           # rules (1)-(3) against the run
 python3 words.py all 16                                     # all short words lead to words (10 minutes)
