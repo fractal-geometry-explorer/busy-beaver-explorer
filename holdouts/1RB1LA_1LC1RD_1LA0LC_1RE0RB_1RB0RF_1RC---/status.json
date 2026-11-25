@@ -149,6 +149,12 @@
    "where": "<code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_match.py</code> (exact integers, the model step of <code>SOC23Model.v</code> in the deficit form)"
   },
   {
+   "level": "heuristic",
+   "title": "How long a round reads: a power-law tail, and the odds of a match",
+   "text": "Over 200,000 rounds from (2, 5) (L up to 58.6 million), the bits r read by one R5 round have a heavy tail: P(r &ge; x) is about 5.5&middot;x<sup>&minus;0.9</sup> from x = 10 to 100,000. That is a power law, not the geometric tail of a reader that stops with a fixed chance at each run. The long reads are mostly a single run (in rounds that read 1,000 bits or more, the longest run is a median 66% of them), so they come from long runs of 0s or 1s that earlier rounds left in X. Per bit read, the target (2D+1)&middot;2<sup>s</sup> grows by 1.5 to 2.5 bits (median 1.69). A match needs equal lengths, r + tbits = bits of X, but after round 35 the largest r + tbits was 0.78 of X, and the largest share read stayed 22.3%. Equal lengths came only in rounds 0, 1, 2, 4, 9 and 33, and none matched. Another necessary condition holds sometimes: m + 1 and the target must have the same number of 0s below their leading 1. That happened in 93 of the 200,000 rounds, so it does not rule a match out on its own. If later rounds read like the fitted tail, the expected number of rounds after 35 with equal lengths is about 0.0006. Even such a round would then need some 900 or more further bits to agree by chance. This is a heuristic for <em>never halts</em>, not a proof: a power law is just the kind of tail that a hidden structure could use.",
+   "where": "<code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/r5tail.c</code>, <code>holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_tail.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. Coq proves the question equivalent to one equation in the model orbit from (2, 5): the machine halts exactly when, at some rule R5 (the end of a second-overflow cascade), the unread rest m of the right counter satisfies m + 1 = (2D + 1)&middot;2<sup>s</sup> (<code>halts_iff_r5_match</code>). In 400,000 rounds X stayed at least 0.47&middot;L bits away from a corner, and in 3,000 rounds no R5 matched more than 6 bits of 2D + 1 past the first s. No invariant ruling the equation out is known.",
@@ -173,6 +179,7 @@
   "MON=1 VAL=100000000 timeout 1500 python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/jump2.py 1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_1RC--- 100000 12 /tmp/log.txt",
   "sh holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/coq/build.sh /path/to/busycoq   # BB6 branch; prints Closed under the global context four times",
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_match.py 3000",
+  "gcc -O2 -o r5tail holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/r5tail.c -lgmp && ./r5tail 200000 > r5tail.txt && python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/r5_tail.py r5tail.txt",
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/corner_check.py 12",
   "python3 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/py/model23.py 20000",
   "gcc -O2 -o model23 holdouts/1RB1LA_1LC1RD_1LA0LC_1RE0RB_1RB0RF_0RB---/c/model23.c -lgmp && ./model23 400000 10000"
