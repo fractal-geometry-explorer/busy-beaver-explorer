@@ -81,19 +81,24 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</p>
     <h1>What is known about 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</h1>
     <p class="machine">1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+    <p class="stand merged"><b>Decided by an outside Rocq proof: it never halts</b><span>A Rocq proof in busycoq pull request 113 (open, not yet reviewed by the maintainer) was compiled here, on busycoq's own definitions, with no axioms beyond Coq's own. It is their proof, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 9 November 2026.</p>
+    <p class="asof">Status as of 25 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 113 (Alex Havrilla, 2026-11-24) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof encodes the tape as bitstrings split by a prefix separator, runs them through a transducer with symbolic micro-steps, and bounds the stream gaps with a finite block automaton and a potential, closed by step-indexed safety contracts. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.</p>
       <p><b>The question is open.</b> The machine's tape is a row of blocks of <code>001</code>: all but the last are frozen, the last is rebuilt again and again by a bouncer that lives inside it. Phase P1 of that bouncer (any number of bounces, all sizes) is proved in Lean; the rule for a whole return of the head, a' = a + b + 7, is measured, not proved. Halting needs the head in D on two 1s side by side; that never happens in the first 10<sup>9</sup> steps.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>An outside Rocq proof, compiled here: it never halts</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/113">busycoq pull request 113</a> (Alex Havrilla, 2026-11-24) contains a Rocq proof that this machine never halts (<code>verify/M_1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RCHHH.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 25 November 2026, in 5 s: the theorem <code>nonhalt : ~ halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. The verdict on this page rests on this proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>

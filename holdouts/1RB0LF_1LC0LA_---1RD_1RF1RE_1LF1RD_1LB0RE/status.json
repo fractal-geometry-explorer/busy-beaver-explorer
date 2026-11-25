@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 115 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof reads the tape as a stack with a wall, proves exact wall reflections with a shift by 3q, and inverts every reachable configuration into a depth-indexed mutual big-step system, so a wall invariant rules out the halt. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> Lean proves the passes over the regular left part, two passes in the irregular part and the halting situation (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
   "<b>What it does.</b> The head sweeps the whole tape. Seen from the left end the tape is <code>0 (011)<sup>4</sup> (1011011011)<sup>k</sup></code> followed by an irregular region. k grows steadily, about 14 copies per hundred new cells at the left end (k = 21 at step 103,296, 172 at 6,990,882, 329 at 24,861,720), while the irregular region stays between about 150 and 430 cells long. So all the growth of the tape ends up in the regular part; the irregular part acts like a machine that produces copies of the word.",
   "<b>Where a halt would come from.</b> Only C reading a 0 halts, and C is entered only from B reading a 0 (writing a 1 and stepping left); so <code>0 B&gt;0</code> halts (<code>halt_B</code>). In the run B reads a 0 only with a 1 to its left."
@@ -175,6 +176,7 @@
   ]
  },
  "family": "growing periodic part fed by an irregular region of bounded size",
- "summary": "A regular left part, the 10-cell word 1011011011 repeated, grows by one copy every few round trips, while an irregular right part of 300 to 430 cells keeps roughly the same size and feeds it. Open.",
- "decision": "open"
+ "summary": "A regular left part, the 10-cell word 1011011011 repeated, grows by one copy every few round trips, while an irregular right part of 300 to 430 cells keeps roughly the same size and feeds it. Open. Decided outside: busycoq PR 115 proves in Rocq that it never halts (compiled here).",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
