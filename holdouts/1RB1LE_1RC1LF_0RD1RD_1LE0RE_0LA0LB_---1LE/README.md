@@ -258,6 +258,12 @@ No window rule halted, split or failed to parse in either run (0 STOP). The runs
 timer events each. The next top event: A's T1 runs out with residue 1 after about 5.53·10^6 more cycles; B's in
 about 7.8·10^8 cycles.
 
+**Third run-out, start A** (`py/timermap.py cont` from the 3.3·10^6 state, 24 November 2026): T1 ran out with
+residue 1 (4 → 1) near log cycle 8,834,000 (3,300,000 + 5,534,417). The top digit became `[1]W0`, was used up
+in the next cycle, and every timer moved up one level, as in the residue-1 test. No halt, split or unreadable tape
+(0 STOP) by cycle 8,902,611; the new T1 is 2,355,207,541 words (0 mod 3, about 7.85·10^8 cycles). So from blank
+tape the top timer has run out three times (residues 0, 0, 1) without a halt.
+
 **How far the reduction is checked.** The forecast follows the top 40 digits with the lower part replaced by
 three zero digits. Compared at the overflows (canonical snapshots, top 10 digits = timers T1 to T4;
 `python3 py/timermap.py compare 1200 10`), a 1,200 s exact run and the reduced model agree on all 138 overflow
