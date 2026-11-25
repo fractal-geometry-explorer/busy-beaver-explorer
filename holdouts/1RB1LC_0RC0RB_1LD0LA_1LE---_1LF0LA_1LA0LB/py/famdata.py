@@ -55,14 +55,26 @@ def is_clean(c, X, q):
     return H
 
 
-def run(digs, suf, H, V, nv, maxpass=10 ** 7):
+def parse_lit(body):
+    """(suffix, digits top to bottom) for cells that are digit words above a suffix in SUFS (longest suffix first)"""
+    for sf in sorted(SUFS, key=len, reverse=True):
+        if body.endswith(sf) and (len(body) - len(sf)) % 5 == 0:
+            ws = [body[k:k + 5] for k in range(0, len(body) - len(sf), 5)]
+            if all(w in ("00000", "00001") for w in ws):
+                return sf, "".join('1' if w == "00001" else '0' for w in ws)
+    return None
+
+
+def run(digs, suf, H, V, nv, maxpass=10 ** 7, cut=False, xpre=()):
     """digs: digits read, top to bottom (a string).  Returns dict(events=[...], bounds=[...]) or a failure string.
     bounds[i] is the boundary before event i (and the last one the end); events are ('pass', steps, lo, hi) and
     ('phase', w, u, ticks)."""
-    X = [d == '1' for d in reversed(digs)] + X0
+    X = [d == '1' for d in reversed(digs)] + list(xpre) + X0
     c = build(X, suf, H, V, nv)
     xend = 1 + 5 * len(X0) + c.pos - (1 + 5 * len(X) + len(suf) + 2)   # absolute cell after the rest X0's words
     xend = c.pos - 2 - len(suf) - 5 * len(digs)
+    x0s = xend - 5 * len(xpre)
+    x0w = cells(c, x0s - 5 * len(X0), x0s)
     tab = c.tab
     bounds = [snap(c, xend)]
     events = []
@@ -119,6 +131,13 @@ def run(digs, suf, H, V, nv, maxpass=10 ** 7):
             if Hh in HD and not c.get(c.pos - 1) and not c.get(c.pos - 2):
                 s = snap(c, xend)
                 # clean end: the cells between X0 and the gap are a suffix in SUFS and V is clean
+                s0 = snap(c, x0s)
+                if cut and s['tail'] == "1" and s0['lit'][-2:] == "00" and cells(c, x0s - 5 * len(X0), x0s) == x0w:
+                    pl = parse_lit(s0['lit'][:-2])
+                    if pl and pl[0]:
+                        events.append(('pass', n, lo, hi))
+                        bounds.append(s0)
+                        return dict(events=events, bounds=bounds, xend=xend, cut=pl)
                 if s['lit'][:-2] in SUFS and s['tail'] == "1" and lo >= xend:
                     events.append(('pass', n, lo, hi))
                     bounds.append(s)

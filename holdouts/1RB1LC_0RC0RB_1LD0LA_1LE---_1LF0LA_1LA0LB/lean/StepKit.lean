@@ -98,6 +98,37 @@ theorem carry_split (H : List Bool) (hH : H = hdr0 ∨ H = hdr1) (w : Nat) (v : 
   rw [e1] at st
   exact ⟨z, st, by omega, by omega⟩
 
+/-- A pass that lowers the down-counter by one above its known low bits K (written as K'), borrowing through any
+number of zeros: given the pass for every borrow length i, it holds for every v of value at least 1. -/
+theorem dec_pass (A B : List Bool → Config) (K K' : List Bool)
+    (P : ∀ (i : Nat) (v' : List Bool), Reach (A (K ++ (rf i false ++ true :: v'))) (B (K' ++ (rf i true ++ false :: v'))))
+    (v : List Bool) (hv : 1 ≤ val v) :
+    ∃ z, Reach (A (K ++ v)) (B (K' ++ z)) ∧ z.length = v.length ∧ val z + 1 = val v := by
+  have hm := mem_true_of_pos v (by omega)
+  have h1 := val_dec v hm
+  have h2 := length_dec v
+  obtain ⟨i, v', rfl, hd⟩ := split_dec _ hm
+  refine ⟨_, ?_, h2, h1⟩
+  rw [hd]
+  exact P i v'
+
+theorem le_length_of_le_val (v : List Bool) (m : Nat) (h : 2 ^ m ≤ val v) : m ≤ v.length := by
+  have h1 := val_lt v
+  have h2 : 2 ^ m < 2 ^ v.length := by omega
+  exact Nat.le_of_lt_succ (by
+    have := (Nat.pow_lt_pow_iff_right (by omega : 1 < 2)).mp h2
+    omega)
+
+/-- A tick of the walk: the suffix cell next to the gap goes from 0 to 1 and V goes down by one (the carry with an
+empty up-counter).  These are the steps 0 → 1, 000 → 001, 0000 → 0001, 1000 → 1001 and 10 → 11. -/
+theorem tick_step (H : List Bool) (hH : H = hdr0 ∨ H = hdr1) (S0 : List Bool) (L : Tape) (v : List Bool) (R : Tape)
+    (hv : 1 ≤ val v) :
+    ∃ z : List Bool, z.length = v.length ∧ val z + 1 = val v ∧
+      Reach ⟨cons false (cons false (app (false :: S0) L)), app H (encV v R), .D⟩
+        ⟨cons false (cons false (app (true :: S0) L)), app H (encV z R), .D⟩ := by
+  have hm := mem_true_of_pos v (by omega)
+  exact ⟨dec v, length_dec v, val_dec v hm, carry_dec H hH 0 v hm (app S0 L) R⟩
+
 theorem Reach.of_eq {a b : Config} (h : a = b) : Reach a b := ⟨0, by rw [h]; rfl⟩
 
 end H49767

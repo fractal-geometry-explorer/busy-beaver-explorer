@@ -1,4 +1,5 @@
-"""The step families of the walk that gen_fam.py proves: (name, suffix, header index, digit runs top to bottom).
+"""The step families of the walk that gen_fam.py proves: (name, suffix, header index, digit runs top to bottom[, the
+rest's bottom at the start and at the end, low first, with a second run length s]).
 Names: step_<suffix>h<5|7 for the header 0110101|0110111>_<family>."""
 FAMS = []
 for st, suf, hi in (("1001h5", "1001", 0), ("1001h7", "1001", 1), ("11h7", "11", 1)):
@@ -31,4 +32,18 @@ for st, suf, hi in (("1h5", "1", 0), ("001h7", "001", 1)):
         (f"step_{st}_110", suf, hi, "1:2,0:1"),
         (f"step_{st}_011", suf, hi, "0:1,1:2"),
         (f"step_{st}_111", suf, hi, "1:3"),
+    ]
+for st, suf, hi in (("0001h5", "0001", 0), ("0001h7", "0001", 1)):
+    FAMS += [
+        (f"step_{st}_z0", suf, hi, "0:1,1:1,0:2*r+2"),        # 0 1 0^(even >= 2) -> '' (end of the walk)
+        (f"step_{st}_z1", suf, hi, "1:2,0:2*r+2"),            # 1 1 0^(even >= 2) -> ''
+        (f"step_{st}_a0", suf, hi, "0:2,1:1,0:2*r+3"),        # 0 0 1 0^(odd >= 3) -> 0000
+        (f"step_{st}_a1", suf, hi, "1:1,0:1,1:1,0:2*r+3"),    # 1 0 1 0^(odd >= 3) -> 1000
+        (f"step_{st}_01", suf, hi, "0:1,1:1"),
+        (f"step_{st}_11", suf, hi, "1:2"),
+        (f"step_{st}_0010", suf, hi, "0:2,1:1,0:1"),
+        (f"step_{st}_1010", suf, hi, "1:1,0:1,1:1,0:1"),
+        # 0 1^(s+2) 0^(odd): the lowest 1 and the zeros are read, the rest's bottom 1^(s+1) 0 becomes 0^s 1 -> 0
+        (f"step_{st}_c", suf, hi, "1:1,0:2*r+3", ("1:s+1,0:1", "0:s,1:1")),
+        (f"step_{st}_c1", suf, hi, "1:1,0:1", ("1:s+1,0:1", "0:s,1:1")),
     ]

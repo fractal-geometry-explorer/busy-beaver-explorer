@@ -85,12 +85,12 @@ theorem step_1h5_e (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 
   have P0 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu0 : val ([true] ++ rf (2 * r + 1) false) = 1 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
-  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -98,7 +98,7 @@ theorem step_1h5_e (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 
   have P2 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu2 : val (rf (2 * r + 2) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by simp) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval2]; omega)) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st2
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz2
   rw [hval2, show 2 ^ 0 = 1 from rfl] at vz2
@@ -184,12 +184,12 @@ theorem step_1h5_o0 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P0 : 2 ^ (2 * r + 3) = 8 * Q := by
     rw [show 2 * r + 3 = 2 * r + 3 from by omega, Nat.pow_add, hQ, show 2 ^ 3 = 8 from rfl, Nat.mul_comm]
   have hu0 : val ([true] ++ rf (2 * r + 2) false) = 1 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 2) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 2) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
-  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 3) (z0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 3) (z0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -197,7 +197,7 @@ theorem step_1h5_o0 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P2 : 2 ^ (2 * r + 3) = 8 * Q := by
     rw [show 2 * r + 3 = 2 * r + 3 from by omega, Nat.pow_add, hQ, show 2 ^ 3 = 8 from rfl, Nat.mul_comm]
   have hu2 : val (rf (2 * r + 3) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 3) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by simp) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 3) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval2]; omega)) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st2
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz2
   rw [hval2, show 2 ^ 0 = 1 from rfl] at vz2
@@ -274,12 +274,12 @@ theorem step_1h5_o1 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P0 : 2 ^ (2 * r + 3) = 8 * Q := by
     rw [show 2 * r + 3 = 2 * r + 3 from by omega, Nat.pow_add, hQ, show 2 ^ 3 = 8 from rfl, Nat.mul_comm]
   have hu0 : val ([true] ++ rf (2 * r + 2) false) = 1 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 2) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 2) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
-  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 3) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 3) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -287,7 +287,7 @@ theorem step_1h5_o1 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P2 : 2 ^ (2 * r + 3) = 8 * Q := by
     rw [show 2 * r + 3 = 2 * r + 3 from by omega, Nat.pow_add, hQ, show 2 ^ 3 = 8 from rfl, Nat.mul_comm]
   have hu2 : val (rf (2 * r + 3) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 3) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by simp) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 3) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (2 * r + 3) (by simp) (8 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval2]; omega)) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st2
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz2
   rw [hval2, show 2 ^ 0 = 1 from rfl] at vz2
@@ -364,12 +364,12 @@ theorem step_1h5_e0 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P0 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu0 : val ([true] ++ rf (2 * r + 1) false) = 1 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
-  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -377,7 +377,7 @@ theorem step_1h5_e0 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P2 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu2 : val (rf (2 * r + 2) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by simp) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval2]; omega)) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st2
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz2
   rw [hval2, show 2 ^ 0 = 1 from rfl] at vz2
@@ -454,12 +454,12 @@ theorem step_1h5_e1 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P0 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu0 : val ([true] ++ rf (2 * r + 1) false) = 1 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := phase_split hdr0 (Or.inl rfl) ([true] ++ rf (2 * r + 1) false) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 2) (by omega) (by rw [hu0, P0] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
-  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := carry_split hdr0 (Or.inl rfl) (2 * r + 2) (z0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -467,7 +467,7 @@ theorem step_1h5_e1 (r : Nat) (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0
   have P2 : 2 ^ (2 * r + 2) = 4 * Q := by
     rw [show 2 * r + 2 = 2 * r + 2 from by omega, Nat.pow_add, hQ, show 2 ^ 2 = 4 from rfl, Nat.mul_comm]
   have hu2 : val (rf (2 * r + 2) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by simp) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z2, st2, lz2, vz2⟩ := phase_split hdr0 (Or.inl rfl) (rf (2 * r + 2) false) (z1) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))))))))) R0 (2 * r + 2) (by simp) (4 * Q - 1) (by omega) (by rw [hu2, P2] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval2]; omega)) (by rw [hval2, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st2
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz2
   rw [hval2, show 2 ^ 0 = 1 from rfl] at vz2
@@ -544,14 +544,14 @@ theorem step_1h5_010 (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 : Tape) 
   have hval0 : val (v0) = 0 + 1 * val v0 := by simp [val_append, val] <;> omega
   have eS : ⟨cons false (cons false (app [true] (encU ([false, true, false] ++ X) Ltop))), app hdr0 (encV (v0) R0), .D⟩ = (tcfg hdr0 (rf (1) true) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0) := by
     simp only [tcfg, encU, encV, encU_append, encV_append, encU_replicate, encV_replicate, dU, dV, hdr0, hdr1, app, List.cons_append, List.nil_append, List.append_assoc, List.append_nil, rep_zero_cons, rep_succ, rep_zero]
-  obtain ⟨z0, st0, lz0, vz0⟩ := carry_split hdr0 (Or.inl rfl) (1) (v0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := carry_split hdr0 (Or.inl rfl) (1) (v0) (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
   have P1 : 2 ^ (1) = 2 := rfl
   have hu1 : val (rf (1) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z1, st1, lz1, vz1⟩ := phase_split hdr0 (Or.inl rfl) (rf (1) false) (z0) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (1) (by simp) (1) (by omega) (by rw [hu1, P1] <;> omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := phase_split hdr0 (Or.inl rfl) (rf (1) false) (z0) (cons true (cons true (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (1) (by simp) (1) (by omega) (by rw [hu1, P1] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
@@ -601,14 +601,14 @@ theorem step_1h5_110 (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 : Tape) 
   have hval0 : val (v0) = 0 + 1 * val v0 := by simp [val_append, val] <;> omega
   have eS : ⟨cons false (cons false (app [true] (encU ([false, true, true] ++ X) Ltop))), app hdr0 (encV (v0) R0), .D⟩ = (tcfg hdr0 (rf (1) true) (v0) (cons false (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0) := by
     simp only [tcfg, encU, encV, encU_append, encV_append, encU_replicate, encV_replicate, dU, dV, hdr0, hdr1, app, List.cons_append, List.nil_append, List.append_assoc, List.append_nil, rep_zero_cons, rep_succ, rep_zero]
-  obtain ⟨z0, st0, lz0, vz0⟩ := carry_split hdr0 (Or.inl rfl) (1) (v0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by simp) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z0, st0, lz0, vz0⟩ := carry_split hdr0 (Or.inl rfl) (1) (v0) (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop))))))))))) R0 (by omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval0]; omega)) (by rw [hval0, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st0
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz0
   rw [hval0, show 2 ^ 0 = 1 from rfl] at vz0
   have hval1 : val (z0) = 0 + 1 * val z0 := by simp [val_append, val] <;> omega
   have P1 : 2 ^ (1) = 2 := rfl
   have hu1 : val (rf (1) false) = 0 := by simp [val, val_append, val_replicate_false]
-  obtain ⟨z1, st1, lz1, vz1⟩ := phase_split hdr0 (Or.inl rfl) (rf (1) false) (z0) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (1) (by simp) (1) (by omega) (by rw [hu1, P1] <;> omega) 0 0 (by simp) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
+  obtain ⟨z1, st1, lz1, vz1⟩ := phase_split hdr0 (Or.inl rfl) (rf (1) false) (z0) (cons true (cons true (cons false (cons false (cons false (cons false (cons true (cons false (cons false (cons false (cons false (encU X Ltop)))))))))))) R0 (1) (by simp) (1) (by omega) (by rw [hu1, P1] <;> omega) 0 0 (by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ 0 = 1 from rfl, hval1]; omega)) (by rw [hval1, show 2 ^ 0 = 1 from rfl] <;> omega)
   simp only [show bitsOf 0 0 = [] from rfl, List.nil_append] at st1
   try simp only [List.length_append, List.length_cons, List.length_nil] at lz1
   rw [hval1, show 2 ^ 0 = 1 from rfl] at vz1
