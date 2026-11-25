@@ -11,7 +11,9 @@
      MODE 0: fast.  MODE 1: also run every CA trip on the machine and compare the whole tape (validation).
    Prints ISO for every trip with an isolated 1 before Q (token mode, where a halt would happen), PRE for every trip
    whose turn point ends an all-y segment (zeros every 3 cells) with a 3-cell wall (111) on its left, which is how
-   every bulk 10 defect of the run was born, and a status line every REPORT trips.  A halt would print HALT. */
+   every bulk 10 defect of the run was born, and a status line every REPORT trips.  A halt would print HALT.
+   With the environment variable TL=n it also prints the last n cells (TL trip hi cells) whenever they change
+   (input for py/rend_cycle.py). */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,6 +71,7 @@ int main(int argc,char**argv){
   t=calloc(NB,8); t2=mode?calloc(NB,8):0; if(!t||(mode&&!t2)){fprintf(stderr,"no memory\n");return 1;}
   long st=(NB<<6)/2; lo=hi=st;
   { long p=st; int s=0; for(;;){ int r=GET(t,p); SET(t,p,W[s][r]); int d=D[s][r]; s=S[s][r]; p+=d; steps++; if(p>hi)hi=p; if(p<lo){lo=p;break;} } }
+  long tl=getenv("TL")?atol(getenv("TL")):0; static char tlcur[4096],tlprev[4096]; if(tl>4000) tl=4000;
   long nca=0,ntm=0,niso=0,npre=0,bad=0;
   for(long k=0;k<ntrips;k++){
     long Q=firstQ(t,lo,(NB<<6)-128);
@@ -92,6 +95,8 @@ int main(int argc,char**argv){
       steps+=ns; ntm++; if(mx>hi)hi=mx;
       if(mode){ long w0=(lo-64)>>6, w1=(mx+256)>>6; memcpy(t2+w0,t+w0,8*(w1-w0)); }
     }
+    if(tl>0){ long Qn=useca?Q:hi; if(Qn>=hi-tl-1){ char *cur=tlcur; for(long p=hi-tl+1;p<=hi;p++) cur[p-(hi-tl+1)]='0'+GET(t,p); cur[tl]=0;
+        if(strcmp(cur,tlprev)){ printf("TL %ld %ld %s\n",k,hi,cur); strcpy(tlprev,cur);} } }
     lo=lo-1;
     if(lo<128||hi>(NB<<6)-256){fprintf(stderr,"tape full\n");return 1;}
     if((k+1)%rep==0){ printf("trips %ld steps %ld width %ld: %ld by the CA, %ld on the machine, %ld ISO, %ld PRE, %ld mismatches\n",k+1,steps,hi-lo,nca,ntm,niso,npre,bad); fflush(stdout);}

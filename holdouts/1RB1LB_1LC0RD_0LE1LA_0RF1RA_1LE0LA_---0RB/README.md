@@ -302,6 +302,31 @@ harmless; (2) that further left no y-only segment ends at a turn behind a `111` 
 Pascal-triangle images of what the right end emits, so it is the same open question as before, but now with exact linear
 dynamics and no wall rules in between.
 
+## The right end is a closed 12-entry cycle (25 November 2026, `py/rend_cycle.py`)
+
+The cell automaton gives a locality rule: a round trip writes every cell `p` up to the turn as `1 xor f[p] xor f[p+3]`
+(`f` the tape with lone-1 holes filled), so a cell's new value depends only on cells to its right. Cut the tape at any
+cell `P`. A trip changes the suffix `P, P+1, ...` in only three ways: not at all (it turns left of `P - 1`); by setting
+`c[P]` to 1 (it turns at `P - 1`, which needs `c[P-1] = c[P] = 0`); or by a map that depends only on the suffix and on how
+the right sweep arrives at `P`. In ordinary mode the only outside cell that matters is `c[P-1]`, and only when the suffix
+starts `1 0` (a lone 1 at `P` iff `c[P-1] = 0`); running the machine on `0` + suffix and on `011` + suffix covers both cases.
+Arriving in token mode (a lone 1 further left whose `110` words reach `P`) is the only other case. So **any suffix is a
+closed system, driven only by when the sweep enters it**, as long as no token-mode sweep reaches the cut.
+
+`py/rend_cycle.py` takes the last 100 cells (counted back from the rightmost visited cell, so the cut moves right as the
+tape grows) and closes the set of such windows under all three moves. The set has **12 windows**. Each has a 1 at the cut, so
+the second move never applies. Each has a single successor whatever `c[P-1]` is. Together they form one cycle of 12 entries.
+So once the real run holds one of them, the last 100 cells go round this cycle forever and the right end never halts,
+whatever happens further left, unless a right sweep arrives at the cut in token mode. Only one of the 12 windows (number 7,
+`110 110 0 ...` at the cut) would halt on such an arrival. In the real run (`TL=100 ./trips N 0` and the script) the window is in the
+cycle from round trip 2,112 on. Every later change is the predicted successor: 496 up to 3·10^6 trips (4.7·10^12 steps).
+
+Shorter and longer windows behave the same way when they close (30 cells: 5 windows, the 5-phase cycle of the first
+section; 154 cells: 36). Some lengths do not close, because their cut sometimes starts `1 0` and then `c[P-1]` decides
+between a lone 1 and an ordinary run. So the right end is settled: **a halt needs a lone 1 in the bulk**, a token-mode sweep
+starting left of the last 100 cells. That is the question of the previous sections (no new bulk `10` after 8.5·10^6 steps),
+and the left end, where short-lived lone 1s and `110` chains come and go, is the other piece still open.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
@@ -319,7 +344,7 @@ little progress (the string is rewritten, not shifted, so there are no linear re
 ## Notes for later
 
 * Done: the sweep pair is the XOR rule, proved in Lean for all lengths (`lean/Xor.lean`), with its Lucas closed form.
-* The right-end structure: write its 5-phase cycle as rules, list the walls it emits, and what F0 needs there.
+* Done (25 November 2026): the right end's cycle, as a closed system of 12 windows of the last 100 cells (`py/rend_cycle.py`).
 * Done: how `10` defects are made (walls as particles, above). Next: prove that `y 0 x^k 0` never forms after 10^7 steps (no
   local rule found: the word before a wall and the gap after it are correlated only through the XOR history), and write the right end's four phases as rules.
 
