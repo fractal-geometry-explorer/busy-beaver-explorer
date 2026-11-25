@@ -66,10 +66,10 @@ def fit_runs(lists):
     return out
 
 
-def runs_eval(runs, r):
+def runs_eval(runs, r, var="r"):
     out = []
     for b, n in runs:
-        out += [b] * n.subs({"r": r})
+        out += [b] * n.subs({var: r})
     return out
 
 
@@ -108,7 +108,7 @@ def cells_tokens(s):
     return [int(ch) for ch in s]
 
 
-def collect(suf, H, digruns, vpre=(), seeds=3, nv=None):
+def collect(suf, H, digruns, vpre=(), seeds=3, nv=None, xs=None):
     data = {}
     for r in RS:
         digs = "".join(("1" if b else "0") * n.subs({"r": r}) for b, n in digruns)
@@ -118,7 +118,10 @@ def collect(suf, H, digruns, vpre=(), seeds=3, nv=None):
             n = nv or (8 * len(digs) + 40)
             V = ((random.getrandbits(n - 4) | (1 << (n - 4)) | (1 << (n - 5))) << len(vpre)) | vval(vpre)
             n += len(vpre)
-            res = FD.run(digs, suf, H, V, n)
+            if xs:
+                res = FD.run(digs, suf, H, V, n, cut=True, xpre=runs_eval(xs['start'], xs['s0'], 's'))
+            else:
+                res = FD.run(digs, suf, H, V, n)
             if isinstance(res, str):
                 raise Unsupported(f"r={r}: {res}")
             res['V0'], res['nv'] = V >> len(vpre), n - len(vpre)
@@ -136,9 +139,14 @@ def vval(bits):
     return sum(1 << i for i, b in enumerate(bits) if b)
 
 
-def generate(name, suf, Hi, digruns, doc="", vpre=()):
+def generate(name, suf, Hi, digruns, doc="", vpre=(), xs=None):
+    """xs: the rest above the digits read has a known bottom with a second run length s: dict(start=runs low first,
+    end=runs low first (the rewritten bottom at the end), s0=the s of the data).  The step then ends at the first
+    clean visit with a nonempty suffix and the rest's bottom rewritten to `end`."""
     H = FD.HD[Hi]
-    data = collect(suf, H, digruns, vpre)
+    data = collect(suf, H, digruns, vpre, xs=xs)
+    XS = f"({runs_lean(xs['start'])} ++ X)" if xs else "X"
+    XE = f"({runs_lean(xs['end'])} ++ X)" if xs else "X"
     rows = [(r, row) for r in RS for row in data[r]]
     ev = data[0][0]['events']
     nb = len(data[0][0]['bounds'])
@@ -166,7 +174,14 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
             ss = {row['bounds'][j]['lit'] for r, row in rows}
             if len(ss) != 1:
                 raise Unsupported("end suffix varies")
-            return ("", [], ss.pop(), "end")
+            t = ss.pop()
+            if xs:
+                pl = FD.parse_lit(t[:-2])
+                want = "".join("1" if b else "0" for b in reversed(runs_eval(xs['end'], xs['s0'], 's')))
+                if pl is None or pl[1] != want:
+                    raise Unsupported(f"end rest {pl} is not {want}")
+                t = pl[0] + "00"
+            return ("", [], t, "end")
         i = tick_at(j)
         lxs, us = [], []
         for r in RS:
@@ -205,7 +220,7 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
         return [c == '1' for c in reversed(L_of(j)[0])]
 
     def lx_lean(j, drop=0):
-        acc = "(encU X Ltop)"
+        acc = f"(encU {XS} Ltop)"
         for c in reversed(lx_cells(j)[drop:]):
             acc = f"(cons {B[c]} {acc})"
         return acc
@@ -230,10 +245,10 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
         lx, runs, tail, kind = lefts[j]
         if kind == "start":
             S = lw([c == '1' for c in reversed(suf)])
-            return f"⟨cons false (cons false (app {S} (encU ({runs_lean(list(reversed(digruns)))} ++ X) Ltop))), app {hname(heads[j])} (encV ({v}) R0), .D⟩"
+            return f"⟨cons false (cons false (app {S} (encU ({runs_lean(list(reversed(digruns)))} ++ {XS}) Ltop))), app {hname(heads[j])} (encV ({v}) R0), .D⟩"
         if kind == "end":
             S = lw([c == '1' for c in reversed(tail[:-2])])
-            return f"⟨cons false (cons false (app {S} (encU X Ltop))), app {hname(heads[j])} (encV ({v}) R0), .D⟩"
+            return f"⟨cons false (cons false (app {S} (encU {XE} Ltop))), app {hname(heads[j])} (encV ({v}) R0), .D⟩"
         return f"(tcfg {hname(heads[j])} ({u_lean(j)}) ({v}) {lx_lean(j)} R0)"
 
     def tcfg_lean(j, v):
@@ -241,7 +256,10 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
 
     def left_tokens(j):
         lx, runs, tail, kind = lefts[j]
-        return [Ctx("L")] + cells_tokens(lx) + u_tokens(j) + cells_tokens(tail)
+        xt = []
+        if xs:
+            xt = runs_tokens(list(reversed(xs['end' if kind == "end" else 'start'])), UW)
+        return [Ctx("L")] + xt + cells_tokens(lx) + u_tokens(j) + cells_tokens(tail)
 
     def right_tokens(j, vbits_runs):
         return cells_tokens(heads[j]) + runs_tokens(vbits_runs, VW) + [Ctx("R")]
@@ -268,6 +286,53 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
     Qof = lambda r: 1 << (a * r)
     ticks = [i for i in W]
 
+    def decl(bits):
+        out, i = list(bits), 0
+        while not out[i]:
+            out[i] = True; i += 1
+        out[i] = False
+        return out
+
+    def dec_info(i):
+        """(mv, K') when pass i lowers V by one above its low mv bits (a borrow of any length) and writes them as
+        the constant K'; else None"""
+        for mv in range(5):
+            kes, ok = set(), True
+            for r, row in rows:
+                bv, bw = row['bounds'][i]['v'], row['bounds'][i + 1]['v']
+                rest = bv[mv:]
+                if not any(rest):
+                    ok = False; break
+                d = decl(rest)
+                if len(bw) < len(d) or bw[len(bw) - len(d):] != d:
+                    ok = False; break
+                kes.add(tuple(bw[:len(bw) - len(d)]))
+            if ok and len(kes) == 1:
+                return mv, list(kes.pop())
+        return None
+
+    def pass_m(i):
+        """low bits of V the pass i needs known"""
+        n = need(i)
+        di = dec_info(i)
+        return di[0] if di is not None and di[0] < n else n
+
+    def v_at(idx):
+        """val V at boundary idx as Ai v0 + bb1 Q + bb0"""
+        pts = [(r, row['V0'], vval(row['bounds'][idx]['v'])) for r, row in rows]
+        Ai = (pts[1][2] - pts[0][2]) // (pts[1][1] - pts[0][1])
+        Bi = {}
+        for (r_, V0_, vv) in pts:
+            Bi.setdefault(r_, set()).add(vv - Ai * V0_)
+        if any(len(x) != 1 for x in Bi.values()):
+            raise Unsupported("V at an event not affine in v0")
+        Bi = [Bi[r_].pop() for r_ in RS]
+        if a:
+            bb1 = (Bi[1] - Bi[0]) // (Qof(1) - Qof(0)); bb0 = Bi[0] - bb1
+        else:
+            bb1, bb0 = 0, Bi[0]
+        return Ai, bb1, bb0
+
     body, passtext, steps_terms, needs = [], [], [], []
     VL = list(vpre)          # the known low bits of V (constant), then the rest zcur
     VLsym = None             # runs of the low bits when they have symbolic lengths (only at the end)
@@ -284,6 +349,36 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
             if VLsym is not None:
                 raise Unsupported("a pass after symbolic low bits of V")
             mv = len(VL)
+            di = dec_info(idx) if need(idx) > mv else None
+            if di is not None and di[0] < mv:
+                raise Unsupported("a borrow pass below the known bits of V")
+            if di is not None and di[0] == mv:
+                Kend = di[1]
+                vfull = vcur_lean()
+                cvl, pw = vval(VL), 1 << len(VL)
+                Ai, bb1, bb0 = v_at(idx)
+                needs.append((Ai, bb1, bb0, 0, cvl + pw))
+                cases = []
+                for tag, iv in (("a", Lin(0)), ("b", Lin("i") + 1)):
+                    st = Config(left_tokens(idx), 3, right_tokens(idx, [(b, Lin(1)) for b in VL] + [(False, iv), (True, Lin(1))]))
+                    en = Config(left_tokens(idx + 1), 3, right_tokens(idx + 1, [(b, Lin(1)) for b in Kend] + [(True, iv), (False, Lin(1))]))
+                    txt, n = G.prove_enc(M, f"{name}_p{k}{tag}", st, en, doc=f"{name}, pass {k}, borrow length {iv.lean()}.", max_seg=30)
+                    passtext.append(txt)
+                    vars_ = sorted(st.vars() | en.vars())
+                    args = " ".join(vars_ + ["(encU X Ltop)", "(encV v' R0)"])
+                    cases.append(f"exact reach_congr ({name}_p{k}{tag} {args}) (by simp only [{SIMP}]) (by simp only [{SIMP}])")
+                body.append(f"  have hvd{k} : val ({vfull}) = {cvl} + {pw} * val {zcur} := by simp [val_append, val] <;> omega")
+                body.append(f"  obtain ⟨zd{k}, sd{k}, lzd{k}, vzd{k}⟩ := dec_pass (fun vv => {cfg_lean(idx, 'vv')}) "
+                            f"(fun vv => {cfg_lean(idx + 1, 'vv')}) ({lw(VL)}) ({lw(Kend)}) (by")
+                body.append(f"      intro i v'")
+                body.append(f"      cases i with")
+                body.append(f"      | zero => {cases[0]}")
+                body.append(f"      | succ i => {cases[1]}) {zcur} (by omega)")
+                steps_terms.append(f"sd{k}")
+                zcur = f"zd{k}"
+                VL = list(Kend)
+                k += 1
+                continue
             if need(idx) > mv:
                 raise NeedV(f"pass {k} reads {need(idx)} pairs of V, {mv} known")
             ves = []
@@ -319,7 +414,7 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
                 VLsym = vend
             vout = vcur_lean()
             st_l, en_l = cfg_lean(idx, vin), cfg_lean(idx + 1, vout)
-            args = " ".join((["r"] if "r" in vars_ else []) + ["(encU X Ltop)", f"(encV {zcur} R0)"])
+            args = " ".join([x for x in ("r", "s") if x in vars_] + ["(encU X Ltop)", f"(encV {zcur} R0)"])
             body.append(f"  have e{k} : Reach {st_l} {en_l} :=")
             body.append(f"    reach_congr ({name}_p{k} {args}) (by simp only [{SIMP}]) (by simp only [{SIMP}])")
             steps_terms.append(f"e{k}")
@@ -329,7 +424,7 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
         if VLsym is not None:
             raise Unsupported("a phase on symbolic low bits of V")
         j = idx
-        m = need(idx + 1) if (idx + 1 < len(ev) and ev[idx + 1][0] == 'pass') else 0
+        m = pass_m(idx + 1) if (idx + 1 < len(ev) and ev[idx + 1][0] == 'pass') else 0
         cs = {tuple(row['bounds'][idx + 1]['v'][:m]) for r, row in rows}
         if len(cs) != 1:
             raise NeedV(f"low bits after event {idx} depend on V")
@@ -345,18 +440,10 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
             body.append(f"    simp only [{SIMP}]")
             steps_terms.append("(Reach.of_eq eS)")
         # val v at this event, for the bound on v0
-        pts = [(r, row['V0'], vval(row['bounds'][idx]['v'])) for r, row in rows]
-        Ai = (pts[1][2] - pts[0][2]) // (pts[1][1] - pts[0][1])
-        Bi = {}
-        for (r_, V0_, vv) in pts:
-            Bi.setdefault(r_, set()).add(vv - Ai * V0_)
-        if any(len(x) != 1 for x in Bi.values()):
-            raise Unsupported("V at an event not affine in v0")
-        Bi = [Bi[r_].pop() for r_ in RS]
-        if a:
-            bb1 = (Bi[1] - Bi[0]) // (Qof(1) - Qof(0)); bb0 = Bi[0] - bb1
-        else:
-            bb1, bb0 = 0, Bi[0]
+        Ai, bb1, bb0 = v_at(idx)
+        HM = (f"(by first | simp | exact le_length_of_le_val _ _ (by rw [show 2 ^ {m} = {1 << m} from rfl, hval{j}]; omega))")
+        if m:
+            needs.append((Ai, bb1, bb0, 0, 1 << m))
         if e[0] == 'phase':
             u = e[2]
             b_i = Wi.k
@@ -371,14 +458,14 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
             body.append(f"  have hu{j} : val ({u_lean(idx)}) = {u} := by simp [val, val_append, val_replicate_false]")
             body.append(f"  obtain ⟨z{j}, st{j}, lz{j}, vz{j}⟩ := phase_split {hname(heads[idx])} ({hH}) ({u_lean(idx)}) "
                         f"({vfull}) {lx_lean(idx)} R0 ({Wi.lean()}) (by simp) ({Kexpr}) (by omega) "
-                        f"(by rw [hu{j}, P{j}] <;> omega) {m} {c} (by simp) (by rw [hval{j}, show 2 ^ {m} = {1 << m} from rfl] <;> omega)")
+                        f"(by rw [hu{j}, P{j}] <;> omega) {m} {c} {HM} (by rw [hval{j}, show 2 ^ {m} = {1 << m} from rfl] <;> omega)")
         else:
             needs.append((Ai, bb1, bb0, 0, 1))
             cells = lx_cells(idx)
             if not cells or cells[0]:
                 raise Unsupported("carry into a cell 1")
             body.append(f"  obtain ⟨z{j}, st{j}, lz{j}, vz{j}⟩ := carry_split {hname(heads[idx])} ({hH}) ({Wi.lean()}) "
-                        f"({vfull}) {lx_lean(idx, 1)} R0 (by omega) {m} {c} (by simp) "
+                        f"({vfull}) {lx_lean(idx, 1)} R0 (by omega) {m} {c} {HM} "
                         f"(by rw [hval{j}, show 2 ^ {m} = {1 << m} from rfl] <;> omega)")
         body.append(f"  simp only [show bitsOf {m} {c} = {lw(newVL)} from rfl, List.nil_append] at st{j}")
         body.append(f"  try simp only [List.length_append, List.length_cons, List.length_nil] at lz{j}")
@@ -441,7 +528,7 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
     endc = cfg_lean(nb - 1, vout)
     hv = (f" (hv : 2 ^ ({a} * r + {b0}) ≤ val v0)" if a else f" (hv : {1 << b0} ≤ val v0)") if ticks else ""
     L = [f"/-- {doc or name} -/"]
-    L.append(f"theorem {name}" + (" (r : Nat)" if has_r else "") + f" (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 : Tape){hv} :")
+    L.append(f"theorem {name}" + (" (r : Nat)" if has_r else "") + (" (s : Nat)" if xs else "") + f" (X : List Bool) (Ltop : Tape) (v0 : List Bool) (R0 : Tape){hv} :")
     L.append(f"    ∃ z : List Bool, {ln} ∧ {lhs} = {rhs} ∧")
     L.append(f"      Reach {start}")
     L.append(f"        {endc} := by")
@@ -459,11 +546,11 @@ def generate(name, suf, Hi, digruns, doc="", vpre=()):
     return passtext, "\n".join(L + body), dict(a=a, A=A, c1=c1, c0=c0, dl=dl, events="".join(x[0][1] for x in ev))
 
 
-def generate_all(name, suf, Hi, digruns, vpre=(), depth=0, log=None):
+def generate_all(name, suf, Hi, digruns, vpre=(), depth=0, log=None, xs=None):
     """generate, splitting on low bits of V (NeedV) or shifting r (other failures, the cases below the shift
     become families of their own).  Returns [(name, spec, passtext, theorem, info)]."""
     try:
-        pt, thm, info = generate(name, suf, Hi, digruns, doc="", vpre=vpre)
+        pt, thm, info = generate(name, suf, Hi, digruns, doc="", vpre=vpre, xs=xs)
         return [(name, (suf, Hi, digruns, tuple(vpre)), pt, thm, info)]
     except NeedV as e:
         if log: log(f"{name}: {e}; splitting on V bit {len(vpre)}")
@@ -471,7 +558,7 @@ def generate_all(name, suf, Hi, digruns, vpre=(), depth=0, log=None):
             raise
         out = []
         for b in (False, True):
-            out += generate_all(f"{name}_v{int(b)}", suf, Hi, digruns, tuple(vpre) + (b,), depth, log)
+            out += generate_all(f"{name}_v{int(b)}", suf, Hi, digruns, tuple(vpre) + (b,), depth, log, xs=xs)
         return out
     except Unsupported as e:
         if depth >= 3 or all(n.is_const() for _, n in digruns):
@@ -480,8 +567,8 @@ def generate_all(name, suf, Hi, digruns, vpre=(), depth=0, log=None):
         base = [(b, Lin(n.subs({"r": 0}))) for b, n in digruns]
         shifted = [(b, n + n.c.get("r", 0)) for b, n in digruns]
         bname = name + "_r0"
-        return (generate_all(bname, suf, Hi, base, vpre, depth, log) +
-                generate_all(name + "_s", suf, Hi, shifted, vpre, depth + 1, log))
+        return (generate_all(bname, suf, Hi, base, vpre, depth, log, xs=xs) +
+                generate_all(name + "_s", suf, Hi, shifted, vpre, depth + 1, log, xs=xs))
 
 
 HEAD = """import StepKit
