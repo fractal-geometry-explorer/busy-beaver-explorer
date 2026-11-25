@@ -11,6 +11,10 @@ opens with a plain-language section, "How the proof works". This folder keeps th
 - [`followup/`](followup/): four attempts to use the methods on open holdouts. Each lists what was tried and the
   evidence level of each result. None decided a machine.
 
+**Update, 25 November 2026:** busycoq PRs 110 to 119 (23 to 25 November) use a newer method: recursive sweeps with a
+small carry. See [`recursive-sweeps-nov23-25.md`](recursive-sweeps-nov23-25.md). It covers each proof, a comparison
+with our folders, and a screen of the open holdouts for transfer (script in [`tools/`](tools/)).
+
 ## The methods, in short
 
 | method | proofs | what it needs |
