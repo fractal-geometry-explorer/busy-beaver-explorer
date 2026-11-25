@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 24 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 117 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof embeds a 6-mode pair-stack transducer (mirrored) into the machine with a 24-branch soundness proof, enters the invariant after 794 steps, and lifts orbit safety through a machine-independent big-step relation. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 8.8&middot;10<sup>15</sup> steps of the real machine.",
   "<b>What it does.</b> A zone of about 300 to 600 cells at the left end of the tape has no visible order. Everything right of it is one ten-cell word, <code>1011011011</code>, repeated. The head shuttles between the zone and the right end; each round trip adds a cell at the right end and moves the body one cell right. Now and then the zone extends the tape on the left, always by 30 cells at a time.",
   "<b>Why the zone is all that matters.</b> Lean's <code>trip</code> shows that a round trip through a body of <i>n</i>+1 words takes 70<i>n</i>+143 steps and gives back the same cells next to the zone for every <i>n</i>. The body never has two 0s side by side, and a halt needs <code>A&gt;0 1 0 0</code>, so a halt can only happen in the zone."
@@ -204,7 +205,8 @@
    }
   ]
  },
- "summary": "A small irregular zone (a few hundred cells) at the left end of the tape beside a long body of one period-10 word; Lean proves that a round trip through the body does the same thing whatever its length, so the halting question is the zone's. Open.",
+ "summary": "A small irregular zone (a few hundred cells) at the left end of the tape beside a long body of one period-10 word; Lean proves that a round trip through the body does the same thing whatever its length, so the halting question is the zone's. Open. Decided outside: busycoq PR 117 proves in Rocq that it never halts (compiled here).",
  "family": "chaotic zone at the left end beside a period-10 body (F08)",
- "decision": "open"
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }
