@@ -499,6 +499,20 @@ G^7(2 (10)^(n−2) X′) with a G^3 into X between, and the head of X runs throu
 time is linear in n (2.7·10^−4 s per unit: 27 s at n = 10^5, so about 10^15 years at n = 10^23). What is needed
 is a recursion rule over several levels at once (the four states of X as one period). That is the next piece.
 
+*Past the stall (25 November 2026).* A closer trace corrected that diagnosis: the engine does have and use a
+recursion rule here, h(7 0 (10)^n S X) = (100)^4 h(7 0 (10)^(n−6) S h(X)) over the four states S, and it passes
+n/6 hits on. The linear cost was in those passed hits. Below the block lies a stack of factory rungs
+431010434000, some written out as digits and some as runs (431010434000)^k, and each hit walked it digit by
+digit. The rung is a frozen word, h(w X) = w h(X) for every nonempty X at a fixed 364 steps, and so are its
+rotations that start with a nonzero digit (101043400043, 104340004310, 434000431010, 400043101043). The engine (twin's `py/geng.py`,
+`frozen_unfolded`) now recognises a frozen word in digit form, crosses it in one step and folds it into a run token.
+If the word's first i digits are followed by a run of its rotation, a v^n Y = u^n a Y, and the hit crosses all n
+words at once. The slow hit at n ≈ 9.3·10^22 now takes 43 s instead of being linear in n (27 s at n = 10^5 before,
+0.1 s now). Checks: on the stalled word at n = 3,000 and 20,000 the new and the old engine give the same tape (a
+polynomial hash over all digits) and the same step count, and the 7th right-end event of the twin
+1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA is unchanged. Resumed from phase 16,281, the run is past 16,291, at
+a few minutes a phase.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
