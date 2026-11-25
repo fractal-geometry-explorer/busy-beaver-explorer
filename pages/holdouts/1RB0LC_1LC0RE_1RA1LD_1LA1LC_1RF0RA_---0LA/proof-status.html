@@ -88,9 +88,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 117 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof embeds a 6-mode pair-stack transducer (mirrored) into the machine with a 24-branch soundness proof, enters the invariant after 794 steps, and lifts orbit safety through a machine-independent big-step relation. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.</p>
-      <p><b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 8.8&middot;10<sup>15</sup> steps of the real machine.</p>
+      <p><b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 1.5&middot;10<sup>16</sup> steps of the real machine.</p>
       <p><b>What it does.</b> A zone of about 300 to 600 cells at the left end of the tape has no visible order. Everything right of it is one ten-cell word, <code>1011011011</code>, repeated. The head shuttles between the zone and the right end; each round trip adds a cell at the right end and moves the body one cell right. Now and then the zone extends the tape on the left, always by 30 cells at a time.</p>
+      <p><b>The zone is a counter.</b> Its last 68 cells are the same at the start of every cycle of seven round trips; six trips turn back within 43 cells of the zone's edge and the seventh, the carry, goes deeper. Lean proves the six trips and the start of the carry for every rest of the zone and every body length. The rest of the zone loses three cells per cycle and gains 30 whenever a carry gets through it.</p>
       <p><b>Why the zone is all that matters.</b> Lean's <code>trip</code> shows that a round trip through a body of <i>n</i>+1 words takes 70<i>n</i>+143 steps and gives back the same cells next to the zone for every <i>n</i>. The body never has two 0s side by side, and a halt needs <code>A&gt;0 1 0 0</code>, so a halt can only happen in the zone.</p>
     </div>
   </section>
@@ -143,6 +143,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Going right, E with <code>010</code> travelling along turns each <code>1011110101</code> into <code>1110110110</code> (58 steps a word); going left, D turns each <code>0110110111</code> into <code>1011110101</code> (12 steps a word). A whole round trip from the zone through a body of <i>n</i>+1 words to the right end and back takes 70<i>n</i>+143 steps and gives the same cells next to the zone for every <i>n</i>.</p>
         <p class="where"><code>body_right</code>, <code>body_left</code>, <code>trip</code>, <code>lean/Rules.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The low digit of the zone</h3>
+        <p>From a cycle start (the last 68 cells of the zone are <code>LOW</code>), six round trips through a body of <i>n</i>+1 words and the seventh pass back take 432<i>n</i>+2239 steps and leave the head entering the rest of the zone in state D with the same cells to its right, for every rest of the zone and every <i>n</i>.</p>
+        <p class="where"><code>cycle</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -176,8 +181,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>No halt in the zone model</h3>
-        <p>No halt in 42,000,000 right records of the zone model: 8.8&middot;10<sup>15</sup> steps of the real machine, a tape of about 6&middot;10<sup>7</sup> cells. The zone is never wider than 633 cells; the cut configuration never repeats (Brent's method).</p>
+        <p>No halt in 55,000,000 right records of the zone model: 1.5&middot;10<sup>16</sup> steps of the real machine, a tape of about 7.9&middot;10<sup>7</sup> cells. The zone is never wider than 633 cells; the cut configuration never repeats (Brent's method).</p>
         <p class="where"><code>c/zonemodel.c 30 &hellip; check</code></p>
+      </div>
+      <div class="card">
+        <h3>Seven-trip cycles</h3>
+        <p>In all 26,443 cycles up to right record 200,000: the turning depths 8, 43, 23, 15, 13, 9 and a carry; the same last 68 cells at every cycle start; the rest of the zone three cells shorter at each cycle start unless the tape grew on the left in between (by 30, 60, 90, 120 or 150 cells).</p>
+        <p class="where"><code>c/zonemodel.c</code> (TRIPS), <code>py/cycles.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

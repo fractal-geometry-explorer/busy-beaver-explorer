@@ -31,8 +31,20 @@ shuttles between the zone and the right end:
   −2, −4, −1, −3, so the zone loses three cells to the body); the left bursts give it back. The zone's width wanders
   but has stayed between about 150 and 630 cells.
 
-So the machine is a bounded-looking chaotic system (the zone) beside a mirror (the body) whose length does not
-matter. The tape grows on both sides like the square root of the time.
+**The zone is a counter too.** Its last 68 cells (`LOW` in `py/rules.py`) are the same at the start of every
+*cycle* of seven round trips. In each cycle the trips turn back 8, 43, 23, 15, 13 and 9 cells left of the zone's right
+edge, and the seventh, the *carry*, goes deeper into the rest of the zone, U (tens to a few hundred cells). Lean
+proves the first six trips and the start of the carry for every U and every body length (`cycle`: 432n+2239 steps,
+the head entering U in state D with the same cells on its right). From one cycle to the next U loses exactly three
+cells at its right end, which turn into body; when a carry gets through all of U, the tape grows on the left by
+30 cells (sometimes 60, 90, 120 or 150: one cycle per 30 cells) and U gains them. Read in three-cell words from the
+right, U is runs of `101`, `011`, `110`, `100`, `001`, `010`, `111`, like the digits of a counter, but the higher
+digits show no period: the last six cells of U take only three values at cycle starts, in no periodic order.
+(`py/cycles.py`, 26,443 cycles up to right record 200,000.)
+
+So the machine is a counter whose low digit is a fixed seven-trip cycle and whose higher digits, a few hundred
+cells, change chaotically, beside a mirror (the body) whose length does not matter. The tape grows on both sides
+like the square root of the time.
 
 ```
 cells from the left end at a right record (step 976,834,360, 20,246 cells):
@@ -60,21 +72,26 @@ does.**
 
 - `lean/Blank.lean` (generated): the halting configurations; no halt in 10^4 steps (kernel) and 10^7 (`native_decide`).
 - `lean/Rules.lean` (kernel, written by `py/rules.py`): the crossings `walk_A`, `walk_C01`, `walk_C110`; the body
-  crossings `body_right`, `body_left`; the round trip `trip` for every body length; the halting situations
+  crossings `body_right`, `body_left`; the round trip `trip` for every body length; the low digit's cycle `cycle`
+  for every upper zone and body length; the halting situations
   `halt_E`, `halt_B`, `halt_A`.
 - Trusted computation (our C and Python):
   - `c/zonemodel.c` with nothing cut: no halt in 2·10^11 steps; zone width at most 521 cells.
-  - `c/zonemodel.c` with the body cut to 31 words: no halt up to 42,000,000 right records, which is 8.8·10^15 steps of
-    the real machine (tape about 6·10^7 cells); largest zone 633 cells; no right record failed the check after the
+  - `c/zonemodel.c` with the body cut to 31 words: no halt up to 55,000,000 right records, which is 1.5·10^16 steps of
+    the real machine (tape about 7.9·10^7 cells); largest zone 633 cells; no right record failed the check after the
     first 1,000, and the cut configuration never repeated (Brent's method).
   - `py/trip_check.py`: from real configurations (right records 3,000 and 20,000) one whole round trip run
     symbolically with the body length as a variable takes 70n + c steps and uses only `body_left` and `body_right`.
+  - `py/cycles.py`: the seven-trip cycle of turning depths, the common last 68 cells of the zone at every cycle
+    start and the loss of three cells of U per cycle, in all 26,443 cycles up to right record 200,000.
   - `c/visits.c`: in the first 2·10^8 steps the machine is in state F 5,702,121 times, always on a 1.
 
 ## What is open, next steps
 
 - That *every* round trip has the form of `trip` (observed at every right record checked, not proved). With it,
   the halting question is exactly the zone model's, and Lean could state the reduction.
+- The carry: what one pass of D into U does to U's three-cell words, and why a pass sometimes gets all the way
+  through. That is the whole halting question in a system of a few hundred cells.
 - The zone itself: a deterministic system of a few hundred cells with no visible order. If its width is bounded,
   the zone model is a finite system and must eventually repeat (non-halting) or halt, but the number of possible
   zones is far too large for a repeat to be seen. A useful next step is a model of the zone's left burst (30 cells
@@ -89,6 +106,7 @@ gcc -O3 -o /tmp/zonemodel holdouts/1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA/c/z
 /tmp/zonemodel 0 30000 1000 check > real.txt; /tmp/zonemodel 30 30000 1000 check > cut.txt   # columns 4 and 8 agree
 /tmp/zonemodel 30 100000000 1000000 check                                                       # the long run
 DUMP=3000 /tmp/zonemodel 0 3000 100000000 > /tmp/r.txt && python3 holdouts/1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA/py/trip_check.py /tmp/r.txt
+TRIPS=1 /tmp/zonemodel 30 200000 100000000 | python3 holdouts/1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA/py/cycles.py
 python3 holdouts/1RB0LC_1LC0RE_1RA1LD_1LA1LC_1RF0RA_---0LA/py/turns.py 3e6 50
 ```
 

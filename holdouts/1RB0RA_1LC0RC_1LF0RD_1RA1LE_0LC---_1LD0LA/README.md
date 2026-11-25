@@ -47,8 +47,14 @@ the separators:
   The four sweeps marked Lean are proved for every length of the blocks and every tape beyond them.
 - **Level 2** (S3, n3, S4) is exactly periodic with period **16 sweeps** from sweep 60 on; n2 grows like n0/4.
 - **Level 3** (S5, n5, S6) is exactly periodic with period **64 sweeps** from sweep 224 on; n4 stays at 21.
-- **Level 4 and beyond** have no period up to 4,096 sweeps in the first 3·10^9 steps; n6 grows like n0/16, the
-  later blocks are of irregular sizes (tens to a hundred).
+- **Level 4 and beyond** have no period up to 4,096 sweeps in the first 3·10^9 steps. Here the blocks between the
+  separators are no longer small: after n6 (which grows like n0/16) come blocks of tens of words (at step 3·10^9:
+  69, 101, 59, 65, 44, 42, 32, 17, 31, 26, 21, 22, 11, ...), shrinking towards the right end. A carry from below
+  changes a few separators and moves one to three words between neighbouring blocks. The carries arrive on a
+  fixed schedule: from sweep 1,000 on, the part of the tape beyond level 3 changes exactly at the sweeps whose
+  number is 10, 11, 18, 26, 27, 42, 43, 50, 58 or 59 mod 64, every one of them, and at no other sweep (3,235
+  changes up to sweep 21,693). So the high part is a row of medium blocks driven by a periodic input of ten carries
+  per 64 sweeps, and that row is where the disorder lives.
 
 So the machine is a counter with exact low digits and a chaotic tail, a variant of the "counter beside a chaotic
 edge" of family F08: the chaotic part is the high end of the counter, which the sweeps reach less and less often.
@@ -69,7 +75,7 @@ right read `111101`.
   the blocks); the sweeps `sweep_1` and `sweep_01` for all block lengths and any tape beyond; the halting situation
   `halt_D`.
 - Trusted computation: `tools/c/rleaccel.cpp` with blocks of 6 cells finds no halt in 3.1·10^16 steps (tape 2.8·10^8
-  cells); `py/levels.py` on the sweeps of the first 3·10^9 steps gives the periods above.
+  cells); `py/levels.py` on the sweeps of the first 3·10^9 steps gives the periods above and the schedule of the carries into the high part.
 
 ## Deciders tried without success
 
@@ -80,7 +86,10 @@ right read `111101`.
 
 - The rules of all eight sweeps of level 1, then a "level" lemma: what one carry into level j does to the blocks
   of level j and what it sends on. The periods 8, 16, 64 suggest the low levels can be written as a closed rule.
-- What happens past level 3: is the tail a counter of another kind, or does it carry in an irregular order?
+- The high part as a system of its own: a row of medium blocks fed ten carries per 64 sweeps. If a carry's effect
+  on it does not depend on the lengths of the big blocks n0, n2, n6 below (only on their parities, which are periodic),
+  the high part can be simulated alone, much faster. A halt needs two separators side by side, which can only
+  happen if a block empties.
 - Same family as 1RB1LD_1LC---_1RE0LD_1LC1LD_1RF0RE_1RA0RC.
 
 ## Check

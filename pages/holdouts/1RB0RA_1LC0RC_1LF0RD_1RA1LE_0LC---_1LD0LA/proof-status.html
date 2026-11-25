@@ -83,12 +83,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 24 November 2026.</p>
+    <p class="asof">Status as of 25 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
       <p><b>Open.</b> A counter with many digits: blocks (011)<sup>n</sup> separated by separators <code>1</code>, <code>01</code>, <code>111</code> that the sweeps rewrite like odometer digits. The lowest three levels are exactly periodic, with periods 8, 16 and 64 sweeps; the levels above have no period up to 4,096 sweeps. Lean proves four of the eight sweeps of the lowest level for every block length. No halt in 3.1&middot;10<sup>16</sup> steps (run-length accelerator).</p>
+      <p><b>Where the disorder lives.</b> Above level 3 the blocks are tens of words long and shrink towards the right end; carries from below reach them on a fixed schedule, exactly at the sweeps numbered 10, 11, 18, 26, 27, 42, 43, 50, 58 and 59 mod 64, and move one to three words between neighbouring blocks.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -156,6 +157,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 3.1&middot;10<sup>16</sup> steps (run-length accelerator)</h3>
         <p><code>tools/c/rleaccel.cpp</code> with blocks of 6 cells runs from blank tape to step 3.1&middot;10<sup>16</sup> without a halt; the tape is then 2.8&middot;10<sup>8</sup> cells wide.</p>
         <p class="where"><code>g++ -O2 tools/c/rleaccel.cpp</code>; <code>rleaccel 1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA 6 N ck.bin</code></p>
+      </div>
+      <div class="card">
+        <h3>The schedule of carries above level 3</h3>
+        <p>From sweep 1,000 to sweep 21,693 (step 3&middot;10<sup>9</sup>), the tape beyond level 3 changes exactly at the sweeps numbered 10, 11, 18, 26, 27, 42, 43, 50, 58, 59 mod 64: 3,235 changes, one at each such sweep.</p>
+        <p class="where"><code>c/leftsnaps.c</code>, <code>py/levels.py</code></p>
       </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>

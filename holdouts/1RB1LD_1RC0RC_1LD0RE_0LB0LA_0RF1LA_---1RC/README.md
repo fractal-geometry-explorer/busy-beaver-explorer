@@ -46,6 +46,11 @@ further right without a change. The turning point drifts right, at about 0.4 of 
 keeps growing: when the turning point moves left (by up to a few hundred cells) the window reads the archive it
 wrote earlier.
 
+The turning point does not drift smoothly. Between consecutive trips it jumps by tens to hundreds of cells either
+way (in the trips of the first 10^9 steps: most often −4, −1, −11, +6, +3 cells, and up to about ±400), with no visible
+period in the jumps or in the window widths (`c/activezone.c` with EVERY = 1). Its drift to the right is the
+average of these jumps.
+
 What a trip into the stream brings back depends mostly on the cells near the window: at X = 4,500 (steps 10^8 to
 4·10^8, about 1,950 trips to the right end), the state the head comes back in is a function of the state it left
 in and the 28 cells X−8 .. X+19 for all but one of the 779 different such windows (`c/returns.c`, `py/returns.py`).
