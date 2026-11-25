@@ -412,6 +412,34 @@ letters, 13 of 30 runs started the next crossing without E's event at all, and 2
 from 1,546 to 1.3·10^6 letters), like a random sequence. On the real orbit the 10 epochs after list step 471,169
 (14 E events, up to list step 130,131,762) were all safe.
 
+**Where witnesses come from: clean near parts (`lean/Race.lean`, 25 November 2026).** Of the 18,062 crossing turns
+with blank end in the 40,000 list steps, 17,878 have a *clean* near part, `dbl (true :: ws) ++ [false]`
+(`10 (00 | 10)* 0`) (`py/race.py shapes 40000`). The bounce is then odd exactly when `par false ws` is true. Proved
+in Lean:
+
+* `near_odd`: an odd bounce of a clean near part stops inside the near part. The swept part becomes `(10)^j 1`, so with
+  the even number of 0s an odd bounce takes from a clean far part, the next near part is clean again. The frozen
+  word gets `0 (00 | 11)* 1` put in front of it.
+* `near_odd_witness`: that new front ends in `0 1`. So if the old frozen word was empty or started with 0, the new
+  one has a witness at its front.
+* `near_even`: an even bounce of a clean near part against a frozen word `0 s` eats the 0, leaves `s`, and the next
+  near part is `dbl (true :: false :: sx false ws)` plus the 0 the far part gives. That is clean again.
+
+So inside a crossing an odd bounce never removes a witness, and it adds one when the frozen word starts with 0. An
+even bounce removes at most the 0 in front. The counts by case (near part, bounce, first letter of `s`):
+
+| near part | bounce | `s` starts with 0 | `s` starts with 1 | `s` empty |
+|---|---|---|---|---|
+| clean | odd | 8,185 | 1,925 | 1 |
+| clean | even | 7,222 | 545 | 0 |
+| other | odd | 24 | 87 | 0 |
+| other | even | 32 | 41 | 0 |
+
+The cases not covered by these lemmas are the even bounces against a frozen word that starts with 1, where the sweep
+goes on into `s` (545 clean, 41 other), and the 184 turns with a near part that is not clean. Those near parts come
+from the deep even bounces and go back to clean within a bounce or two. To close case 1, one still has to show that
+these sweeps never use up the last witness.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
