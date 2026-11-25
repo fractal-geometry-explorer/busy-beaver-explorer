@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape is a block of 1s at the left end and a word of short blocks on its right. The block is a clock: each tick makes it 3 cells longer and sends the head into the word twice as many times as the tick before; every trip rewrites the word by one fixed map P. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The clock is proved in Lean for every k: tick k applies P 2<sup>k</sup> times whenever the 2<sup>k</sup> trips all return (a hypothesis met by the actual run, checked in Lean for its first 15 trips). An exact accelerated simulator built on it follows the run through 65 phases to 6.04·10<sup>187</sup> steps without a halt; what happens at a phase end (a trip that does not return) is not described by a formula."
  ],
@@ -70,6 +70,12 @@
    "where": "<code>nest</code>, <code>nest_then_tick</code>, <code>lean/Nest.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Trips by the residue of the first block",
+   "text": "For a word <code>0 1^j 0 Z</code> with j &ge; 4 the trip's first pass is the same for every j, and what follows depends only on j mod 3, given that the nested trips into Z return. For j = 4+3k the trip is a nested clock (above). For j = 5+3m it becomes tick 0 of a nested clock, whose one trip returns, and the head leaves the region with <code>1^7 0 1 0 1^(1+3m) 0 Z'</code>. For j = 6+3m it turns back, rebuilds its left end as <code>0 1 1 0 1 1 0 0</code> and leaves in state B. So such a trip never returns. Proved for every m, Z and L; agrees with plain simulation on 899 random words.",
+   "where": "<code>trip_res2</code>, <code>res2_leaves</code>, <code>trip_res0</code>, <code>res0_leaves</code>, <code>enter_gen</code>, <code>lean/Residue.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "Accelerated simulator agrees with the plain run",
    "text": "<code>clock.py</code> (the tick done at once, P computed by running the machine and memoized) gives the same time, block and word as <code>tools/c/tmrun.c</code> at all 50 visits of the left end in the first 10<sup>10</sup> steps.",
@@ -102,7 +108,7 @@
   {
    "level": "open",
    "title": "The phase end",
-   "text": "What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Because trips can hold nested clocks, a proof that doesn't depend on the word needs the phase end of a nested clock, with an arbitrary word after it and an arbitrary stack before it.",
+   "text": "What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Trips that start with a block are classified by its residue mod 3 when their own trips return. A proof that doesn't depend on the word still needs the trips whose nested trips exit, with an arbitrary word after them and an arbitrary stack before them.",
    "where": ""
   },
   {
@@ -188,6 +194,7 @@
      "<p>A trip is the head's excursion from <code>0 0 0 1 1 A&gt;</code> into the word and back. Most trips are short. But when the word starts with a 0 and then a block <code>1^(4+3k)</code>, the trip's first pass does to that block exactly what the sweep does to the main clock's block. It turns the block into <code>0^(3+3k)</code>, puts <code>1 1</code> after it, and sends the head on into the rest of the word Z.</p>",
      "<svg viewBox=\"0 0 560 120\" role=\"img\" aria-label=\"a trip becomes a clock\" style=\"width:100%;max-width:560px;height:auto;font:12px var(--mono);\"><text x=\"6\" y=\"22\" fill=\"var(--fg2)\">trip:</text><text x=\"70\" y=\"22\" fill=\"var(--fg)\">L 0 0 0 1 1 A&gt; 0 1^(4+3k) 0 Z</text><text x=\"6\" y=\"58\" fill=\"var(--fg2)\">pass:</text><text x=\"70\" y=\"58\" fill=\"var(--fg)\">L 0 0 0 1 1 1 0^(3+3k) 1 1 A&gt; Z</text><text x=\"330\" y=\"58\" fill=\"var(--fg2)\">= after the sweep of tick k</text><text x=\"6\" y=\"94\" fill=\"var(--fg2)\">then:</text><text x=\"70\" y=\"94\" fill=\"var(--fg)\">L 0 0 0 E&gt; 1^(7+3k) 0 Z'</text><text x=\"330\" y=\"94\" fill=\"var(--fg2)\">= start of tick k+1</text></svg>",
      "<p>From then on the trip <em>is</em> a clock. Its own trips go into Z, and if those 2<sup>k</sup> return, it reaches the start of tick k+1 with the trip's <code>0 0 0</code> as its left-end zeros. This takes E + 19&middot;2<sup>k</sup> &minus; 8 steps, E being the time of the nested trips. It is proved in Lean for every k, every Z and every tape to the left (<code>nest</code>). After that the same tick theorem drives it on, and it eats the zeros to its left three at a time, as the main clock eats the blank tape.</p>",
+     "<p>The other residues end differently. Write the block as <code>1^j</code>. The first pass is the same for every j, and the nested trips eat the zeros it leaves three at a time. If j = 5+3m, one zero is left over, and the trip becomes a short clock that leaves the region with <code>1^7</code> in front. If j = 6+3m, two zeros are left over, and the head turns back and leaves in state B. Both are proved in Lean (<code>trip_res2</code>, <code>trip_res0</code>). So a trip into a word that starts with a block never returns, as long as the trips it makes itself do.</p>",
      "<p>So the word can hold clocks, and those clocks can hold clocks in turn. That is why no finite list of trip outcomes exists. Read words cell by cell and stop as soon as the trip is decided: the prefixes still undecided grow by about 1.7 per cell (129 at length 10, 70,941 at length 22). It is also why the small automata that try to forget the word fail. The head walks back over the part of the word it has rewritten, and that part has no length bound. A proof for every word has to follow nested clocks to their phase ends.</p>"
     ]
    },
