@@ -123,7 +123,8 @@ head position and state): at 10^8 steps from blank tape, and from saved plain ta
 second; on the long stretches with no structure it is only a few times faster than the plain simulator.
 
 **No halt in the first 2.16·10^12 steps** (from the plain tape at 5·10^11, `evidence/bacc-5e11-to-2.15e12.txt`: the
-tape as its big blocks every 10^10 steps). What the run did:
+tape as its big blocks every 10^10 steps; this run used the old chunk step, so its last lines, after about
+2.13·10^12, may be wrong; the fixed run and the plain check below cover the same steps). What the run did:
 
 | steps | what happens |
 |---|---|
@@ -133,42 +134,40 @@ tape as its big blocks every 10^10 steps). What the run did:
 | 9.3·10^11 to 1.86·10^12 | a new regular phase: a grows from 104,120 to 360,930 and Z goes down from 374,882 to 0; the 5-word block, the 13-word block and the irregular stretch do not change |
 | 1.86·10^12 to 2.16·10^12 | the second hand-over: the left zone (now `(100)^a`, a about 385,000) is fixed and slowly shrinks, the 5-word block is turned into blocks of 13- and 19-cell words, and the irregular stretch grows to about 880,000 cells |
 
-**Continued to 4.52·10^12 steps, no halt** (restarted from the accelerator's checkpoint at 2.14·10^12;
-`evidence/bacc-2.14e12-to-4.5e12.txt`, one summary per 10^10 steps):
+**Correction (25 November 2026).** The accelerator had a bug in its chunk step. A literal cell on top of a stack
+could later be merged into a block (its count grew) and keep the marker that said "64 literal cells start here",
+so a chunk could read one copy of a block as one cell and drop the rest. In the run that published bounds of
+4.52·10^12, 6.30·10^12 and 1.90·10^13 steps this first happened at about 2.13·10^12 steps; everything that run
+reported after that point (the 13-word block, an irregular stretch of 1.5 million cells, the right tail growing at
+1.68·10^13) was wrong, and at 6.38·10^13 it reported a halt that does not happen: the plain simulator started from
+the run's last checkpoint (6.3755·10^13) runs 5·10^9 steps past the reported halt without halting, and the fixed
+accelerator agrees with it there. `trychunk` now checks that all 64 entries are single literal cells (it prints
+`stale lr` where the old code would have gone wrong).
+
+**Fixed run: no halt in the first 7.49·10^12 steps** (from the plain tape at 5·10^11;
+`evidence/bacc-fixed-5e11-to-7.4e12.txt`, one summary per 10^10 steps).
+
+**Checked by plain simulation to 4.11·10^12 steps.** The fixed run keeps a checkpoint about every 2·10^11 steps.
+`c/plainfrom.c` (a plain simulator that starts from a saved tape) runs from each kept checkpoint to the next and
+`py/tapecmp.py` compares the result with the next checkpoint: all 14 stretches from the plain tape at 5·10^11 to
+4.11·10^12 give the same tape, head and state, with no halt (`evidence/plain-check-segments.txt`,
+`c/verify-segments.sh`). Since each stretch starts from the tape the one before ended with, this is a plain
+simulation of the first 4.11·10^12 steps, cut into pieces.
+
+What the fixed run does after the second hand-over:
 
 | steps | what happens |
 |---|---|
-| 2.14·10^12 to 3.58·10^12 | left end fixed: `(100)^a` goes from about 367,000 to 0 and becomes one block of 385,143 five-cell words; the irregular stretch goes from about 860,000 cells down to 130,000 |
-| 3.58·10^12 to 4.45·10^12 | left end moving: the left zone grows back from 0 to about 209,000 copies; the irregular stretch is eaten down to about 47,000 cells while the 5-word block loses about 30,000 words |
-| about 4.45·10^12 | the 5-word block (280,807 words left) starts to be turned into a new irregular stretch of about 400,000 cells |
-
-**Continued to 6.30·10^12 steps, no halt** (resumed three times from the accelerator's own checkpoints after the
-container restarted; `evidence/bacc-4.5e12-to-6.3e12.txt`, one summary per 10^10 steps):
-
-| steps | what happens |
-|---|---|
-| 4.5·10^12 to 5.07·10^12 | left zone fixed at `(100)^215341`; the 5-word block (`(11100)^224748` at 4.55·10^12) is turned word by word into a block of 13-cell words, which ends with 102,170 words |
-| 5.07·10^12 to 5.77·10^12 | left end fixed: `(100)^a` shrinks from 215,341 to about 79,000 and becomes a new 5-word block; the 13-word block stays at 102,170 words; the irregular stretch shrinks from about 435,000 to 197,000 cells |
-| about 5.78·10^12 | the 13-word block (about 1.33 million cells) dissolves into an irregular stretch of about 1.5 million cells; the left zone stalls at 72,217 until about 5.95·10^12 |
-| 5.95·10^12 to 6.29·10^12 | left end fixed again: `(100)^a` goes from 72,217 to 0; the 5-word block ends with 215,326 words |
-| from 6.29·10^12 | left end moving: a new left zone `(001)^a (11)^b` starts to grow, as at 3.58·10^12 |
+| 2.1·10^12 to 3.7·10^12 | left end fixed: the left zone `(001)^a` goes from about 368,000 to 0 and becomes one block of 385,143 five-cell words; the irregular stretch goes from about 865,000 cells down to about 110,000 |
+| 3.7·10^12 to 7.49·10^12 | left end moving: the left zone (`(100)^a`, then `(001)^a`) grows back from 0 to about 766,000 copies while the 5-word block is eaten from 385,143 down to 180,981 words; the irregular stretch stays between about 13,000 and 150,000 cells |
+| about 5.2·10^12 to 5.4·10^12 | the right tail `(01)^c`, at c = 3,213 since before 5·10^11, grows to 6,154 |
 
 Each cycle so far (left end fixed, then moving, then a block turned into irregular stretch) is two to three times
-the scale of the one before, with blocks 66,518 → 135,383 → 385,143 words. The fourth cycle (from 4.45·10^12) is not a
-plain rescaling: it has an extra 13-word block and two hand-overs, and its 5-word block (215,326 words) is smaller
-than the third one's, while the irregular stretch (about 1.36 million cells) is ten times larger.
-
-**Continued to 1.90·10^13 steps, no halt** (`evidence/bacc-6.3e12-to-1.9e13.txt`, one summary per 10^11 steps):
-
-| steps | what happens |
-|---|---|
-| 6.29·10^12 to 1.40·10^13 | left end moving: the left zone `(001)^a (11)^b` (b about 3a) grows from 0 to a about 437,000 while the irregular stretch of the fourth cycle is eaten from about 1.36 million cells down to 58,000; the 5-word block stays at 215,026 words |
-| 1.40·10^13 to 1.70·10^13 | the 5-word block is eaten from the right (215,026 → 161,991 words), going through short blocks of 19-cell words; the irregular stretch stays below about 210,000 cells and is used up |
-| from 1.68·10^13 | the right tail `(01)^c`, at c = 3,213 since before 5·10^11, starts to grow for the first time (7,353 at 1.90·10^13); the 5-word block is down to 123,747 words and a is about 606,000 |
+the scale of the one before, with blocks 66,518 → 135,383 → 385,143 words.
 
 So far the run looks like a slow hierarchy. Each regular phase builds the left zone `(100)^a` (or `(001)^a`) at the
-expense of a run of ones or of `(11)`. Each hand-over turns blocks into a larger irregular stretch and then a larger
-regular phase. A halt would need C to read a 1 next to six 1s inside a hand-over. The hand-overs are where the
+expense of a run of ones, of `(11)` or of the 5-word block. Each hand-over turns blocks into a larger irregular
+stretch and then a larger regular phase. A halt would need C to read a 1 next to six 1s inside a hand-over. The hand-overs are where the
 accelerator is slow, and they are not decoded.
 
 ## Where it could halt
