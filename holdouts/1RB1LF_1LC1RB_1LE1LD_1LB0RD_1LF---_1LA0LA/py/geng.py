@@ -413,10 +413,9 @@ FUNMAX = 40          # longest frozen word looked for in digit form
 FIDX = {}            # first digit -> frozen words (found by frozen_cost)
 
 
-def frozen_unfolded(t0, tail):
-    """h(t0 tail) when t0 tail begins with a frozen word u in digit form: u h(X), with u folded into a run token.
-    If the first i digits a = u[:i] are followed by a run v^n of the rotation v = u[i:] u[:i], then
-    a v^n Y = u^n a Y and the hit crosses all n words at once."""
+def frozen_match(t0, tail):
+    """(n, u, R) if t0 tail = u^n R for a frozen word u (n = 1 with u in digit form, or a v^n Y = u^n a Y with
+    a = u[:i] and a run of the rotation v = u[i:] u[:i]), R nonempty; else None.  No steps are counted."""
     for u in FIDX[t0]:
         R = tail
         ok = True
@@ -427,13 +426,11 @@ def frozen_unfolded(t0, tail):
                 x = R[0]
                 if type(x) is tuple:
                     if x[0] == 'P' and type(x[1]) is int and x[2] == u[i:] + u[:i]:
-                        n = x[1]
                         Y = R[1]
                         for d in reversed(u[1:i]):
                             Y = zcons(1, Y) if d == 0 else dcons(d, Y)
                         STATS["funfrun"] = STATS.get("funfrun", 0) + 1
-                        C[0] = C[0] + n * FROZEN[u]
-                        return pcons(n, u, h((t0, Y)))
+                        return x[1], u, (t0, Y)
                     if x[0] not in ('Z', 'R', 'P'):
                         ok = False; break
                 e, R = untok(R)
@@ -441,12 +438,44 @@ def frozen_unfolded(t0, tail):
                     ok = False; break
         except Opaque:
             ok = False
-        if not ok or R is None:
-            continue
-        STATS["funf"] = STATS.get("funf", 0) + 1
-        C[0] = C[0] + FROZEN[u]
-        return pcons(1, u, h(R))
+        if ok and R is not None:
+            STATS["funf"] = STATS.get("funf", 0) + 1
+            return 1, u, R
     return None
+
+
+def frozen_unfolded(t0, tail):
+    """h(t0 tail) when t0 tail begins with a frozen word u in digit form: u h(X), with u folded into a run token.
+    The hit then crosses, in a loop (not by recursion), every following unit (1 0)^n, frozen run token and frozen
+    word in digit form, and h is called once on what is left."""
+    m = frozen_match(t0, tail)
+    if m is None:
+        return None
+    pre = []
+    while m is not None:
+        n, u, R = m
+        C[0] = C[0] + n * FROZEN[u]
+        pre.append(('P', n, u))
+        while R[1] is not None:
+            x = R[0]
+            if type(x) is not tuple:
+                break
+            if x[0] == 'R':
+                C[0] = C[0] + x[1] * CST['cR']
+            elif x[0] == 'P':
+                cf = frozen_cost(x[2])
+                if cf is None:
+                    break
+                C[0] = C[0] + x[1] * cf
+            else:
+                break
+            pre.append(x)
+            R = R[1]
+        m = frozen_match(R[0], R[1]) if type(R[0]) is int and R[0] in FIDX and R[1] is not None else None
+    out = h(R)
+    for x in reversed(pre):
+        out = rcons(x[1], out) if x[0] == 'R' else pcons(x[1], x[2], out)
+    return out
 
 
 def tok_digits(toks, limit=FMAX):
