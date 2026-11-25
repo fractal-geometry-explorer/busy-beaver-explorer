@@ -241,4 +241,166 @@ theorem chain_event (BL : Tape) {n : Nat} {us us' : List LU} {z : List Bool} {it
   obtain ⟨t2, h2⟩ := left_end BL hl (enc zd r.1 (encT B r.2.1 r.2.2))
   exact ⟨_, steps_seq trans h1 h2⟩
 
+/-! ## An open last item: Q followed by any tape
+
+At about 10^137 events the chain is followed by an item `11 [Q] 00 11 [Q'] 01 [P]`, outside the grammar. A unit into
+it only adds 3 to its first word Q, as long as Q does not wrap, whatever comes after Q. So the chain law holds with
+that item as an *open* last item, `11 [Q]` and then any tape. -/
+
+/-- A visit in E bounces off a non-empty Q word, whatever follows it. -/
+theorem q_bounce_open (w : List Bool) (hw : w ≠ []) (X : Tape) : Vis .E (enc qd w X) .C (enc qd w X) := by
+  cases w with
+  | nil => exact absurd rfl hw
+  | cons b w => cases b with
+    | false => exact l_q_E_0
+    | true => exact l_q_E_1
+
+/-- An increment of a non-empty Q word that does not wrap, whatever follows it. -/
+theorem q_inc_open (q : List Bool) (X : Tape) (hq : q ≠ []) (hc : (incB q).2 = false) :
+    Vis .A (enc qd q X) .D (enc qd (incB q).1 X) := by
+  induction q with
+  | nil => exact absurd rfl hq
+  | cons b w ih =>
+    cases b with
+    | false => exact l_q_A_0
+    | true =>
+      have hc' : (incB w).2 = false := by simpa [incB] using hc
+      have hw : w ≠ [] := by
+        intro e; subst e; simp [incB] at hc'
+      exact l_q_A_1d (q_bounce_open w hw X) (ih hw hc')
+
+/-- Three increments of a non-empty Q word, none of them a wrap (`none` otherwise). -/
+def qAdd3 (q : List Bool) : Option (List Bool) :=
+  match q with
+  | [] => none
+  | _ :: _ =>
+    if (incB q).2 = false ∧ (incB (incB q).1).2 = false ∧ (incB (incB (incB q).1).1).2 = false
+    then some (incB (incB (incB q).1).1).1 else none
+
+theorem incB_ne_nil {q : List Bool} (h : q ≠ []) : (incB q).1 ≠ [] := by
+  intro e
+  have := incB_length q
+  rw [e] at this
+  exact h (List.length_eq_zero_iff.mp this.symm)
+
+/-- A unit into an open item `11 [Q] X`: Q + 3. -/
+theorem ud_open {q q' : List Bool} (X : Tape) (h : qAdd3 q = some q') :
+    UD (cons true (cons true (enc qd q X))) (cons true (cons true (enc qd q' X))) := by
+  cases q with
+  | nil => simp [qAdd3] at h
+  | cons b w =>
+    simp only [qAdd3] at h
+    split at h
+    · rename_i hc
+      obtain ⟨c1, c2, c3⟩ := hc
+      simp only [Option.some.injEq] at h
+      subst h
+      have n0 : (b :: w) ≠ [] := List.cons_ne_nil b w
+      have n1 := incB_ne_nil n0
+      have n2 := incB_ne_nil n1
+      exact ud_d (q_bounce_open _ n0 X) (q_inc_open _ X n0 c1) (q_bounce_open _ n1 X)
+        (q_inc_open _ X n1 c2) (q_bounce_open _ n2 X) (q_inc_open _ X n2 c3)
+    · simp at h
+
+/-- The tape from the first item on, with an open last item: `(11 [Q] 01 [P] 10)* 11 [Q]` and then any tape `B`. -/
+def encO (B : Tape) : List Item → List Bool → Tape
+  | [], q => cons true (cons true (enc qd q B))
+  | i :: rest, q =>
+    cons true (cons true (enc qd i.1 (cons false (cons true (enc pd i.2 (cons true (cons false (encO B rest q))))))))
+
+/-- A unit into the chain with an open last item (`none` when the last Q would wrap). -/
+def dUo : Nat → List Item → List Bool → Option (List Item × List Bool)
+  | 0, _, _ => none
+  | _ + 1, [], q => match qAdd3 q with
+    | none => none
+    | some q' => some ([], q')
+  | n + 1, i :: rest, q => match qUnit (fun s : List Item × List Bool => dUo n s.1 s.2) i.1 i.2 (rest, q) with
+    | none => none
+    | some x => some ((x.1, x.2.1) :: x.2.2.1, x.2.2.2)
+
+theorem dUo_sound {B : Tape} : ∀ (n : Nat) (its : List Item) (q : List Bool) (r : List Item × List Bool),
+    dUo n its q = some r → UD (encO B its q) (encO B r.1 r.2) := by
+  intro n
+  induction n with
+  | zero => intro its q r h; simp [dUo] at h
+  | succ n ih =>
+    intro its q r h
+    cases its with
+    | nil =>
+      simp only [dUo] at h
+      cases hu : qAdd3 q with
+      | none => simp [hu] at h
+      | some q' =>
+        simp only [hu, Option.some.injEq] at h
+        subst h
+        exact ud_open B hu
+    | cons i rest =>
+      simp only [dUo] at h
+      cases hu : qUnit (fun s : List Item × List Bool => dUo n s.1 s.2) i.1 i.2 (rest, q) with
+      | none => simp [hu] at h
+      | some x =>
+        simp only [hu, Option.some.injEq] at h
+        subst h
+        exact qUnit_sound (fun s : List Item × List Bool => dUo n s.1 s.2)
+          (fun s : List Item × List Bool => cons true (cons false (encO B s.1 s.2)))
+          (fun s s' e => a_ps (ih s.1 s.2 s' e)) hu
+
+/-- The next event's Z and chain with an open last item (`none` when its Q would wrap). -/
+def evNextO (z : List Bool) (its : List Item) (q : List Bool) : Option (List Bool × List Item × List Bool) :=
+  match (incB z).2 with
+  | false => some ((incB z).1, its, q)
+  | true => match dUo (its.length + 1) its q with
+    | none => none
+    | some r => some ((incB z).1, r.1, r.2)
+
+theorem event_right_open {B : Tape} {z : List Bool} {its : List Item} {q : List Bool}
+    {r : List Bool × List Item × List Bool} (h : evNextO z its q = some r) (L : Tape) :
+    ∃ t, steps t ⟨cons false L, cons false (enc zd z (encO B its q)), .A⟩ =
+      some ⟨L, cons false (cons false (enc zd r.1 (encO B r.2.1 r.2.2))), .D⟩ := by
+  unfold evNextO at h
+  cases hc : (incB z).2 with
+  | false =>
+    simp only [hc, Option.some.injEq] at h
+    subst h
+    cases z with
+    | nil => simp [incB] at hc
+    | cons b w =>
+      exact l_e (z_inc (b :: w) (List.cons_ne_nil b w) (fun e => by rw [hc] at e; cases e) (fun _ => rfl)) false L
+  | true =>
+    simp only [hc] at h
+    cases hu : dUo (its.length + 1) its q with
+    | none => simp [hu] at h
+    | some x =>
+      simp only [hu, Option.some.injEq] at h
+      subst h
+      have hd := dUo_sound (B := B) _ its q x hu
+      cases z with
+      | nil =>
+        obtain ⟨y1, y2, u1, ub, u2, u3⟩ := hd
+        have s0 : steps 1 ⟨cons false L, cons false (encO B its q), .A⟩ =
+            some ⟨cons true (cons false L), encO B its q, .B⟩ := rfl
+        obtain ⟨t1, c1⟩ := u1 true (cons false L)
+        have s1 : steps 1 ⟨cons false L, cons true y1, .E⟩ = some ⟨cons false (cons false L), y1, .E⟩ := rfl
+        obtain ⟨t2, c2⟩ := ub false (cons false L)
+        have s2 : steps 1 ⟨cons false L, cons false y1, .C⟩ = some ⟨cons false (cons false L), y1, .A⟩ := rfl
+        obtain ⟨t3, c3⟩ := u2 false (cons false L)
+        have s3 : steps 3 ⟨cons false L, cons false y2, .E⟩ = some ⟨cons true (cons false L), y2, .B⟩ := rfl
+        obtain ⟨t4, c4⟩ := u3 true (cons false L)
+        have s4 : steps 1 ⟨cons false L, cons true (encO B x.1 x.2), .C⟩ =
+            some ⟨L, cons false (cons false (encO B x.1 x.2)), .D⟩ := rfl
+        exact ⟨_, steps_seq trans s0 (steps_seq trans c1 (steps_seq trans s1 (steps_seq trans c2
+          (steps_seq trans s2 (steps_seq trans c3 (steps_seq trans s3 (steps_seq trans c4 s4)))))))⟩
+      | cons b w =>
+        exact l_e (z_inc (b :: w) (List.cons_ne_nil b w) (fun _ => hd) (fun e => by rw [hc] at e; cases e)) false L
+
+/-- **The chain law with left words and an open last item.** As `chain_event`, with the chain ending in an item
+`11 [Q]` followed by any tape: a unit into it adds 3 to Q, and the law stops (`none`) only where Q would wrap. -/
+theorem chain_event_open (BL : Tape) {B : Tape} {n : Nat} {us us' : List LU} {z : List Bool} {its : List Item}
+    {q : List Bool} {r : List Bool × List Item × List Bool} (hl : linc n us = some us') (h : evNextO z its q = some r) :
+    ∃ t, steps t ⟨cons false (lenc BL us), cons false (enc zd z (encO B its q)), .A⟩ =
+      some ⟨cons false (lenc BL us'), cons false (enc zd r.1 (encO B r.2.1 r.2.2)), .A⟩ := by
+  obtain ⟨t1, h1⟩ := event_right_open (B := B) h (lenc BL us)
+  obtain ⟨t2, h2⟩ := left_end BL hl (enc zd r.1 (encO B r.2.1 r.2.2))
+  exact ⟨_, steps_seq trans h1 h2⟩
+
 end H64715
