@@ -10,6 +10,7 @@
 // 3. Chunks of 64 literal cells crossed whole by a cached trial (see trychunk). Otherwise one cell at a time. Fresh cells are re-compressed into blocks. Trusted computation, not proved: checked
 // against the plain simulator c/snap.c (py/tapecmp.py: tape, head and state equal) at 10^8 from blank tape and
 // from snapshots 1e11->1.5e11, 2.5e11->3e11, 3e11->5e11, 4.99e11->5e11.
+// The fixed run from 5e11 is also checked in pieces by c/plainfrom.c (c/verify-segments.sh), see evidence/plain-check-segments.txt.
 // usage: g++ -O2 -o bacc c/bacc.cpp
 //        bacc MACHINE [-from SNAPFILE STEP] [-to T] [-every E] [-dump FILE] [-prof]
 //   -from: start from a c/snap.c snapshot taken at step STEP; -every: print a block summary every E steps;
@@ -18,6 +19,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 typedef unsigned long long u64; typedef unsigned __int128 u128;
+std::string pr128(u128 x);
 int W[6][2],MV[6][2],NX[6][2];
 struct Blk{string w; u64 k; unsigned char lr=0; unsigned char m[21]={0};}; // lr, m: literal cells only (see pushcell)
 vector<Blk> S[2]; // S[0]=left stack, S[1]=right stack
@@ -155,7 +157,7 @@ void on_event(){
 //    near edge; if the head leaves through the far edge (in any state), the chunk is replaced in one go.
 const int CH=64;
 struct TR2{bool ok; string w2; u64 t; int q2;};
-unordered_map<string,TR2> cache2; u64 chunkj=0;
+unordered_map<string,TR2> cache2; u64 chunkj=0, stalen=0;
 TR2 trial2(const string& w,int q,int side){
   string key=w; key+=char('A'+q); key+=char('0'+side);
   auto it=cache2.find(key); if(it!=cache2.end()) return it->second;
@@ -171,6 +173,9 @@ TR2 trial2(const string& w,int q,int side){
 }
 bool trychunk(int to,int fr){
   vector<Blk>&V=S[to]; if(V.size()<(size_t)CH || V.back().lr<CH) return false;
+  // lr is set when a cell is pushed; a literal on top can later be merged into a block (k grows) and keep its lr,
+  // so every one of the CH entries is checked to be a single literal cell (fix of 24 November 2026).
+  for(int i=0;i<CH;i++) if(!islit(V[V.size()-1-i])){ if(stalen++<20) fprintf(stderr,"stale lr at step %s (entry %d)\n",pr128(steps).c_str(),i); return false; }
   string w(CH,'0'); for(int i=0;i<CH;i++) w[i]=V[V.size()-1-i].w[0];
   TR2 r=trial2(w,st,to); if(!r.ok) return false;
   if(TO!=(u128)-1 && steps+r.t>TO) return false;
