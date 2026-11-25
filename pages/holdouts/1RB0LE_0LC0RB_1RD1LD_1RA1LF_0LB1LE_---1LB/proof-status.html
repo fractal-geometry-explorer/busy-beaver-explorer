@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0LC0RB_1RD1LD_1RA1LF_0LB1LE_---1LB</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state machine halts from blank tape. Its tape is a block of 1s at the left end and a word of short blocks on its right. The block is a clock: each tick makes it 3 cells longer and sends the head into the word twice as many times as the tick before; every trip rewrites the word by one fixed map P. This page lists what has been established, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 25 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -140,6 +140,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>A clock inside the word</h3>
         <p>A trip into a word that starts <code>0 1^(4+3k) 0 Z</code> becomes a second clock. Its first pass leaves exactly the tape the sweep of tick k leaves, with the trip's own <code>0 0 0</code> as the zeros left of the block. If the 2<sup>k</sup> nested trips into Z return (total time E), <code>L 0 0 0 1 1 A&gt; 0 1^(4+3k) 0 Z</code> reaches <code>L 0 0 0 E&gt; 1^(7+3k) 0 Z'</code>, the start of tick k+1, in exactly E + 19&middot;2<sup>k</sup> &minus; 8 steps. This holds for every k, Z and L, and agrees with plain simulation on 1,117 random cases. The nested clock then ticks on in the trip's place.</p>
         <p class="where"><code>nest</code>, <code>nest_then_tick</code>, <code>lean/Nest.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Trips by the residue of the first block</h3>
+        <p>For a word <code>0 1^j 0 Z</code> with j &ge; 4 the trip's first pass is the same for every j, and what follows depends only on j mod 3, given that the nested trips into Z return. For j = 4+3k the trip is a nested clock (above). For j = 5+3m it becomes tick 0 of a nested clock, whose one trip returns, and the head leaves the region with <code>1^7 0 1 0 1^(1+3m) 0 Z'</code>. For j = 6+3m it turns back, rebuilds its left end as <code>0 1 1 0 1 1 0 0</code> and leaves in state B. So such a trip never returns. Proved for every m, Z and L; agrees with plain simulation on 899 random words.</p>
+        <p class="where"><code>trip_res2</code>, <code>res2_leaves</code>, <code>trip_res0</code>, <code>res0_leaves</code>, <code>enter_gen</code>, <code>lean/Residue.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
@@ -199,7 +204,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>The phase end</h3>
-        <p>What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Because trips can hold nested clocks, a proof that doesn't depend on the word needs the phase end of a nested clock, with an arbitrary word after it and an arbitrary stack before it.</p>
+        <p>What a failed trip does to the block and the word, and so whether some phase end ever reaches the halting configuration, is not known. Trips that start with a block are classified by its residue mod 3 when their own trips return. A proof that doesn't depend on the word still needs the trips whose nested trips exit, with an arbitrary word after them and an arbitrary stack before them.</p>
       </div>
     </div>
   </section>

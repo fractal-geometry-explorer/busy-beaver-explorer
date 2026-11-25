@@ -39,6 +39,15 @@ RULES = [
      'One round trip from the zone through a body of n+1 words to the right end and back: one new cell, 70n+143 steps, and the head comes back to the zone in the same state with the same cells next to it whatever n is.'),
 ]
 
+# The low digit of the zone: at the start of every cycle seen (26,443 cycles up to right record 200,000) the last 68
+# cells of the zone are LOW.  From there, six round trips and the start of the seventh never look left of LOW,
+# whatever the rest of the zone and the length of the body; the seventh pass enters the rest of the zone in state D.
+LOW = '01100101110110110010011011100110110110010010010011001001001101101101'
+CYCLE = ('cycle', 'L ' + ' '.join(LOW) + ' 1 1 (0110110111)^n+1 0 1 1 0 1 1 0 1 1 B> 0^inf',
+         'L D> 0 1 0 1 1 0 1 0 1 0 1 1 1 1 0 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 0 1 1 1 1 0 1 1 1 0 1 1 0 1 1 1 1 0 1 0 1 1 0 1 1 1 1 0 1 0 1 (1011110101)^n+1 1 0 1 1 1 1 0 1 1 0^inf',
+         'The low digit of the zone: from the start of a cycle (the last 68 cells of the zone are `LOW`), six round trips through a body of n+1 words and the seventh pass back leave the head entering the rest of the zone L in state D, with the same cells to its right whatever L and n are: 432n+2239 steps.')
+
+
 HALTS = [
     ('halt_E', 'E> 0 0', 1, '`E> 0 0` halts: E writes 1 and moves right onto the 0 in state F.'),
     ('halt_B', 'B> 1 0 0', 2, '`B> 1 0 0` halts after two steps.'),
@@ -66,6 +75,7 @@ def halt_lemma(name, pattern, n, doc):
 
 def main():
     thms = [prove(M, name, a, b, doc=doc, count_first=True, max_seg=20)[0] for name, a, b, doc in RULES]
+    thms.append(prove(M, CYCLE[0], CYCLE[1], CYCLE[2], doc=CYCLE[3], count_first=True, max_seg=40, rotate=True, max_moves=400000)[0])
     thms += [halt_lemma(*h) for h in HALTS]
     with open(os.path.join(HERE, "..", "lean", "Rules.lean"), "w") as f:
         f.write(rules_file("Machine", NS, thms, DOC))

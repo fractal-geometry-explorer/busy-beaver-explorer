@@ -50,11 +50,6 @@ theorem dbl_falses (z : Nat) : dbl (List.replicate z false) = List.replicate (2 
     rw [List.replicate_succ, show 2 * (z + 1) = (2 * z + 1) + 1 by omega, List.replicate_succ, List.replicate_succ]
     simp [dbl, two, ih]
 
-theorem sx_append (xs ys : List Bool) : ∀ q, sx q (xs ++ ys) = sx q xs ++ sx (par q xs) ys := by
-  induction xs with
-  | nil => intro q; rfl
-  | cons x xs ih => intro q; simp [sx, par, ih]
-
 theorem par_append (xs ys : List Bool) : ∀ q, par q (xs ++ ys) = par (par q xs) ys := by
   induction xs with
   | nil => intro q; rfl

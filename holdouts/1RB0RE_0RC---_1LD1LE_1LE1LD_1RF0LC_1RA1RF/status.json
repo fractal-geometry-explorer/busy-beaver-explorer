@@ -124,6 +124,12 @@
    "where": "<code>window_W3</code>, <code>window_W6</code>, <code>window_W43</code>, <code>eo_W1_fails</code>, <code>witnessed_step</code>, <code>lean/Window.lean</code> (the 43-letter window from <code>py/window43.py</code>)"
   },
   {
+   "level": "kernel",
+   "title": "Clean near parts make witnesses",
+   "text": "For a clean near part <code>10(00|10)*0</code>, an odd crossing bounce stops inside the near part and puts <code>0(00|11)*1</code> in front of the frozen word, so it adds a witness when the old frozen word is empty or starts with 0. An even bounce against a frozen word starting with 0 eats that 0. In both cases the next near part is clean again. Over 40,000 list steps, 17,878 of the 18,062 crossing turns with blank end have a clean near part. Still open: even bounces that run into a frozen word starting with 1 (586 turns), and the near parts they leave behind.",
+   "where": "<code>near_odd</code>, <code>near_odd_witness</code>, <code>near_even</code>, <code>lean/Race.lean</code>; counts from <code>py/race.py shapes 40000</code>"
+  },
+  {
    "level": "trusted",
    "title": "40,000 list steps, 10<sup>6</sup> in C++ and 10<sup>8</sup> bit-parallel",
    "text": "The list machine runs 40,000 steps from the first right turn without failing: 17,897 <code>T</code>, 22,084 <code>T2</code> and 19 <code>EO</code> turns. The far part is clean at every <code>T2</code> turn, and the zone grows to 21,395 letters. Of the 18,062 crossing turns with blank end, 18,052 have a witness in the frozen word. The other 10 come in the first five bounces after E reads the last 1 during a crossing, and the near part gets them through. The C++ port runs 10<sup>6</sup> list steps without failing (zone 620,913 letters, of the order of 10<sup>11</sup> machine steps by an estimate from the zone size). E reads the last 1 during a crossing 8 times there, always with one of the three near parts that <code>lean/Window.lean</code> covers, and all 12 crossing turns without a witness are in those windows. A bit-parallel version (<code>c/bitlist.cpp</code>, checked state for state against the byte version) ran 10<sup>8</sup> list steps without a failure; the zone reaches 5.6·10<sup>7</sup> letters, and after list step 471,169 E never read the last 1 during a crossing.",
