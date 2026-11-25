@@ -18,9 +18,11 @@ if os.path.exists(SP):
     st = json.load(open(SP)); step, s, toks, visits = int(st['step']), st['state'], st['toks'], st['visits']
     VP = os.path.join(D, 'visits.jsonl')  # drop visits logged after the saved state (an interrupted chunk)
     if os.path.exists(VP):
-        keep = [l for l in open(VP) if int(json.loads(l)[0]) <= step]
+        keep = [l for l in open(VP) if json.loads(l)[0] == '?' or int(json.loads(l)[0]) <= step]
+        assert len(keep) <= visits, (len(keep), visits)
+        # a killed run can lose the last log lines although its state was saved: mark them as lost ('?')
+        keep += [json.dumps(['?', None, None, []]) + '\n'] * (visits - len(keep))
         open(VP, 'w').writelines(keep)
-        assert len(keep) == visits, (len(keep), visits)
 else:
     step, s, toks = START; visits = 0
 out = open(os.path.join(D, 'visits.jsonl'), 'a')
@@ -42,7 +44,7 @@ while time.time() - t0 < T:
     if r[0] == 'HALT':
         json.dump({'halt': str(r[1])}, open(os.path.join(D, 'HALT.json'), 'w')); print('HALT', r[1]); break
     s, toks, step = r[0], r[1], r[2]
-    out.flush()
+    out.flush(); os.fsync(out.fileno())
     json.dump({'step': str(step), 'state': s, 'toks': toks, 'visits': visits}, open(SP, 'w'))
 json.dump({'step': str(step), 'digits': len(str(step)), 'visits': visits, 'walls': (len(toks) - 3) // 2},
           open(os.path.join(D, 'summary.json'), 'w'))
