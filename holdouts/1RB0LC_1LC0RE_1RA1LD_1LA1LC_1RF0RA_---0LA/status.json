@@ -12,9 +12,9 @@
  ],
  "asof": "Status as of 25 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 117 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof embeds a 6-mode pair-stack transducer (mirrored) into the machine with a 24-branch soundness proof, enters the invariant after 794 steps, and lifts orbit safety through a machine-independent big-step relation. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
-  "<b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 8.8&middot;10<sup>15</sup> steps of the real machine.",
+  "<b>The question is open.</b> Lean proves the crossings of the body, a whole round trip through it for every length (kernel), the situations that lead to a halt, and no halt in the first 10<sup>7</sup> steps. The zone model (the real machine with its body kept short) finds no halt in 1.5&middot;10<sup>16</sup> steps of the real machine.",
   "<b>What it does.</b> A zone of about 300 to 600 cells at the left end of the tape has no visible order. Everything right of it is one ten-cell word, <code>1011011011</code>, repeated. The head shuttles between the zone and the right end; each round trip adds a cell at the right end and moves the body one cell right. Now and then the zone extends the tape on the left, always by 30 cells at a time.",
+  "<b>The zone is a counter.</b> Its last 68 cells are the same at the start of every cycle of seven round trips; six trips turn back within 43 cells of the zone's edge and the seventh, the carry, goes deeper. Lean proves the six trips and the start of the carry for every rest of the zone and every body length. The rest of the zone loses three cells per cycle and gains 30 whenever a carry gets through it.",
   "<b>Why the zone is all that matters.</b> Lean's <code>trip</code> shows that a round trip through a body of <i>n</i>+1 words takes 70<i>n</i>+143 steps and gives back the same cells next to the zone for every <i>n</i>. The body never has two 0s side by side, and a halt needs <code>A&gt;0 1 0 0</code>, so a halt can only happen in the zone."
  ],
  "claims": [
@@ -87,8 +87,20 @@
   {
    "level": "trusted",
    "title": "No halt in the zone model",
-   "text": "No halt in 42,000,000 right records of the zone model: 8.8&middot;10<sup>15</sup> steps of the real machine, a tape of about 6&middot;10<sup>7</sup> cells. The zone is never wider than 633 cells; the cut configuration never repeats (Brent's method).",
+   "text": "No halt in 55,000,000 right records of the zone model: 1.5&middot;10<sup>16</sup> steps of the real machine, a tape of about 7.9&middot;10<sup>7</sup> cells. The zone is never wider than 633 cells; the cut configuration never repeats (Brent's method).",
    "where": "<code>c/zonemodel.c 30 &hellip; check</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The low digit of the zone",
+   "text": "From a cycle start (the last 68 cells of the zone are <code>LOW</code>), six round trips through a body of <i>n</i>+1 words and the seventh pass back take 432<i>n</i>+2239 steps and leave the head entering the rest of the zone in state D with the same cells to its right, for every rest of the zone and every <i>n</i>.",
+   "where": "<code>cycle</code>, <code>lean/Rules.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Seven-trip cycles",
+   "text": "In all 26,443 cycles up to right record 200,000: the turning depths 8, 43, 23, 15, 13, 9 and a carry; the same last 68 cells at every cycle start; the rest of the zone three cells shorter at each cycle start unless the tape grew on the left in between (by 30, 60, 90, 120 or 150 cells).",
+   "where": "<code>c/zonemodel.c</code> (TRIPS), <code>py/cycles.py</code>"
   },
   {
    "level": "open",
@@ -113,8 +125,8 @@
   "facts": [
    {
     "level": "trusted",
-    "value": "8.8&middot;10<sup>15</sup> steps",
-    "text": "No halt in the zone model, which reproduces the real machine exactly; the tape is then about 6&middot;10<sup>7</sup> cells wide."
+    "value": "1.5&middot;10<sup>16</sup> steps",
+    "text": "No halt in the zone model, which reproduces the real machine exactly; the tape is then about 7.9&middot;10<sup>7</sup> cells wide."
    },
    {
     "level": "kernel",
@@ -157,7 +169,7 @@
      "<p>When the head leaves the zone going right, it is in state E with the word <code>010</code> just behind it. It crosses each word of the body in 58 steps, the <code>010</code> travelling along (<code>body_right</code>), reaches the right end, adds a cell and comes back, 12 steps a word (<code>body_left</code>). Lean proves the whole round trip for every length of the body:</p>",
      "<pre>L 0 1 0 E&gt; (1011110101)^(n+1) 101111011 0^inf\n  ... 70n + 143 steps later ...\nL D&gt; 1 (1011011110)^(n+1) 101101111011 0^inf</pre>",
      "<p>(<code>trip</code> in <code>lean/Rules.lean</code>, for every <i>n</i> and every tape <i>L</i>.) What comes back to the zone, and when, does not depend on <i>n</i>: the body is a mirror. So the body can be kept short without changing anything the zone sees.</p>",
-     "<p>The <em>zone model</em> (<code>c/zonemodel.c</code>) does exactly that: at every right record it cuts whole words out of the body so that 31 remain. Checked against the real machine for the first 30,000 right records (4.55&middot;10<sup>9</sup> steps), the zone and the exact step count agree at every check; the step count of the real machine is the model's plus 70 per cut word per round trip. The model costs the same few thousand steps per round trip forever, so it runs far: no halt in 42,000,000 right records, which is 8.8&middot;10<sup>15</sup> steps of the real machine on a tape of about 6&middot;10<sup>7</sup> cells.</p>"
+     "<p>The <em>zone model</em> (<code>c/zonemodel.c</code>) does exactly that: at every right record it cuts whole words out of the body so that 31 remain. Checked against the real machine for the first 30,000 right records (4.55&middot;10<sup>9</sup> steps), the zone and the exact step count agree at every check; the step count of the real machine is the model's plus 70 per cut word per round trip. The model costs the same few thousand steps per round trip forever, so it runs far: no halt in 55,000,000 right records, which is 1.5&middot;10<sup>16</sup> steps of the real machine on a tape of about 7.9&middot;10<sup>7</sup> cells.</p>"
     ]
    },
    {
@@ -170,6 +182,17 @@
      "<p>Going left, C with a 1 ahead turns each <code>110</code> into <code>011</code>:</p>",
      "<pre>1 1 0 1 1 0 C&gt; 1      \nC&gt; 1 0 1 1 0 1 1      (6 steps later)</pre>",
      "<p>(Lean: <code>walk_A</code>, <code>walk_C110</code>, <code>walk_C01</code>.) Between such runs the head meets other words and does more complicated things; that is where the content changes.</p>"
+    ]
+   },
+   {
+    "id": "lowdigit",
+    "eyebrow": "Inside the zone",
+    "heading": "A counter with a seven-trip low digit",
+    "html": [
+     "<p>Watch how far left each round trip turns back, measured from the zone's right edge. Between two extensions of the tape on the left the depths repeat in a cycle of seven trips:</p>",
+     "<pre>8  43  23  15  13  9  <b>X</b>    8  43  23  15  13  9  <b>X</b>   ...\n(X: 118, 205, 145, 326, 109, 225, ... cells)</pre>",
+     "<p>Six trips stay within the last 68 cells of the zone, which are exactly the same at the start of every cycle (26,443 cycles checked). The seventh, the <em>carry</em>, runs on into the rest of the zone, U. Lean's <code>cycle</code> proves the six trips and the start of the carry for every U and every body length: 432<i>n</i>+2239 steps, after which the head enters U in state D with the same cells on its right whatever U is.</p>",
+     "<p>From one cycle to the next U loses exactly three cells at its right end, which become body. When a carry gets all the way through U, the tape grows by 30 cells on the left (one cycle per 30 cells, up to 150 seen) and U gains them. U, read in three-cell words, looks like the higher digits of a counter, but they follow no period. The halting question is what the carries do to U.</p>"
     ]
    },
    {
@@ -205,7 +228,7 @@
    }
   ]
  },
- "summary": "A small irregular zone (a few hundred cells) at the left end of the tape beside a long body of one period-10 word; Lean proves that a round trip through the body does the same thing whatever its length, so the halting question is the zone's. Open. Decided outside: busycoq PR 117 proves in Rocq that it never halts (compiled here).",
+ "summary": "A small irregular zone at the left end beside a long body of one period-10 word that Lean proves acts as a mirror; the zone is a counter with a fixed seven-trip low digit (proved) and chaotic higher digits. Open.",
  "family": "chaotic zone at the left end beside a period-10 body (F08)",
  "decision": "nonhalting",
  "decision_level": "outside"

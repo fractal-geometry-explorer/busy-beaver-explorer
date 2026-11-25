@@ -10,9 +10,10 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 24 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
-  "<b>Open.</b> A counter with many digits: blocks (011)<sup>n</sup> separated by separators <code>1</code>, <code>01</code>, <code>111</code> that the sweeps rewrite like odometer digits. The lowest three levels are exactly periodic, with periods 8, 16 and 64 sweeps; the levels above have no period up to 4,096 sweeps. Lean proves four of the eight sweeps of the lowest level for every block length. No halt in 3.1&middot;10<sup>16</sup> steps (run-length accelerator)."
+  "<b>Open.</b> A counter with many digits: blocks (011)<sup>n</sup> separated by separators <code>1</code>, <code>01</code>, <code>111</code> that the sweeps rewrite like odometer digits. The lowest three levels are exactly periodic, with periods 8, 16 and 64 sweeps; the levels above have no period up to 4,096 sweeps. Lean proves four of the eight sweeps of the lowest level for every block length. No halt in 3.1&middot;10<sup>16</sup> steps (run-length accelerator).",
+  "<b>Where the disorder lives.</b> Above level 3 the blocks are tens of words long and shrink towards the right end; carries from below reach them on a fixed schedule, exactly at the sweeps numbered 10, 11, 18, 26, 27, 42, 43, 50, 58 and 59 mod 64, and move one to three words between neighbouring blocks."
  ],
  "claims": [
   {
@@ -70,6 +71,12 @@
    "where": "<code>g++ -O2 tools/c/rleaccel.cpp</code>; <code>rleaccel 1RB0RA_1LC0RC_1LF0RD_1RA1LE_0LC---_1LD0LA 6 N ck.bin</code>"
   },
   {
+   "level": "trusted",
+   "title": "The schedule of carries above level 3",
+   "text": "From sweep 1,000 to sweep 21,693 (step 3&middot;10<sup>9</sup>), the tape beyond level 3 changes exactly at the sweeps numbered 10, 11, 18, 26, 27, 42, 43, 50, 58, 59 mod 64: 3,235 changes, one at each such sweep.",
+   "where": "<code>c/leftsnaps.c</code>, <code>py/levels.py</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. The low digits of the counter are regular; a proof would need a rule for what a carry does at every level, and the levels above the third show no regularity yet.",
@@ -115,6 +122,16 @@
     "heading": "Where it could halt",
     "html": [
      "<p>The only halting transition is E reading 1. A closed tape language with windows of 6 cells (<code>bbtools.ctl</code>) covers the run but still allows halts, with only a local constraint near the head: the head cell and the cells to its right read 111101. Nothing confines a halt to an edge.</p>"
+    ]
+   },
+   {
+    "id": "high",
+    "eyebrow": "Above level 3",
+    "heading": "A row of medium blocks, fed on a schedule",
+    "html": [
+     "<p>Past n6 the blocks are no longer small. At step 3&middot;10<sup>9</sup> they are 69, 101, 59, 65, 44, 42, 32, 17, 31, 26, 21, 22, 11, &hellip; words long, separated by the same <code>1</code>, <code>01</code>, <code>111</code>. Every carry that gets this far changes a few separators and moves one to three words from one block to its neighbour. Here is one cycle of 64 sweeps (sweep number mod 64, then the tape from S6 on):</p>",
+     "<pre>10  01 1391 1   71 01 97 1   56 01  68 1 42 1   43 01 26 1   18 ...\n11  1  1392 111 70 01 97 1   56 01  68 1 42 1   43 01 26 1   18 ...\n18  1  1391 1   74 111 95 1  57 111 67 1 42 1   43 01 26 1   18 ...\n26  111 1390 1  74 111 95 1  57 111 67 1 42 1   43 01 26 1   18 ...\n27  01 1391 01  73 1  96 1   58 1   67 1 43 111 42 1  27 111 17 ...\n42  1  1390 01  73 1  96 1   58 1   67 1 43 111 42 1  27 111 17 ...\n43  1  1391 111 72 1  96 1   58 1   67 1 43 111 42 1  27 111 17 ...\n50  01 1392 01  72 1  96 1   58 1   67 1 43 111 42 1  27 111 17 ...\n58  1  1392 1   72 1  96 01  58 01  67 1 44 01  42 1  27 111 17 ...\n59  111 1391 1  72 1  97 111 57 01  67 1 44 01  42 1  27 111 17 ...</pre>",
+     "<p>The schedule is exact: from sweep 1,000 to sweep 21,693 this part of the tape changes at every sweep numbered 10, 11, 18, 26, 27, 42, 43, 50, 58 or 59 mod 64 and at no other. So the regular low levels act as a clock that feeds ten carries per 64 sweeps into a row of medium blocks, and the irregularity is all in how that row responds. A halt needs two separators side by side, which would need a block to empty.</p>"
     ]
    },
    {

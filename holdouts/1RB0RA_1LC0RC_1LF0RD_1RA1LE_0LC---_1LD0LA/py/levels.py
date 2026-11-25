@@ -6,7 +6,7 @@ Reads the sweep snapshots of c/leftsnaps.c (the tape each time the head extends 
 writes each tape as  n0 S1 n1 S2 n2 ...: blocks (011)^n (the number n) and the separators between them (`1`, `01`,
 `111`; a few other words near the right end).  Level j is the triple (S_{2j-1}, n_{2j-1}, S_{2j}).  For each level
 it finds the smallest period p (tried: 8, 16, ..., 4096) and the first sweep from which the sequence of that level is
-exactly periodic up to the last snapshot, and it prints the last tape's first tokens.
+exactly periodic up to the last snapshot, and it prints the sweeps (mod 64) at which the tape beyond level 3 changes, and the last tape's first tokens.
 """
 import re
 import sys
@@ -49,6 +49,15 @@ def main():
             print(f"level {lev}: period {found[0]} sweeps from sweep {found[1]} (step {snaps[found[1]][0]})")
         else:
             print(f"level {lev}: no period up to 4096")
+    ch, prev = [], None
+    for k, (_, o) in enumerate(snaps):
+        if tuple(o[12:]) != prev:
+            ch.append(k)
+            prev = tuple(o[12:])
+    late = [k for k in ch if k >= 1000]
+    phases = sorted({k % 64 for k in late})
+    print(f"the tape beyond level 3 changes at {len(late)} sweeps from sweep 1000 on, at sweep numbers "
+          f"= {phases} mod 64 only" if all(k % 64 in phases for k in late) else "")
     print("last tape:", " ".join(map(str, snaps[-1][1][:40])))
 
 
