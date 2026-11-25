@@ -318,6 +318,10 @@ def h(T):
                 C[0] = C[0] + (n - 1) * E[1]
                 return econs(n - 1, E[0], h((t, one)))
     if Rec.cons is None and len(STACK) > RDEPTH[0] and ACCEL[0]:
+        if FZ[0] and FUNF[0] and type(t) is int and t in FIDX:
+            r = frozen_unfolded(t, tail)
+            if r is not None:
+                return r
         r = try_rrule(T)
         if r is not None:
             return r
@@ -392,7 +396,57 @@ def frozen_cost(w):
         Rec.cons, Rec.work, Rec.limit, C[0] = saved
     FROZEN[w] = res
     STATS["frozen"] = STATS.get("frozen", 0) + (res is not None)
+    if res is not None and len(w) <= FUNMAX:
+        L = FIDX.setdefault(w[0], [])
+        L.append(w)
+        L.sort(key=len, reverse=True)          # longest first
+        for r in range(1, len(w)):
+            if w[r] != 0 and len(w) >= 4:
+                frozen_cost(w[r:] + w[:r])     # rotations of a frozen word are often frozen too
     return res
+
+
+# A frozen word written out as digits (not as a run token): a hit crosses it at its fixed cost, and the word is
+# folded into a run token, so that it merges with a run of the same word that follows (pcons).
+FUNF = [__import__('os').environ.get('NOFUNF') is None]
+FUNMAX = 40          # longest frozen word looked for in digit form
+FIDX = {}            # first digit -> frozen words (found by frozen_cost)
+
+
+def frozen_unfolded(t0, tail):
+    """h(t0 tail) when t0 tail begins with a frozen word u in digit form: u h(X), with u folded into a run token.
+    If the first i digits a = u[:i] are followed by a run v^n of the rotation v = u[i:] u[:i], then
+    a v^n Y = u^n a Y and the hit crosses all n words at once."""
+    for u in FIDX[t0]:
+        R = tail
+        ok = True
+        try:
+            for i in range(1, len(u)):
+                if R is None:
+                    ok = False; break
+                x = R[0]
+                if type(x) is tuple:
+                    if x[0] == 'P' and type(x[1]) is int and x[2] == u[i:] + u[:i]:
+                        n = x[1]
+                        Y = R[1]
+                        for d in reversed(u[1:i]):
+                            Y = zcons(1, Y) if d == 0 else dcons(d, Y)
+                        STATS["funfrun"] = STATS.get("funfrun", 0) + 1
+                        C[0] = C[0] + n * FROZEN[u]
+                        return pcons(n, u, h((t0, Y)))
+                    if x[0] not in ('Z', 'R', 'P'):
+                        ok = False; break
+                e, R = untok(R)
+                if e != u[i]:
+                    ok = False; break
+        except Opaque:
+            ok = False
+        if not ok or R is None:
+            continue
+        STATS["funf"] = STATS.get("funf", 0) + 1
+        C[0] = C[0] + FROZEN[u]
+        return pcons(1, u, h(R))
+    return None
 
 
 def tok_digits(toks, limit=FMAX):
