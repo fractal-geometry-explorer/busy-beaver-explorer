@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> One round trip of the machine is one pass of a 4-state automaton over a bit word (every second tape cell is 1, the others are the word), and the machine halts exactly when a pass ends in two of the four states; this model is proved in Lean, so the machine halts if and only if the orbit of the word 001 under the automaton stops. The right part of the word is a periodic block that always brings the pass back to a safe state within 10 bits, so a halt needs the irregular left zone to reach the right end. In 200,000 round trips of the model the zone stays near 0.42 of the word. No halt in 10<sup>10</sup> steps of the machine."
+  "<b>The question is open.</b> One round trip of the machine is one pass of a 4-state automaton over a bit word (every second tape cell is 1, the others are the word), and the machine halts exactly when a pass ends in two of the four states; this model is proved in Lean, so the machine halts if and only if the orbit of the word 001 under the automaton stops. The right part of the word is a periodic block that always brings the pass back to a safe state within 10 bits, so a halt needs the irregular left zone to reach the right end. In 1,000,000 round trips of the model the zone stays near 0.42 of the word. No halt in 10<sup>10</sup> steps of the machine."
  ],
  "claims": [
   {
@@ -96,13 +96,13 @@
   {
    "level": "trusted",
    "title": "The periodic block repairs the pass within 10 bits",
-   "text": "On the block (0011)* the automaton enters its cycle X P X X from each of the 16 combinations of state and phase within 10 bits, and then maps the block to itself two bits along. So a pass that crosses 10 clean block bits ends safely.",
+   "text": "On the block (0011)* the automaton enters its cycle X P X X from each of the 16 combinations of state and phase within 10 bits, and then maps the block to itself two bits along. So a pass that crosses 10 clean block bits ends safely. More generally, a stretch of the word whose runs of equal bits all have even length is only complemented by a pass that enters it in X, and a pass that enters in another state is back in X within 4 runs (enumerated, not proved in Lean).",
    "where": "<code>README.md</code>, section \"The bit model\""
   },
   {
    "level": "heuristic",
    "title": "The zone stays near 0.42 of the word",
-   "text": "In 200,000 round trips of the model, about 1.8·10<sup>11</sup> machine steps, the pass never ends in a halting state, and the last copy-mode state sits at 0.42 to 0.43 of the word from lap 16,384 on. The word grows by 2 bits per lap.",
+   "text": "In 1,000,000 round trips of the model, about 4·10<sup>12</sup> machine steps, the pass never ends in a halting state, and the last copy-mode state sits at 0.42 to 0.43 of the word from lap 16,384 on. The word grows by 2 bits per lap. In the first 60,000 laps that state never gains more than 86 bits on the 2 bits a lap of the word.",
    "where": "<code>c/model.c</code>"
   },
   {

@@ -98,6 +98,26 @@ state away from the end of the word. With (1) this is a statement about the 4-st
 for the word U = `001` followed by the block forever, the first point where g^t(U) leaves the block pattern stays
 below 2t.
 
+**Even runs are inert (checked by enumeration, not proved in Lean).** Cut the word into runs of equal bits. A
+stretch in which every run has even length, entered in state X at the start of a run, is only complemented by the
+pass (X reads a run of 1s in place, and a run of 2k zeros as k tokens `00`), and the pass leaves it in X. So such a
+stretch is the same stretch two laps later. The periodic block is the case where every run has length 2. Entered
+in another state, the pass is back in X at a run start after at most 4 runs: at the run level, a 0-run sends
+X, P, Y, Q to X, P, P, X and a 1-run sends them to X, Q, Y, Q. The runs crossed before that come out changed, so
+the active part can grow by up to 4 runs in a lap, while the word gains one run a lap at the right end. An
+odd run of 1s crossed in X stays silent for one lap and starts a copy stretch on the next, so neither "the last
+odd run" nor "the last copy-mode state" is a front that only moves right: both jump back and forth by tens of
+runs.
+
+**No conserved quantity found.** At lap 4,096 the word has 4,121 runs and 1,077 of them are odd; the number of
+odd runs grows by about 0.26 a lap, so the active part is not a fixed set of moving defects. The orbit of a prefix
+has a period that grows exponentially with its length (24 bits: 512 laps), and the automaton is not affine over
+GF(2). What is left is a statistical statement: in the first 60,000 laps the last copy-mode state gains at most
+86 bits on a pace of 2 bits a lap, in any window, while the distance it would have to make up is 0.58 of the word.
+
+**The long run.** `c/model 1000000` from `001`: 1,000,000 laps (a word of 2,000,007 bits, about 4·10^12 machine
+steps) without a halt; the pass ends in Y four times, all in the first laps, and in P otherwise.
+
 ## Halting
 
 F0 is the only halting transition and F is entered only by E0 (write 1, move right): the machine halts exactly when E reads two 0s in a row. With every
