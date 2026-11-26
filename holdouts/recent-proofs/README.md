@@ -15,6 +15,9 @@ opens with a plain-language section, "How the proof works". This folder keeps th
 small carry. See [`recursive-sweeps-nov23-25.md`](recursive-sweeps-nov23-25.md). It covers each proof, a comparison
 with our folders, and a screen of the open holdouts for transfer (script in [`tools/`](tools/)).
 
+**Survey, 26 November 2026:** [`technique-survey-nov26.md`](technique-survey-nov26.md) classifies every technique
+that has decided a holdout, lists what failed and on which machines, and ranks eight new techniques to try.
+
 ## The methods, in short
 
 | method | proofs | what it needs |
