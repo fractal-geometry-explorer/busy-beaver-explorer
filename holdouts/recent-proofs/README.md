@@ -18,6 +18,12 @@ with our folders, and a screen of the open holdouts for transfer (script in [`to
 **Survey, 26 November 2026:** [`technique-survey-nov26.md`](technique-survey-nov26.md) classifies every technique
 that has decided a holdout, lists what failed and on which machines, and ranks eight new techniques to try.
 
+**Invariant transfer, 26 November 2026:** [`followup/invariant-transfer.md`](followup/invariant-transfer.md) tests
+technique D of the survey. The invariants of 236,071 proved tables were tried on the 509 open holdouts in three
+screens (same table at another start, transitions that go quiet, lockstep runs of 2,138 neighbour pairs). Nothing was
+decided; four pairs give reductions of the form "the holdout cannot halt before one local context occurs". Tools and
+data are in [`tools/transfer/`](tools/transfer/).
+
 ## The methods, in short
 
 | method | proofs | what it needs |
