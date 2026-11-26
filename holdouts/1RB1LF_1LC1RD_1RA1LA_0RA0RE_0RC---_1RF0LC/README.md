@@ -55,8 +55,10 @@ next two 1s, E the third). No step of the map halts in any case seen:
 * the graph: breadth-first search of all walls of at most 300 cells reachable from `1` with either parity
   (279 walls, 558 steps, `py/zonemap.py graph 300`): no halt.
 
-So unlike the Antihydra-type cryptids no halting condition on the map is known. Non-halting is not proved either:
-the reachable walls are towers of 3/2-counters whose shapes have not been described in general.
+Outside the orbit and that graph there are walls with a halting step (26 November, `lean/Halting.lean`): the step
+from `1 K(24) K(7) K(1)` halts for every odd `N` (see "A failed count can halt" below). So a halting condition on
+the map is known, as for the Antihydra-type cryptids; no wall of that kind is known to be reachable. Non-halting is
+not proved: the reachable walls are towers of 3/2-counters whose shapes have not been described in general.
 
 **The step map, for every wall (Lean).** A step is not one transfer loop but three parts:
 
@@ -83,7 +85,8 @@ in the orbit gives a halt (`halts_of_orbit`) and an orbit that never ends gives 
 
 ## Status
 
-Open; reduced to the orbit of the step map, and (22 November) to a statement about integers only: **if the integer
+Open; reduced to the orbit of the step map, with walls known on which a step halts (26 November, none known to be
+reachable), and (22 November) to a statement about integers only: **if the integer
 counter-stack recursion from `(K(2), 48)` never makes a count negative, or zero anywhere but directly on the pile,
 the machine never halts** (`not_halts_of_model`, `lean/Model.lean`; see "Non-halting from integers alone" below).
 Lean, all by the kernel:
@@ -109,6 +112,9 @@ Lean, all by the kernel:
   times the one below" is not kept by the rules (`ratio5_not_enough`).
 * `lean/Closed.lean`: every set of walls closed under both parities contains `1 K(0) K(9i + 7)` for every i
   (`family`, `closed_family`; see "A closed set of walls" below).
+* `lean/Halting.lean`: from `1 K(24) K(7) K(1) A> 0 b^N 1` the machine halts for every odd `N >= 252`
+  (`halting_wall`; the step map answers `halt`, `stepMap_halting_wall`), and `1 K(18) K(5) A> 0 b^2 1` halts after
+  3,263 steps (`halting_small`); see "A failed count can halt" below.
 
 Computed: `py/zonemap.py` is the Lean step map in Python: `check 4000` compares it with the plain step map
 (`py/stepmap.py`, one step simulated in C by `c/stepc.c`, three values of `N` per case) for 4,000 steps from
@@ -342,15 +348,70 @@ shows why no set of that kind can work:
   `K(23)` with tops 4,479 + 9n and `K(0) K(31)` with tops 4,749 + 243n), and no member of any of these progressions
   is a bad start value below 2^600.
 
-This holds for closed sets inside the counter-stack model. When a count fails the machine leaves the model's walls
-(in the cases seen it went on without halting), so a failure in the model is not by itself a halt; a closed set
-that also contains the walls after a failure would have to describe those walls too. The closed-set route
-therefore does not avoid number theory; it moves the question into the digits of 2-adic numbers like rho(0, 0).
+This holds for closed sets inside the counter-stack model. When a count fails the machine leaves the model's walls.
+Most failures go on without halting, but some halt (next section), so a closed set cannot simply take in the walls
+after a failure: it has to keep the failing walls that halt out, and that is again a statement about which counts
+occur. The closed-set route therefore does not avoid number theory; it moves the question into the digits of
+2-adic numbers like rho(0, 0).
 
 ```sh
 python3 py/closed.py family 2000
 python3 py/closed.py bad 3000
 python3 py/closed.py families 400 600
+```
+
+## A failed count can halt (26 November)
+
+The model stops answering when a count would go negative. Until now every such case seen went on running, and it
+was open whether a failure could matter at all. It can: some failures halt.
+
+- **A halting wall (Lean).** From `1 K(24) K(7) K(1) A> 0 b^N 1` the machine halts for every odd `N >= 252`
+  (`halting_wall`, by the kernel: the zone simulator of `Reduction.lean` answers `halt` in the third part of the
+  step, and it never looks at `N`). Plain simulation halts for every odd `N` from 15 to 139
+  (`failhalt.py wall 15 140`; `N` = 23 takes 10,494 steps). In the model an odd signal reaches all three counters:
+  the bottom one grows from 24 to 36 and takes those 12 copies from the middle one, which would become
+  10 - 12 = -2; the top one would then become 1 - 3 = -2 as well. On the tape the middle block is used up two
+  copies early, the marker between the blocks comes out as `1 000 1 0` instead of `1 0 1 0`, and the next crossing
+  ends in `111 B> 1`, then D, then E on a 1.
+- **Which failures halt (computed).** Take walls whose two top counters are open and odd, under an odd signal, on
+  which the model fails, and compute the two new counts the model would give without its check for negative
+  counts. Over `1 K(a) K(c) K(e)` with `a < 150`, `c < 60`, `e < 16` (31,016 failing walls, `N` = 61) the step
+  halts in exactly 14 cases, and they are exactly the walls where both new counts are -2: `a = 18 i + 24` or
+  `18 i + 25`, `c = 6 i + 7`, `e = 2 i + 1`, `i = 0 .. 6`. With `a` of either kind and `a < 70`, `c < 40`, `e < 12`, over 21 stacks below it
+  (none, a single counter of either kind with count up to 7, two empty closed counters, `K'(0) K(0)`,
+  `K(3) K(17)`, `K(2) K'(10)`; 300,819 failing walls, `N` = 101) the step halts in 129 cases, again exactly the
+  walls with both new counts -2. Every other failure in these scans runs on. This rule is an observation on these shapes, not a theorem, and
+  it is not claimed to cover every wall (walls with closed counters on top, or with three or more counts failing,
+  were not scanned).
+- **A block too small for its wall can halt too.** `1 K(18) K(5) A> 0 b^2 1` halts after 3,263 steps
+  (`halting_small`, kernel). Among `1 K(a) K(c)` with `a <= 120`, `c <= 40` and `N <= 24` the only halts are
+  `c = 5`, `N = 2`, `a = 18 .. 21` (`failhalt.py small 121 41 25`).
+- **Not known to be reachable.** In the halting walls found, the counter under the top two is less than 3.5 times
+  the one above it (24 over 7), while every pair of open counters met along the orbit (3,000,000 steps) and in the
+  free-parity walls to 30,000 cells has a factor of at least 5. Reaching one needs a count to fail first, that is,
+  the long odd runs of "What the 2-adic condition says", and then two exact values on top of that.
+
+What this changes:
+
+1. The machine has a halting mechanism. It is of the same kind as the other 3/2-map cryptids: it halts if its orbit
+   ever meets a specific unlikely arithmetic event, and nothing known rules the event out.
+2. The hypothesis of `not_halts_of_model` (no count fails) is not just a limit of the model: past a failure the
+   machine can halt.
+3. No set of walls closed under both parities can be proved safe by ignoring counts. Any description loose enough
+   to contain `1 K(24) K(7) K(1)` contains a halt, so a closed set has to exclude walls by the values of their
+   counts, which is the 2-adic statement again.
+
+How it was found (scratch work, not in the repository): a pushdown reachability computation (one side of the tape
+exact, the other a run-length summary restricted to observed transitions) kept reaching a halt after about 20
+changes of block lengths; running the configurations after each change showed that the late ones halt for real.
+A search of step starts with every `N` up to 30 (not only large `N`) then met halting step starts six steps from
+the wall `1`.
+
+```sh
+python3 py/failhalt.py wall 15 140
+python3 py/failhalt.py triples 150 60 16   # 20 seconds
+python3 py/failhalt.py lower               # 4 minutes on 4 cores
+python3 py/failhalt.py small 121 41 25     # 2 minutes
 ```
 
 ## Regular invariants tried (21 November)
@@ -383,7 +444,7 @@ So the remaining step is still the invariant on counts (no count goes negative),
 ## Check
 
 ```sh
-. /etc/profile.d/lean.sh && holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/lean/check.sh   # about 2.5 minutes
+. /etc/profile.d/lean.sh && holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/lean/check.sh   # about 3 minutes
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py check 1500
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py orbit 20000   # 1 minute; 40000 takes 15
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/zonemap.py graph 80
@@ -391,6 +452,7 @@ python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stack.py random 30
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/modelorbit.py 100000   # 20 seconds
 python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/closed.py family 2000
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/failhalt.py triples 150 60 16
 ```
 
 <!-- related machines: written by holdouts/related.py -->

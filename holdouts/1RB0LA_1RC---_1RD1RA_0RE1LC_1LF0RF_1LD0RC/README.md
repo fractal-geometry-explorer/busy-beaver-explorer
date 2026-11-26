@@ -116,6 +116,13 @@ the spacer s_1, and the "irregular middle" is the low end of a binary number who
   halt: popping a token from the left side forgets which tokens came before it, and the right-end turn or a pulse
   walking back over its own trail then sees a left side that the run never makes. The automaton needs to remember the
   three zones of the left side (R-words, the (1,3) trail, the few cells the head has just written).
+- **Two phases.** `c/pd2phase.cpp` runs two such searches. In phase A the left side is the automaton and the right
+  side exact; in phase B it is the other way round. When the automaton side shrinks to a few tokens, so that its state
+  says exactly what is there, the configuration is handed to the other phase, and when both sides are exact it is run
+  as a plain tape. This handles the tape ends: no halting transition is reached in either phase. But 3,381 transitions
+  still leave the learned language (n = 1, C = 4), all of them where a pop rebuilds a tape the run never makes, so this
+  is not a proof. The same learned decider (both orientations, 8 rounds of refinement) closes none of the 179 holdouts
+  of `BB6_holdouts_608.txt` it was run on, and makes no false claim on 11 known halters.
 
 ## Files
 
@@ -135,6 +142,7 @@ the spacer s_1, and the "irregular middle" is the low end of a binary number who
 | `py/counter.py` | the tape of each sweep as the numbers N and S; checks the order-6 rotation |
 | `c/flip.c` | the run with digit words flipped at random every sweep (no halt) |
 | `c/randw.c` | the run with everything but the prefix and the last words replaced by a random word, at one sweep (no halt) |
+| `c/pd2phase.cpp` | two-phase pushdown search: each side in turn abstracted by a learned automaton, the other exact (escapes remain) |
 
 ## Check
 

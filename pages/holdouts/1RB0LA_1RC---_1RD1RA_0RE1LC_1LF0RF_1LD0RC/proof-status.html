@@ -205,8 +205,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>One side exact, the other an automaton</h3>
-        <p><code>tools/c/pdfar.cpp</code> keeps the right side exactly as a pushdown stack and computes the reachable set exactly (post* saturation), with the left side abstracted by an automaton. With windows of up to 14 cells, and with automata learned from the run (tokens, up to three remembered, n-grams of up to four tokens), a halt is still reachable: popping a token from the left side forgets the tokens before it. The automaton would need to know the three zones of the left side.</p>
-        <p class="where"><code>tools/c/pdfar.cpp</code>, README</p>
+        <p><code>tools/c/pdfar.cpp</code> keeps the right side exactly as a pushdown stack and computes the reachable set exactly (post* saturation), with the left side abstracted by an automaton. With windows of up to 14 cells, and with automata learned from the run (tokens, up to three remembered, n-grams of up to four tokens), a halt is still reachable: popping a token from the left side forgets the tokens before it. The automaton would need to know the three zones of the left side. A two-phase version (<code>c/pd2phase.cpp</code>) hands each side over to the other phase when its automaton state pins it down exactly. It reaches no halt, but 3,381 transitions still leave the learned language, so it is not a proof.</p>
+        <p class="where"><code>tools/c/pdfar.cpp</code>, README, <code>c/pd2phase.cpp</code></p>
       </div>
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>

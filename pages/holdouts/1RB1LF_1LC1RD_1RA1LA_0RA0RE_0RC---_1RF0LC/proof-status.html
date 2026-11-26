@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 24 November 2026.</p>
+    <p class="asof">Status as of 26 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open, and reduced to an orbit.</b> A step takes <code>W A&gt; 0 b^N 1</code> (b = 110) to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2, where the new wall W' and c are computed from the wall W and the parity of N. Lean proves the transfer loop behind the 3/2, the step map for every wall on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting step. Since 22 November non-halting follows from a statement about integers alone: if the integer counter-stack recursion from the step start never makes a count negative (or zero off the pile of empty counters), the machine never halts. The map has been iterated for 40,000 steps without a halt (the plain-simulation map for 300,000), and no wall with a halting step has been found in a search of the wall graph: no halting mechanism is known for this machine, but no invariant excluding one is proved.</p>
+      <p><b>The question is open, and reduced to an orbit.</b> A step takes <code>W A&gt; 0 b^N 1</code> (b = 110) to <code>W' A&gt; 0 b^N' 1</code> with N' = (3N + c)/2, where the new wall W' and c are computed from the wall W and the parity of N. Lean proves the transfer loop behind the 3/2, the step map for every wall on which its simulator answers, and that, as long as it answers along the orbit, the machine halts from blank tape exactly when the orbit reaches a halting step. Since 22 November non-halting follows from a statement about integers alone: if the integer counter-stack recursion from the step start never makes a count negative (or zero off the pile of empty counters), the machine never halts. The map has been iterated for 40,000 steps without a halt (the plain-simulation map for 300,000), and no wall with a halting step occurs in a search of the walls reachable with either parity. Such walls exist, though (26 November): from <code>1 K(24) K(7) K(1) A&gt; 0 b^N 1</code> the machine halts for every odd N from 252 on (Lean), because two counts of the stack fail together. So the machine has a halting mechanism, of the kind the other 3/2-map cryptids have; no wall of that kind is known to be reachable, and no invariant excluding them is proved.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -171,6 +171,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>From the wall 1 the parities 1 (01)<sup>2i</sup> 1 1 1 lead to the wall 1 K(0) K(9i + 7), for every i (<code>family</code>): the parities 1 (01)<sup>n</sup> build a pile of n empty closed counters under K(0), an odd parity dissolves it into K(2n + 2), and two more give K(0) K(9i + 7). So every set of walls that contains 1 and is closed under both parities contains the whole family and every wall of the odd runs from it (<code>closed_family</code>). Over K(0) the top count stays odd for t steps exactly when it agrees with a fixed 2-adic number &rho; in t binary digits, and fails only after about k steps; below 2<sup>3000</sup> only k = 1 fails (computed, <code>python3 py/closed.py bad 3000</code>). So a closed set proves that the digits of &rho; have no run of about k zeros starting near digit log<sub>2</sub> k: the closed-set route does not avoid number theory.</p>
         <p class="where"><code>family</code>, <code>closed_family</code>, <code>lean/Closed.lean</code>; <code>python3 py/closed.py family 2000</code>, <code>python3 py/closed.py bad 3000</code>, <code>python3 py/closed.py families 400 600</code></p>
       </div>
+      <div class="card">
+        <h3>A wall on which the step halts</h3>
+        <p>Write K(k) for the open counter b<sup>k</sup> 1<sup>3</sup> b 1. From <code>1 K(24) K(7) K(1) A&gt; 0 b^N 1</code> the machine halts, for every odd N &ge; 252 (<code>halting_wall</code>): the zone simulator of the reduction answers <code>halt</code> in the third part of the step, whatever N is (<code>stepMap_halting_wall</code>). In the counter-stack model this is a step where two counts fail together: the bottom counter grows from 24 to 36 and takes 12 copies from the middle one, which would become &minus;2, and the top one would become &minus;2 as well. Also <code>1 K(18) K(5) A&gt; 0 b^2 1</code>, a block too small for its wall, halts after 3,263 steps (<code>halting_small</code>). Neither configuration is known to be reachable from blank tape.</p>
+        <p class="where"><code>halting_wall</code>, <code>stepMap_halting_wall</code>, <code>halting_small</code>, <code>lean/Halting.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -213,8 +218,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/stepmap.py orbit 300000</code> (about 5 minutes)</p>
       </div>
       <div class="card">
-        <h3>No halting wall found</h3>
-        <p>Breadth-first search of the walls reachable from <code>1</code> with either parity (100 walls): no step halts. The halt needs <code>A&gt; 0 111</code> (A writes 1, B and D read the next two 1s, E reads a third); none of the tested steps with small N (3 to 39, the first 80 walls) gets there either.</p>
+        <h3>No halting wall among the reachable ones searched</h3>
+        <p>Breadth-first search of the walls reachable from <code>1</code> with either parity (100 walls): no step halts. The halt needs <code>A&gt; 0 111</code> (A writes 1, B and D read the next two 1s, E reads a third); none of the tested steps with small N (3 to 39, the first 80 walls) gets there either. Halting walls do exist outside this search (see &ldquo;A wall on which the step halts&rdquo;).</p>
         <p class="where"><code>py/stepmap.py graph</code></p>
       </div>
       <div class="card">
@@ -238,6 +243,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>python3 py/modelorbit.py 3000000</code></p>
       </div>
       <div class="card">
+        <h3>Which failed counts halt</h3>
+        <p>Plain simulation of walls whose two top counters are open and odd, under an odd signal, on which the model fails. Over 1 K(a) K(c) K(e) with a &lt; 150, c &lt; 60, e &lt; 16 (31,016 failing walls) the step halts in exactly 14 cases: those where the two new counts the model would give are both &minus;2 (a = 18i + 24 or 18i + 25, c = 6i + 7, e = 2i + 1). Over 21 stacks below a (300,819 failing walls) it halts in 129 cases, again exactly those with both new counts &minus;2. Every other failure in these scans runs on. The wall 1 K(24) K(7) K(1) halts for every odd N from 15 to 139. An observation on these shapes, not a general rule.</p>
+        <p class="where"><code>python3 py/failhalt.py triples 150 60 16</code>, <code>python3 py/failhalt.py lower</code>, <code>python3 py/failhalt.py wall 15 140</code>; <code>c/haltscan.c</code></p>
+      </div>
+      <div class="card">
         <h3>Pairs made over the pile never reach 0 (start values below 2<sup>4000</sup>)</h3>
         <p>While the top k of two open counters stays odd, k' = (3k &minus; 1)/2 + om(a, m) with om fixed by the orbit of the stack 'pile of height a, then K(0)'. For every pile height a &le; 4,000 the exact set of start values below 2<sup>4000</sup> whose run reaches a count below 1 is computed digit by digit; its largest element is 37,609, below the least start value 2<sup>a+2</sup> of a pair made over that pile (that bound is argued from the rules, and the least values seen are 7, 79, 727, 6,559 for a = 0 to 3). No start value below 2<sup>4000</sup> has a run of more than 4,064 odd steps. Pairs that start later, when a closed counter between them dissolves, are not covered: their failing start values reach about 0.24&middot;m times the lower count.</p>
         <p class="where"><code>python3 py/pairs.py creation 4000 4000 3</code>, <code>python3 py/pairs.py table 40 80 1000</code>, <code>python3 py/pairs.py structure 30000</code></p>
@@ -257,7 +267,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Why it may never halt</h3>
-        <p>The numbers in the wall grow like N only along runs of odd N and are absorbed into N by two even steps in a row, so the wall stays short; a halting configuration would need a wall shape the map has not produced in any explored branch. This is evidence, not an argument.</p>
+        <p>The numbers in the wall grow like N only along runs of odd N and are absorbed into N by two even steps in a row, so the wall stays short; a halt needs a failing wall such as 1 K(24) K(7) K(1), with counters much closer together than any the map has produced in an explored branch. This is evidence, not an argument.</p>
       </div>
       <div class="card">
         <h3>273,141 rounds of the class map without a halt</h3>
@@ -274,7 +284,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. Lean reduces it to the integer counter-stack model: the machine never halts if no count of the model's orbit ever fails (goes negative, or to 0 away from the pile). No halting step is known at all, and the orbit has been checked far. What a proof needs is that no pair of open counters meets a long odd run of its top counter, a 2-adic avoidance statement of the same kind as Antihydra's, for which no technique is known. A closed set of walls (an invariant that ignores N) would also need such a statement: every closed set contains the family 1 K(0) K(9i + 7), whose safety depends on the binary digits of a 2-adic number (<code>closed_family</code>).</p>
+        <p>Not known. Lean reduces it to the integer counter-stack model: the machine never halts if no count of the model's orbit ever fails (goes negative, or to 0 away from the pile). Past a failure the machine can halt: there are walls on which the step halts (<code>halting_wall</code>), none of them known to be reachable; the orbit has been checked far. What a proof needs is that no pair of open counters meets a long odd run of its top counter, a 2-adic avoidance statement of the same kind as Antihydra's, for which no technique is known. A closed set of walls (an invariant that ignores N) would also need such a statement: every closed set contains the family 1 K(0) K(9i + 7), whose safety depends on the binary digits of a 2-adic number (<code>closed_family</code>).</p>
       </div>
     </div>
   </section>
@@ -292,7 +302,8 @@ python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/stackmodel.py rand
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 check 1e9
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 orbit 5000
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC R B 1 bfs 300
-python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2</code></pre>
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/pairs.py creation 500 1000 2
+python3 holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/py/failhalt.py triples 150 60 16</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC/status.json</code>; edit that file and rebuild rather than editing this page.</p>

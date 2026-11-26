@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it can halt only inside a visit that meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>0001</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 4,000,000. No halt in the first 10<sup>11</sup> steps of a direct run. The only junk a word can hold is <code>11</code>, made when a count runs out with one visit just before a 1 at the word end; there have been 18 in 4,000,000 rounds, all harmless, and one would be dangerous only if the deficit of the count entering its last digit block were odd (in the deficit form of <code>lean/Deficit.lean</code>).</p>
+      <p><b>The question is open.</b> The machine is a rewriting system on the right half of its tape (the <em>visit law</em>, proved in Lean): it can halt only inside a visit that meets 111. Its first four rules are those of the three machines that busycoq PR59 proves to halt in round 161,211 on the block <code>1011</code>; this machine rewrites <code>1011</code> to <code>0001</code> instead and, in an accelerated run (computed, not proved), carries on: no halt up to round 6,000,000. No halt in the first 10<sup>11</sup> steps of a direct run. The only junk a word can hold is <code>11</code>, made when a count runs out with one visit just before a 1 at the word end; there have been 29 in 6,000,000 rounds, all harmless, and one would be dangerous only if the deficit of the count entering its last digit block were odd (in the deficit form of <code>lean/Deficit.lean</code>).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -209,12 +209,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The deficit is small; most near misses are impossible</h3>
-        <p>Over all block starts of the first 200,000 rounds the deficit is 0 at 28%, at most 5 at 96%, and never above 1,025. Of the 141 changed runs (one to four visits more, 60 cells before the end, in 98 of the first 200,000 rounds) that reach <code>11100</code>, 91 need a count above 2<sup>level</sup> there, which no run can bring. The other 50 need deficit 0 (19) or 1 (31) where the run had 1 to 3, and nothing found so far excludes them. A junk event can be dangerous only if the deficit entering its last <code>000</code> block is odd; all 18 so far (4,000,000 rounds) had it even (6), after a doubler.</p>
+        <p>Over all block starts of the first 200,000 rounds the deficit is 0 at 28%, at most 5 at 96%, and never above 1,025. Of the 141 changed runs (one to four visits more, 60 cells before the end, in 98 of the first 200,000 rounds) that reach <code>11100</code>, 91 need a count above 2<sup>level</sup> there, which no run can bring. The other 50 need deficit 0 (19) or 1 (31) where the run had 1 to 3, and nothing found so far excludes them. A junk event can be dangerous only if the deficit entering its last <code>000</code> block is odd; all 29 so far (6,000,000 rounds) had it even (6), after a doubler.</p>
         <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c</code>, <code>nearmiss_level.c</code></p>
       </div>
       <div class="card">
-        <h3>No halt to round 4,000,000</h3>
-        <p><b>Computed:</b> the deficit pass run to round 4,000,000 (<code>c/piperun.c</code>, resumed from saved words, 3 rounds in flight; its words equal those of <code>c/wordrun.c</code> and <code>c/deficit.c</code>, checked cell for cell): no halt and no <code>111</code>. The word is then 24,856,760 cells long. All 18 junk events (rounds 161,210 to 3,951,813) have the same safe shape: doubler, <code>000</code> with 2 visits, junk; the next round passes through <code>1011</code> each time.</p>
+        <h3>No halt to round 6,000,000</h3>
+        <p><b>Computed:</b> the deficit pass run to round 6,000,000 (<code>c/piperun.c</code>, resumed from saved words, 3 to 4 rounds in flight; its words equal those of <code>c/wordrun.c</code> and <code>c/deficit.c</code>, checked cell for cell): no halt and no <code>111</code>. The word is then 37,285,969 cells long. All 29 junk events (rounds 161,210 to 5,991,215) have the same safe shape: doubler, <code>000</code> with 2 visits, junk; the next round passes through <code>1011</code> each time.</p>
         <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c</code></p>
       </div>
       <div class="card">
