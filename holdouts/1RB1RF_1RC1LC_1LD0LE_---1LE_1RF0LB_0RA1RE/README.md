@@ -46,6 +46,8 @@ The machine halts only when D reads a 0, and Lean proves that the only way there
 
 Tried and failed to close (Nov 2026): FAR/CTL automata (DFA side up to 11 states, NFA side 6), and pushdown abstractions with the other side exact. With a regular description of the left part (de Bruijn windows k ≤ 12, observed k-factors, a trie of left-end words) the abstraction moves the left end next to the head and halts. With the left part exact and a k-testable description of the right part, grown from the factors the abstraction produces (start at step 3,000,000), k = 12 and k = 16 both reach a halt and keep growing. The tape is not in the segment form of the recursive-sweep machines of busycoq PR 115: gaps of 3 or more 0s keep appearing right of the head.
 
+The left end on its own (Nov 2026, [`left-end/`](left-end/README.md)): the leftward pass forgets its start after about 10 cells, and every arrival at a token boundary from 12 cells away is one of 239 carries (both checked exhaustively). But a closure of the first m tokens with arrivals as free input halts for m = 4 and 8 and does not close for m = 12, and at m = 8 it halts even with only the 31 carries the real run produces. In the real run the arrival is not a function of the left end's recent history. Further right, one block grows like a counter ((aaaac)^n, n from 157 to 563 between 10^8 and 1.2·10^9 steps), but the other blocks change their words from one snapshot to the next, so there is no fixed set of counters to model.
+
 The shallow near miss (D on a 1 with `1 0 1` on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known.
 
 **Twin.** This is the table of [`1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE`](../1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE/README.md) with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); this machine starts in the state that one calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule there holds here after renaming.
@@ -56,13 +58,14 @@ Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, 
 
 ## For later
 
-Describe how the left end of the tape changes from one visit to the next, and show that E never arrives there on a 1.
+Show that E never arrives on a 1 next to the leftmost 1. The left end cannot be handled alone (see `left-end/`), so this needs a description of what the rest of the tape sends to it.
 
 ## Scripts
 
 - `py/passes.py blocks K | cross | back D | tape STEPS N`: two-cell behaviour of every state, the words crossed whole, the way back from a halt, run-length tapes.
 - `py/rules.py`: writes `lean/Rules.lean` and `lean/Halt.lean`.
 - `lean/LeftEnd.lean` is written by hand.
+- `left-end/`: the forgetting and arrival checks (`fL.py`, `forgetcells.py`, `arrset.cpp`) and the region closures (`region2.cpp`, `regionp.cpp`), with notes.
 
 ## Pages
 
