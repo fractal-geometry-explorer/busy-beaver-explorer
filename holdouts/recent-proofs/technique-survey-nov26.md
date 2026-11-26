@@ -78,6 +78,10 @@ solver's answer is a candidate invariant that Lean then checks with `omega`, so 
 
 **Cost.** Small. An exporter from the rule tables to Horn clauses, then solver time. No GitHub load.
 
+**Tried, 26 November 2026: nothing found** (`followup/horn-solvers.md`, `tools/chc/`). Spacer and a residue-template
+search time out on the stack model of the first target and on eight proved maps, and find the hand-proved domain
+invariants of three controls in seconds. The proved maps are exact Collatz-like reductions, not over-approximations.
+
 ### B. Synthesise summary certificates with an abstract tail (most machines in reach)
 
 **Idea.** Automate what cryptids PR 37 and busycoq PR 112 did by hand. Take the run-length machine (free for any
