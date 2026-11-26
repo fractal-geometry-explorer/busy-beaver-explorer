@@ -184,7 +184,7 @@ The new candidates, which have the same signature as the proved five, are:
 | table (start-state siblings) | wall | values | our description | tape in segment form? |
 |---|---|---|---|---|
 | 1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE, 1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE, 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA | `6 4 7` | {0, 3, 6} | sweeping transducer over a soup of period-5 words | yes: no `000`, runs of ones ≤ 9 |
-| 1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC, 1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD--- | `2 2 2` | {0, 3, 6}, {1, 4, 7}, {2, 5, 8} by state | bouncer with a chaotic middle zone | near the wall only (`000` elsewhere) |
+| 1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC, 1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD--- | `2 2 2` | {0, 3, 6}, {1, 4, 7}, {2, 5, 8} by state | bouncer with a chaotic middle zone | near the wall only (`000` elsewhere)  **Artefact** (26 Nov): the residue is set by the state of a head walking through 1s; the tape is a binary counter with a carry of any length (machine README) |
 | 1RB0LD_1RC0RD_1LA0RC_1RE1LB_1LF0LA_---0LE | `7 7 1 1 2` | {0, 3, 6}, {1, 4, 7}, {2, 5, 8} by state | zigzag bouncer over 110, 10, 100, 1100; **artefact** (see below) | yes |
 
 **Checked on 26 November: 1RB0LD_1RC0RD_1LA0RC_1RE1LB_1LF0LA_---0LE is a false positive.** Each lap copies the

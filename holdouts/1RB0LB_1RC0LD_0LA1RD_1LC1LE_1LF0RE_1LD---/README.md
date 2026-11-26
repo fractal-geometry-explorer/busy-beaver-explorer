@@ -11,6 +11,8 @@ Group G08 (two-sided square-root growth). Whether it halts from blank tape is **
 | E | 1LF | 0RE |
 | F | 1LD | --- |
 
+
+**26 November 2026.** This is the table of [`1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC`](../1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC/README.md) started in E, mirrored, and its tape is the same binary counter (digits `0001111`/`0111111`, spacers `0001`, prefix `111 xxxxz`); see the section "The middle zone is a binary counter" there.
 ## What it does
 
 Two regular regions grow on either side of an irregular boundary where the head works. On the left a 26-cell word

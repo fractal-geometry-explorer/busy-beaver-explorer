@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head zig-zags across the whole tape; read in words of 4 and 7 cells, the tape has a regular left part and a regular right part that both grow, and an irregular zone between them. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 26 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves the exact way a halt would happen (C reading 1 with an isolated 0 after it) and the main shift rules; the C simulator finds no halt in the first 10<sup>11</sup> steps. The middle zone looks irregular and no invariant that keeps the pattern away is known.</p>
+      <p><b>The question is open.</b> Lean proves the exact way a halt would happen (C reading 1 with an isolated 0 after it) and the main shift rules; the C simulator finds no halt in the first 10<sup>11</sup> steps. The middle zone is the low end of a binary counter that the two sweeps update by an exact rotation of order 6; perturbing its digits at random never leads to a halt, so a digit-free invariant is the next thing to find.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -127,6 +127,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>cconv</code>, <code>afill</code>, <code>aerase</code>, <code>fzero</code>, <code>lean/Rules.lean</code></p>
       </div>
       <div class="card">
+        <h3>The left-to-right sweep as a word transducer</h3>
+        <p>Going right in state C, the head turns each word of the left code (<code>X = 0011</code>, <code>Y = 0011111</code>, <code>Z = 0000011</code>) into the right code, with three scanner states told apart by the 11 cells behind the head. Eight crossings are proved for every tape on both sides, and for any word list without a <code>Y</code> right before a <code>Z</code> the machine crosses the whole list (by induction on the list). <code>Y</code> before <code>Z</code> is left out: it is where the merged words are made.</p>
+        <p class="where"><code>rule_sound</code>, <code>pass_sound</code>, <code>lean/RightPass.lean</code> (written by <code>py/gen_rightpass.py</code>)</p>
+      </div>
+      <div class="card">
         <h3>No halt in the first 10,000 steps</h3>
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
@@ -161,6 +166,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The right end is periodic</h3>
         <p>Recording the tape each time the head reaches a fresh cell at the right end (5,402 times in the first 3&middot;10<sup>8</sup> steps) and cutting it after the last two copies of the 26-cell word <code>z x x y x</code>: from the 112th time on, the part to the right repeats exactly with period 13.</p>
         <p class="where"><code>c/edge.c</code>, <code>py/zones.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The middle zone is a binary counter</h3>
+        <p>At each sweep the tape is <code>111 s<sub>0</sub> d<sub>1</sub> s<sub>1</sub> … d<sub>m</sub> s<sub>m</sub></code>: runs of spacers x = <code>0001</code> and digits y = <code>0001111</code> (1), z = <code>0111111</code> (0). With N = Σ d<sub>i</sub>2<sup>i−1</sup> and S = Σ s<sub>i</sub>2<sup>i</sup>, the right-to-left sweep sets N := (N + S) mod 2<sup>m</sup> (each x sends a pulse that adds 1 to the digits on its right) and the left-to-right sweep moves each spacer by d<sub>i+1</sub> − d<sub>i</sub> and appends <code>x y x</code>. Then a = 3N − 2·2<sup>m</sup>, b = 3S − 8·2<sup>m</sup> rotate as (a, b) → (a + b, −a), order 6. Merged words are spacers of −1. Checked on 1,526 of 2,025 consecutive sweeps of the first 2·10<sup>10</sup> steps; the others have rarer merged words or a digit that disappears.</p>
+        <p class="where"><code>c/rounds.c</code>, <code>py/counter.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Not halting does not depend on the digits</h3>
+        <p>Flipping every clean digit word (y ↔ z) at random at every sweep, 18 runs of 3·10<sup>8</sup> to 3·10<sup>9</sup> steps never halt. So an invariant on the shape of the words, with the digits left free, should exist.</p>
+        <p class="where"><code>c/flip.c</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
