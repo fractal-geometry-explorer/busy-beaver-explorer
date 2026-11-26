@@ -149,13 +149,45 @@ of the list. It cannot be the proof text. The candidates for each variant, from 
 
 ## What to build next
 
-1. **Derive the segment machine automatically.** `step581` and `stepAtomic` are just the machine run on run-length
-   tapes, with one rule for each (mode, front entry) case. A tool could build that table for any holdout by symbolic
-   execution, for entry counts up to a bound plus one generic rule with "d ≥ k". That would give every run-of-ones
-   holdout its own exact abstract machine to study.
+1. **Derive the segment machine automatically.** Done on 26 November, and simpler than expected. `step581` and
+   `stepAtomic` are the machine itself run on run-length tapes, so every holdout whose tape has no `000` has such a
+   machine for free. The machine alone says nothing. All of the content is in the carry (item 2, and the screen below).
 2. **Learn the carry.** Over the derived machine, record for each sweep the pair (input list, returned carry), and
    search for a small set of carry classes (a remainder mod m, or one bit) that predicts the front of the output.
    That is what `InvAt` writes down by hand.
 3. **Search for block sets with a sweep carry (114 style).** Cut the tape into blocks and check whether one sweep maps
    every block to a block of the same set and returns a bounded carry. This is a closure check on a finite alphabet,
    which we can automate and then print as Coq in the `box_*` form.
+
+## Wall-carry screen (26 November 2026)
+
+Computed, not proved. The scripts are `tools/wallcarry.c` and `tools/carryscore.py`.
+
+**Signature.** In PRs 115 to 119 the proof rests on one fact. Each time the head comes back to the wall, it carries
+a value `dlt` that is always ≡ 1 (mod 3) (`StrongWall`). That can be seen in a plain run. Whenever the head turns
+within 60 cells of one end, we read the cells between the head and that end as segment entries. We then group these
+moments by (state, symbol under the head, the entries behind the first one). A group shows the signature when the
+first entry takes between 3 and 12 values, all in one residue class mod m (m = 3 to 7), and the wall behind it is a
+fixed word of at least 2 entries.
+
+**Controls.** All five proved machines show it with m = 3:
+- 115 and 118: wall `1 3 2`, values {1, 4, 7} and {0, 3, 6}.
+- 116, 117 and 119: wall `1 3 1`, same values.
+
+**Undecided holdouts** (all 509, 2·10^7 steps, then 3·10^8 steps for the hits). Most hits are artefacts:
+- Mod 2 or mod 4, from a head that moves two cells at a time through a run. Those are excluded.
+- Machines whose base-3 structure we already know: the ternary-counter table 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD
+  (with 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB and 1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---).
+
+The new candidates, which have the same signature as the proved five, are:
+
+| table (start-state siblings) | wall | values | our description | tape in segment form? |
+|---|---|---|---|---|
+| 1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE, 1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE, 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA | `6 4 7` | {0, 3, 6} | sweeping transducer over a soup of period-5 words | yes: no `000`, runs of ones ≤ 9 |
+| 1RB0LA_1RC---_1RD1RA_0RE1LC_1LF0RF_1LD0RC, 1RB0LB_1RC0LD_0LA1RD_1LC1LE_1LF0RE_1LD--- | `2 2 2` | {0, 3, 6}, {1, 4, 7}, {2, 5, 8} by state | bouncer with a chaotic middle zone | near the wall only (`000` elsewhere) |
+| 1RB0LD_1RC0RD_1LA0RC_1RE1LB_1LF0LA_---0LE | `7 7 1 1 2` | {0, 3, 6}, {1, 4, 7}, {2, 5, 8} by state | zigzag bouncer over 110, 10, 100, 1100 | yes |
+
+The first table fits the proved five best: its whole tape is in segment form, an irregular soup sits next to a
+fixed wall, and the returns keep one residue mod 3 through 3·10^8 steps. The next step for it is the one PR 115
+made by hand: write down its segment machine and its `BigF`-style sweep relation, and look for the shape facts on
+the front of the returned list.
