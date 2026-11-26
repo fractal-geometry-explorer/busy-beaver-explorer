@@ -166,3 +166,11 @@ decided.
   602 nodes of 56 shapes). On the real machine the
   same step works once or twice and then stops. The missing piece is an exit that keeps `(001)^c` as one item.
 - 12,800 sampled excursions of the real machine on random tails are all covered by the 64 summaries used.
+- Digit-level exits were tried next (`digits` option of rlepds; `--sumargs` of `run_tail.py`). With one digit or
+  digit run remembered the same spurious halt appears (541 nodes). With two, there is no verdict after 28 minutes
+  and about 850 nodes, and the one-unit step is still present. A richer exit alone does not close the set; the
+  node itself has to know that the cells right of the head were written by the machine.
+- Last check: larger summaries with counter units in the context do not help either (up to about 3,600 exits, and
+  an exit below the context cannot be told from an ordinary left sweep). Keeping what the excursion wrote needs an
+  equation between a left count and a right count, which a finite-state summary cannot hold. This line of work
+  stops here; see `tools/py/lemcert/README.md`.

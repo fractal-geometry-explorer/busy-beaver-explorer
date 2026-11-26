@@ -26,6 +26,8 @@
 //               lists every way the head can come back to the cell before the starting cell (or NONHALT with no exit)
 //   lctx=BITS   with enter=: the stack-side cells next to the entered cell, farthest first; the exits are then the
 //               ways the head leaves these cells towards the stack side
+//   digits      abstract side in digits: only patterns [0^z 1] are folded, and K counts digits 0^z 1 and runs of
+//               equal digits (not single runs), after the slack
 //   limit=N     give up after N path edges;  selftest=N  check the real run against the reached set (blank start)
 //   cert=FILE   write values, entries, path sets and callers
 // environment: RLEPDS_SHOW=n prints the last n steps of an abstract path to a halt (tools/py/rlepds_replay.py replays it),
@@ -45,6 +47,7 @@ struct Set64{ vector<u64> t; size_t n=0, mask=0; Set64(){ t.assign(1<<16,~0ULL);
   size_t size()const{ return n; } };
 static int Tw[6][2],Td[6][2],Tn[6][2];
 static int K,P,E1,T1,M1,E2,T2,M2,SL=0;
+static bool DG=false;   // digits: only patterns [0^z 1] are folded, and K counts digits or digit runs instead of items
 struct Run{ uint8_t sym; uint16_t c; bool operator==(const Run&o)const{return sym==o.sym&&c==o.c;} };
 struct Item{ vector<Run> pat; uint16_t rep; };
 struct Val{ vector<Item> it; bool blank; };
@@ -81,10 +84,18 @@ static Val pushV(int s,Val v){
         if(eq){ v.it.erase(v.it.begin(),v.it.begin()+p); v.it[0].rep=inc(v.it[0].rep,E2,T2,M2); ch=true; break; } }
       if((int)v.it.size()>=2*p){
         bool eq=true; for(int j=0;j<p;j++) if(!single(v.it[p+j])||!(v.it[j].pat[0]==v.it[p+j].pat[0])){eq=false;break;}
+        if(eq && DG && !(p==2 && v.it[0].pat[0].sym==0 && v.it[1].pat[0].sym==1 && v.it[1].pat[0].c==1)) eq=false;
         if(eq){ Item n; for(int j=0;j<p;j++) n.pat.push_back(v.it[j].pat[0]); n.rep=mk(2,E2,T2,M2);
           v.it.erase(v.it.begin(),v.it.begin()+2*p); v.it.insert(v.it.begin(),n); ch=true; break; } }
     } }
   int lead=0; while(lead<SL && lead<(int)v.it.size() && single(v.it[lead])) lead++;
+  if(DG){ // a digit 0^z 1 (two single runs) or a run of equal digits is one group; keep K groups after the lead
+    size_t j=lead; int g=0;
+    while(j<v.it.size() && g<K){ size_t len=1;
+      if(single(v.it[j]) && v.it[j].pat[0].sym==0 && j+1<v.it.size() && single(v.it[j+1]) && v.it[j+1].pat[0].sym==1 && v.it[j+1].pat[0].c==1) len=2;
+      g++; j+=len; }
+    if(j<v.it.size()){ v.it.resize(j); v.blank=false; }
+    return v; }
   while((int)v.it.size()>K+lead){ v.it.pop_back(); v.blank=false; }
   return v; }
 static void popV(const Val&v, vector<pair<int,Val>>&out){
@@ -141,11 +152,11 @@ static string showVal(const Val&v){ string s; auto cl=[&](uint16_t x,int E,int M
   s+= v.blank?"BLANK":"ANY"; return s; }
 
 int main(int argc,char**argv){
-  if(argc<10){ fprintf(stderr,"usage: rlepds MACHINE K P E1 T1 M1 E2 T2 M2 [mirror] [limit=N] [selftest=N] [cert=FILE] [any] [start=N] [forget] [slack=S] [ctx=D] [enter=Qh] [lctx=BITS]\n"); return 2; }
+  if(argc<10){ fprintf(stderr,"usage: rlepds MACHINE K P E1 T1 M1 E2 T2 M2 [mirror] [limit=N] [selftest=N] [cert=FILE] [any] [start=N] [forget] [slack=S] [ctx=D] [enter=Qh] [lctx=BITS] [digits]\n"); return 2; }
   string m=argv[1]; K=atoi(argv[2]); P=atoi(argv[3]); E1=atoi(argv[4]); T1=atoi(argv[5]); M1=atoi(argv[6]); E2=atoi(argv[7]); T2=atoi(argv[8]); M2=atoi(argv[9]);
   if(E1<2||E2<3||M1<1||M2<1||T1<E1||T2<E2){ fprintf(stderr,"need E1>=2, E2>=3, T>=E\n"); return 2; }
   bool mir=false, anyTail=false; u64 limit=50000000; long selftest=0, startN=0; bool forget=false; int ctxD=-1, enterQ=-1, enterH=0; string certf, lctx;
-  for(int i=10;i<argc;i++){ string a=argv[i]; if(a=="mirror") mir=true; else if(a=="any") anyTail=true; else if(a.rfind("limit=",0)==0) limit=atoll(a.c_str()+6); else if(a.rfind("selftest=",0)==0) selftest=atol(a.c_str()+9); else if(a.rfind("cert=",0)==0) certf=a.substr(5); else if(a.rfind("start=",0)==0) startN=atol(a.c_str()+6); else if(a=="forget") forget=true; else if(a.rfind("slack=",0)==0) SL=atoi(a.c_str()+6); else if(a.rfind("ctx=",0)==0) ctxD=atoi(a.c_str()+4); else if(a.rfind("enter=",0)==0){ enterQ=a[6]-'A'; enterH=a[7]-'0'; ctxD=0; anyTail=true; } else if(a.rfind("lctx=",0)==0) lctx=a.substr(5); }
+  for(int i=10;i<argc;i++){ string a=argv[i]; if(a=="mirror") mir=true; else if(a=="any") anyTail=true; else if(a.rfind("limit=",0)==0) limit=atoll(a.c_str()+6); else if(a.rfind("selftest=",0)==0) selftest=atol(a.c_str()+9); else if(a.rfind("cert=",0)==0) certf=a.substr(5); else if(a.rfind("start=",0)==0) startN=atol(a.c_str()+6); else if(a=="forget") forget=true; else if(a.rfind("slack=",0)==0) SL=atoi(a.c_str()+6); else if(a.rfind("ctx=",0)==0) ctxD=atoi(a.c_str()+4); else if(a.rfind("enter=",0)==0){ enterQ=a[6]-'A'; enterH=a[7]-'0'; ctxD=0; anyTail=true; } else if(a.rfind("lctx=",0)==0) lctx=a.substr(5); else if(a=="digits") DG=true; }
   int ns=(m.size()+1)/7;
   for(int s=0;s<6;s++)for(int b=0;b<2;b++) Tn[s][b]=-1;
   for(int s=0;s<ns;s++)for(int b=0;b<2;b++){ string x=m.substr(7*s+3*b,3); if(x[0]=='-'||x[2]=='-'){Tn[s][b]=-1;continue;} Tw[s][b]=x[0]-'0'; Td[s][b]=(x[1]=='R')?1:-1; if(mir) Td[s][b]=-Td[s][b]; Tn[s][b]=x[2]-'A'; }
