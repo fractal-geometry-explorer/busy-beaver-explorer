@@ -46,21 +46,96 @@ the 2-adic halving of its F10 sibling 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE.
     14,048,610   14 . 345 . 231 . 464
     14,720,069   123 . 161 . 261 . 526
 
-The counts of the remainder cases have not been put together into an exact pass map yet; the lengths look chaotic
-because the number of re-deals is a base-3 valuation. The ones grow slowly (6,891 at 3e9 steps).
+The lengths look chaotic because the number of re-deals is a base-3 valuation. The ones grow slowly (6,891 at
+3e9 steps).
+
+## The event map (26 November 2026)
+
+Computed and checked against the machine, not proved. `py/passmap.py` is the map; `c/events.c`, `c/onestep.c` and
+`c/passrun.c` are the tools around it.
+
+**States.** Stop the machine each time the head, in state D, stands on the blank cell left of every 1. The tape is
+then a list of blocks of 1s with single 0s between them: `L [l0, l1, ..., lk]`. From blank tape the map starts at
+`L [7, 2]`, step 66. There are only 2,412 such visits and right-end turns in the first 3·10^9 steps.
+
+**One left-end visit.** Read the list from the left with a running value `cur`, first `cur = l0`, and write
+`cur = 3j + r`. Blocks past the end of the list count as 0.
+
+| remainder | what happens | the list becomes |
+|---|---|---|
+| r = 1 | the block keeps j + 1, the next block gets 2j and is dealt in turn | `..., j + 1,` then go on with `cur = l(i+1) + 2j` |
+| r = 2 | the block keeps j − 1 and the visit ends | `..., j − 1, l(i+1) + 2j + 5, rest` |
+| r = 0 | the block keeps j, the block after next gets 2, the visit ends | `..., j, l(i+1) + 2j, l(i+2) + 2, rest` |
+
+At the end the first block of the new list gets one more. If that makes it 0 (the list began with a 2), the block
+vanishes and the block after next gets 2 more: `[2, b, c, ...]` becomes `[b + 5, c + 2, ...]`. Example:
+`[16, 77, 91, 182, 2]` becomes `[7, 29, 149, 184, 2]`: 16 = 3·5 + 1 keeps 6, and one more at the end; 77 + 10 = 87
+= 3·29 keeps 29; 91 + 58 = 149; 182 + 2. This is `visit` in `py/passmap.py`.
+
+When the dealing runs past the last block, the head turns at the right end of the tape, once or several times in a
+row, and new blocks appear there; `step` in `py/passmap.py` follows these turns one by one (states `Ri` and
+`Riii`). The outcome is the same three rules with 0 for the missing blocks: `[100, 123]` becomes `[35, 63, 126, 2]`.
+
+**Checks.** The map gives every one of the 2,406 events of the first 3·10^9 steps from step 66 on
+(`passmap.py check`). Of every list of 2 to 5 blocks below 10 and 60,000 random lists (126,420 lists), 118,645 are
+inside the map's domain and all agree with the machine, turn by turn and as one `visit` (`passmap.py test`); the
+other 7,775 are outside it.
+
+**The domain, and where the machine halts.** The rules need room. The map answers only if no value `cur` after the
+first is 1, 2, 3 or 5, and the value at the last block, if the dealing gets there, is not 4 or 7 either. From lists
+outside this domain the machine was run directly (`passmap.py off`, 8,569 lists):
+
+| the first bad value | what the machine does |
+|---|---|
+| a later `cur` = 5 | halts, every time (3,777 lists), within a few hundred steps when a block follows |
+| a later `cur` = 3, a block after it | halts, every time (2,209) |
+| a later `cur` = 1, a block after it | halts in 446 lists, goes on in 551 |
+| a later `cur` = 2 | never halts (1,055): the two blocks merge |
+| `cur` = 1 or 3 at the last block | does not halt (148) |
+| `cur` = 4 or 7 at the last block | halts (383) |
+
+Since `cur = l(i) + 2j` with j from the block before, a bad value needs **two small neighbours at the left end**:
+the first block 1, 4 or 7 and the second block at most 5 (or three small blocks in a row). The typical case is
+`[4, 3, ...]` or `[4, 1, ...]`: 4 keeps 2 and gives 2, the next value is 5 or 3, and the machine halts.
+
+**Does the run get there?** The first block is cut by 3 at every visit, so it is 1, 4 or 7 all the time (9.3·10^7
+times between events 2^31 and 2^32). The second block is large by then, because every r = 0 or r = 2 visit adds
+two thirds of the first block to it; it stays small only through a long row of r = 1 visits. `c/passrun.c` runs
+the map on 64-bit counts and prints, for each doubling of the event count, how small the second block was at
+those moments:
+
+| events | ones on the tape | smallest second block | second block ≤ 50 | ≤ 100 | ≤ 200 |
+|---|---|---|---|---|---|
+| 2^24 to 2^25 | 9.8·10^7 | 20 | 1 | 17 | 98 |
+| 2^26 to 2^27 | 3.9·10^8 | 46 | 1 | 16 | 104 |
+| 2^28 to 2^29 | 1.6·10^9 | 29 | 3 | 22 | 109 |
+| 2^30 to 2^31 | 6.3·10^9 | 54 | 0 | 18 | 127 |
+| 2^31 to 2^32 | 1.3·10^10 | 46 | 1 | 14 | 112 |
+
+In 8·10^9 events (2.35·10^10 ones on the tape) the map never leaves its domain, so, as far as the map is right,
+the machine does not halt in that time. But the near misses do not thin out: each doubling of the event count
+brings about 20 second blocks below 100 and about 2 below 50, the same in every row from 2^13 on. Reading the
+counts as a power law (about 20·(x/100)^2.3 states with second block ≤ x per doubling) gives of the order of
+0.01 halting lists per doubling. That is a guess from a fit, not a bound, but it is not a sum that converges:
+**the machine looks more likely to halt than not, and far beyond any run**: an even chance of a halt needs
+something like 2^70 events or more, and the ones on the tape grow by 2.9 per event.
+
+**Not done.** The step count of an event (so the run is stated in events, not steps); the map in Lean (the deal
+rules `deal` and `deals` are there, the three remainder cases and the turns are not); the exact rules outside
+the domain (only the table above).
 
 ## Status
 
-Open. Kernel: the halting configurations, no halt in 10^4 steps (10^7 native), the travelling-0 rule `c_shift`,
+Open; the event map above suggests a halt, far beyond any run. Kernel: the halting configurations, no halt in 10^4 steps (10^7 native), the travelling-0 rule `c_shift`,
 the deal `deal` and j deals at once (`Deal.lean`, `deals`). Halting needs E to read a 1. CTL (K = 2..5) and
 NGramCPS (widths 2-8, -H, -U) fail.
 
 ## For later
 
-Write the exact pass map from the three remainder cases (as was done for the sibling, whose map is
-`py/passmap.py` there), check it against the simulator, and look for the analogue of the sibling's restarts: the
-sibling halts only through a restart whose buffer is 2 mod 3, and this machine's halting transition E1 is likely
-reached the same way, when a cascade runs out of room.
+Prove the event map in Lean from `deals` (the three remainder cases, the vanishing block, the right-end turns),
+then the halt from a later value 5. With both, "the machine halts iff the map reaches a list of the table" would be
+a theorem up to the undecided row (a later value 1). A halt hunt by iteration is hopeless at the measured rate; a
+way to jump over whole cascades of the first block would be needed.
 
 ## Reproduce
 
@@ -68,6 +143,11 @@ reached the same way, when a cascade runs out of room.
 ./tmrun 1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF 3000000000 at C R 100000
 . /etc/profile.d/lean.sh && holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/lean/check.sh
 python3 holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF/lean/rules.py > /tmp/Rules.lean   # regenerates Rules.lean
+cd holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF
+gcc -O2 -o events c/events.c && gcc -O2 -o onestep c/onestep.c && gcc -O2 -o passrun c/passrun.c
+./events 3000000000 > events.txt && python3 py/passmap.py check events.txt   # ~1 min
+python3 py/passmap.py test ./onestep && python3 py/passmap.py off ./onestep   # ~3 min
+./passrun 8e9                                                                 # ~3 min
 ```
 
 ## Pages
