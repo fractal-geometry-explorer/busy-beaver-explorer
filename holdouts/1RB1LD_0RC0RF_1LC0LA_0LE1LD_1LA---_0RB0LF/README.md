@@ -135,10 +135,13 @@ those moments:
 | 2^33 to 2^34 | 5.1·10^10 | 28 | 3 | 20 | 161 |
 | 2^34 to 2^35 | 1.0·10^11 | 36 | 1 | 10 | 83 |
 | 2^35 to 2^36 | 2.0·10^11 | 41 | 2 | 16 | 138 |
+| 2^36 to 2^37 | 4.0·10^11 | 40 | 1 | 19 | 123 |
+| 2^37 to 2^38 | 8.1·10^11 | 58 | 0 | 12 | 137 |
 
-In 6.9·10^10 events (2^36; 2.0·10^11 ones on the tape) the map never leaves its domain, so the machine does not
-halt in that time (the map is proved in Lean; the run of it is a C program on 64-bit counts, 5.7·10^7 events a
-second, and it is still going). But the near misses do not thin out: each doubling of the event count
+In 1.1·10^12 events (2^40; 3.2·10^12 ones on the tape, 9 blocks) the map never leaves its domain, so the machine
+does not halt in that time (the map is proved in Lean; the run of it is a C program on 64-bit counts, 5.7·10^7
+events a second, 5.4 hours). The run was made in stretches, resumed from saved lists; the counts of the last two
+doublings are incomplete for that reason and are not in the table. But the near misses do not thin out: each doubling of the event count
 brings about 20 second blocks below 100 and about 2 below 50, the same in every row from 2^13 on. Reading the
 counts as a power law (about 20·(x/100)^2.3 states with second block ≤ x per doubling) gives of the order of
 0.01 halting lists per doubling. That is a guess from a fit, not a bound, but it is not a sum that converges:
@@ -177,7 +180,7 @@ gcc -O2 -o events c/events.c && gcc -O2 -o onestep c/onestep.c && gcc -O2 -o pas
 ./events 3000000000 > events.txt && python3 py/passmap.py check events.txt   # ~1 min
 python3 py/passmap.py test ./onestep && python3 py/passmap.py off ./onestep   # ~3 min
 python3 py/passmap.py lean                                                    # the Lean definition against visit
-./passrun 7e10                                                                # ~20 min
+./passrun 7e10                                                                # ~20 min; 1.1e12 takes 5.4 hours
 ```
 
 ## Pages
