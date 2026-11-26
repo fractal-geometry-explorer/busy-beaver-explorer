@@ -228,7 +228,7 @@ still a property of the whole word, not of its end.
 
 **The run, further.** `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c` runs the same deficit pass with several rounds in flight (each round stays 8 or
 more cells behind the one before; its words are those of `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c`, checked cell for cell after 20,000 rounds,
-and `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c` after 200,000 rounds). Result, 2,000,000 rounds (about 2 hours with 3 threads; the word is then 12,427,700 cells long): no halt and no `111`. There are 12 junk events, in rounds 161,210, 194,646, 757,565, 906,775, 1,042,306, 1,489,725, 1,731,288, 1,768,130, 1,794,988, 1,799,191, 1,802,854 and 1,975,596, and all 12 have the same shape: the round's last blocks are a doubler, then `000` (count 2, even deficit), then the junk `0` before the word's last `1` (the cells read `1010 000 1 1`); each time the next round enters at offset 1 and passes through `1011` (12 uses of `1011`, one after each junk event). No junk event has yet had a digit block before its last `000`, the only way to an odd deficit there. Continued from the saved word to round 3,000,000 (`./piperun 3 3000000 50000 OUT p2M.txt 2000000`, about 7 hours): no `111`; two more junk events, in rounds 2,717,689 and 2,959,136, both of the same safe shape. 14 junk events in 3,000,000 rounds, all after a doubler.
+and `../1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c` after 200,000 rounds). Result, 2,000,000 rounds (about 2 hours with 3 threads; the word is then 12,427,700 cells long): no halt and no `111`. There are 12 junk events, in rounds 161,210, 194,646, 757,565, 906,775, 1,042,306, 1,489,725, 1,731,288, 1,768,130, 1,794,988, 1,799,191, 1,802,854 and 1,975,596, and all 12 have the same shape: the round's last blocks are a doubler, then `000` (count 2, even deficit), then the junk `0` before the word's last `1` (the cells read `1010 000 1 1`); each time the next round enters at offset 1 and passes through `1011` (12 uses of `1011`, one after each junk event). No junk event has yet had a digit block before its last `000`, the only way to an odd deficit there. Continued from the saved word to round 3,000,000 (`./piperun 3 3000000 50000 OUT p2M.txt 2000000`, about 7 hours): no `111`; two more junk events, in rounds 2,717,689 and 2,959,136, both of the same safe shape. 14 junk events in 3,000,000 rounds, all after a doubler. Then to round 4,000,000 (resumed from saved words at 3,000,000, 3,400,000 and 3,800,000, 4 threads): no `111`; four more junk events (rounds 3,123,460, 3,199,248, 3,856,195 and 3,951,813), all of the same safe shape. 18 junk events in 4,000,000 rounds, all after a doubler; the word is then 24,856,760 cells long.
 <!-- T23-deficit:end -->
 
 
@@ -244,7 +244,7 @@ halts if a B1 or an E1 is ever followed by a 1 (in the reference's run, B1 and E
 ## Status
 
 Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the increments of both counters and the junk crossings, the reference's 9 theorems plus the E1 detour (`lean/Events.lean`). The pass over the word in deficit form, the count as 2^e − c (`lean/Deficit.lean`). `native_decide`: 10^7 steps and the first 2,000 rounds. C: no halt in
-10^11 steps, and no `111` in the first 3,000,000 rounds of the word pass.
+10^11 steps, and no `111` in the first 4,000,000 rounds of the word pass.
 
 ## Next steps
 
