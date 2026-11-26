@@ -100,13 +100,32 @@ Result on 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---, from `0^inf 01 (011)^k 0101
   nodes, still with new shapes. With one repeated digit
   (`rlepds ... 3 2 9 9 3 3 3 1 slack=1`) a single summary has 4,483 exits.
 
-So what is missing is small and specific: an exit that carries `(001)^c` as one item, bucketed as
-PR 37 does it (one run of equal digits, then one digit class), instead of rlepds's general runs.
+**Digit-level exits (tried next, same day).** rlepds now has the option `digits`: the tail is kept
+as digits `0^z 1`, only repeated digits are folded, and K counts digits and runs of equal digits.
+`run_tail.py --sumargs "..."` reads such exits, with `(001)^c` as one item.
+
+| summary parameters | exits of a typical summary | result |
+|---|---|---|
+| `2 1 9 9 3 3 3 1` (two runs) | 1 to 16 | spurious halt after 602 nodes, 6.5 minutes |
+| `1 2 9 9 3 3 3 1 digits slack=1` (one digit or digit run) | about 20 | the same spurious halt after 541 nodes, 11.5 minutes |
+| `2 2 6 6 3 3 3 1 digits` (two digits or digit runs) | about 180 | no verdict: stopped after 28 minutes at about 850 nodes, new shapes still appearing |
+
+The sampling check passes for both new settings (5,400 and 1,800 excursions, none uncovered).
+
+With two digit groups the step "same shape, k − 1" is still among the successors of
+`0^inf 01 (011)^k 11010111 D> ANY`, now with slightly different cells next to the head, and the left
+side starts to collect repeated blocks of its own (for example
+`(101)^k 111 (011)^a 01 (101)^b A> ANY`). So a richer exit alone does not close the set. Whatever
+the size of the remembered tail, the head uses it up and then faces cells that the search treats
+as unknown although the machine wrote them. A node would have to carry that fact, for example by
+keeping the previous excursion's exit as its right side instead of ANY, or by taking the round as
+PR 37 does, with one tail excursion per round from a fixed context.
 
 ```sh
 g++ -O2 -std=c++17 -o rlepds ../../c/rlepds.cpp
 python3 run_tail.py --rlepds ./rlepds --check 200 --nodes   # 6.5 minutes; ends at the spurious halt
 python3 run_tail.py --rlepds ./rlepds --maxnodes 60 --nodes   # the first nodes with their parents
+python3 run_tail.py --rlepds ./rlepds --sumargs "1 2 9 9 3 3 3 1 digits slack=1" --nodes   # 11.5 minutes
 ```
 
 ## Does the method transfer to F04?

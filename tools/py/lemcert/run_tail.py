@@ -43,23 +43,35 @@ class TailProver(Prover):
             exits = []
             for ln in out.splitlines():
                 mm = re.match(r"\s+exit (\w) \|(.*) ANY$", ln)
-                if not mm:
-                    continue
-                items = []
-                for tok in mm.group(2).split():
-                    a = re.fullmatch(r"([01])\^(\d+)", tok)
-                    b = re.fullmatch(r"([01])\^>=(\d+)%(\d+)=(\d+)", tok)
-                    if a:
-                        items.append((int(a.group(1)), 'eq', int(a.group(2)), 0))
-                    elif b:
-                        lo, md, r = int(b.group(2)), int(b.group(3)), int(b.group(4))
-                        lo += (r - lo) % md
-                        items.append((int(b.group(1)), 'ge', lo, md))
-                    else:
-                        raise ValueError("cannot read summary item " + tok)
-                exits.append((ord(mm.group(1)) - 65, items))
+                if mm:
+                    exits.append((ord(mm.group(1)) - 65, self.read_items(mm.group(2))))
             self.sums[key] = (res, exits)
         return self.sums[key]
+
+    @staticmethod
+    def read_items(text):
+        """rlepds's abstract side as a list of (word, kind, n, md): word repeated exactly n times ('eq') or
+        n + md*j times ('ge').  A repeated digit whose zero-run is itself only a class cannot be written with one
+        count; the list is cut there (what follows is ANY, which is weaker and so still correct)."""
+        def cls(t):
+            b = re.fullmatch(r">=(\d+)%(\d+)=(\d+)", t)
+            if not b:
+                return ('eq', int(t), 0)
+            lo, md, r = int(b.group(1)), int(b.group(2)), int(b.group(3))
+            return ('ge', lo + (r - lo) % md, md)
+        items = []
+        for pat, pc, sym, sc in re.findall(r"\[([^\]]*)\]\^(\S+)|([01])\^(\S+)", text):
+            if sym:
+                items.append(((int(sym),),) + cls(sc))
+                continue
+            runs = [(int(x), cls(y)) for x, y in re.findall(r"([01])\^(\S+)", pat)]
+            if all(k[0] == 'eq' for _, k in runs):
+                items.append((tuple(b for b, k in runs for _ in range(k[1])),) + cls(pc))
+            else:
+                # at least one copy: its runs one by one, then ANY
+                items.extend(((b,),) + k for b, k in runs)
+                break
+        return items
 
     def advance(self, c):
         q, f, L, R = c
@@ -110,9 +122,9 @@ class TailProver(Prover):
                 it = []
                 for b, kind, n, md in items:
                     if kind == 'eq':
-                        it.append(((b,), K(n)))
+                        it.append((b, K(n)))
                     else:
-                        it.append(((b,), (n, ((self.eng.fresh(), md),))))
+                        it.append((b, (n, ((self.eng.fresh(), md),))))
                 outs.append((canon((q2, 'L', rest, (tuple(it), 'A'))), ()))
         return outs
 
@@ -183,13 +195,13 @@ class TailProver(Prover):
         def rec(i, p):
             if i == len(items):
                 return True
-            b, kind, n, md = items[i]
+            w, kind, n, md = items[i]
             m = 0
-            while p + m < len(tape) and tape[p + m] == b:
+            while tuple(tape[p + m * len(w):p + (m + 1) * len(w)]) == w:
                 m += 1
             if kind == 'eq':
-                return m >= n and rec(i + 1, p + n)
-            return any(rec(i + 1, p + x) for x in range(n, m + 1, md))
+                return m >= n and rec(i + 1, p + n * len(w))
+            return any(rec(i + 1, p + x * len(w)) for x in range(n, m + 1, md))
         return rec(0, 0)
 
 
@@ -200,12 +212,15 @@ if __name__ == "__main__":
     ap.add_argument("--k0", type=int, default=42, help="the round point is (011)^k with k >= k0")
     ap.add_argument("--cap", type=int, default=400, help="lower bounds are exact below this value")
     ap.add_argument("--sumk", type=int, default=2, help="runs of the tail that a summary remembers")
+    ap.add_argument("--sumargs", default="", help="all rlepds parameters and options of a summary, in one string")
     ap.add_argument("--maxnodes", type=int, default=6000)
     ap.add_argument("--rlepds", default="rlepds")
     ap.add_argument("--check", type=int, default=0, help="random tails per summary for the sampling check")
     ap.add_argument("--nodes", action="store_true", help="print every node with its parent")
     a = ap.parse_args()
     SUMARGS[0] = str(a.sumk)
+    if a.sumargs:
+        SUMARGS[:] = a.sumargs.split()
     search.TS[0] = 8
     search.LEVELS[:] = list(range(8, a.cap))
     P = TailProver(M, a.rlepds, T=a.cap, keep=64, maxdepth=20000, maxnodes=a.maxnodes, verbose=True)
