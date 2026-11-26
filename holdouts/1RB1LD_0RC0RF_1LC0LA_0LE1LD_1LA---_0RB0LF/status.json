@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The tape is a handful of blocks of 1s. Each sweep right deals a block out, one third to the block on its left and two thirds to the block on its right (one deal and j deals at once are proved in Lean); while the remainder is 1 the dealt-out third is dealt again, so a block is cut by 3 over and over: a base-3 cascade, the ternary counterpart of its F10 sibling's binary one. The exact pass map is not written yet, so nothing is known about halting (E reading a 1)."
+  "<b>The question is open; the event map suggests a halt far beyond any run.</b> The tape is a list of blocks of 1s. At each visit to the left end the first block is divided by 3: remainder 1 passes two thirds on and deals the next block too, remainders 0 and 2 end the visit (the event map, checked against the machine on every event of the first 3&middot;10<sup>9</sup> steps and on 118,645 other lists; not proved). The machine halts when two small blocks meet at the left end, for instance a 4 followed by a 3. Run for 8&middot;10<sup>9</sup> events the map never gets there, but it keeps coming close at a steady rate, about 20 times per doubling of the run with a second block below 100, so a halt looks more likely than not, at a time no run can reach."
  ],
  "claims": [
   {
@@ -77,9 +77,33 @@
    "hand": true
   },
   {
+   "level": "trusted",
+   "title": "The event map",
+   "text": "At a left-end visit the tape is a list of blocks of 1s with single 0s between. Read it from the left with a running value cur = 3j + r: r = 1 keeps j + 1 and adds 2j to the next block, which is dealt in turn; r = 2 keeps j &minus; 1, adds 2j + 5 to the next block and ends the visit; r = 0 keeps j, adds 2j to the next block and 2 to the one after, and ends the visit. Then the first block gets one more, and vanishes if that makes it 0. Missing blocks count as 0. The map reproduces all 2,406 events of the first 3&middot;10<sup>9</sup> steps and agrees with the machine on all 118,645 test lists inside its domain (no later value 1, 2, 3 or 5; not 4 or 7 at the last block).",
+   "where": "<code>py/passmap.py check</code>, <code>test</code>; <code>c/events.c</code>, <code>c/onestep.c</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Where it halts: two small blocks at the left end",
+   "text": "Outside the map's domain the machine was run directly on 8,569 lists. A later value 5 halts every time (3,777 lists); a later value 3 with a block after it halts every time (2,209); a 4 or 7 at the last block halts (383); a later value 1 with a block after it halts in 446 lists and not in 551; a later value 2 never halts. A bad value needs the first block to be 1, 4 or 7 and the second at most 5, or three small blocks in a row.",
+   "where": "<code>py/passmap.py off</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "No halt in 8&middot;10<sup>9</sup> events of the map",
+   "text": "From L [7, 2] (step 66) the map runs 8&middot;10<sup>9</sup> events without leaving its domain; the tape then holds 2.35&middot;10<sup>10</sup> ones. This rests on the map, which is checked, not proved.",
+   "where": "<code>c/passrun.c</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "Near misses come at a steady rate",
+   "text": "Among the states whose first block is 1, 4 or 7, each doubling of the event count from 2<sup>13</sup> to 2<sup>32</sup> brings about 100 with a second block at most 200, about 20 at most 100 and about 2 at most 50; the smallest in the last ten doublings is 20. A power-law fit gives of the order of 0.01 halting lists per doubling, a sum that does not converge. So a halt looks more likely than not, but only after something like 2<sup>70</sup> events or more.",
+   "where": "<code>c/passrun.c</code>; README, section \"The event map\""
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The machine halts only when E reads a 1. The sweeps are a base-3 cascade (README); the exact pass map, and where in it E could meet a 1, are not worked out yet. CTL (windows of 2 to 5 cells) and NGramCPS (widths 2 to 8, with history) fail.",
+   "text": "Not known. By the event map a halt needs two small blocks side by side at the left end; the run comes near at a steady rate and has not got there in 8&middot;10<sup>9</sup> events. The map is not proved in Lean, and the case of a later value 1 is not decoded.",
    "where": ""
   }
  ],
@@ -156,7 +180,7 @@
    }
   ]
  },
- "summary": "Abacus of 1-blocks: each sweep right deals a block out a third to the left and two thirds to the right, re-dealing while the remainder is 1 (a base-3 cascade, the ternary sibling of 1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE); deals proved in Lean.",
+ "summary": "Abacus of 1-blocks with a base-3 dealing cascade. The event map is written and checked (not proved): the first block is divided by 3 at each left-end visit, and the machine halts when two small blocks meet at the left end. 8·10^9 events without a halt; near misses at a steady rate, so a halt far beyond any run looks likely.",
  "family": "abacus of 1-blocks with a base-3 dealing cascade (chaotic)",
  "decision": "open"
 }
