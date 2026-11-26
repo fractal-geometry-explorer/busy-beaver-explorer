@@ -135,5 +135,10 @@ How to read it:
   That is a lead for a non-halting proof, not a reason to hunt. Running the probe with Q = 2, 3, 6 keeps
   residues and shows which one matters.
 
+`OUT/run ens N0 G R N Q STEP` is a direct test: it follows R moved copies of orbit states (the first taken at
+visit N0, each next one STEP visits later) up to visit N, counts the halts per doubling, and then reports on how
+many different orbits the surviving copies are. On the three maps tried, different starts merge into a few
+orbits, so the copies are not independent samples and the count of halts comes in bursts.
+
 This is a heuristic: it treats the orbit as a typical point among its neighbours. It was calibrated on the one
 machine where the answer is known (see the ranking note).

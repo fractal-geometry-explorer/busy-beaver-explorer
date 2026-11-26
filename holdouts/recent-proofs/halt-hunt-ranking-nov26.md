@@ -22,6 +22,24 @@ it halts at visit 79,859,656,218,974, in the 47th doubling. The probe gives 0.03
 the same in all three settings and steady from doubling 13 to 22. That is about 1.2 expected hits by the time it
 halted. So the probe is at least of the right size there.
 
+**A second check, and what it showed instead: orbits merge.** The direct test of the estimate is to follow
+perturbed copies for many doublings and count how many halt (`run ens`). For 1,000 copies started between visits
+2^14 and 2^18 and followed to visit 2^24:
+
+| machine | halted | the estimate predicts | the 1,000 copies at the end |
+|---|---|---|---|
+| 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC | 229 | about 240 | 771 running, on 15 different orbits, 107 of them on the blank-tape orbit itself |
+| 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD | 311 | about 300 | 688 running, on 163 orbits, 8 on the blank-tape orbit |
+| 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE | 49 | about 360 | 949 running, on 68 orbits, 188 on the blank-tape orbit |
+
+The totals agree for the first two, but the copies are not independent samples. Different starts run into the
+same orbit, shifted in time, and the merging goes on: a longer run of 400 copies of the third machine left 362
+running on only 3 orbits. The halts come in bursts for the same reason (163 of the 229 in one doubling: one
+merged orbit halting). So this test cannot confirm the estimate, and it changes what the estimate means. The
+probe measures how often a *freshly moved* state halts before it merges. Whether the few orbits that everything
+merges into halt at the same rate is a separate question, and for the third machine the answer in this window is
+no: not one copy halted after visit 2^19.
+
 ## Results
 
 | machine | expected hits per doubling of visits | residues matter? | run so far | expected so far | observed |
@@ -52,7 +70,9 @@ within the spread of either.
    protecting them. Each has already run through about 3 expected hits without halting. Taken alone that happens
    2 to 6 times in a hundred; for both at once, about once in a thousand. Either the estimate is high by a factor
    of two or three for these two (it was not for the calibration machine), or the orbits avoid the halting set
-   for a reason that is not a parity or a residue mod 3. This is the most useful thing the table says: **these
+   for a reason that is not a parity or a residue mod 3. The merging above is a candidate for that reason: the
+   blank-tape orbit is one of a few orbits that nearly every start joins, and such an orbit need not look like a
+   typical neighbour. This is the most useful thing the table says: **these
    two deserve a search for an invariant as much as a longer run.**
 2. **A longer run still buys the most here, and both runners are already fast.** Their accelerated runners take
    frames in closed-form jumps, so the number of frames grows like the square of the compute: ten times the
@@ -91,7 +111,9 @@ comfortably and 10^13 with patience; beyond that a machine needs its own block s
 
 1. Extend the two runs of point 2 tenfold. Together that is about a week of one core each and +0.7 expected
    hits at face value.
-2. For the same two machines, look for what the orbit keeps that its neighbours do not. The probe can be pointed
+2. For the same two machines, look for what the orbit keeps that its neighbours do not, starting from the
+   merging: describe the states of the merged orbits (what a state looks like long after its last reset case)
+   and ask whether the halting cases can be reached from them. The probe can be pointed
    at any candidate: move the copies only in ways that keep it, and see whether the halting rate drops.
 3. If a halt is found, the replay needs a block step for that map (as `Block.v` is for the calibration machine),
    since 2^83 frames one at a time is out of reach.
