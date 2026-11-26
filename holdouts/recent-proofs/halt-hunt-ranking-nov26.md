@@ -73,7 +73,10 @@ within the spread of either.
    for a reason that is not a parity or a residue mod 3. The merging above is a candidate for that reason: the
    blank-tape orbit is one of a few orbits that nearly every start joins, and such an orbit need not look like a
    typical neighbour. This is the most useful thing the table says: **these
-   two deserve a search for an invariant as much as a longer run.**
+   two deserve a search for an invariant as much as a longer run.** One caution against reading too much into
+   the product: these two are on the list *because* they have not halted. Machines of the same kind that did
+   halt early (the calibration machine is one) are no longer holdouts, so a few survivors with 3 expected hits
+   behind them are what the same estimate predicts for the list as a whole.
 2. **A longer run still buys the most here, and both runners are already fast.** Their accelerated runners take
    frames in closed-form jumps, so the number of frames grows like the square of the compute: ten times the
    compute is 6.6 doublings, about +0.3 to +0.4 expected hits per machine. For
