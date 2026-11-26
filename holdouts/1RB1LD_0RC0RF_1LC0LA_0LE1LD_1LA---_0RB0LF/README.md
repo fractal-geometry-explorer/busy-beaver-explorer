@@ -51,8 +51,9 @@ The lengths look chaotic because the number of re-deals is a base-3 valuation. T
 
 ## The event map (26 November 2026)
 
-Computed and checked against the machine, not proved. `py/passmap.py` is the map; `c/events.c`, `c/onestep.c` and
-`c/passrun.c` are the tools around it.
+**Proved in Lean** (`lean/EventMap.lean`, `visit_sound`; see "The map in Lean" below), after being computed and
+checked against the machine. `py/passmap.py` is the map; `c/events.c`, `c/onestep.c` and `c/passrun.c` are the
+tools around it.
 
 **States.** Stop the machine each time the head, in state D, stands on the blank cell left of every 1. The tape is
 then a list of blocks of 1s with single 0s between them: `L [l0, l1, ..., lk]`. From blank tape the map starts at
@@ -81,13 +82,32 @@ row, and new blocks appear there; `step` in `py/passmap.py` follows these turns 
 inside the map's domain and all agree with the machine, turn by turn and as one `visit` (`passmap.py test`); the
 other 7,775 are outside it.
 
+**The map in Lean.** `lean/EventMap.lean` defines `visit` (the table above, blocks past the end counting as 0;
+`none` when a value after the first is 2, 3 or 5) and proves, by Lean's kernel alone:
+
+- `visit_sound`: if `visit l = some l'`, the machine goes from the left end with blocks `l` to the left end with
+  blocks `l'`, in one step or more;
+- `start`: from blank tape the machine is at `[7, 2]` after 66 steps;
+- `not_halts_of_run`: if the map can be applied for ever from `[7, 2]`, the machine does not halt;
+- `visitHalts_sound`, `halts_of_reach`: when the dealing meets a later value 5 (`[4, 3, ...]`, `[7, 1, ...]`,
+  `[1, 5, ...]`, `[4, 2, 3, ...]`), the machine halts: the head comes back in state E onto a 1. So if the map from
+  `[7, 2]` reaches such a list, the machine halts from blank tape.
+
+The proof follows the machine through three kinds of configuration: dealing (`1^(k+1) 000 F> 1^n 0 1^m`, with
+`deals`), between two blocks (`0000 1^c 0 C>`, the block being entered had c + 2 ones) and on the way back
+(`D> 0` with the finished blocks, each `0 1^a 0`, to the left). `lean/rules.py` generates the 21 rule statements
+between them (each remainder, the vanishing first block, the way back, the halt at 5), some in several versions
+for small blocks; the hand-written part chains them and does the arithmetic. `passmap.py lean` compares the Lean
+definition with `visit` on the 126,420 test lists: they agree on all 118,645 inside the domain and both give no
+answer on the rest.
+
 **The domain, and where the machine halts.** The rules need room. The map answers only if no value `cur` after the
 first is 1, 2, 3 or 5, and the value at the last block, if the dealing gets there, is not 4 or 7 either. From lists
 outside this domain the machine was run directly (`passmap.py off`, 8,569 lists):
 
 | the first bad value | what the machine does |
 |---|---|
-| a later `cur` = 5 | halts, every time (3,777 lists), within a few hundred steps when a block follows |
+| a later `cur` = 5 | halts, every time (3,777 lists); proved in Lean (`visitHalts_sound`) |
 | a later `cur` = 3, a block after it | halts, every time (2,209) |
 | a later `cur` = 1, a block after it | halts in 446 lists, goes on in 551 |
 | a later `cur` = 2 | never halts (1,055): the two blocks merge |
@@ -111,31 +131,40 @@ those moments:
 | 2^28 to 2^29 | 1.6·10^9 | 29 | 3 | 22 | 109 |
 | 2^30 to 2^31 | 6.3·10^9 | 54 | 0 | 18 | 127 |
 | 2^31 to 2^32 | 1.3·10^10 | 46 | 1 | 14 | 112 |
+| 2^32 to 2^33 | 2.5·10^10 | 40 | 1 | 17 | 119 |
+| 2^33 to 2^34 | 5.1·10^10 | 28 | 3 | 20 | 161 |
+| 2^34 to 2^35 | 1.0·10^11 | 36 | 1 | 10 | 83 |
+| 2^35 to 2^36 | 2.0·10^11 | 41 | 2 | 16 | 138 |
 
-In 8·10^9 events (2.35·10^10 ones on the tape) the map never leaves its domain, so, as far as the map is right,
-the machine does not halt in that time. But the near misses do not thin out: each doubling of the event count
+In 6.9·10^10 events (2^36; 2.0·10^11 ones on the tape) the map never leaves its domain, so the machine does not
+halt in that time (the map is proved in Lean; the run of it is a C program on 64-bit counts, 5.7·10^7 events a
+second, and it is still going). But the near misses do not thin out: each doubling of the event count
 brings about 20 second blocks below 100 and about 2 below 50, the same in every row from 2^13 on. Reading the
 counts as a power law (about 20·(x/100)^2.3 states with second block ≤ x per doubling) gives of the order of
 0.01 halting lists per doubling. That is a guess from a fit, not a bound, but it is not a sum that converges:
 **the machine looks more likely to halt than not, and far beyond any run**: an even chance of a halt needs
 something like 2^70 events or more, and the ones on the tape grow by 2.9 per event.
 
-**Not done.** The step count of an event (so the run is stated in events, not steps); the map in Lean (the deal
-rules `deal` and `deals` are there, the three remainder cases and the turns are not); the exact rules outside
-the domain (only the table above).
+**Not done.** The step count of an event (so the run is stated in events, not steps); the exact rules outside
+the domain other than the halt at 5 (only the table above). After a later value 3 with a block after it, the
+machine starts a left-end visit of its own on the blocks to the right, the finished blocks staying behind `000`;
+the same rules hold there until that inner first block is down to 2, and what happens then is not decoded. A
+later value 2 merges two blocks.
 
 ## Status
 
 Open; the event map above suggests a halt, far beyond any run. Kernel: the halting configurations, no halt in 10^4 steps (10^7 native), the travelling-0 rule `c_shift`,
-the deal `deal` and j deals at once (`Deal.lean`, `deals`). Halting needs E to read a 1. CTL (K = 2..5) and
+the deal `deal` and j deals at once (`Deal.lean`, `deals`), **the event map** (`EventMap.lean`: `visit_sound`,
+`start`, `not_halts_of_run`) and the halt at a later value 5 (`visitHalts_sound`, `halts_of_reach`). Halting needs E to read a 1. CTL (K = 2..5) and
 NGramCPS (widths 2-8, -H, -U) fail.
 
 ## For later
 
-Prove the event map in Lean from `deals` (the three remainder cases, the vanishing block, the right-end turns),
-then the halt from a later value 5. With both, "the machine halts iff the map reaches a list of the table" would be
-a theorem up to the undecided row (a later value 1). A halt hunt by iteration is hopeless at the measured rate; a
-way to jump over whole cascades of the first block would be needed.
+The event map and the halt at a later value 5 are proved. Left: the other rows of the table (a later value 3,
+2 or 1) as Lean rules, so that "the machine halts iff the map reaches a list of the table" becomes a theorem. A
+halt hunt by iteration is hopeless at the measured rate (each event is already one step of the map, and the
+blocks' base-3 digits are used up one visit at a time); a way to jump over whole cascades of the first block
+would be needed.
 
 ## Reproduce
 
@@ -147,7 +176,8 @@ cd holdouts/1RB1LD_0RC0RF_1LC0LA_0LE1LD_1LA---_0RB0LF
 gcc -O2 -o events c/events.c && gcc -O2 -o onestep c/onestep.c && gcc -O2 -o passrun c/passrun.c
 ./events 3000000000 > events.txt && python3 py/passmap.py check events.txt   # ~1 min
 python3 py/passmap.py test ./onestep && python3 py/passmap.py off ./onestep   # ~3 min
-./passrun 8e9                                                                 # ~3 min
+python3 py/passmap.py lean                                                    # the Lean definition against visit
+./passrun 7e10                                                                # ~20 min
 ```
 
 ## Pages

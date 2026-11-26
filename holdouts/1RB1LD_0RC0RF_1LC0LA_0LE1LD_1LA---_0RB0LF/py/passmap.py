@@ -9,6 +9,7 @@ usage: passmap.py check EVENTS_FILE   compare with the output of c/events.c
        passmap.py test ONESTEP [N]    compare with c/onestep.c on every list of 2 to 5 blocks below 10 and N random lists
        passmap.py off ONESTEP [N]     what the machine does from lists outside the domain
        passmap.py run EVENTS          iterate from L [7, 2]
+       passmap.py lean [N]            compare `visit` with the definition proved in lean/EventMap.lean, same lists as test
 """
 import itertools, random, subprocess, sys
 BAD=(1,2,3,5)
@@ -69,6 +70,30 @@ def visit(l):
     if res[0]==0: res=[res[1],(res[2] if len(res)>2 else 0)+2]+res[3:]
     return res
 
+def unstack(s,t):
+    for a in s: t=[a+1]+t
+    return t
+def lean_later(s,cur,rest):
+    """`later` of lean/EventMap.lean (without the fuel): s the finished blocks, nearest first."""
+    hd=lambda l: l[0] if l else 0
+    while True:
+        j=cur//3
+        if cur==4: s=[1]+s; cur=hd(rest)+2; rest=rest[1:]; continue
+        if cur<6: return None
+        if cur%3==1: s=[j]+s; cur=hd(rest)+2*j; rest=rest[1:]; continue
+        if cur%3==2: return unstack(s,[j-1,hd(rest)+2*j+5]+rest[1:])
+        return unstack([j-1]+s,[hd(rest)+2*j,hd(rest[1:])+2]+rest[2:])
+def lean_visit(l):
+    """`visit` of lean/EventMap.lean (without the fuel)."""
+    hd=lambda l: l[0] if l else 0
+    if not l or l[0]==0: return None
+    l0,rest=l[0],l[1:]; j=l0//3
+    if l0==1: return None if hd(rest)<2 else lean_later([1],hd(rest),rest[1:])
+    if l0==2: return [hd(rest)+5,hd(rest[1:])+2]+rest[2:]
+    if l0%3==1: return lean_later([j+1],hd(rest)+2*j,rest[1:])
+    if l0%3==2: return [j,hd(rest)+2*j+5]+rest[1:]
+    return unstack([j],[hd(rest)+2*j,hd(rest[1:])+2]+rest[2:])
+
 def why(l):
     """Where the map leaves its domain from L(l): ('nested', value, is_last), ('Q', Q), ('single',) or None."""
     i=0; cur=l[0]; n=len(l)
@@ -121,6 +146,16 @@ if __name__=='__main__':
         for l,o in zip(tests,simulate(sys.argv[2],tests,300000000)):
             k=(why(l),o.split()[0]); tab[k]=tab.get(k,0)+1
         for k in sorted(tab,key=str): print(k,tab[k])
+    elif cmd=='lean':
+        tests=lists(int(sys.argv[2]) if len(sys.argv)>2 else 60000,5)
+        ok=bad=out=more=0
+        for l in tests:
+            p=nextL(l); q=lean_visit(l)
+            if p is None:
+                out+=1; more+=q is not None
+            elif q==p[1]==visit(l): ok+=1
+            else: bad+=1; print('MISMATCH',l,p,q)
+        print(len(tests),'lists:',ok,'agree,',bad,'disagree,',out,'outside the checked domain, of which the Lean map answers',more)
     elif cmd=='run':
         s=('L',[7,2]); n=int(float(sys.argv[2])); k=1
         while k<n:
