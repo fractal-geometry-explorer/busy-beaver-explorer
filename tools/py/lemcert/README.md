@@ -41,6 +41,8 @@ short.
 - `verify.py` samples concrete instances of every node and checks that each observed exit is
   covered by a recorded exit. The last version has no unsound node.
 - `run_ek.py` starts the search from `0^inf 01 (011)^k 0101 A> ANY`, which is E k in cells.
+- `run_tail.py` is a later variant that takes its tail lemmas from rlepds (see "Tail summaries from
+  rlepds" below).
 
 ## Why it does not close
 
@@ -59,6 +61,53 @@ short.
 Fixing 1 and 2 comes down to DeepMind's hand-chosen digit-level domain: capped digits, a right
 tape of one digit or one run of equal digits plus a coarse atom, and exits bucketed in that
 domain. That domain is specific to the machine.
+
+## Tail summaries from rlepds (26 November 2026, later the same day)
+
+`run_tail.py` replaces the lemma search of `search2.py` by tail summaries computed by
+`tools/c/rlepds.cpp`, and keeps this directory's engine for everything else. **It still settles no
+machine**, but it removes failure 1 above, shrinks failure 3 and makes failure 2 exact.
+
+- **A node** is a configuration whose head faces the bare unknown tail. Between two nodes every
+  count is an exact linear form and sweeps are loop rules, so nothing decays inside a round.
+- **The tail lemma** is one call: `rlepds MACHINE 2 1 9 9 3 3 3 1 enter=Qh lctx=CELLS`. CELLS are the
+  literal cells left of the head (the left context). The answer lists every way the head can leave
+  the context to the left, for every tail, as a state and the first two runs of the rewritten
+  tail. A walk of any length into the tail is inside the call, because the left side above the
+  context is the stack of rlepds's pushdown system. Each call takes a few milliseconds and has
+  1 to 16 exits.
+- **Lower bounds are exact** below a cap (400), so a node keeps the true minimum of its counter.
+- `--check N` runs the real machine on N random tails for every summary used and tests that each
+  way out is a listed exit: 12,800 excursions over the 64 summaries of the run below, none
+  uncovered.
+
+Result on 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---, from `0^inf 01 (011)^k 0101 A> ANY`, k ≥ 42:
+
+- The rounds are followed exactly. For example `(011)^(v+41)` becomes `(101)^(4w+59)` after one
+  round and `(101)^(16w'+89)` after two, with 56 node shapes among 602 nodes (not thousands).
+- The search stops after 602 nodes (6.5 minutes) at a spurious halt, and the reason is one chain
+  of nodes: `0^inf 01 (011)^k 11010111 D> ANY` leads to the same shape with k − 1, for every k
+  from 41 down to 1 (41 nodes).
+  One abstract excursion takes one unit of the counter, and the next node forgets everything to
+  the right of the head, so the same thing can happen again.
+- On the real machine this step exists but does not repeat. From `01 (011)^k 10101 A>`, the tail
+  `110` gives the same shape with k − 1 in 21 steps, and a 10-cell tail gives k − 2 in 146 steps.
+  No tail of up to 22 cells gives k − 3 within 3,000 steps. What stops it is what the excursion
+  itself wrote on the right, which is the part a two-run summary forgets. This is failure 2
+  above (the lost fact `(001)^c 0^{≥5} 1`) in its smallest form.
+- Summaries that remember more do not help yet. With 4 runs (`--sumk 4`) the junk left of the
+  head grows (contexts of 20 and more cells) and the search was stopped after 25 minutes at 450
+  nodes, still with new shapes. With one repeated digit
+  (`rlepds ... 3 2 9 9 3 3 3 1 slack=1`) a single summary has 4,483 exits.
+
+So what is missing is small and specific: an exit that carries `(001)^c` as one item, bucketed as
+PR 37 does it (one run of equal digits, then one digit class), instead of rlepds's general runs.
+
+```sh
+g++ -O2 -std=c++17 -o rlepds ../../c/rlepds.cpp
+python3 run_tail.py --rlepds ./rlepds --check 200 --nodes   # 6.5 minutes; ends at the spurious halt
+python3 run_tail.py --rlepds ./rlepds --maxnodes 60 --nodes   # the first nodes with their parents
+```
 
 ## Does the method transfer to F04?
 
