@@ -120,6 +120,20 @@ for some k >= 0.
    steps can start a chain (R, A, A' or the start); `halts_iff_chain_start` only says the previous point does not
    make a C step with s = 0.
 
+## Residue classes cannot settle it (26 November 2026)
+
+Section G of `holdouts/recent-proofs/technique-survey-nov26.md` asked for a finite set of (residue, phase) classes
+that the map keeps and that misses the halting values. `py/residues.py` searches for one at the chain starts
+(x, m0, 0), m0 = 1 or 3, where the first chain halts iff x = h_k (`crit_m1`, `crit_m3`). A class is
+(v mod N, k mod P, m0, cell), with k the level of x (h_k ≤ x < h_(k+1)), v = x − h_k, P a common period of k and
+2^k mod N, and the cell one of B equal parts of the level; plain residues of x are useless here, because the h_k
+together cover every residue class (checked for every N < 200). From the class of the run after 60 rounds the search follows real rounds of the map
+from members of many sizes. In all 126 searches (N = 2..48, 64, 81, 96, 128, 243, 256 with 1 and 16 cells;
+N = 2, 3, 4, 6, 8, 9, 12, 16, 27, 32 with 64 and 256 cells) it reaches the class of a halting value, after a
+chain of at most 11 classes. So no closed set of such classes exists for these N and B: as for
+1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE, residues, the level and the rough size together do not keep the orbit
+off the h_k. Trusted (Python); nothing to check in Lean, since there is no hit.
+
 ## Pages
 
 - [`pages/holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/explainer.html`](../../pages/holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/explainer.html)
@@ -137,6 +151,7 @@ python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/exact.py          
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/heuristic.py 1000                # the chance-of-a-hit sum, ~1 min
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/rounds.py jrun 200                   # the numbers lean/Early.lean checks
 python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/rounds.py chains 20                 # the chains of the first 20 rounds
+python3 holdouts/1RB---_1RC1LE_0RD0RF_0RE0LA_1LF0LB_1LA1LD/py/residues.py                        # the residue-class search, ~25 s
 ```
 
 <!-- related machines: written by holdouts/related.py -->

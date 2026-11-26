@@ -294,6 +294,13 @@ digits of the start, and 10^8 steps show no structure. The end of level 2 is fix
 out faster than computing them (this is Mahler's 3/2 problem in another base). A decision would need a new
 idea about this one orbit, not about the map.
 
+**Residue classes of the orbit** (26 November 2026, section G of `holdouts/recent-proofs/technique-survey-nov26.md`).
+`py/residues.py` closes the class of 22 mod M under f for every M ≤ 2000. The closure is every class unless 31
+divides M; mod 31 it is K mod 31 and the start, which only records the r of the step before, and every class of the
+closure mod 961 still has members with each r. So closed sets exist only in this trivial form and none restricts
+the next r, as `rlist_onto` says. The halt is also not a value of the orbit (it depends on where the budget runs
+out), so this search could not have decided the machine; it is recorded as a negative.
+
 ## Remainder classes at a nearly empty tail (closed-set test, 13 Nov)
 
 The method that closed another holdout (keep the big counts free, track only remainders; it proves non-halting if no

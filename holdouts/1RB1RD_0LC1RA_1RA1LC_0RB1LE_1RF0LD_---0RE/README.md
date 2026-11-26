@@ -156,6 +156,17 @@ to 48 and for `N = 64, 96, 128, 192, 256`, some reachable all-ones class is a fa
 `s ↦ 2s - L` with `L ↦ L + 2` reach every residue pair of the right parity mod every `N ≤ 64`. Which branch is taken
 depends on the size of `s`, and only that keeps the run off the list.
 
+**Residues with the level and the size** (26 November 2026, section G of
+`holdouts/recent-proofs/technique-survey-nov26.md`). The search above takes the fatal lengths mod `N` for every `k`
+at once and ignores sizes. `py/sizeresidues.py` (in the folder of 1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE, with the
+offsets of all four machines) refines it on the doubling form: a class is (`s mod N`, `u mod N`, `k mod P`, the cell
+of `s/L` among `B` cells, the half of the level), where `k` is the level of `L`, `u` its distance from the fatal
+`L` of that level, and `P` a common period of `k` and `2^k`. From the class of a point far along a model orbit it
+follows real steps of the map from members of many sizes. For `N` = 2..13, 15, 16, 24, 27, 32 and `B` = 2, 8, 32
+every one of the 51 searches reaches the class of a fatal midpoint, for each of the four machines. So no closed set
+of such classes keeps the doubling map off its fatal midpoints. Trusted (Python, about 80 s); no hit, so nothing to
+check in Lean.
+
 Heuristic: with `s` uniform on the circle, a midpoint at a given stop has chance about `1/L`, so up to modulus `L`
 there are about `½ ln L` midpoint all-ones tapes: 7.1 in the first 20,000,000 phases (`L` up to
 13,300,000), against 5 seen. The fatal moduli double, so the chance of a fatal one after the 10^11 phases
