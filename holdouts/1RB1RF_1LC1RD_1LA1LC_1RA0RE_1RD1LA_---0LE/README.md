@@ -76,6 +76,31 @@ Tape samples (runs of 1s separated by single 0s, left to right; `a^k` is k runs 
 - step 100,000,000: `6006 6 4 0^10160 23 0^21 4 0^19 4 0^11 4 0^17 8 0^27 4 0 4`
 - step 1,000,000,000: `44842 1688 0^2 4 0^848 11 0^7 4 0^15 4 0^17 4 0^19 4 0^11 4 0^17 8 0^27 4 0 4`
 
+## Free residues: a halting word exists (26 November 2026)
+
+The shortest residue sequence asked for under "Next steps" was searched with
+`holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/freehalt.py` (that machine has the same epoch structure, and the same tails
+occur along the word below; the script serves both). With g mod 4 chosen freely at every epoch:
+
+- No halt and no lone run `1` in R within 17 epochs of the first R (`1^4`), all choices tried.
+- A halt is reachable in 172 epochs. A lone 1 is made by wearing down the odd run of `11 .3 4` at the bottom of R
+  (`.n` is a gap of n zeros): 11, 9, 7, 5, 3, 1, each step needing a longer stretch of epochs with g = 2 mod 4 (4, 5,
+  11, 23, 47 in a row). Then 70 epochs with g = 0 mod 4 use up the gap above the lone 1 and the second epoch
+  after them with g = 2 mod 4 halts:
+
+      0000 2 0 2222 0 22222 0 2^11 0 2^23 0 2^47   ->   11 .3 4 .567 1 .3 4   (after 100 epochs)
+      0^70                                         ->   851 .3 4 .7 1 .3 4    (after 170 epochs)
+      2                                            ->   867 .4 1 .3 4         (after 171 epochs)
+      2                                            ->   halt
+
+- The last six epochs were also run with real gaps: `0^inf A> 0 1 0^96 R` with R = `803 .3 4 .39 1 .3 4` halts in
+  its sixth epoch.
+
+The residue of the next gap is one more binary digit of g, so every finite word of residues is followed by some
+gap. A proof of non-halting therefore cannot treat the residues as free (the method of DeepMind's cryptids pull
+request 37, which works for any tail, does not apply): it has to show that the orbit of g -> 3g/2 + c never spells
+such a word, about 170 chosen residues in a row. Heuristically one given word has probability about 2^-170 per epoch.
+
 ## Status
 
 Open. Proved in Lean: the halting configurations, no halt in 10^7 steps (`lean/Blank.lean`), the sweep rule and its
@@ -88,8 +113,8 @@ enough to halt drops with every epoch; like Antihydra, a proof would need contro
 
 - Prove the class map T in Lean for the R that occur (symbolic g in each class mod 4, with R as a context after
   its first few runs), and describe R as a stack automaton exactly: its alphabet and push/pop rules.
-- Find the shortest residue sequence that would lead to a halt from the current R (a lower bound on how improbable a
-  halt is).
+- Done (26 November): a residue sequence that leads to a halt, see "Free residues" above. It is the shortest the
+  guided search found (172 epochs from the first R, 180 from a later R of the sibling), not a proved minimum.
 
 ## Remainder classes (family survey)
 
@@ -105,5 +130,6 @@ enough to halt drops with every epoch; like Antihydra, a proof would need contro
 ## Check
 
 ```sh
+python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/freehalt.py check
 . /etc/profile.d/lean.sh && holdouts/1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/lean/check.sh
 ```

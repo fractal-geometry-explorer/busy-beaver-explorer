@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 13 November 2026.</p>
+    <p class="asof">Status as of 26 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -167,6 +167,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The region-memo accelerator <code>tools/py/bbtools/regaccel.py</code> ran with blocks of 6 cells, from blank tape for 1738 seconds and reached step 8.72&times;10<sup>110443</sup> without a halt. It keeps the tape run-length coded and, for each stretch of tape from the left end, a macro (the run until the head first leaves that stretch) computed by a symbolic run of the machine with the long runs as variables; a macro is used only when the linear inequalities its symbolic run assumed hold, otherwise the stretch is run again by the same recursion. So the run is exact, step count included. Check: 3 configurations of this run (every time the head faced blank tape on the right, up to 2&times;10<sup>9</sup> steps) agree cell for cell with a direct run (<code>tools/py/regcheck.py</code>). This is a bounded run and says nothing about later steps.</p>
         <p class="where"><code>python3 tools/py/bbtools/regaccel.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE 6 1738</code>; <code>holdouts/regaccel.json</code></p>
       </div>
+      <div class="card">
+        <h3>With free residues a halting tail is reachable</h3>
+        <p>Let the residue g mod 4 (0 or 2) be chosen freely at every epoch, starting from the first tail <code>1<sup>4</sup></code>. All choices to depth 17 give no halt and no tail with a lone 1. A guided search finds a word of 171 residues after which the next epoch halts: it wears the odd run of <code>1<sup>11</sup> 0<sup>3</sup> 1<sup>4</sup></code> at the bottom of the tail down to a lone 1 (11, 9, 7, 5, 3, 1; this needs 4, 5, 11, 23 and 47 epochs in a row with residue 2), then uses up the gap above it with 70 epochs of residue 0. The last six epochs were also run with real gaps: <code>0^inf A&gt; 0 1 0^96 T</code> with T = <code>1<sup>803</sup> 0<sup>3</sup> 1<sup>4</sup> 0<sup>39</sup> 1 0<sup>3</sup> 1<sup>4</sup></code> halts in its sixth epoch.</p>
+        <p class="where"><code>holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/freehalt.py check</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -195,6 +200,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>Breadth first from the starting context, with every remainder at every context (whether or not the numbers can really produce that sequence of remainders, and only for m large compared with the contexts): 5,000 contexts expanded, 8,184 found, to depth 14. None of them halts; the search is not complete (the set of contexts keeps growing), and it says nothing about a halt that needs a context as long as the block itself.</p>
         <p class="where"><code>python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 bfs 5000</code></p>
       </div>
+      <div class="card">
+        <h3>The method of cryptids pull request 37 does not apply</h3>
+        <p>That proof shows that no tail at all can halt and carries only a lower bound on the counter. Here the counter side would work (a epoch never costs the gap more than 9 cells in any case tried), but the tail side does not: the residue of the next gap is one more binary digit of g, so every finite word of residues is followed by some gap, and one such word halts. A proof of non-halting has to show that the orbit of the 3/2 map never spells such a word (about 170 chosen residues in a row), a question of the Collatz type.</p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
@@ -212,7 +221,8 @@ holdouts/1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE 1000000000
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 check 1e9
 python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 orbit 960
-python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 bfs 300</code></pre>
+python3 holdouts/1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---/py/ctxround.py 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE L A 1 bfs 300
+python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/freehalt.py check</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

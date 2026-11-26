@@ -60,14 +60,63 @@ with a growing memory.
 * Computed (`py/phases.py`, macro simulator): 35 phases, no halt in 3.9·10¹³ steps; the gap is then 9,304,044.
 * Lean (`lean/Blank.lean`): no halt in 10⁷ steps; C: no halt in 10⁹ steps.
 
+## Free residues: a halting word exists (26 November 2026)
+
+This machine was a candidate for the method of DeepMind's cryptids pull request 37 (prove that no tail at all can
+halt, and carry only a lower bound on the counter). The gap passes the first test: a phase never costs it more than
+9 cells (X' >= 3X/2 - 9, over 4,533 contexts and on random tails). The tail fails the second test: **if the residue
+X mod 4 may be chosen freely at every phase, a halting tail is reachable.**
+
+**Where it can halt.** F is entered only from B reading 1 (`0RF`), and halts on a 0 to the right of that 1. When B
+comes from the right (after D or E wrote a 1 and moved left), the cell F reads is that fresh 1. So the machine halts
+only at `A> 0 1 0`: state A on a 0 followed by a lone 1.
+
+**The head at the tail.** A phase end is made of three moves, each a short loop of the table.
+
+| move | rule | steps |
+|---|---|---|
+| hole shift | `B> 0 1 1` becomes `1 1 B> 0`: a 0 travels right through a run of ones, two cells at a time | 4 |
+| write | at the end of the run the head writes ones into the gap (four when the gap allows) and D runs back left over the ones, filling the first 0 it meets | |
+| erase | `1 [B> 1] 1` becomes `[B> 1] 1 0`: the run left of the filled 0 is erased from the right, down to its first cell | 3 per cell |
+
+After an erase the head is again on a 0 before a single 1, and a hole shift starts from there. A run of ones that is
+erased becomes a gap, and a gap loses a few cells in each phase that reaches it, so the tail is a stack of small
+countdowns. A phase reads only the front of the tail (at most 160 cells in 3,000 free phases).
+
+**The halting word.** A lone 1 is made by wearing down an odd run that lies under a gap: `11 .3 4` at the bottom of
+the tail (`.n` is a gap of n zeros) goes 11, 9, 7, 5, 3, 1, and each step needs a longer stretch of phases with
+X = 2 mod 4 (4, 5, 11, 23, 47 in a row). Then 70 phases with X = 0 mod 4 use up the gap above the lone 1, and the
+second phase after them with X = 2 mod 4 halts:
+
+    1^8   (the first tail of the run)
+    000 2 0 2222 0 22222 0 2^11 0 2^23 0 2^47    ->   11 .3 4 .567 1 .3 4   (after 99 phases; the lone 1 appears in phase 98)
+    0^70                                         ->   851 .3 4 .7 1 .3 4    (after 169 phases)
+    2                                            ->   867 .4 1 .3 4         (after 170 phases)
+    2                                            ->   halt
+
+No shorter word exists up to 17 phases (all 218,814 tails reachable with free residues were tried: no halt and no
+lone 1). The same detour works on top of a tail of the real run: from the tail of phase 35 there is a word that
+halts in the 180th phase. The last six phases were also run with real gaps: `0^inf B> 0 1 0^96 T` with T = `803 .3 4 .39 1 .3 4`
+halts in its sixth phase.
+
+**What this means.** The residue of the next gap is one more binary digit of X, so every finite word of residues
+is followed by some gap. A proof that the machine never halts therefore has to use the digits of the orbit of
+X -> (3X + d)/2 itself: it must show that the run never spells one of these words, which need about 170 chosen
+residues in a row. That is a question of the Collatz type, and the method of pull request 37 does not apply.
+Heuristically the machine does not halt: one given word of 170 residues has probability about 2^-170 per phase.
+
+`py/freehalt.py` (with `c/phaseend.c`, one phase cell by cell for any machine of this shape) holds the search
+(`hunt`, `bfs`), prints the tails along a word (`show`) and replays the recorded words (`check`).
+
 ## For later
 
 * The tail is rewritten at its front by rules with parameters, read off the orbit (not proved), for instance
   `1^a 0^b -> 1^(a+12) 0^(b-6)` (X = 2 mod 4) and `-> 1^11 0^(a-3) 1^4 0^(b-4)` (X = 0 mod 4) for odd a >= 11;
   `1^4 0^b -> 1^4 0^3 1^4 0^(b-7)` (X = 0) and `-> 1^11 0^3 1^4 0^(b-4)` (X = 2). With b >= 8 they cover 1,440
   of the first 2,000 table phases without exception; other rules apply when the block of zeros is shorter. Prove them with symtm (the first part of a phase is already `phase` in `lean/Phase.lean`),
-  find a set of tails closed under both parities, and check whether any rule in it reaches F reading 0. Since no
-  halting entry has been seen even off the orbit, a proof of non-halting by such a closed set is the plausible way.
+  find a set of tails closed under both parities, and check whether any rule in it reaches F reading 0.
+  (26 November: no such closed set exists without a halt, see "Free residues" above. The rules are still worth
+  proving, to turn the measured table into a theorem "halts iff the map's orbit reaches a halting tail".)
 
 ## Remainder classes (family survey)
 
@@ -86,4 +135,5 @@ with a growing memory.
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/lean/check.sh
 python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/phases.py 1e12
 python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/tailmap.py near 300
+python3 holdouts/1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD/py/freehalt.py check
 ```
