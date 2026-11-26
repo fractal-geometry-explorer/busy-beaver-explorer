@@ -99,6 +99,23 @@ the spacer s_1, and the "irregular middle" is the low end of a binary number who
   exact window of K cells at the head plus run-length n-grams beyond it. It reaches no halting configuration, but
   for K = 6 to 10 and n = 2 to 5 it does not close yet: the far parts it allows let junk windows form near the tape
   ends.
+- **Any word over x, y, z is safe.** `c/randw.c` replaces, at sweep 60, everything after `111 x x z` except the last
+  KEEP words by a random word of 200 words over x, y, z. 54 runs (word probabilities from all-x to all-y and all-z,
+  KEEP from 1 to 6, 3·10^8 to 3·10^9 steps each, up to 870 sweeps) never halt. So the right end needs no special
+  shape either, and the invariant should be "the prefix `111 x x z`, then any word over the tokens and their merged
+  forms".
+- **The shape of a late tape.** At sweep 2051 (2·10^10 steps) the 6,400 words are: digits z separated by huge runs of
+  x on the left (`x^185 z x^11 z x^372 z x^66 z x^401 z x^6 z x^890 ...`), a short irregular zone of a few dozen words,
+  and then about 880 copies of the period `x x y x z`. During a right-to-left sweep each x the head passes becomes
+  `0111` (the word (1,3)) and the block of these words grows next to the head, so the left side reads
+  R-words, then a run of (1,3) words (with some z among them), then the head.
+- **One side exact.** `tools/c/pdfar.cpp` keeps the right side exactly, as a pushdown stack, abstracts the left side by
+  an automaton, and computes the reachable set exactly (post* saturation). With the window of the last K cells as the
+  automaton it reaches a halt for every K up to 14; with automata learned from the run (tokens 0^a 1^b, the last one
+  to three tokens remembered, n-grams of up to four tokens allowed per position from the left end) it still reaches a
+  halt: popping a token from the left side forgets which tokens came before it, and the right-end turn or a pulse
+  walking back over its own trail then sees a left side that the run never makes. The automaton needs to remember the
+  three zones of the left side (R-words, the (1,3) trail, the few cells the head has just written).
 
 ## Files
 
@@ -117,6 +134,7 @@ the spacer s_1, and the "irregular middle" is the low end of a binary number who
 | `c/rounds.c` | the tape as words x, y, z at every sweep |
 | `py/counter.py` | the tape of each sweep as the numbers N and S; checks the order-6 rotation |
 | `c/flip.c` | the run with digit words flipped at random every sweep (no halt) |
+| `c/randw.c` | the run with everything but the prefix and the last words replaced by a random word, at one sweep (no halt) |
 
 ## Check
 
