@@ -414,8 +414,8 @@ FIDX = {}            # first digit -> frozen words (found by frozen_cost)
 
 
 def frozen_match(t0, tail):
-    """(n, u, R) if t0 tail = u^n R for a frozen word u (n = 1 with u in digit form, or a v^n Y = u^n a Y with
-    a = u[:i] and a run of the rotation v = u[i:] u[:i]), R nonempty; else None.  No steps are counted."""
+    """(n, u, R) if t0 tail = u^n R for a frozen word u (n = 1 with u in digit form, or a v^n Y = u2^n a Y with
+    a = u[:i] the digits read so far, v = b a and u2 = a b frozen), R nonempty; else None.  No steps are counted."""
     for u in FIDX[t0]:
         R = tail
         ok = True
@@ -425,12 +425,18 @@ def frozen_match(t0, tail):
                     ok = False; break
                 x = R[0]
                 if type(x) is tuple:
-                    if x[0] == 'P' and type(x[1]) is int and x[2] == u[i:] + u[:i]:
-                        Y = R[1]
-                        for d in reversed(u[1:i]):
-                            Y = zcons(1, Y) if d == 0 else dcons(d, Y)
-                        STATS["funfrun"] = STATS.get("funfrun", 0) + 1
-                        return x[1], u, (t0, Y)
+                    if x[0] == 'P' and type(x[1]) is int and R[1] is not None:
+                        # a = u[:i] before a run v^n with v = b a: a (b a)^n Y = (a b)^n a Y, if a b is frozen
+                        v = x[2]
+                        L = len(v) - i
+                        if L > 0 and v[L:] == u[:i]:
+                            u2 = u[:i] + v[:L]
+                            if u2 == u or frozen_cost(u2) is not None:
+                                Y = R[1]
+                                for d in reversed(u[1:i]):
+                                    Y = zcons(1, Y) if d == 0 else dcons(d, Y)
+                                STATS["funfrun"] = STATS.get("funfrun", 0) + 1
+                                return x[1], u2, (t0, Y)
                     if x[0] not in ('Z', 'R', 'P'):
                         ok = False; break
                 e, R = untok(R)
