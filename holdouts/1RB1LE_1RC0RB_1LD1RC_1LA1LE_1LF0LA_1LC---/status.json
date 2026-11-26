@@ -11,9 +11,9 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "The tape holds two binary counters, U up and V down. When V runs out the machine rebuilds V from the bottom digits of U; the rebuild is now computed exactly as a map on the counters."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 57 (Alk, 2026-11-04) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 57 (Alk, 2026-11-04) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the ticks and 3 rebuild rules; the exact macro map finds no halt in the first 10<sup>1548</sup> steps.",
   "<b>Where a halt would come from.</b> Only from a rebuild after V reaches 0; which rebuilds halt is listed for small counters."
  ],
@@ -157,7 +157,7 @@
   ]
  },
  "family": "Up/down two counters with resets (G12 family 3b)",
- "summary": "Up/down counters with proved ticks; rebuild computed exactly as a map on (H, n, N); macro map on (H, n, N) computed exactly; no halt in ~10^1548 steps. Decided outside: busycoq PR 57 proves in Rocq that it never halts (compiled here).",
+ "summary": "Up/down counters with proved ticks; rebuild computed exactly as a map on (H, n, N); macro map on (H, n, N) computed exactly; no halt in ~10^1548 steps. Decided outside: busycoq PR 57 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "decision": "nonhalting",
  "decision_level": "outside"
 }

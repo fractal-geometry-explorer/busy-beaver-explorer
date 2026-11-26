@@ -224,7 +224,7 @@ def elsewhere(M, decision="open"):
             text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         out.append({"kind": "proof", "title": "Proved in Coq" if c.get("only") else "Also proved in Coq", "text": text})
-    if e.get("merged"):
+    if e.get("merged") and not e["merged"].get("pr"):
         g = e["merged"]
         out.append({"kind": "report", "title": f"Proved outside this repository: it {CLAIM[g['claim']]}",
                     "text": f"A Rocq proof that this machine {CLAIM[g['claim']]} is merged in {g['where']} "
@@ -246,8 +246,12 @@ def elsewhere(M, decision="open"):
             out.append({"kind": "proof", "title": f"An outside Rocq proof, compiled here: it {CLAIM[pr['claim']]}",
                         "text": f"<a href=\"{ext['busycoq']}/pull/{pr['n']}\">busycoq pull request {pr['n']}</a> "
                                 f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
-                                f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). The pull request is open: "
-                                "not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch "
+                                f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). " +
+                                (f"busycoq's maintainer merged it into the BB6 branch on {e['merged']['date']} (commit "
+                                 f"<code>{e['merged']['commit']}</code>), and the merged file is identical to the one "
+                                 "compiled here. " if e.get("merged", {}).get("pr") == pr["n"] else
+                                 "The pull request is open: not merged and not reviewed by the maintainer. ") +
+                                "We compiled the file on busycoq's BB6 branch "
                                 f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in " + (f"about {c['core_hours']} core-hours" if c.get('core_hours') else f"{c['seconds']} s") + ": "
                                 f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
                                 f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
@@ -338,7 +342,9 @@ def standing_line(M, decision, level="lean"):
               if all("xtensionality" in a for a in axl) else
               "with no axioms beyond the standard ones for Coq's machine integers (PrimInt63)")
         return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
-                "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "
+                "text": f"A Rocq proof in busycoq pull request {n[0]} (" +
+                        ("merged into busycoq's BB6 branch on " + e["merged"]["date"] if e.get("merged", {}).get("pr") in n
+                         else "open, not yet reviewed by the maintainer") + ") was "
                         f"compiled here, on busycoq's own definitions, {ax}. It is their proof, "
                         "not one written in this repository; the ledger below says what this repository checked on its own."}
     if kind == "outside":

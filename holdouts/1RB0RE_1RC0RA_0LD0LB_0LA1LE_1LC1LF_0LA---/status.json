@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
   "<b>Decided by an outside Lean proof: it halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The run is an exact <em>pass map</em>: sampled at the left end, the tape is a counter and a list of blocks <code>(10)^m</code>, and each pass changes it only at the counter and at one frontier, by about a dozen rules with exact step counts. The map is checked pass by pass to 1.1&middot;10<sup>9</sup> steps, and an accelerated simulator built on it goes to 7.9&middot;10<sup>10</sup> steps. Lean proves the main rule (a block grows by 4 while the next one shrinks) for every list of blocks. The other rules are not yet proved, and the long-term behaviour of the list is not known."

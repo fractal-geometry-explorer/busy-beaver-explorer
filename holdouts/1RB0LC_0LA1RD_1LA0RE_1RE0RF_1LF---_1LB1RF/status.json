@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape, adding a cell at each end per sweep, and the tape between holds runs of 1s and short 0-runs with no visible regular words. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 24 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 112 (Alex Havrilla, 2026-11-23) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof reads the left half of the tape as a word over the two pieces <code>1</code> and <code>10</code>, leaves the right half (a buffer of unary blocks) unconstrained, and tracks the left word with a 10-state automaton that reads the pieces in aligned pairs. Instead of one closed set of tapes it proves 18 nested assume-guarantee rules (from a turnaround whose left word is in one automaton state, the machine returns with a left word in another) by strong induction on a step budget. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 112 (Alex Havrilla, 2026-11-23) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof reads the left half of the tape as a word over the two pieces <code>1</code> and <code>10</code>, leaves the right half (a buffer of unary blocks) unconstrained, and tracks the left word with a 10-state automaton that reads the pieces in aligned pairs. Instead of one closed set of tapes it proves 18 nested assume-guarantee rules (from a turnaround whose left word is in one automaton state, the machine returns with a left word in another) by strong induction on a step budget. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Lean proves the exact way a halt would happen (B reading <code>1 0 1</code>) and that the other way in is harmless; the C simulator finds no halt in the first 10<sup>11</sup> steps, and in the first 10<sup>10</sup> steps the dangerous transition D0 only fires at the left end of the tape, always with a 0 after it. Why the left end never reads <code>1 0 1</code> is not known."
  ],
  "claims": [
@@ -177,7 +177,7 @@
    }
   ]
  },
- "summary": "Bouncer with a chaotic tape and no visible word structure; it halts only if A, on a fresh cell at the left end, finds 1 0 1 next to it, and in 10^10 steps it always finds 1 0 0 or 0 1 1. Decided outside: busycoq PR 112 proves in Rocq that it never halts (compiled here).",
+ "summary": "Bouncer with a chaotic tape and no visible word structure; it halts only if A, on a fresh cell at the left end, finds 1 0 1 next to it, and in 10^10 steps it always finds 1 0 0 or 0 1 1. Decided outside: busycoq PR 112 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "family": "chaotic two-sided bouncer, halt decided at the left end",
  "decision": "nonhalting",
  "decision_level": "outside"
