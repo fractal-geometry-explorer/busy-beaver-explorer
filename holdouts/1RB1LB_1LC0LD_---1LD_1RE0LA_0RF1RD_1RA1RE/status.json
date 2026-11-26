@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> Sweeps back and forth, rewriting period-5 words (00101, 10110 and their phases) and runs of 1s on every sweep; the tape is a soup of these pieces; a halt needs a leftward sweep to meet 0 0 1 just before a 1. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps."
+  "<b>The question is open.</b> Sweeps back and forth, rewriting period-5 words (00101, 10110 and their phases) and runs of 1s on every sweep; the tape is a soup of these pieces; a halt needs a leftward sweep to meet 0 0 1 just before a 1. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt, and that the tape left of the head never holds two 0s in a row, so a halt can only happen at the far left end of the tape; no halt in 10<sup>9</sup> steps."
  ],
  "claims": [
   {
@@ -58,6 +58,12 @@
    "where": "<code>halt_pred</code>, <code>halt_needs_pattern</code>, <code>lean/Halt.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "No 00 left of the head, so a halt only at the left end",
+   "text": "In every configuration of the run from blank tape the tape left of the head, with its leading blanks removed, contains no <code>0 0</code>: the only transition that writes 0 and moves right is E0&nbsp;→&nbsp;0RF, and E is entered only by transitions that write 1 and move right (D0 → 1RE, F1 → 1RE). With the halting pattern this means a halt needs D reading a 1 whose left neighbour is the leftmost 1 of the tape. The proof is the one for <code>1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</code> (the same table, renamed) with the names changed.",
+   "where": "<code>reachable_nogap</code>, <code>halt_at_left_end</code>, <code>lean/LeftEnd.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "Same table as its twin",
    "text": "<code>1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</code> is this table with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); it starts in the state this machine calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule here holds there after renaming.",
@@ -72,7 +78,7 @@
   {
    "level": "open",
    "title": "Does it halt from blank tape?",
-   "text": "Not known. The shallow near miss (D on a 1 with <code>1 0 1</code> on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known.",
+   "text": "Not known. The shallow near miss (D on a 1 with <code>1 0 1</code> on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known. A halt would have to happen at the far left end of the tape. For the same table started in another state (<code>1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE</code>) the left end on its own was studied in detail and does not close as a finite-state system.",
    "where": ""
   },
   {
@@ -116,6 +122,11 @@
     "level": "kernel",
     "value": "one way to halt",
     "text": "The local pattern every halt must pass through."
+   },
+   {
+    "level": "kernel",
+    "value": "left end only",
+    "text": "No <code>00</code> ever forms left of the head, so a halt can only happen at the far left end."
    }
   ],
   "presets": [
