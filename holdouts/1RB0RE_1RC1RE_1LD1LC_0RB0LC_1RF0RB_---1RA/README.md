@@ -2,7 +2,7 @@
 
 bbchallenge id 98995. One of the six-state holdouts whose halting from blank tape is open (group G09: the visited tape grows like the square root of the step count on both sides).
 
-**What it does.** A bouncer. The right 60% of the tape is the word `01011111` repeated, crossed word by word by both sweeps (proved); the left 40% is a zone in which every run of 1s is odd and every 0 single (observed at every sweep end), rewritten every round trip like a cellular automaton. The leftward sweep just moves each 0 one cell left; the rightward sweep zigzags through the zone. The halt (F0) needs E on two 0s in a row, which no run has shown. Decision: open.
+**What it does.** A bouncer. The right 60% of the tape is the word `01011111` repeated, crossed word by word by both sweeps (proved); the left 40% is a zone in which every run of 1s is odd and every 0 single (observed at every sweep end), rewritten every round trip like a cellular automaton. The leftward sweep just moves each 0 one cell left; the rightward sweep zigzags through the zone. The halt (F0) needs E on two 0s in a row, which no run has shown. Decision: open. Since 26 November the whole run is known to be the iteration of one 4-state automaton on a bit word (section "The bit model").
 
 | state | read 0 | read 1 |
 |---|---|---|
@@ -27,6 +27,66 @@ at step 1.9·10^8). The rest, at the left, satisfies at every sweep end checked 
 run of 1s has odd length and every 0 is single (apart from the two 0s at the left end and the three at the right end). For example, run lengths of 1s at
 one visit to the left end: `3 1 1 3 3 1 1 3 3 7 5 1 1 7 5 1 3 5 5 9 1 3 1 1 1 1 1 1 9 11 5 7 ...` So the zone is a list of odd numbers; a round trip
 rewrites the list with no known rule, and the zone grows by about 1.6 cells per round trip while the block grows by 2.4.
+
+## The bit model (26 November 2026): one round trip is a 4-state automaton
+
+Computed, not proved. Scripts: `py/bitmodel.py` (the model and its checks) and `c/model.c` (the model run far).
+
+**The tape is a bit word.** At a left-end turn (D on the leftmost visited cell) the tape is `w0 1 w1 1 ... wm 1`
+with `w0 = 0`: every second cell is 1, and the other cells spell a word w. The "odd runs, single 0s" rule above is
+this fact. The periodic block is `w = ... 0011 0011 0`.
+
+**One round trip.** The new word is g(w) with two or three bits added at the end. g keeps w0 and reads w1, w2, ...
+with this automaton, started in X:
+
+| state | read 0 | read 1 | mode |
+|---|---|---|---|
+| X | write 1, go to P | write 0, stay in X | invert |
+| P | write 1, go to X | write 0, go to Y | invert |
+| Y | write 0, go to X | write 1, go to Q | copy |
+| Q | write 0, go to Y | write 1, go to Y | copy |
+
+Read as tokens: in invert mode `1` becomes `0`, `00` becomes `11`, and `01` becomes `10` and switches to copy mode;
+in copy mode `10` and `11` stay as they are, and `0` stays and switches back to invert mode.
+
+**The end of the pass decides everything.**
+- Pass ends in P: the machine adds `1 0` and turns back.
+- Pass ends in Y: it adds `1 1 0` and turns back.
+- Pass ends in X or Q: **the machine halts** in that round trip.
+
+So from lap 3 on (step 15, w = `001`) the machine is this iteration, and it halts exactly when a pass ends in X or Q.
+
+**Checks.**
+- From blank tape the model reproduces every one of laps 3 to 2,561 (the first 3·10^7 steps), bit for bit
+  (`bitmodel.py run 30000000`).
+- 20,000 random words of 4 to 40 bits, each run for one round trip on the machine: 0 disagreements. 11,082 of them
+  halt, in the machine and in the model alike (`bitmodel.py random 20000`).
+
+**What it explains.**
+- *The block repairs the pass.* On `(0011)*` the automaton enters the cycle X P X X from any state and any phase
+  within 10 bits (all 16 cases listed), and from then on it inverts the block, which is the same block two bits
+  along. A pass that crosses 10 clean block bits therefore ends in P. A halt needs the irregular zone to come within
+  10 bits of the right end.
+- *The zone is not chaotic.* g is invertible on words of each length, so every prefix of w repeats: the first 4
+  cells of the tape with period 2 in the lap number, 8 cells with period 4, 20 with 8, 24 with 16, 32 with 32, 48
+  with 512 (model, laps 400 to 6,000). The zone is the orbit of one automaton, like the digits of a counter.
+- *The race.* The word grows by 2 bits per lap. In 200,000 laps of the model (about 1.8·10^11 machine steps) the
+  last copy-mode state sits at 0.42 to 0.43 of the word from lap 16,384 on, the pass never ends in X or Q, and after
+  lap 4 it always ends in P.
+
+**No invariant of the shape "zone, then enough block" can work.** `c/allwords.c` runs the model from every word of
+12 bits followed by K periods of the block and a final 0, for 3,000 laps. Some of them halt, even with a long block:
+1,272 of 2,048 for K = 0, 577 for K = 1, 412 for K = 2, 185 for K = 3 and 9 for K = 5 (20 block bits), the latest at
+lap 162. A zone can also advance faster than the word grows for a while: among 16-bit zones the fastest covers 273
+bits of block in 96 laps, against 192 bits of growth. In every such case tried the burst ends and the zone then
+falls behind again (six start words, 100,000 laps each, no halt). So whether the real run halts depends on its own
+zone, not only on the zone's shape, and the bound has to be about the orbit of `001`.
+
+**What is missing for a proof.** (1) The model itself in Lean: the rightward and leftward sweeps as two passes over
+the bit pairs, by induction on the word. The cases are finite and small. (2) A bound that keeps the last copy-mode
+state away from the end of the word. With (1) this is a statement about the 4-state automaton alone:
+for the word U = `001` followed by the block forever, the first point where g^t(U) leaves the block pattern stays
+below 2t.
 
 ## Halting
 

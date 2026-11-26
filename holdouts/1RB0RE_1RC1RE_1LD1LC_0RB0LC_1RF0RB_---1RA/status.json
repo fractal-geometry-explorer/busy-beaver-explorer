@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> The right part of the tape is a periodic block, crossed by proved shift rules; the left part keeps every run of 1s odd and every 0 single (observed, not proved) and is rewritten every round trip with no known rule. No halt in 10<sup>10</sup> steps."
+  "<b>The question is open.</b> One round trip of the machine is one pass of a 4-state automaton over a bit word (every second tape cell is 1, the others are the word), and the machine halts exactly when a pass ends in two of the four states; this model is checked against the machine, not proved. The right part of the word is a periodic block that always brings the pass back to a safe state within 10 bits, so a halt needs the irregular left zone to reach the right end. In 200,000 round trips of the model the zone stays near 0.42 of the word. No halt in 10<sup>10</sup> steps of the machine."
  ],
  "claims": [
   {
@@ -86,6 +86,24 @@
    "title": "Regular-language deciders tried (F11)",
    "text": "None of these closes: each reaches a halting configuration in its abstraction, which says nothing about whether the machine halts. n-gram CPS (<code>tools/c/ngramcps.c</code>), equal widths on both sides: a halting local configuration is reached with plain up to width 24, history 1 up to width 24, history 2 up to width 24, history 3 up to width 24, LRU history up to width 8 (larger widths ran out of the 150 s or 60 million configuration budget). n-gram CPS with every cell tagged by its position mod p: fails for p = 2 up to width 20, p = 3 up to width 20, p = 4 up to width 20, p = 6 up to width 20. n-gram CPS where each side also carries the state of a small automaton that has read that side from the far end (every automaton with up to 3 states on both sides, or 4 states on one side), with position mod 1..4 and widths 4, 6, 8: no closed set without a halt in all 120 parameter sets. Run-length windows (the K nearest runs of equal macro cells on each side, run lengths kept exactly below T and mod M above): fails for all 72 parameter sets (cells of 1 to 4 bits, K = 2, 4, 6, T = 2, 4, M = 1, 2, 4). Two-automaton closed tape language by SAT (a deterministic automaton reading each side inward, n states each, CaDiCaL): no solution for n = 2..10; n = 11 not finished in 150 s.",
    "where": "sweeps of 13 November 2026 (family F11); the tagged and run-length deciders are not in the repository yet"
+  },
+  {
+   "level": "trusted",
+   "title": "One round trip is a 4-state automaton on a bit word",
+   "text": "At each left-end turn the tape is a bit word w interleaved with 1s. A round trip replaces w by g(w) plus two or three new bits, where g is a 4-state automaton reading w from the left; the machine halts exactly when the pass ends in state X or Q. The model reproduces laps 3 to 2,561 of the run from blank tape (3·10<sup>7</sup> steps) bit for bit, and agrees with the machine on 20,000 random words, 11,082 of which halt.",
+   "where": "<code>py/bitmodel.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The periodic block repairs the pass within 10 bits",
+   "text": "On the block (0011)* the automaton enters its cycle X P X X from each of the 16 combinations of state and phase within 10 bits, and then maps the block to itself two bits along. So a pass that crosses 10 clean block bits ends safely.",
+   "where": "<code>README.md</code>, section \"The bit model\""
+  },
+  {
+   "level": "heuristic",
+   "title": "The zone stays near 0.42 of the word",
+   "text": "In 200,000 round trips of the model, about 1.8·10<sup>11</sup> machine steps, the pass never ends in a halting state, and the last copy-mode state sits at 0.42 to 0.43 of the word from lap 16,384 on. The word grows by 2 bits per lap.",
+   "where": "<code>c/model.c</code>"
   },
   {
    "level": "open",
