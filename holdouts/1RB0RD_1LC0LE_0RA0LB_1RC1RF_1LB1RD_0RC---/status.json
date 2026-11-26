@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 25 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 113 (Alex Havrilla, 2026-11-24) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof encodes the tape as bitstrings split by a prefix separator, runs them through a transducer with symbolic micro-steps, and bounds the stream gaps with a finite block automaton and a potential, closed by step-indexed safety contracts. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 113 (Alex Havrilla, 2026-11-24) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof encodes the tape as bitstrings split by a prefix separator, runs them through a transducer with symbolic micro-steps, and bounds the stream gaps with a finite block automaton and a potential, closed by step-indexed safety contracts. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> The machine's tape is a row of blocks of <code>001</code>: all but the last are frozen, the last is rebuilt again and again by a bouncer that lives inside it. Phase P1 of that bouncer (any number of bounces, all sizes) is proved in Lean; the rule for a whole return of the head, a' = a + b + 7, is measured, not proved. Halting needs the head in D on two 1s side by side; that never happens in the first 10<sup>9</sup> steps."
  ],
  "claims": [
@@ -205,6 +205,6 @@
  },
  "family": "frozen blocks with a self-feeding growing tail",
  "decision": "nonhalting",
- "summary": "A row of frozen blocks of 001 on the left and one live block on the right that a sub-bouncer keeps refilling: at each full return the live block (001)^a (011)^b becomes (001)^(a+b+7) (011)^b', and now and then it splits off a new frozen block. Accelerated run: no halt in 4.46e20 steps. Decided outside: busycoq PR 113 proves in Rocq that it never halts (compiled here).",
+ "summary": "A row of frozen blocks of 001 on the left and one live block on the right that a sub-bouncer keeps refilling: at each full return the live block (001)^a (011)^b becomes (001)^(a+b+7) (011)^b', and now and then it splits off a new frozen block. Accelerated run: no halt in 4.46e20 steps. Decided outside: busycoq PR 113 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "decision_level": "outside"
 }

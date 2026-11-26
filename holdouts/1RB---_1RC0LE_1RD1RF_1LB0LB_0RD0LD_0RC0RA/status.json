@@ -10,9 +10,9 @@
  "intro": [
   "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 18 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 81 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses only the 25 PrimInt63 / Uint63 axioms of Coq's primitive 63-bit integers (<code>Print Assumptions</code>), and its transition table is this machine. By their count it halts after about 10<sup>98,832</sup> steps. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
+  "<b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 81 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses only the 25 PrimInt63 / Uint63 axioms of Coq's primitive 63-bit integers (<code>Print Assumptions</code>), and its transition table is this machine. By their count it halts after about 10<sup>98,832</sup> steps. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>What this repository found on its own.</b> Before the proof, simulation showed the machine moving material, one word every two visits, from one long run of a periodic word into another; each phase leaves a marker behind, and the runs it leaves have lengths in ratios close to 3/2. The proof explains this: those runs are the entries of a stack that each pass of the head halves and sums (see the explainer)."
  ],
  "claims": [
@@ -150,7 +150,7 @@
    }
   ]
  },
- "summary": "Phases of transfer between long runs of period-6 and period-9 words; the frozen runs it leaves behind shrink by ratios close to 3/2, the mark of a Collatz-like map (not extracted). Decided outside: busycoq PR 81 proves in Rocq that it halts (compiled here).",
+ "summary": "Phases of transfer between long runs of period-6 and period-9 words; the frozen runs it leaves behind shrink by ratios close to 3/2, the mark of a Collatz-like map (not extracted). Decided outside: busycoq PR 81 (merged 26 Nov 2026) proves in Rocq that it halts (compiled here).",
  "decision": "halts",
  "decision_level": "outside"
 }

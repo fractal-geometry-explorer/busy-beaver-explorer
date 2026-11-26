@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LE_0RC---_1RD0LA_1RE0RA_0LF1LD_1LC1RF</p>
     <p class="stand merged"><b>Decided by an outside Lean proof: it halts</b><span>An open pull request (37) to DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the standard axioms. It is their proof, on their definitions, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 21 November 2026.</p>
+    <p class="asof">Status as of 26 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 45 (Alk, 2026-11-05) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
+      <p><b>Decided by an outside Rocq proof: it halts.</b> Busycoq pull request 45 (Alk, 2026-11-05) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.</p>
       <p><b>The question is open.</b> The head shuttles out from the left end over the background word <code>100110001001</code>, turning back or passing at each defect depending on its shape (so the defects act as the digits of a counter), and rewriting the background as <code>(01)^4 1^4</code> going right and back going left (proved in Lean). Defects of the background move as gliders from a gun at the left end to a few nearly stationary defects near the right end, which grows in rare bursts. No macro map is known.</p>
     </div>
   </section>
@@ -97,7 +97,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="else">
       <div class="card proof">
         <h3>An outside Rocq proof, compiled here: it halts</h3>
-        <p><a href="https://github.com/ccz181078/busycoq/pull/45">busycoq pull request 45</a> (Alk, 2026-11-05) contains a Rocq proof that this machine halts (<code>verify/M_1RB0LE_0RCHHH_1RD0LA_1RE0RA_0LF1LD_1LC1RF.v</code>). The pull request is open: not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 21 November 2026, in 24 s: the theorem <code>TM1.halt : halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. It agrees with the verdict on this page, which rests on DeepMind's Lean proof.</p>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/45">busycoq pull request 45</a> (Alk, 2026-11-05) contains a Rocq proof that this machine halts (<code>verify/M_1RB0LE_0RCHHH_1RD0LA_1RE0RA_0LF1LD_1LC1RF.v</code>). busycoq's maintainer merged it into the BB6 branch on 2026-11-26 (commit <code>9c078ca</code>), and the merged file is identical to the one compiled here. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 21 November 2026, in 24 s: the theorem <code>TM1.halt : halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. It agrees with the verdict on this page, which rests on DeepMind's Lean proof.</p>
       </div>
       <div class="card proof">
         <h3>Proved in DeepMind's Lean, compiled here: it halts</h3>
