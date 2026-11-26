@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open; the event map, now proved in Lean, suggests a halt far beyond any run.</b> The tape is a list of blocks of 1s. At each visit to the left end the first block is divided by 3: remainder 1 passes two thirds on and deals the next block too, remainders 0 and 2 end the visit. Lean's kernel checks that this map is what the machine does (<code>visit_sound</code>), and that the machine halts when the dealing meets a block of value 5, for instance from the lists that begin 4, 3 or 7, 1. Run for 6.9&middot;10<sup>10</sup> events the map never gets there, but it keeps coming close at a steady rate, about 20 times per doubling of the run with a second block below 100, so a halt looks more likely than not, at a time no run can reach.</p>
+      <p><b>The question is open; the event map, now proved in Lean, suggests a halt far beyond any run.</b> The tape is a list of blocks of 1s. At each visit to the left end the first block is divided by 3: remainder 1 passes two thirds on and deals the next block too, remainders 0 and 2 end the visit. Lean's kernel checks that this map is what the machine does (<code>visit_sound</code>), and that the machine halts when the dealing meets a block of value 5, for instance from the lists that begin 4, 3 or 7, 1. Run for 1.1&middot;10<sup>12</sup> events the map never gets there, but it keeps coming close at a steady rate, about 20 times per doubling of the run with a second block below 100, so a halt looks more likely than not, at a time no run can reach.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -168,8 +168,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>py/passmap.py off</code></p>
       </div>
       <div class="card">
-        <h3>No halt in 6.9&middot;10<sup>10</sup> events of the map</h3>
-        <p>From the list 7, 2 (step 66) the map runs 6.9&middot;10<sup>10</sup> events without leaving its domain; the tape then holds 2.0&middot;10<sup>11</sup> ones. The map is proved in Lean; the run of it is a C program on 64-bit counts, trusted. The run is still going.</p>
+        <h3>No halt in 1.1&middot;10<sup>12</sup> events of the map</h3>
+        <p>From the list 7, 2 (step 66) the map runs 2<sup>40</sup> = 1.1&middot;10<sup>12</sup> events without leaving its domain; the tape then holds 3.2&middot;10<sup>12</sup> ones in 9 blocks. The map is proved in Lean; the run of it is a C program on 64-bit counts, trusted. It took 5.4 hours, in stretches resumed from saved lists.</p>
         <p class="where"><code>c/passrun.c</code></p>
       </div>
     </div>
@@ -192,7 +192,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>Near misses come at a steady rate</h3>
-        <p>Among the states whose first block is 1, 4 or 7, each doubling of the event count from 2<sup>13</sup> to 2<sup>36</sup> brings about 100 with a second block at most 200, about 20 at most 100 and about 2 at most 50; the smallest in the last ten doublings is 20. A power-law fit gives of the order of 0.01 halting lists per doubling, a sum that does not converge. So a halt looks more likely than not, but only after something like 2<sup>70</sup> events or more.</p>
+        <p>Among the states whose first block is 1, 4 or 7, each doubling of the event count from 2<sup>13</sup> to 2<sup>38</sup> brings about 100 with a second block at most 200, about 20 at most 100 and about 2 at most 50; the smallest in the last ten doublings is 28. A power-law fit gives of the order of 0.01 halting lists per doubling, a sum that does not converge. So a halt looks more likely than not, but only after something like 2<sup>70</sup> events or more.</p>
         <p class="where"><code>c/passrun.c</code>; README, section "The event map"</p>
       </div>
     </div>
@@ -200,7 +200,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. By the event map a halt needs two small blocks side by side at the left end; the run comes near at a steady rate and has not got there in 6.9&middot;10<sup>10</sup> events. The map and the halt at a later value 5 are proved in Lean; what the machine does at a later value 1, 2 or 3 is known only from runs.</p>
+        <p>Not known. By the event map a halt needs two small blocks side by side at the left end; the run comes near at a steady rate and has not got there in 1.1&middot;10<sup>12</sup> events. The map and the halt at a later value 5 are proved in Lean; what the machine does at a later value 1, 2 or 3 is known only from runs.</p>
       </div>
     </div>
   </section>
