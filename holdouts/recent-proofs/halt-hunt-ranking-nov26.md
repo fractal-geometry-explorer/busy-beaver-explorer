@@ -28,9 +28,9 @@ perturbed copies for many doublings and count how many halt (`run ens`). For 1,0
 
 | machine | halted | the estimate predicts | the 1,000 copies at the end |
 |---|---|---|---|
-| 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC | 229 | about 240 | 771 running, on 15 different orbits, 107 of them on the blank-tape orbit itself |
-| 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD | 311 | about 300 | 688 running, on 163 orbits, 8 on the blank-tape orbit |
-| 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE | 49 | about 360 | 949 running, on 68 orbits, 188 on the blank-tape orbit |
+| 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC | 229 | about 230 | 771 running, on 15 different orbits, 107 of them on the blank-tape orbit itself |
+| 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD | 311 | about 290 | 688 running, on 163 orbits, 8 on the blank-tape orbit |
+| 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE | 49 | about 340 | 949 running, on 68 orbits, 188 on the blank-tape orbit |
 
 The totals agree for the first two, but the copies are not independent samples. Different starts run into the
 same orbit, shifted in time, and the merging goes on: a longer run of 400 copies of the third machine left 362
