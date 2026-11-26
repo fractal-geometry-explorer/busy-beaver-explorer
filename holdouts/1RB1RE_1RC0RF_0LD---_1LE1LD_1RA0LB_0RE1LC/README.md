@@ -144,15 +144,15 @@ the run's last checkpoint (6.3755·10^13) runs 5·10^9 steps past the reported h
 accelerator agrees with it there. `trychunk` now checks that all 64 entries are single literal cells (it prints
 `stale lr` where the old code would have gone wrong).
 
-**Fixed run: no halt in the first 1.417·10^13 steps** (from the plain tape at 5·10^11;
-`evidence/bacc-fixed-5e11-to-1.4e13.txt`, one summary per 10^10 steps).
+**Fixed run: no halt in the first 2.668·10^13 steps** (from the plain tape at 5·10^11;
+`evidence/bacc-fixed-5e11-to-2.67e13.txt`, one summary per 10^10 steps).
 
-**Checked by plain simulation to 1.083·10^13 steps.** The fixed run keeps a checkpoint about every 2·10^11 steps.
+**Checked by plain simulation to 2.66·10^13 steps.** The fixed run keeps a checkpoint about every 2·10^11 steps.
 `c/plainfrom.c` (a plain simulator that starts from a saved tape) runs from each kept checkpoint to the next and
-`py/tapecmp.py` compares the result with the next checkpoint: all 47 stretches from the plain tape at 5·10^11 to
-1.083·10^13 give the same tape, head and state, with no halt (`evidence/plain-check-segments.txt`,
+`py/tapecmp.py` compares the result with the next checkpoint: all 109 stretches from the plain tape at 5·10^11 to
+2.66·10^13 give the same tape, head and state, with no halt (`evidence/plain-check-segments.txt`,
 `c/verify-segments.sh`). Since each stretch starts from the tape the one before ended with, this is a plain
-simulation of the first 1.083·10^13 steps, cut into pieces.
+simulation of the first 2.66·10^13 steps, cut into pieces.
 
 What the fixed run does after the second hand-over:
 
@@ -163,7 +163,9 @@ What the fixed run does after the second hand-over:
 | about 5.2·10^12 to 5.4·10^12 | the right tail `(01)^c`, at c = 3,213 since before 5·10^11, grows to 6,154 |
 | 8.1·10^12 to 9.3·10^12 | third hand-over: the left end is fixed and `(100)^a` (about 861,000) is turned into a new 5-word block of up to about 222,000 words, which then breaks up; the irregular stretch reaches about 1.3 million cells |
 | 9.3·10^12 to 1.05·10^13 | left end moving: the left zone grows back to about 828,000 while the irregular stretch is eaten down to about 840,000 cells; a block of 37,517 13-cell words sits beside it |
-| 1.08·10^13 to 1.417·10^13 | left end fixed: `(100)^a` goes from about 834,000 down to 212,000 and becomes a 5-word block of up to about 638,000 words; a block of 19-cell words (31,122 at 1.08·10^13) and the irregular stretch (about 640,000 cells) are eaten almost entirely; the right tail grows to 6,922 |
+| 1.08·10^13 to 1.62·10^13 | left end fixed: `(100)^a` goes from about 834,000 down to 0 and becomes a 5-word block of about 731,000 words; a block of 19-cell words (31,122 at 1.08·10^13) and the irregular stretch (about 640,000 cells) are eaten almost entirely, then a new irregular stretch of 150,000 to 280,000 cells forms |
+| 1.62·10^13 to 2.4·10^13 | left end moving: `(001)^a` grows from 0 to about 873,000; the 5-word block drops to 534,839 words and then stays; a new block of 19-cell words (41,274 at 1.8·10^13) and the irregular stretch are eaten down to about 3,000 cells; the right tail `(01)^c` grows from 8,493 to 32,650 |
+| 2.4·10^13 to 2.668·10^13 | fourth hand-over (still going): the 5-word block is turned into an irregular stretch of about 1.17 million cells; then a run of ones and a block of 13-cell words start to form beside the left zone (about 1.1 million copies) |
 
 Each cycle so far (left end fixed, then moving, then a block turned into irregular stretch) is two to three times
 the scale of the one before, with blocks 66,518 → 135,383 → 385,143 words.

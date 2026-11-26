@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). A plain simulation, run in checked pieces, finds no halt in 1.08&middot;10<sup>13</sup> steps, and the fixed block accelerator none in 1.417&middot;10<sup>13</sup>. The run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (up to about 1.3 million cells) is built at the hand-overs and eaten later; it is not understood. A halt needs a 1 read in state C next to a long run of ones. (An earlier accelerated run reported larger bounds and a halt at 6.38&middot;10<sup>13</sup>; both came from a bug, now fixed.)"
+  "<b>The question is open.</b> In each phase two blocks at the left end grow by eating a long run of ones (one double cycle proved in Lean). A plain simulation, run in checked pieces, finds no halt in 2.66&middot;10<sup>13</sup> steps, and the fixed block accelerator none in 2.668&middot;10<sup>13</sup>. The run alternates phases that turn the left zone (100)^a into a block of 5-cell words with phases that regrow it. An irregular stretch (up to about 1.3 million cells) is built at the hand-overs and eaten later; it is not understood. A halt needs a 1 read in state C next to a long run of ones. (An earlier accelerated run reported larger bounds and a halt at 6.38&middot;10<sup>13</sup>; both came from a bug, now fixed.)"
  ],
  "claims": [
   {
@@ -53,16 +53,16 @@
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 1.083&middot;10<sup>13</sup> steps (plain simulation in pieces)",
-   "text": "A plain simulator that starts from a saved tape (<code>c/plainfrom.c</code>) runs each stretch between consecutive kept checkpoints of the fixed accelerated run, from the plain tape at 5&middot;10<sup>11</sup> to 1.083&middot;10<sup>13</sup> steps (47 stretches). Each ends with the same tape, head and state as the next checkpoint, and none halts, so together they are a plain run of the first 1.083&middot;10<sup>13</sup> steps.",
+   "title": "No halt in the first 2.66&middot;10<sup>13</sup> steps (plain simulation in pieces)",
+   "text": "A plain simulator that starts from a saved tape (<code>c/plainfrom.c</code>) runs each stretch between consecutive kept checkpoints of the fixed accelerated run, from the plain tape at 5&middot;10<sup>11</sup> to 2.66&middot;10<sup>13</sup> steps (109 stretches). Each ends with the same tape, head and state as the next checkpoint, and none halts, so together they are a plain run of the first 2.66&middot;10<sup>13</sup> steps.",
    "where": "<code>c/plainfrom.c</code>, <code>c/verify-segments.sh</code>, <code>py/tapecmp.py</code>, <code>evidence/plain-check-segments.txt</code>",
    "added": true
   },
   {
    "level": "trusted",
-   "title": "No halt in the first 1.417&middot;10<sup>13</sup> steps (fixed accelerated run)",
-   "text": "The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks), with the chunk bug fixed on 25 November 2026, runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 1.417&middot;10<sup>13</sup> without a halt. An earlier run of the unfixed tool reported bounds up to 1.9&middot;10<sup>13</sup> and a halt at 6.38&middot;10<sup>13</sup>; it went wrong at about 2.13&middot;10<sup>12</sup>, and those results are withdrawn.",
-   "where": "<code>c/bacc.cpp</code>, <code>evidence/bacc-fixed-5e11-to-1.4e13.txt</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>",
+   "title": "No halt in the first 2.668&middot;10<sup>13</sup> steps (fixed accelerated run)",
+   "text": "The block accelerator <code>c/bacc.cpp</code> (whole-block crossings, repeated moving fronts, cached 64-cell chunks), with the chunk bug fixed on 25 November 2026, runs from the plain simulator's tape at 5&middot;10<sup>11</sup> steps to 2.668&middot;10<sup>13</sup> without a halt. An earlier run of the unfixed tool reported bounds up to 1.9&middot;10<sup>13</sup> and a halt at 6.38&middot;10<sup>13</sup>; it went wrong at about 2.13&middot;10<sup>12</sup>, and those results are withdrawn.",
+   "where": "<code>c/bacc.cpp</code>, <code>evidence/bacc-fixed-5e11-to-2.67e13.txt</code>, <code>evidence/bacc-5e11-to-2.15e12.txt</code>",
    "added": true
   },
   {
@@ -102,7 +102,7 @@
   {
    "level": "heuristic",
    "title": "Phases past 5&middot;10<sup>11</sup> steps",
-   "text": "The regular phase ends at about 5.95&middot;10<sup>11</sup> steps. A hand-over then eats part of the irregular stretch and rebuilds the tape (about 9.2&middot;10<sup>11</sup>). A longer regular phase follows (to 1.86&middot;10<sup>12</sup>), and then a second hand-over in which the irregular stretch grows to about 880,000 cells (2.16&middot;10<sup>12</sup>). The hand-overs, the only places a halt could come from so far, are not decoded. In the fixed run the left zone has become 385,143 five-cell words by about 3.7&middot;10<sup>12</sup>; it then grows back (to about 842,000 copies) while the 5-word block is eaten, a third hand-over (8.1 to 9.3&middot;10<sup>12</sup>) builds an irregular stretch of about 1.3 million cells, and from 1.08&middot;10<sup>13</sup> the left zone is again turned into a 5-word block (about 638,000 words at 1.417&middot;10<sup>13</sup>). Each cycle is two to three times the size of the one before.",
+   "text": "The regular phase ends at about 5.95&middot;10<sup>11</sup> steps. A hand-over then eats part of the irregular stretch and rebuilds the tape (about 9.2&middot;10<sup>11</sup>). A longer regular phase follows (to 1.86&middot;10<sup>12</sup>), and then a second hand-over in which the irregular stretch grows to about 880,000 cells (2.16&middot;10<sup>12</sup>). The hand-overs, the only places a halt could come from so far, are not decoded. In the fixed run the left zone has become 385,143 five-cell words by about 3.7&middot;10<sup>12</sup>; it then grows back (to about 842,000 copies) while the 5-word block is eaten, a third hand-over (8.1 to 9.3&middot;10<sup>12</sup>) builds an irregular stretch of about 1.3 million cells, from 1.08&middot;10<sup>13</sup> the left zone is again turned into a 5-word block (about 731,000 words at 1.62&middot;10<sup>13</sup>), which a growth phase then partly eats (to 2.4&middot;10<sup>13</sup>, left zone about 873,000), and a fourth hand-over starts at about 2.4&middot;10<sup>13</sup>. Each cycle is two to three times the size of the one before.",
    "where": "<code>README.md</code> (Past 5&middot;10<sup>11</sup> steps with a block accelerator)",
    "added": true
   },
