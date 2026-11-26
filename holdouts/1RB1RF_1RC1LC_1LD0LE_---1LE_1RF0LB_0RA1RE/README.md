@@ -42,22 +42,27 @@ Seen at the left end (after a leftward sweep) the tape is a soup of runs `1^4` t
 
 The machine halts only when D reads a 0, and Lean proves that the only way there is E reading a 1 with `0 0 1` just left of it (E, B and C step left and D meets the second 0; `halt_needs_pattern`, `lean/Halt.lean`). So a leftward sweep must reach `0 0 1 1` in E. Runs of three or more 0s do appear inside the tape for a moment (about 31,000 times in 2·10^8 steps), but never in that position.
 
+**Only at the left end** (`reachable_nogap`, `halt_at_left_end`, `lean/LeftEnd.lean`). Left of the head the tape, from its leftmost 1, never holds two 0s in a row. A right move appends the written cell to the left part, and the only transition that writes 0 and moves right is F0 → 0RA; F is entered only by A1 → 1RF and E0 → 1RF, which write 1, so that 0 always follows a 1. A left move only drops a cell. So the `0 0 1` of the halting pattern can only be the blank tape followed by the leftmost 1: a halt needs E to read a 1 right next to the leftmost 1.
+
+Tried and failed to close (Nov 2026): FAR/CTL automata (DFA side up to 11 states, NFA side 6), and pushdown abstractions with the other side exact. With a regular description of the left part (de Bruijn windows k ≤ 12, observed k-factors, a trie of left-end words) the abstraction moves the left end next to the head and halts. With the left part exact and a k-testable description of the right part, grown from the factors the abstraction produces (start at step 3,000,000), k = 12 and k = 16 both reach a halt and keep growing. The tape is not in the segment form of the recursive-sweep machines of busycoq PR 115: gaps of 3 or more 0s keep appearing right of the head.
+
 The shallow near miss (D on a 1 with `1 0 1` on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known.
 
 **Twin.** This is the table of [`1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE`](../1RB1LB_1LC0LD_---1LD_1RE0LA_0RF1RD_1RA1RE/README.md) with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); this machine starts in the state that one calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule there holds here after renaming.
 
 ## Status
 
-Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 12 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps.
+Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 12 sweep rules (`lean/Rules.lean`), that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`), and that this can only happen at the far left end (`halt_at_left_end`, `lean/LeftEnd.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps.
 
 ## For later
 
-Find the block structure of the soup (which words occur between which separators) and the map of one round trip on blocks.
+Describe how the left end of the tape changes from one visit to the next, and show that E never arrives there on a 1.
 
 ## Scripts
 
 - `py/passes.py blocks K | cross | back D | tape STEPS N`: two-cell behaviour of every state, the words crossed whole, the way back from a halt, run-length tapes.
 - `py/rules.py`: writes `lean/Rules.lean` and `lean/Halt.lean`.
+- `lean/LeftEnd.lean` is written by hand.
 
 ## Pages
 
