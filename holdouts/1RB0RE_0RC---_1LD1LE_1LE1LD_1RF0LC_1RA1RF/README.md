@@ -441,20 +441,6 @@ goes on into `s` (545 clean, 41 other), and the 184 turns with a near part that 
 from the deep even bounces and go back to clean within a bounce or two. To close case 1, one still has to show that
 these sweeps never use up the last witness.
 
-**Safe and dangerous epochs (observed, 25 November 2026, `c/bitlist.cpp`).** Each epoch ends when E reads the last 1
-with no far part. The whole zone then becomes the far part of the next crossing. Usually the crossing starts at once,
-with a 1 at the right end (`r = 1`), and then no crossing turn has a blank end, so no witness is needed. In the first
-3·10^6 list steps, the epochs where this did not happen are exactly those whose zone, read from the head at E's event,
-starts `101001` (otherwise `101000` or `101010`). In 6 such epochs E turns back first. Three times a second E event
-follows at once and the crossing starts safely; three times (list steps 38, 9,201 and 471,164) the crossing starts with
-E reading the last 1 again, `r = 0`, and every turn needs a witness. A crossing that ends with `r = 0` passes the
-blank end on to the next epoch, which explains the other early dangerous crossings. Nothing in the frozen word seems to
-force the safe prefix. With the real frozen word at the end of the crossing at list step 629,196 replaced by random
-letters, 13 of 30 runs started the next crossing without E's event at all, and 2 more reached it with the zone starting
-`001000`. The real frozen words have stable statistics (44.6% ones and the same run-length distribution at every epoch
-from 1,546 to 1.3·10^6 letters), like a random sequence. On the real orbit the 10 epochs after list step 471,169
-(14 E events, up to list step 130,131,762) were all safe.
-
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up
