@@ -149,3 +149,20 @@ python3 tools/py/roundchc.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 85284 --k
 python3 tools/py/roundchc.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 85284 --llit 14 --kr 3 --lpat 3 --lmax 3 \
         --guide 400000 --guidek 48,49,50 --no-solve                              # sizes only
 ```
+
+## Second addendum: the summaries as tail lemmas of lemcert's engine
+
+Done the same day, in `tools/py/lemcert/run_tail.py` (details in that directory's README). Still no machine is
+decided.
+
+- `rlepds` has a new option `lctx=BITS` for `enter=Qh`: the cells left of the entered cell. The exits are then the
+  ways the head leaves that context to the left. With it, a walk of any length into the unknown tail is one
+  summary, since the tape above the context is the pushdown stack. The calls stay small (about 400 path edges).
+- lemcert's engine runs a whole round of 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- with exact linear counts and
+  calls a summary whenever the head faces the bare unknown tail. The bound decay of the first lemcert attempt is
+  gone, and the node shapes are a few dozen.
+- It does not close. A two-run summary forgets what the excursion wrote, so in the abstraction a tail can take the
+  counter down one unit per excursion for ever (41 nodes in a row, from 41 down to 1, and a spurious halt after
+  602 nodes of 56 shapes). On the real machine the
+  same step works once or twice and then stops. The missing piece is an exit that keeps `(001)^c` as one item.
+- 12,800 sampled excursions of the real machine on random tails are all covered by the 64 summaries used.
