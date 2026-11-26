@@ -6,7 +6,7 @@ The goal was to apply the method to the other "counter plus messy end" holdouts 
 R15).
 
 **Status (26 November 2026): the search does not reproduce the PR 37 proof on its own machine,
-so it has settled no machine.** It is kept here as a record of what was tried and why it stops
+so it has settled no machine.** A scan for other machines the method could fit is at the end. It is kept here as a record of what was tried and why it stops
 short.
 
 ## How PR 37's proof works (short)
@@ -163,3 +163,21 @@ works against the counter.
 Most other F04 machines, and the R15 family ("Collatz-like maps and cryptids"), are described in
 their folders as Collatz-like maps whose halting depends on residues. In those maps a tail
 contribution that is never negative (c ≥ 0 in PR 37) is not available either.
+
+## Scan for other machines the method could fit (26 November 2026)
+
+`tailscan.py` measures, for the 28 "counter plus tail" holdouts that have remainder-class round maps, how much a
+round can take from the counter and whether that loss grows with the tail.
+
+| outcome | machines |
+|---|---|
+| loss bounded, no halting class seen | 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD, 1RB1RF_1LC1RD_1LA1LC_1RA0RE_1RD1LA_---0LE (and PR 37's own machine) |
+| a halting class is reachable | the 8/3 table (four machines, 107 rounds away), eight 3/2 machines |
+| loss grows with the tail | nine machines, among them the sibling above |
+| a second counter in the tail counts down | 1RB1RE_1LC1LB_1LE0LD_1LE1LC_0RF1RA_---1RA |
+| not conclusive (few classes, or many rounds the classes do not cover) | 1RB---_1LC0LD_0RF0LD_0LE0RA_0LC1RA_1RC1RD, 1RB0RC_1LC1RF_1RE0LD_1LC1LA_---1RD_0RB0RA, 1RB1LF_1LC0RD_---1LA_0LA0RE_1LA1RA_1LB0LD |
+
+The two machines that pass were then tested on the tail side, and fail there: with the residues chosen freely a
+halting tail is reachable in about 170 phases (see the README of 1RB0RE_1RC0RF_1LD1RA_1LB1LD_1RA1LB_---0LD,
+"Free residues"). So the scan leaves no holdout of this group on which PR 37's argument, "no tail at all can
+halt", is known to work as it stands; the three inconclusive ones were not examined further.
