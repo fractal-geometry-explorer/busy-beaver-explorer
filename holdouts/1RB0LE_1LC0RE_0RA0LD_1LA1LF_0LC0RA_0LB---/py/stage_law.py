@@ -18,6 +18,8 @@ from Stage.lean and Layers.lean, and
   Z + 1 per event, a wrap sends 3), as far as no carry leaves the right chain and the top left word does not grow;
   this is the ported law iterated;
 - checks itself: random points of each jump are rebuilt and run cell by cell for 3 events, against the ported law;
+- at a wrap of a half-digit item `11 [Q] 0011 [Q2] 01 [P2]` (Junction.lean, `chain_event_junction`), runs the event
+  cell by cell and checks it against the ported `evNextJ` (`lawJ`);
 - runs every change of stage (a carry leaving R, where `evNext` is none) cell by cell.
 
 So the step from one event to the next is proved; what is trusted is that the run's tapes have this layout (each one
@@ -217,6 +219,120 @@ def read(s, e):
         return us, z, items[:-1], items[-1]
 
 
+def chain_at(t, j):
+    """(items, last) of a chain of the grammar starting with `11` at cell j and ending in a closed R, or None."""
+    items = []
+    while True:
+        if tuple(t[j:j + 2]) != (1, 1):
+            return None
+        j += 2
+        qw = []
+        while tuple(t[j:j + 4]) in QD:
+            qw.append(QD[tuple(t[j:j + 4])])
+            j += 4
+        if tuple(t[j:j + 2]) != (0, 1):
+            return None
+        j += 2
+        pw = []
+        while tuple(t[j:j + 4]) in PD:
+            pw.append(PD[tuple(t[j:j + 4])])
+            j += 4
+        items.append((qw, pw))
+        if tuple(t[j:j + 4]) == (1, 0, 1, 1):
+            j += 2
+            continue
+        return items[:-1], items[-1]
+
+
+def read_j(s, e):
+    """The event at cell e with a half-digit item (Junction.lean `encJ`): (units, Z, items, w) with
+    w = ('unh', Q, b, Q2, P2, (rest, last)), the junction `0011` (b = 0) or `0111` (b = 1) after Q and the item
+    (Q2, P2) followed by `10` and the rest of the chain; None if the tape does not read so."""
+    r = read(s, e)
+    if r is None:
+        return None
+    us, z, its, l = r
+    t = s.t
+    j = e + 1 + 4 * len(z) + sum(6 + 4 * len(q) + 4 * len(p) for q, p in its) + 2 + 4 * len(l[0])
+    if l[1] is None and tuple(t[j:j + 4]) == (0, 0, 1, 1):
+        b = 0
+    elif l[1] == [] and tuple(t[j:j + 4]) == (0, 1, 1, 1):
+        b = 1
+    else:
+        return None
+    c = chain_at(t, j + 2)
+    if c is None or not c[0]:
+        return None
+    (q2, p2), rest = c[0][0], c[0][1:]
+    return us, z, its, ('unh', l[0], b, q2, p2, (rest, c[1]))
+
+
+# ---- the law with a half-digit item (Junction.lean: jInc, jUnit, dUJ, evNextJ) ----
+
+
+def kC(s):
+    return dU(s[0], s[1])
+
+
+def jInc(w):
+    if w[0] == 'hld':
+        _, q, p, s = w
+        if not q:
+            return None
+        x = qInc(kC, q, p, s)
+        return None if x is None else ('hld', x[0], x[1], x[2])
+    _, q, b, q2, p2, s = w
+    q1, c = incB(q)
+    if not c:
+        return ('unh', q1, b, q2, p2, s)
+    if not b:
+        return ('unh', q1, 1, q2, p2, s)
+    if not q2:
+        return None
+    x = qInc(kC, q2, p2, s)
+    if x is None:
+        return None
+    y = qInc(kC, x[0], x[1], x[2])
+    return None if y is None else ('hld', q1 + [0] + y[0], y[1], y[2])
+
+
+def jUnit(w):
+    for _ in range(3):
+        w = jInc(w)
+        if w is None:
+            return None
+    return w
+
+
+def dUJ(its, w):
+    if not its:
+        x = jUnit(w)
+        return None if x is None else ([], x)
+    x = qUnit(lambda s: dUJ(s[0], s[1]), its[0][0], its[0][1], (its[1:], w))
+    return None if x is None else ([(x[0], x[1])] + x[2][0], x[2][1])
+
+
+def lawJ(ev):
+    us, z, its, w = ev
+    u = linc(us)
+    zz, c = incB(z)
+    if c:
+        x = dUJ(its, w)
+        if x is None:
+            return None
+        its, w = x
+    return None if u is None else (u, zz, its, w)
+
+
+def norm(ev):
+    """A healed half-digit item read as the chain of the grammar it is (Junction.lean `encJ_hld`)."""
+    us, z, its, w = ev
+    if len(w) == 4 and w[0] == 'hld':
+        _, q, p, (rest, l) = w
+        return us, z, its + [(q, p)] + rest, l
+    return ev
+
+
 def write(s, e, ev):
     """Writes the event ev at cell e, over a tape of the same widths."""
     us, z, its, l = ev
@@ -397,6 +513,7 @@ def run(stages, nspot):
     by_cell = 0         # consecutive pairs of events run cell by cell and checked against the law
     checks = [0, 0]     # spot-check events, mismatches
     mism = 0
+    jpairs = jmism = 0  # events at a wrap of a half-digit item, checked against Junction.lean
     unread = 0
     stage = 0
     resumes = 0
@@ -440,8 +557,31 @@ def run(stages, nspot):
                 else:
                     by_cell += 1
             prev = r
-            if law(r) is None:
-                break   # a carry leaves R at this event: the stage ends, and the run goes on cell by cell
+            stop = False
+            while law(r) is None:
+                # a wrap at a half-digit item: one event by the law of Junction.lean, run cell by cell and checked
+                rj = read_j(s, e)
+                want = lawJ(rj) if rj is not None else None
+                if want is None:
+                    stop = True     # a carry leaves R at this event: the stage ends, and the run goes on cell by cell
+                    break
+                ev, r = next_event(s, e)
+                if ev != 'event':
+                    if ev == 'HALT':
+                        end = 'HALT'
+                    stop = True
+                    break
+                total += 1
+                n_stage += 1
+                got = read_j(s, e)
+                if norm(want) == (got if got is not None else r):
+                    jpairs += 1
+                else:
+                    jmism += 1
+                    print('  mismatch at a half-digit item, stage %d' % stage)
+                prev = r
+            if stop:
+                break
             j = longest(lambda x: jump(r, x))
             if j <= 1:
                 continue
@@ -473,11 +613,14 @@ def run(stages, nspot):
                                                   [len(w) for w in words_of(prev[0])][:6] if prev else None,
                                                   [len(w) for it in prev[2] + [prev[3]] for w in it if w is not None][:8] if prev else None,
                  by_cell, mism, checks[0], checks[1]))
+        if jpairs or jmism:
+            print('  events at wraps of a half-digit item, by Junction.lean: %d, off it %d' % (jpairs, jmism))
         sys.stdout.flush()
     print('%s after 10^128 events: %d stages (event cells), %d returns to the same cell after a carry left a chain, '
           'about 10^%d events (so at least that many more steps), %s; %d pairs of events run cell by cell follow '
-          'the law, %d do not; self-checks %d events, %d mismatches'
-          % (M, stage, resumes, len(str(total)) - 1, end, by_cell, mism, checks[0], checks[1]))
+          'the law, %d do not; %d events at wraps of a half-digit item follow Junction.lean, %d do not; '
+          'self-checks %d events, %d mismatches'
+          % (M, stage, resumes, len(str(total)) - 1, end, by_cell, mism, jpairs, jmism, checks[0], checks[1]))
 
 
 if __name__ == '__main__':

@@ -227,7 +227,7 @@ With b = 1 the stage reading `0 b 1 W1 c U1 a d W2 ...` is exactly this with Z e
 
 **The run against the proved law (trusted, `py/stage_law.py`).** This script does what `py/stages.py` does, but with the ported Lean functions `linc` and `evNext` instead of fitted gifts. At each stage it finds the event cell. It checks every event run cell by cell against the one before it. It jumps by the law iterated (+1 per event on the left with ×2 at each wrap, Z + 1 on the right with ×3 at each wrap), as far as no carry leaves either chain. Each jump is spot-checked: random points are rebuilt and 3 events are run cell by cell.
 
-- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_law.py run 500 3` (with the open item below): from blank tape to about 10^128 events with `defects.py`, then 500 stages (500 event cells; 158 times a carry left a chain and the run came back to the same cell) and about 10^480 events (so at least that many more steps), no halt. 4,558 consecutive pairs of events run cell by cell follow the law and none fail it; 23,450 spot-check events, 0 mismatches. This goes past the 10^409 of `py/stages.py`, with a proved law in place of fitted gifts. (Without the open item the same script stalls at about 10^137 events, in stage 13.)
+- `python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/stage_law.py run 500 3` (with the open item below): from blank tape to about 10^128 events with `defects.py`, then 500 stages (500 event cells; 124 times a carry left a chain and the run came back to the same cell) and about 10^480 events (so at least that many more steps), no halt. 4,558 consecutive pairs of events run cell by cell follow the law and none fail it; 34 events at wraps of a half-digit item follow `chain_event_junction` and none fail it; 23,450 spot-check events, 0 mismatches. This goes past the 10^409 of `py/stages.py`, with a proved law in place of fitted gifts. (Without the open item the same script stalls at about 10^137 events, in stage 13.)
 
 So up to that point the run from blank tape follows a proved law. What is trusted is that each tape is in the layout (the tape is read off at every event), the port of the Lean functions, and the jump arithmetic.
 
@@ -235,11 +235,10 @@ So up to that point the run from blank tape follows a proved law. What is truste
 
 - What a carry does there: run cell by cell, each carry out of R is one unit into the item, and it only adds 3 to its Q (in that run Q has 31 digits and goes 74, 77, 80, 83, …). Q is followed by any tape at all: no visit reads past Q unless Q wraps.
 - The law: `Stage.lean` proves the chain law with such an *open* last item, `11 [Q]` and then any tape (`encO`, `dUo`, `evNextO`, `chain_event_open`), for every layout. It stops (`none`) only where that Q would wrap.
-- When Q wraps: in a test that set the 31 digits of Q to 1, the wrap was run cell by cell. The `0011` became a separator of the grammar, and the chain after it read in the layout again. So that wrap heals the defect, but this is seen in one test, not proved.
+- When Q wraps (Lean, `Junction.lean`, `chain_event_junction`): the four cells after Q, `0011`, act as one more digit of Q with two extra states. The first wrap of Q turns `0011` into `0111` and the carry stops there (`A> 00` → `01`, row `l_c_A0`). The second wrap turns `0111` into the Q digit `0001` and sends **two** increments into Q' (row `j_A1`: `A> 0111 x`, nested visits E→C A→D E→C A→D, out in D leaving `0001 x'`). After it the tape reads in the grammar again, as one item whose Q is Q, the digit 0 and Q' (`encJ_hld`). So the half-digit item heals after two wraps, and in value it was the word Q + 2^|Q|·(2 + b) + 2^(|Q|+1)·Q' all along (b = 0 for `0011`, 1 for `0111`): every event still adds exactly one to the number of `Layers.lean`. `chain_event_junction` proves this for such an item anywhere in the chain, for every width, with items of the grammar before it and the item (Q', P) and the rest of the chain up to R after it. It is `none` only where a carry leaves R, or where the junction would wrap into an empty Q' (not met in the run).
+- Found by following both half-digit items of the run (stages 11 and 13) cell by cell, and by 96 set-up tapes (Q near its wrap, both junctions, every Q' of 3 digits), all as above.
 
-`py/stage_law.py` reads such an item as the open last item and jumps with the law up to its wrap.
-
-Open: what a wrap of the open Q hands on in general (the half-digit shifts), and whether the stages go on forever.
+Open: the other half-digit shifts (a separator missing altogether, or a separator after Z read wrongly), what a carry out of R does at a change of stage, and whether the stages go on forever.
 
 A halt can only come when a carry leaves the last word of the grammar prefix: at a change of era or when it crosses a defect. What a change of era hands on is open here; for the E1 = 0RA machines see `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---`.
 
@@ -253,7 +252,8 @@ A halt can only come when a carry leaves the last word of the grammar prefix: at
 - Lean (kernel): `Cascade.lean`, the cascade rule of the later layout (N + 1, Z + 1, C + 3 when Z wraps, R + 3 when C wraps) in 162 theorems for every size.
 - Trusted: in a 3·10^8-step run the full events have the plain cascade layout only at steps 361,628 to 743,696 with C of 2 digits and R of 13 (7,284 events), and 7,283 consecutive pairs follow the rule, no mismatch (`py/cascade_check.py`); the layered shapes after are listed above.
 - Lean (kernel): `Stage.lean`, the chain law with left words (`chain_event`): one event, for every Z (empty or not), every chain of base-3 words on the left and any tape after either chain; the five left rows `lv_d0` … `lv_top`. Also `chain_event_open`: the same with an open last item `11 [Q]` followed by any tape, up to a wrap of that Q.
-- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"); what a wrap at a half-digit shift hands on; halting.
+- Lean (kernel): `Junction.lean`, `chain_event_junction`: the chain law with the half-digit item `11 [Q] 0011 [Q'] 01 [P]` anywhere in the chain, through both wraps of Q and its healing.
+- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"); the other half-digit shifts; halting.
 
 ## Scripts
 
