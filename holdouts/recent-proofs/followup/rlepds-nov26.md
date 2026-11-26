@@ -102,3 +102,50 @@ M=1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---
 ulimit -s unlimited; RLEPDS_SHOW=100000000 ./rlepds $M 5 2 9 9 3 4 4 3 forget start=85284 > path.txt   # small T: reaches a halt
 python3 tools/py/rlepds_replay.py $M path.txt T2=4 E1=9                # first fact the abstraction lost
 ```
+
+## Addendum: the hybrid, tried the same day
+
+The combination suggested above was tried on 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA---. One part works and one
+does not. Still no machine is decided.
+
+**Works: tail-excursion summaries.** `rlepds MACHINE 2 1 9 9 3 3 3 1 enter=Qh` starts in state Q on a cell h with
+*every* tape to the right and nothing assumed on the left, and lists every way the head can come back to the cell
+on the left. With an abstract side of two runs and no patterns (close to PR 37's own domain) the answer is small
+and immediate:
+
+| entry | result | ways back |
+|---|---|---|
+| A0, B0, C1, F0 | never halts inside | 13, 16, 13, 17 |
+| A1, B1, C0, D0, D1, E1 | never halts inside | 1 or 2 (the first step turns back) |
+| E0, F1 | a halt is reachable | these are the machine's two-step halting pattern itself |
+
+Each way back is a state and the first cells of the rewritten tail, for example `D | 0^5 1 ANY` or
+`A | 0^(>=9, = 1 mod 3) 1 ANY`. These play the role of PR 37's nodes 576 and 577, found in under a second. They
+are computed by the tool and not checked independently.
+
+**Does not work yet: the round as a counter program for Spacer.** `tools/py/roundchc.py` turns the machine into
+guarded affine updates between tape *shapes* (single cells and repeated words `(w)^n` with integer counts), calls
+the summaries when the head enters the unknown tail, and writes one Horn predicate per shape. The program is
+faithful: `--check` follows the real run and the counter program side by side for 300,000 steps on two machines.
+But:
+
+- Without numbers the shape graph does not stay small, because every "this block has just one copy left" branch
+  is explored and leads into the small-counter regime, which is the chaotic part. Budgets on the left side give
+  9,283 shapes (2,512 predicates after merging chains) to more than 10^5.
+- A walk on numbers (`--guide`, counters started at 48, 49, 50 and 133, every summary exit followed) cuts this
+  down but does not close: 13,459 shapes after 3 * 10^6 numeric states, 1,918 predicates.
+- Z3's Spacer ran out of memory (9 GB) on both the 9,283-predicate and the 1,918-predicate versions, with no
+  answer.
+
+What is missing is loop acceleration before the solver: a sweep across `(w)^n` is hundreds of shapes here and
+should be one rule, which would leave a few dozen predicates. That is what lemcert's engine (PR 601) has, so the
+practical next step is to give that engine the `enter=` summaries as its tail lemmas, in place of its own lemma
+search, and keep its exact linear counts for the round.
+
+```sh
+./rlepds 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 2 1 9 9 3 3 3 1 enter=A0      # 13 ways back, no halt
+pip install z3-solver
+python3 tools/py/roundchc.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 85284 --keep-right --kr 100000 --check 300000
+python3 tools/py/roundchc.py 1RB0LD_0RC1RD_1LA1RA_1LE0LE_1RF0LA_0RA--- 85284 --llit 14 --kr 3 --lpat 3 --lmax 3 \
+        --guide 400000 --guidek 48,49,50 --no-solve                              # sizes only
+```

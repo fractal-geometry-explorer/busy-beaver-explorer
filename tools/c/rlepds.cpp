@@ -22,6 +22,8 @@
 //   any         from blank tape: tail ANY instead of BLANK
 //   slack=S     up to S leading single runs do not count towards K (lets a pattern form before truncation)
 //   ctx=D       with start=: keep only the D nearest stack cells and list the ways the excursion leaves them
+//   enter=Qh    tail-excursion summary: state Q on cell h, the other side ANY, nothing known on the stack side;
+//               lists every way the head can come back to the cell before the starting cell (or NONHALT with no exit)
 //   limit=N     give up after N path edges;  selftest=N  check the real run against the reached set (blank start)
 //   cert=FILE   write values, entries, path sets and callers
 // environment: RLEPDS_SHOW=n prints the last n steps of an abstract path to a halt (tools/py/rlepds_replay.py replays it),
@@ -140,8 +142,8 @@ int main(int argc,char**argv){
   if(argc<10){ fprintf(stderr,"usage: rlepds MACHINE K P E1 T1 M1 E2 T2 M2 [mirror] [limit=N] [selftest=N] [cert=FILE] [any] [start=N] [forget] [slack=S]\n"); return 2; }
   string m=argv[1]; K=atoi(argv[2]); P=atoi(argv[3]); E1=atoi(argv[4]); T1=atoi(argv[5]); M1=atoi(argv[6]); E2=atoi(argv[7]); T2=atoi(argv[8]); M2=atoi(argv[9]);
   if(E1<2||E2<3||M1<1||M2<1||T1<E1||T2<E2){ fprintf(stderr,"need E1>=2, E2>=3, T>=E\n"); return 2; }
-  bool mir=false, anyTail=false; u64 limit=50000000; long selftest=0, startN=0; bool forget=false; int ctxD=-1; string certf;
-  for(int i=10;i<argc;i++){ string a=argv[i]; if(a=="mirror") mir=true; else if(a=="any") anyTail=true; else if(a.rfind("limit=",0)==0) limit=atoll(a.c_str()+6); else if(a.rfind("selftest=",0)==0) selftest=atol(a.c_str()+9); else if(a.rfind("cert=",0)==0) certf=a.substr(5); else if(a.rfind("start=",0)==0) startN=atol(a.c_str()+6); else if(a=="forget") forget=true; else if(a.rfind("slack=",0)==0) SL=atoi(a.c_str()+6); else if(a.rfind("ctx=",0)==0) ctxD=atoi(a.c_str()+4); }
+  bool mir=false, anyTail=false; u64 limit=50000000; long selftest=0, startN=0; bool forget=false; int ctxD=-1, enterQ=-1, enterH=0; string certf;
+  for(int i=10;i<argc;i++){ string a=argv[i]; if(a=="mirror") mir=true; else if(a=="any") anyTail=true; else if(a.rfind("limit=",0)==0) limit=atoll(a.c_str()+6); else if(a.rfind("selftest=",0)==0) selftest=atol(a.c_str()+9); else if(a.rfind("cert=",0)==0) certf=a.substr(5); else if(a.rfind("start=",0)==0) startN=atol(a.c_str()+6); else if(a=="forget") forget=true; else if(a.rfind("slack=",0)==0) SL=atoi(a.c_str()+6); else if(a.rfind("ctx=",0)==0) ctxD=atoi(a.c_str()+4); else if(a.rfind("enter=",0)==0){ enterQ=a[6]-'A'; enterH=a[7]-'0'; ctxD=0; anyTail=true; } }
   int ns=(m.size()+1)/7;
   for(int s=0;s<6;s++)for(int b=0;b<2;b++) Tn[s][b]=-1;
   for(int s=0;s<ns;s++)for(int b=0;b<2;b++){ string x=m.substr(7*s+3*b,3); if(x[0]=='-'||x[2]=='-'){Tn[s][b]=-1;continue;} Tw[s][b]=x[0]-'0'; Td[s][b]=(x[1]=='R')?1:-1; if(mir) Td[s][b]=-Td[s][b]; Tn[s][b]=x[2]-'A'; }
@@ -182,6 +184,7 @@ int main(int argc,char**argv){
     size_t z=0; while(z<st0.size()&&st0[z]==0) z++;
     if(ctxD>=0){ z= st0.size()>(size_t)ctxD? st0.size()-ctxD : 0; }
     for(size_t i=z;i<st0.size();i++){ u32 id=ekey.size(); ekey.push_back((1ULL<<62)+st0[i]); exits.emplace_back(); callers.emplace_back(); paths.emplace_back(); callers[id].push_back(e0); callSet.insert(((u64)id<<32)|e0); e0=id; } }
+  if(enterQ>=0){ q0=enterQ; h0=enterH; }
   addPath(e0,ctl(q0,h0,a0));
   while(!work.empty()){
     auto [e,c]=work.back(); work.pop_back(); cur=((u64)e<<32)|c;
