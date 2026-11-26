@@ -17,10 +17,12 @@ def n1(v):
     if len(t) < 2: return 0
     x = t[1]
     return x if isinstance(x, int) else 10**int(x[1:])
-runs = [i for i in range(1, len(V)) if n1(V[i]) > n1(V[i - 1]) + 10]
+ok = [i for i in range(len(V)) if V[i][0] != '?']  # '?': a visit whose log line was lost (killed run)
+runs = [b for a, b in zip(ok, ok[1:]) if n1(V[b]) > n1(V[a]) + 10]
 keep = set(range(0, len(V), max(1, len(V) // 100))) | {len(V) - 1}
 for i in runs:
     keep |= set(range(max(0, i - 3), min(len(V), i + 8)))
+keep = {i for i in keep if V[i][0] != '?'}
 def wall(g):
     return len(g) // 4 if g and g == '1010' * (len(g) // 4) else 0
 def comp(i):

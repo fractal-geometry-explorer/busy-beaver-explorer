@@ -105,7 +105,7 @@ SEC2 = [
     'block becomes the first one, counting down by 4 again. The slider shows the tape at visits of the left end (the '
     'first 60 blocks, bar length on a logarithmic scale; the thin dark lines are the walls, taller for a wall made of more merged walls). '
     + ('Past the start-up, the first block ran out at visits ' + ', '.join(f'{v:,} (step about 10<sup>{d - 1}</sup>)' for v, d in RUNS if d > 8)
-       + '.' if RUNS else '') + f' At the end of the run the first block has {summ["first_block"]:,} words left, so the next run-out comes about {summ["first_block"]//4:,} visits later, beyond this run.</p>',
+       + '.' if RUNS else '') + f' Each run-out so far folded the same way, and the run went on without a halt. At the end of the run the first block has {summ["first_block"]:,} words left, so the next run-out comes about {summ["first_block"]//4:,} visits later.</p>',
     '''<div class="panel"><div class="controls"><button id="lvPrev" type="button">&larr;</button><input id="lvSlider" type="range" min="0" max="1" value="0" step="1" style="flex:1;min-width:160px" aria-label="visit of the left end"><button id="lvNext" type="button">&rarr;</button><button id="lvPlay" class="primary" type="button">Play</button></div><div class="cap" id="lvCap"></div><div id="lvBars" style="margin-top:8px;display:flex;align-items:flex-end;gap:1px;height:160px;overflow:hidden"></div></div>
 <script type="application/json" id="lvData">''' + json.dumps(samp, separators=(',', ':')) + '''</script>
 <script>
