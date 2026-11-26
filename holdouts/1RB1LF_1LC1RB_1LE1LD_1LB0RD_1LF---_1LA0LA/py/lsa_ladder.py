@@ -25,6 +25,8 @@ JMAX = 24         # longest segment (tokens)
 MAXST = 24        # most states of a segment automaton
 
 TR = {}
+TRMAX = 400000    # the caches TR and CYC are emptied when they grow past these sizes (memory of a long run)
+CYCMAX = 40000
 NEG = [False]     # also accept levels whose count falls (dn < 0, fuel-like); they run out, advance stops there
 
 
@@ -78,6 +80,8 @@ def trans(opn, pre, sym, post):
         res = None
     finally:
         Rec.cons = None; geng.C[0] = cs
+    if len(TR) >= TRMAX:
+        TR.clear()
     TR[key] = res
     return res
 
@@ -107,6 +111,8 @@ def cycle(opn, sym, st):
         seen[cur] = len(seq)
         seq.append((cur,) + t[2:])
         cur = (t[0], t[1])
+    if len(CYC) >= CYCMAX:
+        CYC.clear()
     CYC[key] = res
     return res
 

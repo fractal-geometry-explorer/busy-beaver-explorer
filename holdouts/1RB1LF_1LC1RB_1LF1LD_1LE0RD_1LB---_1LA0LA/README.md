@@ -510,8 +510,13 @@ If the word's first i digits are followed by a run of its rotation, a v^n Y = u^
 words at once. The slow hit at n ≈ 9.3·10^22 now takes 43 s instead of being linear in n (27 s at n = 10^5 before,
 0.1 s now). Checks: on the stalled word at n = 3,000 and 20,000 the new and the old engine give the same tape (a
 polynomial hash over all digits) and the same step count, and the 7th right-end event of the twin
-1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA is unchanged. Resumed from phase 16,281, the run is past 16,291, at
-a few minutes a phase.
+1RB1LF_1LC1RB_1LE1LD_1LB0RD_1LF---_1LA0LA is unchanged. Resumed from phase 16,281, the run went on to phase 18,400
+by 26 November, at about 10 phases a minute, after three more fixes. A chain of rungs and (10)^n units is now
+crossed in a loop, not by recursion: a long chain had hit Python's recursion limit after phase 16,305. A run of any
+rotation is crossed at once when it ends with the digits read so far, a (b a)^n = (a b)^n a with a b frozen. At
+phase 16,349 a 28-digit frozen word had been matched against a run of 2.5·10^16 rungs one rung at a time. Last,
+the ladder's transition cache is emptied when it passes 400,000 entries, because it grew by 250,000 entries a
+minute and the process was killed for memory.
 
 ## Pages
 
