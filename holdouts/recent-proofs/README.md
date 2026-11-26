@@ -24,6 +24,11 @@ screens (same table at another start, transitions that go quiet, lockstep runs o
 decided; four pairs give reductions of the form "the holdout cannot halt before one local context occurs". Tools and
 data are in [`tools/transfer/`](tools/transfer/).
 
+**Carry screen, 26 November 2026:** [`followup/lap-carry-transducers.md`](followup/lap-carry-transducers.md) tries
+proposal C of the survey. A sweep's carry is its crossing sequence, so it needs no learning; a screen of all 608
+finds two open machines with a small exact carry over full sweeps, and a closure checker that closes on none of
+them. Nothing was decided.
+
 ## The methods, in short
 
 | method | proofs | what it needs |
