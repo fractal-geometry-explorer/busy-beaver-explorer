@@ -53,6 +53,8 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   - An exact word simulator with symbolic counts records every branch condition.
   - 1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC has a three-level orbit: highway, era map C(L) to C(L+2), and regimes with K = 2^(8+r) + 5. The branch path changes every era, so no fixed lap exists.
   - 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE and 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- are growing counters with no fixed-shape hub.
+- **Summary certificates, finite-state version** ([`followup/rlepds-nov26.md`](followup/rlepds-nov26.md)), technique B of the
+  survey: `tools/c/rlepds.cpp` decides none of the 509 open holdouts; the note says why cryptids PR 37's round is out of reach.
 - **PR 89 odometers** ([`followup/odometer.md`](followup/odometer.md)), no halt reached:
   - 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- to 1.6·10^712 steps;
   - 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD to 1.2·10^1572 steps (closest approach: an empty block next to a block of 49 copies);
