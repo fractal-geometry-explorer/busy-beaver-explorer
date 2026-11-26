@@ -170,3 +170,7 @@ decided.
   digit run remembered the same spurious halt appears (541 nodes). With two, there is no verdict after 28 minutes
   and about 850 nodes, and the one-unit step is still present. A richer exit alone does not close the set; the
   node itself has to know that the cells right of the head were written by the machine.
+- Last check: larger summaries with counter units in the context do not help either (up to about 3,600 exits, and
+  an exit below the context cannot be told from an ordinary left sweep). Keeping what the excursion wrote needs an
+  equation between a left count and a right count, which a finite-state summary cannot hold. This line of work
+  stops here; see `tools/py/lemcert/README.md`.

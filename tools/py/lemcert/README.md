@@ -128,6 +128,27 @@ python3 run_tail.py --rlepds ./rlepds --maxnodes 60 --nodes   # the first nodes 
 python3 run_tail.py --rlepds ./rlepds --sumargs "1 2 9 9 3 3 3 1 digits slack=1" --nodes   # 11.5 minutes
 ```
 
+**Keeping what the excursion wrote (looked at last, same day; no code change).** Two ways to do it
+were examined, and neither is promising.
+
+- *Remember more inside the summary and put counter units into its left context*
+  (`lctx` = `(011)^m 10101`, m = 2, 4, 6). The summaries stay cheap, but the number of exits grows
+  from 15 (two runs) to 108 (four), 803 (six) and about 3,600 (eight runs), and at every size there
+  are still exits that leave the whole context. They cannot be read as "the counter was eaten":
+  a short real tail such as `1110` makes the head sweep left over every unit, which is an
+  ordinary part of a round and leaves the same kind of exit.
+- *Keep the written cells in the node.* What the excursion wrote has no bounded size, so the node
+  would need it as a repeated block with a count, tied to the left counter by an equation
+  ("units taken on the left = units written on the right"). The summaries cannot give that,
+  because rlepds has no relation between two counts. This is the obstacle of the round
+  itself (see `holdouts/recent-proofs/followup/rlepds-nov26.md`), met again one level down.
+
+So the line of work "finite-state tail summaries plus exact counts in the round" ends here for
+this machine. What PR 37 has and this search lacks is a hand-chosen lemma for the walk into the
+tail that states the counter is intact on return. Finding such a lemma automatically needs an
+engine that keeps linear relations across both sides of the head during the walk, which is the
+first lemcert design; its open problems are the three listed under "Why it does not close".
+
 ## Does the method transfer to F04?
 
 The F04 machine closest to PR 37's is its sibling 1RB0LE_1LC0RD_0RA1LD_0LC1RA_1LF1LA_---1LA,
