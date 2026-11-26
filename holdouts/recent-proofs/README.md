@@ -18,6 +18,10 @@ with our folders, and a screen of the open holdouts for transfer (script in [`to
 **Survey, 26 November 2026:** [`technique-survey-nov26.md`](technique-survey-nov26.md) classifies every technique
 that has decided a holdout, lists what failed and on which machines, and ranks eight new techniques to try.
 
+**Halt hunts, 26 November 2026:** [`halt-hunt-ranking-nov26.md`](halt-hunt-ranking-nov26.md) estimates the expected
+number of halts per doubling of the run for eight machines with proved visit maps, calibrated on the one that
+halted, and ranks the hunts. The replay tool it uses is [`tools/segreplay`](../../tools/segreplay/README.md).
+
 **Invariant transfer, 26 November 2026:** [`followup/invariant-transfer.md`](followup/invariant-transfer.md) tests
 technique D of the survey. The invariants of 236,071 proved tables were tried on the 509 open holdouts in three
 screens (same table at another start, transitions that go quiet, lockstep runs of 2,138 neighbour pairs). Nothing was

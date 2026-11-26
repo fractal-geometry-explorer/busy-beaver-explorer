@@ -1,0 +1,19 @@
+{
+ "name": "visits A(a, b) = 0^inf 1^a 0 C> 1^b 0^inf",
+ "machine": "1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC",
+ "source": "bbchallenge wiki (analysis by Racheline); proved on the tape in Rules.v of the busycoq proof",
+ "vars": ["a", "b"],
+ "frames": ["A"],
+ "start": ["A", 2, 9],
+ "cases": [
+  {"frame": "A", "guard": ["b == 3"], "halt": true},
+  {"frame": "A", "guard": ["b == 2", "a < 3"], "to": "A", "out": ["0", "7"]},
+  {"frame": "A", "guard": ["b == 2"], "to": "A", "out": ["a - 3", "7"]},
+  {"frame": "A", "guard": ["b <= a"], "to": "A", "out": ["a - b + 1", "2*b + 3"]},
+  {"frame": "A", "guard": ["b == a + 1"], "to": "A", "out": ["4", "2*a + 4"]},
+  {"frame": "A", "guard": ["b == a + 2"], "to": "A", "out": ["1", "2*a + 7"]},
+  {"frame": "A", "guard": ["a % 2 == 0"], "to": "A", "out": ["2*a + 4", "b - a - 1"]},
+  {"frame": "A", "guard": ["b == a + 3"], "to": "A", "out": ["2*a + 1", "9"]},
+  {"frame": "A", "guard": [], "to": "A", "out": ["2*a + 3", "b - a"]}
+ ]
+}
