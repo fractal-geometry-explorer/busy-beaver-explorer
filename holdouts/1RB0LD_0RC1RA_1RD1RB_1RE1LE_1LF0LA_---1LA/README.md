@@ -33,6 +33,15 @@ Left words: `001010 (01)^3 1^6`, `(00101)^k 1^4`, `0 1^7`, a few others. Right w
 Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^4 steps (kernel) and 10^7
 (`native_decide`).
 
+Kernel only, copied from [`1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE`](../1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE/README.md)
+(the same table with the states renamed, started in another state) with the names changed:
+
+- `lean/Halt.lean` (`halt_needs_pattern`): a halt from blank tape passes through A reading a 1 with `0 0 1` on its
+  left (A, D and E step left and F meets the second 0).
+- `lean/LeftEnd.lean` (`reachable_nogap`, `halt_at_left_end`): left of the head the tape, from its leftmost 1, never
+  holds two 0s in a row. The only transition that writes 0 and moves right is B0 → 0RC, and B is entered only by
+  A0 → 1RB and C1 → 1RB, which write 1. So a halt needs A to read a 1 right next to the leftmost 1 of the tape.
+
 ## Computed / observed
 
 - No halt in 10^9 steps (`tools/c/triage.c`).
