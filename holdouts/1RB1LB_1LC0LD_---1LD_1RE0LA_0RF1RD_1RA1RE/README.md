@@ -42,13 +42,15 @@ Seen at the left end (after a leftward sweep) the tape is a soup of runs `1^4` t
 
 The machine halts only when C reads a 0, and Lean proves that the only way there is D reading a 1 with `0 0 1` just left of it (D, A and B step left and C meets the second 0; `halt_needs_pattern`, `lean/Halt.lean`). So a leftward sweep must reach `0 0 1 1` in D. Runs of three or more 0s do appear inside the tape for a moment (about 31,000 times in 2·10^8 steps), but never in that position.
 
+**Only at the left end** (`reachable_nogap`, `halt_at_left_end`, `lean/LeftEnd.lean`). Left of the head the tape, from its leftmost 1, never holds two 0s in a row. A right move appends the written cell to the left part, and the only transition that writes 0 and moves right is E0 → 0RF; E is entered only by D0 → 1RE and F1 → 1RE, which write 1, so that 0 always follows a 1. A left move only drops a cell. So the `0 0 1` of the halting pattern can only be the blank tape followed by the leftmost 1: a halt needs D to read a 1 right next to the leftmost 1. The proof is the twin's, renamed; the twin's [`left-end/`](../1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE/left-end/README.md) notes show that the left end on its own does not close as a finite-state system.
+
 The shallow near miss (D on a 1 with `1 0 1` on its left) happens tens of millions of times, so the safety comes from the order of pieces, not from a rare event. No invariant is known.
 
 **Twin.** [`1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE`](../1RB1RF_1RC1LC_1LD0LE_---1LE_1RF0LB_0RA1RE/README.md) is this table with the states renamed (A→B, B→C, C→D, D→E, E→F, F→A); it starts in the state this machine calls F. The two runs from blank tape are different (no common configuration at the left end in their first 300,000 steps), but they use the same sweeps, words and halting pattern, and every rule here holds there after renaming.
 
 ## Status
 
-Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 12 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps.
+Open. Proved in Lean, kernel only: the halting configurations (`step_none_iff`, `lean/Blank.lean`), no halt in 10,000 steps, the 12 sweep rules (`lean/Rules.lean`), and that every halt from blank tape passes through the pattern above (`halt_needs_pattern`, `lean/Halt.lean`), and that this can only happen at the far left end (`halt_at_left_end`, `lean/LeftEnd.lean`). With `native_decide`: no halt in 10,000,000 steps. C: no halt in 1,000,000,000 steps.
 
 ## For later
 
