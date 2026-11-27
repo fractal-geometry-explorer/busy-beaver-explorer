@@ -332,13 +332,17 @@ NOTREG = set()          # eater shapes already reported as not regular (log once
 def save_state(path, R, frames, nph):
     st = dict(levels=R.levels, B=to_tokens(R.B), used=R.used, depth=R.depth, Q=R.Q, op=R.top_op,
               seen=getattr(R, 'seen', {}), qmax=getattr(R, 'qmax', QMAX), frames=frames, nph=nph, SCPOS=SCPOS, SCNEG=SCNEG, PFX=PFX, TCACHE=TCACHE)
-    with open(path + '.tmp', 'wb') as f:
-        pickle.dump(st, f, protocol=4)
+    import gzip
+    with open(path + '.tmp', 'wb') as f:     # gzip, about 13 times smaller
+        f.write(gzip.compress(pickle.dumps(st, protocol=4), compresslevel=1))
     os.replace(path + '.tmp', path)
 
 
 def load_state(path):
-    st = pickle.load(open(path, 'rb'))
+    import gzip
+    with open(path, 'rb') as f:
+        gz = f.read(2) == b'\x1f\x8b'
+    st = pickle.load((gzip.open if gz else open)(path, 'rb'))
     R = PRegion([], Q=st['Q'], op=st['op'])
     R.levels = st['levels']; R.B = build(st['B'], None); R.used = st['used']; R.depth = st['depth']
     R.seen = st['seen']
