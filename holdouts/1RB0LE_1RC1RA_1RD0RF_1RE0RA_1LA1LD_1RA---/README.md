@@ -77,6 +77,13 @@ gcc -O2 -o ctx ctx.c && ./ctx 1RB0LE_1RC1RA_1RD0RF_1RE0RA_1LA1LD_1RA--- 20000000
 gcc -O2 -o zrec zrec.c && ./zrec 1RB0LE_1RC1RA_1RD0RF_1RE0RA_1LA1LD_1RA--- 30000000 A 2 1 | tail -2
 ```
 
+## Write-only test at the left end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's left end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **fails**.
+Computed, not proved: of 3,169 deep trips from the left end, 3,115 have an end word with more than one return state (A, D, E); 64 more cells of context still leave 2,034. The head brings back a bit that is the content of the bulk. Trips take 7.5 steps per cell of depth: these are sweeps. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

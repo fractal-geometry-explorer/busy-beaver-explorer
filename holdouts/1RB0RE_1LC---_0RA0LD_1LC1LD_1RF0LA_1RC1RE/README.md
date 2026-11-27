@@ -144,6 +144,13 @@ of: C with 0 under the head, 0 right, 1 two right.
 . /etc/profile.d/lean.sh && holdouts/1RB0RE_1LC---_0RA0LD_1LC1LD_1RF0LA_1RC1RE/lean/check.sh
 ```
 
+## Write-only test at the right end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's right end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **fails**.
+Computed, not proved: of 9,700 deep trips from the right end, 6,445 have an end word with more than one return state (C, E, F); 64 more cells of context still leave 6,405. The head brings back a bit that is the content of the bulk. Trips take 6.6 steps per cell of depth: these are sweeps. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines
