@@ -100,9 +100,10 @@ table `1RB1RE_1LC1RB_1RA0LD_1RC0LB_0RF---_0LD1RA`, started in state C, halts.
 ## Proofs and labels from outside
 
 `external.json` holds, for every machine, what is known from outside its own ledger: Rocq proofs in open pull requests
-of ccz181078/busycoq (46 machines, read on 12 November 2026; none merged, none compiled here), the one machine proved
-in busycoq's BB6 branch, the class and the cryptid label the community tracker gives it, and the five Coq proofs kept
-in this repository. `build_pages.py` shows it as a box on both pages of the machine and as the machine's standing on
+of ccz181078/busycoq and the ones merged into its BB6 branch (84 holdouts merged by 27 November 2026, BB6 head
+70a1ffc; most were compiled here from the pull requests), the class and the cryptid label the community tracker gives
+it, and the Coq proofs kept in this repository. A merged entry with `"revised": true` names the files that hold the
+maintainer's rewritten proof; that version was not recompiled here. `build_pages.py` shows it as a box on both pages of the machine and as the machine's standing on
 the index (decided here, proved elsewhere, outside proof awaiting review, cryptid, open). A machine's `status.json`
 stays the record of what this repository checked; an outside proof changes its `decision` only once it is compiled
 here. When a pull request is merged or a new one appears, edit `external.json` and run `python3 holdouts/build_pages.py`:
