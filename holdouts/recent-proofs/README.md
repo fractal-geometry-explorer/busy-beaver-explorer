@@ -41,6 +41,11 @@ Lean proofs (1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE and 1RB0RC_1LC0RB_1LD0LD_
 11 ported proofs with their Rocq twins, and screens the 501 open holdouts for the two signatures the new proofs rest
 on (a finite end controller beside a write-only bulk; an exact run grammar with return shapes). Nothing was decided.
 
+**Contract tables by SAT, 27 November 2026:** [`followup/contract-sat.md`](followup/contract-sat.md) encodes the
+proof object of the write-only note (classes of half tapes with contracts, an exact window at the regular end) for
+a SAT solver. The search is exact; no open holdout has a table with 8 classes and a window of 12 cells in either
+direction, and the table of the machine DeepMind proved was not recovered. Tools: [`tools/contractsat/`](tools/contractsat/).
+
 **Write-only test, 27 November 2026:** [`followup/write-only-test.md`](followup/write-only-test.md) tests the
 write-only property of cryptids pull request 42 directly, on the 12 end-controller candidates and then on all 501
 open holdouts, at one end and at every boundary of the tape. Five candidates fail, one fails on one end word, six
