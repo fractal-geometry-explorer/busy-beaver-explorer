@@ -27,7 +27,8 @@ Tools and raw results: [`../tools/contractsat/`](../tools/contractsat/).
   windows 8 and 16.
 - **The proved machine 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE was not recovered.** Over raw cells there is no
   table with 8 classes (window 12) or 10 classes (window 1). With the proof's tokens built in (automaton state
-  times a run of 0 to 3 zeros) there is none with 5 or 6 automaton states and a window of 24 cells, inside the window situations of a real run.
+  times a run of 0 to 3 zeros) there is none with 5 or 6 automaton states and a window of 24 cells, nor with 6 and a window of 32, inside the
+  window situations of a real run. The run with 7 states did not finish in 110 minutes.
   Each further automaton state costs about a factor 12 in solver time (36 s, then 446 s), so 7 is at the edge.
 - **Why it does not scale, in one sentence each.** A wrong table with a narrow window is refuted at once, because
   the whole problem is in front of the solver. With the wide window the proof needs (its end words are up to 45
@@ -104,7 +105,7 @@ classes and a window of at most 12 cells, in either direction.
 |---|---|---|---|
 | 1RB---_1LC0RF_1RF0LD_0LE1LC_0RC0LC_1RB0RA | left | none with up to 11 classes | none for b = 0 or 1, Z = 2 or 4, D = 2 to 5 |
 | 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA | left | none with up to 13 classes | none, same settings |
-| 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- | left | none with up to 10 classes | none, same settings |
+| 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- | left | none with up to 11 classes | none, same settings |
 | 1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA | left | none with up to 13 classes | none, same settings |
 
 The learner of the write-only note predicted the return *states* of these four with 5, 11, 26 and 76 classes. A
@@ -122,8 +123,8 @@ for 9, 10 and 11 classes.
 | D = 7, Z = 3 (30 classes) | 48 | none | did not converge: every model's window graph passes 200,000 situations without a halt | stopped after 100 rounds |
 | D = 5, Z = 3 (22 classes) | 24 | real-run keys (350) | no table | 36 s |
 | D = 6, Z = 3 (26 classes) | 24 | real-run keys (350) | no table | 446 s |
-| D = 7, Z = 3 (30 classes) | 24 | real-run keys (350) | running (longrun job `…-contractsat-D7-W24`, one chunk of 110 minutes) | |
-| D = 6, Z = 3 (26 classes) | 32 | real-run keys (1,316) | running (longrun job `…-contractsat-D6-W32`) | |
+| D = 7, Z = 3 (30 classes) | 24 | real-run keys (350) | not finished | stopped after 110 minutes (longrun job `…-contractsat-D7-W24`) |
+| D = 6, Z = 3 (26 classes) | 32 | real-run keys (1,316) | no table | 2,967 s (longrun job `…-contractsat-D6-W32`) |
 
 The window situations of a real run of 10^9 steps: 101 for W = 16, 350 for W = 24 (both complete after the first
 quarter of the run), 1,316 for W = 32 (complete after the third quarter), 15,190 for W = 48 (still growing).
