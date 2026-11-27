@@ -111,3 +111,10 @@ into run tokens before closing over call summaries. Learned classes over tokens 
 each tail by the call that produced it re-proves 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF in 0.2 s with a
 certificate that an independent checker accepts. No open holdout was decided. Tools are in
 [`tools/tokens/`](tools/tokens/).
+
+**Frontier-window decider, 27 November 2026:** [`followup/frontier-window.md`](followup/frontier-window.md) tries
+"split only the end words" from the write-only note. An exact window of 32 cells at the left frontier plus call
+summaries on 8-cell classes proves 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE automatically, with a certificate
+that a separate checker accepts and no learned classes. It does not close the second machine of cryptids pull
+request 42, and a screen of the 501 open holdouts finds no closure. Tools are in
+[`tools/frontier-window/`](tools/frontier-window/).
