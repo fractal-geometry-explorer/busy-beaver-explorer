@@ -168,7 +168,7 @@ at a limit is not a negative result, and these limits are small.
 
 **Second stage on the 282 undecided directions**: 100 s, 20 million configurations and 2 million classes per run,
 walking up from the smallest setting not yet known to derive a halt, and stopping a direction after two runs at a
-limit (1,235 runs, 5.5 hours on 3 cores). No setting closes. 67 more directions are settled, because every setting
+limit (1,235 runs, about 4.6 hours on 3 cores). No setting closes. 67 more directions are settled, because every setting
 up to the largest now derives a halt, which makes 750 of 1,002. The other 215 still stop at a limit, 409 runs in
 all. Table: [`named-deep-282-nov27.txt`](../tools/frontier-window/named-deep-282-nov27.txt).
 
