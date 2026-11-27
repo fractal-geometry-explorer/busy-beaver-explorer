@@ -81,13 +81,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE</p>
     <h1>What is known about 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE</h1>
     <p class="machine">1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+    <p class="stand merged"><b>Decided by an outside Lean proof: it never halts</b><span>An open pull request (42) to DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the standard axioms. It is their proof, on their definitions, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 27 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Lean proof: it never halts.</b> <a href="https://github.com/google-deepmind/cryptids/pull/42">google-deepmind/cryptids pull request 42</a> (Tom Zahavy, 26 November 2026; open, not merged into their main branch) contains <code>NonHalt/M_1RB0LD_1LC0RE_HHH1LD_1LE1LA_1RA0LF_1LC1RE.lean</code>, whose theorem <code>is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape. We built it with Lean v4.35.0-rc4 on 27 November 2026 (26 s for the module): it uses only the axioms propext, Classical.choice and Quot.sound (no <code>sorry</code>, no <code>native_decide</code>), and its transition table was printed and matches this machine. The proof reduces the run to a segmented macro-transition system, proves a call-return parity conservation law for it, and checks a 132-checkpoint graph of period 87 with a reflected symbolic verifier; 32 macro steps take the blank tape into that graph. It is their proof, not one written in this repository; everything else on this page is what this repository found on its own.</p>
       <p><b>The question is open.</b> Lean proves the head's fast moves through the background and the halting situations (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The tape is the alternating pattern <code>1010&hellip;</code> with defects: places where two equal cells meet (<code>11</code>, <code>111</code>, <code>1111</code>, <code>00</code>). About 16% of neighbouring pairs are <code>11</code> and about 4% are <code>00</code>, and these fractions hardly change as the tape grows. The head does not sweep cleanly: it crosses the tape in zig-zags of tens to hundreds of cells, moving the defects around, and no regular word or counter shows up.</p>
       <p><b>Where a halt would come from.</b> Only C reading a 0 halts. C is entered from B and from F reading a 0 (each writes a 1 and steps left), so <code>0 B&gt;0</code> and <code>0 F&gt;0</code> halt (<code>halt_B</code>, <code>halt_F</code>). In the run, whenever B or F reads a 0 the cell to its left is a 1.</p>
@@ -96,6 +97,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it never halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/84c3ef8/BusyBeaver/BB6/NonHalt/M_1RB0LD_1LC0RE_HHH1LD_1LE1LA_1RA0LF_1LC1RE.lean">M_1RB0LD_1LC0RE_HHH1LD_1LE1LA_1RA0LF_1LC1RE.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/42">google-deepmind/cryptids pull request 42</a> (commit <code>84c3ef8</code>, 26 November 2026; open, not merged into their main branch) proves that this machine never halts. We built it with Lean v4.35.0-rc4 on 2026-11-27: the theorem <code>BusyBeaver.M_1RB0LD_1LC0RE_HHH1LD_1LE1LA_1RA0LF_1LC1RE.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Spaghetti</b>. These are labels read off the run by others, not results.</p>
