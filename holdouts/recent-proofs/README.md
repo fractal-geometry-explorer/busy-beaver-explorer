@@ -33,6 +33,11 @@ proposal C of the survey. A sweep's carry is its crossing sequence, so it needs 
 finds two open machines with a small exact carry over full sweeps, and a closure checker that closes on none of
 them. Nothing was decided.
 
+**Cryptids pull request 42, 27 November 2026:** [`cryptids-pr42-nov27.md`](cryptids-pr42-nov27.md) reads the two new
+Lean proofs (1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE and 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF), compares the
+11 ported proofs with their Rocq twins, and screens the 501 open holdouts for the two signatures the new proofs rest
+on (a finite end controller beside a write-only bulk; an exact run grammar with return shapes). Nothing was decided.
+
 ## The methods, in short
 
 | method | proofs | what it needs |
