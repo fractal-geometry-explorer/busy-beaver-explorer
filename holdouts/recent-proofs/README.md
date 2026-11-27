@@ -44,6 +44,10 @@ open holdouts, at one end and at every boundary of the tape. Five candidates fai
 pass for a reason that gives no proof. A decider built on K-cell call summaries fails on both proved machines; the
 note says what classes of half tapes it would need. Nothing was decided. Tools: [`tools/writeonly/`](tools/writeonly/).
 
+**Second brainstorm, 27 November 2026:** [`technique-brainstorm-2-nov27.md`](technique-brainstorm-2-nov27.md) lists
+nine further techniques after the first round's eight decided nothing, ranked by cost and odds, each with target
+machines and a cheap first test. Nothing in it is computed.
+
 ## The methods, in short
 
 | method | proofs | what it needs |
