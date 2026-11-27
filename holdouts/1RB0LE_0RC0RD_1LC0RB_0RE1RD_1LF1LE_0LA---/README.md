@@ -91,3 +91,10 @@ Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/
 `tools/tests/test_rleaccel_cpp.py`), blocks of 1, runs from blank tape without a halt to 4.02·10^24 machine steps (exact; tape:
 1,098,318,864 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
 (16,065,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB0LE_0RC0RD_1LC0RB_0RE1RD_1LF1LE_0LA--- 1 1000000000000000 run.ck 300`.
+
+## Write-only test at the right end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's right end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **passes, with a return state fixed by the end word**.
+Computed, not proved: the return state (D or E) of all 2,819 deep trips from the right end is fixed by the end word alone (39 end words in a 24-cell window, none new after the first quarter of the run). The right end is a finite machine that runs by itself. The halt does happen at this end, when a carry that arrives there is a power of 2 (`halts_iff`), but the carry is the *length* of a block of 1s, which no end word and no return state holds. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).

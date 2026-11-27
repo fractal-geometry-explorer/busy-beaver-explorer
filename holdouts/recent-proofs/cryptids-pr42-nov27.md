@@ -267,7 +267,8 @@ dull reason (a counter passes B whenever its digits are short runs).
    land in a known group. Test first that it recovers the 5 nonterminals and 3 + 9 shapes of
    1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF. Start with 1RB0LD_0RC1RA_1RD1RB_1RE1LE_1LF0LA_---1LA and
    1RB0RC_1LC0RB_1RE1LD_0LB0LF_---0RA_1LB1LD.
-2. **End-controller check** (the 12 machines of strict form A). For each: list the end records exactly, extend each
+2. **End-controller check** (the 12 machines of strict form A). *Done on 27 November:
+   [`followup/write-only-test.md`](followup/write-only-test.md). None of the 12 has the structure.* For each: list the end records exactly, extend each
    to the full end word up to the first place the bulk begins, and test the write-only property directly. Run every
    end word against many different bulks taken from the run and count the distinct end words that come back. If the
    answer is always one or two, with the choice readable from a few cells at the start of the trip, then the

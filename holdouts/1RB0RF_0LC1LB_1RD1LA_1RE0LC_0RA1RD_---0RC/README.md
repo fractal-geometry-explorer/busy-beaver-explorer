@@ -54,6 +54,13 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 . /etc/profile.d/lean.sh && holdouts/1RB0RF_0LC1LB_1RD1LA_1RE0LC_0RA1RD_---0RC/lean/check.sh
 ```
 
+## Write-only test at the left end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's left end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **fails**.
+Computed, not proved: 9,006 deep trips from the left end fall on 16 end words, and 8,854 of them have an end word with more than one return state (A, B, C); 64 more cells of context still leave 8,653. The head brings back a bit that is the content of the bulk. Trips take 8.4 steps per cell of depth: these are sweeps. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

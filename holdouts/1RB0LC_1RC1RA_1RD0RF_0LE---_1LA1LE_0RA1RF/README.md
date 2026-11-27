@@ -84,6 +84,13 @@ g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1
 DECADES=1 ./rsim_fast 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF run 10500 out.json
 ```
 
+## Write-only test at the left end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's left end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **fails on one end word**.
+Computed, not proved: 6,329 deep trips from the left end fall on 8 end words. Seven always give the same return state. The eighth (570 trips) gives two, and no context up to 64 cells separates them. Trips take 8.8 steps per cell of depth: these are sweeps. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

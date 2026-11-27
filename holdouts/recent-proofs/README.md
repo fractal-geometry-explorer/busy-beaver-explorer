@@ -38,6 +38,12 @@ Lean proofs (1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE and 1RB0RC_1LC0RB_1LD0LD_
 11 ported proofs with their Rocq twins, and screens the 501 open holdouts for the two signatures the new proofs rest
 on (a finite end controller beside a write-only bulk; an exact run grammar with return shapes). Nothing was decided.
 
+**Write-only test, 27 November 2026:** [`followup/write-only-test.md`](followup/write-only-test.md) tests the
+write-only property of cryptids pull request 42 directly, on the 12 end-controller candidates and then on all 501
+open holdouts, at one end and at every boundary of the tape. Five candidates fail, one fails on one end word, six
+pass for a reason that gives no proof. A decider built on K-cell call summaries fails on both proved machines; the
+note says what classes of half tapes it would need. Nothing was decided. Tools: [`tools/writeonly/`](tools/writeonly/).
+
 ## The methods, in short
 
 | method | proofs | what it needs |
