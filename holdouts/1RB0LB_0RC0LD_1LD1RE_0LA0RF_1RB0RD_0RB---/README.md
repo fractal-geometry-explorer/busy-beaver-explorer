@@ -237,6 +237,49 @@ more cells behind the one before; its words are those of `c/wordrun.c`, checked 
 and `c/deficit.c` after 200,000 rounds). Result, 2,000,000 rounds (about 2 hours with 3 threads; the word is then 12,427,700 cells long): no halt and no `111`. There are 12 junk events, in rounds 161,210, 194,646, 757,565, 906,775, 1,042,306, 1,489,725, 1,731,288, 1,768,130, 1,794,988, 1,799,191, 1,802,854 and 1,975,596, and all 12 have the same shape: the round's last blocks are a doubler, then `000` (count 2, even deficit), then the junk `0` before the word's last `1` (the cells read `1010 000 1 1`); each time the next round enters at offset 1 and passes through `1011` (12 uses of `1011`, one after each junk event). No junk event has yet had a digit block before its last `000`, the only way to an odd deficit there. Continued from the saved word to round 3,000,000 (`./piperun 3 3000000 50000 OUT p2M.txt 2000000`, about 7 hours): no `111`; two more junk events, in rounds 2,717,689 and 2,959,136, both of the same safe shape. 14 junk events in 3,000,000 rounds, all after a doubler. Then to round 4,000,000 (resumed from saved words at 3,000,000, 3,400,000 and 3,800,000, 4 threads): no `111`; four more junk events (rounds 3,123,460, 3,199,248, 3,856,195 and 3,951,813), all of the same safe shape. 18 junk events in 4,000,000 rounds, all after a doubler; the word is then 24,856,760 cells long. Then to round 5,000,000 (checkpoints every 250,000 rounds): no `111`; three more junk events (rounds 4,086,395, 4,196,223 and 4,574,047), all of the same safe shape: 21 junk events in 5,000,000 rounds, all after a doubler. The word ends that occur are not a small closed set (the last 24 cells take 285 different values in rounds 1,001 to 100,000, and new ones keep appearing), so a proof that only looks at the end of the word is not available. Then to round 6,000,000: no `111`; eight more junk events (rounds 5,305,818, 5,396,821, 5,425,937, 5,531,815, 5,647,691, 5,958,656, 5,979,226 and 5,991,215), all of the same safe shape: 29 junk events in 6,000,000 rounds, all after a doubler; the word is then 37,285,969 cells long. Then to round 7,000,000: no `111`; five more junk events (rounds 6,369,130, 6,417,112, 6,684,607, 6,759,504 and 6,808,907), all of the same safe shape: 34 junk events in 7,000,000 rounds, all after a doubler; the word is then 43,501,477 cells long. Then to round 8,000,000 (run in short segments by `c/piperun_driver.py`, which checkpoints the word after each segment so the run survives machine restarts): no `111`; five more junk events (rounds 7,034,049, 7,094,448, 7,288,470, 7,462,221 and 7,588,796), all of the same safe shape: 39 junk events in 8,000,000 rounds, all after a doubler; the word is then 49,715,076 cells long.
 <!-- T23-deficit:end -->
 
+<!-- T23b-junk-geometry:begin -->
+## Junk after a digit needs one count in a narrow window, and the run misses it by one visit (27 November 2026)
+
+This section tries to prove that a junk event always comes right after a doubler (the safe shape), and shows where that
+attempt stops. Write `n` for the *remaining count* (the visits still to deliver, `2^e − c` in the section above). It
+becomes `n − 1` at a `0` at a block start, `⌈n/2⌉` at a digit block and `2n` at a doubler, and the round stops on the
+`0` where it reaches 0.
+
+**Where the geometry forces it.** A junk event stops on the `0` just before the word's last `1`, and that `0` is the
+last cell of the last digit block B3 of the round before. The phase rule (each block of a round starts 1 or 2 cells
+into a block of the round before, from busycoq PR59, observed in this run, not proved here) then forces the shape.
+Every block the earlier round wrote ends in `0`. So the junk round's last block, before the stop, starts on the last
+cell of the earlier block B2, which must be a digit (3 cells into a doubler is not allowed). If the junk round's block
+before that is also a digit (the case that can be dangerous), it starts on the last cell of B1, which must be a digit
+too. Call this geometry **G**: the earlier round's last three blocks are digits, and the next round's blocks start on
+the last cells of the first two. In G each of the two blocks takes one visit on its `0` and halves, so the round stops
+on the junk cell exactly when it enters B1's last cell with `nX` = 4 to 7 visits (`junk_after_digit_count`). The
+dangerous count 3 in the last block is `nX` = 6 or 7.
+
+**Proved in Lean (kernel, `lean/Deficit.lean`): two rounds over the same digits pull together.** Let the earlier round
+enter a digit block with `m` visits (`z = 1` if the block starts with `0`), and the later round enter on the block's
+last cell with `n`. One block later the gap `δ = n − 2m` has become `⌊δ/2⌋ + z − (m − z) mod 2` (`offset2_gap`).
+So a gap in [−3, 2] stays there and a larger one shrinks (`offset2_gap_bound`). Then `nX = 2·m1 + δ`, where `m1` is
+the earlier round's count at B1. The earlier round passes on exactly one visit after B3, so its counts at B1, B2, B3
+cannot be very small.
+
+**Computed (`c/junkgeom.c`, first 400,000 rounds): the margin is one visit.** G occurs in 133,387 of the 400,000
+rounds, a third of them. In every one, `nX` is at least 8, never in the window 4 to 7, so no junk after a digit. That
+matches the 39 junk events up to round 8,000,000, all after a doubler. But the margin is thin:
+
+- `m1` is 15 in 76% of the G rounds, and its smallest values are 5 (12 times), 6 (976) and 7 (19,215).
+- The gap `δ` takes every value from −6 to 6, plus 8.
+- `nX` = 8, one visit above the window, occurs twice (rounds 341,090 and 375,512, with counts 6, 3, 2 in the earlier
+  round). `nX` = 10 occurs 96 times.
+
+So no bound on the end alone can prove the safe shape. The smallest `m1` seen (5) with the smallest gap seen (−6)
+would give `nX` = 4, inside the window. The run stays out only because those extremes never coincide. A proof would
+need a bound on the gap `δ` carried along the whole word (doublers double it, digits halve it, as above) together with a
+lower bound on the earlier round's last counts. The two runs at `nX` = 8 show that any such bound has to be exact to
+within one visit. This is the same picture as the near misses above (one or two visits more and the run meets `111`).
+The question looks like a property of exact arithmetic along the whole word, not of the word end, and is left open.
+<!-- T23b-junk-geometry:end -->
+
 
 ## Events, third round
 
@@ -251,12 +294,12 @@ the first 10^8 steps (the uncovered ones are the reference's uncovered right eve
 
 ## Status
 
-Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the left-and-right increments in one pass, 8 theorems (`lean/Events.lean`). The pass over the word in deficit form, the count as 2^e − c (`lean/Deficit.lean`). `native_decide`: 10^7 steps and the first 2,000 rounds. C: no halt in
+Open. Lean, kernel only: the halting configurations and 10^4 steps (`lean/Blank.lean`), the sweeps of the run (`lean/Rules.lean`), the left-and-right increments in one pass, 8 theorems (`lean/Events.lean`). The pass over the word in deficit form, the count as 2^e − c, and the gap between two rounds over the same digit blocks (`lean/Deficit.lean`). `native_decide`: 10^7 steps and the first 2,000 rounds. C: no halt in
 10^11 steps, and no `111` in the first 8,000,000 rounds of the word pass.
 
 ## Next steps
 
-The last few blocks of the word cannot exclude the dangerous junk on their own, and the deficit form (see "The carry as arithmetic" above) says exactly what has to be excluded: a junk round whose last `000` block receives an odd deficit. Next: follow the parity of the deficit through the last digit blocks back to the bits it comes from (a run of k digit blocks reads bit k of the deficit), to see whether the zeros that feed it can ever line up; or keep the run going (`c/piperun.c`) until a junk round with an odd deficit appears.
+A junk event after a digit needs geometry G and a count of 4 to 7 at its first block (see "Junk after a digit needs one count in a narrow window" above); the run keeps that count at 8 or more, with a margin of one visit. Next: a bound on the gap between consecutive rounds' counts along the whole word (`offset2_gap` is the digit step; the doubler step and the changes of phase are missing), together with a lower bound on the last counts of a round; or keep the run going (`c/piperun_driver.py` under the long-run tool).
 
 ## Scripts
 

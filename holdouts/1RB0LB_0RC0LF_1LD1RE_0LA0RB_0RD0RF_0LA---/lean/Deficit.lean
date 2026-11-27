@@ -169,4 +169,32 @@ theorem visd_digit_exact (f e : Nat) (s : List Bool) (he : 1 ≤ e) :
   have he' : e ≠ 0 := by omega
   simp [visd, h0, he', bit]
 
+/-! ## Two rounds over the same digit blocks
+
+The *remaining count* `n` (visits still to deliver) changes by `n ↦ n - 1` at a `0` at a block start, `n ↦ ⌈n/2⌉`
+at a digit block and `n ↦ 2 n` at a doubler; the round stops on the `0` where `n` reaches `0`.
+
+Take two consecutive rounds and a stretch where every block of the later round starts on the last cell (a `0`) of a
+digit block of the earlier one. The earlier round enters such a block with `m` visits (`z = 1` if the block starts
+with `0`, which takes one visit first); the later one enters with `n`, takes one visit on the `0` and halves. -/
+
+/-- The gap `δ = n - 2 m` between the two rounds becomes `⌊δ / 2⌋ + z - (m - z) % 2` one block later. -/
+theorem offset2_gap (m n z : Nat) (hzm : z ≤ m) :
+    ((n / 2 : Nat) : Int) - 2 * (((m - z + 1) / 2 : Nat) : Int)
+      = ((n : Int) - 2 * m) / 2 + z - (((m - z) % 2 : Nat) : Int) := by
+  omega
+
+/-- So a gap in `[-3, 2]` stays there, and a gap outside moves toward it. -/
+theorem offset2_gap_bound (m n z : Nat) (hz : z ≤ 1) (hzm : z ≤ m)
+    (h : -3 ≤ (n : Int) - 2 * m ∧ (n : Int) - 2 * m ≤ 2) :
+    -3 ≤ ((n / 2 : Nat) : Int) - 2 * (((m - z + 1) / 2 : Nat) : Int) ∧
+    ((n / 2 : Nat) : Int) - 2 * (((m - z + 1) / 2 : Nat) : Int) ≤ 2 := by
+  omega
+
+/-- A round that ends with two such blocks and then stops on the next `0` entered the first of them with 4 to 7
+visits: each block takes one visit and halves, and the stop needs exactly one visit left. The danger (3 visits in the
+last block) is 6 or 7. -/
+theorem junk_after_digit_count (n : Nat) (h : n / 2 / 2 = 1) : 4 ≤ n ∧ n ≤ 7 := by
+  omega
+
 end H112145
