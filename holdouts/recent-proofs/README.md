@@ -75,6 +75,8 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   - 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE and 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- are growing counters with no fixed-shape hub.
 - **Summary certificates, finite-state version** ([`followup/rlepds-nov26.md`](followup/rlepds-nov26.md)), technique B of the
   survey: `tools/c/rlepds.cpp` decides none of the 509 open holdouts; the note says why cryptids PR 37's round is out of reach.
+- **PR 42 return shapes** ([`followup/return-shape.md`](followup/return-shape.md)), no closure: an automatic
+  version of the PR 42 proof shape closes on that machine in a second and on none of the 501 open holdouts.
 - **PR 89 odometers** ([`followup/odometer.md`](followup/odometer.md)), no halt reached:
   - 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- to 1.6·10^712 steps;
   - 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD to 1.2·10^1572 steps (closest approach: an empty block next to a block of 49 copies);
