@@ -5,7 +5,7 @@ a working refinement rule. This note tries the second: cut the tape into tokens 
 close over tokens. **Result: one of the two DeepMind machines is re-proved automatically, with a certificate that
 an independent checker accepts. No open holdout was decided.** Everything else here is computed, not proved.
 
-Tools: [`../tools/tokens/`](../tools/tokens/) (`tokgram.cpp`, `tokcheck.py`, `tokdec.cpp`).
+Tools: [`../tools/tokens/`](../tools/tokens/) (`tokgram.cpp`, `tokcheck.py`, `tokdec.cpp`, `sweep_driver.py`).
 
 ## The short version
 
@@ -119,15 +119,15 @@ obvious next test; for the first two the abstraction is too coarse at these sett
 
 ## Sweep of all open holdouts, and longer runs (same day, later)
 
-Both ran under the long-run wrapper (jobs  and , 3.3 hours).
+Both ran under the long-run wrapper (jobs `tokgram-sweep-501` and `tokgram-long-2-machines`, 3.3 hours).
 **Nothing closed.**
 
 **All 501 open holdouts**, both orientations, the three settings that close the DeepMind machine
 ((R, J, depth) = (2, 0, 3), (1, 1, 3), (1, 0, 5)) with cap 16 and cap 4, W = 4, seed after 10^6 steps, 5 s each:
 6,012 runs. 3,934 reach an abstract halt, 1,561 run out of time, 175 hang inside one evaluation and were
 stopped, and 342 have no seed (the head is not near the left end of the tape within 5·10^7 steps after the
-seed time). No run closes. Per machine: 143 reach an abstract halt in all 12 runs; 309 have at least one run
-that ran out of time or hung. Per-machine counts are in [](token-grammar-sweep.tsv).
+seed time). No run closes. Per machine: 143 reach an abstract halt in all 12 runs; 334 have at least one run
+that ran out of time or hung. Per-machine counts are in [`token-grammar-sweep.tsv`](token-grammar-sweep.tsv).
 
 **Twenty minutes per setting** on the two machines whose 10 s runs mostly ran out of time (cap 8, W = 16, the
 same three settings, both orientations):
