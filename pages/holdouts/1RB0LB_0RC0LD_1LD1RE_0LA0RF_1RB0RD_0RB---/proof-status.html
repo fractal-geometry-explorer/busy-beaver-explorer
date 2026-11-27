@@ -146,6 +146,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>visd</code> carries the count as 2<sup>e</sup> &minus; c: the level e goes up at every doubler and down at every digit block, the deficit c goes up by one at every zero at a block start and at <code>1011</code>, halves (rounded down) at every digit block and doubles at every doubler; a digit block becomes <code>100</code> or <code>000</code> by the parity of c, and the pass stops where c = 2<sup>e</sup>. It is exactly the pass of <code>lean/Word.lean</code> (<code>visd_eq</code>), and a round is <code>visd</code> from level 0, deficit 0 (<code>roundW_visd</code>). An exact power of two leaves digit blocks unchanged (<code>visd_digit_exact</code>).</p>
         <p class="where"><code>visd_eq</code>, <code>roundW_visd</code>, <code>visd_digit_exact</code>, <code>lean/Deficit.lean</code></p>
       </div>
+      <div class="card">
+        <h3>Two rounds over the same digits pull together</h3>
+        <p>Where every block of a round starts on the last cell of a digit block of the round before, the gap &delta; = n &minus; 2m between the later round's count n and the earlier round's count m becomes &lfloor;&delta;/2&rfloor; + z &minus; (m &minus; z) mod 2 one block later (z = 1 if the block starts with <code>0</code>), so a gap in [&minus;3, 2] stays there. A round that ends with two such blocks and stops on the next <code>0</code> entered them with 4 to 7 visits.</p>
+        <p class="where"><code>offset2_gap</code>, <code>offset2_gap_bound</code>, <code>junk_after_digit_count</code>, <code>lean/Deficit.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -218,6 +223,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c</code></p>
       </div>
       <div class="card">
+        <h3>Junk after a digit is missed by one visit</h3>
+        <p>A junk event after a digit needs the earlier round's last three blocks to be digits with the next round starting on the last cells of the first two (a third of all rounds), and a count of 4 to 7 there. In the first 400,000 rounds that count is always at least 8, and it is exactly 8 twice (rounds 341,090 and 375,512). The extremes of its two parts (the earlier round's count, smallest 5, and the gap, smallest &minus;6) would reach the window together, so the end of the word alone cannot exclude it.</p>
+        <p class="where"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/junkgeom.c</code></p>
+      </div>
+      <div class="card">
         <h3>Related holdouts</h3>
         <p>The same tapes at another pace, whatever the states, as 4 other holdouts (listed on the explainer page).</p>
         <p class="where"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</p>
@@ -245,7 +255,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. It halts only if a visit meets <code>1111</code> (or <code>11100</code>, not decoded), which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word. In the deficit form (<code>lean/Deficit.lean</code>) the danger is a parity: the deficit entering the last <code>000</code> block of a junk round must be odd.</p>
+        <p>Not known. It halts only if a visit meets <code>1111</code> (or <code>11100</code>, not decoded), which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. All 39 junk events so far (8,000,000 rounds) followed a doubler and were harmless; one after a digit needs a count of 4 to 7 where the run always brings at least 8. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word. In the deficit form (<code>lean/Deficit.lean</code>) the danger is a parity: the deficit entering the last <code>000</code> block of a junk round must be odd.</p>
       </div>
     </div>
   </section>
