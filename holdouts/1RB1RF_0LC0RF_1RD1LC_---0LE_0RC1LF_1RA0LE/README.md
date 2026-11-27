@@ -189,36 +189,14 @@ tapes with their exact step counts (B(278826, 557655) at step 16,544,574,460,503
 24,250,600,205,318,179,964,670). Run (`c/rounds_run.txt`, 81 minutes for the last 7*10^11 rules on one core): 8*10^11 rules to machine step 77,432,109,507,548,253,034,910,418,036,526,858 (7.7*10^34, 500 times further than `c/framemap.c`), no halt; x reached 7.5*10^11. New tapes 2 from the middle: B(12459332366, 24918664731) (d = -2, y = 2x - 1, which cannot halt) and B(144615683250, 289231366503) (d = +2) at step 2.3*10^33. Of the rules landing on y odd at x >= 16 (2.7*10^11; sum of 1/x 85.1), the 16 even values 0 < |d| <= 16 of d = y - (2x + 1) were hit 50 times, 3.1 each, and d = 0 never: a random orbit misses with probability about e^-3.1 = 4.5%. By d: -16:1 -14:5 -12:2 -10:4 -8:2 -6:3 -4:2 -2:3 0:0 2:7 4:2 6:5 8:3 10:1 12:4 14:5 16:1, so there is no visible congruence keeping d = 0 out (all residues of d mod 8 are hit nearby).
 
 Resumed from the state at 8*10^11 rules (`c/rounds_run2.txt`; a from-scratch rerun reproduced that state, step
-count and tallies exactly): 5.07*10^12 rules to machine step 19,709,453,968,093,180,016,677,646,100,383,334,789
-(2.0*10^37, 250 times further), no halt; x reached 5.3*10^12. No new tape came within 2 of the middle. Of the rules
-landing on y odd at x >= 16 (1.7*10^12; sum of 1/x 98.5), the 16 even values 0 < |d| <= 16 were hit 55 times, 3.4
-each, and d = 0 never (a random orbit misses with probability about e^-3.4 = 3.2%). By d: -16:2 -14:7 -12:2 -10:4
--8:2 -6:3 -4:2 -2:3 0:0 2:7 4:2 6:5 8:3 10:1 12:5 14:5 16:2. The hits near the middle grow by about 0.26 per tenfold
-growth of x, as before, so each further tenfold of x (about 1000-fold in steps, 10 times the rules) is worth about a
-quarter of an expected hit.
-
-### Twelve rules at a time (`c/tentfast.c`)
-
-With d = 2x - y a rule is a fold (d > 0) or a double (d < 0), all the special rules sit at |d| <= 4, and the parity
-of y after a rule depends only on the parity before it and on which of the two it was. So a word of K folds and
-doubles is one affine map of (x, y), its steps are one quadratic, and its K conditions are linear. `py/gen_tab.py`
-builds the table of all words for K = 12 (8,188 entries): the composed map, twice the step count, and the two
-conditions that imply the other ten once 2x + y >= 2^40 (checked exactly for every entry; each condition also keeps
-|d| >= 24, so no special rule is ever inside a word). `c/tentfast.c` looks a state up by the parity of y and the
-first 12 binary digits of u = 2x/(2x + y), checks the two conditions exactly, and takes 12 rules; where they fail it
-takes one rule by the code of `rounds.c`. The halt is at |d| = 1, so it cannot be skipped, and the tally of landings
-near the middle stays complete. The next two indices come from the same division: the tent map shifts the digits of
-u (complemented after a 1), so digits 13 to 36 name the next two words, up to the drift, and the exact conditions
-decide (the third guess fails about once in a hundred). Built with `-DNOSTEPS` it leaves out the step count and runs
-at 1.9 ns per rule, 4 times `rounds.c`; with the step count it is no faster than `rounds.c` (the 256-bit quadratic
-costs as much as the rules it replaces), so the steps of a stretch are computed afterwards, from the checkpoints, and
-only where they are wanted.
-
-Checks: from B(1, 0), `tentfast` with a 6-rule table and `rounds` give the same state, the same exact step count and
-the same tallies at every checkpoint of the first 2*10^10 rules; with the 12-rule table, from the logged state of
-`c/rounds_run2.txt` at 4.9*10^12 rules, it reaches the logged state and step count at 5.07*10^12 rules
-(B(2160674255870, 7508648867171), step 19,709,453,968,093,180,016,677,646,100,383,334,789) after 1.7*10^11 rules,
-14,165,512,997 table steps and 13,844,036 single rules.
+count and tallies exactly): 2*10^13 rules to machine step 1,209,876,289,363,880,006,769,772,465,503,236,662,509
+(1.2*10^39, 15,000 times further), no halt; x reached about 2*10^13. One new tape came within 2 of the middle,
+B(7281070259318, 14562140518635) at step 2.9*10^38, with d = -2 (y = 2x - 1, which cannot halt). Of the rules
+landing on y odd at x >= 16 (6.7*10^12; sum of 1/x 109.4), the 16 even values 0 < |d| <= 16 were hit 60 times,
+3.75 each, and d = 0 never (a random orbit misses with probability about e^-3.75 = 2.4%). By d: -16:2 -14:8 -12:2
+-10:4 -8:2 -6:3 -4:2 -2:4 0:0 2:7 4:2 6:5 8:5 10:1 12:5 14:6 16:2. The hits near the middle grow by about 0.26 per
+tenfold growth of x, as before, so each further tenfold of x (about 1000-fold in steps, 10 times the rules) is worth
+about a quarter of an expected hit.
 
 ## The recursion in rule form
 
@@ -249,7 +227,7 @@ Lean map for 5*10^5 frames, 1,273 frames f). Example: B(1, 16) halts after 21 + 
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 66 cases over 11 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.g 0 1` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 9.7*10^11 steps). Lean (`lean/Sweep.lean`): k sweeps at once (`sweep`). C (`c/framemap.c`, the Lean map generated from the Lean files): no halt in 2.9*10^21 frames, 1.5*10^32 steps. Lean (`lean/Tent.lean`): the rule map is a tent map with drift, halting only at the exact middle. C (`c/rounds.c`, the rules one at a time): no halt in 5.07*10^12 rules, 2.0*10^37 steps. Reading the rounds off the binary digits of u reaches only about log2(n) rounds ahead (`py/tent.py`). Open: whether the orbit ever gets there.
+Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 66 cases over 11 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.g 0 1` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 9.7*10^11 steps). Lean (`lean/Sweep.lean`): k sweeps at once (`sweep`). C (`c/framemap.c`, the Lean map generated from the Lean files): no halt in 2.9*10^21 frames, 1.5*10^32 steps. Lean (`lean/Tent.lean`): the rule map is a tent map with drift, halting only at the exact middle. C (`c/rounds.c`, the rules one at a time): no halt in 2*10^13 rules, 1.2*10^39 steps. Reading the rounds off the binary digits of u reaches only about log2(n) rounds ahead (`py/tent.py`). Open: whether the orbit ever gets there.
 
 ## First look
 
