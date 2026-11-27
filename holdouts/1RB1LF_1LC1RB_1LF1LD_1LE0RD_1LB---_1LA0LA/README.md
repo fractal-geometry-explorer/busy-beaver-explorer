@@ -531,6 +531,19 @@ holds. It is an observed law, checked each time it is used, not a symbolic proof
 Checked on the stalled region: two periods by the law give the same hit count as the direct measurement. From
 phase 28,820 the run passed 28,829 in minutes, with law phases at 28,830 to 28,835 and later ones.
 
+*Emitter jumps (27 November 2026).* The run went on to phase 37,593, where the rest below the eater was to get
+1.045·10^12 hits. That rest begins with an eater that leaves a frozen word behind it at every cycle: every 11 hits
+it uses 6 units of its (100)^a fuel (a ≈ 9.6·10^13), gives the word below it 2 hits, and adds one more copy of the
+frozen word u = 10400010104310403000 (h(u X) = u h(X), 494 steps) in front of it, e0 u^n e1 (100)^a Y →
+e0 u^(n+1) e1 (100)^(a−6) h^2(Y). The ladder cut the copies of u into levels that pass every hit, so the eater got
+all the hits one at a time (40,000 a second) and the process ran out of memory. The new `py/lsa_emit.py` runs the
+eater on an opaque rest, finds the period with its inserted word, checks it over four periods, with every large
+run made smaller, and with more copies of u in place, and then takes K periods at once as a run (u)^(n+K). The rest
+below gets its 2K hits from the engine. Like the law phases it is an observed law, checked each time it is used; the
+frozen word and the opaque rest are exact. Checks: on the stalled word with 2,000,000 and 1,234,567 hits, the jump
+and the old engine give the same tape (a polynomial hash over all digits) and the same step count, in about 1.4 s
+instead of 48 s and 30 s. All 1.045·10^12 hits now take 2 s.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
