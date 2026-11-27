@@ -198,6 +198,67 @@ landing on y odd at x >= 16 (6.7*10^12; sum of 1/x 109.4), the 16 even values 0 
 tenfold growth of x, as before, so each further tenfold of x (about 1000-fold in steps, 10 times the rules) is worth
 about a quarter of an expected hit.
 
+## Halting copies against merging copies (27 November)
+
+The halt estimate of [`halt-hunt-ranking-nov26.md`](../recent-proofs/halt-hunt-ranking-nov26.md) predicted about 340
+halts among 1,000 moved copies of orbit states and 49 happened; the survivors sat on a few orbits. The question was
+whether those orbits carry something that keeps them from the halt. They do not, as far as this test can see: the
+1,000 copies were never more than about three independent trials.
+
+**Why orbits merge** (`lean/Merge.lean`, by the kernel, for the rule map `op` of `lean/Tent.lean`). A tape
+B(2a + 2, 2c) is the next tape of three tapes: B(a + c, 2a), B(a + c + 1, 2a − 1) and B(a, 2a + 2c + 3)
+(`three_pre`). A tape with y odd has one tape before it (`odd_pre`), and no rule leads to x odd except into
+B(2x + 1, 0) (`op_even`). So a reachable tape has two tapes before it on average, while a level n = 2x + y holds
+only n/2 tapes and a rule raises the level by 1 to 4: the tapes of one level, followed for k rules, are squeezed onto
+a number of tapes that shrinks like 1/k. The tape before the halting tape B(x', 2x' + 1) is B(x, 6x + 8) with
+x' = 2x + 2 and nothing else (`halt_pre_iff`).
+
+**Every tape below level 32,768** (`c/fates.c`, 2.7·10^8 tapes in 3 seconds; table by `py/fates.py`, in
+`py/fates_run.txt`). For each tape: does it halt below level 32,768, and if not, on which tape does it leave?
+
+| start levels | tapes (x even) | halt below 32,768 | orbits the others are on | share on the blank-tape orbit |
+|---|---|---|---|---|
+| 256..287 | 2,160 | 20.0% | 2 | 62% |
+| 512..575 | 8,672 | 19.9% | 2 | 67% |
+| 1024..1151 | 34,752 | 7.9% | 2 | 58% |
+| 2048..2303 | 139,136 | 0.5% | 2 | 77% |
+| 4096..4607 | 556,800 | 5.0% | 3 | 54% |
+| 8192..9215 | 2,227,712 | 4.5% | 5 | 43% |
+| 16384..18431 | 8,911,872 | 7.2% | 10 | 38% |
+
+The probe's copies started at levels of about 560 to 2,240 and ran to about level 18,000. Of all 1,175,160 tapes of
+levels 560 to 2,239, 5.1% halt below level 18,000 and the others are on 3 orbits there (53%, 21% and 21% of the
+tapes). The probe saw 49 halts in 1,000 and, in its longer run, 3 orbits. So the copies near the orbit behaved like
+every other tape of their levels, and the low count is the fate of three orbits, not of a thousand copies.
+
+**Do the merged orbits halt less often than estimated?** `c/back.c` follows every halting tape of an octave of
+levels [L, 2L) backward and counts its ancestors in the levels [L/2, L); it agrees with the forward table to the
+last digit for L ≤ 16,384. F(L) is the fraction of all tapes of levels [L/2, L) that halt in [L, 2L)
+(`c/back_run.txt`):
+
+| L | 2^6 | 2^7 | 2^8 | 2^9 | 2^10 | 2^11 | 2^12 | 2^13 | 2^14 | 2^15 | 2^16 | 2^17 | 2^18 | 2^19 | 2^20 | 2^21 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| F(L), % | 12.0 | 0.1 | 2.1 | 15.1 | 3.9 | 0.1 | 0.1 | 3.2 | 2.7 | 25.2 | 1.6 | 31.5 | 0.4 | 29.6 | 10.1 | 0.4 |
+
+Mean 8.6% per octave. The estimates are 7.8% per octave from the orbit's near misses (0.26 hits per tenfold growth
+of x, above) and 11% from the probe (0.056 per doubling of visits; visits grow like the square of the level). So
+tapes as a whole halt at the estimated rate; the halts come as a few large events (in the octave of 2^17, one
+halting tape, B(46982, 93965), takes 31% of all tapes of the octave below it; of the 32,768 halting tapes of that
+octave, 6 take any). Each octave is worth two or three independent trials, whatever the number of copies.
+
+**No predicate.** `py/contrast.py` fits decision trees (depth 3 and 6) and a forest (100 trees, depth 12) on the
+exhaustive labels, over residues of x, y, n, d and of the distances to the halting lines, u and its first tent digits,
+trained on even levels and tested on odd ones (`py/contrast_run.txt`). Halting against surviving: balanced accuracy
+0.50 to 0.54 on four bands. Joining the blank-tape orbit against joining another surviving orbit: 0.50 to 0.55.
+The first test of the technique asked for under 1% errors at depth 3, so it stops here.
+
+**What it leaves.** The blank-tape orbit is the largest of the few orbits for every start level in the table, and it
+is alive at 2·10^13 rules, which the estimate gives about a 2.4% chance. Nothing found here explains that beyond
+chance, and one orbit is one trial. An invariant would have to say that no halting tape has the blank tape among its
+ancestors; the ancestor trees are critical (one reachable ancestor per generation on average, by counting
+parities), so most die at once and a few
+grow without bound, and nothing visible separates the two kinds.
+
 ## The recursion in rule form
 
 The bbchallenge wiki page of this machine gives its recursion as Antihydra's is given (its top level, B(x, y) =
@@ -227,7 +288,7 @@ Lean map for 5*10^5 frames, 1,273 frames f). Example: B(1, 16) halts after 21 + 
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 66 cases over 11 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.g 0 1` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 9.7*10^11 steps). Lean (`lean/Sweep.lean`): k sweeps at once (`sweep`). C (`c/framemap.c`, the Lean map generated from the Lean files): no halt in 2.9*10^21 frames, 1.5*10^32 steps. Lean (`lean/Tent.lean`): the rule map is a tent map with drift, halting only at the exact middle. C (`c/rounds.c`, the rules one at a time): no halt in 2*10^13 rules, 1.2*10^39 steps. Reading the rounds off the binary digits of u reaches only about log2(n) rounds ahead (`py/tent.py`). Open: whether the orbit ever gets there.
+Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 66 cases over 11 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.g 0 1` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 9.7*10^11 steps). Lean (`lean/Sweep.lean`): k sweeps at once (`sweep`). C (`c/framemap.c`, the Lean map generated from the Lean files): no halt in 2.9*10^21 frames, 1.5*10^32 steps. Lean (`lean/Tent.lean`): the rule map is a tent map with drift, halting only at the exact middle. C (`c/rounds.c`, the rules one at a time): no halt in 2*10^13 rules, 1.2*10^39 steps. Reading the rounds off the binary digits of u reaches only about log2(n) rounds ahead (`py/tent.py`). Lean (`lean/Merge.lean`): three tapes lead to each tape B(2a + 2, 2c), one to a tape with y odd, and only B(x, 6x + 8) to the halting tape. C (`c/fates.c`, `c/back.c`): all tapes of a level merge onto a handful of orbits, and tapes as a whole halt at the estimated rate, about 9% per doubling of the level; no predicate separates halting from surviving tapes (`py/contrast.py`). Open: whether the orbit ever gets there.
 
 ## First look
 
@@ -268,6 +329,8 @@ gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framema
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/tent.py                 # how many rounds the digits of u predict
 gcc -O2 -o rounds holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/rounds.c -lm && ./rounds 100000000000 10000000000
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/gen_tab.py 6 24 tab6.bin && gcc -O3 -march=native -o tentfast holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/tentfast.c -lm && ./tentfast tab6.bin 20000000000 5000000000 s.txt   # the same checkpoints as ./rounds 20000000000 5000000000
+gcc -O2 -o fates holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/fates.c && ./fates 32768 ex.bin hl.bin && python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/fates.py ex.bin hl.bin 32768   # 2 GB of files; then py/contrast.py ex.bin 32768 (needs scikit-learn)
+gcc -O2 -o back holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/back.c && ./back 16384     # F(L) backward; each octave up to 2097152 takes minutes
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/rules.py                # the wiki's rules and their step counts against the machine and the Lean map
 ```
 

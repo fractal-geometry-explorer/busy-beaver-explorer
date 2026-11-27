@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly long blocks of 1s and of <code>10</code>s. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 27 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps.",
   "<b>What Lean proves.</b> The whole frame map: 11 tape shapes, 66 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 6 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 9.7&middot;10<sup>11</sup> machine steps) do not. Whether the orbit ever does is open.",
@@ -138,6 +138,30 @@
    "where": "<code>c/rounds.c</code>"
   },
   {
+   "level": "kernel",
+   "title": "Three tapes lead to one, and one tape leads to the halt",
+   "text": "For the rule map of the rule form: B(2a + 2, 2c) is the next tape of B(a + c, 2a), of B(a + c + 1, 2a &minus; 1) and of B(a, 2a + 2c + 3); a tape with y odd has exactly one tape before it; no rule leads to an odd x except into B(2x + 1, 0); and the only tape before the halting tape B(x&prime;, 2x&prime; + 1) is B(x, 6x + 8) with x&prime; = 2x + 2. This is why different starts run into the same orbit. As for the tent map entry, the map is transcribed from <code>py/rules.py</code>.",
+   "where": "<code>lean/Merge.lean</code> (<code>three_pre</code>, <code>odd_pre</code>, <code>op_even</code>, <code>halt_pre_iff</code>)"
+  },
+  {
+   "level": "trusted",
+   "title": "All tapes of a level end on a handful of orbits",
+   "text": "Every tape B(x, y) below level 2x + y = 32,768 was followed until it halts or leaves that level (2.7&middot;10<sup>8</sup> tapes). Of the 139,136 tapes of levels 2048 to 2303 with x even, 0.5% halt and all others are on 2 orbits, 77% on the orbit from blank tape; from levels 16384 to 18431 there are still only 10 orbits. So a thousand moved copies of orbit states are about three independent trials: the probe's 49 halts in 1,000 copies, against 340 estimated, is the figure for all tapes of those levels (5.1% halt, the others on 3 orbits).",
+   "where": "<code>c/fates.c</code>, <code>py/fates.py</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Tapes as a whole halt at the estimated rate",
+   "text": "Followed backward from every halting tape, octave by octave of the level up to 4&middot;10<sup>6</sup>: the fraction of all tapes of levels [L/2, L) that halt in [L, 2L) is between 0.1% and 31%, 8.6% on average over 16 octaves, against estimates of 8 to 11%. The halts come as a few large events (one halting tape takes 31% of an octave). The backward count agrees exactly with the forward table where both exist.",
+   "where": "<code>c/back.c</code>, <code>c/back_run.txt</code>"
+  },
+  {
+   "level": "heuristic",
+   "title": "No simple predicate separates halting tapes from the others",
+   "text": "Decision trees of depth 3 and 6 and a forest of 100 trees, on residues, ratios and tent digits of the exhaustively labelled tapes, score 50 to 54% on held-out levels (50% is a coin) for halting against surviving, and 50 to 55% for joining the blank-tape orbit against joining another. Nothing found sets the blank-tape orbit apart from the other orbits except that it has not halted.",
+   "where": "<code>py/contrast.py</code>, <code>py/contrast_run.txt</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known.",
@@ -147,6 +171,7 @@
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh",
+  "gcc -O2 -o fates holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/fates.c && ./fates 32768 ex.bin hl.bin && python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/fates.py ex.bin hl.bin 32768",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000",
   "python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30",
   "gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c && ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000",
