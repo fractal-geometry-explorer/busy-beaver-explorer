@@ -8,6 +8,7 @@ import lsa_eater
 from lsa_region import Region, prefix_tokens, MultiPassEvent, seg_prefix
 import lsa_ladder
 import lsa_law
+import lsa_emit
 import geng
 from geng import show, to_tokens, build
 
@@ -38,6 +39,7 @@ EXTRAMAX = 40     # tokens of the rest an eater region may take in (16 was one s
 FINEP = [None]
 LAW = [__import__('os').environ.get('LSA_NOLAW') is None]
 INTRANS = [False]   # inside trans_run (fast_next): no law detection there
+EMIT = [os.environ.get('LSA_NOEMIT') is None]
 LAWC = {}           # eater shape -> law (lsa_law.detect) or 'neg'
 SCNEGF = {}
 FINESECS = 600
@@ -709,6 +711,13 @@ def _ladder(q, T, depth=0, op='h'):
         lv = None
         if q >= LADDER_BATCH and rounds <= LADDER_ROUNDS:
             lv, B = seg_prefix(T, op)
+        if not lv and EMIT[0] and op == 'h' and q >= LADDER_MIN:
+            # an eater that leaves a frozen word at every cycle (lsa_emit): its cycles at once
+            r = lsa_emit.jump(q, T, lambda n, X: _plain('h', n, X))
+            if r is not None:
+                T, used = r
+                q -= used
+                continue
         if not lv:
             # not cut into levels (yet): a few plain hits, then try again (a few hits can turn a block into fuel);
             # after a second miss in a row the engine gets them all (its own rules may well jump them)
