@@ -84,6 +84,10 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   survey: `tools/c/rlepds.cpp` decides none of the 509 open holdouts; the note says why cryptids PR 37's round is out of reach.
 - **PR 42 return shapes** ([`followup/return-shape.md`](followup/return-shape.md)), no closure: an automatic
   version of the PR 42 proof shape closes on that machine in a second and on none of the 501 open holdouts.
+- **Counter programs from pattern counts** ([`followup/pattern-counts.md`](followup/pattern-counts.md)), technique C
+  of the second brainstorm, negative: the program built from n-cell pattern counts reaches the halt on all nine
+  machines with known proofs that were tried, and on 48 of the 49 targets. A rearrangement test (same counts, other
+  order) refutes the vocabulary for 434 of 469 open machines; the rest are mostly Collatz-like. Tools: `tools/patcount/`.
 - **PR 89 odometers** ([`followup/odometer.md`](followup/odometer.md)), no halt reached:
   - 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- to 1.6·10^712 steps;
   - 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD to 1.2·10^1572 steps (closest approach: an empty block next to a block of 49 copies);
