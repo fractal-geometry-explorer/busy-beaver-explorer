@@ -7,6 +7,7 @@ from lsa_eater import supercycle, fuel_index
 import lsa_eater
 from lsa_region import Region, prefix_tokens, MultiPassEvent, seg_prefix
 import lsa_ladder
+import lsa_law
 import geng
 from geng import show, to_tokens, build
 
@@ -29,6 +30,20 @@ EXTRAMAX = 40     # tokens of the rest an eater region may take in (16 was one s
                   # 10^3200: a x16 eater whose passed hits run through the next [100] fuel into the rest)
 
 
+# While the fine search looks for a hit where an eater's block is regular (PRegion.step), the super-cycles it
+# looks for have the period P of the eater's super-cycle already found: FINEP holds P + 1 as the search bound, and
+# failures under that bound are kept apart (SCNEGF), not as failures of the shape.  The fine search stops after
+# FINESECS seconds and is not started again for the same eater: after phase 28,829 from visit 10^3200 an eater of
+# P = 33,549 hits emitted a block that ends in a lone 0^6; each single hit then cost ~10 searches of 12 s.
+FINEP = [None]
+LAW = [__import__('os').environ.get('LSA_NOLAW') is None]
+INTRANS = [False]   # inside trans_run (fast_next): no law detection there
+LAWC = {}           # eater shape -> law (lsa_law.detect) or 'neg'
+SCNEGF = {}
+FINESECS = 600
+FINEDONE = set()
+
+
 def find_phase(btoks, known_only=False):
     """an eater super-cycle at the head of the bottom: (sc, E tokens, fuel index, rest tokens, K) or None.
     known_only: only shapes whose super-cycle is already known (no new search)"""
@@ -48,15 +63,21 @@ def find_phase(btoks, known_only=False):
         if sc is None and key in SCNEG:
             opq = SCNEG[key] == 'opaque'
             continue
+        if sc is None and FINEP[0] is not None and (key, FINEP[0]) in SCNEGF:
+            opq = SCNEGF[(key, FINEP[0])] == 'opaque'
+            continue
         if sc is None and known_only:
             continue
         if sc is None:
-            sc = supercycle(E, fi, Pmax=200000)
+            sc = supercycle(E, fi, Pmax=FINEP[0] or 200000)
             if sc is not None:
                 SCPOS[key] = sc
         if sc is None:
             opq = lsa_eater.OPQ[0]
-            SCNEG[key] = 'opaque' if opq else 1
+            if FINEP[0] is None:
+                SCNEG[key] = 'opaque' if opq else 1
+            else:
+                SCNEGF[(key, FINEP[0])] = 'opaque' if opq else 1
             continue
         K = (E[fi][1] - sc['mmin']) // sc['dm'] + 1
         if K < KMIN:
@@ -78,6 +99,8 @@ def block_map(sc, E):
 
 
 def pass_positions(sc, E, fi):
+    if sc.get('law'):
+        return lsa_law.pass_positions(sc, E, fi)
     T = build(list(E), (('O', 0), None))
     pos = []
     for i in range(1, sc['P'] + 1):
@@ -200,6 +223,8 @@ BMC = {}
 
 
 def block_map_c(sc, E):
+    if sc.get('law'):
+        return [], sc['a'], 0
     key = (shape(E), tuple(sc['blk']))
     if key not in BMC:
         BMC[key] = block_map(sc, E)
@@ -233,7 +258,34 @@ class PRegion(Region):
                         PFX.add(key)
                         if self.fine:
                             self.Q, self.fine = self.fine_Q, 0
+                            FINEP[0] = None
                         return 'phase', ph
+                    if ph is not None and LAW[0] and not INTRANS[0]:
+                        # no regular block: an observed law of the cost per unit of fuel (lsa_law)
+                        lk = shape(ph[1])
+                        r = LAWC.get(lk)
+                        if r is None:
+                            r = lsa_law.detect(ph[1], ph[2]) or 'neg'
+                            if not isinstance(r, tuple):
+                                LAWC[lk] = r
+                        if isinstance(r, tuple) and getattr(self, 'law_aligns', 0) < 4:
+                            # the law holds from r[1] hits on: give the bottom exactly those, then look again
+                            self.law_aligns = getattr(self, 'law_aligns', 0) + 1
+                            Qs = self.Q
+                            self.Q = r[1]
+                            u = self.used
+                            ev = self.feed(None, maxbatch=1)
+                            self.Q = Qs
+                            if ev != 'budget':
+                                return 'event', (u - used0) + ev
+                            continue
+                        if isinstance(r, dict):
+                            E, fi = ph[1], ph[2]
+                            K = (E[fi][1] - r['mmin']) // r['dm'] + 1
+                            if K >= 1:
+                                LOG[0]('%s(law phase: %d units of fuel a period, x2^%d, %d hits down)' % (
+                                    '  ' * min(self.depth, 20), r['dm'], r['a'].bit_length() - 1, r['c']))
+                                return 'phase', (r, E, fi, ph[3], K)
                     if ph is not None:
                         k = shape(ph[1])
                         if k not in NOTREG:
@@ -242,21 +294,27 @@ class PRegion(Region):
                         # not SCNEG: whether the block is regular depends on the hit of the eater's cycle, not on the
                         # shape.  Marking the shape negative made a later eater of that shape (66,946 rungs, after
                         # phase 1,756 from visit 10^3200) unrecognised, fed 200 hits a batch for hours.
-                        if not self.fine:
+                        if not self.fine and k not in FINEDONE:
                             # the super-cycle can start at any hit of the eater's cycle; find one where the block is regular
+                            FINEDONE.add(k)
                             self.fine_Q, self.Q, self.fine = self.Q, 1, 4000
                             self.fine_known = False
+                            self.fine_t0 = time.time()
+                            FINEP[0] = ph[0]['P'] + 1
                 seen[key] = bt[fi][1]
             del bt
             if self.fine:
                 self.fine -= 1
+                if self.fine and time.time() - getattr(self, 'fine_t0', 0) > FINESECS and FINEP[0] is not None:
+                    self.fine = 0
                 if not self.fine:
                     self.Q = self.fine_Q
+                    FINEP[0] = None
             if not self.fine:
                 # no phase for a while: larger batches (exact either way; the levels above cost the same per batch,
                 # after phase 13,010 from visit 10^3200 there were 1.6 million hits to feed in batches of 200)
                 self.nobatch = getattr(self, 'nobatch', 0) + 1
-                if self.nobatch % QGROW == 0 and self.Q < QMAX:
+                if self.nobatch % QGROW == 0 and self.Q < getattr(self, 'qmax', QMAX):
                     self.Q *= 2
             u = self.used
             ev = self.feed(None, maxbatch=1)
@@ -273,7 +331,7 @@ NOTREG = set()          # eater shapes already reported as not regular (log once
 
 def save_state(path, R, frames, nph):
     st = dict(levels=R.levels, B=to_tokens(R.B), used=R.used, depth=R.depth, Q=R.Q, op=R.top_op,
-              seen=getattr(R, 'seen', {}), frames=frames, nph=nph, SCPOS=SCPOS, SCNEG=SCNEG, PFX=PFX, TCACHE=TCACHE)
+              seen=getattr(R, 'seen', {}), qmax=getattr(R, 'qmax', QMAX), frames=frames, nph=nph, SCPOS=SCPOS, SCNEG=SCNEG, PFX=PFX, TCACHE=TCACHE)
     with open(path + '.tmp', 'wb') as f:
         pickle.dump(st, f, protocol=4)
     os.replace(path + '.tmp', path)
@@ -284,6 +342,7 @@ def load_state(path):
     R = PRegion([], Q=st['Q'], op=st['op'])
     R.levels = st['levels']; R.B = build(st['B'], None); R.used = st['used']; R.depth = st['depth']
     R.seen = st['seen']
+    R.qmax = st.get('qmax', QMAX)
     SCPOS.update(st['SCPOS']); SCNEG.update(st['SCNEG']); PFX.update(st['PFX']); TCACHE.update(st.get('TCACHE', {}))
     return R, st['frames'], st['nph']
 
@@ -421,6 +480,7 @@ def head_split(W, n=400):
 
 
 def trans_run(E2, head, F, Q):
+    INTRANS[0] = True
     try:
         R = PRegion(list(E2) + list(head) + [F], Q=Q, tail=(('O', 0), None))
         if FINE_START[0]:
@@ -430,6 +490,8 @@ def trans_run(E2, head, F, Q):
         kind, x = R.step(maxbatch=600 + FINE_START[0])
     except (geng.Opaque, MultiPassEvent):
         return None
+    finally:
+        INTRANS[0] = False
     if kind != 'phase':
         return None
     sc, E, fi, rest, K = x
@@ -554,6 +616,8 @@ def run_to_event(R, ckpt=None, every=200, frames=None, nph=0):
             TSTAT['slow'] += 1
             R = PRegion(E2, Q=Q, tail=W)
             R.depth = depth + 1
+            if sc.get('law'):
+                R.qmax = 1 << 200     # the fuel left after a law phase can take ~10^15 hits: let batches grow
             if save:
                 save_state(ckpt, R, frames, nph)
         del W
