@@ -51,7 +51,7 @@ property of the map, which is two-to-one on levels that grow slowly. Over 16 oct
 |---|---|---|---|---|---|
 | 1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC (calibration) | 0.034 | no | to the halt, 2^46 visits | 1.2 | **halt** |
 | 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE | 0.056 | no (0.056, 0.056, 0.060) | 5.07·10^12 rules, about 2^83 frames (2.9·10^21 frames at 10^11 rules, growing like the square) | about 3.9 | no halt |
-| 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD | 0.045 | no (0.045, 0.058, 0.060) | 1.3·10^23 frames (2^76.7; the `crun` log in the project files, ten times the 1.3·10^22 of the folder's README) | about 2.9 | no halt |
+| 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD | 0.045 | no (0.045, 0.058, 0.060) | 1.4·10^25 frames (2^83.5; 6·10^12 passes of `c/crun`, run on 27 November from the 1.3·10^23 frames this note first used) | about 3.2 | no halt |
 | 1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE | 0.0007 | halves (0.0003) | 10^11 phases (2^36.5) | about 0.02 | no halt |
 | 1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE | 0.0006 | yes: too few halts to measure with even moves | 10^11 phases | about 0.02 | no halt |
 | 1RB1RF_1LC1LF_0RE1LD_0LB1LD_---1RC_1RA0RD | 0.0005 | yes: too few with even moves; 6% of copies leave the described tapes | 10^11 phases | about 0.01 | no halt |
@@ -84,7 +84,9 @@ within the spread of either.
    behind them are what the same estimate predicts for the list as a whole.
 2. **A longer run still buys the most here, and both runners are already fast.** Their accelerated runners take
    frames in closed-form jumps, so the number of frames grows like the square of the compute: ten times the
-   compute is 6.6 doublings, about +0.3 to +0.4 expected hits per machine. For
+   compute is 6.6 doublings, about +0.3 to +0.4 expected hits per machine. (Done on 27 November for
+   1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD: 6·10^12 passes, 2.4·10^37 machine steps, no halt, one more zigzag
+   start one cell from a halting row.) For
    1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE that is about 6 core-days at the measured 10 ns per rule
    (`c/rounds.c`); for 1RB0RC_1LC1RE_1RA1LD_0LC0LA_1RF1RD_---0RD about one core-day (`c/crun`). The runs are one
    orbit each and cannot be split across cores.
