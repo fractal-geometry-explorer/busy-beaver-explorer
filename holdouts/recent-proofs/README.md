@@ -116,5 +116,6 @@ certificate that an independent checker accepts. No open holdout was decided. To
 "split only the end words" from the write-only note. An exact window of 32 cells at the left frontier plus call
 summaries on 8-cell classes proves 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE automatically, with a certificate
 that a separate checker accepts and no learned classes. It does not close the second machine of cryptids pull
-request 42, and a screen of the 501 open holdouts finds no closure. Tools are in
+request 42 by itself; with classes named by their call (`fwnamed.cpp`, the idea of the token follow-up) the same
+tool closes both. Screens of the 501 open holdouts with either kind of class find no closure. Tools are in
 [`tools/frontier-window/`](tools/frontier-window/).
