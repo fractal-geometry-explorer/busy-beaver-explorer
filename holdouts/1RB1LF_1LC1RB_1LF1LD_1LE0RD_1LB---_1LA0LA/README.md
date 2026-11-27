@@ -518,6 +518,19 @@ phase 16,349 a 28-digit frozen word had been matched against a run of 2.5·10^16
 the ladder's transition cache is emptied when it passes 400,000 entries, because it grew by 250,000 entries a
 minute and the process was killed for memory.
 
+*Law phases (27 November 2026).* The run stalled again at phase 28,829. The eater there, 3 4 0^1 4 3 0^3 10 3 4 0^3
+(10)^1 (43400010)^n with n ≈ 1.8·10^9, has a super-cycle of 33,549 hits for 9 units of fuel, but the block it leaves
+ends in a lone 0^6 that is not a level, so the block map cannot cut it, and none of 87 rotations of the cycle is
+regular. Measured hit by hit, the top hits between successive units of fuel repeat with a period of 18 units, each
+period costs exactly 2^24 times the one before, the rest below gets 33 hits a period, and the word after a period is
+a new 141-token block followed by the word before it, unchanged but for the fuel. That is the phase law the
+unwinding already uses, with a = 2^24 and b = 0. The new `py/lsa_law.py` measures this on the region, checks it
+exactly over three periods (the ratio, the rest count, every single step inside the periods, and the block
+identity), and hands it to `lsa_phase` as a super-cycle; it first steps the region to the unit from which the law
+holds. It is an observed law, checked each time it is used, not a symbolic proof like the regular super-cycles.
+Checked on the stalled region: two periods by the law give the same hit count as the direct measurement. From
+phase 28,820 the run passed 28,829 in minutes, with law phases at 28,830 to 28,835 and later ones.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html`](../../pages/holdouts/1RB1LF_1LC1RB_1LF1LD_1LE0RD_1LB---_1LA0LA/explainer.html)
