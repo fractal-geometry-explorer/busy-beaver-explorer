@@ -12,11 +12,12 @@ coarse, and make only the words at the end of the tape exact. Tools are in
   tables. Nothing here is in Lean.
 - **No learned classes are needed for it.** The 32 cells at the left frontier are kept exact, and the rest of the
   tape is described by its first 8 cells only. The learned 13 or 14 classes make no difference.
-- **It does not reproduce the second proof** (1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF), with or without learned
-  classes. That proof needs classes that look through any number of runs of 6 or 8 ones. (The token decider of the
-  sibling follow-up closes that one, and not this one.)
+- **Plain prefixes do not reproduce the second proof** (1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF), with or without learned
+  classes. That proof needs classes that look through any number of runs of 6 or 8 ones. With classes named by their call (the idea of the
+  token follow-up, section "Addition" below) the same tool closes it too.
 - **No open holdout is decided.** The four named in the write-only note do not close, with plain or learned
-  classes. A screen of all 501 open holdouts, both directions, finds no closure (details below).
+  classes. Screens of all 501 open holdouts, both directions, with plain and with call-named classes, find no
+  closure (details below).
 - **Of the 107 holdouts already decided by others, it closes on exactly one**, the machine above. So the decider is
   narrow: it fits a machine whose bulk can be arbitrary and whose end is a finite controller.
 
@@ -127,6 +128,50 @@ runs) and [`bisect-nov27.tsv`](../tools/frontier-window/bisect-nov27.tsv).
 
 The 107 holdouts already decided (same grid without 48, limit 6 million): 1 closure (the machine above), 1,202
 runs with a halt derivable, 81 at the limit.
+
+## Addition: classes named by their call (`fwnamed.cpp`)
+
+The token follow-up ([`token-grammar.md`](token-grammar.md)) closed the second machine by naming each tail after
+the call that produced it. `fwnamed.cpp` puts that idea into the frontier-window decider, on cells instead of run
+tokens. A class is now a pair (first K cells, name). The name of what a call leaves behind is (entry state, first
+K cells of the called class, return state), followed by the name of the called class, cut to a fixed depth. Depth 0
+is `fwdec`. A class is unfolded into the (cell, class) pairs that were put into it, so any naming is sound. The
+start can be the real configuration after T0 steps, with the rest of the tape given exactly.
+
+**One tool now closes both machines of cryptids pull request 42**, and `check_cert.py` accepts both certificates:
+
+| machine | window | prefix | depth | start | classes | calls | facts | top-level configurations | time |
+|---|---|---|---|---|---|---|---|---|---|
+| 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE | 32 | 8 | 0 | blank tape | 384 | 1,152 | 1,324 | 5,839,125 | 1.2 s |
+| 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF | 4 | 12 | 5 | step 112,980 | 8,925 | 9,762 | 14,982 | 93 | 0.1 s |
+| 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF | 4 | 16 | 5 | step 112,980 | 16,413 | 18,516 | 28,983 | 93 | 0.1 s |
+
+The two machines sit at opposite corners. The first needs a wide exact window and no names; names only make it
+bigger (depth 1: 14.8 million configurations, depth 2: 22.8 million, both still close). The second needs no
+window to speak of and names of depth 5; depths 1 to 4 derive a halt for prefixes up to 24 cells, and so does the
+start from the blank tape.
+
+**Screen of the 501 open holdouts**, both directions, start after 10^6 steps, windows of 4, 16 and 32 cells,
+prefixes of 8, 12 and 16 cells, depths 2, 3 and 5; 10 s, 3 million configurations and 400,000 classes per run. A
+setting is skipped when a larger one already derives a halt.
+
+| outcome for a direction | directions |
+|---|---|
+| the largest setting (32, 16, 5) derives a halt, which settles all 27 | 683 |
+| the head does not come back to the window within 3·10^8 steps of the start | 37 |
+| undecided: every setting derives a halt or runs out of time or room | 282 |
+| a setting closes | **0** |
+
+In 272 of the 282 undecided directions some smaller setting derives a halt, and the larger ones run out. The table
+is [`named-screen-501-nov27.txt`](../tools/frontier-window/named-screen-501-nov27.txt). As before, a run that stops
+at a limit is not a negative result, and these limits are small.
+
+```sh
+g++ -O2 -std=c++17 -o fwnamed fwnamed.cpp
+T0=100000 ./fwnamed 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF L 4 16 5 5000000 m2.txt   # NONHALT, 0.1 s
+python3 check_cert.py m2.txt
+./fwnamed 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE L 32 8 0                             # same as fwdec
+```
 
 ## What this means for the method
 

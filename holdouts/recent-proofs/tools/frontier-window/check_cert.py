@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Independent checker for an endsplit certificate.
+"""Independent checker for a certificate of fwdec, fwnamed or endsplit.
 Lines:  T c q r   cell c in front of a half tape of class q gives class r (class 0 = blank)
         F s q s2 q2   entering a half tape of class q in state s can come back in state s2 leaving class q2
         P a i win q   top level: exact window `win` at the left frontier, head on cell i in state a, class q beyond
+        S t a i win q (optional) the start: the real configuration after t steps; without it the start is the blank tape
 Meaning: Lang is the least family with blank in Lang(0) and c.t in Lang(r) whenever t in Lang(q) and T c q r.
-Checked: (1) T 0 0 0; (2) every contract (s, r) that is used is closed under one-cell unfolding and never halts;
+Checked: (0) the start is listed (for S: the real run reaches it and the rest of its tape is in Lang(q)); (1) T 0 0 0; (2) every contract (s, r) that is used is closed under one-cell unfolding and never halts;
 (3) the top-level graph contains the start, is closed, and has no halting node.
 Optional: --run N replays N real steps and checks that every real configuration is covered."""
 import sys
 from collections import defaultdict
 def main():
-    path=sys.argv[1]; T={}; U=defaultdict(list); F=defaultdict(set); P=set(); mach=None; mirror=False
+    path=sys.argv[1]; T=defaultdict(set); U=defaultdict(list); seed=None; F=defaultdict(set); P=set(); mach=None; mirror=False
     for ln in open(path):
         x=ln.split()
         if x[0]=='machine': mach=x[1]; mirror=(x[2]=='R')
-        elif x[0]=='T': c,q,r=int(x[1]),int(x[2]),int(x[3]); assert T.get((c,q),r)==r; T[(c,q)]=r; U[r].append((c,q))
+        elif x[0]=='T': c,q,r=int(x[1]),int(x[2]),int(x[3]); T[(c,q)].add(r); U[r].append((c,q))
+        elif x[0]=='S': seed=(int(x[1]),int(x[2]),int(x[3]),x[4],int(x[5]))
         elif x[0]=='F': F[(int(x[1]),int(x[2]))].add((int(x[3]),int(x[4])))
         elif x[0]=='P': P.add((int(x[1]),int(x[2]),x[3],int(x[4])))
     tm=[]
@@ -27,10 +29,20 @@ def main():
                 d=1 if t[1]=='R' else -1
                 row.append((int(t[0]), -d if mirror else d, ord(t[2])-65))
         tm.append(row)
-    assert T.get((0,0))==0, "blank is not a fixed point"
+    assert 0 in T[(0,0)], "blank is not a fixed point"
     used=set(); bad=0
     TW=len(next(iter(P))[2])
-    assert (0,0,'0'*TW,0) in P, "start missing"
+    if seed is None: assert (0,0,'0'*TW,0) in P, "start missing"
+    else:
+        t0,sa,si,swin,sq=seed; assert (sa,si,swin,sq) in P, "start missing"
+        S=1<<24; tape=bytearray(S); p=S//2; lo=hi=p; a=0
+        for n in range(t0):
+            tr=tm[a][tape[p]]; assert tr is not None, "halts before the start"
+            tape[p]=tr[0]; p+=tr[1]; a=tr[2]; lo=min(lo,p); hi=max(hi,p)
+        assert a==sa and p-lo==si and ''.join(map(str,tape[lo:lo+TW]))==swin, "start is not the real configuration"
+        cur={0}
+        for x in range(hi,lo+TW-1,-1): cur=set().union(*[T[(tape[x],q)] for q in cur]) | ({0} if tape[x]==0 and 0 in cur else set())
+        assert sq in cur, "the rest of the start tape is not in the class"
     # top level
     for (a,i,win,q) in P:
         tr=tm[a][int(win[i])]
@@ -39,8 +51,7 @@ def main():
         if d<0:
             if i>0: assert (a2,i-1,win2,q) in P
             else:
-                r=T.get((int(win2[-1]),q)); assert r is not None, "fold transition missing"
-                assert (a2,0,'0'+win2[:-1],r) in P
+                assert any((a2,0,'0'+win2[:-1],r) in P for r in T[(int(win2[-1]),q)]), "fold transition missing"
         elif i<TW-1: assert (a2,i+1,win2,q) in P
         else:
             used.add((a2,q))
@@ -57,14 +68,16 @@ def main():
                 assert tr is not None, f"halt inside contract {s} {r}"
                 w,d,a2=tr
                 if d<0:
-                    r2=T.get((w,qi)); assert r2 is not None and (a2,r2) in res, f"missing fact {s} {r} -> {a2} {r2}"
+                    assert any((a2,r2) in res for r2 in T[(w,qi)]), f"missing fact for {s} {r}"
                 else:
                     if (a2,qi) not in used: used.add((a2,qi)); todo.append((a2,qi))
                     for (s2,q2) in F[(a2,qi)]:
                         m=(s2,w,q2)
                         if m not in seen: seen.add(m); st.append(m)
-    print(f"certificate OK: {mach} {'R' if mirror else 'L'}  classes={len(U)} transitions={len(T)} contracts={len(used)} facts={sum(len(F[k]) for k in used)} top nodes={len(P)} window={TW}")
+    print(f"certificate OK: {mach} {'R' if mirror else 'L'}  classes={len(U)} transitions={sum(len(v) for v in T.values())} contracts={len(used)} facts={sum(len(F[k]) for k in used)} top nodes={len(P)} window={TW}")
     if '--run' in sys.argv:
+        assert seed is None and all(len(v)<=1 for v in T.values()), "--run needs a certificate from the blank tape with deterministic classes"
+        T={k:next(iter(v)) for k,v in T.items() if v}
         N=int(float(sys.argv[sys.argv.index('--run')+1])); S=1<<22; tape=bytearray(S); C=[0]*S; p=S//2; lo=p; a=0; calls=0
         for n in range(N):
             if p<lo+TW:
