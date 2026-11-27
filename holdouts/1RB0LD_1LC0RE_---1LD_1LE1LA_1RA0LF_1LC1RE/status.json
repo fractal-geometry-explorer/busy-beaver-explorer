@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 27 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it never halts.</b> <a href=\"https://github.com/google-deepmind/cryptids/pull/42\">google-deepmind/cryptids pull request 42</a> (Tom Zahavy, 26 November 2026; open, not merged into their main branch) contains <code>NonHalt/M_1RB0LD_1LC0RE_HHH1LD_1LE1LA_1RA0LF_1LC1RE.lean</code>, whose theorem <code>is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape. We built it with Lean v4.35.0-rc4 on 27 November 2026 (26 s for the module): it uses only the axioms propext, Classical.choice and Quot.sound (no <code>sorry</code>, no <code>native_decide</code>), and its transition table was printed and matches this machine. The proof reduces the run to a segmented macro-transition system, proves a call-return parity conservation law for it, and checks a 132-checkpoint graph of period 87 with a reflected symbolic verifier; 32 macro steps take the blank tape into that graph. It is their proof, not one written in this repository; everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> Lean proves the head's fast moves through the background and the halting situations (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.",
   "<b>What it does.</b> The tape is the alternating pattern <code>1010&hellip;</code> with defects: places where two equal cells meet (<code>11</code>, <code>111</code>, <code>1111</code>, <code>00</code>). About 16% of neighbouring pairs are <code>11</code> and about 4% are <code>00</code>, and these fractions hardly change as the tape grows. The head does not sweep cleanly: it crosses the tape in zig-zags of tens to hundreds of cells, moving the defects around, and no regular word or counter shows up.",
   "<b>Where a halt would come from.</b> Only C reading a 0 halts. C is entered from B and from F reading a 0 (each writes a 1 and steps left), so <code>0 B&gt;0</code> and <code>0 F&gt;0</code> halt (<code>halt_B</code>, <code>halt_F</code>). In the run, whenever B or F reads a 0 the cell to its left is a 1."
@@ -154,6 +155,7 @@
   ]
  },
  "family": "alternating background with disordered defects (no visible macro structure)",
- "summary": "An alternating background 1010... sprinkled with defects (11, 111, 00) at a roughly constant density; the head moves through it in irregular zig-zags and the arrangement of defects looks disordered. Open.",
- "decision": "open"
+ "summary": "An alternating background 1010... sprinkled with defects (11, 111, 00) at a roughly constant density; the head moves through it in irregular zig-zags and the arrangement of defects looks disordered. Open. Decided outside: DeepMind's Lean proof in cryptids PR 42 (compiled here) shows it never halts.",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

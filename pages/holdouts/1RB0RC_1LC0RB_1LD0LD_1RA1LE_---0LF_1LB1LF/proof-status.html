@@ -81,13 +81,14 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF</p>
     <h1>What is known about 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF</h1>
     <p class="machine">1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF</p>
-    <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+    <p class="stand merged"><b>Decided by an outside Lean proof: it never halts</b><span>An open pull request (42) to DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the standard axioms. It is their proof, on their definitions, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 27 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
+      <p><b>Decided by an outside Lean proof: it never halts.</b> <a href="https://github.com/google-deepmind/cryptids/pull/42">google-deepmind/cryptids pull request 42</a> (Tom Zahavy, 26 November 2026; open, not merged into their main branch) contains <code>NonHalt/M_1RB0RC_1LC0RB_1LD0LD_1RA1LE_HHH0LF_1LB1LF.lean</code>, whose theorem <code>is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape. We built it with Lean v4.35.0-rc4 on 27 November 2026 (18 s for the module): it uses only the axioms propext, Classical.choice and Quot.sound (no <code>sorry</code>, no <code>native_decide</code>), and its transition table was printed and matches this machine. The proof fixes an exact grammar for the right part of the tape and the shapes in which the head returns, derives four multi-step rules, and proves safety by strong induction on the step budget, after a short executable bootstrap from the blank tape. It is their proof, not one written in this repository; everything else on this page is what this repository found on its own.</p>
       <p><b>The question is open.</b> The run is understood at the level of words: at the left turn the tape is blocks of ones separated by single 0s; between round trips the whole tape except a chaotic zone of about 450 to 610 cells at the right end slides 16 cells left unchanged, and the left end gains one copy of the word <code>1^5 0 1^6 0 1^4 0 1 0</code> per round trip. The sweep rules are proved in Lean; the right-end engine is not understood, and the machine can halt only inside it or at a turn.</p>
       <p>Lean proves no halt in the first 10<sup>7</sup> steps (10,000 by the kernel alone); the C simulator finds none in 10<sup>9</sup>.</p>
     </div>
@@ -95,6 +96,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it never halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/84c3ef8/BusyBeaver/BB6/NonHalt/M_1RB0RC_1LC0RB_1LD0LD_1RA1LE_HHH0LF_1LB1LF.lean">M_1RB0RC_1LC0RB_1LD0LD_1RA1LE_HHH0LF_1LB1LF.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/42">google-deepmind/cryptids pull request 42</a> (commit <code>84c3ef8</code>, 26 November 2026; open, not merged into their main branch) proves that this machine never halts. We built it with Lean v4.35.0-rc4 on 2026-11-27: the theorem <code>BusyBeaver.M_1RB0RC_1LC0RB_1LD0LD_1RA1LE_HHH0LF_1LB1LF.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Bouncer + Chaotic Edge</b>. These are labels read off the run by others, not results.</p>
