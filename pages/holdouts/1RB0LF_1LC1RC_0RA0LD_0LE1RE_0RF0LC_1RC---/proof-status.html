@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href="../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p></p>
-    <p class="asof">Status as of 24 November 2026.</p>
+    <p class="asof">Status as of 26 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -94,6 +94,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>New, 22 November 2026.</b> For the shared rounds Lean now proves that a tape with at most one defect cannot halt, and a new engine followed the defect through 500,000 rounds (more than 2<sup>944,371</sup> steps of the twin) without one surviving its round. Open: that this always holds, and the correspondence of the two runs.</p>
       <p><b>Later on 22 November 2026.</b> The correspondence with the twin holds on random tapes, not only along the run, and this machine's visits close up on the same token words. On the twin Lean now proves everything except that each round's defect dies; for this machine the correspondence itself is still to be put in Lean.</p>
       <p><b>Latest, 22 November 2026.</b> The correspondence is now a theorem: Lean proves, on this machine's own transition table, that every token rule of the twin is a run of this machine and that its rounds are the twin's rounds (<code>lean/Link.lean</code>). From blank tape it reaches round 9 at step 7,834, and it never halts if from round 9 on every round's defect needs at most one visit, exactly the twin's remaining assumption. <b>Correction (evening):</b> the first version assumed every defect dies counted from round 0, which is false (round 2's defect survives), so it proved nothing; it is replaced by the round-9 reduction.</p>
+      <p><b>26 November 2026.</b> A worst-case test of the far end. An adversary rewrote every digit above the exact layers before every round, from round 100 to 1,500 (all <code>000</code>, all <code>100 100</code>, or random), so that nothing there can stop a defect. The defect then reached the floor of exact digits in only 11 or 12 rounds, at least 19 rounds apart and never deeper than height 2m &minus; 27, and the floor was whole again within 7 rounds each time; the defect still needed 3 or 4 visits against 2<sup>m</sup>. So the digits of the far end cannot be where a halt comes from. What is left to prove concerns the doubler-rich part of the tape: that its heights stay up, and that it stops the defect in most rounds.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -206,6 +207,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Every defect followed for 500,000 rounds</h3>
         <p>The twin's token engine followed 500,000 rounds of the shared system (more than 2<sup>944,371</sup> steps of the twin): every defect died inside the tape about halfway in, and no two defects ever met. The defect gets into the digit end in 30.8% of the rounds and eats at most 60 words there. Because Lean proves that this machine's rounds are the same token rounds, these are also 500,000 rounds of this machine (its step counts differ).</p>
         <p class="where"><code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cpp</code></p>
+      </div>
+      <div class="card">
+        <h3>The floor under the worst digits</h3>
+        <p>Rounds 100 to 1,500 with an adversary that rewrites every digit of the digit-only end at height 2m &minus; 8 or more before every round's visit (all <code>000</code>, all <code>100 100</code>, or a fresh random mix). The defect hits the floor in 11 or 12 of the 1,401 rounds, at least 19 rounds apart, with gaps growing by about 1.3 each time; a hit never goes deeper than height 2m &minus; 27, and the top of the exact layers is back at 2m &minus; 12 or higher within 7 rounds (it heals at 3 heights per round). The need is 3 or 4 visits in every round. So deaths inside the floor are harmless when rarer than about one in 8 rounds. A test, not a proof; the adversary controls only the digit end.</p>
+        <p class="where"><code>python3 ../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/adversary.py 100 1500</code></p>
       </div>
       <div class="card">
         <h3>The correspondence on any tape</h3>

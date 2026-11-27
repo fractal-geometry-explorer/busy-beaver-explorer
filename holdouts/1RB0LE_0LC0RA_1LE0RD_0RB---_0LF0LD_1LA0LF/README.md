@@ -454,6 +454,44 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
 
     python3 py/conveyor.py 6000 200      # the value law, exact Z, path, death height, floor window, perturbation test
 
+## Ninth pass (26 November 2026): the floor under the worst digits
+
+The eighth pass left two open statements. The first was that no defect dies inside the exact layers, because such
+a death wears the floor and "repeated deep deaths could wear the floor down". This pass tests the worst case for
+the digits directly. `py/adversary.py` runs the rounds with an adversary: before every round's visit, from round
+100 on, it rewrites every digit of the digit-only end Z at height 2m - 8 or more, that is everything above the
+exact layers (the irregular and frozen layers). Three adversaries: all `000` (the defect crosses each in one step),
+all `100` in pairs (crossed as well), and a fresh random mix every round. So a defect that gets past the last
+doubler meets nothing that can stop it before the floor, in every round.
+
+Result, rounds 100 to 1,500, the same for all three:
+
+- The defect hits the floor in only 11 or 12 of the 1,401 rounds (all-`000`: rounds 102, 129, 165, 204, 252, 315,
+  387, 481, 594, 748, 968, 1,262). The gaps grow by a factor of about 1.3 each time; the smallest gap between two
+  hits is 19 rounds. In all other rounds the defect dies before the last doubler, in the doubler-rich part, where
+  the adversary changes nothing (with the random mix, in 5 rounds it dies among the random digits, far above the
+  floor).
+- A hit never goes deeper than height 2m - 27, and it lowers the top of the exact layers to 2m - 24 at worst.
+- The floor heals at 3 heights per round against 2m (the conveyor lifts every digit 4 heights per round, m grows
+  by one half): the top is back at 2m - 12 or higher within 7 rounds of every hit. For example after the hit of
+  round 252 the top is at 2m - 22, - 16, - 11, - 8 in rounds 252, 254, 256, 258.
+- The need `nx U` is 3 or 4 in every round, against 2^m visits.
+
+So the first open statement of the eighth pass asked for too much. Defects may die in the floor; what is needed is
+only that hits are rarer than the repair, about one hit in 8 rounds, and with the worst possible digits above the
+floor there was one hit in 19 rounds at the densest and one in hundreds later. **The digits of Z are not where a
+halt could come from**: the value v pins the floor, the conveyor repairs it, and nothing an adversary writes above
+it changes the outcome.
+
+What is left is all in the doubler-rich part between the leading doublers and Z: (i) its heights stay up (the
+two-round monotonicity of the seventh pass, still observed and not proved), and (ii) it stops the defect in all
+but a small fraction of the rounds. For (ii) the value v gives no handle: v only weighs the digits `I`, and the
+doubler-rich part is rewritten by the defect itself every round. This is a test, not a proof, and the adversary
+only controls Z; nothing here is in Lean. It applies word for word to the twin
+1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---.
+
+    python3 py/adversary.py 100 1500     # three adversaries, about 10 minutes
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -486,6 +524,10 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
   Z is a conveyor (4 new digits per round at the far end, every digit 4 heights up, errors pushed up and never
   stored); every defect dies at least 2m - 9 high, and a defect entering the exact layers dies within 20 words.
   Open in this form: that no defect dies inside the exact layers, and the two-round height monotonicity.
+- Trusted, 26 November 2026 (`py/adversary.py`, rounds 100 to 1,500): with an adversary rewriting every digit of Z
+  above the exact layers in every round (all `000`, all `100 100`, or random), the defect hits the floor in 11 or
+  12 rounds, never deeper than 2m - 27, at least 19 rounds apart; the floor is back at 2m - 12 within 7 rounds, and
+  the need stays 3 or 4. Open: the doubler-rich part (heights stay up; it stops the defect in most rounds).
 
 ## Scripts
 
@@ -508,6 +550,9 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
 
 - `py/conveyor.py ROUNDS [ROUND]`: the eighth pass. The value law, Z against the expansion of 16/15 - c 2^-m, the
   defect's lowest height and death height, the floor window, and the perturbation test started in round ROUND.
+
+- `py/adversary.py R0 R1 [STRATEGY ...]`: the ninth pass. Rounds R0 to R1 with every digit of Z above the exact
+  layers rewritten before each visit (`O`, `II`, `rand`); floor hits, how fast the floor heals, the need.
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 

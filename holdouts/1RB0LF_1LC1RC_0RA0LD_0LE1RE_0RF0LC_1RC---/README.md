@@ -110,6 +110,16 @@ below height 2m - 11. Below height m that end is a conveyor: every round appends
 becomes weaker than `nx W <= 1` in every round: no defect dies inside the floor, and heights in the doubler-rich
 part never drop over two rounds. Neither is proved, and nothing of this is in Lean.
 
+## Update, 26 November 2026: the floor under the worst digits
+
+The twin's ninth pass ([its README](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#ninth-pass-26-november-2026-the-floor-under-the-worst-digits),
+`py/adversary.py` there) reran rounds 100 to 1,500 with an adversary that rewrites every digit above the exact
+layers before every round (all `000`, all `100 100`, or random). The defect then hits the floor in only 11 or 12
+rounds, at least 19 rounds apart and never deeper than height 2m - 27; the conveyor brings the floor back within
+7 rounds, and the need stays 3 or 4 visits against 2^m. So deaths inside the floor are harmless as long as they are
+rarer than about one in 8 rounds, and the digits of the far end cannot cause a halt. What is left is the
+doubler-rich part: its heights must stay up, and it must stop the defect in most rounds. A test, not a proof.
+
 ## The rule of the middle (14 November 2026)
 
 The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
@@ -136,7 +146,7 @@ disappears in time.
 
 ## Next steps
 
-Prove that from round 9 on every round's defect needs at most one visit (`nx W ≤ 1`, the twin's missing lemma); everything else is in Lean. By the twin's eighth pass, it is enough that no defect dies inside the exact layers and that the two-round height monotonicity holds.
+Prove that from round 9 on every round's defect needs at most one visit (`nx W ≤ 1`, the twin's missing lemma); everything else is in Lean. By the twin's eighth pass, it is enough that no defect dies inside the exact layers and that the two-round height monotonicity holds. By the twin's ninth pass (26 November) deaths inside the exact layers are harmless when rare, and the open part is the doubler-rich part of the tape.
 
 ## Pages
 

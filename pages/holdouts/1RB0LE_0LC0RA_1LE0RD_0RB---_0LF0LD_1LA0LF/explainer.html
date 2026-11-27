@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 24 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 26 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -399,7 +399,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 24 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 26 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -446,6 +446,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/fuel.py 3000</code>; <code>py/fuel.py --dump</code> on dumps of <code>c/toksim.cpp</code></div></div><div><b>The margin</b><p>A round tape is <code>L<sup>m</sup> x U</code>, so the defect gets 2<sup>m</sup> visits (m = k/2) and dies if <code>nx U &le; 2<sup>m</sup></code>. In every round from 13 to 3,000 the defect needs 3 or 4 visits (26 in round 12, with m = 6, the smallest margin), and 3 at rounds 20,000, 50,000 and 300,000.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/potential.py 1500</code></div></div><div><b>Fuel against height</b><p>The defect's path is fixed by the words ahead of it; its fuel only decides when it stops. At every one of the 329,061 defect steps of rounds 6 to 1,500, fuel&middot;2<sup>&minus;b</sup> (b the doubler height of the defect's word) is at least 1 minus twice the sum of 2<sup>&minus;b</sup> over the steps before, with exact fractions. So a defect can only run out after crossing words of small height, which before the death point never happens (all heights there are at least m).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/fuel.py 3000 20000</code></div></div><div><b>Heights never drop over two rounds</b><p>With h<sub>k</sub>(p) the doubler height at token index p at the start of round k: h<sub>k+2</sub>(p) &ge; h<sub>k</sub>(p) for every p up to where round k's defect died, in every round from 40 to 3,000, and the same for 19,991 random tapes <code>L<sup>m</sup> x W</code>. One pass moves every height it crosses by exactly 1. Not proved; if it is a theorem, what is left is only how deep into Z the defect dies, and a rough count asks just that Z keeps a fixed fraction of the tape.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>python3 py/adversary.py 100 1500</code></div></div><div><b>The floor under the worst digits</b><p>Rounds 100 to 1,500 with an adversary that rewrites every digit of the digit-only end at height 2m &minus; 8 or more before every round's visit (all <code>000</code>, all <code>100 100</code>, or a fresh random mix). The defect hits the floor in 11 or 12 of the 1,401 rounds, at least 19 rounds apart, with gaps growing by about 1.3 each time; a hit never goes deeper than height 2m &minus; 27, and the top of the exact layers is back at 2m &minus; 12 or higher within 7 rounds (it heals at 3 heights per round). The need is 3 or 4 visits in every round. So deaths inside the floor are harmless when rarer than about one in 8 rounds. A test, not a proof; the adversary controls only the digit end.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Every round's defect needs at most one visit</b><p><code>nx W &le; 1</code> for the round tape <code>x W</code> of every round from 9 on. By <code>nonhalt_of_need</code> this is all that is left; it is equivalent to every defect dying, now as a property of each round's starting tape.</p></div></div>
 </section>
 <section id="check">
@@ -461,7 +462,8 @@ python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py re
 cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py &amp;&amp; python3 vasym.py 420
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000
 python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py
-python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200   # the value law, exact Z, the floor, the conveyor (about 20 min)</code></pre>
+python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200   # the value law, exact Z, the floor, the conveyor (about 20 min)
+cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py &amp;&amp; python3 adversary.py 100 1500   # the floor under adversarial digits (about 10 min)</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/status.json</code>; edit that file and rebuild rather than editing this page.</p>
