@@ -166,6 +166,16 @@ In 272 of the 282 undecided directions some smaller setting derives a halt, and 
 is [`named-screen-501-nov27.txt`](../tools/frontier-window/named-screen-501-nov27.txt). As before, a run that stops
 at a limit is not a negative result, and these limits are small.
 
+**Second stage on the 282 undecided directions**: 100 s, 20 million configurations and 2 million classes per run,
+walking up from the smallest setting not yet known to derive a halt, and stopping a direction after two runs at a
+limit (1,235 runs, about 4.6 hours on 3 cores). No setting closes. 67 more directions are settled, because every setting
+up to the largest now derives a halt, which makes 750 of 1,002. The other 215 still stop at a limit, 409 runs in
+all. Table: [`named-deep-282-nov27.txt`](../tools/frontier-window/named-deep-282-nov27.txt).
+
+Both machines that close do so in about a second, far inside these limits. That the remaining 215 directions grow
+past 20 million configurations without closing suggests they are not machines of either kind, more than that they
+need more room.
+
 ```sh
 g++ -O2 -std=c++17 -o fwnamed fwnamed.cpp
 T0=100000 ./fwnamed 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF L 4 16 5 5000000 m2.txt   # NONHALT, 0.1 s
