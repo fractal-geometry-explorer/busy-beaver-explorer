@@ -21,6 +21,9 @@ Tools and raw tables are in [`../tools/writeonly/`](../tools/writeonly/).
 - **A sharper test at every boundary of the tape** (not only at an end) separates both machines of cryptids pull
   request 42 from their own mirror images. 41 of the 1,002 directions of the 501 open holdouts pass it. Most are
   counters and Collatz-like maps we know; about ten are machines we call chaotic.
+- **The return states can be learned.** An automaton with 13 states, reading the far side from its far end,
+  predicts the return state of all 1.5 million trips in 3·10^6 steps of the first proved machine; 184 states do
+  it for the second, and 5 to 76 for four open holdouts. This does not yet give a proof (last section but one).
 - **Passing is not a proof, and the obvious automatic proof does not work.** A decider that describes the far
   side by its first K cells (`sumdec.py`) fails on *both* proved machines for every K tried, up to 64. Their proofs need
   classes of far sides that look ahead without bound (a parity of a long run, a grammar nonterminal). The last
@@ -233,6 +236,51 @@ A reflected checker for such a table (Q, φ, tables, top-level graph) would be t
 `checkSym`: sound by one induction on fuel, then run by the kernel. It only becomes useful once a table exists,
 so the learner comes first.
 
+## Learning the classes: what works and what does not (same day)
+
+Three programs test the plan above on the two proved machines.
+
+**Return states are learnable, with very few classes** (`learncls.cpp`). A class is a row of an observation
+table: the outcomes of a list of experiments "put the cells w in front, enter in state s" on a representative
+tape. The real run is the teacher. When a trip comes back in a state its class did not predict, the tail is cut at
+the first place where replacing its far part by the class representative changes the outcome, and the near part
+becomes a new experiment (the counterexample rule of Rivest and Schapire). Over 3·10^6 steps, checking every trip
+shorter than 10^6 steps:
+
+| machine | direction of the trips | experiments | classes | trips in the run | fixed point: contracts, facts | real run: contracts, facts |
+|---|---|---|---|---|---|---|
+| 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE | rightward | 5 | 13 | 1,498,942 | 39, 76 | 38, 72 |
+| 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF | rightward | 21 | 184 | 1,497,334 | 349, 989 | 195, 402 |
+| 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA | leftward | 5 | 11 | 1,499,161 | 43, 80 | 28, 37 |
+| 1RB---_1LC0RF_1RF0LD_0LE1LC_0RC0LC_1RB0RA | leftward | 3 | 5 | 1,498,781 | 15, 30 | 14, 22 |
+| 1RB0RE_1LC0RD_1LD0LD_1RA0LC_1RA1RF_1RA--- | leftward | 5 | 26 | 1,498,277 | 50, 96 | 40, 59 |
+| 1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA | leftward | 11 | 76 | 1,499,012 | 398, 2,746 | 220, 373 |
+
+So an automaton with 13 states, reading the half tape from its far end, predicts the return state of every one
+of 1.5 million trips of the first proved machine (the last wrong prediction is at step 32). For the second, 184
+states do it, and the same 184 still do over 3·10^7 steps when only trips shorter than 10^4 steps are checked.
+The last four rows are open holdouts from the table above.
+
+**These classes do not yet give a proof.** In every row the summary fixed point derives a halt. For the first
+machine the fixed point has only 4 facts more than the real run shows, and still a halt is derivable. The
+classes predict the return *state*; the proof also needs the class of the tape that comes back to be precise
+where it matters (near the left end, 132 exact words) and loose where it cannot be precise (the bulk, "one of
+three shapes").
+
+**Refining by counterexamples splits classes without end.** `lsum_cegar.cpp` replays the derivation of the halt
+on concrete tapes; where the replay leaves the derivation, two tapes of one class behave differently and a new
+experiment separates them. In a first variant, with representative tapes as witnesses, the first machine has
+14,174 classes after 60 rounds. With tapes of the real run as witnesses, and the abstraction limited to compositions the real run shows,
+it has 21,560 classes after 1,740 rounds, 15,408 of them used by a run of only 300,000 steps: the refinement is
+drifting towards one class per tape. That is what one should expect. Any two different tapes of an irregular
+bulk behave differently sooner or later, so a rule that separates every such pair never stops. The proofs stop
+because they accept "returns in one of three shapes" as an answer.
+
+What is still missing is therefore one specific thing: a refinement rule that splits a class only when the
+difference decides the halt. Two candidates: split only classes whose tapes are short (the end words), and keep
+the 13 or 184 learned classes for the rest; or cut the tape into the proof's kind of tokens first, so that the
+bulk needs no splitting at all.
+
 ## Reproduce
 
 ```sh
@@ -243,4 +291,7 @@ gcc -O2 -o wotest wotest.c && gcc -O2 -o calltest calltest.c
 python3 sumdec.py 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE L 8,16,24      # the K-prefix summary decider
 python3 triptrace.py 1RB0LC_1LA1RD_1LA1LF_0RE---_1RA1RE_0RB0LA L 3e6 2.6e6 4 40   # the trips at one end, one per line
 python3 analyze_wo.py wotest-screen-nov27.tsv ; python3 analyze_call.py calltest-screen-nov27.tsv
+g++ -O2 -std=c++17 -o learncls learncls.cpp && g++ -O2 -std=c++17 -o lsum_cegar lsum_cegar.cpp
+LEARN=3000000 ./learncls 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE L 0 100 300000 2000000 200000   # 13 classes
+./lsum_cegar 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE L 300000 20000 3000 30000              # diverges, stop it by hand
 ```
