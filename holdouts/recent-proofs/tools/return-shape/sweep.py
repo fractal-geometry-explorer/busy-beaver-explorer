@@ -45,7 +45,19 @@ def job(tm):
                 res.append((tm, mir, 'L%d J%d j%d' % (L, J, j), 'EXC ' + type(e).__name__))
     return res
 
+def one(tm):
+    """run one machine in a child process so that a stuck analysis can be killed"""
+    try:
+        out = subprocess.run([sys.executable, __file__, '--one', tm], capture_output=True, text=True, timeout=10 * TMO + 20).stdout
+        return [l.split(' ') for l in out.split('\n') if l] or [(tm, 'x', 'NO OUTPUT')]
+    except subprocess.TimeoutExpired:
+        return [(tm, 'x', 'KILLED')]
+
 if __name__ == '__main__':
+    if sys.argv[1] == '--one':
+        for r in job(sys.argv[2]): print(' '.join(map(str, r)))
+        sys.exit(0)
+    from multiprocessing.pool import ThreadPool
     machines = [l.split()[0] for l in open(sys.argv[1]) if l.strip()]
     out = sys.argv[2]; pub = sys.argv[3] if len(sys.argv) > 3 else None
     done = set()
@@ -53,8 +65,8 @@ if __name__ == '__main__':
         for l in open(out): done.add(l.split()[0])
     machines = [m for m in machines if m not in done]
     last = time.time()
-    with mp.Pool(4, maxtasksperchild=4) as p, open(out, 'a') as f:
-        for res in p.imap_unordered(job, machines):
+    with ThreadPool(4) as p, open(out, 'a') as f:
+        for res in p.imap_unordered(one, machines):
             for r in res: f.write(' '.join(map(str, r)) + '\n')
             f.flush()
             if pub and time.time() - last > 300:
