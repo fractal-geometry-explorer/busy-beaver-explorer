@@ -86,5 +86,10 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   - 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD to 1.2·10^1572 steps (closest approach: an empty block next to a block of 49 copies);
   - 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- to 1.4·10^515 steps. That machine is the F05 core table with E1 = 1RF and F0 = 0LD, mirrored and started in E, and it halts exactly when E reads 1 with a 1 on its right.
   - 1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---, the same table started in A, ran to 1.6·10^522 steps.
+- **Base-5 family as digit strings** ([`followup/digit-strings.md`](followup/digit-strings.md)), technique D of the
+  second brainstorm, no invariant: the block sizes of the forty machines on the core
+  1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??--- are patterned in base 5 (periods 2, 6, 18 from a factor 2/3), but drifts
+  occur in which more than a hundred leading digits cancel exactly, so no digit condition keeps a drift away from 0.
+  Tools: [`tools/digit-strings/`](tools/digit-strings/).
 
 The scripts behind the follow-up are kept in the project's shared files, not in this repository.
