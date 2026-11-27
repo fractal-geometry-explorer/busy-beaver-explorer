@@ -201,6 +201,19 @@ def wiki_entry(M):
     return {"kind": "label", "title": "On the bbchallenge wiki", "text": text}
 
 
+def merged_text(g):
+    """How a merged pull request reached busycoq's BB6 branch, for the "elsewhere" box."""
+    t = f"busycoq's maintainer merged it into the BB6 branch on {g['date']} "
+    if not g.get("revised"):
+        return t + f"(commit <code>{g['commit']}</code>), and the merged file is identical to the one compiled here. "
+    t += f"(merge commit <code>{g['commit']}</code>)"
+    files = ", ".join(f"<code>{html.escape(f)}</code>" for f in g.get("files", []))
+    return (t + " after rewriting the proof; it now lives in " + files + " on the BB6 branch (head "
+            f"<code>{g.get('head', g['commit'])}</code>). The rewritten version was not recompiled here"
+            + (", and it is checked with <code>native_cast_no_check</code>, which also trusts Coq's native compiler"
+               if g.get("native") else "") + ". ")
+
+
 def elsewhere(M, decision="open"):
     """The "elsewhere" entries of a machine: [{kind, title, text}], kind "proof" (checked here), "report" (a proof
     outside this repository that was not compiled here) or "label" (a heuristic name)."""
@@ -217,13 +230,30 @@ def elsewhere(M, decision="open"):
         if c.get("note"):
             text += " " + c["note"]
         if c.get("shorter"):
-            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq, "
-                     f"ready to be proposed upstream: "
+            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq"
+                     + (": " if e.get("merged", {}).get("pr") else ", ready to be proposed upstream: ") +
+                     f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
+        elif c.get("branch") and e.get("merged", {}).get("pr"):
+            text += (f" The same files are on a branch of our fork of busycoq: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         elif c.get("branch"):
             text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         out.append({"kind": "proof", "title": "Proved in Coq" if c.get("only") else "Also proved in Coq", "text": text})
+    g = e.get("merged")
+    if g and g.get("pr") and not any(p["n"] == g["pr"] for p in e.get("prs", [])):
+        out.append({"kind": "report", "title": f"Merged upstream: it {CLAIM[g['claim']]}",
+                    "text": f"The Coq proof from this repository was submitted as "
+                            f"<a href=\"{ext['busycoq']}/pull/{g['pr']}\">busycoq pull request {g['pr']}</a>. "
+                            + merged_text(g)})
+    q = e.get("merged_equivalence")
+    if q:
+        out.append({"kind": "report", "title": "Merged upstream: halts exactly when another holdout does",
+                    "text": f"<a href=\"{ext['busycoq']}/pull/{q['pr']}\">busycoq pull request {q['pr']}</a>, merged "
+                            f"into the BB6 branch on {q['date']} (commit <code>{q['commit']}</code>, file "
+                            f"<code>{html.escape(', '.join(q['files']))}</code>), proves that this machine halts from "
+                            f"blank tape exactly when <a href=\"../{q['partner']}/explainer.html\">{q['partner']}</a> "
+                            "does. It decides neither machine, so halting stays open."})
     if e.get("merged") and not e["merged"].get("pr"):
         g = e["merged"]
         out.append({"kind": "report", "title": f"Proved outside this repository: it {CLAIM[g['claim']]}",
@@ -247,9 +277,7 @@ def elsewhere(M, decision="open"):
                         "text": f"<a href=\"{ext['busycoq']}/pull/{pr['n']}\">busycoq pull request {pr['n']}</a> "
                                 f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
                                 f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). " +
-                                (f"busycoq's maintainer merged it into the BB6 branch on {e['merged']['date']} (commit "
-                                 f"<code>{e['merged']['commit']}</code>), and the merged file is identical to the one "
-                                 "compiled here. " if e.get("merged", {}).get("pr") == pr["n"] else
+                                (merged_text(e["merged"]) if e.get("merged", {}).get("pr") == pr["n"] else
                                  "The pull request is open: not merged and not reviewed by the maintainer. ") +
                                 "We compiled the file on busycoq's BB6 branch "
                                 f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in " + (f"about {c['core_hours']} core-hours" if c.get('core_hours') else f"{c['seconds']} s") + ": "

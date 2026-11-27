@@ -52,6 +52,8 @@ open holdouts, at one end and at every boundary of the tape. Five candidates fai
 pass for a reason that gives no proof. A decider built on K-cell call summaries fails on both proved machines; the
 note says what classes of half tapes it would need. Nothing was decided. Tools: [`tools/writeonly/`](tools/writeonly/).
 
+**Maintainer rewrites, 27 November 2026:** busycoq's maintainer merged 40 more pull requests into BB6 (head 70a1ffc), rewriting almost all of them first (about 241,000 submitted lines became 116,000). [`maintainer-rewrites-nov27.md`](maintainer-rewrites-nov27.md) lists the seven patterns of the rewrites (one check shared by renamed or one-cell siblings, certificates discovered in the prover instead of stored, direction-generic lemmas, round-trip checks, the heavy check kept out of the library), what they mean for our open pull requests (#100, #102 and #108 are one table at three starts and fit the shared PR 93 engine), and a sibling screen of the open holdouts against all 101 decided tables. No verdict changed and nothing new was decided.
+
 **Second brainstorm, 27 November 2026:** [`technique-brainstorm-2-nov27.md`](technique-brainstorm-2-nov27.md) lists
 nine further techniques after the first round's eight decided nothing, ranked by cost and odds, each with target
 machines and a cheap first test. Nothing in it is computed.
