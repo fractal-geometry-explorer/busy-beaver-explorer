@@ -21,6 +21,9 @@ that has decided a holdout, lists what failed and on which machines, and ranks e
 **Halt hunts, 26 November 2026:** [`halt-hunt-ranking-nov26.md`](halt-hunt-ranking-nov26.md) estimates the expected
 number of halts per doubling of the run for eight machines with proved visit maps, calibrated on the one that
 halted, and ranks the hunts. The replay tool it uses is [`tools/segreplay`](../../tools/segreplay/README.md).
+Its ensemble check is explained in [`followup/contrast-merge.md`](followup/contrast-merge.md) (27 November): all
+states of a level merge onto a handful of orbits, so 1,000 copies are about three trials; measured on all states, both
+machines halt at the estimated rate, and no predicate separates halting states from the others.
 
 **Invariant transfer, 26 November 2026:** [`followup/invariant-transfer.md`](followup/invariant-transfer.md) tests
 technique D of the survey. The invariants of 236,071 proved tables were tried on the 509 open holdouts in three

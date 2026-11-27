@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly two blocks: an alternating block <code>(10)^x</code> and a solid block <code>1^y</code>. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 27 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Lean proves no halt in the first 10,000 steps by the kernel alone and in the first 10<sup>7</sup> with <code>native_decide</code>; the C simulator finds no halt in the first 10<sup>9</sup> steps; an exact macro simulator (blocks of 2 cells) finds no halt in the first 10<sup>15</sup> steps; the jump map in C finds no halt in the first 8.1&middot;10<sup>29</sup> steps, and the pass map in C none in the first 6.5&middot;10<sup>32</sup>, and the closed pass map in C none in the first 2.0&middot;10<sup>34</sup>.",
   "<b>What Lean proves.</b> The whole frame map: 8 tape shapes, 78 cases, each proved for all sizes by a symbolic run (<code>next_sound</code>), and the cases where the map is undefined halt (<code>none_halts</code>). So the machine halts from blank tape if and only if the map, iterated from the frame the run reaches after 2 steps, reaches one of those cases (<code>halts_iff</code>). By <code>native_decide</code> the first 10<sup>8</sup> frames (about 4.5&middot;10<sup>11</sup> machine steps) do not. With whole sweeps taken as one jump (<code>lean/Jump.lean</code>), <code>native_decide</code> extends this to 1.5&middot;10<sup>14</sup> frames, and five halting rows are proved: a halt needs a zigzag to start exactly on one of them. <code>lean/Pass.lean</code> proves the whole pass from one zigzag start to the next as one affine map away from those rows, and extends the check to 3.9&middot;10<sup>15</sup> frames. <code>lean/Close.lean</code> closes the pass map: every pass near the boundary is one of 89 more affine cases or a halting row, so <b>the machine halts iff the orbit of <code>y(3, 0, 5)</code> under one total map on three numbers lands on <code>y(a, j, a/3 + 2)</code> or <code>Y(a, j, a/3 + 3)</code> with <code>a &equiv; 1 mod 3</code></b> (<code>halts_iff_row</code>). Whether it ever does is open."
@@ -171,6 +171,12 @@
    "title": "A halt is expected, around 10<sup>14</sup> passes",
    "text": "A pass is the map x &rarr; 4x/3 or 4x &minus; 3 on x = a/(a + j + r), and a halt needs x to land on 3/4 to the cell. Near the boundary the run matches a uniform spread at the scale of one cell (285 starts within 16 of it in 10<sup>11</sup> passes, 290 expected), which gives a hazard of about 0.22 hits per unit of &Sigma;1/N, N growing by about 2 a pass (random orbits of the map: 0.08 to 0.47). So the expected number of hits grows like ln of the pass count, 0.24 per factor 10; about 2 were expected from pass 1,000 to 10<sup>11</sup> and none came (chance about 14%). Median halt if this holds: about 10<sup>14</sup> passes, 10<sup>41</sup> steps, weeks of one core. (The earlier ln ln J estimate, median 10<sup>53</sup> steps, took epochs to lengthen; they do not.)",
    "where": "<code>prun rate</code>, <code>py/near.py</code>, explainer section on passes"
+  },
+  {
+   "level": "trusted",
+   "title": "All starts of a level end on a few orbits, and they halt at the estimated rate",
+   "text": "Every zigzag start y(a, 0, r) and Y(a, 0, r) with a + r &le; 16,384 was followed with the pass map until it halts or leaves that level (2.7&middot;10<sup>8</sup> starts). Of the 17.8 million starts of levels 8192 to 9215, 3.2% halt and the others are on 47 orbits; the orbit from blank tape takes 2 to 9% of the starts of a level. The fraction of all starts of levels [L/2, L) that halt from a level in [L, 2L) is 2.3% to 15.2%, 8.7% on average over 10 octaves, against an estimate of 9 to 12%. So the map as a whole halts as often as estimated, and the blank-tape orbit is one orbit that has not.",
+   "where": "<code>c/fates.c</code>, <code>py/fates.py</code>, <code>py/fates_run.txt</code>"
   },
   {
    "level": "open",

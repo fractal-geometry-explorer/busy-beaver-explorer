@@ -40,6 +40,11 @@ probe measures how often a *freshly moved* state halts before it merges. Whether
 merges into halt at the same rate is a separate question, and for the third machine the answer in this window is
 no: not one copy halted after visit 2^19.
 
+(27 November: [`followup/contrast-merge.md`](followup/contrast-merge.md) follows this up with every state below a
+level instead of 1,000 copies. The 49 is the figure for all tapes of those levels, 5.1%, and the merging is a
+property of the map, which is two-to-one on levels that grow slowly. Over 16 octaves all tapes together halt at
+8.6% per octave, as estimated.)
+
 ## Results
 
 | machine | expected hits per doubling of visits | residues matter? | run so far | expected so far | observed |
