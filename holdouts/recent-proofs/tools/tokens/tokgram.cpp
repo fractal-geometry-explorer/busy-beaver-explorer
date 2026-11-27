@@ -14,7 +14,7 @@
 // the exact part). Least fixed point; if no halting transition is reachable in it, the machine does not halt
 // from that configuration, hence (having run T0 steps without halting) not at all.
 //
-// Usage: [J=runs] [DEPTH=j] [T0=steps] [CERT=file] tokgram MACHINE L|R R CAP W [MAXNODES]
+// Usage: [J=runs] [DEPTH=j] [T0=steps] [SEEDMAX=steps] [TL=seconds] [CERT=file] tokgram MACHINE L|R R CAP W [MAXNODES]
 #include <bits/stdc++.h>
 using namespace std;
 static int Wr[6][2],Dr[6][2],NX[6][2];
@@ -141,14 +141,14 @@ static void evaltop(int id){ Node nd=nodes[id]; string x=nd.x; int h=nd.h, s=nd.
 int main(int argc,char**argv){
   if(argc<6){ fprintf(stderr,"usage: [J=] [DEPTH=] [T0=] tokgram MACHINE L|R R CAP W [MAXNODES]\n"); return 1; }
   char*m=argv[1]; bool mirror=argv[2][0]=='R'; R=atoi(argv[3]); CAPL=atoi(argv[4]); Wn=atoi(argv[5]); long MAXN= argc>6? atol(argv[6]):3000000;
-  if(getenv("J")) J=atoi(getenv("J")); if(getenv("DEPTH")) DEPTH=atoi(getenv("DEPTH")); long T0= getenv("T0")? atol(getenv("T0")):0; double TL= getenv("TL")? atof(getenv("TL")):1e9;
+  if(getenv("J")) J=atoi(getenv("J")); if(getenv("DEPTH")) DEPTH=atoi(getenv("DEPTH")); long T0= getenv("T0")? atol(getenv("T0")):0; double TL= getenv("TL")? atof(getenv("TL")):1e9; long SEEDMAX= getenv("SEEDMAX")? atol(getenv("SEEDMAX")):2000000000L;
   for(int s=0;s<6;s++)for(int b=0;b<2;b++){char*x=m+7*s+3*b; if(x[0]=='-'){NX[s][b]=-1;continue;} Wr[s][b]=x[0]-'0'; Dr[s][b]=x[1]=='R'?1:-1; if(mirror)Dr[s][b]=-Dr[s][b]; NX[s][b]=x[2]-'A';}
   { NT n; n.kind=0; n.inner=0; n.k=0; n.name="$"; END_=ntIntern(n); n.kind=1; n.name="*"; STAR_=ntIntern(n); }
   { Lc e; e.b0=0; EMPTYL=internL(e); } { El bl; bl.b0=0; bl.n=END_; BLANK=intern(bl); }
   // seed configuration
   { long T=1L<<26; vector<uint8_t> tape(T,0); long p=T/2; int s=0; long lo=p,hi=p; long i=0; bool ok=false; long E=0;
     for(;;i++){ if(i>=T0){ E=lo; while(E<=hi&&tape[E]==0) E++; if(E>hi){ ok=true; break; } if(p>=E-Wn&&p<E+Wn){ long last=hi; while(tape[last]==0) last--; if(p<= min(last,E+Wn-1)) { ok=true; break; } } }
-      int b=tape[p]; if(NX[s][b]<0){ printf("%s halts in the seed run at step %ld\n",m,i); return 0; } tape[p]=Wr[s][b]; int d=Dr[s][b]; s=NX[s][b]; p+=d; if(p<lo)lo=p; if(p>hi)hi=p; if(i>T0+2000000000L||p<8||p>T-8) break; }
+      int b=tape[p]; if(NX[s][b]<0){ printf("%s halts in the seed run at step %ld\n",m,i); return 0; } tape[p]=Wr[s][b]; int d=Dr[s][b]; s=NX[s][b]; p+=d; if(p<lo)lo=p; if(p>hi)hi=p; if(i>T0+SEEDMAX||p<8||p>T-8) break; }
     if(!ok){ printf("no seed configuration found\n"); return 0; }
     fprintf(stderr,"seed at step %ld\n",i); SEEDSTEP=i;
     if(E>hi) emitTop("",0,s,BLANK);

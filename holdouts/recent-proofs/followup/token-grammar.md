@@ -5,7 +5,7 @@ a working refinement rule. This note tries the second: cut the tape into tokens 
 close over tokens. **Result: one of the two DeepMind machines is re-proved automatically, with a certificate that
 an independent checker accepts. No open holdout was decided.** Everything else here is computed, not proved.
 
-Tools: [`../tools/tokens/`](../tools/tokens/) (`tokgram.cpp`, `tokcheck.py`, `tokdec.cpp`).
+Tools: [`../tools/tokens/`](../tools/tokens/) (`tokgram.cpp`, `tokcheck.py`, `tokdec.cpp`, `sweep_driver.py`).
 
 ## The short version
 
@@ -117,6 +117,34 @@ The scan of the last two was stopped by its time limit before the last settings.
 the machine halts. For the last two machines nearly every setting runs out of time, so longer runs are the
 obvious next test; for the first two the abstraction is too coarse at these settings.
 
+## Sweep of all open holdouts, and longer runs (same day, later)
+
+Both ran under the long-run wrapper (jobs `tokgram-sweep-501` and `tokgram-long-2-machines`, 3.3 hours).
+**Nothing closed.**
+
+**All 501 open holdouts**, both orientations, the three settings that close the DeepMind machine
+((R, J, depth) = (2, 0, 3), (1, 1, 3), (1, 0, 5)) with cap 16 and cap 4, W = 4, seed after 10^6 steps, 5 s each:
+6,012 runs. 3,934 reach an abstract halt, 1,561 run out of time, 175 hang inside one evaluation and were
+stopped, and 342 have no seed (the head is not near the left end of the tape within 5·10^7 steps after the
+seed time). No run closes. Per machine: 143 reach an abstract halt in all 12 runs; 334 have at least one run
+that ran out of time or hung. Per-machine counts are in [`token-grammar-sweep.tsv`](token-grammar-sweep.tsv).
+
+**Twenty minutes per setting** on the two machines whose 10 s runs mostly ran out of time (cap 8, W = 16, the
+same three settings, both orientations):
+
+| machine | orientation | (2, 0, 3) | (1, 1, 3) | (1, 0, 5) |
+|---|---|---|---|---|
+| 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA | as given | out of time, 7.7 million top configurations | halt reachable | out of time, 3.2 million top configurations |
+| 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA | mirrored | out of time, 10 million facts | out of time | out of time |
+| 1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA | as given | halt reachable after 340 s | halt reachable after 300 s | out of time, 3.4 million facts |
+| 1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA | mirrored | out of time, 2.1 million facts | out of time, 1.6 million facts | out of time, 1.5 million nonterminals |
+
+More time does not help: the sets keep growing (millions of facts or top configurations) and where a run ends
+it ends in an abstract halt. For these machines the call-named grammar is not converging, it is enumerating.
+
+So the method as built covers what the DeepMind proof of 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF covers and,
+among the open holdouts, nothing else at these settings.
+
 ## Checks on the tool itself
 
 - The checker shares no code with the search and re-derives every call and top step.
@@ -126,8 +154,7 @@ obvious next test; for the first two the abstraction is too coarse at these sett
 
 ## Not done
 
-1. Longer runs on 1RB0LA_0RC1LF_0RD0LA_1LD0LE_1RB1LF_---1LA and 1RB0LB_1RC1LE_1LD0RF_---1LB_0LA0LC_1LB1RA,
-   and a sweep of all open holdouts with the settings that close the DeepMind machine.
+1. *Done, see the sweep section above: nothing closed.*
 2. Combining the sibling thread's exact frontier with a short cell prefix and call-named tails.
 3. A Lean version of `tokcheck.py`. The certificate format is plain text and the check is three finite loops,
    so a reflected checker is feasible; it is only worth building once an open machine closes.
