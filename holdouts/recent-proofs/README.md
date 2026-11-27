@@ -100,3 +100,9 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   Tools: [`tools/digit-strings/`](tools/digit-strings/).
 
 The scripts behind the follow-up are kept in the project's shared files, not in this repository.
+
+**Tokens before classes, 27 November 2026:** [`followup/token-grammar.md`](followup/token-grammar.md) cuts the tape
+into run tokens before closing over call summaries. Learned classes over tokens still derive a false halt; naming
+each tail by the call that produced it re-proves 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF in 0.2 s with a
+certificate that an independent checker accepts. No open holdout was decided. Tools are in
+[`tools/tokens/`](tools/tokens/).
