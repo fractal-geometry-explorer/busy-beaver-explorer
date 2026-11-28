@@ -325,7 +325,28 @@ Shorter and longer windows behave the same way when they close (30 cells: 5 wind
 section; 154 cells: 36). Some lengths do not close, because their cut sometimes starts `1 0` and then `c[P-1]` decides
 between a lone 1 and an ordinary run. So the right end is settled: **a halt needs a lone 1 in the bulk**, a token-mode sweep
 starting left of the last 100 cells. That is the question of the previous sections (no new bulk `10` after 8.5·10^6 steps),
-and the left end, where short-lived lone 1s and `110` chains come and go, is the other piece still open.
+and the left end, where short-lived lone 1s and `110` chains come and go, is the other piece (next section).
+
+## The left end is closed too, whatever the first segment holds (28 November 2026, `py/lend_closure.py`)
+
+The same locality works at the left end, in the frame of the new blank cell `lo`. A trip rewrites the first `L` cells
+from cells `lo .. lo+L+2` only. Beyond the first few cells the tape is the first segment, the oldest and longest one:
+at every dump up to 10^6 trips, all 0s from `lo + 20` on lie in one residue class, and that segment is
+tens of thousands of 0s long. So the abstraction takes the window, the cell just after it (known: it left the window on the
+trip before) and two **free** cells after that, where only the one in the segment's class may be 0. It runs the machine
+on these cells and a tail `111111 00`, which ends any `110` chain and gives the turn; by locality the tail cannot
+change the window. Then it puts a new blank cell in front.
+
+For `L = 20, 24, 30` the set closes with 448, 1,152 and 4,608 states, and for `L = 36` with 18,432. None halts, and
+the window never pushes a 0 of another class into the segment. All 10 real left windows dumped up to 10^6 trips lie in the
+set. So **the left end never halts, whatever the first segment contains**, provided (a) the first segment stays wider than
+the window and (b) no `110` chain from a left-end lone 1 runs through the whole first segment to its wall. Chains do run
+into the segment (2 of the 4,608 states). In the real run the longest left-end chain up to 1.5·10^6 trips is 62 cells, against a segment of about 10^5 cells.
+
+Together with the right end: a halt needs a lone 1 that the right sweep meets in token mode in the bulk, with `110`
+words up to a 0. That is either a bulk `10` defect (born only after a PRE trip, none after trip 3,403), or a whole
+segment, the first one included, turned into `110` words. Both are statements about segment contents, which follow
+rule 102 between walls (`(1 + u)` per pass, one 0 trimmed per turn). That is now the whole open problem.
 
 ## Lean
 
