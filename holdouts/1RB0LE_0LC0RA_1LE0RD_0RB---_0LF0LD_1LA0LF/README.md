@@ -454,6 +454,46 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
 
     python3 py/conveyor.py 6000 200      # the value law, exact Z, path, death height, floor window, perturbation test
 
+## Ninth pass (28 November 2026): the digit end is recomputed every round, and why the floor does not close
+
+This pass took the machine up again as a candidate for a quick proof (its Lean reduction leaves one statement, and
+one proof would settle the twin too). The result is negative: the statement left is about irregular digits, and the
+floor argument of the eighth pass cannot be closed by bookkeeping. `py/floor.py` holds the three computations.
+
+**Z is 16 Z plus a correction.** Read the digit-only end Z of the round tape as a binary number, most significant
+digit at the far end. In every round whose defect dies before Z, Z_(k+1) = 16 Z_k + e_k, and e_k has about |Z| - m
+bits: the top m digits of Z_(k+1) are those of 16 Z_k (39 of 84 at round 80, 99 of 297 at round 200), and every
+digit below them is recomputed in each round (`python3 py/floor.py zshift 200 40`). So the "conveyor" of the eighth
+pass holds for the top m digits only; the layers below are not old digits riding up but fresh digits of the value.
+
+**The second-order constant is not a small fraction.** r 2^(2m), with r = v(W_k) - (16/15 - c 2^-m), settles to
+-84.25120326992... in even rounds and -33.68959699240... in odd rounds (as the fifth and eighth passes measured); its
+best fractions with denominators up to 10^8 still miss by about 10^-16 (`python3 py/floor.py c2 200`), so it is not a
+rational with a short period. The layer of Z between heights 2m and 3m holds the binary digits of this constant, and
+the fifth pass found the value irregular from about 2^(-3m) on. The defect dies at about height 3.7m, inside that
+irregular part.
+
+**The exact layers are a robust floor in practice.** Cut the tape so that the defect meets the exact layers at once:
+keep the first words of round 200 (the leading doublers and 19 words more), drop the next 576 words (the whole part
+rich in doublers and Z down to height 89), and run on. In 100 rounds the defect always died, at height at least 104
+(m = 100), with a need of 3 or 4 visits, and the death height climbed back toward its usual place. The same from
+round 600 (1,816 words dropped, from height 249): in 150 rounds every defect died, at height at least 304 (m = 300).
+`python3 py/floor.py cut 199 120 90 100 25`, `python3 py/floor.py cut 599 320 250 150 25`.
+
+**Why that does not give a proof** (a hand argument, not checked in detail). The natural induction is: if every earlier defect died at height at least
+m - C, the value is within O(2^(-m+C)) of 16/15 (each death moves v by about 2^(-h) at its height h, and the error
+shrinks 16 times per round), so the top digits of Z are the period-4 expansion of 16/15, and a defect that reaches
+them dies within 8 words. But the exact part pinned this way stops about log2 of the error constant plus a few
+heights below m - C, and a defect that dies inside it, 8 words deep, moves v by more than the error the induction
+assumed. In the worst case the floor loses a few heights per round of contact and regains 4 only in rounds without
+contact, so the induction does not close. The band it leaves uncontrolled is the part of Z between the front and
+the exact layers, whose digits are those of the value at the precision where it is irregular. The cut tests show
+that the real contact rounds lose less than 4 heights, but that is a measurement, not a bound.
+
+**Conclusion.** What is left (`nx W <= 1` in every round from 9 on) is a statement about the digits of a value that
+is irregular at the precision that matters, of the same kind as the fourth pass found. It is not a finite or
+inequality question, and `rank.py` now ranks the pair as a digit-statistics question.
+
 ## Status
 
 - Lean (kernel): `Blank.lean` and `Rules.lean` (six sweep rules).
@@ -486,6 +526,10 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
   Z is a conveyor (4 new digits per round at the far end, every digit 4 heights up, errors pushed up and never
   stored); every defect dies at least 2m - 9 high, and a defect entering the exact layers dies within 20 words.
   Open in this form: that no defect dies inside the exact layers, and the two-round height monotonicity.
+- Trusted, 28 November 2026 (`py/floor.py`): Z_(k+1) = 16 Z_k + e_k with only the top m digits kept, so the
+  layers below are recomputed every round; the second-order constant of the value is not a short fraction; with
+  the part rich in doublers and most of Z cut away (rounds 200 and 600) every defect still died, at height at least
+  m + 4. The worst-case induction on the floor does not close; the open statement is about irregular digits.
 
 ## Scripts
 
@@ -508,6 +552,9 @@ word for word to the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---, whose round
 
 - `py/conveyor.py ROUNDS [ROUND]`: the eighth pass. The value law, Z against the expansion of 16/15 - c 2^-m, the
   defect's lowest height and death height, the floor window, and the perturbation test started in round ROUND.
+
+- `py/floor.py zshift|c2|cut ...`: the ninth pass (Z as 16 Z + e, the second-order constant, the floor test on cut
+  tapes).
 
 - `py/leanspec.json`: the rules written to `lean/Rules.lean` by `python3 holdouts/1RB---_1RC0RD_1RD1RA_1LE1RB_0LF0LE_1RF0RD/py/leanfiles.py M NS py/leanspec.json lean/`.
 

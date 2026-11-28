@@ -106,19 +106,22 @@ OVERRIDES = {
         why="Rule 102 machine: Lean proves the round trip is rule 102 for every length, its Lucas closed form, and that the danger pattern y 10 y^n 0 halts (PR 348).",
         next="Show the run never builds the danger pattern: a gap reaches all y only if it is a row of Pascal's triangle mod 2, so bound which gaps the defect jumps create."),
     # Number-theory tier A: no number theory needed.
+    # Wall stack: Lean proves walls of the stack's own form that halt (halting_wall), so no invariant that forgets
+    # the counts can work; what is left is a 2-adic coincidence, as for the 3/2-map cryptids (README).
     "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC": dict(
-        stage="finite", route="nonhalt", work="lean",
-        why="Wall stack: the stack rules are proved in Lean (PR 344); a negative count needs a 2-adic coincidence, and the reachable walls get at most 10% of the way there.",
-        next="Prove an invariant on the stack (each counter far above the one below, e.g. at least 5 times), which with the Lean stack rules gives non-halting."),
-    # F02 pair: one inequality on a proved model.
+        stage="number", route="either", work="research",
+        why="Wall stack: the stack rules are proved in Lean (PR 344), and so are halting walls of the stack's own form (halting_wall), so a closed set of walls that forgets the counts cannot exist; a halt needs a 2-adic coincidence, and the reachable walls get at most 10% of the way there.",
+        next="None beyond number theory: show the counts never meet the 2-adic condition of the README, or run the stack map far in case they do."),
+    # F02 pair: Lean reduces both to one statement per round (nonhalt_of_need); the ninth pass of the README
+    # (28 November 2026) found that statement to be about irregular digits of the conserved value.
     "1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF": dict(
-        stage="finite", route="nonhalt", work="lean",
-        why="Binary counter with doublers: a tape with one defect cannot halt, and no halt in 100,000 rounds (and to 2^18264 steps for the variant pair).",
-        next="Prove that every travelling defect disappears before the next round (one inequality on the irregular digits), then the round map in Lean."),
+        stage="number", route="nonhalt", work="research",
+        why="Binary counter with doublers: Lean proves the machine never halts if from round 9 on each round's defect needs at most one visit (nonhalt_of_need); the defect needs 3 or 4 against 2^(k/2). The defect dies where the conserved value is irregular, and the induction that would make the exact top layers a floor does not close, so what is left is a digit-statistics question.",
+        next="Show that no defect crosses the irregular band between the front and the exact layers (a statement about the digits of the value at precision 2^(-3k/2)), or find a potential that tolerates contact with the exact layers; the cut tapes of py/floor.py are the test cases."),
     "1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---": dict(
-        stage="finite", route="nonhalt", work="lean",
-        why="Binary counter with doublers, variant of 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: a tape with one defect cannot halt.",
-        next="Prove that every travelling defect disappears before the next round, as for its variant."),
+        stage="number", route="nonhalt", work="research",
+        why="Binary counter with doublers, the twin of 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: Lean proves it has the same rounds and the same reduction (nonhalt_of_need), so it stands or falls with that machine's digit question.",
+        next="The same statement as for 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF; one proof settles both."),
     # R08, the four leftmost-zone machines. The zone reduction and the two-zone cascade are proved (halts_iff_zone,
     # Cascade.lean, Window.lean; Shield.lean for 1RB0RB_1RC1RA_0LD1LC_0RA1LE_1LF0LC_---1LA), so what is left is the
     # orbit of an explicit, pseudo-random cascade of one-bit cells.
@@ -174,11 +177,12 @@ ATTACKS = [
               "language of words that the word map P keeps and that never triggers the halting rebuild. A SAT search on "
               "the word alone is far smaller than the whole-tape search that failed.",
          need="Solver time (many CPU-hours of SAT, easy to parallelise)."),
-    dict(key="wallstack", title="Stack invariant for the wall-stack machine",
+    dict(key="wallstack", title="Wall stack: rule out the 2-adic coincidence",
          pick=lambda r: r["m"] == "1RB1LF_1LC1RD_1RA1LA_0RA0RE_0RC---_1RF0LC",
-         route="nonhalt", work="lean",
-         what="Ranked first of the 40 map-reduced machines because no number theory is needed: the stack rules are in "
-              "Lean, and an invariant that keeps each counter far above the one below would finish it.",
+         route="either", work="research",
+         what="The stack rules are in Lean, and so are halting walls of the stack's own form (halting_wall), so no "
+              "invariant that forgets the counts can work. A halt needs a count to fail a 2-adic condition and then two "
+              "exact values, as for the 3/2-map cryptids.",
          need=""),
     dict(key="countdown", title="Halt hunts on the countdown counters (R04, R11)",
          pick=lambda r: r["fam"] in ("R04", "R11"),
@@ -209,11 +213,12 @@ ATTACKS = [
               "not proved); prove them in Lean and extend the PR 57/58 wall invariant to rebuilds that read only part of "
               "the counter. What remains after that is a number-theoretic inequality.",
          need=""),
-    dict(key="doublers", title="Binary counters with doublers: defects die out",
+    dict(key="doublers", title="Binary counters with doublers: the irregular band",
          pick=lambda r: r["m"] in ("1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF", "1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---"),
-         route="nonhalt", work="lean",
-         what="A tape with one travelling defect cannot halt. Prove that every defect disappears before the next round "
-              "(one inequality on irregular digits) and the pair is non-halting.",
+         route="nonhalt", work="research",
+         what="Lean proves both never halt if from round 9 on each round's defect needs at most one visit. The defect "
+              "dies where the conserved value is irregular; the exact top layers stop every defect on cut tapes, but the "
+              "induction that would make them a floor does not close. What is left is about irregular digits.",
          need=""),
 ]
 

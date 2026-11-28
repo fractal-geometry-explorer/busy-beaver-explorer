@@ -84,7 +84,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
     <p><p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href="../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p></p>
-    <p class="asof">Status as of 24 November 2026.</p>
+    <p class="asof">Status as of 28 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -94,6 +94,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       <p><b>New, 22 November 2026.</b> For the shared rounds Lean now proves that a tape with at most one defect cannot halt, and a new engine followed the defect through 500,000 rounds (more than 2<sup>944,371</sup> steps of the twin) without one surviving its round. Open: that this always holds, and the correspondence of the two runs.</p>
       <p><b>Later on 22 November 2026.</b> The correspondence with the twin holds on random tapes, not only along the run, and this machine's visits close up on the same token words. On the twin Lean now proves everything except that each round's defect dies; for this machine the correspondence itself is still to be put in Lean.</p>
       <p><b>Latest, 22 November 2026.</b> The correspondence is now a theorem: Lean proves, on this machine's own transition table, that every token rule of the twin is a run of this machine and that its rounds are the twin's rounds (<code>lean/Link.lean</code>). From blank tape it reaches round 9 at step 7,834, and it never halts if from round 9 on every round's defect needs at most one visit, exactly the twin's remaining assumption. <b>Correction (evening):</b> the first version assumed every defect dies counted from round 0, which is false (round 2's defect survives), so it proved nothing; it is replaced by the round-9 reduction.</p>
+      <p><b>28 November 2026.</b> The twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF was looked at again as a candidate for a quick proof. What is left for both machines is a statement about the digits of the conserved value where it is irregular: the exact top layers stop every defect in practice, but the induction that would make them a floor does not close.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
