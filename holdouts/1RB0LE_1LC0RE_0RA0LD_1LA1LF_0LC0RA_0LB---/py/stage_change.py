@@ -37,9 +37,20 @@ the new event cell, and changes of stage with Z not empty.
 Result (`check 150`): 186 changes of stage with Z empty; the rule covers 116 and all 116 match it cell by cell; set
 apart 65 at an empty word, 4 where the head goes past R, 1 where the new event cell lies in item 1.
 
+**After the C-wave (`transient`).**  When the C-wave has left item 1 for the last time, what is left of the change is
+local: the head works on item 0 and on the left words next to the event cell, and never more than 77 cells left of
+it, until the first event at the new event cell.  There Z is empty and the first item starts on the next cell (`11`),
+in all 186 changes of stage with Z empty.  The head crosses into the event cell from the right in a few patterns of
+states (D C D C D, A, E C E C, A A, ...).  The halting state F is entered 1,381 times in these changes and always on a 0.
+
+Result (`transient 150`): 186 changes of stage with Z empty (with or without empty words); farthest left -77; Z
+empty and `11` right of the new event cell in 186 of 186; F on a 1: 0 of 1,381.
+
 usage (from the repository root):
   python3 .../py/stage_change.py check STAGES     follows STAGES stages from about 10^128 events and checks every
                                                   change of stage with Z empty against the rule, cell by cell
+  python3 .../py/stage_change.py transient STAGES what the head does after the C-wave, at every change of stage
+                                                  with Z empty
 """
 import sys
 
@@ -194,6 +205,80 @@ def check(stages):
     print('%d stages; changes of stage with Z empty: %s' % (stage, ', '.join('%s %d' % kv for kv in tally.items())))
 
 
+def transient(stages):
+    """Follows STAGES stages and, at every change of stage with Z empty (any widths), runs the change cell by cell on
+    a copy up to the first event at the new event cell and records what the head does after the C-wave has left
+    item 1 for the last time: how far left of the event cell it goes, the states
+    in which it crosses into the event cell from the right, every visit in state F (the halting state) and the cell
+    it reads there, and the reading at the new event cell (Z, and where its first item starts)."""
+    tr = ptab(M)
+    s, cell, events, e0 = reach_stage(tr)
+    print('%s: about 10^%d events from blank tape (defects.py)' % (M, len(str(events)) - 1))
+    S = 'ABCDEF'
+    e, stage = None, 0
+    n, far, zne, first, f_one, f_all = 0, 0, 0, 0, 0, 0
+    sigs = {}
+    while stage < stages:
+        ep = e
+        e = find_event_cell(s, e)
+        if e is None:
+            print('no event cell found')
+            break
+        if e != ep:
+            stage += 1
+        while True:
+            ev, r = next_event(s, e)
+            if ev != 'event':
+                print(ev)
+                return
+            if law(r) is None:
+                if evNext(r[1], r[2], r[3]) is None and not r[1] and read_j(s, e) is None:
+                    c = copy_sim(s)
+                    v = find_event_cell(copy_sim(c), e)
+                    s1 = separators(e, r)[1][0] if len(r[2]) else None
+                    t, steps, left, after, sig, prev = c.t, 0, 0, False, [], c.p
+                    while steps < 200000:
+                        if c.st == S.index('F'):
+                            f_all += 1
+                            f_one += t[c.p]
+                        y = c.tr[(c.st, t[c.p])]
+                        t[c.p] = y[0]
+                        c.p += y[1]
+                        c.st = y[2]
+                        steps += 1
+                        if s1 is not None and c.p >= s1:
+                            left, sig, after = 0, [], False
+                        elif s1 is not None and prev >= s1:
+                            after = True
+                        if after:
+                            left = min(left, c.p - e)
+                            if prev > e >= c.p:
+                                sig.append(S[c.st])
+                        prev = c.p
+                        if c.st == A and t[c.p] == 0 and c.p == v and read(c, v) is not None:
+                            break
+                    if s1 is None or v is None:
+                        continue
+                    n += 1
+                    far = min(far, left)
+                    rv = read(c, v)
+                    zne += bool(rv[1])
+                    first += tuple(t[v + 1:v + 3]) == (1, 1)
+                    k = ''.join(sig)
+                    sigs[k] = sigs.get(k, 0) + 1
+                break
+            j = longest(lambda x: jump(r, x))
+            if j > 1:
+                write(s, e, jump(r, j - 1))
+        sys.stdout.flush()
+    print('%d stages; %d changes of stage with Z empty and at least two items' % (stage, n))
+    print('after the C-wave has left item 1 for the last time: farthest left of the event cell %d cells' % far)
+    print('at the new event cell: Z not empty %d; first item starting right of it (11): %d of %d' % (zne, first, n))
+    print('visits in state F during the changes: %d, on a 1: %d' % (f_all, f_one))
+    print('states crossing into the event cell from the right, after the C-wave: %s' %
+          ', '.join('%s %d' % kv for kv in sorted(sigs.items(), key=lambda kv: -kv[1])))
+
+
 if __name__ == '__main__':
     sys.setrecursionlimit(100000)
-    check(int(sys.argv[2]))
+    {'check': check, 'transient': transient}[sys.argv[1]](int(sys.argv[2]))
