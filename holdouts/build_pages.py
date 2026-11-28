@@ -209,9 +209,23 @@ def merged_text(g):
     t += f"(merge commit <code>{g['commit']}</code>)"
     files = ", ".join(f"<code>{html.escape(f)}</code>" for f in g.get("files", []))
     return (t + " after rewriting the proof; it now lives in " + files + " on the BB6 branch (head "
-            f"<code>{g.get('head', g['commit'])}</code>). The rewritten version was not recompiled here"
-            + (", and it is checked with <code>native_cast_no_check</code>, which also trusts Coq's native compiler"
-               if g.get("native") else "") + ". ")
+            f"<code>{g.get('head', g['commit'])}</code>). " + recheck_text(g))
+
+
+def recheck_text(g):
+    """Whether the rewritten, merged version was rebuilt here."""
+    r = g.get("rechecked")
+    if not r:
+        return ("The rewritten version was not recompiled here"
+                + (", and it is checked with <code>native_cast_no_check</code>, which also trusts Coq's native compiler"
+                   if g.get("native") else "") + ". ")
+    ax = r.get("axioms") or []
+    axt = ("<code>Print Assumptions</code> reports no axioms" if not ax else
+           "it rests only on " + ", ".join(html.escape(a) for a in ax))
+    return (f"We rebuilt the BB6 branch at <code>{r['head']}</code> with Coq {r['coq']} on {r['date']} and the "
+            f"rewritten proof compiles: {axt}"
+            + ("; Coq's native compiler was off, so its <code>native_cast_no_check</code> steps were checked by the "
+               "kernel's bytecode machine instead" if g.get("native") else "") + ". ")
 
 
 def elsewhere(M, decision="open"):
