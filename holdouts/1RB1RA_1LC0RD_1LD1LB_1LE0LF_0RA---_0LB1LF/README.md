@@ -105,9 +105,17 @@ whether the sweep acts on it as a finite transducer.
   Checks: in a run to 9.84·10^17 with every prediction re-simulated, there were no mismatches. All 2,796
   chain-phase exits (step count and a hash of the whole tape) are the same with and without macro steps, which
   stood in for 700,000 increments. It found **no halt in 3,588,977,699,892,617,375 steps (3.5·10^18)** in
-  20 minutes. Past that it slows to rsim speed (a phase where an extra block shrinks three cells per increment,
-  which the engine does not yet treat). The macro steps rest on the learned automaton and cost model, which are
-  checked, not proved, like rsim's jumps.
+  20 minutes. The macro steps rest on the learned automaton and cost model, which are checked, not proved, like
+  rsim's jumps.
+- **Cycles and checkpoints (28 November 2026).** Past 3.5·10^18 the chain stands still while a block near the right
+  end alternates between two shapes, so the engine now takes one macro step per repeating cycle of up to 4
+  increments (the learned rules are kept separately for each cycle length). Rechecked to 9.84·10^17 against the
+  run without macro steps: all 528 shared exit points have the same step count and tape hash, and the final step
+  count is the same. The engine also saves the tape to a checkpoint every 4 minutes and resumes from it (the
+  project's `longrun` job `1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF-chain-engine`). **No halt in
+  80,750,788,992,831,569,943 steps (8.07·10^19).** There it slows again: a halving chain of `(01)^n` blocks has
+  formed on the left side (`(01)^53511490`, `(01)^26755744`, `(01)^13377871`, `(01)^6688936`, …), which the
+  engine, written for chains on the right side, does not read yet.
 
 The same table from other starts: 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF (start B),
 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF (start C) and 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF (start D). The same
@@ -164,6 +172,7 @@ g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1
 DECADES=1 ./rsim_fast 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF run 3900 out.json   # passes 10^18
 g++ -O2 -std=c++17 -o rsim_chain holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_chain.cpp
 LOGEXITS=1 ./rsim_chain 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF chain 1e25 1200 2   # 3.5*10^18 in 20 min
+CKPT=ck ./rsim_chain 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF chain 1e25 10800 2   # checkpoints in ck/, resumes from them; 7.6*10^19 in 80 min
 LOGEXITS=1 ./rsim_chain 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF chain 1e17 3000 100000000   # no macro steps: same EXIT lines
 g++ -O2 -std=c++17 -o hce holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/hce.cpp
 NOBLK=1 ./hce check 1e5 1e7 1e8 3e8                    # tape equals direct simulation of G

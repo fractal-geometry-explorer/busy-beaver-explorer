@@ -97,6 +97,7 @@ struct Trans { int w, d, s; bool halt; };
 
 struct Sample { uint64_t sig; vector<i128> counts; i128 steps; long lcm; };
 
+struct RSim; static void (*ckhook)(RSim&)=nullptr;
 struct RSim {
     int KEEP=1024, TRAIL=256, TRAILMAX=1024, K=10, MARGIN=8, BIG=8, TRAVEL=48; long SCRATCH_STEPS=400000;
     Trans T[8][2]; int nstates=0;
@@ -443,7 +444,7 @@ struct RSim {
             h=hh; s=ss; steps+=k;
             if(h<0) edge(-1); else if(h>=n) edge(1);
             if((long)buf.size()>4*KEEP) flush();
-            if(((++memtick)&0xFFFFF)==0){ long pages=0,rss=0; FILE* f=fopen("/proc/self/statm","r"); if(f){ if(fscanf(f,"%ld %ld",&pages,&rss)!=2) rss=0; fclose(f);} if(rss*4096L > memlimit){ memout=true; return true; }
+            if(((++memtick)&0xFFFFF)==0){ if(ckhook) ckhook(*this); long pages=0,rss=0; FILE* f=fopen("/proc/self/statm","r"); if(f){ if(fscanf(f,"%ld %ld",&pages,&rss)!=2) rss=0; fclose(f);} if(rss*4096L > memlimit){ memout=true; return true; }
                 if(deadline>0){ double e=chrono::duration<double>(chrono::steady_clock::now()-t0).count(); if(e>deadline){ timeout=true; return true; } if(e-lastprog>=300){ lastprog=e; printf("%9.1fs steps %s (10^%.2f) items %zu jumps %ld rules %ld\n", e, i2s(steps).c_str(), log10((double)steps), L.size()+R.size(), njumps, nrule); fflush(stdout); } } }
             if(timeout) return true;
             if(memout) return true;
@@ -546,6 +547,7 @@ static bool oracle(RSim& m, long budget){
     if(m.buf.size()!=0 || !m.is_incr()){ ofail[2]++; return false; }
     return true;
 }
+static bool oracleN(RSim& m, long budget, int p){ for(int i=0;i<p;i++) if(!oracle(m,budget)) return false; return true; }
 struct CAkey { int cls,l,c,r,q=0; bool operator==(const CAkey&o) const { return cls==o.cls&&l==o.l&&c==o.c&&r==o.r&&q==o.q; } };
 struct CAkh { size_t operator()(const CAkey&k) const { return ((size_t)k.q*7777777u ^ (size_t)k.cls*1000003u ^ (size_t)(k.l+7)*10007u ^ (size_t)(k.c+7)*101u ^ (size_t)(k.r+7)); } };
 struct CAval { int nw; int dv; };
@@ -553,14 +555,17 @@ static unordered_map<CAkey,CAval,CAkh> ca;   // sep k: (class, sep[k-1], sep[k],
 struct CostModel { i128 c0; vector<i128> wl, wp; vector<i128> we; long uses=0; vector<int> lsep; vector<i128> la, lex; string ltail; };
 static unordered_map<string,CostModel> costs;
 static map<string,vector<i128>> exd;
-static string exshape(const MState& P){ return "R"+to_string(P.restid); }
+static int gper_fwd();
+static string exshape(const MState& P){ return "R"+to_string(P.restid)+"p"+to_string(gper_fwd()); }
 static unordered_set<long long> cabad; static long long cak(const CAkey&k){ return ((((long long)(k.cls+2)*100003+(k.l+7))*100003+(k.c+7))*100003+(k.r+7))*3310007LL+k.q; }
 static long ca_conflicts=0;
+static int gper=1; static map<int,int> period;
+static int gper_fwd(){ return gper; }
 static int cls(size_t k){ return k==0?0:(k==1?1:2); }
 static int qrel(const MState& P, size_t k){ if(k+1>=P.a.size()) return 2; i128 d=2*P.a[k+1]-P.a[k]; return (d>=-4 && d<=4)? 0 : 1; }
 static int qsig(const MState& P, size_t k){ int x=0; for(long j=(long)k-1;j<=(long)k+2;j++){ x*=3; if(j>=0) x+=qrel(P,j); } return x; }
-static CAkey keyfor(const MState& P, const MState& Q, size_t k){ int l = k==0? -1 : P.sep[k-1]; int r = k+1<P.sep.size()? P.sep[k+1] : -2; CAkey K{cls(k),l,P.sep[k],r}; K.q=qsig(P,k)*1000 + (k==0? (int)(Q.a[0]-P.a[0])+500 : Q.sep[k-1]); return K; }
-static CAkey key0(const MState& P){ CAkey K{-1,P.sep.size()>2?P.sep[2]:-2,P.sep[0],P.sep.size()>1?P.sep[1]:-2}; K.q=qsig(P,0)*1000+(P.sep.size()>3?P.sep[3]:999)+ (int)(P.a[0]&1)*7000000; return K; }
+static CAkey keyfor(const MState& P, const MState& Q, size_t k){ int l = k==0? -1 : P.sep[k-1]; int r = k+1<P.sep.size()? P.sep[k+1] : -2; CAkey K{cls(k)+10*(gper-1),l,P.sep[k],r}; K.q=qsig(P,k)*1000 + (k==0? (int)(Q.a[0]-P.a[0])+500 : Q.sep[k-1]); return K; }
+static CAkey key0(const MState& P){ CAkey K{-1-10*(gper-1),P.sep.size()>2?P.sep[2]:-2,P.sep[0],P.sep.size()>1?P.sep[1]:-2}; K.q=qsig(P,0)*1000+(P.sep.size()>3?P.sep[3]:999)+ (int)(P.a[0]&1)*7000000; return K; }
 static bool same_shape(const MState& A, const MState& B){
     if(A.restid!=B.restid || A.a.size()!=B.a.size() || A.ex.size()!=B.ex.size() || A.tail!=B.tail || A.state!=B.state) return false;
     return true;
@@ -581,6 +586,7 @@ static bool learn_ca(const MState& P, const MState& Q){
 }
 static string costkey(const MState& P, const MState& Q){
     string k=to_string(P.a.size())+"|"+to_string((long)(Q.a[0]-P.a[0]));
+    if(gper>1) k="p"+to_string(gper)+":"+k;
     for(size_t j=0;j<P.sep.size();j++) if(P.sep[j]!=Q.sep[j] || Q.a[j+1]!=P.a[j+1]) k+="|"+to_string(j)+":"+to_string(P.sep[j])+">"+to_string(Q.sep[j])+":"+to_string((long)(Q.a[j+1]-P.a[j+1]));
     { static long W = getenv("KW")? atol(getenv("KW")) : 2; long mx=-1; for(size_t jj=0;jj<P.sep.size();jj++) if(P.sep[jj]!=Q.sep[jj] || Q.a[jj+1]!=P.a[jj+1]) mx=jj;
       k+="W"; for(long jj=0; jj<=mx+W && jj<(long)P.sep.size(); jj++) k+=to_string(P.sep[jj])+","; }
@@ -637,15 +643,15 @@ static bool learn_cost(RSim& m, const MState& P, const string& key, i128 d0, lon
     CostModel cm; cm.wl.assign(P.a.size(),0); cm.wp.assign(P.a.size(),0); cm.we.assign(P.ex.size(),0);
     for(size_t k=0;k<P.a.size();k++){
         restoreto(m,T); m.R[levitem[k]].c+=4; i128 s0=m.steps;
-        if(!oracle(m,budget)) { restoreto(m,T); return false; }
+        if(!oracleN(m,budget,gper)) { restoreto(m,T); return false; }
         i128 dd=m.steps-s0-d0; if(dd%4){ restoreto(m,T); return false; } cm.wl[k]=dd/4;
         restoreto(m,T); m.R[levitem[k]].c+=2; s0=m.steps;
-        if(!oracle(m,budget)) { restoreto(m,T); return false; }
+        if(!oracleN(m,budget,gper)) { restoreto(m,T); return false; }
         i128 d1=m.steps-s0-d0-2*cm.wl[k]; cm.wp[k] = (P.a[k]&1)? -d1 : d1;
     }
     for(size_t i=0;i<P.ex.size();i++){
         restoreto(m,T); if(P.ex[i].side==0) m.L[P.ex[i].idx].c+=2; else m.R[P.ex[i].idx].c+=2; i128 s0=m.steps;
-        if(!oracle(m,budget)) { restoreto(m,T); return false; }
+        if(!oracleN(m,budget,gper)) { restoreto(m,T); return false; }
         i128 dd=m.steps-s0-d0; if(dd%2){ restoreto(m,T); return false; } cm.we[i]=dd/2;
     }
     restoreto(m,T);
@@ -676,6 +682,41 @@ static string tapehash(RSim& m){   // right of head and left of head (read outwa
     HS Lh; { string l=bs.substr(0,h); reverse(l.begin(),l.end()); happ(Lh,l,1); } for(long k=(long)m.L.size()-1;k>=0;k--){ string w=m.L[k].w; reverse(w.begin(),w.end()); happ(Lh,w,m.L[k].c); }
     char out[200]; snprintf(out,sizeof out,"R%016llx L%016llx state %c",(unsigned long long)Rh.h,(unsigned long long)Lh.h,'A'+m.s); return out;
 }
+
+// ---------------------------------------------------------------- checkpoints (longrun contract)
+static string ckdir; static double cklast=0; static i128 g_t=0; static size_t g_si=0; static chrono::steady_clock::time_point ck_t0;
+static i128 s2i(const string& x){ i128 r=0; bool neg=false; size_t i=0; if(!x.empty()&&x[0]=='-'){neg=true;i=1;} for(;i<x.size();i++) r=r*10+(x[i]-'0'); return neg?-r:r; }
+static void ck_save(RSim& m){
+    if(ckdir.empty()) return;
+    string tmp=ckdir+"/state.txt.tmp", fin=ckdir+"/state.txt";
+    FILE* f=fopen(tmp.c_str(),"w"); if(!f) return;
+    fprintf(f,"v1\nsteps %s\ns %d\nh %ld\nbase %s\nlastdir %d\nlastleft %s\nlastright %s\nt %s\nsi %zu\n", i2s(m.steps).c_str(), m.s, m.h, i2s(m.base).c_str(), m.lastdir, i2s(m.lastleft).c_str(), i2s(m.lastright).c_str(), i2s(g_t).c_str(), g_si);
+    fprintf(f,"buf %s\n", m.buf.size()? m.buf.str(0,m.buf.size()).c_str() : "-");
+    fprintf(f,"L %zu\n", m.L.size()); for(auto& it:m.L) fprintf(f,"%s %s\n", it.w.c_str(), i2s(it.c).c_str());
+    fprintf(f,"R %zu\n", m.R.size()); for(auto& it:m.R) fprintf(f,"%s %s\n", it.w.c_str(), i2s(it.c).c_str());
+    string th=tapehash(m); fprintf(f,"hash %s\nend\n", th.c_str());
+    fflush(f); fsync(fileno(f)); fclose(f); rename(tmp.c_str(),fin.c_str());
+    string pt=ckdir+"/PROGRESS.tmp"; f=fopen(pt.c_str(),"w"); if(f){ fprintf(f,"steps %s (10^%.3f) no halt; %s\n", i2s(m.steps).c_str(), log10((double)m.steps), th.c_str()); fclose(f); rename(pt.c_str(),(ckdir+"/PROGRESS").c_str()); }
+}
+static void ck_maybe(RSim& m){
+    if(ckdir.empty()) return; double e=chrono::duration<double>(chrono::steady_clock::now()-ck_t0).count();
+    if(e-cklast<240) return; cklast=e; ck_save(m);
+}
+static bool ck_load(RSim& m, const string& path){
+    FILE* f=fopen(path.c_str(),"r"); if(!f) return false; char buf[1<<16]; string tag;
+    auto rd=[&](const char* k)->string{ if(fscanf(f,"%65535s",buf)!=1 || string(buf)!=k){ fprintf(stderr,"ckpt: expected %s\n",k); exit(5);} if(fscanf(f,"%65535s",buf)!=1) exit(5); return buf; };
+    if(fscanf(f,"%65535s",buf)!=1 || string(buf)!="v1") exit(5);
+    m.steps=s2i(rd("steps")); m.s=atoi(rd("s").c_str()); m.h=atol(rd("h").c_str()); m.base=s2i(rd("base")); m.lastdir=atoi(rd("lastdir").c_str());
+    m.lastleft=s2i(rd("lastleft")); m.lastright=s2i(rd("lastright")); g_t=s2i(rd("t")); g_si=atol(rd("si").c_str());
+    string b=rd("buf"); if(b=="-") b=""; m.buf.v.assign(b.size(),0); for(size_t i=0;i<b.size();i++) m.buf.v[i]=b[i]-'0'; m.buf.st=0;
+    size_t n=atol(rd("L").c_str()); m.L.clear(); for(size_t i=0;i<n;i++){ char w[65536], c[64]; if(fscanf(f,"%65535s %63s",w,c)!=2) exit(5); m.L.push_back({w,s2i(c)}); }
+    n=atol(rd("R").c_str()); m.R.clear(); for(size_t i=0;i<n;i++){ char w[65536], c[64]; if(fscanf(f,"%65535s %63s",w,c)!=2) exit(5); m.R.push_back({w,s2i(c)}); }
+    if(fscanf(f,"%65535s",buf)!=1 || string(buf)!="hash") exit(5);
+    char rest[512]; if(!fgets(rest,sizeof rest,f)) exit(5); fclose(f);
+    string want=rest; while(!want.empty() && (want.back()=='\n'||want.back()==' ')) want.pop_back(); while(!want.empty() && want[0]==' ') want.erase(0,1);
+    string got=tapehash(m); if(got!=want){ fprintf(stderr,"ckpt hash mismatch: %s vs %s\n", got.c_str(), want.c_str()); exit(6); }
+    return true;
+}
 static bool logexits = getenv("LOGEXITS")!=nullptr;
 static void chain_phase(RSim& m, long verify, double deadline, chrono::steady_clock::time_point t0, long budget){
     MState P; if(!parse(m,P)) return;
@@ -686,6 +727,8 @@ static void chain_phase(RSim& m, long verify, double deadline, chrono::steady_cl
     while(true){
         double el=chrono::duration<double>(chrono::steady_clock::now()-t0).count(); if(el>=deadline) break;
         if(el-lastcp>=60 && (cst.macro+cst.oracle)%64==0){ lastcp=el; printf("  chain %8.1fs ofail %ld/%ld/%ld L %zu steps %s (10^%.3f) levels %zu a0 %s macro %ld oracle %ld costs %zu\n", el, ofail[0],ofail[1],ofail[2], m.L.size(), i2s(m.steps).c_str(), log10((double)m.steps), P.a.size(), i2s(P.a[0]).c_str(), cst.macro, cst.oracle, costs.size()); fflush(stdout); }
+        { auto pit=period.find(P.restid); gper = pit==period.end()? 1 : pit->second; }
+        if(!ckdir.empty()){ double e2=chrono::duration<double>(chrono::steady_clock::now()-ck_t0).count(); if(e2-cklast>=240){ if(dirty){ materialize(m,P); dirty=false; } ck_maybe(m); } }
         MState Q; bool can=predict(P,Q);
         string key; CostModel* cm=nullptr;
         if(can){ key=costkey(P,Q); auto it=costs.find(key); if(it!=costs.end()) cm=&it->second; else { can=false; pf[7]++; } }
@@ -698,13 +741,22 @@ static void chain_phase(RSim& m, long verify, double deadline, chrono::steady_cl
         if(dirty){ materialize(m,P); dirty=false; }
         else materialize(m,P);   // canonical itemization so that level items are known
         T=snapof(m); i128 s0=m.steps;
-        if(!oracle(m,budget)){ restoreto(m,T); cst.exits++; if(logexits) printf("EXIT %s %s\n", i2s(m.steps).c_str(), tapehash(m).c_str()); return; }
-        i128 d0=m.steps-s0; cst.oracle++;
+        int pp=0; MState Q2; bool pq=false;
+        for(pp=1; pp<=4; pp++){
+            if(!oracle(m,budget)){ restoreto(m,T); cst.exits++; if(logexits) printf("EXIT %s %s\n", i2s(m.steps).c_str(), tapehash(m).c_str()); return; }
+            cst.oracle++;
+            pq=parse(m,Q2); if(pq && same_shape(P,Q2)) break;
+        }
+        if(pp>4){ // no recurrence within 4 increments: leave the phase at the first visit after P
+            restoreto(m,T); oracle(m,budget); cst.exits++; if(logexits) printf("EXIT %s %s\n", i2s(m.steps).c_str(), tapehash(m).c_str()); return; }
+        if(pp!=gper){ if(can){ can=false; cm=nullptr; } gper=pp; }
+        period[P.restid]=pp;
+        i128 d0=m.steps-s0;
         if(getenv("DUMPAT") && m.steps>(i128)atof(getenv("DUMPAT"))){ static int nd=0; if(nd++<8){ MState Qd; parse(m,Qd);
             printf("DUMP can %d gk %d key %s d0 %s pf:", can, gk, key.c_str(), i2s(d0).c_str()); for(int q=0;q<9;q++) printf(" %ld",pf[q]); printf("\n");
             auto pr=[&](const char* nm, MState& X){ printf(" %s a:",nm); for(auto x:X.a) printf(" %s",i2s(x).c_str()); printf("\n  sep:"); for(auto x:X.sep) printf(" [%s]",sepstr[x].c_str()); printf("\n  ex:"); for(auto&e:X.ex) printf(" %s",i2s(e.c).c_str()); printf("\n  tail %s\n  rest %s\n", X.tail.c_str(), X.rest.c_str()); };
             pr("P",P); pr("Q",Qd); fflush(stdout); } }
-        MState Q2; bool pq=parse(m,Q2); if(getenv("WHYEXIT") && m.steps>(i128)atof(getenv("WHYEXIT")) && (!pq || !same_shape(P,Q2))){ static long nw=0; if(nw++<40){ printf("WHY parse %d", pq); if(pq) printf(" rest %d/%d nlev %zu/%zu nex %zu/%zu tail %d bidx %zu/%zu state %d/%d", P.restid==Q2.restid, 0, P.a.size(),Q2.a.size(),P.ex.size(),Q2.ex.size(), P.tail==Q2.tail, P.bidx,Q2.bidx,P.state,Q2.state); printf("\n  P.rest %s\n  Q.rest %s\n", P.rest.c_str(), Q2.rest.c_str()); } }
+        if(getenv("WHYEXIT") && m.steps>(i128)atof(getenv("WHYEXIT")) && (!pq || !same_shape(P,Q2))){ static long nw=0; if(nw++<40){ printf("WHY parse %d", pq); if(pq) printf(" rest %d/%d nlev %zu/%zu nex %zu/%zu tail %d bidx %zu/%zu state %d/%d", P.restid==Q2.restid, 0, P.a.size(),Q2.a.size(),P.ex.size(),Q2.ex.size(), P.tail==Q2.tail, P.bidx,Q2.bidx,P.state,Q2.state); printf("\n  P.rest %s\n  Q.rest %s\n", P.rest.c_str(), Q2.rest.c_str()); } }
         if(!pq || !same_shape(P,Q2)){ cst.exits++; if(logexits) printf("EXIT %s %s\n", i2s(m.steps).c_str(), tapehash(m).c_str()); return; }
         if(can && cm && !gk){   // separator costs not yet determined: one more equation
             bool ok = Q2.a==Q.a && Q2.sep==Q.sep;
@@ -774,14 +826,24 @@ int main(int argc, char** argv){
         for(size_t k=0;k<sim.th.size();k++) if(sim.th[k]) printf("%zu %ld\n",k,sim.th[k]);
         return 0;
     }
+    if(mode=="ckcheck"){   // ckcheck: load $LR_CKPT/state.txt (or none) and check its tape hash
+        const char* d=getenv("LR_CKPT"); if(!d) return 0; string sp=string(d)+"/state.txt"; FILE* tf=fopen(sp.c_str(),"r"); if(!tf){ printf("no checkpoint\n"); return 0; } fclose(tf);
+        ck_load(sim,sp); printf("ok steps %s\n", i2s(sim.steps).c_str()); return 0;
+    }
     if(mode=="chain"){   // chain TMAX SECONDS [VERIFY]: decades run, chain phases in macro form
         i128 tmax=(i128)strtold(argv[3],nullptr); double secs=atof(argv[4]); long verify = argc>5? atol(argv[5]) : 2;
         auto t0=chrono::steady_clock::now(); sim.t0=t0; sim.deadline=secs;
         vector<i128> sched={1000000,10000000,100000000,1000000000,3000000000LL,10000000000LL}; i128 t=sched[0]; size_t si=0;
         sim.stop_at_visit=true; long budget=2000000; double lastp=-100;
+        if(getenv("LR_CKPT")) ckdir=getenv("LR_CKPT"); else if(getenv("CKPT")) ckdir=getenv("CKPT");
+        ck_t0=t0;
+        if(!ckdir.empty()){ string sp=ckdir+"/state.txt"; FILE* tf=fopen(sp.c_str(),"r"); if(tf){ fclose(tf); ck_load(sim,sp); t=g_t; si=g_si; printf("RESUMED at steps %s %s\n", i2s(sim.steps).c_str(), tapehash(sim).c_str()); fflush(stdout);} }
+        if(getenv("LR_DEADLINE")){ double dl=atof(getenv("LR_DEADLINE")) - (double)time(nullptr) + 3600; if(dl>secs) secs=dl; sim.deadline=secs; }
+        ckhook = [](RSim& m){ ck_maybe(m); };
         while(sim.steps<tmax){
+            g_t=t; g_si=si;
             i128 tt=t<tmax?t:tmax;
-            if(!sim.run(tt)){ printf("HALT %s\n", i2s(sim.steps).c_str()); break; }
+            if(!sim.run(tt)){ printf("HALT %s\n", i2s(sim.steps).c_str()); if(!ckdir.empty()){ FILE* hf=fopen((ckdir+"/HALT.txt.tmp").c_str(),"w"); if(hf){ fprintf(hf,"HALT at steps %s\n", i2s(sim.steps).c_str()); fclose(hf); rename((ckdir+"/HALT.txt.tmp").c_str(),(ckdir+"/HALT.txt").c_str()); } } return 0; }
             if(sim.timeout || sim.memout) break;
             if(sim.buf.size()==0 && sim.is_incr()){ chain_phase(sim,verify,secs,t0,budget); }
             if(sim.steps>=t){ si++; t = si<sched.size()? sched[si] : t*10; }
