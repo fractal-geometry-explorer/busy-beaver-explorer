@@ -110,6 +110,15 @@ below height 2m - 11. Below height m that end is a conveyor: every round appends
 becomes weaker than `nx W <= 1` in every round: no defect dies inside the floor, and heights in the doubler-rich
 part never drop over two rounds. Neither is proved, and nothing of this is in Lean.
 
+## Update, 28 November 2026: what is left is a digit question
+
+This machine stands or falls with 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF (same rounds, same hypothesis
+`nonhalt_of_need`). The ninth pass in that machine's README
+([`../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md`](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md))
+finds that the digit end is recomputed every round below its top m digits and that the induction that would make
+the exact layers a floor does not close in the worst case. Cut tapes show the floor holds in practice, but the
+statement left is about the digits of the value where it is irregular, not a finite question.
+
 ## The rule of the middle (14 November 2026)
 
 The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
