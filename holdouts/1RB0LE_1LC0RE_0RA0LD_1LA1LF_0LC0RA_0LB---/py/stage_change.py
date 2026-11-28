@@ -43,8 +43,21 @@ it, until the first event at the new event cell.  There Z is empty and the first
 in all 186 changes of stage with Z empty.  The head crosses into the event cell from the right in a few patterns of
 states (D C D C D, A, E C E C, A A, ...).  The halting state F is entered 1,381 times in these changes and always on a 0.
 
+**The new first item (`transient`, `rules`).**  Which rule applies depends on the state in which the head first
+crosses into the event cell from the right after the C-wave:
+
+- E (36 changes): the event ends as an ordinary one.  The event cell stays, the left words get exactly one
+  increment (`linc`), and item 0 keeps its widths with Q = 3 - a and P = 3 - b, as if the unit had gone on in item 0
+  alone and its carry into item 1 had been dropped.  26 of 26 where the P of item 0 and the Q of item 1 are not
+  empty (10 at such an empty word are set apart).
+- D (a >= 2) with the event cell 2 cells left, and A (a = 1) with it 2 cells right: item 0 is rewritten as an item
+  of the C-wave (its `11` moved 2 cells, Q = 2 or 0, P = 2 if b >= 2 and 0 if b = 1).  37 of 37 and 21 of 21.
+- Open: D with the event cell 6 cells left (29: item 0 takes in the two nearest left digits) or farther (25), A with
+  the event cell elsewhere (37, from 61 cells left to 20 right), and the left words in the D and A cases.
+
 Result (`transient 150`): 186 changes of stage with Z empty (with or without empty words); farthest left -77; Z
-empty and `11` right of the new event cell in 186 of 186; F on a 1: 0 of 1,381.
+empty and `11` right of the new event cell in 186 of 186; F on a 1: 0 of 1,381; rules: E 26 of 26, D 37 of 37,
+A 21 of 21 (84 changes), the other 102 not covered yet.
 
 usage (from the repository root):
   python3 .../py/stage_change.py check STAGES     follows STAGES stages from about 10^128 events and checks every
@@ -55,7 +68,7 @@ usage (from the repository root):
 import sys
 
 from latestage import copy_sim, longest, reach_stage
-from stage_law import A, M, QW, PW, evNext, find_event_cell, incB, jump, law, next_event, read, read_j, write
+from stage_law import A, M, QW, PW, evNext, find_event_cell, incB, jump, law, linc, next_event, read, read_j, write
 from wordchain import ptab
 
 
@@ -205,6 +218,41 @@ def check(stages):
     print('%d stages; changes of stage with Z empty: %s' % (stage, ', '.join('%s %d' % kv for kv in tally.items())))
 
 
+def rules(r, rv, shift, first):
+    """Checks the new stage's reading rv (at the new event cell, `shift` cells from the old one) against the rules
+    for the state of the first crossing into the event cell after the C-wave.  E: the event ends as usual (same event
+    cell, one left increment `linc`, item 0 keeps its widths with Q = 3 - a and P = 3 - b, as if the unit went on in
+    item 0 alone); checked where the P of item 0 and the Q of item 1 are not empty.  D (a >= 2) with the event cell
+    moved 2 cells left, and A (a = 1) with it moved 2 cells right: item 0 is rewritten as an item of the C-wave,
+    its `11` moved 2 cells, Q = 2 (a >= 2) or 0 (a = 1), P = 2 if b >= 2 and 0 if b = 1.  Returns a label."""
+    its = r[2] + [r[3]]
+    st = phases(its)
+    if st is None or first not in ('A', 'D', 'E'):
+        return '%s other' % first
+    a, b = st[0]
+    q0 = its[0][0]
+    n0 = (rv[2] + [rv[3]])[0]
+    q1, p1 = n0[0], n0[1]
+    v = lambda w: sum(d << i for i, d in enumerate(w))
+    if first == 'E':
+        if not its[0][1]:
+            return 'E, P of item 0 empty'
+        if len(its) > 1 and not its[1][0]:
+            return 'E, Q of item 1 empty'
+        li = linc(r[0])
+        lu = [u for u in rv[0] if u not in ('top', 'rest')]
+        why = [w for w, ok in (('cell', shift == 0), ('left', li is not None and li[:len(lu)] == lu),
+                               ('Q', len(q1) == len(q0) and v(q1) == (3 - a) % (1 << len(q1))),
+                               ('P', p1 is not None and v(p1) == (3 - b) % (1 << len(p1)))) if not ok]
+        return 'E ' + ('match' if not why else 'differ (%s)' % '+'.join(why))
+    want = -2 if first == 'D' else 2      # the C-wave moves the `11` of item 0 two cells left (a >= 2) or right (a = 1)
+    if shift != want:
+        return '%s, cell moved %s' % (first, '-6' if shift == -6 else 'otherwise')
+    ok = (v(q1) == (0 if a == 1 else 2) % (1 << len(q1)) and p1 is not None
+          and v(p1) == (2 if b >= 2 else 0) % (1 << len(p1)))
+    return '%s, cell moved %d, ' % (first, shift) + ('match' if ok else 'differ')
+
+
 def transient(stages):
     """Follows STAGES stages and, at every change of stage with Z empty (any widths), runs the change cell by cell on
     a copy up to the first event at the new event cell and records what the head does after the C-wave has left
@@ -217,7 +265,7 @@ def transient(stages):
     S = 'ABCDEF'
     e, stage = None, 0
     n, far, zne, first, f_one, f_all = 0, 0, 0, 0, 0, 0
-    sigs = {}
+    sigs, tally = {}, {}
     while stage < stages:
         ep = e
         e = find_event_cell(s, e)
@@ -266,6 +314,12 @@ def transient(stages):
                     first += tuple(t[v + 1:v + 3]) == (1, 1)
                     k = ''.join(sig)
                     sigs[k] = sigs.get(k, 0) + 1
+                    cls = rules(r, rv, v - e, sig[0] if sig else None)
+                    tally[cls] = tally.get(cls, 0) + 1
+                    if 'differ' in cls and '-v' in sys.argv:
+                        its0 = r[2] + [r[3]]
+                        print('  %s: phases %s, items before %s, first items after %s' % (
+                            cls, phases(its0)[:2], its0[:2], (rv[2] + [rv[3]])[:2]))
                 break
             j = longest(lambda x: jump(r, x))
             if j > 1:
@@ -277,6 +331,8 @@ def transient(stages):
     print('visits in state F during the changes: %d, on a 1: %d' % (f_all, f_one))
     print('states crossing into the event cell from the right, after the C-wave: %s' %
           ', '.join('%s %d' % kv for kv in sorted(sigs.items(), key=lambda kv: -kv[1])))
+    print('the first item and the left words, by the state of the first crossing: %s' %
+          ', '.join('%s %d' % kv for kv in sorted(tally.items())))
 
 
 if __name__ == '__main__':
