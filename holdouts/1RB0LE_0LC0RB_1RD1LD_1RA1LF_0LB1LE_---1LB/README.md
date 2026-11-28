@@ -110,6 +110,17 @@ visits (`bbtrip.py`, `bbfix.py`). The traces show why. An inner clock's counter 
 much the trip writes on the right. Once c is past the cap, the search loses that link. A proof has to carry c
 symbolically, as the nested-clock rule `nest` does.
 
+Two more refinements (28 Nov) do not close it either. (1) The right side kept as runs counted mod 3, like the left
+(`bbrr.py`), with exits that fix the first 8, 10 or 12 cells of the tape (all exits of real trips on words up to 26
+cells): no halt, but the same three false exits remain. A trace explains them. Three inner trips in a row each
+exit in a way real trips allow for the cells they can see. But the second and third read cells that the first
+wrote beyond its exit window, and the search treats those cells as independent. (2) Running the first level of
+inner trips step by step and boxing only deeper ones (`bbnest.py`) is worse: the inline trips' regions are
+summarised with the rest of the left side, and the search then reaches halts. What is missing is a link
+between lengths on the two sides: a counter `0^(3c)` on the left and the blocks of length about 3c it writes on the
+right, with the same c. A search over configurations with shared symbolic lengths, or a case proof by the residue
+of the first block (as in `lean/Residue.lean`) carried through the nested phase ends, is the way on.
+
 **Halting.** The only halting transition is F on 0 (`step_none_iff`); F is entered only from D on 1 (1LF, from the
 table), so the machine halts exactly when D reads a 1 whose left neighbour is a 0. A tick whose trips all return is
 proved to finish, so a halt can only come at a phase end. Open: a closed form for P^(2^k) on the words that occur,
