@@ -104,6 +104,11 @@
    "text": "If the window of last cells is always cut where it reads <code>1 1</code>, the cell before the cut cannot matter, so each entry has one outcome (given no token-mode arrival from deeper). <code>c/rend_orbit.c</code> follows this deterministic sequence from the real tape at round trip 599,938 until a window repeats (checked cell by cell): for L = 800, 1,500, 3,000, 6,000, 12,000 the transient is 23,998, 100,187, 444,501, 1,873,945, 7,686,155 entries, the period 117, 234, 479, 966, 1,921 entries, and the right end grows exactly 4 cells per period, i.e. near the end the tape converges to one profile traveling 4 cells per right-end cycle. No window holds a lone 1 and no trip halts. In the profile a segment's span is about a fifth of its depth, so every short segment (all 5 bulk births were within 94 cells of the end) lies inside a proved window."
   },
   {
+   "level": "heuristic",
+   "title": "Deep segments stay far from all 110 words",
+   "text": "Sampling every segment between the left end and 12,000 cells from the right end every 1,000 trips up to 4&middot;10<sup>6</sup> trips: none has fewer than 100 0s, and the fewest <code>x</code> words seen are 195 of 450 (segments of 100 to 999 0s) and 466 of 1,006 (1,000 or more). An all-<code>y</code> segment, the only way left to a halt, would need 0."
+  },
+  {
    "level": "trusted",
    "title": "The left end is closed for any first-segment content",
    "text": "In the frame of the new blank cell, a trip rewrites the first L cells from the first L+3 only, and beyond the first ~20 cells the tape is the first segment (0s in one class). <code>py/lend_closure.py</code> treats the two cells after the window as free (only the segment's class may be 0) and closes the left-end states: 448, 1,152, 4,608 states for L = 20, 24, 30, no halt, the window never reaches the segment's wall; all 10 real left windows dumped up to 10<sup>6</sup> trips are in the set. So the left end cannot halt unless a <code>110</code> chain from a left-end lone 1 runs through the whole first segment (longest real chain up to 1.5&middot;10<sup>6</sup> trips: 62 cells, segment about 10<sup>5</sup> cells)."
