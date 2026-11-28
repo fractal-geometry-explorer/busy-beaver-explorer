@@ -393,6 +393,12 @@ The span is about a fifth of the depth. So every short segment, where a `10` def
 deeper than the profile is older (cells born at the left end and filled from the right). It shows the same picture: segments
 with tens to tens of thousands of 0s.
 
+
+**Deeper than the proved window** (`SEG=1000 ./trips 4000000 0`, every bulk segment sampled every 1,000 trips, between `lo + 40`
+and 12,000 cells from the end): no segment there has fewer than 100 0s. The closest any came to all `y` is 195 `x` words out of
+450 (100 to 999 0s) and 466 out of 1,006 (1,000 or more). So deep segments look like even mixtures of `x` and `y`, with no sign of
+the Pascal structure an all-`y` segment would need. This is a measurement, not a proof.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic

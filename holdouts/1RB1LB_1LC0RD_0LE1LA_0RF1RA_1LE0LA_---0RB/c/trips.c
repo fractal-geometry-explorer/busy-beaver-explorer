@@ -13,7 +13,9 @@
    whose turn point ends an all-y segment (zeros every 3 cells) with a 3-cell wall (111) on its left, which is how
    every bulk 10 defect of the run was born, and a status line every REPORT trips.  A halt would print HALT.
    With the environment variable TL=n it also prints the last n cells (TL trip hi cells, n up to 20,000) whenever they change
-   (input for py/rend_cycle.py). */
+   (input for py/rend_cycle.py). With SEG=n it samples, every n trips, each segment (a maximal run of 0s whose gaps
+   are multiples of 3) between lo+40 and 12,000 cells from the right end, and reports per size class the fewest
+   x words (gaps other than 3) any sampled segment had: 0 would be an all-y segment. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,6 +74,7 @@ int main(int argc,char**argv){
   long st=(NB<<6)/2; lo=hi=st;
   { long p=st; int s=0; for(;;){ int r=GET(t,p); SET(t,p,W[s][r]); int d=D[s][r]; s=S[s][r]; p+=d; steps++; if(p>hi)hi=p; if(p<lo){lo=p;break;} } }
   long tl=getenv("TL")?atol(getenv("TL")):0; static char tlcur[20096],tlprev[20096]; if(tl>20000) tl=20000;
+  long segev=getenv("SEG")?atol(getenv("SEG")):0; long minx[4]={1L<<60,1L<<60,1L<<60,1L<<60},minat[4]={0},minsz[4]={0};
   long nca=0,ntm=0,niso=0,npre=0,bad=0;
   for(long k=0;k<ntrips;k++){
     long Q=firstQ(t,lo,(NB<<6)-128);
@@ -97,6 +100,15 @@ int main(int argc,char**argv){
     }
     if(tl>0){ long Qn=useca?Q:hi; if(Qn>=hi-tl-1){ char *cur=tlcur; for(long p=hi-tl+1;p<=hi;p++) cur[p-(hi-tl+1)]='0'+GET(t,p); cur[tl]=0;
         if(strcmp(cur,tlprev)){ printf("TL %ld %ld %s\n",k,hi,cur); strcpy(tlprev,cur);} } }
+    if(segev && (k+1)%segev==0){
+      /* segments: maximal runs of 0s whose gaps are multiples of 3; for each, count gaps != 3 (x words) */
+      long prevz=-1, nz=0, nx=0, first=-1;
+      for(long p=lo+40;p<=hi-12000;p++) if(!GET(t,p)){
+        if(prevz>=0 && (p-prevz)%3==0){ nz++; if(p-prevz!=3) nx++; }
+        else { if(prevz>=0 && first>=0){ int b=nz>=1000?3:nz>=100?2:nz>=10?1:0; if(nx<minx[b]){minx[b]=nx; minat[b]=k; minsz[b]=nz;} }
+               first=p; nz=1; nx=0; }
+        prevz=p; }
+      if((k+1)%(segev*100)==0){ printf("SEG trip %ld:",k+1); for(int b=0;b<4;b++) printf(" [%s: min x words %ld (size %ld, trip %ld)]",b==0?"<10":b==1?"10-99":b==2?"100-999":">=1000",minx[b],minsz[b],minat[b]); printf("\n"); fflush(stdout);} }
     lo=lo-1;
     if(lo<128||hi>(NB<<6)-256){fprintf(stderr,"tape full\n");return 1;}
     if((k+1)%rep==0){ printf("trips %ld steps %ld width %ld: %ld by the CA, %ld on the machine, %ld ISO, %ld PRE, %ld mismatches\n",k+1,steps,hi-lo,nca,ntm,niso,npre,bad); fflush(stdout);}
