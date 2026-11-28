@@ -121,6 +121,13 @@ between lengths on the two sides: a counter `0^(3c)` on the left and the blocks 
 right, with the same c. A search over configurations with shared symbolic lengths, or a case proof by the residue
 of the first block (as in `lean/Residue.lean`) carried through the nested phase ends, is the way on.
 
+Summaries of whole trips (28 Nov, `bbsum.py`, `bbtick.py`): each inner trip replaced by every exit together with the
+whole right side it leaves, as a least fixpoint, and the word after a return kept as one token for "some word reachable
+by repeated trips". No halt was found with right sides of 6 or 8 runs (with 4 runs the cut itself makes false halts).
+But neither search finishes: inside a nested clock a single trip passes 10^6 to 1.5·10^7 abstract configurations,
+the product of thousands of left sides (the clock's recursion stack) and thousands of right sides. A finite search of
+this kind does not look like the way to the lemma. The case proof is.
+
 **Halting.** The only halting transition is F on 0 (`step_none_iff`); F is entered only from D on 1 (1LF, from the
 table), so the machine halts exactly when D reads a 1 whose left neighbour is a 0. A tick whose trips all return is
 proved to finish, so a halt can only come at a phase end. Open: a closed form for P^(2^k) on the words that occur,
