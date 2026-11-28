@@ -147,6 +147,8 @@ machine's README.
   least fixpoint; `py/blackbox.py`: the windowed first version; `c/pexh.c`, `c/pexp.c`: every trip from words of
   up to N cells, by exit and by prefix; `py/bbrr.py`: the trip search with both sides as runs; `py/bbnest.py`: the same with the
   first level of inner trips run inline; `py/bbsum.py`: trip summaries (each inner trip replaced by everything it leaves on the
-  right side), a least fixpoint; no halt found with 6 or 8 runs, but it does not finish inside nested clocks; `py/backward.py`, `py/near_miss.py`: halting patterns and how close the
+  right side), a least fixpoint; no halt found with 6 or 8 runs, but it does not finish inside nested clocks; `py/bbtick.py`: the same, with the
+  word after a returning trip kept as one token "some word of P*(R)" so that a clock phase keeps one right side; it
+  still passes 10^6 states on single trips (about 9,000 left sides times 12,000 right sides, many with tokens); `py/backward.py`, `py/near_miss.py`: halting patterns and how close the
   run comes to them.
 - `far/farsearch.c`, `far/farcheck.cpp`, `far/dfa_window.py`: finite-automata reduction with the word unknown.
