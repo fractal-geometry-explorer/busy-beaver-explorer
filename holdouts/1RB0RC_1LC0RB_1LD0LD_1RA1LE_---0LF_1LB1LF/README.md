@@ -63,7 +63,7 @@ rules and cannot make the pattern; only the engine (or a turn) could.
 
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
+Decided outside this repository: never halts (DeepMind's Lean proof in cryptids pull request 42, and Alk's Rocq proof in busycoq pull request 121; see `../recent-proofs/cryptids-pr42-nov27.md` and `../recent-proofs/followup/warm-history-ngram.md`). This repository's own results: Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by
 the kernel, in 10,000,000 by `native_decide`; `lean/Rules.lean`: the sweep rules, kernel only. C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 
 ## First look

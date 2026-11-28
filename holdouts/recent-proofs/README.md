@@ -121,3 +121,10 @@ that a separate checker accepts and no learned classes. It does not close the se
 request 42 by itself; with classes named by their call (`fwnamed.cpp`, the idea of the token follow-up) the same
 tool closes both. Screens of the 501 open holdouts with either kind of class find no closure. Tools are in
 [`tools/frontier-window/`](tools/frontier-window/).
+
+**Alk's warm-start proof, 28 November 2026:** [`followup/warm-history-ngram.md`](followup/warm-history-ngram.md)
+studies busycoq pull request #121, a 58-line Rocq proof of 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF: busycoq's
+n-gram decider with tape histories, started after 30,000 steps of the history machine instead of from blank tape.
+Re-implemented here, it needs both the histories and the warm start. Screens find no transfer: 90 settings on each of
+the 501 open holdouts, and busycoq's own CPS_LRU and RWL_mod deciders (re-implemented) on the 20 holdouts whose table
+busycoq already decides from another start state. Tools are in [`tools/warm-ngram/`](tools/warm-ngram/).
