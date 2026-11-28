@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 26 November 2026.</p>
+    <p class="asof">Status as of 28 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation), nor in 3.5&middot;10<sup>18</sup> steps (accelerated simulator with a chain-phase macro step); an exact engine with no jumps and proved rules reaches 2&middot;10<sup>17</sup> (halving-chain engine, 22 November 2026).</p>
+      <p><b>The question is open.</b> The tape is an irregular list of runs with one long periodic block in it, <code>(001111111001)^3766</code> at the left end at step 882,788,555 (and its translation <code>(011011101011)^2687</code> at the right end), which grows steadily while the rest stays irregular. Measured, not proved. Halting needs E on a 1, entered only from D on a 0; E has always found a 0. DeepMind's PR 93 engine does not carry over: the table is PR 93's T3 with one transition changed, and that change breaks the engine's batched calls (Lean proves the changed rules). No halt in 10<sup>12</sup> steps (direct C simulation), nor in 8&middot;10<sup>19</sup> steps (accelerated simulator with a chain-phase macro step); an exact engine with no jumps and proved rules reaches 2&middot;10<sup>17</sup> (halving-chain engine, 22 November 2026).</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -168,8 +168,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/rsim_fast.cpp</code>, <code>py/rsim_fast_validate.py</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 3.5&middot;10<sup>18</sup> steps</h3>
-        <p>The chain-phase engine <code>c/rsim_chain.cpp</code> adds to <code>rsim_fast.cpp</code> a macro step for the phases where its jumps never fire. It reads the right tape as a chain of levels <code>1^(2a+1) 00</code>, predicts one increment with a learned radius-1 automaton on the separators and an affine step cost, and uses a pattern only after two checks against exact increments. Up to 9.84&middot;10<sup>17</sup>, all 2,796 chain-phase exits (step count and tape hash) are the same with and without macro steps. It runs 3,588,977,699,892,617,375 steps without a halt (20 minutes). The automaton and costs are checked, not proved.</p>
+        <h3>No halt in the first 8&middot;10<sup>19</sup> steps</h3>
+        <p>The chain-phase engine <code>c/rsim_chain.cpp</code> adds to <code>rsim_fast.cpp</code> a macro step for the phases where its jumps never fire. It reads the right tape as a chain of levels <code>1^(2a+1) 00</code>, predicts one increment with a learned radius-1 automaton on the separators and an affine step cost, and uses a pattern only after two checks against exact increments; one macro step can also cover a repeating cycle of up to 4 increments. Up to 9.84&middot;10<sup>17</sup>, all 2,796 chain-phase exits (step count and tape hash) are the same with and without macro steps. It runs 80,750,788,992,831,569,943 steps without a halt (3,588,977,699,892,617,375 in its first 20 minutes). The automaton and costs are checked, not proved.</p>
         <p class="where"><code>c/rsim_chain.cpp</code></p>
       </div>
       <div class="card">
