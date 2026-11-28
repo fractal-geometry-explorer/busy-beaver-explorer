@@ -29,3 +29,66 @@ theorem sweepGen (z k : Nat) (rs tops : List Nat) (ht : tops ≠ []) (S N M : Ta
   rw [hc] at this
   exact this.trans (congrArg (fun r => some (⟨blank, r, .A⟩ : Config)) e5)
 
+/-! ## The far end: from E to E0 and back
+
+When the carry stops on the pair (b2_3 b1_1) or (b2_3 b1_2), the way back over the chain is different (6 steps per
+block instead of 8) and the sweep ends at the other kind of sample, E0 (`0^inf A> 0 0 0 0 1 (0001)^z`).  From
+there the next sweep always takes 8 steps and turns the end run into an O digit (`e0toE`). -/
+
+def bcostE : List Nat → Nat
+  | [] => 0
+  | r :: rs => 6 * r + 8 + bcostE rs
+/-- The step count of a sweep to E0 over these chain digits: 10 per block and 14 per digit. -/
+def costE : List Nat → Nat
+  | [] => 0
+  | r :: rs => 10 * r + 14 + costE rs
+
+theorem bcostE_reverse (a : List Nat) : bcostE a.reverse = bcostE a := by
+  have h : ∀ a b : List Nat, bcostE (a ++ b) = bcostE a + bcostE b := by
+    intro a b; induction a with
+    | nil => simp [bcostE]
+    | cons r a ih => simp [bcostE, ih]; omega
+  induction a with
+  | nil => rfl
+  | cons r a ih => simp [List.reverse_cons, h, ih, bcostE]; omega
+
+theorem costE_split (a : List Nat) : fcost a + bcostE a = costE a := by
+  induction a with
+  | nil => rfl
+  | cons r a ih => simp [fcost, bcostE, costE]; omega
+
+/-- Crossing back towards E0, any number of digits: each T digit becomes a Z digit with the same run. -/
+theorem retChainE (ts : List Nat) (X M : Tape) :
+    steps (bcostE ts) ⟨app [true, true, true] (Htop ts X), app [false, false, false, false, false, false, false, true] M, .B⟩
+      = some ⟨app [true, true, true] X, app [false, false, false, false, false, false, false, true] (Wacc ts M), .B⟩ := by
+  induction ts generalizing M with
+  | nil => rfl
+  | cons s ts ih => exact steps_seq trans (retE s (Htop ts X) M) (ih _)
+
+/-- **The sweep to E0 for any stop piece**, for every list `rs` of T digits in front of `tops`: the digits of `rs`
+become Z digits with the same runs, and the end run `z` gains a block and loses its `1 0`, becoming the E0 end. -/
+theorem sweepGenE0 (z k : Nat) (rs tops : List Nat) (ht : tops ≠ []) (S M : Tape)
+    (h : ∀ X, steps k ⟨Hacc tops X, S, .D⟩ = some ⟨app [true, true, true] X, app [false, false, false, false, false, false, false, true] M, .B⟩) :
+    steps (10 * z + costE rs + (fcost tops + k + 14))
+      ⟨blank, app [false, false, true] (rep z [false, false, false, true] (Tc (rs ++ tops) S)), .A⟩
+      = some ⟨blank, app [false, false, false, false, true] (rep (z + 1) [false, false, false, true] (Zc rs (app [false, false, false, false, false, true] M))), .A⟩ := by
+  have h1 := startC z (rs ++ tops) (by simp [ht]) S
+  have h2 := fwdChain (rs ++ tops) (cons false (cons true (rep z [true, true, false, true] (cons true blank)))) S
+  rw [Hacc_append] at h2
+  have h3 := h (Hacc rs (cons false (cons true (rep z [true, true, false, true] (cons true blank)))))
+  have h4 := retChainE rs.reverse (cons false (cons true (rep z [true, true, false, true] (cons true blank)))) M
+  rw [← Hacc_eq] at h4
+  have h5 := endE0 z (Wacc rs.reverse M)
+  have e5 : app [false, false, false, false, true] (app [false] (rep z [false, false, true, false]
+      (app [false, false, true] (app [false, false, false, false, false, true] (Wacc rs.reverse M)))))
+      = app [false, false, false, false, true] (rep (z + 1) [false, false, false, true] (Zc rs (app [false, false, false, false, false, true] M))) := by
+    rw [rep_rotate z [false] [false, false, true, false] [false, false, false, true] rfl, ← rep_app_comm, Wacc_eq,
+      Zacc_eq, List.reverse_reverse]
+    rfl
+  have hc : 4 * z + 3 + (fcost (rs ++ tops) + (k + (bcostE rs.reverse + (6 * z + 11))))
+      = 10 * z + costE rs + (fcost tops + k + 14) := by
+    rw [fcost_append, bcostE_reverse, ← costE_split]; omega
+  have := steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 h5)))
+  rw [hc] at this
+  exact this.trans (congrArg (fun r => some (⟨blank, r, .A⟩ : Config)) e5)
+
