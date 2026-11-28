@@ -12,7 +12,7 @@
    Prints ISO for every trip with an isolated 1 before Q (token mode, where a halt would happen), PRE for every trip
    whose turn point ends an all-y segment (zeros every 3 cells) with a 3-cell wall (111) on its left, which is how
    every bulk 10 defect of the run was born, and a status line every REPORT trips.  A halt would print HALT.
-   With the environment variable TL=n it also prints the last n cells (TL trip hi cells) whenever they change
+   With the environment variable TL=n it also prints the last n cells (TL trip hi cells, n up to 20,000) whenever they change
    (input for py/rend_cycle.py). */
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,7 +71,7 @@ int main(int argc,char**argv){
   t=calloc(NB,8); t2=mode?calloc(NB,8):0; if(!t||(mode&&!t2)){fprintf(stderr,"no memory\n");return 1;}
   long st=(NB<<6)/2; lo=hi=st;
   { long p=st; int s=0; for(;;){ int r=GET(t,p); SET(t,p,W[s][r]); int d=D[s][r]; s=S[s][r]; p+=d; steps++; if(p>hi)hi=p; if(p<lo){lo=p;break;} } }
-  long tl=getenv("TL")?atol(getenv("TL")):0; static char tlcur[4096],tlprev[4096]; if(tl>4000) tl=4000;
+  long tl=getenv("TL")?atol(getenv("TL")):0; static char tlcur[20096],tlprev[20096]; if(tl>20000) tl=20000;
   long nca=0,ntm=0,niso=0,npre=0,bad=0;
   for(long k=0;k<ntrips;k++){
     long Q=firstQ(t,lo,(NB<<6)-128);

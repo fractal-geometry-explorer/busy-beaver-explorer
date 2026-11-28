@@ -348,6 +348,51 @@ words up to a 0. That is either a bulk `10` defect (born only after a PRE trip, 
 segment, the first one included, turned into `110` words. Both are statements about segment contents, which follow
 rule 102 between walls (`(1 + u)` per pass, one 0 trimmed per turn). That is now the whole open problem.
 
+## The right end to depth 12,000: one traveling profile (28 November 2026, `c/rend_orbit.c`)
+
+The closed window of the right end works for much longer windows if the cut is placed well. When the suffix starts with
+`1 1`, the cell before the cut cannot matter: there is no lone 1 at the cut and no `00` across it, and no turn just left
+of it can touch the suffix. Dropping cells from the left of a window is always sound, because every suffix obeys the
+same rule. So `c/rend_orbit.c` keeps the last `L` cells, drops cells from the left until the window starts `1 1`, and runs
+the machine on `0` + window for each entry. Then every entry has **exactly one outcome**, given no token-mode arrival from
+further left. The window has finitely many values, so the sequence is eventually periodic. The program runs it until a window
+repeats, then confirms the repeat cell by cell.
+
+| L | transient (entries) | period (entries) | growth per period | lone 1s or halts |
+|---|---|---|---|---|
+| 100 | 0 | 12 | 4 cells | none |
+| 800 | 23,998 | 117 | 4 cells | none |
+| 1,500 | 100,187 | 234 | 4 cells | none |
+| 3,000 | 444,501 | 479 | 4 cells | none |
+| 6,000 | 1,873,945 | 966 | 4 cells | none |
+| 12,000 | 7,686,155 | 1,921 | 4 cells | none |
+The start is the real tape at round trip 599,938, and the windows it produces are the real ones: from the tape at trip 299,862,
+the window after 742 entries is exactly the real tape at trip 599,938 on its last 1,400 cells. So **the last 12,000 cells never
+hold a lone 1 and never halt from then on** (the direct run shows none before either, after trip 3,902), unless a right sweep arrives from deeper in token mode.
+
+Every period grows the right end by the same 4 cells, which is one turn of the 12-entry cycle at the end. So near the right end the
+tape converges to one **traveling profile**: the same cell pattern, shifted 4 cells right per right-end cycle, entered about
+`L / 6.3` times per cycle at depth `L`. In the profile the segments get longer with depth. Here is one profile window of 3,000 cells:
+
+| depth of the segment's left wall | 0s | span (cells) | wall gap |
+|---|---|---|---|
+| 2,517 | 84 | 480 | 10 |
+| 2,060 | 79 | 447 | 16 |
+| 1,651 | 67 | 393 | 22 |
+| 1,317 | 45 | 312 | 10 |
+| 1,064 | 48 | 243 | 16 |
+| 862 | 34 | 186 | 13 |
+| 696 | 24 | 153 | 31 |
+| 563 | 22 | 102 | 16 |
+| 436 | 24 | 111 | 19 |
+| 348 | 10 | 69 | 7 |
+| 296 and less | 2 to 12 | 3 to 51 | 1 to 19 |
+
+The span is about a fifth of the depth. So every short segment, where a `10` defect was ever born (all 5 births were within
+94 cells of the end), now lies inside a proved window. Deeper than that, every segment of the profile is hundreds of cells long, and they grow with depth. The open question narrows to this: **no long segment deep in the bulk ever turns entirely into `110` words.** The tape
+deeper than the profile is older (cells born at the left end and filled from the right). It shows the same picture: segments
+with tens to tens of thousands of 0s.
+
 ## Lean
 
 `lean/Rules.lean` (from `py/rules.py`): ten shift rules over 3-cell words (and runs of 0s), found by a symbolic
