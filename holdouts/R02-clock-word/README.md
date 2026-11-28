@@ -145,6 +145,7 @@ machine's README.
 - `py/bbrun.py`: T88 abstract search with inner trips as black boxes (one trip, or `MODE=blank` the run from blank
   tape); `py/bbtrip.py`, `py/bbfix.py`: the same with exits tabled by the word's first cells or computed as a
   least fixpoint; `py/blackbox.py`: the windowed first version; `c/pexh.c`, `c/pexp.c`: every trip from words of
-  up to N cells, by exit and by prefix; `py/backward.py`, `py/near_miss.py`: halting patterns and how close the
+  up to N cells, by exit and by prefix; `py/bbrr.py`: the trip search with both sides as runs; `py/bbnest.py`: the same with the
+  first level of inner trips run inline; `py/backward.py`, `py/near_miss.py`: halting patterns and how close the
   run comes to them.
 - `far/farsearch.c`, `far/farcheck.cpp`, `far/dfa_window.py`: finite-automata reduction with the word unknown.
