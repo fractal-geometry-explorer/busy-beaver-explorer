@@ -26,7 +26,31 @@ width ~ t^(1/3). Same doubling as the three `1RB1RD_0LC1RA_..._1RF0LD_---0RE` ma
 ## Halting
 
 F0 halts; F is entered only from E0 (`1RF`), so a halt needs `E>0 0`. In the first 10^8 steps F was entered
-30,382 times, always on a 1 (`c/sstat.c`). Open.
+30,382 times, always on a 1 (`c/sstat.c`).
+
+**It halts**, after 346,613,804,468,191,894,895,080,818,748,230,768,977,389 (about 3.47*10^41) steps: see [The halt](#the-halt).
+
+## The halt
+
+The orbit of the rules from A(2, 9) reaches the halting case: visit 79,859,656,218,973 is
+A(139754396279488, 139754396279492), with a even and b - a = 4, so the growing rule gives visit 79,859,656,218,974,
+A(279508792558980, 3), and the machine halts 11 steps later. Counting the 52 steps from blank tape to A(2, 9), it halts after
+
+    346,613,804,468,191,894,895,080,818,748,230,768,977,389  (about 3.47*10^41) steps.
+
+By `halts_iff_rules` (`lean/Rules.lean`), reaching some A(a, 3) is equivalent to halting from blank tape; that part is
+proved. Following the orbit to the halt is computation, done three ways:
+
+- `c/abfast.c` (blocks of up to 48 visits; each kept block sound by `block_ok` in `lean/Block.lean`) found it, in
+  about 14 hours of one core; `c/abfast_log.txt` has its checkpoints every 10^12 visits and every near visit.
+- `c/abseg.c` redid the whole orbit one visit at a time with the full rules, in 80 segments of 10^12 visits started
+  from those checkpoints (four cores, about 36 hours): every segment ends exactly at the next checkpoint, and the last
+  one reaches the same halt. It also sums the exact step counts of the rules (256-bit); `c/abseg_log.txt` lists each
+  segment and its steps, and the total above is their sum plus 52.
+- `c/abrun.c` (the earlier 128-bit runner) redid the last stretch, from visit 7.985*10^13 to the halt, and agrees.
+
+The halting visit is the 44th near visit (1 <= b - a <= 8) of the orbit and the first with a even and b - a = 4. Its
+index, about 8*10^13, is well within what the random model of the visits allowed (about 0.11 such visits per decade).
 
 ## The frame map in Lean
 
@@ -166,9 +190,45 @@ diagonal.
 Lean map for 5*10^5 frames, 685 visits). Example: A(1, 7) halts after 27 + 82 + 79 + 176 + 79 + 431 + 11 = 885 steps
 (A(5, 6), A(4, 14), A(12, 9), A(4, 21), A(12, 16), A(28, 3), halt), as direct simulation gives.
 
+## Many visits at once
+
+Away from the resets each visit is one of two affine maps, picked by one digit: grow (b > a) A(a, b) -> A(2a + 4,
+b - a - 1) or A(2a + 3, b - a), swap (b <= a) A(a, b) -> A(a - b + 1, 2b + 3). In d = b - a, s = a + b they are
+d -> 2d - s + c and d -> 2d + s + 2, a doubling map on d / s: the digits are the binary expansion of b / (a + b), up
+to carries from the constants that reach only about log2(s) places down. So `c/abfast.c` reads the next K digits at
+once as the top bits of 2^K b / (a + b) (K a multiple of 4, the largest with 32 * 2^K <= s / 64, at most 48; 32 once
+s passes 2^43), applies them formally with tables of 8 and 4 digits in 128-bit integers, and keeps the block only if
+both coordinates end at least 16 * 2^K; otherwise it redoes the block one visit at a time with the full rules
+(resets, halt, the near log of `c/abrun.c`). About 1 block in 100 is redone.
+
+`lean/Block.lean` proves the check sound for any guessed digits, with no `native_decide`: `drun` applies the two maps
+formally on integers, and `block_ok` says that if the formal run of a digit list L from a visit (a, b) ends with both
+coordinates at least 16 * 2^|L|, then `opIter |L| (a, b)` is that formal run. The proof: one formal step at most
+doubles min(a, b) plus 4 (`dstep_min`), so every step of such a block ends with both coordinates at least 28
+(`drun_back`), and a formal step that ends there is the step of `op` (`dstep_op`). `block_far` adds that no visit
+inside the block has 1 <= b - a <= 27, so no halt, reset or near visit is skipped.
+
+Checks: the same states as `c/abrun.c` after 10^9 visits, after 10^11 (A(185614072747, 164385956473)) and after
+3*10^12 (A(6583418669566, 3916580488195)), with the same near visits (36 and 41). It runs at about 1.7*10^9 visits a
+second on one core, 13 times `c/abrun.c`. It does not count machine steps; those follow T ~ 0.68 N^3 closely
+(0.6806 N^3 at N = 10^11 and at 3*10^12 by `c/abrun.c`).
+
+<!-- abfast-progress -->
+| visits | end state A(a, b) | near visits (1 <= b - a <= 8) | about steps |
+|---|---|---|---|
+| 10^12 | A(2371048047986, 1128951743257) | 38 | 6.8e+35 |
+| 3*10^12 | A(6583418669566, 3916580488195) | 41 | 1.8e+37 |
+| 10^13 | A(5463315675700, 29536685348756) | 42 | 6.8e+38 |
+| 3*10^13 | A(91149945479538, 13850054002941) | 42 | 1.8e+40 |
+| 7.985*10^13 | A(271312121921225, 8162873912833) | 43 | 3.5e+41 |
+<!-- /abfast-progress -->
+
+`c/abfast_log.txt` keeps every near visit and reset, and the state every 10^12 visits (any `prog` line resumes the
+run: `./abfast N 100000000000 i a b`). None of the near visits has a even and b - a = 4.
+
 ## Status
 
-Open. Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 30 cases over 6 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.e 1 0` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 5.95*10^11 steps). Open: whether the orbit ever gets there. Lean (`lean/Rules.lean`): the wiki's rules for all sizes, the machine halts iff their orbit from (2, 9) reaches b = 3 (`halts_iff_rules`), not in the first 10^8 visits (`no_b3`, `native_decide`; about 6.8*10^23 steps). C (`c/abrun.c`): not in the first 3*10^12 visits (about 1.84*10^37 steps); no congruence invariant excludes b = 3 (see above).
+**Halts** after 346,613,804,468,191,894,895,080,818,748,230,768,977,389 steps (A(a, b) orbit reaches A(279508792558980, 3) at visit 79859656218974; re-checked one visit at a time). Before that: Lean (`lean/Blank.lean`): the halting configurations (`step_none_iff`), no halt in 10,000 steps by the kernel, in 10,000,000 by `native_decide`. C: no halt in 10^9 steps (`tools/c/triage.c`) and in 10^15 steps (`c/mrun.c`, exact macro simulation). Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole frame map, 30 cases over 6 tape shapes, for all sizes (`next_sound`); the undefined cases halt (`none_halts`); the machine halts iff the orbit of `Ph.e 1 0` reaches one (`halts_iff`); not in the first 10^8 frames (`no_halt_phases`, `native_decide`; about 5.95*10^11 steps). The orbit gets there: see [The halt](#the-halt). Lean (`lean/Rules.lean`): the wiki's rules for all sizes, the machine halts iff their orbit from (2, 9) reaches b = 3 (`halts_iff_rules`), not in the first 10^8 visits (`no_b3`, `native_decide`; about 6.8*10^23 steps). C (`c/abfast.c`, blocks proved sound by `block_ok` in `lean/Block.lean`): not in the first 7.985*10^13 visits (about 3.5*10^41 steps). C (`c/abrun.c`): not in the first 3*10^12 visits (about 1.84*10^37 steps); no congruence invariant excludes b = 3 (see above).
 
 ## First look
 
@@ -209,6 +269,7 @@ gcc -O2 -o abrun holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrun.c &&
 gcc -O2 -o abstat holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abstat.c && ./abstat 10000000000 100000
 gcc -O2 -o abres holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abres.c && ./abres 3000000000 1000000 64
 gcc -O2 -o abrand holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abrand.c && ./abrand 1 3000 1000000 1000000000 v
+gcc -O3 -march=native -o abfast holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abfast.c && ./abfast 3000000000000 100000000000   # about 35 minutes; ends at A(6583418669566, 3916580488195)
 gcc -O2 -o abdig holdouts/1RB1LC_1LC1RD_1LA0LB_0RB1RE_1RF0RA_---0RC/c/abdig.c -lm && ./abdig 1000000000 12
 ```
 

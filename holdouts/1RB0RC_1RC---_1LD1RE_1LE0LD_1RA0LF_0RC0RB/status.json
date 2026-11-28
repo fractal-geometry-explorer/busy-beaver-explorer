@@ -10,9 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 21 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 55 (Alk, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 55 (Alk, 2026-11-03) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> Sampled with the head in E at the left end, the tape is <code>1^X c 0000 (10)^s1 110 (10)^s2 110 &hellip;</code>: a number X and a stack. Two rules of the map are clean (observed without exception after the first few samples); the folding of a non-empty stack is not decoded. Shift rules are proved in Lean."
  ],
  "claims": [
@@ -168,7 +168,7 @@
    }
   ]
  },
- "summary": "A stack machine on the tape: a leading run 1^X and a stack of blocks (10)^s; while 4 divides X the machine halves X and pushes X/4, and when X is 2 mod 4 the stack is folded back into a new X about 3/2 times larger (Hydra-like); the sweeps across the tape are the bouncer. Accelerated run: no halt in 2.23e4169 steps. Decided outside: busycoq PR 55 proves in Rocq that it never halts (compiled here).",
+ "summary": "A stack machine on the tape: a leading run 1^X and a stack of blocks (10)^s; while 4 divides X the machine halves X and pushes X/4, and when X is 2 mod 4 the stack is folded back into a new X about 3/2 times larger (Hydra-like); the sweeps across the tape are the bouncer. Accelerated run: no halt in 2.23e4169 steps. Decided outside: busycoq PR 55 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "family": "Hydra-like stack map + bouncer",
  "decision": "nonhalting",
  "decision_level": "outside"

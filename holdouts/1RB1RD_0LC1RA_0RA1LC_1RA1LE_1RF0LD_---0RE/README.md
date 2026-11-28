@@ -43,6 +43,8 @@ left phase and behave the same way.
 
 ## Files
 
+- `py/doubling.py`: `check` (the doubling form along the run), `ones` (all-ones tapes and the stop before), `residues N` (the residue search).
+- `lean/Doubling.lean`: the phase map at its stops is the doubling map (`doubling`, `mid_ones`, `low`).
 - `c/mrun.c`: exact macro simulator (blocks of K cells, runs crossed at once), `gcc -O2 -o mrun c/mrun.c`,
   `./mrun MACHINE 2 STEPS [EVERY [SIDE]]`.
 - `py/gen_rules.py`: writes `lean/Rules.lean` (start, bounce and end pieces of both phases, by `bbtools.symtm`);
@@ -125,9 +127,57 @@ of the first 3*10^7 steps from blank tape (1,891). Example: A(0, 13) = 1^13 A> 0
 (E(2, 11), E(8, 1), halt), as direct simulation gives. The bbchallenge wiki page (analysis by Marco Dos Santos) has a
 finer map, one bounce per rule, on its own families P_1, P_2 and D.
 
+## The recurrence in closed form: a doubling map (24 November 2026)
+
+Look at the run only at its stops: `E(x, z)` with `z` even and `A(x, y)` with `y` even. Put `s = z`,
+`L = 2x + z + 6` at `E(x, z)` and `s = y + 2`, `L = 2x + y + 6` at `A(x, y)`. `lean/Doubling.lean` (kernel; axioms
+`propext`, `Classical.choice`, `Quot.sound`) proves, for all sizes:
+
+- `doubling`: from every stop except those below, the next stop (one to three phases on) is again a stop, with
+  `L' = L + 2` and `s' = 2s` if `2s ≤ L`, `s' = 2s - L` otherwise. That is the doubling map `s ↦ 2s mod L` on a circle
+  that grows by 2 a stop; not wrapping lands on the right, wrapping on the left.
+- `low`: the low end, `E(x, 2)` (`s = 2`; it goes to `A(x - 1, 6)`: `s' = 8 = 4s`).
+- `mid_ones`: at the midpoint `2s = L` the next stop is the all-ones tape of odd length `L - 3`.
+
+From a stop, an all-ones tape of the fatal parity (odd; fatal lengths are 1 or 12·2^k - 2k - 9) comes only from the
+midpoint; the others come from `2s = L - 2` inside the map (and, at the first few stops, from the low end). The few
+phases after an all-ones tape are not stops; they make another all-ones tape straight away only for a sparse list of
+lengths, 2 → 5, 11 → 15, 33 → 39, 79 → 87, ...: the odd targets are 3·2^j - 9 (j ≥ 3) and 5, never fatal, since 3·2^j - 9 = 12·2^k - 2k - 9 has no solution with j ≥ 3 (checked for n < 3·10^5, `py/doubling.py relays`; not in Lean). So, unrolled, `s_j = 2^j s_0 - Σ ε_i 2^(j-1-i) L_i` with `L_i = L_0 + 2i` and wrap
+bits `ε_i`, and **the machine halts only if the doubling map hits its midpoint exactly at a stop with
+`L = 12·2^k - 2k - 6`** (from the midpoint on, the halt is the proved fatal chain of `lean/Fatal.lean`); proving that
+the escape from an all-ones tape always returns to a stop or to a relay length would make this a theorem.
+`py/doubling.py check` lists every stop where the doubling form fails along the run (in 10^6 phases: the low end,
+the midpoints and the phases right after an all-ones tape, nothing else); `py/doubling.py ones` lists the all-ones
+tapes with the stop they came from. The other three machines of the family (`1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE`, `1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE`, `1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE`)
+run the same map with other offsets; the orbits of `1RB1LE_1RC1RA_0LD1RB_1LE1LD_1RF0LA_---0RE` and `1RB1RD_0LC1RA_1LA1LC_1RA1LE_1RF0LD_---0RE` coincide, stop for stop, for most of their first
+10^6 stops.
+
+**Residue search** (as for the doubling-map trio): `py/doubling.py residues N` runs the phase map mod `N` (every branch
+the residues allow, both halves of every bounce count) to a closed set of classes from the start. For every `N` from 2
+to 48 and for `N = 64, 96, 128, 192, 256`, some reachable all-ones class is a fatal length mod `N`: no congruence or
+2-adic class keeps the run off the list. In the coordinates `(s, L)` there can be none: the branches `s ↦ 2s` and
+`s ↦ 2s - L` with `L ↦ L + 2` reach every residue pair of the right parity mod every `N ≤ 64`. Which branch is taken
+depends on the size of `s`, and only that keeps the run off the list.
+
+**Residues with the level and the size** (26 November 2026, section G of
+`holdouts/recent-proofs/technique-survey-nov26.md`). The search above takes the fatal lengths mod `N` for every `k`
+at once and ignores sizes. `py/sizeresidues.py` (in the folder of 1RB1RD_0LC1RA_1RA1LC_0RB1LE_1RF0LD_---0RE, with the
+offsets of all four machines) refines it on the doubling form: a class is (`s mod N`, `u mod N`, `k mod P`, the cell
+of `s/L` among `B` cells, the half of the level), where `k` is the level of `L`, `u` its distance from the fatal
+`L` of that level, and `P` a common period of `k` and `2^k`. From the class of a point far along a model orbit it
+follows real steps of the map from members of many sizes. For `N` = 2..13, 15, 16, 24, 27, 32 and `B` = 2, 8, 32
+every one of the 51 searches reaches the class of a fatal midpoint, for each of the four machines. So no closed set
+of such classes keeps the doubling map off its fatal midpoints. Trusted (Python, about 80 s); no hit, so nothing to
+check in Lean.
+
+Heuristic: with `s` uniform on the circle, a midpoint at a given stop has chance about `1/L`, so up to modulus `L`
+there are about `½ ln L` midpoint all-ones tapes: 7.1 in the first 20,000,000 phases (`L` up to
+13,300,000), against 11 seen. The fatal moduli double, so the chance of a fatal one after the 10^11 phases
+already run (`L` about 6.7·10^10) is below 10^-10.
+
 ## Status
 
-Open. Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole phase map, every case for all sizes (`next_sound`); the machine halts iff the map's orbit from A(0, 0) (the blank tape) reaches E(x, 0) or E(x, 1) (`halts_iff`); no halt in the first 10^8 phases (`no_halt_phases`, `native_decide`; about 4.1*10^21 steps by the pieces' step counts); the even phases lead only to even phases or all-ones tapes (`even_next`, `even_safe`); the fatal all-ones lengths below 10^5 are 1 or 12*2^k - 2k - 9 (3, 13, 35, 81, ...) (`fatal_list`, `native_decide`). Also: no halt in 10,000 steps by the kernel and 10^7 by `native_decide` (`lean/Blank.lean`); no halt in 10^15 steps by exact macro simulation (`c/mrun.c`). For every n (`lean/Fatal.lean`, kernel): the all-ones tape of length n halts before the next all-ones tape iff n is 1 or 12*2^k - 2k - 9 (3, 13, 35, 81, ...) (`ones_fatal_all`, `ones_safe_all`). Combined (`lean/Ones.lean`, kernel): **the machine halts from blank tape iff the orbit of A(0, 0) reaches an all-ones tape A(0, n) with n fatal** (`halt_needs_ones`; in machine steps, `halt_passes_ones`). Not proved: that the orbit avoids the fatal lengths.
+Open. Lean (`lean/Phases.lean`, on `lean/Pieces.lean` generated by `py/pieces.py`): the whole phase map, every case for all sizes (`next_sound`); the machine halts iff the map's orbit from A(0, 0) (the blank tape) reaches E(x, 0) or E(x, 1) (`halts_iff`); no halt in the first 10^8 phases (`no_halt_phases`, `native_decide`; about 4.1*10^21 steps by the pieces' step counts); the even phases lead only to even phases or all-ones tapes (`even_next`, `even_safe`); the fatal all-ones lengths below 10^5 are 1 or 12*2^k - 2k - 9 (3, 13, 35, 81, ...) (`fatal_list`, `native_decide`). Also: no halt in 10,000 steps by the kernel and 10^7 by `native_decide` (`lean/Blank.lean`); no halt in 10^15 steps by exact macro simulation (`c/mrun.c`). For every n (`lean/Fatal.lean`, kernel): the all-ones tape of length n halts before the next all-ones tape iff n is 1 or 12*2^k - 2k - 9 (3, 13, 35, 81, ...) (`ones_fatal_all`, `ones_safe_all`). Combined (`lean/Ones.lean`, kernel): **the machine halts from blank tape iff the orbit of A(0, 0) reaches an all-ones tape A(0, n) with n fatal** (`halt_needs_ones`; in machine steps, `halt_passes_ones`). Not proved: that the orbit avoids the fatal lengths. The run at its stops is the doubling map `s ↦ 2s mod L`, `L ↦ L + 2` (`lean/Doubling.lean`), and the fatal-parity all-ones tapes reached from a stop come only from its midpoint `2s = L`; no congruence keeps it off the fatal list.
 
 ## First look
 
@@ -183,3 +233,4 @@ python3 holdouts/1RB1RD_0LC1RA_0RA1LC_1RA1LE_1RF0LD_---0RE/py/pieces.py | diff -
 ## Later
 
 - The real question: whether the all-ones moments of the orbit ever land on a fatal length (1 or 12*2^k - 2k - 9).
+- Make the stop-level criterion a theorem: from every non-fatal all-ones tape the run returns to a stop or, for the relay lengths of `py/doubling.py relays`, to another all-ones tape whose length is never fatal. Then the machine halts iff the doubling map of `lean/Doubling.lean` hits its midpoint `2s = L` at a stop with `L = 12·2^k - 2k - 6`.

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 27 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Lean proof: it never halts.</b> <a href=\"https://github.com/google-deepmind/cryptids/pull/42\">google-deepmind/cryptids pull request 42</a> (Tom Zahavy, 26 November 2026; open, not merged into their main branch) contains <code>NonHalt/M_1RB0RC_1LC0RB_1LD0LD_1RA1LE_HHH0LF_1LB1LF.lean</code>, whose theorem <code>is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape. We built it with Lean v4.35.0-rc4 on 27 November 2026 (18 s for the module): it uses only the axioms propext, Classical.choice and Quot.sound (no <code>sorry</code>, no <code>native_decide</code>), and its transition table was printed and matches this machine. The proof fixes an exact grammar for the right part of the tape and the shapes in which the head returns, derives four multi-step rules, and proves safety by strong induction on the step budget, after a short executable bootstrap from the blank tape. It is their proof, not one written in this repository; everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> The run is understood at the level of words: at the left turn the tape is blocks of ones separated by single 0s; between round trips the whole tape except a chaotic zone of about 450 to 610 cells at the right end slides 16 cells left unchanged, and the left end gains one copy of the word <code>1^5 0 1^6 0 1^4 0 1 0</code> per round trip. The sweep rules are proved in Lean; the right-end engine is not understood, and the machine can halt only inside it or at a turn.",
   "Lean proves no halt in the first 10<sup>7</sup> steps (10,000 by the kernel alone); the C simulator finds none in 10<sup>9</sup>."
  ],
@@ -158,9 +159,9 @@
    }
   ]
  },
- "summary": "A translating archive: everything but a ~500-cell engine at the right end slides 16 cells left per round trip, while the left end grows a periodic word (5 6 4 1)^n.",
+ "summary": "A translating archive: everything but a ~500-cell engine at the right end slides 16 cells left per round trip, while the left end grows a periodic word (5 6 4 1)^n. Decided outside: DeepMind's Lean proof in cryptids PR 42 (compiled here) shows it never halts.",
  "family": "translating archive with a chaotic right-end engine",
- "decision": "open",
+ "decision": "nonhalting",
  "sections": [
   {
    "heading": "How it works",
@@ -169,5 +170,6 @@
     "Over a round trip almost nothing changes: the tape between the first 67 cells and the last 450&ndash;610 is the same word as before, slid 16 cells to the left, and the left end gains one copy of <code>1^5 0 1^6 0 1^4 0 1 0</code>. All the activity is in a small chaotic engine at the right end, which moves right with the tape's edge and leaves a frozen, non-periodic trail. Whether that engine can ever write the one pattern that halts (D reading a 1 with a 0 on its left) is the open question."
    ]
   }
- ]
+ ],
+ "decision_level": "outside"
 }

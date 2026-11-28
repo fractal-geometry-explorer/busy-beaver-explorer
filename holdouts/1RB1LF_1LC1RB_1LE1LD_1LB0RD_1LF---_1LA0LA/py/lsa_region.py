@@ -29,6 +29,10 @@ def seg_prefix(T, op, head=(), n=256):
         n *= 4
 
 
+class MultiPassEvent(Exception):
+    """an event among several hits passed by one top hit: not handled here (callers fall back or stop)"""
+
+
 class Region:
     def __init__(self, toks, op='h', Q=44, log=None, tail=None):
         self.top_op = op
@@ -85,8 +89,14 @@ class Region:
             need = chain(self.levels, Q)
             if X is not None and self.used - used0 + need > X:
                 return self._partial(X - (self.used - used0))
-            p, s = apply(self.levels, need); assert p == Q
-            self.used += need; self.steps += s + cB; self.bhits += Q
+            p, s = apply(self.levels, need)
+            if p != Q:
+                # the last top hit passed several hits at once (a level can pass more than one per hit)
+                assert p > Q
+                W, done, cB = self._bottom(p)
+                if done is not True:
+                    raise MultiPassEvent()
+            self.used += need; self.steps += s + cB; self.bhits += p
             self.migrate(W)
             if self.log and nb % self.log == 0:
                 print('   feed batch %d: %d levels, bottom: %s' % (nb, len(self.levels), show(self.B, 10)), flush=True)

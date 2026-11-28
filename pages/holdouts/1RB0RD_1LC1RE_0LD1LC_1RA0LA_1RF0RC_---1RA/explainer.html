@@ -186,12 +186,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 8 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 24 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
-  <div class="col"><p class="lede">Nobody knows whether it halts. This machine builds a row of 1^4 blocks at the left end of its tape, one per visit, each visit about twice as long as the one before, while a word of longer blocks behind them changes.</p></div>
+  <div class="col"><p class="lede">Nobody knows whether it halts. It runs two binary counters at a hub, one counting down and one counting up; an accelerated run reaches 1.16·10<sup>10</sup> steps without a halt.</p></div>
   <div class="facts">
+    <div class="fact"><span class="ev c">Computed</span><b>1.16·10<sup>10</sup> steps</b><span class="small">Accelerated run, no halt.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>27 blocks</b><span class="small">The row of 1^4 blocks at step 1.6·10<sup>10</sup>.</span></div>
     <div class="fact"><span class="ev o">Open</span><b>halting</b><span class="small">Needs B&gt;1 0 0; not seen.</span></div>
   </div>
@@ -205,7 +206,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counter">A row of 1^4 blocks that grows by one per visit</a><a href="#halting">What halting would take</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#counters">Two counters at a hub</a><a href="#counter">A row of 1^4 blocks that grows by one per visit</a><a href="#halting">What halting would take</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -284,6 +285,15 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="log" id="recs"></div>
   </div>
 </section>
+<section id="counters">
+  <span class="eyebrow">Decoded</span>
+  <h2>Two counters at a hub</h2>
+<p>At every visit of one turn of the head (A reading 1) the tape reads as two binary counters back to back, lowest digits next to the hub. Left: 5-cell digits <code>11011</code> (1) and <code>01011</code> (0), the lowest digit one cell (<code>1</code> is 1); these are the blocks <code>1^4 0</code> of the row the first look saw at the left end. Right: 4-cell digits <code>1111</code> (1) and <code>1110</code> (0), the lowest digit one cell.</p>
+<p>Each visit takes 1 from the left counter and adds 1 to the right. It costs 20 steps per left digit changed, 22 per right digit changed, plus a constant, so a long borrow or carry costs a little more and the counting is fast to jump over.</p>
+<p>Proved in Lean for every length <i>k</i> of a borrow and <i>j</i> of a carry (<code>lean/Counter.lean</code>):</p><ul><li><code>borrow</code> (20k + 46 steps): <code>L 11011 (01011)^k 0 1 A> 1 0 0 1 0 1 1 1 R</code> -> <code>L 01011 (11011)^k 1 1 A> 1 0 0 1 1 1 1 1 R</code>, the left counter borrowing through <code>k</code> digits;</li><li><code>carry0</code> (22j + 48 steps): <code>L 1 1 A> 1 0 0 1 (1111)^j 1 1 1 1 0 1 1 1 R</code> -> <code>L 0 1 A> 1 0 0 (1011)^j 1 0 1 1 1 1 1 1 1 R</code>, the right counter carrying through <code>j</code> digits;</li><li><code>carry1</code> (22j + 680 steps): the same beyond a 60-cell stretch of the right counter, the right counter carrying through <code>j</code> digits;</li><li><code>plain</code> (48 steps): <code>L 1 1 A> 1 0 0 1 1 1 1 1 0 1 1 1 R</code> -> <code>L 0 1 A> 1 0 0 1 0 1 1 1 1 1 1 1 R</code>, the most frequent short event.</li></ul>
+<p>When the left counter runs out the hub moves and the counters are laid out again. Seen so far: the hub turn moved to cells -73, -100 and -125 at steps 4.8·10<sup>6</sup>, 2.8·10<sup>8</sup> and 5.0·10<sup>9</sup>. The left counter is short, so its overflows are frequent: they are the drops of n that the first look saw. That rule is the open part.</p>
+<p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 11,563,284,563 (1.16·10<sup>10</sup>) with 282 cells visited and no halt. The left counter stays short (a few digits), so jumps are short and most events are simulated directly.</p>
+</section>
 <section id="counter">
   <span class="eyebrow">The main loop</span>
   <h2>A row of 1^4 blocks that grows by one per visit</h2>
@@ -308,7 +318,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 8 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 24 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -325,6 +335,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w">the transition table (by inspection); <code>step_none_iff</code>, <code>lean/Blank.lean</code></div></div><div><b>Where it can halt</b><p>The only halting transition is F on 0. F is entered only from E on 0 (1RF), and E only from B on 1 (1RE): the machine halts exactly when B reads a 1 followed by <code>0 0</code>, <code>B&gt;1 0 0</code>.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/c/tmrun.c</code> (<code>at C L</code>), 2·10<sup>10</sup> steps</div></div><div><b>A counter of 1^4 units at the left end</b><p>At every visit of the left end in state C on 0 followed by <code>1^4</code>, the tape starts with n copies of <code>1^4 0</code>. Within a stretch n grows by 1 per visit and the gap between visits tends to double (ratios 1.08, 1.15, 1.26, 1.42, … 1.96); now and then n drops by 2 to 4 and the word to the right is rewritten. n reached 27 at step 15,886,922,696.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">observed</div></div><div><b>What the counter is</b><p>The word after the 1^4 units (blocks 1^3, 1^7, 1^11, 1^23 …) acts as the counter's low digits: each visit changes its blocks near the right end of the tape (1^7 → 1^11 → 1^15 …), and when they overflow, units are spent and the word is rebuilt.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Counter.lean</code>, written by <code>py/rules.py</code> (<code>tools/py/bbtools/hubrules.py</code>)</div></div><div><b>The counter rules</b><p>One hub event of the two counters, for every borrow length k and carry length j and every tape beyond the cells shown: <code>borrow</code> (20k + 46 steps), <code>carry0</code>, <code>carry1</code> and <code>plain</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>tools/py/bbtools/cjump.py</code></div></div><div><b>No halt in 1.16·10<sup>10</sup> steps</b><p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 11,563,284,563 (1.16·10<sup>10</sup>) with 282 cells visited and no halt. The left counter stays short (a few digits), so jumps are short and most events are simulated directly.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w">learned by <code>cjump.py</code>, checked on every event it jumps from</div></div><div><b>Two binary counters at a hub</b><p>At the hub turn (A reading 1) each event takes 1 from the left counter and adds 1 to the right; cost 20 steps per left digit changed, 22 per right digit changed, plus a constant. When the left counter runs out the hub moves and the layout is rebuilt; the rule of that overflow is not decoded.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Open; halting needs <code>B&gt;1 0 0</code>, not seen.</p></div></div>
 </section>
 <section id="check">
@@ -333,7 +346,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 1000000000
-./tmrun 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 20000000000 at C L 1500</code></pre>
+./tmrun 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 20000000000 at C L 1500
+python3 tools/py/bbtools/cjump.py 1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA 1e3000 1800</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0RD_1LC1RE_0LD1LC_1RA0LA_1RF0RC_---1RA/status.json</code>; edit that file and rebuild rather than editing this page.</p>

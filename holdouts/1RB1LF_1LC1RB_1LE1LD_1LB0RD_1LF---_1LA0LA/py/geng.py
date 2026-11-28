@@ -318,6 +318,10 @@ def h(T):
                 C[0] = C[0] + (n - 1) * E[1]
                 return econs(n - 1, E[0], h((t, one)))
     if Rec.cons is None and len(STACK) > RDEPTH[0] and ACCEL[0]:
+        if FZ[0] and FUNF[0] and type(t) is int and t in FIDX:
+            r = frozen_unfolded(t, tail)
+            if r is not None:
+                return r
         r = try_rrule(T)
         if r is not None:
             return r
@@ -392,7 +396,92 @@ def frozen_cost(w):
         Rec.cons, Rec.work, Rec.limit, C[0] = saved
     FROZEN[w] = res
     STATS["frozen"] = STATS.get("frozen", 0) + (res is not None)
+    if res is not None and len(w) <= FUNMAX:
+        L = FIDX.setdefault(w[0], [])
+        L.append(w)
+        L.sort(key=len, reverse=True)          # longest first
+        for r in range(1, len(w)):
+            if w[r] != 0 and len(w) >= 4:
+                frozen_cost(w[r:] + w[:r])     # rotations of a frozen word are often frozen too
     return res
+
+
+# A frozen word written out as digits (not as a run token): a hit crosses it at its fixed cost, and the word is
+# folded into a run token, so that it merges with a run of the same word that follows (pcons).
+FUNF = [__import__('os').environ.get('NOFUNF') is None]
+FUNMAX = 40          # longest frozen word looked for in digit form
+FIDX = {}            # first digit -> frozen words (found by frozen_cost)
+
+
+def frozen_match(t0, tail):
+    """(n, u, R) if t0 tail = u^n R for a frozen word u (n = 1 with u in digit form, or a v^n Y = u2^n a Y with
+    a = u[:i] the digits read so far, v = b a and u2 = a b frozen), R nonempty; else None.  No steps are counted."""
+    for u in FIDX[t0]:
+        R = tail
+        ok = True
+        try:
+            for i in range(1, len(u)):
+                if R is None:
+                    ok = False; break
+                x = R[0]
+                if type(x) is tuple:
+                    if x[0] == 'P' and type(x[1]) is int and R[1] is not None:
+                        # a = u[:i] before a run v^n with v = b a: a (b a)^n Y = (a b)^n a Y, if a b is frozen
+                        v = x[2]
+                        L = len(v) - i
+                        if L > 0 and v[L:] == u[:i]:
+                            u2 = u[:i] + v[:L]
+                            if u2 == u or frozen_cost(u2) is not None:
+                                Y = R[1]
+                                for d in reversed(u[1:i]):
+                                    Y = zcons(1, Y) if d == 0 else dcons(d, Y)
+                                STATS["funfrun"] = STATS.get("funfrun", 0) + 1
+                                return x[1], u2, (t0, Y)
+                    if x[0] not in ('Z', 'R', 'P'):
+                        ok = False; break
+                e, R = untok(R)
+                if e != u[i]:
+                    ok = False; break
+        except Opaque:
+            ok = False
+        if ok and R is not None:
+            STATS["funf"] = STATS.get("funf", 0) + 1
+            return 1, u, R
+    return None
+
+
+def frozen_unfolded(t0, tail):
+    """h(t0 tail) when t0 tail begins with a frozen word u in digit form: u h(X), with u folded into a run token.
+    The hit then crosses, in a loop (not by recursion), every following unit (1 0)^n, frozen run token and frozen
+    word in digit form, and h is called once on what is left."""
+    m = frozen_match(t0, tail)
+    if m is None:
+        return None
+    pre = []
+    while m is not None:
+        n, u, R = m
+        C[0] = C[0] + n * FROZEN[u]
+        pre.append(('P', n, u))
+        while R[1] is not None:
+            x = R[0]
+            if type(x) is not tuple:
+                break
+            if x[0] == 'R':
+                C[0] = C[0] + x[1] * CST['cR']
+            elif x[0] == 'P':
+                cf = frozen_cost(x[2])
+                if cf is None:
+                    break
+                C[0] = C[0] + x[1] * cf
+            else:
+                break
+            pre.append(x)
+            R = R[1]
+        m = frozen_match(R[0], R[1]) if type(R[0]) is int and R[0] in FIDX and R[1] is not None else None
+    out = h(R)
+    for x in reversed(pre):
+        out = rcons(x[1], out) if x[0] == 'R' else pcons(x[1], x[2], out)
+    return out
 
 
 def tok_digits(toks, limit=FMAX):

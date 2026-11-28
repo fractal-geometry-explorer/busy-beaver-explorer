@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 22 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 27 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE</p>
   <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
@@ -214,7 +214,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does</a><a href="#halting">Where a halt would have to come from</a><a href="#frame-map">The frame map in Lean</a><a href="#rules">Exact tapes, exact step counts</a><a href="#far">A tent map, and the middle it has not hit</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#structure">What the machine does</a><a href="#halting">Where a halt would have to come from</a><a href="#frame-map">The frame map in Lean</a><a href="#rules">Exact tapes, exact step counts</a><a href="#far">A tent map, and the middle it has not hit</a><a href="#digits">Reading the rounds off the binary digits of u</a><a href="#shape">The shape of the run</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -396,6 +396,67 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>round tape</th><th>d</th><th>machine step</th></tr></thead><tbody><tr><td>B(1014, 2030)</td><td>1</td><td>7.98&middot;10<sup>8</sup></td></tr><tr><td>B(278826, 557655)</td><td>2</td><td>1.65&middot;10<sup>16</sup></td></tr><tr><td>B(5118454, 10236910)</td><td>1</td><td>1.02&middot;10<sup>20</sup></td></tr><tr><td>B(31690290, 63380583)</td><td>2</td><td>2.43&middot;10<sup>22</sup></td></tr><tr><td>B(2599201108, 5198402216)</td><td>&minus;1</td><td>1.34&middot;10<sup>28</sup></td></tr><tr><td>B(47350001284, 94700002570)</td><td>1</td><td>8.09&middot;10<sup>31</sup></td></tr></tbody></table></div>
 <p>Only tapes with y odd can halt (d then is even), and those come only from the swap with x &lt; y/2. Of the 10<sup>11</sup> rounds a third had y odd. At x &ge; 16 none had d = 0, while the 16 even values 0 &lt; |d| &le; 16 were hit 42 times together, 2.6 each. So the miss is not yet evidence of anything: a random orbit would have missed with probability about 7%. Hits near the middle accrue at about 0.26 per tenfold growth of x, which is why a random model says it halts eventually but cannot say when: about one expected hit per 10<sup>4</sup>-fold growth of x, or 10<sup>12</sup>-fold of the step count. Nothing here proves either answer; a proof would need an arithmetic reason that keeps the exact middle out of reach.</p>
 </section>
+<section id="digits">
+  <span class="eyebrow">The tent map, tested</span>
+  <h2>Reading the rounds off the binary digits of u</h2>
+<p>The tent map has a famous shortcut: its whole orbit can be read off the binary digits of the starting point. Write u = 0.b<sub>1</sub>b<sub>2</sub>b<sub>3</sub>&hellip; in binary; then the k-th step of the tent map doubles when b<sub>k</sub> = b<sub>k&minus;1</sub> and folds when they differ (b<sub>0</sub> = 0), because doubling is a shift of the digits and folding is a shift that flips them. If the rounds of this machine were exactly the tent map, the digits of one tape&rsquo;s u would tell us its next rounds without running them, and perhaps say something about landing on the middle far beyond the 10<sup>32</sup> steps run so far.</p>
+<p>They are not exactly the tent map, and the correction is known exactly. In the coordinates n = 2x + y and d = 2x &minus; y every rule is</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>when</th><th>new n</th><th>new d</th></tr></thead><tbody>
+<tr><td>d &ge; 0, y even (fold)</td><td>n + 4</td><td>n &minus; 2d + 4</td></tr>
+<tr><td>d &ge; 3, y odd (fold)</td><td>n + 3</td><td>n &minus; 2d + 9</td></tr>
+<tr><td>d &le; &minus;3 (double)</td><td>n + 1</td><td>n + 2d + 7</td></tr>
+</tbody></table></div>
+<p>plus two one-off tapes (d = &minus;2 and d = 1) and the halt at d = &minus;1, nowhere else (Lean, <code>lean/Tent.lean</code>, checked by the kernel). So d/n = 2u &minus; 1 goes to 1 &minus; 2|d/n| plus a small term c/n, and every later round doubles that small term. After about log<sub>2</sub> n rounds it has grown to the size of u itself and the digits of the old u no longer say anything. Try it on the real run:</p>
+<div class="card" id="dg-card" style="padding:14px 16px;margin:14px 0">
+  <label for="dg-r" class="small" style="display:block;margin-bottom:6px">Round of the run from blank tape: <b id="dg-rv">1000</b></label>
+  <input type="range" id="dg-r" min="0" max="1000" value="500" style="width:100%">
+  <div class="small" id="dg-tape" style="margin:10px 0 6px;font-family:var(--mono)"></div>
+  <div style="overflow-x:auto"><div id="dg-rows" style="font-family:var(--mono);font-size:.85rem;line-height:1.7;white-space:pre"></div></div>
+  <p class="small" id="dg-say" style="margin:8px 0 0"></p>
+</div>
+<p>Over 1,003 tapes sampled from the first million rounds, the digit reading agreed with the real rounds for floor(log<sub>2</sub> n) &minus; 2 rounds at the median, never more than 6 rounds past log<sub>2</sub> n (<code>py/tent.py</code>). The histogram below is the same count, recomputed in your browser over the first 300,000 rounds.</p>
+<div id="dg-hist" style="margin:8px 0 4px"></div>
+<p>So the digits are a dead end for the halting question: at n around 10<sup>11</sup> a tape&rsquo;s digits predict about 35 rounds, and beyond that the only way to know the rounds is to apply them. That is cheap, though: <code>c/rounds.c</code> applies the rules one at a time with exact 256-bit step counts, 4.7 times faster per round than the frame map run above. Run to 8&middot;10<sup>11</sup> rounds: 7.7&middot;10<sup>34</sup> machine steps, 500 times further than the frame map run, and no halt. Two new tapes came within 2 of the middle, B(12459332366, 24918664731) and B(144615683250, 289231366503). The 16 even values 0 &lt; |d| &le; 16 next to the middle were hit 50 times together, 3.1 each, and d = 0 never; a random orbit misses with probability about 4.5%. Resumed from there to 2&middot;10<sup>13</sup> rounds: 1.2&middot;10<sup>39</sup> machine steps, 15,000 times further again, no halt; one new tape within 2 of the middle, B(7281070259318, 14562140518635) with y = 2x &minus; 1, which cannot halt. The 16 even neighbours of the middle have 60 hits, 3.75 each, and d = 0 still none (about 2.4% for a random orbit). Still no evidence either way.</p>
+<script>
+(function () {
+  var R = 300000, X = new Float64Array(R + 1), Y = new Float64Array(R + 1);
+  function op(x, y) {
+    var h = Math.floor(y / 2);
+    if (y % 2 === 0) { if (x >= h) return [2 * h + 2, 2 * x - 2 * h, 'F']; if (x + 1 < h) return [2 * x + 2, 2 * h - 2 * x - 3, 'D']; return [2 * x + 1, 0, 'F']; }
+    if (x > h + 1) return [2 * h + 4, 2 * x - 2 * h - 4, 'F']; if (x === h + 1) return [2, 4 * x - 2, 'F']; if (x < h) return [2 * x + 2, 2 * h - 2 * x - 2, 'D']; return null;
+  }
+  var x = 1, y = 0; X[0] = 1; Y[0] = 0;
+  for (var i = 1; i <= R; i++) { var o = op(x, y); x = o[0]; y = o[1]; X[i] = x; Y[i] = y; }
+  function words(r, K) {
+    var x = X[r], y = Y[r], n = 2 * x + y, p = 2 * x, real = '', tent = '', bits = '', v = p;
+    for (var k = 0; k < K; k++) { var o = op(x, y); if (!o) break; real += (o[0] === 2 * x + 2 ? 'D' : 'F'); x = o[0]; y = o[1]; }
+    for (k = 0; k < K; k++) { if (2 * p < n) { tent += 'D'; p = 2 * p; } else { tent += 'F'; p = 2 * n - 2 * p; } }
+    for (k = 0; k < K; k++) { v *= 2; if (v >= n) { bits += '1'; v -= n; } else bits += '0'; }
+    var L = 0; while (L < real.length && real[L] === tent[L]) L++;
+    return { real: real, tent: tent, bits: bits, L: L, lg: Math.log2(n), n: n };
+  }
+  var sl = document.getElementById('dg-r');
+  function rOf(s) { return Math.max(1, Math.round(Math.pow(10, 5.477 * s / 1000))); }
+  function esc(c) { return c; }
+  function show() {
+    var r = Math.min(R - 100, rOf(+sl.value)); document.getElementById('dg-rv').textContent = r.toLocaleString('en-US');
+    var w = words(r, Math.floor(Math.log2(2 * X[r] + Y[r])) + 12);
+    document.getElementById('dg-tape').textContent = 'B(' + X[r] + ', ' + Y[r] + ')   n = ' + w.n + '   log2 n = ' + w.lg.toFixed(1);
+    function row(lab, s) { var out = lab; for (var k = 0; k < s.length; k++) { var bad = k >= w.L; out += '<span style="' + (bad ? 'color:var(--head);font-weight:700' : '') + '">' + s[k] + '</span>'; } return out; }
+    document.getElementById('dg-rows').innerHTML = 'digits of u   ' + w.bits + '\n' + row('tent (digits) ', w.tent) + '\n' + row('real rounds   ', w.real);
+    document.getElementById('dg-say').textContent = 'The digits predict the next ' + w.L + ' rounds (D = double, F = fold); log2 n is ' + w.lg.toFixed(1) + '. From the first orange letter on, the drift terms have taken over.';
+  }
+  sl.addEventListener('input', show); show();
+  var cnt = {}, tot = 0;
+  for (var r = 50; r < R - 100; r += 97) { if (X[r] < 16 || Y[r] === 0) continue; var w = words(r, Math.floor(Math.log2(2 * X[r] + Y[r])) + 12); var k = w.L - Math.floor(w.lg); cnt[k] = (cnt[k] || 0) + 1; tot++; }
+  var ks = Object.keys(cnt).map(Number).sort(function (a, b) { return a - b; }), mx = 0; ks.forEach(function (k) { mx = Math.max(mx, cnt[k]); });
+  var H = '<div class="small" style="margin-bottom:4px">rounds predicted minus floor(log<sub>2</sub> n), ' + tot + ' tapes</div>';
+  ks.forEach(function (k) { H += '<div style="display:flex;align-items:center;gap:8px;font:.8rem var(--mono)"><span style="width:3em;text-align:right">' + (k > 0 ? '+' : '') + k + '</span><span style="display:inline-block;height:12px;border-radius:2px;background:var(--accent);width:' + Math.max(1, 70 * cnt[k] / mx) + '%"></span><span>' + cnt[k] + '</span></div>'; });
+  document.getElementById('dg-hist').innerHTML = H;
+})();
+</script>
+
+</section>
 <section id="shape">
   <span class="eyebrow">First look</span>
   <h2>The shape of the run</h2>
@@ -408,7 +469,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 22 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 27 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -434,6 +495,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Sweep.lean</code></div></div><div><b>Whole sweeps in one statement</b><p><code>sweep</code>: for all k, L, J, R, <code>iter (2k) (e L (J+1+k) (R+1+2k)) = some (e (L+2k) (J+1) (R+1))</code>. Nearly every frame of the run is one of the two cases that make up this pair (cases <code>e l (j+2) (r+2)</code> and <code>h l (m+1) (r+2)</code>).</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/framemap.c</code>, log in <code>c/framemap_run.txt</code></div></div><div><b>No halt in the first 2.9&middot;10<sup>21</sup> frames (1.5&middot;10<sup>32</sup> steps)</b><p><code>c/framemap.c</code> iterates <code>next</code> exactly: its 66 cases are generated from <code>lean/Phases.lean</code> and the step counts from <code>lean/Pieces.lean</code> by <code>py/gen_c.py</code>, and whole sweeps are jumped by <code>sweep</code>. It agrees frame by frame with the Python reading of the Lean map for 300,000 frames, and without the jumps it reaches the same frame and step count at 10<sup>10</sup> frames. From <code>Ph.g 0 1</code> it ran 2,916,662,715,542,862,488,166 frames, 10<sup>11</sup> of them frames f (one per round of the rule form), to machine step 151,234,372,263,249,191,290,395,350,829,563 (counted exactly in 128 bits), without reaching a case where <code>next</code> is <code>none</code>. Variables reached 2.3&middot;10<sup>11</sup>.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>c/framemap_run.txt</code></div></div><div><b>A tent map, and how close the orbit came to the middle</b><p>With u = 2x/(2x + y), the rules of the rule form are u &rarr; 2u (when x &lt; y/2) and u &rarr; 2 &minus; 2u (otherwise), up to O(1/(2x + y)), while 2x + y grows by 1 to 4 each round. B(x, 2x + 1), the only halting tape, is the exact middle u &asymp; 1/2. Of 10<sup>11</sup> rounds, 33,333,405,819 had y odd (only those can halt); at x &ge; 16 none had d = y &minus; (2x + 1) = 0, and the 16 even values 0 &lt; |d| &le; 16 had 42 between them (2.6 each). So a d = 0 so far would not have been surprising, nor is its absence (a random model gives about 7% for no hit). The counts near the middle grow by about 0.26 per tenfold growth of x, so a random orbit would still hit eventually, but only after x grows by about 10<sup>4</sup>-fold per expected hit, i.e. the step count by about 10<sup>12</sup>.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Tent.lean</code> (<code>tent</code>, <code>op_none_iff</code>)</div></div><div><b>The rules are a tent map with drift</b><p>For the rule map of the rule form, in n = 2x + y and d = 2x &minus; y: d &ge; 0 (y even) gives n + 4 and n &minus; 2d + 4; d &ge; 3 (y odd) gives n + 3 and n &minus; 2d + 9; d &le; &minus;3 gives n + 1 and n + 2d + 7; d = &minus;2 and d = 1 are one-off tapes; the halt is d = &minus;1 and nowhere else. The map is the one of <code>py/rules.py</code>, transcribed; it is checked against the machine there, not in Lean.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>py/tent.py</code></div></div><div><b>The binary digits of u predict only about log<sub>2</sub> n rounds</b><p>The tent orbit of u = 2x/(2x + y), read from its binary digits, agrees with the real fold/double word for floor(log<sub>2</sub> n) &minus; 2 rounds at the median and never more than log<sub>2</sub> n + 6 (1,003 tapes from the first 10<sup>6</sup> rounds, exact rationals). The drift terms take over after that, so the digit reading cannot test the exact middle further than applying the rules.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/rounds.c</code></div></div><div><b>The rules run further</b><p>2&middot;10<sup>13</sup> rounds of the rule form applied one at a time, with exact step counts: no halt up to machine step 1.2&middot;10<sup>39</sup> (the frame map run reached 1.5&middot;10<sup>32</sup>). Closest tapes with y odd: 2 from the middle (the last, B(7281070259318, 14562140518635) at step 2.9&middot;10<sup>38</sup>, d = &minus;2). The 16 even values 0 &lt; |d| &le; 16 had 60 hits, 3.75 each, d = 0 none (about 2.4% for a random orbit). The near-middle tapes and step counts of the frame map run are reproduced exactly.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>lean/Merge.lean</code> (<code>three_pre</code>, <code>odd_pre</code>, <code>op_even</code>, <code>halt_pre_iff</code>)</div></div><div><b>Three tapes lead to one, and one tape leads to the halt</b><p>For the rule map of the rule form: B(2a + 2, 2c) is the next tape of B(a + c, 2a), of B(a + c + 1, 2a &minus; 1) and of B(a, 2a + 2c + 3); a tape with y odd has exactly one tape before it; no rule leads to an odd x except into B(2x + 1, 0); and the only tape before the halting tape B(x&prime;, 2x&prime; + 1) is B(x, 6x + 8) with x&prime; = 2x + 2. This is why different starts run into the same orbit. As for the tent map entry, the map is transcribed from <code>py/rules.py</code>.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/fates.c</code>, <code>py/fates.py</code></div></div><div><b>All tapes of a level end on a handful of orbits</b><p>Every tape B(x, y) below level 2x + y = 32,768 was followed until it halts or leaves that level (2.7&middot;10<sup>8</sup> tapes). Of the 139,136 tapes of levels 2048 to 2303 with x even, 0.5% halt and all others are on 2 orbits, 77% on the orbit from blank tape; from levels 16384 to 18431 there are still only 10 orbits. So a thousand moved copies of orbit states are about three independent trials: the probe's 49 halts in 1,000 copies, against 340 estimated, is the figure for all tapes of those levels (5.1% halt, the others on 3 orbits).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/back.c</code>, <code>c/back_run.txt</code></div></div><div><b>Tapes as a whole halt at the estimated rate</b><p>Followed backward from every halting tape, octave by octave of the level up to 4&middot;10<sup>6</sup>: the fraction of all tapes of levels [L/2, L) that halt in [L, 2L) is between 0.1% and 31%, 8.6% on average over 16 octaves, against estimates of 8 to 11%. The halts come as a few large events (one halting tape takes 31% of an octave). The backward count agrees exactly with the forward table where both exist.</p></div></div>
+    <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>py/contrast.py</code>, <code>py/contrast_run.txt</code></div></div><div><b>No simple predicate separates halting tapes from the others</b><p>Decision trees of depth 3 and 6 and a forest of 100 trees, on residues, ratios and tent digits of the exhaustively labelled tapes, score 50 to 54% on held-out levels (50% is a coin) for halting against surviving, and 50 to 55% for joining the blank-tape orbit against joining another. Nothing found sets the blank-tape orbit apart from the other orbits except that it has not halted.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known.</p></div></div>
 </section>
 <section id="check">
@@ -441,10 +509,13 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <h2>Commands</h2>
   <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh
+gcc -O2 -o fates holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/fates.c &amp;&amp; ./fates 32768 ex.bin hl.bin &amp;&amp; python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/fates.py ex.bin hl.bin 32768
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30
 gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000
-gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000</code></pre>
+gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000
+python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/tent.py
+gcc -O2 -o rounds holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/rounds.c -lm &amp;&amp; ./rounds 100000000000 10000000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

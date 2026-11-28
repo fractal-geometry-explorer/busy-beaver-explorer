@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its tape is mostly long blocks of 1s and of <code>10</code>s. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 22 November 2026.</p>
+    <p class="asof">Status as of 27 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -146,6 +146,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>sweep</code>: for all k, L, J, R, <code>iter (2k) (e L (J+1+k) (R+1+2k)) = some (e (L+2k) (J+1) (R+1))</code>. Nearly every frame of the run is one of the two cases that make up this pair (cases <code>e l (j+2) (r+2)</code> and <code>h l (m+1) (r+2)</code>).</p>
         <p class="where"><code>lean/Sweep.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The rules are a tent map with drift</h3>
+        <p>For the rule map of the rule form, in n = 2x + y and d = 2x &minus; y: d &ge; 0 (y even) gives n + 4 and n &minus; 2d + 4; d &ge; 3 (y odd) gives n + 3 and n &minus; 2d + 9; d &le; &minus;3 gives n + 1 and n + 2d + 7; d = &minus;2 and d = 1 are one-off tapes; the halt is d = &minus;1 and nowhere else. The map is the one of <code>py/rules.py</code>, transcribed; it is checked against the machine there, not in Lean.</p>
+        <p class="where"><code>lean/Tent.lean</code> (<code>tent</code>, <code>op_none_iff</code>)</p>
+      </div>
+      <div class="card">
+        <h3>Three tapes lead to one, and one tape leads to the halt</h3>
+        <p>For the rule map of the rule form: B(2a + 2, 2c) is the next tape of B(a + c, 2a), of B(a + c + 1, 2a &minus; 1) and of B(a, 2a + 2c + 3); a tape with y odd has exactly one tape before it; no rule leads to an odd x except into B(2x + 1, 0); and the only tape before the halting tape B(x&prime;, 2x&prime; + 1) is B(x, 6x + 8) with x&prime; = 2x + 2. This is why different starts run into the same orbit. As for the tent map entry, the map is transcribed from <code>py/rules.py</code>.</p>
+        <p class="where"><code>lean/Merge.lean</code> (<code>three_pre</code>, <code>odd_pre</code>, <code>op_even</code>, <code>halt_pre_iff</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -197,6 +207,26 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>c/framemap.c</code> iterates <code>next</code> exactly: its 66 cases are generated from <code>lean/Phases.lean</code> and the step counts from <code>lean/Pieces.lean</code> by <code>py/gen_c.py</code>, and whole sweeps are jumped by <code>sweep</code>. It agrees frame by frame with the Python reading of the Lean map for 300,000 frames, and without the jumps it reaches the same frame and step count at 10<sup>10</sup> frames. From <code>Ph.g 0 1</code> it ran 2,916,662,715,542,862,488,166 frames, 10<sup>11</sup> of them frames f (one per round of the rule form), to machine step 151,<wbr>234,<wbr>372,<wbr>263,<wbr>249,<wbr>191,<wbr>290,<wbr>395,<wbr>350,<wbr>829,<wbr>563 (counted exactly in 128 bits), without reaching a case where <code>next</code> is <code>none</code>. Variables reached 2.3&middot;10<sup>11</sup>.</p>
         <p class="where"><code>c/framemap.c</code>, log in <code>c/framemap_run.txt</code></p>
       </div>
+      <div class="card">
+        <h3>The binary digits of u predict only about log<sub>2</sub> n rounds</h3>
+        <p>The tent orbit of u = 2x/(2x + y), read from its binary digits, agrees with the real fold/double word for floor(log<sub>2</sub> n) &minus; 2 rounds at the median and never more than log<sub>2</sub> n + 6 (1,003 tapes from the first 10<sup>6</sup> rounds, exact rationals). The drift terms take over after that, so the digit reading cannot test the exact middle further than applying the rules.</p>
+        <p class="where"><code>py/tent.py</code></p>
+      </div>
+      <div class="card">
+        <h3>The rules run further</h3>
+        <p>2&middot;10<sup>13</sup> rounds of the rule form applied one at a time, with exact step counts: no halt up to machine step 1.2&middot;10<sup>39</sup> (the frame map run reached 1.5&middot;10<sup>32</sup>). Closest tapes with y odd: 2 from the middle (the last, B(7281070259318, 14562140518635) at step 2.9&middot;10<sup>38</sup>, d = &minus;2). The 16 even values 0 &lt; |d| &le; 16 had 60 hits, 3.75 each, d = 0 none (about 2.4% for a random orbit). The near-middle tapes and step counts of the frame map run are reproduced exactly.</p>
+        <p class="where"><code>c/rounds.c</code></p>
+      </div>
+      <div class="card">
+        <h3>All tapes of a level end on a handful of orbits</h3>
+        <p>Every tape B(x, y) below level 2x + y = 32,768 was followed until it halts or leaves that level (2.7&middot;10<sup>8</sup> tapes). Of the 139,136 tapes of levels 2048 to 2303 with x even, 0.5% halt and all others are on 2 orbits, 77% on the orbit from blank tape; from levels 16384 to 18431 there are still only 10 orbits. So a thousand moved copies of orbit states are about three independent trials: the probe's 49 halts in 1,000 copies, against 340 estimated, is the figure for all tapes of those levels (5.1% halt, the others on 3 orbits).</p>
+        <p class="where"><code>c/fates.c</code>, <code>py/fates.py</code></p>
+      </div>
+      <div class="card">
+        <h3>Tapes as a whole halt at the estimated rate</h3>
+        <p>Followed backward from every halting tape, octave by octave of the level up to 4&middot;10<sup>6</sup>: the fraction of all tapes of levels [L/2, L) that halt in [L, 2L) is between 0.1% and 31%, 8.6% on average over 16 octaves, against estimates of 8 to 11%. The halts come as a few large events (one halting tape takes 31% of an octave). The backward count agrees exactly with the forward table where both exist.</p>
+        <p class="where"><code>c/back.c</code>, <code>c/back_run.txt</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -215,6 +245,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>With u = 2x/(2x + y), the rules of the rule form are u &rarr; 2u (when x &lt; y/2) and u &rarr; 2 &minus; 2u (otherwise), up to O(1/(2x + y)), while 2x + y grows by 1 to 4 each round. B(x, 2x + 1), the only halting tape, is the exact middle u &asymp; 1/2. Of 10<sup>11</sup> rounds, 33,333,405,819 had y odd (only those can halt); at x &ge; 16 none had d = y &minus; (2x + 1) = 0, and the 16 even values 0 &lt; |d| &le; 16 had 42 between them (2.6 each). So a d = 0 so far would not have been surprising, nor is its absence (a random model gives about 7% for no hit). The counts near the middle grow by about 0.26 per tenfold growth of x, so a random orbit would still hit eventually, but only after x grows by about 10<sup>4</sup>-fold per expected hit, i.e. the step count by about 10<sup>12</sup>.</p>
         <p class="where"><code>c/framemap_run.txt</code></p>
       </div>
+      <div class="card">
+        <h3>No simple predicate separates halting tapes from the others</h3>
+        <p>Decision trees of depth 3 and 6 and a forest of 100 trees, on residues, ratios and tent digits of the exhaustively labelled tapes, score 50 to 54% on held-out levels (50% is a coin) for halting against surviving, and 50 to 55% for joining the blank-tape orbit against joining another. Nothing found sets the blank-tape orbit apart from the other orbits except that it has not halted.</p>
+        <p class="where"><code>py/contrast.py</code>, <code>py/contrast_run.txt</code></p>
+      </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
     <div class="cards">
@@ -228,10 +263,13 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <h2 id="h-check">Check it yourself</h2>
     <pre><code>. /etc/profile.d/lean.sh      # after scripts/setup-lean.sh
 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/lean/check.sh
+gcc -O2 -o fates holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/fates.c &amp;&amp; ./fates 32768 ex.bin hl.bin &amp;&amp; python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/fates.py ex.bin hl.bin 32768
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 1000000000
 python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/framemap.py verify 30
 gcc -O2 -o mrun holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/mrun.c &amp;&amp; ./mrun 1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE 2 1000000000000000
-gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000</code></pre>
+gcc -O2 -o framemap holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/framemap.c -lm &amp;&amp; ./framemap run 100000000000000000000 1000000000
+python3 holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/py/tent.py
+gcc -O2 -o rounds holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/c/rounds.c -lm &amp;&amp; ./rounds 100000000000 10000000000</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1RF_0LC0RF_1RD1LC_---0LE_0RC1LF_1RA0LE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

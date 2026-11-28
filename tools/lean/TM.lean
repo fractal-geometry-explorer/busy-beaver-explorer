@@ -6,3 +6,4 @@ import TM.Insert
 import TM.Resync
 import TM.Rounds
 import TM.RLE
+import TM.RSim

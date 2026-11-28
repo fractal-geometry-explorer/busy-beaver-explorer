@@ -15,6 +15,10 @@ mkdir -p "$OUT"; cd "$OUT"
 # 1. the proof: complete except run_ok (the engine run that would have to stop); "fast" admits run_ok
 python3 "$HERE/mkU.py" "$PR93" U_$START.v $M $START 25 fast
 coqc -R "$BUSYCOQ" BusyCoq U_$START.v | tail -3
+# 1b. the two left-end rules (wall_rules.v), proved on top of PR 93's 21 macro rules
+n=$(awk '/^Lemma rule_pairR/{f=1} f && /^Qed\./{print NR; exit}' U_$START.v)
+head -n "$n" U_$START.v > Wall.v; cat "$HERE/wall_rules.v" >> Wall.v
+coqc -R "$BUSYCOQ" BusyCoq Wall.v && echo "Wall.v: rule_wall0 and rule_wall1 proved"
 # 2. the engine: the proof file's own definitions (up to run_ok), extracted to OCaml
 n=$(grep -n "^Lemma run_ok" U_$START.v | cut -d: -f1)
 head -n $((n-1)) U_$START.v | sed 's/^Module HU\./Module T4C./' > T4C.v

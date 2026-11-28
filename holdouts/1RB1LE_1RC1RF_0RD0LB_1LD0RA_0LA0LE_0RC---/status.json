@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 114 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof encodes the tape in 16 block types, proves one transducer step lemma per block, and closes the top-level cycle. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> About half of the tape, and a rising share, is one 24-cell word, <code>(100)^5 000 100 000</code> and its shifts, repeated hundreds of times; most of the rest is made of related periodic words. A few short defects separate regions in different phases. The right sweep crosses whole runs of the word's pieces (proved in Lean). How the defects move and multiply is not worked out, so nothing is known about halting (F reading a 1)."
  ],
  "claims": [
@@ -147,7 +148,8 @@
    }
   ]
  },
- "summary": "Most of the tape is one 24-cell word repeated (100100100100100000100000 and its shifts) together with related periodic words; a few defects separate regions of different phase, and the sweeps move them and lengthen the regions.",
+ "summary": "Most of the tape is one 24-cell word repeated (100100100100100000100000 and its shifts) together with related periodic words; a few defects separate regions of different phase, and the sweeps move them and lengthen the regions. Decided outside: busycoq PR 114 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "family": "periodic background with travelling defects",
- "decision": "open"
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

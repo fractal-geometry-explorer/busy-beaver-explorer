@@ -11,12 +11,13 @@
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.",
   "<p>Both ends of the tape grow logarithmically. The left end is a long run of <code>10</code> after a few 0s (24 copies at step 556,283,168, 25 at step 1,678,517,170). The right end is a run of <code>110</code> (15 copies at step 1.8·10<sup>9</sup>). In between lies a word of short digits (<code>10</code>, <code>110</code>, <code>1110</code>) in no fixed order that changes at each pass, like the digits of a counter, and decides when the head next reaches the left end. It is the same kind of machine as <a href=\"../1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA/explainer.html\">1RB---_1LC1RF_0LE0RD_0RB0LC_1RD0LD_0RC0RA</a>. No exact rule for the middle has been found.</p>"
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The machine can halt only from <code>1 C&gt; 1 1</code> (both directions proved in Lean); in 20,000,000,000 steps that never happens. In the first 10<sup>9</sup> steps C had <code>1 C&gt; 1 0</code> about 2.9·10<sup>7</sup> times and <code>0 C&gt; 1 1</code> about 8.8·10<sup>7</sup> times, but never <code>1 C&gt; 1 1</code>: two of the three cells match all the time, the third never.",
   "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.",
   "<b>New, 22 November 2026.</b> For the shared rounds Lean now proves that a tape with at most one defect cannot halt, and a new engine followed the defect through 500,000 rounds (more than 2<sup>944,371</sup> steps of the twin) without one surviving its round. Open: that this always holds, and the correspondence of the two runs.",
-  "<b>Later on 22 November 2026.</b> The correspondence with the twin holds on random tapes, not only along the run, and this machine's visits close up on the same token words. On the twin Lean now proves everything except that each round's defect dies; for this machine the correspondence itself is still to be put in Lean."
+  "<b>Later on 22 November 2026.</b> The correspondence with the twin holds on random tapes, not only along the run, and this machine's visits close up on the same token words. On the twin Lean now proves everything except that each round's defect dies; for this machine the correspondence itself is still to be put in Lean.",
+  "<b>Latest, 22 November 2026.</b> The correspondence is now a theorem: Lean proves, on this machine's own transition table, that every token rule of the twin is a run of this machine and that its rounds are the twin's rounds (<code>lean/Link.lean</code>). From blank tape it reaches round 9 at step 7,834, and it never halts if from round 9 on every round's defect needs at most one visit, exactly the twin's remaining assumption. <b>Correction (evening):</b> the first version assumed every defect dies counted from round 0, which is false (round 2's defect survives), so it proved nothing; it is replaced by the round-9 reduction."
  ],
  "claims": [
   {
@@ -98,6 +99,12 @@
    "where": "<code>../1RB0LA_1RC1RA_1RD1RE_1LC---_0RB1LF_1RA0LE/c/far.c</code>: <code>./far M 7</code>, <code>./far M 7 m</code>"
   },
   {
+   "level": "trusted",
+   "title": "The far end is a conveyor (the twin's eighth pass)",
+   "text": "This machine's rounds are the twin's token tapes. There the clean tape after each visit has v = 16/15 &minus; c&middot;2<sup>&minus;m</sup> + O(2<sup>&minus;2m</sup>), its digit-only end is exactly that number's binary expansion below height 2m &minus; 11, and below height m every digit climbs 4 heights per round unchanged. A defect that reaches these exact layers dies within 20 words, with at most one visit needed. Open in this form: that no defect dies inside them, and the two-round height monotonicity.",
+   "where": "<code>python3 ../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200</code>"
+  },
+  {
    "level": "open",
    "title": "Does it halt from blank tape?",
    "text": "Not known. Halting needs C on a 1 with 1s on both sides, which the words of the tape have never offered; whether they never will depends on the counter in the middle, whose rule is not found.",
@@ -106,7 +113,7 @@
   {
    "level": "trusted",
    "title": "The run as rounds of one function",
-   "text": "For the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF (whose round words S_k appear on this machine's tape as <code>0 0 0 1 0 S_k</code> at every second visit of E to a new leftmost cell, checked up to k = 18): on its mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.",
+   "text": "For the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF (whose round words S_k appear on this machine's tape as <code>0 0 0 1 0 S_k</code> at every second visit of E to a new leftmost cell, checked up to k = 18, proved in Lean since 22 November 2026): on its mirrored tape, a visit of A (the head at a cell in state A until it first steps left of it) is a function on the half tape, and four such functions (A, E, F, P) close up. From <code>[A] 0 0 S</code> the machine returns to <code>[A] 0 0 S'</code> one cell further out with S' = 1 0 A(S). Derived by local simulation and checked against direct simulation of the machine.",
    "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code>, <code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/zeval.py</code>; that machine's README"
   },
   {
@@ -116,15 +123,21 @@
    "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/zvis.cpp</code>"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The shared rounds: one defect never halts",
-   "text": "Lean proves, for the rounds of the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF, that a tape with at most one defect cannot halt within a round. It carries over to this machine through the observed correspondence of the two runs (this machine's tape is <code>0 0 0 1 0 S<sub>k</sub></code> at every second visit of E to a new leftmost cell, checked up to k = 18, not proved).",
-   "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/Total.lean</code>, <code>py/twinchk.py</code> there"
+   "text": "Lean proves, for the rounds of the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF, that a tape with at most one defect cannot halt within a round. Since 22 November 2026 it applies to this machine in Lean too: its rounds are the twin's rounds (next claim).",
+   "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/Total.lean</code>, <code>lean/Link.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The twin's token rules are this machine",
+   "text": "Lean proves, on the generated table of this machine, that every token rule of the twin (words <code>L = 1010</code>, <code>O = 000</code>, <code>I = 100</code>, defects <code>10</code>, <code>1</code>, <code>0</code>) is a run of this machine from five entry forms: B after <code>1 0</code> computes A, C after <code>1 0</code> or <code>1 1</code> computes Ê, B after <code>0 0</code> or C after <code>1 0</code> on <code>0 W</code> computes E0, each for any tape further left (<code>sound</code>, 25 generated runs). One round: in E on <code>0 0 0 1 0 S</code> the machine reaches E two cells further left on <code>0 0 0 1 0 1 0 A(S)</code> (<code>round_run</code>), and from blank tape it is there with S empty after 4 steps (<code>start</code>). From blank tape it is at the start of round 9 (E on <code>0 0 0 1 0 x a9</code>) at step 7,834 (<code>round9</code>, kernel evaluation). With the twin's one-defect theorem and its fuel <code>nx</code>: if every round from 9 on has <code>nx W ≤ 1</code> on its tape <code>x W</code>, this machine never halts from blank tape (<code>nonhalt_of_need</code>, the twin's hypothesis word for word). A first version, <code>nonhalt_of_clean</code>, assumed every defect dies from round 0; that is false (round 2's defect survives), so it was vacuous and is removed. Only <code>propext</code> and <code>Quot.sound</code>.",
+   "where": "<code>lean/Link.lean</code> (written by <code>py/linkgen.py</code>), with <code>lean/Tokens.lean</code> and <code>lean/Total.lean</code> and <code>lean/Need.lean</code> of the twin"
   },
   {
    "level": "trusted",
    "title": "Every defect followed for 500,000 rounds",
-   "text": "The twin's new token engine followed 500,000 rounds of the shared system (more than 2<sup>944,371</sup> steps of the twin): every defect died inside the tape about halfway in, and no two defects ever met. The defect gets into the digit end in 30.8% of the rounds and eats at most 60 words there.",
+   "text": "The twin's token engine followed 500,000 rounds of the shared system (more than 2<sup>944,371</sup> steps of the twin): every defect died inside the tape about halfway in, and no two defects ever met. The defect gets into the digit end in 30.8% of the rounds and eats at most 60 words there. Because Lean proves that this machine's rounds are the same token rounds, these are also 500,000 rounds of this machine (its step counts differ).",
    "where": "<code>../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cpp</code>"
   },
   {
@@ -136,7 +149,7 @@
   {
    "level": "open",
    "title": "Does every defect disappear in time?",
-   "text": "If the defect of every round disappears before the round ends, the machine never halts. Where it disappears depends on the digits of the counter, which look irregular; no proof.",
+   "text": "From round 9 on, if the defect of every round needs at most one visit (<code>nx W ≤ 1</code>), the machine never halts (proved in Lean, <code>nonhalt_of_need</code>). The early rounds are not like that: round 2's defect survives its round. Where a defect dies depends on the digits of the counter, which look irregular; no proof.",
    "where": ""
   },
   {
@@ -154,7 +167,7 @@
   {
    "level": "trusted",
    "title": "The correspondence on any tape",
-   "text": "Started in E on <code>0 0 0 1 0 S</code>, this machine reaches <code>0 0 0 1 0 1 0 A(S)</code>, with A the visit function of the twin, for all 1,517 of 2,000 random tapes S on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule of the twin is a run of this machine through them (symbolically). On the twin, Lean now proves that its visit functions are its machine and that it never halts if every round's defect dies. Not in Lean for this machine.",
+   "text": "Started in E on <code>0 0 0 1 0 S</code>, this machine reaches <code>0 0 0 1 0 1 0 A(S)</code>, with A the visit function of the twin, for all 1,517 of 2,000 random tapes S on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule of the twin is a run of this machine through them (symbolically). On the twin, Lean now proves that its visit functions are its machine and that it never halts if every round's defect dies. Now proved in Lean (claim above, <code>lean/Link.lean</code>).",
    "where": "<code>python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/twinforms.py 2000</code>"
   }
  ],
@@ -186,6 +199,11 @@
     "level": "trusted",
     "value": "500,000 rounds",
     "text": "Of the shared counter, each defect followed word by word; none survived its round."
+   },
+   {
+    "level": "kernel",
+    "value": "25 runs",
+    "text": "Every token rule of the twin is a run of this machine's table (Lean: <code>sound</code>, <code>nonhalt_of_need</code>)."
    }
   ],
   "presets": [
@@ -202,10 +220,20 @@
     "eyebrow": "Decoded, 14 November 2026",
     "heading": "A counter with doublers and a travelling defect",
     "html": [
-     "<p>Read the twin's tape (which this machine carries as <code>0 0 0 1 0 S</code> at its left-end visits) in the words <code>L = 1010</code>, <code>O = 000</code>, <code>I = 100</code>. A visit of state A to a tape of such words is a counter step:</p>",
+     "<p>Read the twin's tape (which this machine carries as <code>0 0 0 1 0 S</code> at its left-end visits, proved in Lean) in the words <code>L = 1010</code>, <code>O = 000</code>, <code>I = 100</code>. A visit of state A to a tape of such words is a counter step:</p>",
      "<p style=\"text-align:center\"><code>A(O W) = I W</code> &nbsp; <code>A(I W) = O A(W)</code> &nbsp; <code>A(L W) = L A(A(W))</code></p>",
      "<p>O and I are binary digits, lowest first, and L is a <em>doubler</em>: a carry that crosses it becomes two carries. One round of the machine is <code>S' = 1 0 A(S)</code>. The <code>1 0</code> put in front does not fit the words; it is a <em>defect</em>. Pushed by the carries, the defect travels through the counter, rewrites the words it crosses, and disappears where it turns <code>1 I O</code> into <code>O L</code>, two digits into a doubler. Every round adds exactly four words.</p>",
-     "<p>A tape with at most one defect cannot halt (proved in Lean for the twin's rounds; it applies here through the observed correspondence, checked up to k = 18). A halt needs two defects side by side, so the machine runs forever if every defect disappears before its round ends. In every round from 13 to 500,000 it did, about halfway into the tape (more than 2<sup>944,371</sup> steps of the twin). On the twin's <a href=\"../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/explainer.html#layers\">page</a>: the four layers of the counter, and why only the bottom one matters.</p>"
+     "<p>A tape with at most one defect cannot halt (proved in Lean for the twin's rounds, and since 22 November 2026 for this machine itself: its rounds are the twin's rounds). A halt needs two defects side by side, so the machine runs forever if, from round 9 on, every defect disappears before its round ends (the early rounds differ: round 2's defect survives). In every round from 13 to 500,000 it did, about halfway into the tape (more than 2<sup>944,371</sup> steps of the twin). On the twin's <a href=\"../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/explainer.html#layers\">page</a>: the four layers of the counter, and why only the bottom one matters.</p>"
+    ]
+   },
+   {
+    "id": "link",
+    "eyebrow": "In Lean, 22 November 2026",
+    "heading": "The twin's rules, run by this machine",
+    "html": [
+     "<p>This machine reads the twin's words left to right instead of right to left, and its head does different things between them, so the twin's proofs do not apply as they stand. What carries over is the token level. Each token visit of the twin is a run of this machine from an <em>entry form</em>: a state and the two cells just left of the head.</p>",
+     "<table><thead><tr><th>visit</th><th>entry form</th><th>ends in</th></tr></thead><tbody><tr><td>A(W)</td><td>B after <code>1 0</code></td><td>E, three cells left, on <code>0 0 A(W)</code></td></tr><tr><td>Ê(W)</td><td>C after <code>1 0</code></td><td>E on <code>0 0 1 0 Ê(W)</code></td></tr><tr><td>Ê(W)</td><td>C after <code>1 1</code></td><td>D on <code>0 0 0 0 Ê(W)</code></td></tr><tr><td>E0(W)</td><td>B after <code>0 0</code>, on <code>0 W</code></td><td>E on <code>0 0 E0(W)</code></td></tr><tr><td>E0(W)</td><td>C after <code>1 0</code>, on <code>0 W</code></td><td>E on <code>0 0 E0(W)</code></td></tr></tbody></table>",
+     "<p>Lean checks every one of the twin's token rules in every form of its kind (25 runs, each a few stretches of 1 to 17 steps around the rule's own sub-visits). Even the defect rule <code>A(x L W) = L A(A(x W))</code> runs the twin's way: four cells to the right the machine meets B after <code>1 0</code> on <code>x W</code>. One round takes E on <code>0 0 0 1 0 S</code> to E two cells further left on <code>0 0 0 1 0 1 0 A(S)</code>. From blank tape the machine reaches round 9 at step 7,834. So the twin's one remaining assumption, that from round 9 on every round's defect needs at most one visit, is also the only thing standing between this machine and a proof that it never halts. (A first version assumed that every defect dies from round 0; that is false, since round 2's defect survives, and it was corrected the same evening.)</p>"
     ]
    },
    {
@@ -263,6 +291,6 @@
    }
   ]
  },
- "summary": "Same rounds as its twin: a binary counter with doublers and one travelling defect per round; Lean (on the twin's rounds): a tape with at most one defect cannot halt; every defect followed for 500,000 rounds; open: that every defect dies in time, and the correspondence.",
+ "summary": "Same rounds as its twin, proved in Lean: a binary counter with doublers and one travelling defect per round; Lean: a tape with at most one defect cannot halt, and if from round 9 on every defect needs at most one visit this machine never halts; every defect followed for 500,000 rounds; open: that hypothesis.",
  "family": "two-ended counter, (10)^n left / 110 digits right"
 }

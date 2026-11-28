@@ -47,6 +47,17 @@ cell for cell:
 
 The sections below are the first pass on this machine, read from the right end; they remain correct.
 
+**The reset map, phase by phase (22 Nov).** Every tail excursion of the first 36 phases of this run is now checked in
+Lean, by a run-length simulator proved for every tape on the left (`ExcSim.lean`, `ResetExc.lean` in the twin's folder):
+`reach_twin_phases36` (`ResetExcLong.lean`, by hand) says that this table started in D reaches the reset with
+X = 121,081,390 with no hypothesis, and `reach_twin_phases` (`ResetExcRuns.lean`, in CI) does 26 phases, X = 2,099,734.
+
+**130 phases by Hashlife (24 Nov).** The carries of a phase are now skipped 2^j at a time by transforms proved in Lean
+for whole families of tails (`SymSim.lean`, `TailHash.lean` in the twin's folder; see its README, "The carries by
+Hashlife"). `reachF_twin130` (`TailHashLong.lean`, by hand, about 13 minutes) says that this table started in D reaches
+the reset with X = 4,321,711,362,379,564,880,782,897 (about 4.3·10^24, roughly 9·10^49 steps) with no hypothesis;
+`reachF_twin40` (`TailHashRuns.lean`, in CI) does 40 phases in seconds.
+
 ## What it does
 
 **The tape.** Write `a = 10`. Apart from a short fixed start, the tape is made of runs of `a`s separated by

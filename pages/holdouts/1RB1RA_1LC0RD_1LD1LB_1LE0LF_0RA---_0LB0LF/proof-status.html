@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 20 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Up to renaming, the machine is the table of a DeepMind proof (busycoq pull request 93) with its halting transition replaced. A Coq proof built from that file needs only one more thing, a stop of its accelerated engine, and the engine has not stopped in more than 10<sup>1336</sup> steps. The place where the sibling halts recurs in this run once per lap, and this machine gets past it the same way every time; nothing in the run comes near the one pattern that could halt it.</p>
+      <p><b>The question is open.</b> Up to renaming, the machine is the table of a DeepMind proof (busycoq pull request 93) with its halting transition replaced. A Coq proof built from that file needs only one more thing, a stop of its accelerated engine, and the engine has not stopped in more than 10<sup>7765</sup> steps. The place where the sibling halts recurs in this run once per lap, and this machine gets past it the same way every time; nothing in the run comes near the one pattern that could halt it.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -136,6 +136,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p><code>coq/mkU.py</code> rewrites the DeepMind proof of busycoq pull request 93 for this machine. Up to swapping E and F the machine is that proof's table with F merged into E (so the sibling's halting transition becomes a step) and with D0 replaced by a three-step detour that halts exactly when D reads 0 with a 1 on its left. The file compiles with Coq 8.20.1 and <code>Print Assumptions</code> lists only <code>run_ok</code>, the statement that the engine stops; with it the file would prove that the machine halts.</p>
         <p class="where"><code>coq/mkU.py</code>, <code>coq/build.sh</code></p>
       </div>
+      <div class="card">
+        <h3>Two rules at the left end, for all parameters</h3>
+        <p>Besides the 21 macro rules of pull request 93, the run uses two rules at the left end of the tape, where B arrives at blank tape or at a single 1. Both are proved in Coq for every parameter value, on top of the pull request's file, and depend on no axioms.</p>
+        <p class="where"><code>rule_wall0</code>, <code>rule_wall1</code>, <code>coq/wall_rules.v</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -163,9 +168,9 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>c/blocks.c</code></p>
       </div>
       <div class="card">
-        <h3>No halt in the first 10<sup>1336</sup> steps</h3>
-        <p>The engine extracted from that proof file ran 18,449,229 fast steps from blank tape without stopping. Each fast step is a stretch of the machine's run (proved in the file), and the tape then holds more than 2<sup>4439</sup> cells, each visited at least once. This rests on the extracted OCaml code, not on Coq's kernel.</p>
-        <p class="where"><code>coq/run.ml</code>, <code>coq/ev3.ml</code>, <code>coq/README.md</code></p>
+        <h3>No halt in the first 10<sup>7765</sup> steps</h3>
+        <p>The engine of that proof file, extracted to OCaml with Coq's binary numbers realized by Zarith (the same engine as for starts B and D of the table, whose full compressed states equal those of the plain extraction at fast steps 35,227,304 and 29,077,778 of those runs; the plain extraction was checked against direct simulation through 3&times;10<sup>9</sup> steps), ran 601,531,739 fast steps from blank tape without stopping (22 November 2026). Its tape then has more than 2<sup>25798</sup> cells, each visited at least once. Every entry into raw mode (where a halt would have to happen; the engine checks each raw step for one) falls into the same few classes as in the earlier runs: D moving right with a 0 on its left, D moving left onto a 1, B moving right, or the sibling’s halting event (C reading 0 with 1 1 1 on its left), which this machine survives each time.</p>
+        <p class="where"><code>coq/README.md</code>, <code>runz.ml</code> in the start-A folder of the table</p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -193,6 +198,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The sibling's halting point recurs and is survived</h3>
         <p>A halt can only happen where the engine leaves its macro rules. Through 18.4 million fast steps it left them only in 14 kinds of local situation, all at the left end of the written tape. One of them, C reading 0 with 1 1 1 on its left, is exactly where the sibling of pull request 93 halts; here it recurred 10 times, with the same nearest cells each time, and each time the machine erased three 1s and went back to the macro rules. No exit met the cells 0, 1 that a halt needs. So the sibling's halting point predicts no halting point for this machine, and a halt would need a kind of exit the run has never produced.</p>
         <p class="where"><code>coq/README.md</code></p>
+      </div>
+      <div class="card">
+        <h3>23 rules cover the run; no invariant found</h3>
+        <p>Simulated on the 23 proved rules, the run from blank tape leaves them only in its first 12 steps (3,000,000 macro steps checked), so a halt would need the rule system to get stuck away from the left end. Searches for a closed set of tape shapes (automata over cells, and checkers over runs of 10, 1 and 0 in Python and C++, up to about 60 million abstract states) never met a stuck shape but never closed: the left side of the tape keeps producing new patterns, even in the real run.</p>
+        <p class="where"><code>py/macro.py</code>, <code>py/val_macro.py</code>, <code>README.md</code></p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>

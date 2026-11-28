@@ -10,10 +10,11 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> The two basic counter increments (lowest digit 0, and lowest digits 1 then 0) are proved in Lean for all block lengths (kernel). The general increment rule matches all 2,282 clean increments of the first 3·10<sup>7</sup> steps, and the C simulator runs 2·10<sup>11</sup> steps without a halt. Carries into the higher separators, the reservoir refills and the <code>1100</code> region are not yet rules.",
-  "<b>One counter, two starts</b> (21 November): this machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> started in state D, proved in Lean, and that folder&rsquo;s exact block macro machine reproduces its run; the reset map and the tail operators found there hold here too, so it is open for the same reason."
+  "<b>One counter, two starts</b> (21 November): this machine is the table of <code>1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---</code> started in state D, proved in Lean, and that folder&rsquo;s exact block macro machine reproduces its run; the reset map and the tail operators found there hold here too, so it is open for the same reason.",
+  "<b>Phase by phase</b> (24 November): every carry of the first 130 phases of this run is checked in Lean (<code>TailHashLong.lean</code> in the twin's folder, carries skipped 2<sup>j</sup> at a time by proved transforms), so the 3/2 reset map holds there with no assumption, up to X = 4,321,711,362,379,564,880,782,897."
  ],
  "claims": [
   {
@@ -57,6 +58,18 @@
    "title": "The reset map, for the head of the tape",
    "text": "This machine halts if and only if the table of 1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA--- halts started in state D (<code>twin_halts_iff</code>); that run is at <code>Reset 52 T0twin</code> after 14,638 steps (<code>reach_twin</code>). From every reset with X &ge; 36 the run reaches the reset with X&prime; = &lfloor;3X/2&rfloor; + 1 (X even) or + 3 (X odd) for every tail whose carries come back with the listed signatures (<code>reset_map</code>); if every phase's carries come back, this machine never halts (<code>never_halts_twin</code>).",
    "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/ResetMap.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The reset map without hypotheses: 36 phases",
+   "text": "Every carry into the tail of the first 36 phases of this machine's run is checked in Lean by a simulator proved for every tape on the left, so the reset map of the twin's folder holds there with no hypothesis: the run reaches the reset with X = 121,081,390 without a halt (<code>reach_twin_phases36</code>; 26 phases, X = 2,099,734, in CI: <code>reach_twin_phases</code>).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/ResetExcLong.lean</code>, <code>ResetExcRuns.lean</code>"
+  },
+  {
+   "level": "native",
+   "title": "The reset map without hypotheses: 130 phases",
+   "text": "Every carry of the first 130 phases of this run is checked in Lean, the carries 2<sup>j</sup> at a time by transforms proved for every tail of their family (<code>cOrbitF_spec</code>): the run reaches the reset with X = 4,321,711,362,379,564,880,782,897 without a halt (<code>reachF_twin130</code>; about 9&middot;10<sup>49</sup> steps by the growth per phase, an estimate). 40 phases are in CI (<code>reachF_twin40</code>).",
+   "where": "<code>holdouts/1RB0LF_0LC0RE_0RA1LD_1LB0LD_0RA1RC_1LA---/lean/TailHashLong.lean</code>, <code>TailHashRuns.lean</code>, <code>TailHash.lean</code>, <code>SymSim.lean</code>"
   },
   {
    "level": "trusted",
@@ -166,6 +179,11 @@
     "level": "kernel",
     "value": "X &rarr; &lfloor;3X/2&rfloor;+1 or +3",
     "text": "The reset map of its twin's table, proved in Lean for the head of the tape; only the carries into the tail are assumed."
+   },
+   {
+    "level": "native",
+    "value": "130 phases",
+    "text": "Every carry of the first 130 phases checked in Lean (in the twin's folder, by a proved Hashlife over the carries), so the reset map holds there with no hypothesis, to X &asymp; 4.3&middot;10<sup>24</sup>."
    }
   ],
   "presets": [

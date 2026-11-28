@@ -10,12 +10,13 @@
  "intro": [
   "Nobody knows whether this six-state machine halts from blank tape. Its tape is single 1s separated by gaps of one, two or three 0s, and it grows to the left. At its visits to the left end a prefix made of the word <code>0 0 1</code> grows by one word each time while the time between visits roughly doubles, then shrinks back: the behavior of a counter. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 22 November 2026.",
+ "asof": "Status as of 24 November 2026.",
  "verdict": [
   "<b>The question is open.</b> Its events are decoded: a binary counter at the left end (3-cell digits) gains 1 per event and a 2-bit counter M right of a fixed 46-cell word gains 1; this is proved in Lean for every carry length. When M wraps, a slower counter further right changes (not decoded), and now and then the fixed words themselves are rebuilt.",
   "<b>New, 14 November 2026.</b> The whole run is now one rule: the tape is a binary counter with <i>doublers</i> (words 1010, 000, 100), and each round sends one defect through it. A tape with one defect cannot halt; a halt needs two defects to meet. In 100,000 rounds there was no halt, and in the 4,500 rounds followed word by word every defect disappeared long before the next one started. Whether that is always so is the open question.",
   "<b>New, 22 November 2026.</b> Lean now proves that a tape with at most one defect cannot halt, so a halt needs a defect that survives its round. A new engine followed the defect word by word through 500,000 rounds (more than 2<sup>944,371</sup> steps): every defect died about halfway into the tape. The top of the counter is now understood exactly: its layers are the binary expansions predicted by the conserved value, 1/15 &minus; c&middot;2<sup>&minus;k/2</sup>/127. The defect only ever eats the irregular bottom layer; whether it can cross all of it in one round is the open question.",
-  "<b>Later on 22 November 2026.</b> Lean now also proves that the four visit functions are runs of the real transition table, and the round law. So the machine never halts from blank tape <i>if</i> every round's defect dies in its round; that one statement is all that is left."
+  "<b>Later on 22 November 2026.</b> Lean now also proves that the four visit functions are runs of the real transition table, and the round law. So the machine never halts from blank tape <i>if</i> every round's defect dies in its round; that one statement is all that is left.",
+  "<b>Evening, 22 November 2026.</b> A correction and a sharper statement. The hypothesis of the Lean theorem of the afternoon is false as stated: counted from blank tape, the defect of round 2 survives, so that theorem was vacuous. Lean now proves the corrected reduction: the machine reaches round 9 at step 5,848, and from there it never halts if each round's defect needs at most one visit of A, a number computed by a short recursion over the round's starting tape. In the run the defect needs 3 or 4 visits and gets 2<sup>k/2</sup>. Whether that margin holds in every round is the open question."
  ],
  "claims": [
   {
@@ -71,6 +72,24 @@
    "title": "A counter",
    "text": "A word per visit and twice the time per word is the signature of a binary counter whose digits are the gaps; the drops of k are its carries reaching further into the tape.",
    "where": ""
+  },
+  {
+   "level": "trusted",
+   "title": "The value law, to second order",
+   "text": "For the clean tape W<sub>k</sub> that round k's visit leaves: v(W<sub>k</sub>) = 16/15 &minus; c&middot;2<sup>&minus;m</sup> + r with c = 288/127 (k even) or 145/127 (k odd) and |r| &lt; 351&middot;2<sup>&minus;2m</sup>, in every round from 40 to 6,000 (exact integers). In even rounds the digit-only end Z is, digit for digit, the binary expansion of 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup> below height 2m &minus; 11: the period-4 and period-28 layers are this number.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The far end is a conveyor",
+   "text": "Each round appends 4 digits at the far end and moves every digit of Z below height m exactly 4 heights up, unchanged. A digit flipped in round 200 at height 5 stays the only difference and climbs 4 heights per round for 25 rounds, until the front starts to rewrite it at height m. So an error in the tail shrinks 16 times per round in v: v pins the tail by pushing errors out, not by storing them.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "A floor no defect crosses",
+   "text": "A defect that enters the exact layers of Z (heights 5 to 2m &minus; 8), as <code>x</code>, <code>1</code> or <code>z</code>, dies within 20 words. Its path never goes below height m &minus; 1, so it then needs at most one visit. So any round tape with Z exact below 2m &minus; 11 and its doubler-rich part at height m &minus; 1 or more kills its defect, whatever the irregular digits are. This is not an induction: a death inside the floor would lower it by up to about 20 heights, and nothing rules out such deaths repeating. In the run every death is at least 2m &minus; 9 high, and at least 2m + 211 from round 500 on.",
+   "where": "<code>python3 py/conveyor.py 6000 200</code>"
   },
   {
    "level": "open",
@@ -129,7 +148,7 @@
   {
    "level": "open",
    "title": "The one missing lemma",
-   "text": "With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts. It follows if the digit-only end Z keeps at least k + 2 log<sub>2</sub> k + 20 words, which needs the defect to reach Z in fewer than about half of the rounds; measured, a third. <b>22 November 2026:</b> the digit end has four layers (see \"Four layers of the digit end\"), and only the bottom one, about 0.27 k irregular digits, is ever eaten. The three regular layers above it are about 1.6 k digits, so the lemma would follow from two statements: that the layers are always as observed (they come from the first two terms of the value), and that no defect crosses the whole irregular layer in one round. The second is still a statement about pseudo-random digits. Neither is proved.",
+   "text": "With the conserved value, the defect of a round must disappear if the tape ends in a few periods <code>I O O O</code> and every digit before them is reached by many visits (b larger than a few times log<sub>2</sub> k). Measured, b is at least 2m - 5 in the part rich in doublers; a proof of a lower bound is missing. It would show that the machine never halts. It follows if the digit-only end Z keeps at least k + 2 log<sub>2</sub> k + 20 words, which needs the defect to reach Z in fewer than about half of the rounds; measured, a third. <b>22 November 2026:</b> the digit end has four layers (see \"Four layers of the digit end\"), and only the bottom one, about 0.27 k irregular digits, is ever eaten. The three regular layers above it are about 1.6 k digits, so the lemma would follow from two statements: that the layers are always as observed (they come from the first two terms of the value), and that no defect crosses the whole irregular layer in one round. The second is still a statement about pseudo-random digits. Neither is proved. <b>Evening:</b> crossing the irregular layer would not save a defect: it would still carry about 2<sup>1.5 k</sup> visits and die in the layers above. What a proof needs is that the doubler heights in front of the death point never collapse (see \"Heights never drop over two rounds\").",
    "where": ""
   },
   {
@@ -153,7 +172,7 @@
   {
    "level": "kernel",
    "title": "If every defect dies, it never halts",
-   "text": "If in every round from blank tape the visit of A leaves a tape without defect, the machine never halts from blank tape. This hypothesis is now the whole open question.",
+   "text": "If in every round from blank tape the visit of A leaves a tape without defect, the machine never halts from blank tape. <b>Correction (evening):</b> that hypothesis is false, because the defect of round 2 survives (<code>old_hyp_false</code>, <code>lean/Fuel.lean</code>), so this theorem says nothing. It is replaced by <code>nonhalt_of_need</code>, which starts at round 9.",
    "where": "<code>nonhalt_of_clean</code>, <code>lean/Link.lean</code>"
   },
   {
@@ -187,24 +206,69 @@
    "where": "<code>py/layers.py dump50000 dump50056</code> (dumps written by <code>c/toksim.cpp</code>)"
   },
   {
-   "level": "trusted",
+   "level": "kernel",
    "title": "The twin's rounds on any tape",
-   "text": "Started in E on <code>0 0 0 1 0 S</code>, the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- reaches <code>0 0 0 1 0 1 0 A(S)</code> for all 1,517 of 2,000 random tapes S (up to 30 cells) on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule is a run of the twin through them (symbolically). Not in Lean.",
-   "where": "<code>python3 py/twinforms.py 2000</code>"
+   "text": "Started in E on <code>0 0 0 1 0 S</code>, the twin 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- reaches <code>0 0 0 1 0 1 0 A(S)</code> for all 1,517 of 2,000 random tapes S (up to 30 cells) on which A(S) is defined, and halts on the other 483. Its visits close up on the token words with five entry forms, and every token rule is a run of the twin through them (symbolically). Since 22 November 2026 this is in Lean on the twin's own table: every token rule is a run of the twin from five entry forms, and the twin never halts under this machine's hypothesis (<code>K83189.nonhalt_of_clean</code>). <b>Evening:</b> that hypothesis was vacuous (round 2's defect survives); the twin now has <code>K83189.nonhalt_of_need</code>, with this machine's <code>nx</code> and <code>R9</code> (moved to <code>lean/Need.lean</code>), from round 9 at step 7,834.",
+   "where": "<code>python3 py/twinforms.py 2000</code>; <code>../1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC---/lean/Link.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The fuel a defect needs",
+   "text": "<code>nx W</code>, <code>ne W</code>, <code>n0 W</code>: a recursion over the words of a clean tape W (<code>nx (O W) = 2 nx W + 1</code>, <code>nx (L W) = &lceil;nx W / 2&rceil;</code>, <code>nx (I W) = ne W + 1</code>, &hellip;). That many visits of A always leave <code>x W</code> without a defect, and the same for <code>1 W</code> and the tapes that <code>Eh</code> and <code>E0</code> leave. So whether a round's defect dies is decided by the round's starting tape alone.",
+   "where": "<code>fuel</code>, <code>dies</code>, <code>lean/Fuel.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The old reduction was vacuous",
+   "text": "From blank tape, <code>S<sub>2</sub> = x L O I</code> and <code>A(x L O I) = L I x I</code>: the defect of round 2 survives, so the hypothesis of <code>nonhalt_of_clean</code> is false.",
+   "where": "<code>old_hyp_false</code>, <code>lean/Fuel.lean</code>"
+  },
+  {
+   "level": "kernel",
+   "title": "The corrected reduction",
+   "text": "The machine reaches the start of round 9, <code>0 x a9</code> with <code>a9 = L L L L O L L L I L I L I L O O I O I I</code>, at step 5,848 (list simulator evaluated by the kernel). If for the round tape <code>x W</code> of every round from 9 on <code>nx W &le; 1</code>, the machine never halts from blank tape. Round 9 itself satisfies it.",
+   "where": "<code>round9</code>, <code>nonhalt_of_need</code>, <code>need_a9</code>, <code>lean/Fuel.lean</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "The margin",
+   "text": "A round tape is <code>L<sup>m</sup> x U</code>, so the defect gets 2<sup>m</sup> visits (m = k/2) and dies if <code>nx U &le; 2<sup>m</sup></code>. In every round from 13 to 3,000 the defect needs 3 or 4 visits (26 in round 12, with m = 6, the smallest margin), and 3 at rounds 20,000, 50,000 and 300,000.",
+   "where": "<code>python3 py/fuel.py 3000</code>; <code>py/fuel.py --dump</code> on dumps of <code>c/toksim.cpp</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Fuel against height",
+   "text": "The defect's path is fixed by the words ahead of it; its fuel only decides when it stops. At every one of the 329,061 defect steps of rounds 6 to 1,500, fuel&middot;2<sup>&minus;b</sup> (b the doubler height of the defect's word) is at least 1 minus twice the sum of 2<sup>&minus;b</sup> over the steps before, with exact fractions. So a defect can only run out after crossing words of small height, which before the death point never happens (all heights there are at least m).",
+   "where": "<code>python3 py/potential.py 1500</code>"
+  },
+  {
+   "level": "trusted",
+   "title": "Heights never drop over two rounds",
+   "text": "With h<sub>k</sub>(p) the doubler height at token index p at the start of round k: h<sub>k+2</sub>(p) &ge; h<sub>k</sub>(p) for every p up to where round k's defect died, in every round from 40 to 3,000, and the same for 19,991 random tapes <code>L<sup>m</sup> x W</code>. One pass moves every height it crosses by exactly 1. Not proved; if it is a theorem, what is left is only how deep into Z the defect dies, and a rough count asks just that Z keeps a fixed fraction of the tape.",
+   "where": "<code>python3 py/fuel.py 3000 20000</code>"
+  },
+  {
+   "level": "open",
+   "title": "Every round's defect needs at most one visit",
+   "text": "<code>nx W &le; 1</code> for the round tape <code>x W</code> of every round from 9 on. By <code>nonhalt_of_need</code> this is all that is left; it is equivalent to every defect dying, now as a property of each round's starting tape.",
+   "where": ""
   }
  ],
  "check": [
   ". /etc/profile.d/lean.sh      # after scripts/setup-lean.sh",
   "holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/lean/check.sh",
   "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/twinforms.py 2000",
+  "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/fuel.py 3000 20000   # margins, height check (40 s)",
+  "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/potential.py 1500",
   "g++ -O2 -o toksim holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/c/toksim.cpp && ./toksim 100000 10000 -1 rec.bin   # 2 minutes",
   "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/rounds_stats.py rec.bin",
   "cd holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py && python3 vasym.py 420",
   "gcc -O2 -o triage tools/c/triage.c && ./triage 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 1000000000",
-  "python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py"
+  "python3 -m bbtools.ctl 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF 6   # from tools/py",
+  "python3 holdouts/1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/py/conveyor.py 6000 200   # the value law, exact Z, the floor, the conveyor (about 20 min)"
  ],
  "explainer": {
-  "lede": "Nobody knows whether it halts. Read in the words <code>1010</code>, <code>000</code> and <code>100</code>, its tape is a binary counter with doublers, and each round sends one defect through it. Lean proves that a tape with at most one defect never halts within a round, so a halt needs a defect that survives its round; in 500,000 rounds followed word by word, none did.",
+  "lede": "Nobody knows whether it halts. Read in the words <code>1010</code>, <code>000</code> and <code>100</code>, its tape is a binary counter with doublers, and each round sends one defect through it. Lean proves that a tape with at most one defect never halts within a round, and that from round 9 on the machine never halts if each round's defect needs at most one visit, a number read off the round's starting tape. In the run the defect needs 3 or 4 visits and gets 2<sup>k/2</sup>.",
   "facts": [
    {
     "level": "kernel",
@@ -212,14 +276,19 @@
     "text": "A tape with at most one defect never halts within a round (<code>lean/Total.lean</code>)."
    },
    {
+    "level": "kernel",
+    "value": "round 9",
+    "text": "From there, if each round's defect needs at most one visit, it never halts (<code>lean/Fuel.lean</code>)."
+   },
+   {
+    "level": "trusted",
+    "value": "3 of 2<sup>k/2</sup>",
+    "text": "Visits a round's defect needs, against the visits it gets (rounds 13 to 3,000 and three later rounds)."
+   },
+   {
     "level": "trusted",
     "value": "500,000 rounds",
     "text": "Every defect followed word by word; each died about halfway into the tape (more than 2<sup>944,371</sup> steps)."
-   },
-   {
-    "level": "open",
-    "value": "0.27 k words",
-    "text": "The irregular bottom layer a defect would have to cross in one round."
    }
   ],
   "presets": [
@@ -231,6 +300,20 @@
    "steps": 20000
   },
   "sections": [
+   {
+    "id": "conveyor",
+    "eyebrow": "New, 24 November 2026",
+    "heading": "The far end is a conveyor",
+    "html": [
+     "<p>Take the clean tape a round's visit leaves, and give each digit 1 the weight 2<sup>&minus;h</sup> (h = doublers minus digits in front of it). The total is pinned to second order in every round checked (40 to 6,000):</p>",
+     "<p style=\"text-align:center\"><code>v = 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup> + O(2<sup>&minus;2m</sup>)</code> &nbsp; (k even; 145/127 for k odd; m = leading doublers)</p>",
+     "<p>The digit-only end of the tape <em>is</em> this number. Read from the far end, its digits are the binary expansion of 16/15 &minus; (288/127)&middot;2<sup>&minus;m</sup>, digit for digit, up to height 2m &minus; 11. Below height m that is 1.0001&nbsp;0001&nbsp;&hellip;, the period-4 layer; between m and 2m it is the period-28 layer.</p>",
+     "<svg viewBox=\"0 0 560 170\" role=\"img\" aria-label=\"The digit-only end of the tape by height: exact layers from the far end up to 2m, then the frozen and irregular digits, then the doubler-rich part where the defect dies\" style=\"width:100%;max-width:640px;height:auto;font:11px var(--mono);\"><rect x=\"20\" y=\"60\" width=\"110\" height=\"34\" fill=\"var(--head)\" stroke=\"var(--bg)\"/><rect x=\"130\" y=\"60\" width=\"110\" height=\"34\" fill=\"var(--accent)\" stroke=\"var(--bg)\"/><rect x=\"240\" y=\"60\" width=\"200\" height=\"34\" fill=\"var(--muted)\" stroke=\"var(--bg)\"/><rect x=\"440\" y=\"60\" width=\"100\" height=\"34\" fill=\"var(--line)\" stroke=\"var(--bg)\"/><text x=\"75\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">period 4</text><text x=\"185\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">period 28</text><text x=\"340\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">frozen, irregular</text><text x=\"490\" y=\"112\" text-anchor=\"middle\" fill=\"var(--fg2)\">doubler-rich</text><text x=\"20\" y=\"130\" text-anchor=\"start\" fill=\"var(--muted)\">0 (far end)</text><text x=\"134\" y=\"130\" text-anchor=\"start\" fill=\"var(--muted)\">m</text><text x=\"240\" y=\"130\" text-anchor=\"middle\" fill=\"var(--muted)\">2m</text><text x=\"440\" y=\"130\" text-anchor=\"middle\" fill=\"var(--muted)\">&asymp; 1.8 k</text><text x=\"130\" y=\"150\" text-anchor=\"middle\" fill=\"var(--fg2)\">front writes here</text><text x=\"440\" y=\"150\" text-anchor=\"middle\" fill=\"var(--halt, #d33)\">defect dies here</text><text x=\"130\" y=\"40\" text-anchor=\"middle\" fill=\"var(--fg2)\">exact: a floor no defect crosses</text><line x1=\"30\" y1=\"50\" x2=\"230\" y2=\"50\" stroke=\"var(--fg2)\"/><polygon points=\"230,46 238,50 230,54\" fill=\"var(--fg2)\"/><text x=\"30\" y=\"20\" text-anchor=\"start\" fill=\"var(--muted)\">4 new digits per round; every digit climbs 4 heights</text></svg>",
+     "<p><b>A conveyor.</b> Each round appends 4 digits at the far end, and every digit below height m climbs exactly 4 heights, unchanged. Flip one digit at height 5 in round 200 and it stays the only difference, climbing 4 per round, until the front starts rewriting at height m. An error in the tail is pushed out, 16 times smaller in v every round, so it never builds up.</p>",
+     "<p><b>A floor.</b> A defect that enters the exact layers anywhere, in any of its three forms, dies within 20 words. Its path never drops below height m &minus; 1, so it never needs more than one visit. Any round whose tape has these exact layers therefore kills its defect, however irregular the digits above them are.</p>",
+     "<p><b>Still open.</b> This works for one round, not yet for all of them. A defect that died <em>inside</em> the floor would lower it by up to about 20 heights, and nothing rules out such deaths repeating. In the run no defect ever comes close: from round 500 on every death is at least 211 heights above 2m (5,060 in round 6,000). The other missing piece is that the doubler-rich part keeps its heights, the two-round monotonicity, seen on 19,910 more random tapes with no exception.</p>"
+    ]
+   },
    {
     "id": "doublers",
     "eyebrow": "Decoded, 14 November 2026",
@@ -253,7 +336,22 @@
      "<svg viewBox=\"0 0 560 150\" role=\"img\" aria-label=\"The tape at the start of round 50,000, from the front (left) to the far end (right), in its layers\" style=\"width:100%;max-width:640px;height:auto;font:11px var(--mono);\"><rect x=\"20.0\" y=\"40\" width=\"65.0\" height=\"34\" fill=\"var(--line)\" stroke=\"var(--bg)\"/><text x=\"20.0\" y=\"32\" text-anchor=\"start\" fill=\"var(--fg2)\">leading doublers</text><text x=\"20.0\" y=\"20\" text-anchor=\"start\" fill=\"var(--muted)\">25,000</text><rect x=\"85.0\" y=\"40\" width=\"212.7\" height=\"34\" fill=\"var(--muted)\" stroke=\"var(--bg)\"/><text x=\"191.4\" y=\"92\" text-anchor=\"middle\" fill=\"var(--fg2)\">rich in doublers</text><text x=\"191.4\" y=\"104\" text-anchor=\"middle\" fill=\"var(--muted)\">81,811</text><rect x=\"297.7\" y=\"40\" width=\"34.8\" height=\"34\" fill=\"var(--halt, #d33)\" stroke=\"var(--bg)\"/><text x=\"315.1\" y=\"32\" text-anchor=\"middle\" fill=\"var(--fg2)\">irregular</text><text x=\"315.1\" y=\"20\" text-anchor=\"middle\" fill=\"var(--muted)\">13,402</text><rect x=\"332.6\" y=\"40\" width=\"77.4\" height=\"34\" fill=\"var(--accent)\" stroke=\"var(--bg)\"/><text x=\"371.3\" y=\"92\" text-anchor=\"middle\" fill=\"var(--fg2)\">frozen</text><text x=\"371.3\" y=\"104\" text-anchor=\"middle\" fill=\"var(--muted)\">29,782</text><rect x=\"410.0\" y=\"40\" width=\"65.0\" height=\"34\" fill=\"var(--head)\" stroke=\"var(--bg)\"/><text x=\"442.5\" y=\"32\" text-anchor=\"middle\" fill=\"var(--fg2)\">period 28</text><text x=\"442.5\" y=\"20\" text-anchor=\"middle\" fill=\"var(--muted)\">24,997</text><rect x=\"475.0\" y=\"40\" width=\"65.0\" height=\"34\" fill=\"var(--fg2)\" stroke=\"var(--bg)\"/><text x=\"507.5\" y=\"92\" text-anchor=\"middle\" fill=\"var(--fg2)\">1/15: period 4</text><text x=\"507.5\" y=\"104\" text-anchor=\"middle\" fill=\"var(--muted)\">24,996</text><line x1=\"297.7\" x2=\"297.7\" y1=\"36\" y2=\"120\" stroke=\"var(--fg2)\" stroke-dasharray=\"3 3\"/><text x=\"297.7\" y=\"134\" text-anchor=\"middle\" fill=\"var(--fg2)\">Z starts: most defects die within 100 words of here</text></svg>",
      "<p>The defect starts at the front, is pushed through the part rich in doublers, and dies at the first <code>I O</code> it can reach (it crosses <code>O</code> and pairs <code>I I</code>): in 95% of the rounds within a hundred words of where Z starts, otherwise earlier, in the part rich in doublers. In about a third of the rounds it gets into Z, and then it eats a few irregular digits, about as many as random digits would allow:</p>",
      "<svg viewBox=\"0 0 560 200\" role=\"img\" aria-label=\"How many words of Z the defect eats when it gets in, log scale\" style=\"width:100%;max-width:560px;height:auto;font:11px var(--mono);\"><rect x=\"40\" y=\"20.0\" width=\"12\" height=\"150.0\" fill=\"var(--accent)\"><title>e = 0: 21,589 rounds</title></rect><text x=\"46\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">0</text><rect x=\"56\" y=\"21.7\" width=\"12\" height=\"148.3\" fill=\"var(--accent)\"><title>e = 1: 19,259 rounds</title></rect><rect x=\"72\" y=\"21.6\" width=\"12\" height=\"148.4\" fill=\"var(--accent)\"><title>e = 2: 19,353 rounds</title></rect><rect x=\"88\" y=\"24.1\" width=\"12\" height=\"145.9\" fill=\"var(--accent)\"><title>e = 3: 16,485 rounds</title></rect><rect x=\"104\" y=\"26.4\" width=\"12\" height=\"143.6\" fill=\"var(--accent)\"><title>e = 4: 14,088 rounds</title></rect><rect x=\"120\" y=\"29.0\" width=\"12\" height=\"141.0\" fill=\"var(--accent)\"><title>e = 5: 11,833 rounds</title></rect><text x=\"126\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">5</text><rect x=\"136\" y=\"31.9\" width=\"12\" height=\"138.1\" fill=\"var(--accent)\"><title>e = 6: 9,782 rounds</title></rect><rect x=\"152\" y=\"35.1\" width=\"12\" height=\"134.9\" fill=\"var(--accent)\"><title>e = 7: 7,923 rounds</title></rect><rect x=\"168\" y=\"38.3\" width=\"12\" height=\"131.7\" fill=\"var(--accent)\"><title>e = 8: 6,373 rounds</title></rect><rect x=\"184\" y=\"41.3\" width=\"12\" height=\"128.7\" fill=\"var(--accent)\"><title>e = 9: 5,230 rounds</title></rect><rect x=\"200\" y=\"44.3\" width=\"12\" height=\"125.7\" fill=\"var(--accent)\"><title>e = 10: 4,274 rounds</title></rect><text x=\"206\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">10</text><rect x=\"216\" y=\"47.6\" width=\"12\" height=\"122.4\" fill=\"var(--accent)\"><title>e = 11: 3,447 rounds</title></rect><rect x=\"232\" y=\"50.3\" width=\"12\" height=\"119.7\" fill=\"var(--accent)\"><title>e = 12: 2,878 rounds</title></rect><rect x=\"248\" y=\"53.8\" width=\"12\" height=\"116.2\" fill=\"var(--accent)\"><title>e = 13: 2,275 rounds</title></rect><rect x=\"264\" y=\"57.7\" width=\"12\" height=\"112.3\" fill=\"var(--accent)\"><title>e = 14: 1,761 rounds</title></rect><rect x=\"280\" y=\"60.8\" width=\"12\" height=\"109.2\" fill=\"var(--accent)\"><title>e = 15: 1,432 rounds</title></rect><text x=\"286\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">15</text><rect x=\"296\" y=\"64.3\" width=\"12\" height=\"105.7\" fill=\"var(--accent)\"><title>e = 16: 1,134 rounds</title></rect><rect x=\"312\" y=\"67.1\" width=\"12\" height=\"102.9\" fill=\"var(--accent)\"><title>e = 17: 940 rounds</title></rect><rect x=\"328\" y=\"70.7\" width=\"12\" height=\"99.3\" fill=\"var(--accent)\"><title>e = 18: 740 rounds</title></rect><rect x=\"344\" y=\"73.7\" width=\"12\" height=\"96.3\" fill=\"var(--accent)\"><title>e = 19: 606 rounds</title></rect><rect x=\"360\" y=\"75.5\" width=\"12\" height=\"94.5\" fill=\"var(--accent)\"><title>e = 20: 536 rounds</title></rect><text x=\"366\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">20</text><rect x=\"376\" y=\"79.6\" width=\"12\" height=\"90.4\" fill=\"var(--accent)\"><title>e = 21: 409 rounds</title></rect><rect x=\"392\" y=\"82.8\" width=\"12\" height=\"87.2\" fill=\"var(--accent)\"><title>e = 22: 331 rounds</title></rect><rect x=\"408\" y=\"85.9\" width=\"12\" height=\"84.1\" fill=\"var(--accent)\"><title>e = 23: 270 rounds</title></rect><rect x=\"424\" y=\"89.3\" width=\"12\" height=\"80.7\" fill=\"var(--accent)\"><title>e = 24: 214 rounds</title></rect><rect x=\"440\" y=\"92.4\" width=\"12\" height=\"77.6\" fill=\"var(--accent)\"><title>e = 25: 175 rounds</title></rect><text x=\"446\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">25</text><rect x=\"456\" y=\"97.7\" width=\"12\" height=\"72.3\" fill=\"var(--accent)\"><title>e = 26: 123 rounds</title></rect><rect x=\"472\" y=\"101.2\" width=\"12\" height=\"68.8\" fill=\"var(--accent)\"><title>e = 27: 97 rounds</title></rect><rect x=\"488\" y=\"103.1\" width=\"12\" height=\"66.9\" fill=\"var(--accent)\"><title>e = 28: 86 rounds</title></rect><rect x=\"504\" y=\"104.7\" width=\"12\" height=\"65.3\" fill=\"var(--accent)\"><title>e = 29: 77 rounds</title></rect><rect x=\"520\" y=\"110.6\" width=\"12\" height=\"59.4\" fill=\"var(--accent)\"><title>e = 30: 52 rounds</title></rect><text x=\"526\" y=\"186\" text-anchor=\"middle\" fill=\"var(--muted)\">30</text><polyline points=\"46,20.0 62,23.2 78,26.4 94,29.6 110,32.7 126,35.9 142,39.1 158,42.3 174,45.5 190,48.7 206,51.9 222,55.0 238,58.2 254,61.4 270,64.6 286,67.8 302,71.0 318,74.2 334,77.3 350,80.5 366,83.7 382,86.9 398,90.1 414,93.3 430,96.5 446,99.6 462,102.8 478,106.0 494,109.2 510,112.4 526,115.6\" fill=\"none\" stroke=\"var(--head)\" stroke-width=\"2\"/><text x=\"34\" y=\"174.0\" text-anchor=\"end\" fill=\"var(--muted)\">10^0</text><text x=\"34\" y=\"139.4\" text-anchor=\"end\" fill=\"var(--muted)\">10^1</text><text x=\"34\" y=\"104.8\" text-anchor=\"end\" fill=\"var(--muted)\">10^2</text><text x=\"34\" y=\"70.2\" text-anchor=\"end\" fill=\"var(--muted)\">10^3</text><text x=\"34\" y=\"35.6\" text-anchor=\"end\" fill=\"var(--muted)\">10^4</text><text x=\"540\" y=\"20\" text-anchor=\"end\" fill=\"var(--fg2)\"><tspan fill=\"var(--accent)\">&#9632; words eaten (e)</tspan>  <tspan fill=\"var(--head)\">&#9632; random digits: 0.809^e</tspan></text></svg>",
-     "<p>So the question has moved. For the machine to halt, one defect would have to cross the whole irregular layer, about 0.27 k words (13,402 at round 50,000), in a single round, and then the regular layers above it. In 500,000 rounds the most it ever ate was 60 words. Nobody knows how to prove that the irregular digits never line up that way; it is the same kind of question as for Antihydra.</p>"
+     "<p>For the machine to halt, a defect would have to run out of push before it dies. Crossing the irregular layer, about 0.27 k words (13,402 at round 50,000), would not be enough: it would still carry about 2<sup>1.5 k</sup> visits and die in the layers above, which contain <code>I O</code>. In 500,000 rounds the most it ever ate was 60 words. What a proof has to control is the next section's margin.</p>"
+    ]
+   },
+   {
+    "id": "fuel",
+    "eyebrow": "New, evening of 22 November 2026",
+    "heading": "How much push a defect needs",
+    "html": [
+     "<p>Each round gives the defect a push: the round's single visit of A reaches it as 2<sup>m</sup> visits, one doubling for each of the m doublers in front of it. How much push does it need to die? The token rules answer that with a short recursion over the words behind it, read from the far end back to the defect:</p>",
+     "<p style=\"text-align:center\"><code>nx(O W) = 2&middot;nx(W) + 1</code> &nbsp; <code>nx(L W) = &lceil;nx(W)/2&rceil;</code> &nbsp; <code>nx(I W) = ne(W) + 1</code> &nbsp; <code>nx() = 1</code></p>",
+     "<p>with two companions <code>ne</code> and <code>n0</code> for the moments when the defect throws itself ahead (<code>ne(O W) = 2 ne(W) + 1</code>, <code>ne(L W) = &lceil;ne(W)/2&rceil;</code>, <code>ne(I W) = n0(W)</code>; <code>n0(O W) = 0</code>, <code>n0(L W) = 2(nx(W) &minus; 1)</code>, <code>n0(I W) = 2(2 ne(W) + 1)</code>). Lean proves that nx(W) visits always kill the defect of <code>x W</code> (<code>lean/Fuel.lean</code>, <code>fuel</code>). A digit in front doubles what is needed, a doubler halves it, and an <code>I O</code> where the defect dies resets it. Type a tape of words to see the need at every position:</p>",
+     "<div id=\"fu-box\" style=\"border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0\"><p style=\"margin:0 0 8px\">words after the defect <input id=\"fu-w\" type=\"text\" value=\"LLLLOLLLILILILOOIOII\" style=\"width:22em;font-family:var(--mono)\" aria-label=\"tape of words L, O, I\"> &nbsp; doublers in front, m <input id=\"fu-m\" type=\"number\" min=\"0\" max=\"60\" value=\"0\" style=\"width:4em\" aria-label=\"doublers in front of the defect\"></p><p style=\"margin:0 0 8px\"><button type=\"button\" data-fu=\"LLLLOLLLILILILOOIOII\" data-m=\"0\">round 9</button> <button type=\"button\" data-fu=\"ILLLLLLLLLLLLLLLOLOLOLIILIILOLLLLOLOLILLLIOOLOLOLOILIOLLLLLOOIOOIOLIOIILOOOOOIIOOIIOOOOIOOOIOOOI\" data-m=\"15\">round 32</button> <button type=\"button\" data-fu=\"OOOOOOOOIIIIO\" data-m=\"0\">a long O run</button> <button type=\"button\" data-fu=\"IOOOIOOOIOOOI\" data-m=\"0\">period 4</button></p><p style=\"margin:0 0 4px;color:var(--muted);font-size:13px\">Under each word: the visits a defect <code>x</code> placed just in front of it would need.</p><div id=\"fu-out\" style=\"font-family:var(--mono);font-size:13px;overflow-x:auto\"></div><p id=\"fu-verdict\" style=\"margin:8px 0 0\"></p></div>",
+     "<script>\n(function () {\n  const W = document.getElementById('fu-w'), M = document.getElementById('fu-m');\n  const out = document.getElementById('fu-out'), ver = document.getElementById('fu-verdict');\n  function need(w) {\n    const n = w.length; const nx = Array(n + 1), ne = Array(n + 1), n0 = Array(n + 1);\n    nx[n] = 1n; ne[n] = 0n; n0[n] = 0n;\n    for (let i = n - 1; i >= 0; i--) {\n      const t = w[i];\n      if (t === 'O') { nx[i] = 2n * nx[i + 1] + 1n; ne[i] = 2n * ne[i + 1] + 1n; n0[i] = 0n; }\n      else if (t === 'L') { nx[i] = (nx[i + 1] + 1n) / 2n; ne[i] = (ne[i + 1] + 1n) / 2n; n0[i] = 2n * (nx[i + 1] - 1n); }\n      else { nx[i] = ne[i + 1] + 1n; ne[i] = n0[i + 1]; n0[i] = 2n * (2n * ne[i + 1] + 1n); }\n    }\n    return nx;\n  }\n  function show() {\n    const w = (W.value.toUpperCase().match(/[LOI]/g) || []).slice(0, 200);\n    const m = Math.max(0, Math.min(60, parseInt(M.value || '0', 10) || 0));\n    const nx = need(w);\n    let h = '<table style=\"border-collapse:collapse\"><tr><td style=\"padding:2px 6px;color:var(--muted)\">word</td>' + w.map(t => '<td style=\"padding:2px 6px;text-align:center\">' + t + '</td>').join('') + '<td style=\"padding:2px 6px;color:var(--muted)\">end</td></tr>';\n    h += '<tr><td style=\"padding:2px 6px;color:var(--muted)\">need</td>' + nx.map(v => '<td style=\"padding:2px 6px;text-align:center;color:var(--fg2)\">' + v + '</td>').join('') + '</tr></table>';\n    out.innerHTML = h;\n    const got = 1n << BigInt(m);\n    ver.innerHTML = 'The defect needs <b>' + nx[0] + '</b> visit' + (nx[0] === 1n ? '' : 's') + ' and gets 2<sup>' + m + '</sup> = ' + got + ': ' + (nx[0] <= got ? 'it dies in this round.' : 'it would survive the round.');\n  }\n  W.addEventListener('input', show); M.addEventListener('input', show);\n  document.querySelectorAll('[data-fu]').forEach(b => b.addEventListener('click', () => { W.value = b.dataset.fu; M.value = b.dataset.m || '0'; show(); }));\n  show();\n})();\n</script>",
+     "<p>Along the run the answer never changes much: the defect sits behind m = k/2 doublers, gets 2<sup>k/2</sup> visits, and needs 3 or 4 of them in every round from 13 to 3,000 (and 3 at rounds 20,000, 50,000 and 300,000). Its path does not depend on the push at all, only where it stops does: fuel&middot;2<sup>&minus;b</sup> starts at 1 and drops by at most 2&middot;2<sup>&minus;b</sup> per step, so it can only run dry after crossing words of small doubler height b. Every word before the death point has height at least m.</p>",
+     "<p><b>A correction.</b> The Lean theorem of the afternoon assumed that every defect dies counting from blank tape. That is false: in round 2, <code>A(x L O I) = L I x I</code>, and round 3 starts with two defects. The early rounds are irregular; the clean picture starts at round 9, which the machine reaches at step 5,848. Lean now checks that start and proves: if from round 9 on every round's defect needs at most one visit, the machine never halts (<code>nonhalt_of_need</code>).</p>",
+     "<p>One more regularity, seen but not proved: two rounds never lower the doubler height at any token position up to where the defect died (every round from 40 to 3,000, and 19,991 random tapes). If that is a theorem, the margin near the front can never shrink, and a proof would need only that the digit end Z keeps a fixed fraction of the tape.</p>"
     ]
    },
    {
@@ -298,7 +396,7 @@
     "eyebrow": "Open",
     "heading": "Next steps",
     "html": [
-     "<p>Read the gaps as digits, write what one visit does to them and when the front collapses, and check the rule against the visits of a longer run; then find which value of the counter puts D on a 1 at the left end.</p>"
+     "<p>Prove that the doubler heights in front of the death point never drop over two rounds (it holds in every round checked and on random tapes), then bound how deep into Z a defect can die. The second part is about the irregular digits again, but needs much less than before: only that Z keeps a fixed fraction of the tape.</p>"
     ]
    },
    {
@@ -315,6 +413,6 @@
    }
   ]
  },
- "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; Lean: the visit functions are the machine, a tape with at most one defect cannot halt, and if every round's defect dies the machine never halts; every defect followed for 500,000 rounds; open: that every defect disappears before its round ends.",
+ "summary": "Binary counter with doublers (words 1010, 000, 100) and one travelling defect per round; Lean: the visit functions are the machine, a tape with at most one defect cannot halt, and from round 9 on (reached at step 5,848) the machine never halts if each round's defect needs at most one visit (a recursion over the round tape); the old reduction from blank tape was vacuous; the defect needs 3 or 4 visits and gets 2^(k/2); open: that margin in every round.",
  "family": "gap counter"
 }

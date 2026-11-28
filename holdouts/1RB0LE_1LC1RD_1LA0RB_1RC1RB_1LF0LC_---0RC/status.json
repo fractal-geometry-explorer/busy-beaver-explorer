@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. The head sweeps across the whole tape. Most of the tape is one ten-cell word repeated, and the rest, at the right end, is an irregular zone that keeps a roughly constant size of a few hundred cells. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 119 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof embeds a 6-mode pair-stack transducer into the machine with a 24-branch soundness proof, enters a soliton-wall invariant after 174 steps, and lifts orbit safety through a machine-independent big-step relation. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> Lean proves the exact way a halt would happen (A reading 1 with two 0s on its left) and how the head crosses the repeated word; the C simulator finds no halt in the first 10<sup>11</sup> steps. The whole question is about the irregular zone, which does not repeat."
  ],
  "claims": [
@@ -179,6 +180,8 @@
    }
   ]
  },
- "summary": "Bouncer whose tape is a long run of the word 1101101101, growing by one copy every seven sweeps, followed by an irregular zone of 270 to 560 cells that has not repeated; it halts only if A reads 1 with 0 0 on its left.",
- "family": "bouncer with a word run and a bounded chaotic zone, word 1101101101"
+ "summary": "Bouncer whose tape is a long run of the word 1101101101, growing by one copy every seven sweeps, followed by an irregular zone of 270 to 560 cells that has not repeated; it halts only if A reads 1 with 0 0 on its left. Decided outside: busycoq PR 119 proves in Rocq that it never halts (compiled here).",
+ "family": "bouncer with a word run and a bounded chaotic zone, word 1101101101",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

@@ -10,9 +10,9 @@
  "intro": [
   "This six-state, two-symbol Turing machine was one of the holdouts left open by the bbchallenge project; an outside Rocq proof has since shown that it never halts when started on a blank tape. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 18 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
-  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 90 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 90 (Alex Havrilla of DeepMind, 2026-11-17) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch: it uses no axioms (<code>Print Assumptions</code>), and its transition table is this machine. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer merged it into the BB6 branch (commit 9c078ca) on 26 November 2026. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>What this repository found on its own.</b> At a left turn the tape is mostly blocks <code>1^5 0</code> (374 of 461 blocks at 3&middot;10<sup>6</sup> steps) with defects (blocks of 13, 4, 7, 21); at a right turn the sea reads <code>(110)^k</code>. The sweeps convert between the two forms by shift rules proved in Lean, and different stretches of the tape drift at different speeds. The proof explains the blocks of 13: they separate <em>segments</em>, and the segments at the right end form a reservoir that the head drains and refills (see the explainer).",
   "Lean proves no halt in the first 10<sup>7</sup> steps (10,000 by the kernel alone); the C simulator finds none in 10<sup>9</sup>."
  ],
@@ -170,7 +170,7 @@
    }
   ]
  },
- "summary": "A sea of blocks 1^5 0 with defect blocks (13, 4, 7, 21) that drift through it at several speeds and interact. Decided outside: busycoq PR 90 proves in Rocq that it never halts (compiled here).",
+ "summary": "A sea of blocks 1^5 0 with defect blocks (13, 4, 7, 21) that drift through it at several speeds and interact. Decided outside: busycoq PR 90 (merged 26 Nov 2026) proves in Rocq that it never halts (compiled here).",
  "family": "periodic sea with drifting defects",
  "decision": "nonhalting",
  "sections": [

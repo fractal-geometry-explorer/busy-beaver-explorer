@@ -70,6 +70,22 @@ or halts without reading further. The number of prefixes still undecided grows b
 exits are the five seen before. So "every trip returns or exits in one of five ways" is a statement about nested
 clocks of every depth, not a finite check.
 
+**Trips by the residue of the first block** (25 Nov). The same first pass works for a block of any length:
+`L 0 0 0 1 1 A> 0 1^j 0 Z` becomes `L 0 0 0 1 1 1 0^(j-1) 1 1 A> Z` in j + 4 steps (`enter_gen`). For j ≥ 4 the trip
+into Z and the ticks of the nested clock then eat the 0s three at a time, and what is left over decides the end.
+Suppose the trips into Z return, 2^m of them taking Z to Z'. Then:
+
+| j | left over | the trip reaches | Lean |
+|---|---|---|---|
+| 4 + 3k | nothing | `L 0 0 0 E> 1^(7+3k) 0 Z'`, tick k+1 of the nested clock | `nest` |
+| 5 + 3m | one 0 | `L 0 0 0 E> 1^4 0 1^(3+3m) 0 Z'`, tick 0 of a nested clock; its one trip, into `1 1 1 ...`, returns, and the head leaves with `1^7 0 1 0 1^(1+3m) 0 Z'` | `trip_res2`, `res2_leaves` |
+| 6 + 3m | two 0s | `L E> 0 1 1 0 1 1 0 0 1^(4+3m) 0 Z'`, and the next step leaves in state B | `trip_res0`, `res0_leaves` |
+
+All three are proved for every m, Z and L (`lean/Residue.lean`) and agree with plain simulation on 899 random words.
+So, as long as the trips into Z return, a trip into a word that starts with `0 1^j 0` (j ≥ 4) never returns. It
+leaves its region to the left, and only the case j = 4 + 3k goes on as a clock there. Two of the five exits seen in
+testing are explained this way: B011011 (j ≡ 0 mod 3) and E111111 (j ≡ 1 or 2 mod 3, the nested clock of j = 4 + 3k once its tick k+1 is done).
+
 **The run reduces to one lemma about trips** (22 Nov). Call a *trip* the run from `0 0 0 1 1 A> W` (W any finite
 word) up to the moment the head steps left of those five cells. Take as a hypothesis the
 
@@ -111,6 +127,9 @@ Open.
   `rule_sweep`, `rule_merge` in `lean/ClockRules.lean` (written by `holdouts/1RB0RA_0LC0RE_1LE1LD_0LE---_1LF0LC_1RA1LE/py/gen_clock.py`).
 - Lean, kernel (`lean/Nest.lean`): `nest`, a trip into `0 1^(4+3k) 0 Z` becomes tick k+1 of a nested clock
   (every k, Z, L, under `PChain` for the nested trips); `enter`, `after_sweep`, `nest_then_tick`.
+- Lean, kernel (`lean/Residue.lean`): `trip_res2`, `res2_leaves`, `trip_res0`, `res0_leaves`, the trips into
+  `0 1^(5+3m) 0 Z` and `0 1^(6+3m) 0 Z`; `enter_gen` (the first pass for every block length), `rule_r1`, `rule_r2`,
+  `pstep_11` (P(1 1 X) = 1 0 X for every X).
 - Lean, kernel (`lean/Instance.lean`): `run_ticks`, the run from blank tape through four ticks (steps 470 to 2,964)
   via `tick_left_end` with the 15 trips proved concretely.
 - Lean (`lean/Rules.lean`): shift rules `bclear`, `ewalk`; (`lean/Blank.lean`) `step_none_iff`, no halt in 10^4
@@ -137,7 +156,9 @@ Open.
 
 Prove the trip lemma (no halt, no exit in A, D or F, for every word); the run from blank tape then never halts.
 A proof that doesn't depend on the word has to follow nested clocks: a trip is either short or a clock whose phases
-end in the same five exits. The next step is the phase end of a nested clock, with an arbitrary word after it and an
+end in the same five exits. The trips that start with a block are now classified by its residue (above), given that
+their own trips return. What remains is a trip whose nested trips exit, and the trips that start with `1` or with a
+short block (j ≤ 3). The next step is the phase end of a nested clock, with an arbitrary word after it and an
 arbitrary stack before it. Separately: describe P^(2^k) on the words of the run in closed form, accelerate a phase
 end, and read off the map from one phase to the next.
 

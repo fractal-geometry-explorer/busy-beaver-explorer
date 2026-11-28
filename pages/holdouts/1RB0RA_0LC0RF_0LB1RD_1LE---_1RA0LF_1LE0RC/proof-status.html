@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 16 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -94,6 +94,10 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-else">
     <h2 id="h-else">Other proofs and outside reports</h2>
     <div class="else">
+      <div class="card report">
+        <h3>Merged upstream: halts exactly when another holdout does</h3>
+        <p><a href="https://github.com/ccz181078/busycoq/pull/77">busycoq pull request 77</a>, merged into the BB6 branch on 2026-11-27 (commit <code>ea40624</code>, file <code>Eqv_TailWord.v</code>), proves that this machine halts from blank tape exactly when <a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</a> does. It decides neither machine, so halting stays open.</p>
+      </div>
       <div class="card label">
         <h3>Community label</h3>
         <p>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</p>
@@ -166,6 +170,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>The condition holds in the first 10<sup>11</sup> steps (now proved for all steps)</h3>
         <p>In the first 10<sup>11</sup> steps of the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost visited cell 100 times, always in state B on a 1, and all before step 4.5&middot;10<sup>6</sup>, while the counter in the wall was rebuilt after its first overflows; afterwards the right end of the tape does not move. At 270,284 visits of the head to the left end in state C, the tape of the run from C is the tape of the run from A followed by <code>10001101</code>. Proving the condition needs the theory of the counter's rebuild.</p>
         <p class="where"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code></p>
+      </div>
+      <div class="card">
+        <h3>The digit carry rule (from the sister machine)</h3>
+        <p>By the proved correspondence of the two runs, this machine's counter is the decoded counter of <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> in a mirror: 15 trips per sweep and a carry table of 73 entries that reproduces every sweep of that run to 2&middot;10<sup>10</sup> steps.</p>
+        <p class="where"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/carry.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>

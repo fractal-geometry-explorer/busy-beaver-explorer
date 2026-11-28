@@ -48,6 +48,13 @@ Only the generated `lean/Blank.lean`: the halting configurations, no halt in 10^
   the head crosses and comes back from.
 - What the cycle does to the run lengths of the rest of the tape is the real question.
 
+## Write-only test at the left end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's left end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **passes, but only because the trips are plain sweeps**.
+Computed, not proved: the return state (A, C or F) of all 7,112 deep trips from the left end is fixed by the end word and at most 2 more cells, and at every boundary of the tape the return state of a rightward trip is fixed by 8 cells (64 million deep trips, 236 classes by 16 cells). But a trip takes 5.1 steps per cell of depth. Around step 2.6 million three full sweeps and four short trips repeat at the left end with the same seven end words, and the tape grows by 22 cells per repeat. The left end is periodic, and the halt (`B> 1 1`) can only happen inside the bulk during a sweep, where a finite controller at the end says nothing. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
+
 <!-- related machines: written by holdouts/related.py -->
 
 ## Related machines

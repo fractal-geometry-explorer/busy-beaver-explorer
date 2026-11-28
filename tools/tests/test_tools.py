@@ -805,6 +805,23 @@ class TestSync(unittest.TestCase):
             self.assertTrue(fa)
 
 
+class TestCjump(unittest.TestCase):
+    """bbtools/cjump.py: the accelerated run of a two-counter machine against direct runs at the same step counts."""
+    def test_against_direct(self):
+        from bbtools import cjump
+        m = "1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---"
+        snaps = []
+        sim, info = cjump.accel(m, 3 * 10 ** 8, 120, verbose=0, snaps=snaps)
+        self.assertGreater(info["events_jumped"], 0)
+        self.assertTrue(snaps)
+        d = cjump.Sim(m)
+        for st, h, s, lo, cells in snaps[:: max(1, len(snaps) // 6)]:
+            d.run(st)
+            self.assertEqual((d.steps, d.head, d.state), (st, h, s))
+            self.assertEqual(d.seg(lo, lo + len(cells)), cells)
+            self.assertFalse(any(d.seg(d.lo - 8, lo)) or any(d.seg(lo + len(cells), d.hi + 8)))
+
+
 if __name__ == "__main__":
     try:
         unittest.main(verbosity=2)

@@ -268,6 +268,148 @@ one at position 201 from the right. So the A phase of round 16,952,683,091 is ex
 round 49,668: a new charged block that is far longer-lived than its neighbour. That is a forecast on today's front,
 not on the front of that round.
 
+## The A phase of round 16,952,683,091, run exactly (23 November 2026)
+
+**Trusted, bounded: the counter model does not halt in its first 16,952,683,091 rounds** (up from 561,525,639),
+and it passes the deciding A phase of the previous section without a halt; the A phase makes a new charged pair at the front.
+
+- **Run.** `py/cycle.py` resumed from round 613,061,665 (25,822 groups) and reached round 16,952,683,090 in
+  about 33 hours on one core. Two right-end events on the way were exact-model rounds: the last group ran out near
+  round 1.481·10^10 and the groups at the right end merged, with no halt. The list grew to 135,700 groups. The A
+  round itself could not be done by `cycle.py`: `model.jump` keeps the prefix values `L[i]` of the whole list, which
+  is O(m) integers of size 3^m, and the process ran out of the 15 GB of memory there, twice.
+- **`py/aphase.py`** does those rounds with `jump_fast`. It gives exactly `model.jump`'s result, and the module
+  docstring has the argument. It only computes the low k digits, where 3^k is the first power above the jump length.
+  Above k a borrow moves through the zero digits, so only the counts it passes change, and every division is by 3.
+  Tests:
+  - `aphase.py test 300000`: 300,000 random states, 0 mismatches.
+  - 8 jumps on a real 25,782-group state, the actual one and one with the last group emptied as in an A phase, all
+    equal to `model.jump`; 0.07 to 0.4 s each instead of 8 to 28 s.
+- **The A round** (round 16,952,683,090 to 16,952,683,091, 42 jumps, 17 minutes):
+  - Events: E, A, F, D, then a normal round start.
+  - 37 groups ran out and the list went from 135,700 to 135,663 groups.
+  - The groups at the right end afterwards agree with what `py/rightpart.py` computed for them on 21 November, as
+    they must.
+- **A new charge, at the front (corrected 23 November).** At the round start right after the A round, the only
+  charged pair is still the one from round 49,668 (now 201st from the right end). But that state has n0 ≡ 1 and
+  d1 = 2, so n0 + d1 ≡ 0, not 1 (mod 3). The end of the next round makes a pair of residue 2 at the very front:
+  at round 16,952,683,092, one more exact round, the charged pairs are (135,664th from the right, residue 2) and
+  (201st, residue 1). So the forecast of the previous section was right: this A phase made a new charge. Its left
+  block is the newborn front block, lifetime about 2^75 rounds, and its right neighbour's is about 2^71.6. If
+  the new charged block ran out before that neighbour, the model would halt. The sizes say the neighbour goes
+  first, as with the round-49,668 charge, but that is a heuristic, not a proof. (The first version of this section
+  said "no new charge". It had only looked at the state before that round end.)
+- **Next deciding event.** `py/rightpart.py run` from the new state lists the right-end events. Before round
+  1.636·10^16 there are only merges, and the next A phase is in round 16,359,800,336,602,988, a million times further
+  than this run reached. At about 1.5·10^5 rounds a second, `cycle.py` cannot get there. That needs the front in
+  closed form ("For later").
+- **Files.** `py/aphase.py`. The states are in the project files under `countdown-hunt/1RB1RF_run/` (`ckpt.pkl`,
+  1.8 GB, round 16,913,371,741; `postA_round16952683091.pkl`); they are too big for the repository.
+
+Reproduce: `python3 py/aphase.py test`; from a `cycle.py` state at round 16,952,683,090,
+`python3 py/aphase.py run preA.pkl postA.pkl` (17 min, about 4 GB).
+
+## The front in closed form, and why the next A phase is out of reach (23 November 2026)
+
+**Result: the front has a closed form, the lifetime model below, and it matches the exact model. But the exact
+model reads about one more bit of the young groups' sizes at every cycle break, so no closed form with bounded
+precision can follow the exact run to the A phase of round 16,359,800,336,602,988, and an exact run cannot get there
+either. The state would hold about 10^16 bits. What can be said about that A phase is that it cannot halt (an
+argument, not a run). Whether it makes a third charged pair is decided by the young front, which no computation
+here can reach.** The exact run was extended to round 19,437,497,185 with `py/cycle.py`: 2,484,814,094 rounds from round 16,952,683,091 (about 1.2 h of run time), 145,285 groups at the end, charges still [(135664, 2), (201, 1)], no exact-model round, no A phase, no halt. The state there is 2.1 GB and grows linearly with the round (checkpoint cycle_round19437497185.pkl in countdown-hunt/1RB1RF_run/).
+
+**The lifetime model.** Give a group with q groups to its right and size n the lifetime l = n / 3^q (in rounds;
+it loses exactly 3^q per round, `skip.py`). Measure the time inside a round, t, from 0 to 1. The borrow passes that
+group evenly, so every lifetime falls by 1 per unit of t, and the front block n0 grows by 1 in the same unit. When
+group j runs out at time t, it and its right neighbour (digit 1) merge into the left neighbour. The groups left of
+j then have two fewer groups to their right:
+
+    l_(j-1) <- 9 l_(j-1) + l_(j+1),     l_i <- 9 l_i for i < j-1 and for the front block,     j, j+1 removed.
+
+At t = 1 the front block becomes the newborn group. One death at time t gives a newborn of 1 + 8t. The two-round
+cycle of `cycle.py` is [1, 0, X, Y] -> [1, X+8, Y-1] -> [1, 0, X+7, Y-2]. The model leaves out terms of relative size
+3^-q except one, and that one drives everything. In the cycle the aged newborn has an exact small size c, and the next
+newborn has 3^q + 8c + 8. A single group j of size s gives newborn 3^(m-2) + 8·3^(j-1)·s + 7·3^(j-1) + 1 (checked on
+synthetic rounds with `rightpart.exact_round`). So the aged newborn's lifetime c / 3^q grows 8-fold per cycle from
+about 3^-m: c = (c0 + 8/7)·8^k − 8/7. After about 0.53m cycles it reaches 1 and the cycle breaks (a "blow-up"),
+unless some other group runs out first. Each blow-up adds a level to the front. This is why the list grows like
+sqrt(rounds): a blow-up comes every ~1.25m rounds and adds about one group.
+
+**Implementations and tests.**
+
+- `py/front.py lmtest`, in Python with fixed point 2^-P and the 3^-m seeds, against `skip.py`:
+  - from round 20,000: 29,667 round starts (up to the A phase of round 49,668), 0 mismatches, worst relative
+    error 3·10^-8;
+  - from round 10^6 (P = 1900): 50,000 round starts, 0 mismatches, 2^-188.
+- `c/front.c` is the fast version. It uses 256-bit fixed point (2^-128) and keeps the chain exactly as (c0, k) in
+  quad precision. Groups that cannot run out before the horizon are merged into frozen runs. The cycle is skipped K
+  cycles at a time. The right-end events from `rightpart.py` enter as global ×9 events. `py/front.py test` compares
+  it with `skip.py`:
+  - from round 21,800: 20,000 consecutive round starts, 0 mismatches (worst 10^-10);
+  - from round 20,000: 23,173 round starts;
+  - from round 10^6: 75,200 rounds (every 50th);
+  - after that the two drift apart.
+- On the real list (135,664 groups, from round 16,952,683,092), `front.c` gives the same young front as the exact
+  run (`cycle.py`): the same number of groups, lifetimes within 5·10^-15, at +2.0·10^6, +4.0·10^6 and +6.1·10^6
+  rounds. At +8.2·10^6 the error is 3·10^-8, at +1.0·10^7 it is 0.16, and after that the two fronts differ.
+- Speed: in 300 s `front.c` covers 1.3·10^12 rounds (the list grows to 1.19 million groups, about 1.05·sqrt(rounds)
+  as in the real run). To 1.6·10^16 it would need about 8 hours. That run would describe a typical front, not the
+  real one.
+
+**Why it drifts: the exact model is sensitive.** `py/front.py chaos R0 N` adds to every young group except the two
+that carry the chain a random multiple of 3 below 2^-128 of 3^q, so each lifetime moves by less than 2^-128 rounds.
+It then runs the exact model twice.
+
+| start | groups | difference reaches 2^-42 | about O(1) |
+|---|---|---|---|
+| round 20,000 | ~150 | after 21,000 rounds | |
+| round 10^6 | ~1,050 | | after ~100,000 rounds |
+
+That is one to two bits per blow-up, at both sizes. (A single perturbed group, as in the first tries, can stay
+quiet for a million rounds. The amplification goes through the front.) Up to round 1.6·10^16 there are about
+2·10^8 blow-ups. A faithful run would need about 2·10^8 bits per front value, which is the size of the exact integers
+themselves (3^m with m ~ 1.3·10^8 groups). The exact state there has about 10^16 bits, and the 4·10^9 events of
+the run would each act on numbers of that size. So neither an exact run nor a bounded-precision closed form reaches
+that round. A faster method would have to find structure in the low digits themselves.
+
+**What can still be said about the A phase of round 16,359,800,336,602,988 (argument, not a run).**
+
+- *The right end.* The right part is exact (`rightpart.py`). From round 16,952,683,092, groups disappear at the right
+  end in five rounds (each a ×9 for everything left of it): 22,942,956,308,407, 61,099,052,331,890,
+  61,236,386,801,232, 1,255,967,991,009,204 and 3,642,120,303,309,682. The A round starts at round
+  16,359,800,336,602,987 with last groups (..., 1.985·10^21, 1). So its wraps last about 6.6·10^20 wraps, every
+  lifetime falls by that much, and nearly all groups younger than that die in it.
+- *The old residue-1 charge.* With nothing fed into its block, the exact right part goes through that A round
+  (E, A, F, D, no halt). The block's lifetime goes from 2.8·10^22 to 1.9·10^26, and the charge is still there.
+  Feeding only enlarges the block.
+- *The new residue-2 charge* (from round 16,952,683,092). Its block has lifetime 1.81·10^22 (2^73.9), and only
+  merges and ×9 change that, both upward. That is far more than 1.6·10^16 rounds plus 6.6·10^20 wraps, even if a
+  wrap cost 9 rounds' worth. So it cannot run out before or in that A round. In an A phase it can instead be merged
+  into n0, when the groups in front of it all run out as first groups; the charge then disappears, which is not a
+  halt.
+- *The young front* has no charged pair: a first group never runs out in a normal round, since the newborn has
+  lifetime ≥ 1. So a halt up to the end of that A round would need one of the two charged blocks to run out, and
+  neither can. **Up to round 16,359,800,336,602,988 the model does not halt.** This rests on that argument and on
+  "charges are only made at first-group merges", which is checked exhaustively on small states.
+- *A third charge?* In the exact A round of 16,952,683,091 only 2 of the 37 deaths were first-group merges into
+  n0, at the very start of the wraps, and the second broke n0 + d1 ≡ 1. So the new charge is decided by the first
+  few front groups when the wraps start: the phase of the cycle and the chain at round 16,359,800,336,602,987. Small
+  test lists with different front shapes in front of the exact right part gave all outcomes: a new charge, no new
+  charge, or the residue-2 block merged into n0. Since that front is chaotic, this is a coin toss that no
+  computation here can call.
+
+**Files.** `py/front.py` (model, tests, the input writer for `front.c`, `chaos`) and `c/front.c`. In `py/cycle.py`,
+the skip length is capped at 2m + 8 cycles when the geometric term grows (λ > 1). At the state after round
+16,952,683,091, `ecount(λ, 2^40)` filled the memory. Skips are still verified symbolically, so the capped program
+gives the same rounds (`cycle.py test 100000`: 8,237 round starts agree).
+
+```sh
+gcc -O2 -o front holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/c/front.c -lquadmath
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/front.py lmtest 20000 30000 600
+FRONT_EXE=./front python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/front.py test 21800 20000 1
+python3 holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/py/front.py chaos 20000 25000 128
+```
+
 ## Pages
 
 - [`pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html`](../../pages/holdouts/1RB1RF_1LC0RE_1RD0LC_0LB0RA_1LD1RD_1RB---/explainer.html)

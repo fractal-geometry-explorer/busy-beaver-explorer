@@ -186,10 +186,10 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 9 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 26 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RC---</p>
-  <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
+  <p class="stand merged"><b>Decided by an outside Lean proof: it never halts</b><span>An open pull request (42) to DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the standard axioms. It is their proof, on their definitions, not one written in this repository; the ledger below says what this repository checked on its own.</span></p>
   <div class="col"><p class="lede">Nobody knows. This machine builds a row of blocks of <code>001</code>, freezes them one after another, and keeps working on the last one with a smaller bouncer that lives inside it. This page shows the pieces, the rule that the measurements follow, and what is proved.</p></div>
   <div class="facts">
     <div class="fact"><span class="ev c">Computed</span><b>4.46&middot;10<sup>20</sup> steps</b><span class="small">No halt in an accelerated run (Quick_Sim, an outside program).</span></div>
@@ -198,6 +198,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev h">Heuristic</span><b>power/sqrt</b><span class="small">The growth shape of the two sides of the tape (see below).</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
+    <div class="proof"><strong>An outside Rocq proof, compiled here: it never halts</strong><a href="https://github.com/ccz181078/busycoq/pull/113">busycoq pull request 113</a> (Alex Havrilla, 2026-11-24) contains a Rocq proof that this machine never halts (<code>verify/M_1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RCHHH.v</code>). busycoq's maintainer merged it into the BB6 branch on 2026-11-26 (commit <code>9c078ca</code>), and the merged file is identical to the one compiled here. We compiled the file on busycoq's BB6 branch (commit <code>33209bc</code>) with Coq 8.20.1 on 25 November 2026, in 5 s: the theorem <code>nonhalt : ~ halts tm c0</code> is stated on busycoq's own definitions of a machine and of halting, <code>Print Assumptions</code> reports no axioms, and the file's transition table is this machine. It is their proof, not one written in this repository. It agrees with the verdict on this page, which rests on DeepMind's Lean proof.</div>
+    <div class="proof"><strong>Proved in DeepMind's Lean, compiled here: it never halts</strong><a href="https://github.com/google-deepmind/cryptids/blob/84c3ef8/BusyBeaver/BB6/NonHalt/M_1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RCHHH.lean">M_1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RCHHH.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/42">google-deepmind/cryptids pull request 42</a> (commit <code>84c3ef8</code>, 26 November 2026; open, not merged into their main branch) proves that this machine never halts. We built it with Lean v4.35.0-rc4 on 2026-11-27: the theorem <code>BusyBeaver.M_1RB0RD_1LC0LE_0RA0LB_1RC1RF_1LB1RD_0RCHHH.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</div>
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
@@ -328,7 +330,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 9 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 26 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>

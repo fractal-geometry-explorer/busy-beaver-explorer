@@ -35,7 +35,10 @@ keeps growing while the rest churns.
   about 70 minutes; 806,171 ones at the end).
 - Lean, kernel only (`lean/EngineRules.lean`, written by `py/engine_rules.py`): 11 of the macro rules of DeepMind's
   busycoq PR 93 engine as they hold for this machine, for every count, including the 5 that differ from PR 93's table
-  (see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)).
+  (see [PR 93's engine on this table](#pr-93s-engine-on-this-table-22-november-2026)), and the two moves by which
+  the halving-chain engine crosses a digit to the right (`pr93_rightD0`, `pr93_rightD`).
+- Lean, kernel only (`lean/LearnedRules.lean`, written by `py/prove_prules.py`): the 100 most used of the halving-chain
+  engine's learned rules, for every count (see [A halving-chain engine](#a-halving-chain-engine-22-november-2026)).
 
 Everything else above is measured on runs (heuristic), not proved.
 
@@ -46,7 +49,8 @@ Halting needs D reading 0 with a 1 to its left.
 
 ## For later
 
-More than a day. Next: (1) follow the periodic block over time (how many copies per left visit) and prove the
+More than a day. Next: (0) the left-end counter of the halving-chain engine at 10^13 (see below) as a counter of its
+own; (1) follow the periodic block over time (how many copies per left visit) and prove the
 sweep across it with `symtm.prove`; (2) look at the irregular part as a list of numbers (runs 1^(3a+1)) and test
 whether the sweep acts on it as a finite transducer.
 
@@ -91,9 +95,61 @@ whether the sweep acts on it as a finite transducer.
   The jumps are validated, not proved, so this bound rests on them. Progress comes in bursts and depends on where a
   run pauses between targets: with targets ×1.5 apart the same program stalled near 8.4·10^13 for an hour.
 
+- **A chain-phase engine (26 November 2026).** `c/rsim_chain.cpp` is `rsim_fast.cpp` plus a macro step for the
+  chain phases, where rsim's jumps never fire. At each increment visit the right tape is read as a chain of levels
+  `1^(2a+1) 00` with short separators between them. One increment changes each separator and level by a rule that
+  depends only on its neighbours (a radius-1 automaton, learned from exact increments). It also moves a few long
+  blocks by fixed amounts and costs an affine number of steps in the counts. The cost is learned by perturbing each
+  count and running the exact simulator. The engine takes a macro step only when every rule it needs is known, and
+  only after the same pattern has been checked against an exact increment twice; any mismatch stops the run.
+  Checks: in a run to 9.84·10^17 with every prediction re-simulated, there were no mismatches. All 2,796
+  chain-phase exits (step count and a hash of the whole tape) are the same with and without macro steps, which
+  stood in for 700,000 increments. It found **no halt in 3,588,977,699,892,617,375 steps (3.5·10^18)** in
+  20 minutes. Past that it slows to rsim speed (a phase where an extra block shrinks three cells per increment,
+  which the engine does not yet treat). The macro steps rest on the learned automaton and cost model, which are
+  checked, not proved, like rsim's jumps.
+
 The same table from other starts: 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1RF (start B),
 1RB1RE_1RC0RF_0LD---_1LE1LD_1RA0LB_0RE1RF (start C) and 1RB0RF_0LC---_1LD1LC_1RE0LA_1RA1RD_0RD1RF (start D). The same
 changed rules apply to all four.
+
+## A halving-chain engine (22 November 2026)
+
+**Result: no halt in 2·10^17 steps of an exact engine that never jumps, and the engine's rules are proved, not
+measured.** The question stays open. The 10^18 bound still rests on the accelerated simulator above.
+
+- **The engine.** `c/hce.cpp` runs the reduced table G. The tape is two stacks of tokens around the head: digits `D n`
+  on the right, `S n = 1 (01)^(n+1)` on the left, raw bits, repeated words, and *segments* (long lists of digits, kept
+  as runs of repeated patterns and crossed in one move using their sum). The head is in one of PR 93's three modes R, L,
+  J or a plain state. Crossing a digit or a segment uses rules proved in Lean (`pr93_rightD0`, `pr93_rightD`,
+  `pr93_left`, `pr93_leftJ`). Everything else simulates a small window of tokens cell by cell. When a count in the
+  window is large, the engine applies a rule learned from five probe runs with counts `base + 6t`.
+- **The learned rules are proved.** `py/prove_prules.py` states each learned rule for this machine, detours
+  included, for every t and every tape around the window, and `bbtools.symtm` proves it. All 3,481 rules learned on
+  the way to 10^13 steps are proved this way (1,614,984 uses). Lean's kernel checks the 100 most used
+  (`lean/LearnedRules.lean`, 74% of the uses, in CI). Checking all of them takes hours: some proofs hit the kernel's
+  time limit and would need a different proof shape.
+- **The halt test.** A halt (D reading 0 with a 1 on its left) can only happen in a cell-by-cell window. A window
+  whose leftmost cell is D reading 0 is made wider first, so the cell to its left is always known. In the run below
+  this never happened.
+- **Checked against direct simulation.** The tape equals a direct simulation of G at 10^5, 10^7, 10^8 and 3·10^8
+  steps (`hce check`).
+- **The run.** `NOBLK=1 NOCYC=1 hce export 2e17` (no jumps of any kind): 200,000,000,629,086,925 steps of G without a
+  halt, in 27 minutes (10^17 after 21 minutes). The machine itself takes 2 more steps per detour, so this is also a
+  bound for the machine. By then the engine has learned 3,843 rules; the 3,481 learned by 10^13 are the ones proved
+  above. Event counts grow about ×3 per decade of steps: the engine is exact but does not batch whole far passes.
+  Runs toward 10^18 ran out of memory (14 GB) somewhere between 2·10^17 and 5·10^17 steps, in a jump of several GB
+  within a minute; the cause is not found yet. The segments' runs take 32 bytes each (16 million runs at 10^17).
+- **What it shows.** Around 10^12 steps the left end of the tape is exactly periodic: every 83 far passes it eats 4
+  copies of the block `D7 D0 D0 D2` and adds 166 `D0` digits further right. The engine can jump over such cycles
+  (cycle detection on its event hashes; 2 jumps over 3,590 cycles near 10^12), but by 10^13 the left end has become an
+  aperiodic, growing counter that eats `(D3 D0 D0)^58372` one copy per two far passes, and no further cycle repeats.
+  The middle of the tape (mostly `D0`) is passed through unchanged. All activity is at the left end (runs `1^(3a+1)`
+  used up 3 ones per far pass) and at the right end (two `D0` digits added per far pass, or a marker alternating `10`
+  and `1010`).
+- **Why it does not settle the question.** A proof needs the dynamics of the left-end counter, which is not
+  understood. The engine is written for this table; `c/hce.cpp` holds G's table in three arrays at the top (TW, TM, TQ) and the halt test in `rawsim`,
+  which is where a sibling table would change it.
 
 ## Reproduce
 
@@ -106,6 +162,14 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/rsim_fast_validate.py 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1e6,1e8,1e10,3e10
 g++ -O2 -std=c++17 -o rsim_fast holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_fast.cpp
 DECADES=1 ./rsim_fast 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF run 3900 out.json   # passes 10^18
+g++ -O2 -std=c++17 -o rsim_chain holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/rsim_chain.cpp
+LOGEXITS=1 ./rsim_chain 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF chain 1e25 1200 2   # 3.5*10^18 in 20 min
+LOGEXITS=1 ./rsim_chain 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF chain 1e17 3000 100000000   # no macro steps: same EXIT lines
+g++ -O2 -std=c++17 -o hce holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/c/hce.cpp
+NOBLK=1 ./hce check 1e5 1e7 1e8 3e8                    # tape equals direct simulation of G
+NOBLK=1 NOCYC=1 ./hce export 1e13 rules13.txt          # 15 seconds; the learned rules
+python3 holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF/py/prove_prules.py rules13.txt LearnedRules.lean 100   # symtm proofs
+NOBLK=1 NOCYC=1 ./hce export 2e17 rules.txt            # 27 minutes, no jumps
 gcc -O2 -o tmrun tools/c/tmrun.c && ./tmrun 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF 1000000500000   # about 70 minutes
 ```
 

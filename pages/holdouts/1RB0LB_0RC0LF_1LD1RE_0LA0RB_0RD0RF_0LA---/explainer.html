@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 22 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 24 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -194,7 +194,8 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
   <div class="facts">
     <div class="fact"><span class="ev k">Kernel</span><b>Visit.lean</b><span class="small">The visit law: the machine as a rewriting system on streams.</span></div>
     <div class="fact"><span class="ev k">Kernel</span><b>Word.lean</b><span class="small">The pass over the word, with exact counts, is the machine.</span></div>
-    <div class="fact"><span class="ev c">Computed</span><b>round 500,000</b><span class="small">No halt in the accelerated run; the PR59 machines halt in round 161,211.</span></div>
+    <div class="fact"><span class="ev k">Kernel</span><b>Deficit.lean</b><span class="small">The count is 2<sup>e</sup> &minus; c with a small deficit c; the cells written are its parities.</span></div>
+    <div class="fact"><span class="ev c">Computed</span><b>round 8,000,000</b><span class="small">No halt in the accelerated run; the PR59 machines halt in round 161,211.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>10<sup>11</sup> steps</b><span class="small">No halt in a direct run.</span></div>
     <div class="fact"><span class="ev c">Computed</span><b>2<sup>k</sup>, twice</b><span class="small">Turns of the busiest cell between left-end extensions.</span></div>
   </div>
@@ -208,7 +209,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#visitlaw">The visit law</a><a href="#try-visits">Run the visit law yourself</a><a href="#wordend">Where the only junk comes from</a><a href="#counters">Two counters and an engine</a><a href="#rhythm">The left side is clockwork</a><a href="#right">A counter with junk between its digits</a><a href="#halt">The dangerous moments</a><a href="#family">Eight machines, one mechanism</a><a href="#events3">The increments, proved for every size</a><a href="#open">What would settle it</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#visitlaw">The visit law</a><a href="#try-visits">Run the visit law yourself</a><a href="#wordend">Where the only junk comes from</a><a href="#nearmiss">One visit from the danger</a><a href="#deficit">The count is 2&lt;sup&gt;e&lt;/sup&gt; &amp;minus; c, and c is small</a><a href="#counters">Two counters and an engine</a><a href="#rhythm">The left side is clockwork</a><a href="#right">A counter with junk between its digits</a><a href="#halt">The dangerous moments</a><a href="#family">Eight machines, one mechanism</a><a href="#events3">The increments, proved for every size</a><a href="#open">What would settle it</a><a href="#shape">The shape of the run</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -311,6 +312,123 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p><b>Proved.</b> <code>lean/Word.lean</code> defines the pass over the word with exact counts and proves it is the machine: a <code>halt</code> there is a halt of the machine, and if every number of rounds computes to a word, the machine never halts. <code>lean/WordRun.lean</code> evaluates the first 2,000 rounds, about 10<sup>300</sup> visits. <b>Computed:</b> the same pass with counts 2<sup>e</sup> &minus; c (<code>wordrun.c</code>) finds no halt up to round 500,000, agrees with busycoq PR59 on the sister machines, and agrees cell for cell with the machine-level run at round 169,999.</p>
 <p><b>What would settle it.</b> Whether a round can ever end digit, digit with exactly 3 visits, junk. The counts that reach the last few blocks are small exact numbers, so this is a question about a short list of blocks fed by one small number per round.</p>
 </section>
+<section id="nearmiss">
+  <span class="eyebrow">Why the end alone cannot decide it</span>
+  <h2>One visit from the danger</h2>
+<p>The hope was an invariant of the last few blocks of the word: some property of the end that every round keeps and that rules out a digit block with exactly 3 visits right before junk. There is none. Take the real last 48 cells of the word, and let each later round bring any count that is a power of two, entering where the PR59 phase rule allows. In 2 or 3 rounds the end meets <code>111</code>. The blocks at the end allow the danger; only the counts keep it away.</p>
+<p>How exactly do they keep it away? Rerun every round of the real run with the count changed 60 cells before the end, and follow the copy for 6 more rounds with the real counts:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>change</th><th>rounds (of 500,000) that reach <code>111</code> within 6 rounds</th></tr></thead><tbody><tr><td>one or two visits fewer</td><td>0</td></tr><tr><td>one visit more</td><td>at least 47</td></tr><tr><td>two visits more</td><td>at least 105</td></tr><tr><td>twice the count</td><td>at least 15,526</td></tr><tr><td>half the count</td><td>at least 10,524</td></tr></tbody></table></div>
+<p>The misses by one or two visits (in 142 of the 500,000 rounds) all look alike. The real count there is 2<sup>a</sup> &minus; 3, 2<sup>a</sup> &minus; 2 or 2<sup>a</sup> &minus; 1 (in round 798 it is 8,190, 59 cells before the end); with one or two visits more it would be 2<sup>a</sup> &minus; 1, 2<sup>a</sup> or 2<sup>a</sup> + 1, and exactly two rounds later the pass would meet <code>111</code> (each case replayed on the whole word meets <code>111000</code> three cells before the end): a halt. So about once every 3,500 rounds the run is one or two visits away from it. What decides is the small deficit c in the count 2<sup>e</sup> &minus; c, set at the front of the word and halved by every digit block and doubled by every doubler on the way to the end. A proof either way has to follow that number through the whole word.</p>
+<p><b>Computed, not proved:</b> <code>py/endbfs.py</code> (the end on its own), <code>c/nearmiss.c</code> (the changed runs), <code>py/nearmiss_check.py</code> (one changed run replayed on the whole word with exact integers).</p>
+</section>
+<section id="deficit">
+  <span class="eyebrow">The carry as arithmetic</span>
+  <h2>The count is 2<sup>e</sup> &minus; c, and c is small</h2>
+<p>The count of visits a round carries along the word is astronomically large, but it can be written as 2<sup>e</sup> &minus; c where both parts are easy. The <em>level</em> e is a path: it starts at 0, goes up by one at every doubler <code>1010</code> and down by one at every digit block. The <em>deficit</em> c is a small number with four rules:</p>
+<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>the pass meets</th><th>it writes</th><th>deficit after</th></tr></thead><tbody><tr><td>a <code>0</code> at a block start</td><td><code>1</code></td><td>c + 1</td></tr><tr><td>a digit block <code>1?0</code></td><td><code>100</code> if c is even, <code>000</code> if c is odd</td><td>&lfloor;c/2&rfloor;</td></tr><tr><td>a doubler <code>1010</code></td><td><code>1010</code></td><td>2c</td></tr><tr><td><code>1011</code></td><td><code>0001</code></td><td>c + 1</td></tr></tbody></table></div>
+<p>The round ends where c catches up with 2<sup>e</sup>. <b>Proved in Lean</b> (<code>lean/Deficit.lean</code>, <code>visd_eq</code>): this is exactly the pass with exact counts, so it is the machine. Three things follow. A round writes parity bits: every digit block it crosses becomes <code>100</code> or <code>000</code> by the parity of c there, and an exact power of two (c = 0) changes nothing; only the zeros at block starts move c, by one each. The count can never exceed 2<sup>level</sup>, since c is a natural number. And the word end is where the level path comes down near 0, because only there can c reach 2<sup>e</sup>.</p>
+<p><b>Computed:</b> over all 3.5&middot;10<sup>10</sup> block starts of the first 200,000 rounds, c = 0 at 28% of them, c &le; 5 at 96%, c &le; 9 at 99.8%; the largest is 1,025 = 2<sup>10</sup> + 1 (a deficit of 1 doubled by ten doublers in a row).</p>
+<p><b>The danger, as arithmetic.</b> A junk event is the pass stopping on a <code>0</code> with a 1 right after it. It can be dangerous only when its last <code>000</code> block takes 3 visits instead of 2, that is, when the count entering it is odd: <b>an odd deficit there</b>. A doubler doubles the deficit, so a doubler right before that block always makes it safe; all 39 junk events of the first 8,000,000 rounds were doubler (level 2, deficit 3), then <code>000</code> entered with deficit 6, even: safe.</p>
+<div class="panel" id="dfw">
+  <div class="controls">
+    <label class="small" for="dfwR">Round</label>
+    <input id="dfwR" type="number" min="1" max="10000" value="798" style="width:7em">
+    <button type="button" id="dfwGo">Show the round</button>
+    <button type="button" id="dfwPrev">&larr;</button>
+    <button type="button" id="dfwNext">&rarr;</button>
+  </div>
+  <div id="dfwInfo" class="small" style="margin:10px 0"></div>
+  <div style="overflow-x:auto"><svg id="dfwSvg" role="img" aria-label="The last cells of the word, with the level and deficit of the pass at every block" height="150"></svg></div>
+  <div class="cap">The word before the round, its last 64 cells (the end on the right). Each block the round reads is boxed: <span style="color:var(--accent)">doublers</span> <code>1010</code>, <span style="color:var(--kernel)">digit blocks</span> <code>1?0</code>; a dot marks a 0 at a block start that took one visit (deficit + 1). Under each block: the level e and the deficit c when the pass reaches it, so the count there is 2<sup>e</sup> &minus; c. The red bar is where the pass stops (c = 2<sup>e</sup>). The browser runs every round before it with the rules of <code>lean/Deficit.lean</code>, in ordinary small integers. Round 798 is the first near miss of the table above: 59 cells before the end the count is 8,190 = 2<sup>13</sup> &minus; 2.</div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var HALT111 = true;
+  var N = 1 << 18, T, F, E, done, stop;
+  function reset() { T = new Uint8Array(N); F = N >> 2; T[F] = 1; E = F + 1; done = 0; stop = null; }
+  // one round of the deficit pass; rec: collect the blocks it reads near the end
+  function round(r, rec) {
+    F -= 2; T[F] = 1; T[F + 1] = 0;
+    var p = F, e = 0, c = 0, oldE = E, info = { blocks: [], zeros: [], oldE: oldE, F: F, word: null, cmax: 0 };
+    if (rec) info.word = T.slice(Math.max(F, oldE - 64), oldE + 8);
+    for (;;) {
+      if (e < 30 && c === (1 << e)) break;
+      var w0 = T[p], w1 = T[p + 1], w2 = T[p + 2], w3 = T[p + 3], w4 = T[p + 4];
+      if (w0 === 0) {
+        T[p] = 1; c++;
+        if (rec && p >= oldE - 64) info.zeros.push(p);
+        if (e < 30 && c === (1 << e) && w1 === 1) info.junk = p;
+        continue;
+      }
+      if (c > info.cmax) info.cmax = c;
+      var k = w2 === 0 ? "d" : (w1 === 0 && w3 === 0) ? "L" : w1 === 0 ? "x" : "!";
+      if (rec && p >= oldE - 64) info.blocks.push({ p: p, k: k, e: e, c: c });
+      if (k === "d") { T[p] = e === 0 ? 0 : (c % 2 === 0 ? 1 : 0); T[p + 1] = 0; if (e > 0) { e--; c = Math.floor(c / 2); } p += 3; }
+      else if (k === "L") { e++; c *= 2; p += 4; }
+      else if (k === "x") { T[p] = 0; T[p + 2] = 0; T[p + 3] = 1; c++; info.r1011 = p; if (e < 30 && c === (1 << e) && w4 === 1) info.junk = p + 3; }
+      else {
+        if (HALT111 || w3 === 1) { stop = { r: r, p: p, what: "halts (" + (w3 === 1 ? "1111" : "111") + ")" }; break; }
+        if (w4 === 1) { T[p + 1] = 0; c++; } else { stop = { r: r, p: p, what: "meets 11100, which has no proved rule" }; break; }
+      }
+    }
+    info.end = p; info.e = e;
+    if (p + 4 > E) E = p + 4;
+    while (E > F && T[E - 1] === 0) E--;
+    info.grow = E - oldE; info.len = E - F;
+    return info;
+  }
+  reset();
+  var svg = document.getElementById("dfwSvg"), out = document.getElementById("dfwInfo"), inp = document.getElementById("dfwR");
+  var NS = "http://www.w3.org/2000/svg";
+  function el(n, a, t) { var x = document.createElementNS(NS, n); for (var k in a) x.setAttribute(k, a[k]); if (t !== undefined) x.textContent = t; return x; }
+  function draw(info) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var cw = 13, x0 = 34, a = Math.max(info.F, info.oldE - 64), n = info.word.length;
+    svg.setAttribute("width", x0 + n * cw + 10); svg.setAttribute("viewBox", "0 0 " + (x0 + n * cw + 10) + " 150");
+    var lab = function (y, t) { svg.appendChild(el("text", { x: 2, y: y, "font-size": 10, fill: "var(--muted)" }, t)); };
+    lab(30, "cells"); lab(62, "level"); lab(80, "deficit"); lab(112, "to end");
+    for (var i = 0; i < n; i++) {
+      var q = a + i, v = info.word[i];
+      svg.appendChild(el("rect", { x: x0 + i * cw, y: 18, width: cw - 1, height: 18, rx: 2, fill: v ? "var(--ink)" : "var(--cell0)", stroke: "var(--line)" }));
+      if ((info.oldE - q) % 8 === 0 && i > 2) svg.appendChild(el("text", { x: x0 + i * cw + cw / 2, y: 112, "font-size": 9, "text-anchor": "middle", fill: "var(--muted)" }, String(info.oldE - q)));
+    }
+    info.blocks.forEach(function (b) {
+      var i = b.p - a, len = b.k === "d" ? 3 : 4, col = b.k === "L" ? "var(--accent)" : b.k === "d" ? "var(--kernel)" : "var(--open)";
+      if (i < 0) return;
+      svg.appendChild(el("rect", { x: x0 + i * cw - 1, y: 15, width: len * cw + 1, height: 24, rx: 3, fill: "none", stroke: col, "stroke-width": 2 }));
+      svg.appendChild(el("text", { x: x0 + i * cw + 2, y: 62, "font-size": 11, fill: "var(--fg)", "font-family": "var(--mono)" }, String(b.e)));
+      svg.appendChild(el("text", { x: x0 + i * cw + 2, y: 80, "font-size": 11, fill: b.c % 2 ? "var(--open)" : "var(--fg)", "font-family": "var(--mono)" }, String(b.c)));
+    });
+    info.zeros.forEach(function (q) { var i = q - a; if (i >= 0) svg.appendChild(el("circle", { cx: x0 + i * cw + cw / 2 - 0.5, cy: 46, r: 2.5, fill: "var(--fg2)" })); });
+    var ie = info.end - a;
+    if (ie >= 0 && ie < n) svg.appendChild(el("rect", { x: x0 + ie * cw - 1, y: 10, width: 3, height: 34, fill: "var(--open)" }));
+  }
+  function show(r) {
+    r = Math.max(1, Math.min(10000, r | 0)); inp.value = r;
+    if (r <= done) reset();
+    var t0 = Date.now();
+    while (done < r - 1 && !stop) round(++done, false);
+    if (stop) { out.innerHTML = "The run stops in round " + stop.r + ": it " + stop.what + "."; return; }
+    var info = round(++done, true);
+    var txt = "Round " + r + " (the word had " + (info.len - info.grow).toLocaleString() + " cells, " + (Date.now() - t0) + " ms to compute): the pass stops " +
+      (info.end < info.oldE ? (info.oldE - info.end) + " cells before the old end" : info.end === info.oldE ? "right at the old end" : (info.end - info.oldE) + " cells past the old end") + ", at level " + info.e + "; the word grows by " + info.grow + ". Largest deficit along the whole word in this round: " + info.cmax + ".";
+    if (info.junk !== undefined) txt += " <b>Junk event</b>: the pass stops on a 0 right before a 1.";
+    if (info.r1011 !== undefined) txt += " The round meets <code>1011</code>.";
+    if (stop) txt += " The run stops here: it " + stop.what + ".";
+    out.innerHTML = txt; draw(info);
+  }
+  document.getElementById("dfwGo").addEventListener("click", function () { show(+inp.value); });
+  document.getElementById("dfwPrev").addEventListener("click", function () { show(+inp.value - 1); });
+  document.getElementById("dfwNext").addEventListener("click", function () { show(+inp.value + 1); });
+  show(798);
+})();
+</script>
+
+<p><b>Most near misses were impossible.</b> Of the 141 changed runs (one to four visits more, 60 cells before the end, in 98 of the first 200,000 rounds) that reach <code>11100</code>, 91 need a count above 2<sup>level</sup> there, which no run can bring. The other 50 need deficit 0 (19) or 1 (31) where the run had 1 to 3, and nothing found so far excludes them. The rules of this machine (every <code>111</code> halts) give the same 141 cases, all at <code>11100</code>.</p>
+<p><b>Computed:</b> the deficit pass run to round 8,000,000 (<code>c/piperun.c</code>, resumed from saved words, 3 to 4 rounds in flight; its words equal those of <code>c/wordrun.c</code> and <code>c/deficit.c</code>, checked cell for cell): no halt and no <code>111</code>. The word is then 49,715,076 cells long. All 39 junk events (rounds 161,210 to 7,588,796) have the same safe shape: doubler, <code>000</code> with 2 visits, junk; the next round passes through <code>1011</code> each time.</p>
+<p><b>Computed, not proved:</b> <code>c/deficit.c</code> (the deficit statistics; its word after 200,000 rounds equals <code>c/wordrun.c</code>'s, cell for cell), <code>c/nearmiss_level.c</code> (the changed runs with the level), <code>c/piperun.c</code> (the long run, several rounds in flight), all in <code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/</code>.</p>
+</section>
 <section id="counters">
   <span class="eyebrow">The machine</span>
   <h2>Two counters and an engine</h2>
@@ -344,7 +462,9 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="open">
   <span class="eyebrow">Next</span>
   <h2>What would settle it</h2>
-<p>Decide whether the end of the word can ever produce a digit block with exactly 3 visits right before a junk event (an invariant that excludes it would show the machine never halts; a round that does it, followed by a round that reaches the junk with two visits, is a halt). The visits reaching the last few blocks are small exact numbers, so this is a question about a short list of blocks fed by one small number per round.</p>
+<p>The end of the word cannot settle it on its own: its last blocks allow the dangerous junk, and the real run is kept from it only by the exact counts it brings there, sometimes by a single visit. What is needed is a handle on the deficit c of the count 2<sup>e</sup> &minus; c along the whole word (the number busycoq PR59 follows for 161,211 rounds): either an invariant of it that keeps the end safe, which would show the machine never halts, or a round where it lets the end make a digit block with 3 visits, junk, and then enter at offset 2, which would be a halt.</p>
+<p>The deficit form (above) makes this small-number arithmetic: halting needs a junk round whose last <code>000</code> block receives an odd deficit, then a round that reaches the junk with two visits at offset 2. Each step is about the level path and the bits of the deficit, but they are carried in from far along the word.</p>
+<p>The deficit form (above) makes this small-number arithmetic: halting needs a junk round whose last <code>000</code> block receives an odd deficit, then a round that reaches the junk with two visits at offset 2. Each step is about the level path and the bits of the deficit, but they are carried in from far along the word.</p>
 </section>
 <section id="shape">
   <span class="eyebrow">First look</span>
@@ -384,7 +504,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 22 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 24 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -409,9 +529,16 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>c/vis.c</code>, <code>py/vis.py</code>, <code>py/vis_check.py</code> in <code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/</code></div></div><div><b>It does not halt where the PR59 machines halt</b><p>The first four rules are also the rules of the three machines that busycoq PR59 proves to halt (they halt on <code>1011</code>, in round 161,211). An accelerated simulator of the visit law (counts of visits kept as 2<sup>e</sup> &minus; c; rules learned from the table; checked against a direct run, against exact integers for 1,500 rounds, and against PR59's halting round on the reference machine) finds: rounds 1 to 161,210 use only the four shared rules, round 161,211 meets <code>1011</code> at the right end of the word, writes <code>0001</code> and continues. Observed: no halt and no visit to <code>111</code> up to round 200,000. Computed, not proved.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c</code></div></div><div><b>No halt to round 500,000</b><p>The word computation with counts 2<sup>e</sup> &minus; c: no halt and no <code>111</code> up to round 500,000; two junk events (rounds 161,210 and 194,646), both of the safe kind. Checked against busycoq PR59 (round 161,211) and, cell for cell, against the machine-level run at round 169,999.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code> (an argument, not a Lean statement)</div></div><div><b>The only junk is 11</b><p>From the rules: a round writes only <code>000</code>, <code>100</code> and <code>1010</code>, and a count runs out only on a <code>0</code> with one visit left, so two touching 1s appear only when a count runs out just before a 1 (a junk event), and only at the word end. A junk event is dangerous only after a digit block that took exactly 3 visits; after a doubler it never is.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/endbfs.py</code></div></div><div><b>No invariant of the word end alone</b><p>The last 48 cells of the word with the block starts of the round that wrote them, fed by any count that is a power of two (2<sup>6</sup> to 2<sup>18</sup>, the sizes the run brings there) entering at the PR59 phase offsets, reach <code>111</code> within 2 or 3 rounds from the real word ends of rounds 11, 2,000 and 5,000. So no invariant of the last few blocks alone excludes the dangerous junk; a proof has to use the counts.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/nearmiss.c</code>, <code>py/nearmiss_check.py</code></div></div><div><b>One visit from 111</b><p>Adding one visit to the count 60 cells before the word end leads to <code>111</code> exactly two rounds later in at least 47 of the first 500,000 rounds (two visits: at least 105; doubling the count: at least 15,526; halving it: at least 10,524); taking one or two away never does. For this machine every such <code>111</code> is a halt. One case, round 798, is replayed on the whole word with exact integers.</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>tools/py/bbtools/triage.py</code></div></div><div><b>Growth shape: exp/exp</b><p>Left of the start, the visited part of the tape grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.073). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).</p></div></div>
     <div class="litem" data-level="heuristic"><div><span class="ev h">Heuristic</span><div class="w"><code>README.md</code></div></div><div><b>Two counters of the same events</b><p>Read off the run: the counters on the two sides of the engine both go up by 1 at every visit of the head to the engine, one of them with fixed junk stretches between some digits; the junk is written when a carry reaches the end of the tape.</p></div></div>
-    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. The two junk events so far followed a doubler and were harmless.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>visd_eq</code>, <code>roundW_visd</code>, <code>visd_digit_exact</code>, <code>lean/Deficit.lean</code></div></div><div><b>The pass in deficit form</b><p><code>visd</code> carries the count as 2<sup>e</sup> &minus; c: the level e goes up at every doubler and down at every digit block, the deficit c goes up by one at every zero at a block start and at <code>1011</code>, halves (rounded down) at every digit block and doubles at every doubler; a digit block becomes <code>100</code> or <code>000</code> by the parity of c, and the pass stops where c = 2<sup>e</sup>. It is exactly the pass of <code>lean/Word.lean</code> (<code>visd_eq</code>), and a round is <code>visd</code> from level 0, deficit 0 (<code>roundW_visd</code>). An exact power of two leaves digit blocks unchanged (<code>visd_digit_exact</code>).</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c</code>, <code>nearmiss_level.c</code></div></div><div><b>The deficit is small; most near misses are impossible</b><p>Over all block starts of the first 200,000 rounds the deficit is 0 at 28%, at most 5 at 96%, and never above 1,025. Of the 141 changed runs (one to four visits more, 60 cells before the end, in 98 of the first 200,000 rounds) that reach <code>11100</code>, 91 need a count above 2<sup>level</sup> there, which no run can bring. The other 50 need deficit 0 (19) or 1 (31) where the run had 1 to 3, and nothing found so far excludes them. The rules of this machine (every <code>111</code> halts) give the same 141 cases, all at <code>11100</code>. A junk event can be dangerous only if the deficit entering its last <code>000</code> block is odd; all 39 so far (8,000,000 rounds) had it even (6), after a doubler.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c</code></div></div><div><b>No halt to round 8,000,000</b><p><b>Computed:</b> the deficit pass run to round 8,000,000 (<code>c/piperun.c</code>, resumed from saved words, 3 to 4 rounds in flight; its words equal those of <code>c/wordrun.c</code> and <code>c/deficit.c</code>, checked cell for cell): no halt and no <code>111</code>. The word is then 49,715,076 cells long. All 39 junk events (rounds 161,210 to 7,588,796) have the same safe shape: doubler, <code>000</code> with 2 visits, junk; the next round passes through <code>1011</code> each time.</p></div></div>
+    <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>offset2_gap</code>, <code>offset2_gap_bound</code>, <code>junk_after_digit_count</code>, <code>lean/Deficit.lean</code></div></div><div><b>Two rounds over the same digits pull together</b><p>Where every block of a round starts on the last cell of a digit block of the round before, the gap &delta; = n &minus; 2m between the later round's count n and the earlier round's count m becomes &lfloor;&delta;/2&rfloor; + z &minus; (m &minus; z) mod 2 one block later (z = 1 if the block starts with <code>0</code>), so a gap in [&minus;3, 2] stays there. A round that ends with two such blocks and stops on the next <code>0</code> entered them with 4 to 7 visits.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/junkgeom.c</code></div></div><div><b>Junk after a digit is missed by one visit</b><p>A junk event after a digit needs the earlier round's last three blocks to be digits with the next round starting on the last cells of the first two (a third of all rounds), and a count of 4 to 7 there. In the first 400,000 rounds that count is always at least 8, and it is exactly 8 twice (rounds 341,090 and 375,512). The extremes of its two parts (the earlier round's count, smallest 5, and the gap, smallest &minus;6) would reach the window together, so the end of the word alone cannot exclude it.</p></div></div>
+    <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts only if a visit meets <code>111</code>, which needs a junk event (a count running out with one visit just before a 1) after a digit block that took exactly 3 visits, followed by a round that enters at offset 2. All 39 junk events so far (8,000,000 rounds) followed a doubler and were harmless; one after a digit needs a count of 4 to 7 where the run always brings at least 8. No invariant of the last blocks alone can exclude the dangerous one: one visit more at 60 cells before the end leads to <code>111</code> two rounds later about once every 3,500 rounds, so a proof has to control the deficit of the count along the whole word. In the deficit form (<code>lean/Deficit.lean</code>) the danger is a parity: the deficit entering the last <code>000</code> block of a junk round must be odd.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same tapes at another pace, whatever the states, as 4 other holdouts (listed on the explainer page).</p></div></div>
 </section>
 <section id="check">
@@ -422,7 +549,9 @@ holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- 1000000000
 python3 holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/py/visit.py 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- H112145 /dev/stdout | diff - holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/lean/Visit.lean
 gcc -O2 -o vis holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/vis.c &amp;&amp; (ulimit -s unlimited; ./vis 1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA--- 400000)   # accelerated run to round 200,000, about 45 minutes
-gcc -O2 -o wordrun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c &amp;&amp; ./wordrun 0LF 300000   # the pass over the word, about 8 minutes</code></pre>
+gcc -O2 -o wordrun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/wordrun.c &amp;&amp; ./wordrun 0LF 300000   # the pass over the word, about 8 minutes
+gcc -O2 -o deficit holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/deficit.c &amp;&amp; ./deficit 200000   # deficit statistics, a few minutes
+gcc -O2 -pthread -o piperun holdouts/1RB0LB_0RC0LD_1LD1RE_0LA0RF_1RB0RD_0RB---/c/piperun.c &amp;&amp; ./piperun 3 2000000 50000 p2M.txt   # the long run, 3 threads (2 hours); then ./piperun 3 3000000 50000 p3M.txt p2M.txt 2000000</code></pre>
 </section>
 <footer class="foot">
   <p>Built by <code>tools/pages/build_explainer.py</code> from <code>holdouts/1RB0LB_0RC0LF_1LD1RE_0LA0RB_0RD0RF_0LA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

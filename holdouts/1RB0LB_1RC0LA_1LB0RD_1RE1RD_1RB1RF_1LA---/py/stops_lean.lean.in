@@ -1,0 +1,31 @@
+/-! ## Any stop part, for any number of carry digits -/
+
+/-- **The sweep for any stop part.**  If, after the carry has crossed the T digits `tops` (the last ones of the
+chain), the machine comes back in `k` steps to the boundary where the way back over the chain starts, whatever lies
+behind the head, then the whole sweep from the sample works for every list `rs` of T digits in front of `tops`:
+the digits of `rs` become Z digits with the same runs and the end run gains 2 blocks. -/
+theorem sweepGen (z k : Nat) (rs tops : List Nat) (ht : tops ≠ []) (S N M : Tape)
+    (h : ∀ X, steps k ⟨Hacc tops X, S, .D⟩ = some ⟨app [true, true, true] X, N, .A⟩)
+    (hN : N = app [false, false, false, false, false, false] (app [false, false, true] M)) :
+    steps (12 * z + cost rs + (fcost tops + k + 21))
+      ⟨blank, app [false, false, true] (rep z [false, false, false, true] (Tc (rs ++ tops) S)), .A⟩
+      = some ⟨blank, app [false, false, true] (rep (z + 2) [false, false, false, true] (Zc rs (app [false, false, false, false, false, true] M))), .A⟩ := by
+  subst hN
+  have h1 := startC z (rs ++ tops) (by simp [ht]) S
+  have h2 := fwdChain (rs ++ tops) (cons false (cons true (rep z [true, true, false, true] (cons true blank)))) S
+  rw [Hacc_append] at h2
+  have h3 := h (Hacc rs (cons false (cons true (rep z [true, true, false, true] (cons true blank)))))
+  have h4 := retChain rs.reverse (cons false (cons true (rep z [true, true, false, true] (cons true blank)))) M
+  rw [← Hacc_eq] at h4
+  have h5 := endT z (Wacc rs.reverse M)
+  have e5 : app [false, false, true] (app [false, false, false, true] (rep z [false, false, false, true]
+      (app [false, false, false, true] (app [false, false, false, false, false, true] (Wacc rs.reverse M)))))
+      = app [false, false, true] (rep (z + 2) [false, false, false, true] (Zc rs (app [false, false, false, false, false, true] M))) := by
+    rw [endE, Wacc_eq, Zacc_eq, List.reverse_reverse]
+  have hc : 4 * z + 3 + (fcost (rs ++ tops) + (k + (bcost rs.reverse + (8 * z + 18))))
+      = 12 * z + cost rs + (fcost tops + k + 21) := by
+    rw [fcost_append, bcost_reverse, ← cost_split]; omega
+  have := steps_seq trans h1 (steps_seq trans h2 (steps_seq trans h3 (steps_seq trans h4 h5)))
+  rw [hc] at this
+  exact this.trans (congrArg (fun r => some (⟨blank, r, .A⟩ : Config)) e5)
+

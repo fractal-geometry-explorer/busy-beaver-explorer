@@ -54,6 +54,14 @@ the definitions do not depend on the start) and run from blank tape in state B.
 For comparison: T4 from B, whose table differs from U only in E1 and D0, halted after 261,156 fast steps on a tape
 of 2^2410 cells (`1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA0RF_0LD---`), and U from A has run past 2^4439 cells.
 
+## The fast-engine run (22 November 2026)
+
+The same engine extracted with Coq's numbers realized by Zarith (`ExtT4CZ.v`, `buildz.sh` and `runz.ml` in the start-A
+folder, explained there) has the old engine's full compressed state at fast step 35,227,304, the old run's last checkpoint
+(equal MD5 digests), and is far faster. `runz B ...` ran **627,839,771 fast steps from blank tape without stopping**; the tape
+then has more than 2^25751 cells, so **the machine does not halt in its first 10^7751 steps** (extracted code and OCaml,
+not Coq's kernel). Every entry into raw mode was in the classes of the table above.
+
 ## Files
 
 - `build.sh PR93.v OUTDIR` (with `BUSYCOQ` set): calls the start-A folder's `build.sh` with `START=B` and this

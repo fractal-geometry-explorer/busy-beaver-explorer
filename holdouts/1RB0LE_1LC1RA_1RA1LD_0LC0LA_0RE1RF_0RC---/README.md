@@ -22,13 +22,21 @@ Open, and now exactly a question about one orbit of a map on three numbers.
 - **Lean (kernel): halts iff the orbit visits m = 3b + 1.** `halts_iff_visits` (`lean/Criterion.lean`): the map stops
   only at C(2, 0, b ≥ 2), only C(1, k, 0) goes there, and C(m + 3, k, b + 1) always sweeps to C(m, k + 2, b). So the
   machine halts iff the orbit visits some C(3B + 1, k, B).
-- **Iterated (trusted):** `c/far.c` ran the map with the sweep jumped for 56 minutes: 3.26e21 map steps,
-  7.03e32 machine steps, sizes up to about 2.6e11, no halt. Earlier: `tools/collatz/c/dm9516.c`,
-  10^12 accelerated steps.
+- **Lean (kernel): the shortcuts of the fast iterator.** `left_step` and `wall_step` (`lean/Batch.lean`): q + 1 map
+  steps take C(3q + r, k, q + 2 + c) to C(4q + 2k + 2 + 2[r = 1], 1, c) (q ≥ 1, r < 3), and b + 1 map steps take
+  C(3b + d, k, b) to C(d + 1, 0, 2(k + 2b) + 2).
+- **Iterated (trusted):** `c/fast.c` runs the map with both shortcuts (left steps L ≤ 9 at a time from tables indexed
+  by m mod 3^L), each used only with a margin of 101 so every sweep start with |m − 3b − 1| ≤ 100 is still examined.
+  It agrees exactly with `c/far.c` to 3·10^8 walls and is 1.9 times as fast. Three two-hour legs from checkpoints:
+  **1.81e24 map steps, 9.16e36 machine steps**, 9.50e11 walls, 3.80e12 sweep starts, m + b up to 7.6e12, no halt.
+  Earlier: `c/far.c`, 3.26e21 map steps (7.03e32 machine steps) in 56 minutes; `tools/collatz/c/dm9516.c`, 10^12
+  accelerated steps.
 - **Near misses (heuristic):** m − 3b came within 2 of 1 at 16 sweep starts (values −1, 0, 2, 3), at sizes up
-  to about 1.3e11, about once per decade of steps. If m − 3b behaved like a random number of the size of
-  b, a halt would have a chance of about 0.1 per decade of steps (about 20 sweep starts per decade have |m − 3b − 1| ≤ 100):
-  probability 1 eventually, but very late. About 3 hits were expected in this run and none came (chance about 5%).
+  to about 1.3e11, and at none in the 1.8 further decades of the fast run (about 2 expected). Sweep starts with
+  |m − 3b − 1| ≤ 100: 669 in all, 38 to 71 per decade of b, flat in d (about 3 per value of d; d = 1 is one of many
+  values with none). If m − 3b behaved like a random number of the size of b, about 3.3 hits of d = 1 were expected
+  by now and none came (chance about 4%); residues of d at walls mod 2, 3, 4, 5, 8, 9, 16, 27 are uniform, so there is
+  no sign of an invariant. The model gives about 0.28 expected hits per decade of b: probability 1 eventually, very late.
 - Older checks: no halt in 10^7 steps by `native_decide` and 10^9 by C; Quick_Sim 7.07·10^14 steps.
 
 ## What it does
@@ -66,8 +74,10 @@ block about twice as long. A halt needs a run of sweeps that empties both blocks
 
 ## Later
 
-1. Find a reason why the orbit avoids m = 3b + 1 at sweep starts, or a faster accelerator (whole rounds between walls)
-   to push the hunt beyond sizes 10^12.
+1. Find a reason why the orbit avoids m = 3b + 1 at sweep starts. The work is now about one map step per unit of
+   size (≈ 0.12 walls per unit of m + b), so going much further needs an idea that skips walls, not a faster loop:
+   between walls the left steps form a 4/3 map m → 4⌊m/3⌋ + c on the fraction x = m/(m + b), and the wall is
+   x → 4x − 3, an expanding map with no visible structure.
 
 ## First look
 
@@ -89,6 +99,7 @@ start, 1,213 right), 3,050 ones.
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/lean/check.sh
+gcc -O2 -march=native -o /tmp/fast holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/c/fast.c -lm && /tmp/fast 7000 /tmp/ck.bin  # repeat to resume
 gcc -O2 -o /tmp/far holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/c/far.c && /tmp/far 3600
 gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC--- 1000000000 records 100000 > /tmp/rec.txt
 python3 holdouts/1RB0LE_1LC1RA_1RA1LD_0LC0LA_0RE1RF_0RC---/py/shape.py /tmp/rec.txt a=10

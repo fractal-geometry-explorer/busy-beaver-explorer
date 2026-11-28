@@ -419,13 +419,13 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
     <p>The 257 holdouts that fit none of the families of the 20 November regrouping (<code>holdouts/FAMILIES.md</code>) were run again through the standard deciders, with limits well above the usual ones. <b>None was decided.</b> Nothing new needed a Lean or busycoq certificate.</p>
     <ul>
       <li><b>Cyclers and translated cyclers</b> (<code>tools/c/tcyc.c</code>): 2·10<sup>9</sup> steps from blank tape for each machine, comparing every record configuration with the last 4,000 on the same side. No repeat.</li>
-      <li><b>Backward reasoning</b> (<code>tools/c/bkr.c</code>, the rule of busycoq's <code>BackwardsReasoning.v</code>): for 249 machines a backward chain of 3,000 steps from a halting configuration exists, so no depth up to 3,000 works. For the other 8 the set of backward configurations grows exponentially (over 3·10<sup>6</sup> distinct ones by depth 53 for <code>1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---</code>) without dying out.</li>
+      <li><b>Backward reasoning</b> (<code>tools/c/bkr.c</code>, the rule of busycoq's <code>BackwardsReasoning.v</code>): for 249 machines a backward chain of 3,000 steps from a halting configuration exists, so no depth up to 3,000 works. For the other 8 the set of backward configurations grows exponentially (over 2·10<sup>8</sup> distinct ones by depth 70 for <code>1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---</code>), and a rerun on 24 November found a backward chain of 20,000 steps for each, so no budget up to depth 20,000 can work.</li>
       <li><b>n-gram CPS</b> (<code>tools/c/ngramcps.c</code>): plain windows up to 30 cells, fixed histories of 1, 2 and 3 up to 20, 15 and 11 cells, LRU up to 11, and asymmetric windows (left 1 to 12, right up to 16). Each width was raised until the decider reached a halting configuration or ran out of budget (8·10<sup>6</sup> configurations or 40 s).</li>
       <li><b>RepWL</b> (<code>tools/c/repwl.cpp</code>): 60 settings per machine, block length 1 to 48 and threshold 2 to 4, with 300,000 configurations (twice Coq-BB5's 150,001). 3,076 of the 15,420 runs reached a halting configuration, and the rest hit the budget.</li>
     </ul>
     <p>Each new decider was tested for soundness against direct simulation on random two- to five-state machines: RepWL decided 132 of 230, translated cyclers 1,091 of 1,500, with no machine it called non-halting halting within 2 to 3·10<sup>6</sup> steps. Per machine: <code>holdouts/deciders_rerun/results.json</code> and <code>README.md</code>.</p>
     <details><summary>All 257 machines</summary>
-    <p>Columns: the 13 November family; the backward-reasoning depth already defeated (3000) or "exponential"; the largest n-gram window at which the decider still reached a halt, for plain / history 1 / 2 / 3 / LRU, where "-" means it ran out of budget at the first width; the cycler run; RepWL settings that reached a halt, out of those run.</p>
+    <p>Columns: the 13 November family; the backward-reasoning depth already defeated (3000 or 20000); the largest n-gram window at which the decider still reached a halt, for plain / history 1 / 2 / 3 / LRU, where "-" means it ran out of budget at the first width; the cycler run; RepWL settings that reached a halt, out of those run.</p>
     <div style="overflow-x:auto"><table class="rerun">
     <thead><tr><th>machine</th><th>family</th><th>backward</th><th>n-gram</th><th>cyclers</th><th>RepWL</th></tr></thead>
     <tbody>
@@ -448,7 +448,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB0RE_0LC0RF_1LD1LC_1RA0LD_0RD1RE_---0LB</code></td><td>F01</td><td>3000</td><td>16 / 16 / 15 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>3 / 60</td></tr>
 <tr><td><code>1RB0RE_1LC0LE_---1LD_1LE1LB_1RA0LF_0RD1LA</code></td><td>F01</td><td>3000</td><td>28 / 20 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>14 / 60</td></tr>
 <tr><td><code>1RB0RE_1LC0RA_0LD1LB_1LA1LE_0LB0LF_1LD---</code></td><td>F01</td><td>3000</td><td>15 / 13 / 11 / 9 / 1</td><td>none to 2·10<sup>9</sup></td><td>3 / 60</td></tr>
-<tr><td><code>1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---</code></td><td>F01</td><td>exponential</td><td>17 / 16 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
+<tr><td><code>1RB0RE_1LC0RA_0LD1LB_1LA1LF_0LB0RD_0LB---</code></td><td>F01</td><td>20000</td><td>17 / 16 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
 <tr><td><code>1RB0RF_1LC0RA_1LD1LB_0LE---_1LA0LA_1RE1LD</code></td><td>F01</td><td>3000</td><td>30 / 20 / 15 / 11 / 7</td><td>none to 2·10<sup>9</sup></td><td>33 / 60</td></tr>
 <tr><td><code>1RB0RF_1LC0RC_0LD1LC_1RE1LB_1RF---_1LE1RA</code></td><td>F01</td><td>3000</td><td>30 / 20 / 15 / 11 / 4</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
 <tr><td><code>1RB0RF_1RC0RD_1LD1LB_1RE0LC_1RA1RD_1RD---</code></td><td>F01</td><td>3000</td><td>29 / 20 / 15 / 11 / 1</td><td>none to 2·10<sup>9</sup></td><td>5 / 60</td></tr>
@@ -498,7 +498,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB1LD_1RC0RB_1LA1LE_1LC0LA_1LF0RD_0LB---</code></td><td>F03</td><td>3000</td><td>16 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>14 / 60</td></tr>
 <tr><td><code>1RB1LE_0RC0RB_1RD1RF_1LA0LE_0LD0LB_---0RD</code></td><td>F03</td><td>3000</td><td>16 / 17 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
 <tr><td><code>1RB1LE_1LC0LF_1LA1RD_1LB0RD_0LC0LA_---1RA</code></td><td>F03</td><td>3000</td><td>25 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>10 / 60</td></tr>
-<tr><td><code>1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA</code></td><td>F03</td><td>exponential</td><td>25 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
+<tr><td><code>1RB1LE_1RC0RD_1LD0RE_0LA0LC_1LC1RF_---0RA</code></td><td>F03</td><td>20000</td><td>25 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
 <tr><td><code>1RB1RD_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---</code></td><td>F03</td><td>3000</td><td>26 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>8 / 60</td></tr>
 <tr><td><code>1RB1RF_1LC0RD_1RE0LD_0RE0LF_0LB0RA_0LC---</code></td><td>F03</td><td>3000</td><td>15 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>7 / 60</td></tr>
 <tr><td><code>1RB---_1RC0RA_1LD0RB_0LE0LC_1RE1LF_0RD0RB</code></td><td>F06</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
@@ -572,7 +572,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB0RA_1RC0RF_0RD1LE_0LE---_1LF1LE_1RA0LC</code></td><td>F08</td><td>3000</td><td>14 / 15 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>5 / 60</td></tr>
 <tr><td><code>1RB0RA_1RC0RF_1RD1LE_1RE---_1LF1LE_1RA0LE</code></td><td>F08</td><td>3000</td><td>15 / 15 / 14 / 11 / 9</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
 <tr><td><code>1RB0RB_1LC1RA_0LE1LD_0RE1LF_---1LA_1LD0LC</code></td><td>F08</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>11 / 60</td></tr>
-<tr><td><code>1RB0RB_1LC1RA_0LF0LD_1LE1RB_1RA1LC_---1LA</code></td><td>F08</td><td>exponential</td><td>30 / 20 / 15 / 11 / 6</td><td>none to 2·10<sup>9</sup></td><td>10 / 60</td></tr>
+<tr><td><code>1RB0RB_1LC1RA_0LF0LD_1LE1RB_1RA1LC_---1LA</code></td><td>F08</td><td>20000</td><td>30 / 20 / 15 / 11 / 6</td><td>none to 2·10<sup>9</sup></td><td>10 / 60</td></tr>
 <tr><td><code>1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF</code></td><td>F08</td><td>3000</td><td>29 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>20 / 60</td></tr>
 <tr><td><code>1RB0RC_1RC1RA_1LD0RA_0LE1RA_---1LF_1RB0LF</code></td><td>F08</td><td>3000</td><td>17 / 16 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
 <tr><td><code>1RB0RD_1LC0RA_1LF1LD_0RE0LC_---1LB_1RB1RC</code></td><td>F08</td><td>3000</td><td>28 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>13 / 60</td></tr>
@@ -587,7 +587,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB1RA_1LC1RE_---0LD_1LE1LD_0RA0LF_1LF0LB</code></td><td>F08</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>15 / 60</td></tr>
 <tr><td><code>1RB1RD_1LC---_1RF0LD_0RE1LC_1RA1RF_1RE0LF</code></td><td>F08</td><td>3000</td><td>22 / 20 / 15 / 11 / 1</td><td>none to 2·10<sup>9</sup></td><td>15 / 60</td></tr>
 <tr><td><code>1RB1RD_1LC0RD_0LE1RD_1RA0RB_---1LF_1RA0LF</code></td><td>F08</td><td>3000</td><td>18 / 16 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
-<tr><td><code>1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC</code></td><td>F08</td><td>exponential</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
+<tr><td><code>1RB1RE_1LC1LA_1RA0LD_1LC0LE_0LF0RA_---1RC</code></td><td>F08</td><td>20000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>9 / 60</td></tr>
 <tr><td><code>1RB1RF_0RC1RD_1LC1LA_0LE1RE_1RA0RB_---0LC</code></td><td>F08</td><td>3000</td><td>12 / 12 / 11 / 7 / 4</td><td>none to 2·10<sup>9</sup></td><td>2 / 60</td></tr>
 <tr><td><code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code></td><td>F09</td><td>3000</td><td>14 / 14 / 13 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>2 / 60</td></tr>
 <tr><td><code>1RB0LB_1RC1LC_1LD1RE_---0LA_1LE0RF_1RA0LF</code></td><td>F09</td><td>3000</td><td>21 / 20 / 15 / 11 / 5</td><td>none to 2·10<sup>9</sup></td><td>7 / 60</td></tr>
@@ -606,7 +606,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_0RA0LA</code></td><td>F10</td><td>3000</td><td>17 / 16 / 15 / 11 / 1</td><td>none to 2·10<sup>9</sup></td><td>3 / 60</td></tr>
 <tr><td><code>1RB0LA_0RC---_0RD0RF_1LD0LE_0LA1LE_1RA0RE</code></td><td>F10</td><td>3000</td><td>17 / 16 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>1 / 60</td></tr>
 <tr><td><code>1RB0LA_0RC0RF_0RD0RA_1LD0LE_0LA1LE_---1LB</code></td><td>F10</td><td>3000</td><td>18 / 17 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>3 / 60</td></tr>
-<tr><td><code>1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD</code></td><td>F10</td><td>exponential</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>39 / 60</td></tr>
+<tr><td><code>1RB0LC_1LC0RE_1LD1LC_1LA1RD_---0RF_0LB0RD</code></td><td>F10</td><td>20000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>39 / 60</td></tr>
 <tr><td><code>1RB0LC_1LC0RE_1LD1LC_1LA1RD_1RF1RB_---0RB</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>31 / 60</td></tr>
 <tr><td><code>1RB0LC_1RC0RF_1LA0LD_0LE0RA_0RB1LD_0LA---</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 2</td><td>none to 2·10<sup>9</sup></td><td>7 / 60</td></tr>
 <tr><td><code>1RB0LC_1RC1RA_0LD0LF_0LB0LE_1LA1LD_---0RA</code></td><td>F10</td><td>3000</td><td>22 / 20 / 15 / 11 / 7</td><td>none to 2·10<sup>9</sup></td><td>8 / 60</td></tr>
@@ -630,7 +630,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB1RA_1LC1LB_1RE0LD_1RA0LB_---0RF_1RC0RA</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>43 / 60</td></tr>
 <tr><td><code>1RB1RA_1LC1LD_1LD0LB_1RE0RF_---1RD_1RA1RB</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>8 / 60</td></tr>
 <tr><td><code>1RB1RA_1RC---_1RD0LD_1LE1RF_0RA1LD_0RC0LC</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>19 / 60</td></tr>
-<tr><td><code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code></td><td>F10</td><td>exponential</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>35 / 60</td></tr>
+<tr><td><code>1RB1RA_1RC1LB_1LD0RA_---0LE_1LC0LF_1RE0LB</code></td><td>F10</td><td>20000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>35 / 60</td></tr>
 <tr><td><code>1RB1RA_1RC1LB_1LD0RA_1LB0LE_1LF1LD_---0LD</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>29 / 60</td></tr>
 <tr><td><code>1RB1RC_1LC0LE_1RD1RC_1LB0RA_---0LF_1RD1LF</code></td><td>F10</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>33 / 60</td></tr>
 <tr><td><code>1RB1RD_0RC0RD_0LD1LE_1LC0RB_1LF---_1LA0LE</code></td><td>F10</td><td>3000</td><td>15 / 20 / 15 / 11 / 7</td><td>none to 2·10<sup>9</sup></td><td>16 / 60</td></tr>
@@ -669,7 +669,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB0RE_1RC0RE_1LD1RB_1LA0LA_1RF0LC_---0RC</code></td><td>F11</td><td>3000</td><td>22 / 20 / 15 / 11 / 4</td><td>none to 2·10<sup>9</sup></td><td>5 / 60</td></tr>
 <tr><td><code>1RB0RE_1RC1RE_1LD1LC_0RB0LC_1RF0RB_---1RA</code></td><td>F11</td><td>3000</td><td>30 / 20 / 15 / 11 / 8</td><td>none to 2·10<sup>9</sup></td><td>13 / 60</td></tr>
 <tr><td><code>1RB0RF_1LC1RD_1LA1LC_1RA1RE_0RB0LD_---0LC</code></td><td>F11</td><td>3000</td><td>18 / 16 / 13 / 11 / 6</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
-<tr><td><code>1RB0RF_1LC1RD_1LA1LC_1RA1RE_1RB0RB_---0LC</code></td><td>F11</td><td>exponential</td><td>19 / 16 / 9 / 8 / 3</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
+<tr><td><code>1RB0RF_1LC1RD_1LA1LC_1RA1RE_1RB0RB_---0LC</code></td><td>F11</td><td>20000</td><td>19 / 16 / 9 / 8 / 3</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
 <tr><td><code>1RB0RF_1RC0LE_1LD0LC_1RE0RD_1LB0RA_1RC---</code></td><td>F11</td><td>3000</td><td>17 / 16 / 15 / 11 / 6</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
 <tr><td><code>1RB0RF_1RC1RE_0LD---_1LE1LD_1RF0RF_0RA0LB</code></td><td>F11</td><td>3000</td><td>14 / 14 / 13 / 11 / 7</td><td>none to 2·10<sup>9</sup></td><td>2 / 60</td></tr>
 <tr><td><code>1RB1LA_1RC1RD_0LA0LD_1RE1LC_0RF0LF_---0RA</code></td><td>F11</td><td>3000</td><td>14 / 13 / 15 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
@@ -678,7 +678,7 @@ footer{margin-top:48px;font-size:.86rem;color:var(--muted)}
 <tr><td><code>1RB1LE_1RC1RF_0RD0LB_1LD0RA_0LA0LE_0RC---</code></td><td>F11</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>20 / 60</td></tr>
 <tr><td><code>1RB1RA_0LC0RA_1LF0LD_1LE0RC_1LB1LD_1RB---</code></td><td>F11</td><td>3000</td><td>13 / 12 / 10 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
 <tr><td><code>1RB1RA_1LC0LF_1RA1LD_1LB1LE_0LC0RD_---0RA</code></td><td>F11</td><td>3000</td><td>18 / 15 / 13 / 11 / 4</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
-<tr><td><code>1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA</code></td><td>F11</td><td>exponential</td><td>18 / 13 / 9 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
+<tr><td><code>1RB1RA_1LC0LF_1RA1LD_1LB1LE_1LC0LC_---0RA</code></td><td>F11</td><td>20000</td><td>18 / 13 / 9 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>4 / 60</td></tr>
 <tr><td><code>1RB1RA_1LC0RE_1LE0LD_0LB1LB_1RA0LF_1LD---</code></td><td>F11</td><td>3000</td><td>19 / 17 / 15 / 11 / 3</td><td>none to 2·10<sup>9</sup></td><td>6 / 60</td></tr>
 <tr><td><code>1RB1RD_1LC0LC_0RD0LB_1RF0LE_0RD---_0RA1RC</code></td><td>F11</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>12 / 60</td></tr>
 <tr><td><code>1RB1RE_1LC0RA_---1LD_1LA0LF_0LB0LC_1RB0LB</code></td><td>F11</td><td>3000</td><td>30 / 20 / 15 / 11 / 11</td><td>none to 2·10<sup>9</sup></td><td>23 / 60</td></tr>

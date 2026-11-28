@@ -12,7 +12,7 @@
  ],
  "asof": "Status as of 22 November 2026.",
  "verdict": [
-  "<b>The question is open, and it is now exactly a question about an integer map.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> the orbit of an explicit, computable map <code>phase</code> on three numbers gets stuck, which happens exactly when the orbit meets (m, m + 2, 2<sup>m+1</sup> + 1), the all-ones pattern (<code>halts_iff_stuck</code>, <code>halts_iff_family</code>). Iterated for 100,000 phases (about 10<sup>153,000</sup> steps) the orbit never meets it, but no proof that it never does is known."
+  "<b>The question is open, and it is now exactly a question about an integer map.</b> Lean proves (kernel) that the machine halts from blank tape <em>if and only if</em> the orbit of an explicit, computable map <code>phase</code> on three numbers gets stuck, which happens exactly when the orbit meets (m, m + 2, 2<sup>m+1</sup> + 1), the all-ones pattern (<code>halts_iff_stuck</code>, <code>halts_iff_family</code>). Iterated for 10<sup>10</sup> phases (about 10<sup>1.5·10<sup>10</sup></sup> steps) the orbit never meets it, but no proof that it never does is known."
  ],
  "claims": [
   {
@@ -88,6 +88,12 @@
    "where": "<code>lean/Invariant.lean</code>, <code>lean/Start.lean</code>, <code>lean/Family.lean</code>, <code>lean/Converse.lean</code>"
   },
   {
+   "level": "kernel",
+   "title": "Where the family can be entered",
+   "text": "Inside a phase the event branch keeps Y − 2<sup>d+1</sup> fixed, so the family can only be entered through an overflow. <code>halts_iff_lands</code>: the machine halts from blank tape if and only if some overflow phase of the orbit returns a configuration (d, M, 2<sup>d+1</sup> + 1) with d + 2 ≤ M, i.e. leaves the string 1<sup>j</sup> (j ones, j = d + 1) below a counter of length j. No <code>sorry</code>; axioms propext, Classical.choice, Quot.sound.",
+   "where": "<code>halts_iff_lands</code>, <code>lean/Landing.lean</code>"
+  },
+  {
    "level": "trusted",
    "title": "The map checked against the machine",
    "text": "<code>py/phasemap.py</code>, a line-for-line transcription of <code>phase</code>, agrees with the machine at all 2,000 overflows of strings of at most 9 bits and is stuck at exactly the 8 that halt. (That the map is stuck only at the family, and that the family halts, is now proved for every size: see below.)",
@@ -119,9 +125,9 @@
   },
   {
    "level": "heuristic",
-   "title": "100,000 phases of the map",
-   "text": "Iterated from the first event, the map runs 100,000 phases (each phase a run of additions ended by an overflow) without its odd pairs ever reaching the top bit (without getting stuck): M grows to 508,578, which is about 10<sup>153,000</sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 92). A halt needs k ≥ M/2.",
-   "where": "<code>py/macro.py 100000</code>"
+   "title": "10<sup>10</sup> phases of the map",
+   "text": "Iterated from the first event, the map runs 10<sup>10</sup> phases (each a run of additions ended by an overflow) and never gets stuck and never lands on the family: after every overflow the program tests both halting conditions directly. M grows to 51,003,339,348 bits, about 10<sup>1.5·10<sup>10</sup></sup> steps of the machine. The number k of odd pairs at an overflow is 1 in 35% of phases, 2 in 15%, then roughly halves, with a long tail (largest 776, where a halt needs k ≥ M/2, about 2.5·10<sup>10</sup>). The fast iterator gives the same (M, j) as <code>py/macro.py</code> at each of the first 100,000 overflows and the same string at every 500th.",
+   "where": "<code>c/phasefast.c</code>, <code>evidence/phasefast-1e10.txt</code>; <code>py/macro.py 100000</code>"
   },
   {
    "level": "heuristic",
@@ -130,9 +136,15 @@
    "where": "<code>py/macro.py</code> (the function <code>phases</code>), <code>py/blockers.py 20000</code>"
   },
   {
+   "level": "trusted",
+   "title": "No congruence blocks the family",
+   "text": "A residue invariant on (X mod q, j, M), with any moduli for j and M, could exclude the family only if no overflow output had X ≡ 2<sup>j</sup> − 1 (mod q). Over overflows 6 to 20,000 of the orbit every q ≤ 1,500 is hit (the fewest, q = 1,237, 4 times), mod 3 the six classes of (X mod 3, j mod 2) each take about a sixth, and the low a bits are all ones at some output for every a ≤ 31 (frequencies close to 2<sup>−a</sup>). So no invariant mod 3, mod any q ≤ 1,500 or mod 2<sup>a</sup> with a ≤ 31 exists. The overflow outputs also all have X &lt; 2<sup>j</sup>, but this is not closed under the map by residues: from an overflow start (M − 1, M, Y0 + 2<sup>M</sup> − 2<sup>d0+1</sup>) with top ones (Y0 &lt; 2<sup>d0+1</sup>, d0 &lt; M − 1) it fails exactly when Y0 mod 32 is 1, 9, 17, 23, 25 or 31 (all 16,320 such starts with M = 14).",
+   "where": "<code>py/congruence.py 20000 1500 24</code> (18 s)"
+  },
+  {
    "level": "open",
    "title": "A proof",
-   "text": "Everything about the machine is proved for all sizes (kernel): it halts exactly when the orbit of the computable map <code>phase</code> meets (m, m + 2, 2<sup>m+1</sup> + 1). What is open is that question about the map: it looks like a random process on growing strings (meeting the family needs about M/2 odd pairs in a row), and no invariant that excludes it is in sight.",
+   "text": "Everything about the machine is proved for all sizes (kernel): it halts exactly when the orbit of the computable map <code>phase</code> meets (m, m + 2, 2<sup>m+1</sup> + 1). What is open is that question about the map: it looks like a random process on growing strings (meeting the family needs about M/2 odd pairs in a row), and no invariant that excludes it is in sight: residue invariants are ruled out for every modulus up to 1,500 and every power of two up to 2<sup>31</sup> (<code>py/congruence.py</code>).",
    "where": ""
   },
   {
@@ -164,8 +176,8 @@
    },
    {
     "level": "heuristic",
-    "value": "10<sup>153,000</sup>",
-    "text": "Steps covered by 100,000 phases of the proved map, never stuck."
+    "value": "10<sup>1.5·10<sup>10</sup></sup>",
+    "text": "Steps covered by 10<sup>10</sup> phases of the proved map, never stuck, never landing."
    },
    {
     "level": "kernel",
@@ -227,7 +239,8 @@
      "<p>The map covers every overflow except those where the odd pairs run all the way up to the top bit. Among those the machine halts in exactly one: all bits set and j = M, the tape <code>1^(2M+2) 0 1^(3M−2) B&gt;0</code>. In the proved map this is the configuration (m, m + 2, 2<sup>m+1</sup> + 1), the only place where <code>phase</code> gets stuck. Lean proves both halves for every size: outside it the map always goes on (an invariant bounds the left string by what the counts still to come will add), and from it the machine halts (after the counter's zeros are carried, the string overflows a second time and the carry reads B0, C1, A1). So the machine halts if and only if the map reaches that configuration (<code>halts_iff_family</code>).</p>",
      "<p>The map is cheap to run: one phase costs a few operations on an integer of M bits. From the first event (step 39) it runs 100,000 phases in 38 seconds. The odd pairs never reach the top: M grows to 508,578 bits, so the machine would have taken about 10<sup>153,000</sup> steps. The number k of odd pairs at an overflow:</p>",
      "<table><tr><th>k</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7–10</th><th>11–20</th><th>21–92</th><th>R even</th></tr><tr><td>phases</td><td>35,315</td><td>14,810</td><td>8,264</td><td>4,218</td><td>2,226</td><td>959</td><td>819</td><td>318</td><td>56</td><td>33,015</td></tr></table>",
-     "<p>A halt needs k ≥ M/2, hundreds of thousands of pairs; the largest seen is 92. If the tail keeps thinning as it does, a halt is very unlikely. That is a heuristic, not a proof.</p>"
+     "<p>A halt needs k ≥ M/2, hundreds of thousands of pairs; the largest seen is 92. If the tail keeps thinning as it does, a halt is very unlikely. That is a heuristic, not a proof.</p>",
+     "<p><b>Run much further.</b> A faster iterator (<code>c/phasefast.c</code>) keeps the string as a bit array whose low end moves, so a phase costs O(k) operations instead of O(M). It agrees with the map above at the first 100,000 overflows and runs 10<sup>10</sup> phases in 22 minutes: never stuck, never landing on the family. M reaches 51,003,339,348 bits (about 10<sup>1.5·10<sup>10</sup></sup> machine steps), the largest k is 776 where a halt would need about 2.5·10<sup>10</sup>, and 13% of the final string's pairs are blockers.</p>"
     ]
    },
    {
@@ -236,6 +249,7 @@
     "heading": "What would settle it",
     "html": [
      "<p>Proved: the event rule, the overflow, and that the machine halts exactly when the iterated map <code>phase</code> reaches (m, m + 2, 2<sup>m+1</sup> + 1) (<code>lean/Converse.lean</code>). Not proved: that it never does.</p>",
+     "<p>Inside a phase the events add 2<sup>j</sup>, 2<sup>j+1</sup>, …, so the family can only be entered right after an overflow: Lean proves the machine halts iff some overflow leaves the string as j ones under a counter of length j (<code>halts_iff_lands</code>). The simplest hope for a proof was a congruence: a residue of the string, mod 3 or mod a power of two, that the orbit never has but that pattern needs. There is none for any modulus up to 1,500 or any power of two up to 2<sup>31</sup>: in 20,000 overflows every such residue class is met, about as often as chance predicts, and up to 31 trailing ones do occur (<code>py/congruence.py</code>). The overflow divides the string by 4<sup>k</sup>, so its low bits come from higher bits of the old string, and no fixed modulus closes up.</p>",
      "<p>So the question is now about an explicit map on integers that behaves like a random process with growing strings; a halt needs about M/2 odd pairs in a row, and nothing like an invariant that excludes it is known. This looks like a Collatz-type question, not something a finite certificate will settle.</p>",
      "<p>The sibling <code>1RB---_1LC1RE_0LD0LC_1RD0RB_1RF0RB_0LF1RA</code> is this machine with one transition changed (here C0 = 1RD, there the matching F0 = 0LF): the same proof, states renamed, proves its event rule; its overflows differ.</p>"
     ]

@@ -74,6 +74,26 @@ for every size, in the form of the phase map below (`halts_iff_family`).
 grows to 508,578 bits, about 10^153,000 machine steps. k at an overflow: 1 (35,315 phases), 2 (14,810), 3 (8,264),
 4 (4,218), 5 (2,226), 6 (959), 7-10 (819), 11-20 (318), 21-92 (56); R even in 33,015. A halt needs k >= M/2.
 
+**The map iterated to 10^10 phases (`c/phasefast.c`, item 15 of the 24 Nov list).** `phasefast` keeps the string as a
+packed bit array whose low end moves: the shift by 2k only moves a pointer, the events of a phase only set the 5k bits
+between j0 and M (the string is shorter than 2^j0 after an overflow), and C(r) is added in place level by level, so
+a phase costs O(k) and not O(M). It prints the same (M, j) as `py/macro.py` at each of the first 100,000 overflows and
+the same string at every 500th (`phasefast dump 100000 500`, compared in Python). After every overflow it tests the
+two halting conditions directly: the stuck case (odd pairs reach the top) and the landing condition of
+`halts_iff_lands`, X = 2^j - 1 with j + 1 <= M. **Neither occurs in 10^10 overflows** (1,300 s, about 7 GB;
+`evidence/phasefast-1e10.txt`): M grows to 51,003,339,348 bits, so the run covers about 10^(1.5·10^10) machine
+steps. k at an overflow: 1 (3,542,223,542), 2 (1,475,065,025), 3 (822,448,196), 4 (424,871,306), 5 (223,654,003),
+6 (102,207,606), 7-10 (83,924,169), 11-20 (31,864,176), 21-62 (5,877,814), 63 and more (67,897); R even in
+3,287,796,266. The largest k is 776 (overflow 3,938,587,432), where a halt needs k >= M/2, about 2.5·10^10; after
+overflow 100, 2k/M never exceeds 0.0234. The longest run of ones at the bottom of an output string is 699, where
+landing needs j (about M) ones and nothing above. At the end 3,255,286,356 of the 25,501,669,674 pairs of the string
+(13%) have low bit 0 (blockers). Only 7 event additions in the whole run carry (the 3rd and 5th overflows' phases):
+everywhere else the string is shorter than 2^j0. This is still evidence, not a proof.
+
+On the other option of the item, a residue search: `py/congruence.py` (below) already shows that no invariant on
+residues of (X mod q, j, M) can exclude the family for q <= 1,500 or q = 2^a, a <= 31, because orbit outputs meet
+every residue class of the family. So the halting question stays where it was: does the orbit of `phase` ever land?
+
 **The shape of the string at an overflow (worker 2, round 2 of G11; computed with the trusted map).** In a phase
 that starts with j = j0 the events add 2^j0, 2^(j0+1), ..., so the phase ends when the sum 2^j - 2^j0 passes 2^M.
 After an overflow the new string is shorter than 2^j0, so the phase runs to j = M and the remainder is
@@ -148,6 +168,28 @@ agrees with the machine at all 2,000 overflows of strings of at most 9 bits (and
 - `halts_iff_stuck` (`Converse.lean`): the orbit stays in the good region until it meets the family, so it gets stuck
   only right after the family, from which the machine halts; the other direction is `not_halts_of_orbit`.
 
+**Where the family can be entered, and no congruence blocks it (`lean/Landing.lean`, kernel; `py/congruence.py`).**
+The event branch of `phase` adds 2^(d+1) to Y and 1 to d, so it keeps Y - 2^(d+1) fixed: a family point is preceded,
+back to the last overflow, by points (d, M, 2^(d+1) + 1) with d + 2 <= M. So
+
+> **`halts_iff_lands`: the machine halts from blank tape if and only if some overflow phase of the orbit returns
+> (d, M, 2^(d+1) + 1) with d + 2 <= M**
+
+(axioms propext, Classical.choice, Quot.sound). In event terms (X = Y - 2, j = d + 1) the overflow must leave the
+string X = 2^j - 1, j ones under a counter of length j. Lead 27 asked for a congruence that excludes this. A residue
+invariant on (X mod q, j, M), with any moduli for j and M, can exclude it only if no overflow output has
+X = 2^j - 1 (mod q), because every family point shares its residues with such an output. `py/congruence.py 20000 1500 24`
+(18 s) counts them over overflows 6 to 20,000: every q <= 1,500 is hit (the fewest relative to 1/q is q = 1,237,
+4 hits), mod 3 the six classes of (X mod 3, j mod 2) each hold about a sixth of the outputs, and outputs whose low a
+bits are all ones occur for every a <= 31, with frequency close to 2^-a (13,371, 6,856, 3,264, 1,538, ... for
+a = 1, 2, 3, 4). **So there is no congruence invariant mod 3, mod any q <= 1,500, or mod 2^a with a <= 31.** The
+reason is the shift: an overflow divides R by 4^k, so the low bits of the new string come from higher bits of the
+old one and no fixed modulus closes up (the blockers above carry the information down). Every one of these outputs
+has X < 2^j (the string is shorter than the counter; the family is the largest string allowed by this), but that
+bound is not closed under the map by residues either: from an overflow start (M - 1, M, Y) whose top bits are ones
+(Y = Y0 + 2^M - 2^(d0+1), Y0 < 2^(d0+1), d0 < M - 1) the output breaks it exactly when Y0 mod 32 is 1, 9, 17, 23,
+25 or 31 (all 16,320 such starts with M = 14, by `phase`).
+
 So the whole halting question is now a question about the integer map `phase`: does its orbit from (0, 2, 2) ever
 reach (m, m + 2, 2^(m+1) + 1)? In the README's event terms that is the all-ones string with j = M, the pattern of
 `Shapes.lean`. The map behaves like a random process on growing strings; a halt needs k >= M/2 and the k seen thin
@@ -163,8 +205,8 @@ halt in 10^7 steps), `lean/Rules.lean` (shift rules `erase`, `fill`, `pairs`, `s
 `lean/Orbit.lean` (the overflow phase for every size and `not_halts_of_orbit`, kernel), `lean/OrbitCheck.lean` (the
 first 9 overflows, `#guard`), `lean/Invariant.lean`, `lean/Start.lean`, `lean/Family.lean`, `lean/Converse.lean`
 (**`halts_iff_stuck`, `halts_iff_family`**, kernel). Not proved: that the orbit never meets the family.
-Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`); 100,000 phases of the map (`py/macro.py`, which agrees with
-`phase`) without meeting it, about 10^153,000 steps.
+Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`); 10^10 phases of the map (`c/phasefast.c`, which agrees with
+`py/macro.py`, which agrees with `phase`) without meeting it or getting stuck, about 10^(1.5·10^10) steps.
 
 ## Scripts
 
@@ -182,7 +224,11 @@ Computed: no halt in 4·10^11 steps (`tools/c/tmrun.c`); 100,000 phases of the m
   `py/macro.py 0 checkO 9` runs every overflow of at most 9 bits; `py/macro.py 0 checkC 6` checks C.
 - `py/phasemap.py machine 9 | macro 300 | stuck 12 | orbit K`: the proved phase map (`lean/Orbit.lean`) in
   Python, against the machine, against `py/macro.py`, where it is stuck, and iterated.
+- `c/phasefast.c` (`gcc -O2 -o phasefast c/phasefast.c`): `phasefast run 10000000000 100000000` iterates the map
+  10^10 phases with the halting tests (22 minutes, about 7 GB); `phasefast dump 100000 500` prints (M, j) at each
+  overflow and the string at every 500th, to compare with `py/macro.py`.
 - `py/blockers.py 20000`: the blockers at the overflows of the map (see above).
+- `py/congruence.py 20000 1500 24`: the congruence search of lead 27 (see above).
 - `py/leanfiles.py` writes `lean/Rules.lean` and `lean/Shapes.lean` (shared by the batch; spec as JSON, see its
   docstring).
 

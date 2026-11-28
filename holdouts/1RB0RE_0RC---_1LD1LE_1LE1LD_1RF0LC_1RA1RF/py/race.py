@@ -6,7 +6,9 @@ followed by an odd run of 1s that is followed by 0 or by the end of s; with one,
 (`astep_T2_witness`).  This counts the crossing turns with blank end that have a witness and prints those that do not,
 with the number of bounces since the last time E read the last 1 (an EO turn).
 
-  python3 race.py K     run K list steps (40,000 take about 25 minutes)
+  python3 race.py K          run K list steps (40,000 take about 25 minutes)
+  python3 race.py shapes K   count crossing turns with blank end by near part (clean: 10(00|10)*0, as in
+                             lean/Race.lean, or other), bounce parity and the first letter of s
 """
 import re, sys
 from collections import Counter
@@ -38,5 +40,22 @@ def race(K):
     print('crossing turns with blank end:', C[True] + C[False], 'with a witness:', C[True])
 
 
+def shapes(K):
+    from listmachine import par
+    clean = re.compile(r'^10(00|10)*0$')
+    st = ('EO', (True, False), ('pre', 1)); C = Counter(); i = 0
+    while i < K:
+        if st[0] == 'V': st = st[1]
+        c = canon(st)
+        if c[0] == 'T2' and not c[5]:
+            C[('clean' if clean.match(bits(c[1])) else 'other', 'odd' if par(1, list(c[1])) else 'even',
+               's starts with ' + (bits(c[4][:1]) or 'nothing'))] += 1
+        st = step1(st)
+        if st[0] != 'V': i += 1
+    for k, v in sorted(C.items()): print(*k, v)
+
+
 if __name__ == '__main__':
+    if len(sys.argv) > 2 and sys.argv[1] == 'shapes':
+        shapes(int(float(sys.argv[2]))); sys.exit()
     race(int(float(sys.argv[1])) if len(sys.argv) > 1 else 12000)

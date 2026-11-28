@@ -83,7 +83,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE</p>
     <p class="stand cryptid"><b>Open: a cryptid</b><span>Its halting is thought to come down to a Collatz-like question that no known method decides (the community's label, not a result).</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 17 November 2026.</p>
+    <p class="asof">Status as of 22 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
@@ -144,6 +144,16 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The orbit of 4 survives 200 macro steps, evaluated by the kernel (<code>decide +kernel</code>); the step count reached is above 10<sup>86</sup>.</p>
         <p class="where"><code>orbit_200</code>, <code>no_halt_200</code>, <code>orbitT_200_big</code>, <code>lean/Orbit.lean</code></p>
       </div>
+      <div class="card">
+        <h3>No congruence can prove it never halts (moduli dividing 2<sup>16</sup>&middot;3<sup>9</sup>)</h3>
+        <p>A set of residue classes that holds the orbit, is kept by the map and misses every h<sub>k</sub> would prove non-halting. There is none for any modulus dividing 2<sup>16</sup>&middot;3<sup>9</sup> = 1,289,945,088 (so for every 2<sup>j</sup>&middot;3<sup>i</sup> with j &le; 16, i &le; 9). With v = n + k + 6 &minus; 5&middot;2<sup>k</sup> (zero exactly at h<sub>k</sub>) the step is v&prime; = 3v + 2 + 5&middot;2<sup>k</sup> + k&prime; &minus; 5&middot;2<sup>k&prime;</sup>; a congruence sees only (v, k, 2<sup>k</sup>) mod M, and at a high level every residue of v occurs both where the level stays and where it goes up by one (<code>realize</code>), so a congruence invariant has to survive both choices. A path of 34 choices leads from the residues of the run to v = 0, which rules out every invariant (<code>no_inv</code>, <code>no_inv_dvd</code>). The paths are found by <code>py/congruence.py</code> and checked by the kernel, for the starts of all three machines that iterate this map (n = 4, 10 and 1 after 40 map steps).</p>
+        <p class="where"><code>no_cong_4</code>, <code>no_cong_10</code>, <code>no_cong_1</code>, <code>no_inv</code>, <code>realize</code>, <code>lean/Congruence.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No congruence of any modulus can prove it never halts</h3>
+        <p>For <b>every</b> modulus M: every property of the residues of v = n &minus; h<sub>k</sub>, k and 2<sup>k</sup> mod M that misses the h<sub>k</sub> and is kept by the macro step from level K on holds at no value of any level &ge; K. The proof builds the path for every M at once: moving a level increment one step later changes v by &minus;3<sup>r</sup>&middot;&delta;(k), &delta;(k) = 3 &minus; 10&middot;2<sup>k</sup>, with &delta;(k+1) = 2&delta;(k) &minus; 3; for M = 3<sup>a</sup>&middot;m (3 &#8740; m), m periodic segments with two such swaps each reach every residue mod m, and a tail of a steps at a level with 2&middot;3<sup>a</sup> | k + 2 makes v &equiv; 0 mod 3<sup>a</sup>. So no congruence, and no closed set of 2-adic classes, traps the run from any start, for all three machines that iterate this map. Core Lean, standard axioms.</p>
+        <p class="where"><code>no_cong_ever</code>, <code>no_cong_any</code>, <code>reach</code>, <code>run_swap</code>, <code>run_zeros</code>, <code>lean/CongAll.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -167,13 +177,23 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
       </div>
       <div class="card">
         <h3>The closed form of the macro step</h3>
-        <p>For h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub> with r = n &minus; h<sub>k</sub> &minus; 1: n&prime; = 5&middot;2<sup>k</sup> &minus; 1 + 3r in 12r&sup2; + (40&middot;2<sup>k</sup>+6)r + (100&middot;4<sup>k</sup>+23)/3 &minus; 10&middot;2<sup>k</sup> steps; P(h<sub>k</sub>) halts. A Python transcription of the Lean <code>pstep</code> agrees with this for every 1 &le; n &le; 200,000 (the closed form itself is not proved in Lean). Direct simulation agrees too: all 16 P-events of the run from blank tape up to 10<sup>10</sup> steps (n = 4, 9, 24, 52, 99, 163, 198, 303, 618, 1246, 2493, 4957, 9792, 19180, 37107, 70411; the last at step 9,108,900,940) match in n and step.</p>
+        <p>For h<sub>k</sub> &lt; n &lt; h<sub>k+1</sub> with r = n &minus; h<sub>k</sub> &minus; 1: n&prime; = 5&middot;2<sup>k</sup> &minus; 1 + 3r in 12r&sup2; + (40&middot;2<sup>k</sup>+6)r + (100&middot;4<sup>k</sup>+23)/3 &minus; 10&middot;2<sup>k</sup> steps; P(h<sub>k</sub>) halts. A Python transcription of the Lean <code>pstep</code> agrees with this for every 1 &le; n &le; 200,000; the position part of the closed form is proved in Lean for every n (<code>pstep_closed</code>, <code>pstep_halt</code>, <code>lean/Closed.lean</code>), the step count is not. Direct simulation agrees too: all 16 P-events of the run from blank tape up to 10<sup>10</sup> steps (n = 4, 9, 24, 52, 99, 163, 198, 303, 618, 1246, 2493, 4957, 9792, 19180, 37107, 70411; the last at step 9,108,900,940) match in n and step.</p>
         <p class="where"><code>py/macro.py check 200000</code>, <code>py/macro.py orbit 1e10</code>, <code>c/pevents.c</code></p>
       </div>
       <div class="card">
         <h3>10<sup>5</sup> macro steps without a halt</h3>
         <p>Python iterates the closed form (exact big integers) for 10<sup>5</sup> macro steps from P(4) without landing on an h<sub>k</sub>; n then has 66,605 bits and the step count is about 10<sup>40,100</sup>.</p>
         <p class="where"><code>py/macro.py far 1e5</code></p>
+      </div>
+      <div class="card">
+        <h3>No congruence invariant for any modulus up to 20,000</h3>
+        <p>The same search by breadth-first search in Python, for every modulus 2 &le; M &le; 20,000 (primes 5, 7, &hellip; included) and every 2<sup>j</sup>&middot;3<sup>i</sup> up to 2<sup>12</sup>&middot;3<sup>7</sup>, from all three starts: each reaches v = 0, in at most 24 choices. Even allowing only the two common choices (the level rising by two happens only in the top ~k/3 values of a level), no residue class is safe.</p>
+        <p class="where"><code>py/congruence.py all 20000</code>, <code>py/congruence.py grid 12 7</code></p>
+      </div>
+      <div class="card">
+        <h3>No trap from the size of n combined with residues</h3>
+        <p>In x = v/(5&middot;2<sup>k</sup>) the map is x &rarr; 3x (x &lt; 1/3, level stays) or x &rarr; (3x&minus;1)/2 (x &ge; 1/3, level up), two full branches; the halt is landing exactly on x = 0 from x = 1/3. Combining up to 81 cells of x with v and k mod 2<sup>j</sup> (j &le; 5), every one of up to 82,944 abstract states reaches a halting transition, so no trap of that shape exists either.</p>
+        <p class="where"><code>py/trapsize.py</code></p>
       </div>
       <div class="card">
         <h3>Related holdouts</h3>
@@ -203,7 +223,8 @@ holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/lean/check.sh
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py check 200000
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py orbit 1e10
 gcc -O2 -o pevents holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/c/pevents.c &amp;&amp; ./pevents 10000000000
-python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5</code></pre>
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/trapsize.py   # ~2 min</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/status.json</code>; edit that file and rebuild rather than editing this page.</p>

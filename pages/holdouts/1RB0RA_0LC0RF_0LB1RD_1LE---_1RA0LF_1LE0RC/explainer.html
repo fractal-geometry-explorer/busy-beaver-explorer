@@ -186,7 +186,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <div class="wrap">
 <header class="hero">
   <p class="crumb"><a href="../index.html">Busy Beaver Explorer</a> / holdouts / 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC / explained</p>
-  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 16 November 2026.</span>
+  <span class="eyebrow">A 6-state Busy Beaver machine · Status as of 24 November 2026.</span>
   <h1>Does this machine ever halt?</h1>
   <p class="machine-id">1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC</p>
   <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
@@ -198,6 +198,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div class="fact"><span class="ev h">Heuristic</span><b>+1 word</b><span class="small">Growth of the block per excursion.</span></div>
   </div>
   <div class="else" aria-label="Other proofs and outside reports">
+    <div class="report"><strong>Merged upstream: halts exactly when another holdout does</strong><a href="https://github.com/ccz181078/busycoq/pull/77">busycoq pull request 77</a>, merged into the BB6 branch on 2026-11-27 (commit <code>ea40624</code>, file <code>Eqv_TailWord.v</code>), proves that this machine halts from blank tape exactly when <a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html">1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</a> does. It decides neither machine, so halting stays open.</div>
     <div class="label"><strong>Community label</strong>In the community's BB(6) tracker the machine's class is <b>Unknown</b>. These are labels read off the run by others, not results.</div>
   </div>
   <div class="key" aria-label="Evidence levels used on this page">
@@ -207,7 +208,7 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
     <div><span class="ev h">Heuristic</span> evidence and estimates</div>
     <div><span class="ev o">Open</span> not known</div>
   </div>
-  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#pair-tables">Two tables that are one machine</a><a href="#pair-lockstep">One run, watched in a mirror</a><a href="#pair-farend">Crossing the far end: 5 steps against 49</a><a href="#pair-window">Four cells that settle it</a><a href="#pair-proof">Checked in Coq, step by step</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
+  <nav class="toc" aria-label="Sections"><a href="#machine">The machine</a><a href="#run">Watch it run</a><a href="#glance">The run at a glance</a><a href="#screen">Which family it belongs to</a><a href="#shape">The shape of the run</a><a href="#tape">What the tape is made of</a><a href="#excursion">One excursion</a><a href="#counter">A counter with long digits</a><a href="#carry">The digit carry rule (on the sister page)</a><a href="#pair-tables">Two tables that are one machine</a><a href="#pair-lockstep">One run, watched in a mirror</a><a href="#pair-farend">Crossing the far end: 5 steps against 49</a><a href="#pair-window">Four cells that settle it</a><a href="#pair-proof">Checked in Coq, step by step</a><a href="#halt">Where it could halt</a><a href="#proved">What is proved</a><a href="#related-machines">Related machines</a><a href="#compare">Side by side</a><a href="#ledger">What is known</a><a href="#check">Check it</a></nav>
 </header>
 <section id="machine">
   <span class="eyebrow">The machine</span>
@@ -325,6 +326,19 @@ footer.foot{border-top:1px solid var(--line);padding-top:18px;margin-top:40px;fo
 <p>How far into the counter the head goes changes from excursion to excursion in a ruler-like way. Between steps 3·10<sup>7</sup> and 10<sup>9</sup> the deepest cell of each return falls into classes 25 cells apart:</p>
 <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>leftmost cell</th><th>1299</th><th>1274–82</th><th>1249–57</th><th>1224–32</th><th>1199–1207</th><th>1174–82</th><th>1149–57</th><th>1124–32</th><th>≤ 1107</th></tr></thead><tbody><tr><td>returns</td><td>352</td><td>2,680</td><td>1,568</td><td>648</td><td>249</td><td>91</td><td>35</td><td>13</td><td>9</td></tr></tbody></table></div>
 <p>Each class is about 2.6 times rarer than the one before: a counter whose digits are about 25 cells long, with a carry reaching digit j about once every 2.6<sup>j</sup> excursions. Each digit has the form <code>11a0 11b0 1100 110c 0 11d0 11e0</code>, five bits a to e; 28 of the 32 patterns occur. What one visit does to the bits, and so the exact growth factor, is not decoded yet.</p>
+</section>
+<section id="carry">
+  <span class="eyebrow">The counter, decoded</span>
+  <h2>The digit carry rule (on the sister page)</h2>
+<div class="col">
+<p>This machine's run is the run of <a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html#carry"><code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code></a> in a mirror, with
+one more word at the far end (proved: see the sections below). So its counter is that machine's counter read right
+to left: each 25-cell digit <code>11a0 11b0 1100 110c 0 11d0 11e0</code> here is a digit
+<code>a110 b110 c011 0011 0d11 0e11 0</code> there read right to left (its free cells a, b, c, d, e are e, d, c, b, a
+here), and the decoded carry rule there, a 15-trip sweep and
+a table of 73 entries that reproduces every sweep to 2&middot;10<sup>10</sup> steps, is the rule here.
+<a href="../1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/explainer.html#carry">That page</a> lets you run it.</p>
+</div>
 </section>
 <section id="pair-tables">
   <span class="eyebrow">One question, two machines</span>
@@ -981,7 +995,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 <section id="ledger">
   <span class="eyebrow">What is known</span>
   <h2>Every result, by what it rests on</h2>
-  <div class="col"><p>Status as of 16 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
+  <div class="col"><p>Status as of 24 November 2026. The same list as the <a href="proof-status.html">proof-status page</a>, built from the same file.</p></div>
   <div class="lfilter" role="group" aria-label="Filter by evidence level">
     <button type="button" data-f="all" aria-pressed="true">All</button>
     <button type="button" data-f="kernel" aria-pressed="false">Kernel</button>
@@ -1002,6 +1016,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/lean/RightEnd.lean</code> (kernel only: <code>propext</code>, <code>Quot.sound</code>); the 32 configurations from <code>py/rightend.py</code></div></div><div><b>The condition is proved: the right end grows only through <code>far_B</code></b><p><code>Good30773</code> is a fact about the last four cells of the tape, q&minus;3 to q, and not about the rebuilds of the counter. Keep only those four cells and the state, and forget everything left of them: with the head inside the window, the state, the cells left of the head in the window and the cells from the head to q; with the head further left, the four cells only, and let the head come back in any state that a move right can produce (B, D, E or F). Starting from step 2 this over-approximation has exactly 32 abstract configurations (30 with the head in the window, 2 outside it; whenever the head is left of the window the last three cells read <code>101</code>). None of them moves right from q except in state B on a 1, and the set is closed under a step (<code>closed</code>, by <code>decide</code>). So the condition holds for every number of steps (<code>good30773</code>), and <b>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE halts from blank tape if and only if 1RB0RA_0LC0RF_0LB1RD_1LE---_1RA0LF_1LE0RC does</b> (<code>two_machines'</code>), with no condition.</p></div></div>
     <div class="litem" data-level="kernel"><div><span class="ev k">Kernel</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/Eqv_TailWord.v</code>; build: <code>sh holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/coq/build.sh /path/to/busycoq</code> (BB6 branch)</div></div><div><b>One halting question for two machines: a second proof, in Coq (busycoq)</b><p>The same equivalence, proved independently on top of busycoq's definitions: <code>TailWord.eqv : halts tm c0 &lt;-&gt; halts tm' c0</code> with 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE on the other side. A model configuration is read as a configuration of either machine (the second with the word <code>10001101</code> after the rightmost visited cell); its invariant is a window of the last four cells with 28 abstract configurations, closed under the abstract step (<code>check_S0</code>, one <code>vm_compute</code>). <code>Print Assumptions TailWord.eqv</code>: closed under the global context. Compiles in about 2.4 s with Coq 8.20.1 (busycoq's version) and with 8.18.0; changing the extra word, one transition, or one entry of the invariant makes it fail.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/c/good.c</code>, <code>c/lockstep.c</code></div></div><div><b>The condition holds in the first 10<sup>11</sup> steps (now proved for all steps)</b><p>In the first 10<sup>11</sup> steps of the run of 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE the head moves right from the rightmost visited cell 100 times, always in state B on a 1, and all before step 4.5&middot;10<sup>6</sup>, while the counter in the wall was rebuilt after its first overflows; afterwards the right end of the tape does not move. At 270,284 visits of the head to the left end in state C, the tape of the run from C is the tape of the run from A followed by <code>10001101</code>. Proving the condition needs the theory of the counter's rebuild.</p></div></div>
+    <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE/py/carry.py</code></div></div><div><b>The digit carry rule (from the sister machine)</b><p>By the proved correspondence of the two runs, this machine's counter is the decoded counter of <code>1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE</code> in a mirror: 15 trips per sweep and a carry table of 73 entries that reproduces every sweep of that run to 2&middot;10<sup>10</sup> steps.</p></div></div>
     <div class="litem" data-level="open"><div><span class="ev o">Open</span></div><div><b>Does it halt from blank tape?</b><p>Not known. It halts exactly when C reads a 1 with a 1 on its right. The passes never do this; the counter work between them is not a closed rule yet.</p></div></div>
     <div class="litem" data-level="trusted"><div><span class="ev c">Computed</span><div class="w"><code>holdouts/related.json</code>, written by <code>holdouts/related.py compute</code> (<code>tools/c/cfgmatch.c</code>, <code>tools/c/lockstep.c</code>)</div></div><div><b>Related holdouts</b><p>The same table as 1RB---_1LC0RF_1LD0LC_0RE0LF_0RD1LA_1RB0LE up to renaming and mirroring, started in another state; no common configuration in the first 10<sup>7</sup> steps of each.</p></div></div>
 </section>

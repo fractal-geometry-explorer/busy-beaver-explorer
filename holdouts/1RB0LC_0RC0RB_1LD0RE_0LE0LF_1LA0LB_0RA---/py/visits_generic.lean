@@ -1,0 +1,270 @@
+
+/-! ## Visits that end like clean ones, whatever happens inside
+
+`go_spec` (Family.lean) needs the whole visit to be clean.  The rules below need only that the visits nested in it
+*end* the way a clean visit ends (`Visit`); what happens inside them is left open.  This is what `py/fast.py` uses to
+evaluate visits on lists without a tape: SPREAD (`spread_gen`), CARRY (`carry`) and the merge of a block 3
+(`merge3`), each proved for every list and every left context. -/
+
+/-- A visit to `l` that ends as a clean visit does: after `t` steps the head is back on its start cell in E, with
+`1 0` and the plain blocks `X` on its right, the left part untouched. -/
+def Visit (l X : List Nat) (t : Nat) : Prop :=
+  ∀ L : Tape, steps t ⟨L, cons false (enc l), .A⟩ = some ⟨L, cons true (cons false (enc X)), .E⟩
+
+/-- A clean visit is a `Visit`. -/
+theorem visit_of_clean (n : Nat) (l : List Nat) (h : clean n l) : Visit l (go n l) (goT n l) :=
+  fun L => go_spec n l h L
+
+/-- **SPREAD for any inner visits.**  If the five visits nested in a visit to `b :: c :: bs` (b = 2j+7 odd, at
+least 7) end as clean visits do, with lists `X0 .. X4` (first block at least 1 where the next TAIL needs it), the
+visit itself ends so, with `(b - 5) :: X4`, in the stated number of steps. -/
+theorem spread_gen (j c : Nat) (bs X0 X1 X2 X3 X4 : List Nat) (x0 x1 x2 x3 t0 t1 t2 t3 t4 : Nat)
+    (h0 : Visit ((c + 2) :: bs) ((x0 + 1) :: X0) t0)
+    (h1 : Visit ((x0 + 4) :: X0) ((x1 + 1) :: X1) t1)
+    (h2 : Visit ((x1 + 2) :: X1) ((x2 + 1) :: X2) t2)
+    (h3 : Visit ((x2 + 2) :: X2) ((x3 + 1) :: X3) t3)
+    (h4 : Visit ((x3 + 2) :: X3) X4 t4) :
+    Visit ((2 * j + 7) :: (c + 1) :: bs) ((2 * j + 2) :: X4)
+      ((6 * (j + 2) + 15) + (t0 + (9 + (t1 + (15 + (t2 + (15 + (t3 + (15 + (t4 + (4 * j + 9))))))))))) := by
+  intro L
+  have s0 := push (j + 2) c L (cons true (enc bs))
+  have r0 := h0 (ctxL (j + 2) 1 L)
+  have t1 := tail1 (j + 1) x0 L (enc X0)
+  have r1 := h1 (ctxL (j + 1) 2 L)
+  have t2 := tail2 j x1 L (enc X1)
+  have r2 := h2 (ctxL j 3 L)
+  have t3 := tail3 j x2 L (enc X2)
+  have r3 := h3 (ctxL j 4 L)
+  have t4 := tail4 j x3 L (enc X3)
+  have r4 := h4 (ctxL j 5 L)
+  have p5 := pop j L (enc X4)
+  have hs : rep (2 * (j + 2) + 3) [true, false] (cons true (rep (c + 1) [true, false] (cons true (enc bs)))) =
+      enc ((2 * j + 7) :: (c + 1) :: bs) := by
+    show _ = rep (2 * j + 7) [true, false] (cons true (rep (c + 1) [true, false] (cons true (enc bs))))
+    rw [show 2 * (j + 2) + 3 = 2 * j + 7 by omega]
+  rw [hs] at s0
+  exact steps_seq trans s0 (steps_seq trans r0 (steps_seq trans t1 (steps_seq trans r1 (steps_seq trans t2
+    (steps_seq trans r2 (steps_seq trans t3 (steps_seq trans r3 (steps_seq trans t4 (steps_seq trans r4 p5)))))))))
+
+/-! ### CARRY: a visit to `1 :: T` -/
+
+@CARRY_IN@
+@CARRY_OUT@
+
+theorem enc_cons_true (c : Nat) (bs : List Nat) : ∃ R, enc (c :: bs) = cons true R := by
+  cases c with
+  | zero => exact ⟨enc bs, rfl⟩
+  | succ c => exact ⟨cons false (rep c [true, false] (cons true (enc bs))), rfl⟩
+
+theorem enc_succ (c : Nat) (bs : List Nat) :
+    enc ((c + 1) :: bs) = cons true (cons false (enc (c :: bs))) := rfl
+
+/-- One step: E reading 0 writes 1 and moves left into A. -/
+theorem e_zero (a : Bool) (L R : Tape) :
+    steps 1 ⟨cons a L, cons false R, .E⟩ = some ⟨L, cons a (cons true R), .A⟩ := rfl
+
+/-- **CARRY.**  A visit to `1 :: c :: bs` makes one visit to `(c + 1) :: bs` (starting 9 steps in, one cell to the
+right); if that one ends as a clean visit does, with `X`, this one ends 6 steps later with the head on the cell left
+of its start, in A, and `(10)^1 1 X` on the right: the hybrid simulator's exit "A, no prefix, [1] ++ X". -/
+theorem carry (c : Nat) (bs X : List Nat) (t : Nat) (h : Visit ((c + 1) :: bs) X t) (a : Bool) (L : Tape) :
+    steps (9 + (t + (5 + 1))) ⟨cons a L, cons false (enc (1 :: c :: bs)), .A⟩ =
+      some ⟨L, cons a (enc (1 :: X)), .A⟩ := by
+  obtain ⟨R, hR⟩ := enc_cons_true c bs
+  have s0 := carry_in_raw (cons a L) R
+  have r := h (cons true (cons a L))
+  have s1 := carry_out_raw (cons a L) (enc X)
+  have s2 := e_zero a L (cons false (cons true (enc X)))
+  have e1 : cons false (enc (1 :: c :: bs)) = cons false (cons true (cons false (cons true (cons true R)))) := by
+    show cons false (rep 1 [true, false] (cons true (enc (c :: bs)))) = _
+    rw [hR]; rfl
+  have e2 : cons false (cons true (cons false (cons true R))) = cons false (enc ((c + 1) :: bs)) := by
+    rw [enc_succ, hR]
+  rw [e2] at s0
+  rw [e1]
+  exact steps_seq trans s0 (steps_seq trans r (steps_seq trans s1 s2))
+
+/-! ### MERGE: a visit to `3 :: T` -/
+
+@MERGE3_IN@
+@MERGE3_OUT@
+
+/-- One step: A reading 1 writes 0 and moves left into C. -/
+theorem a_one (a : Bool) (L R : Tape) :
+    steps 1 ⟨cons a L, cons true R, .A⟩ = some ⟨L, cons a (cons false R), .C⟩ := rfl
+
+/-- **MERGE.**  A visit to `3 :: c :: bs` makes one visit to `(c + 1) :: bs` (15 steps in); if that one ends as a
+clean visit does, with `(x + 1) :: X`, this one ends 10 steps later with the head on the cell left of its start, in
+C, and `0 (10)^(x+4) 1 X` on the right: the block 3 is gone and the next block is 3 longer (the hybrid simulator's
+exit "C, prefix 0, bump 3"). -/
+theorem merge3 (c : Nat) (bs X : List Nat) (x t : Nat) (h : Visit ((c + 1) :: bs) ((x + 1) :: X) t)
+    (a : Bool) (L : Tape) :
+    steps (15 + (t + (9 + 1))) ⟨cons a L, cons false (enc (3 :: c :: bs)), .A⟩ =
+      some ⟨L, cons a (cons false (enc ((x + 4) :: X))), .C⟩ := by
+  obtain ⟨R, hR⟩ := enc_cons_true c bs
+  have s0 := merge3_in_raw (cons a L) R
+  have r := h (cons false (cons true (cons false (cons false (cons true (cons a L))))))
+  have s1 := merge3_out_raw (cons a L) (rep (x + 1) [true, false] (cons true (enc X)))
+  have s2 := a_one a L (cons true (cons false (cons true (cons false (cons true (cons false
+    (rep (x + 1) [true, false] (cons true (enc X)))))))))
+  have e1 : cons false (enc (3 :: c :: bs)) =
+      cons false (cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons true R)))))))) := by
+    show cons false (rep 3 [true, false] (cons true (enc (c :: bs)))) = _
+    rw [hR]; rfl
+  have e2 : cons false (cons true (cons false (cons true R))) = cons false (enc ((c + 1) :: bs)) := by
+    rw [enc_succ, hR]
+  rw [e2] at s0
+  rw [e1]
+  exact steps_seq trans s0 (steps_seq trans r (steps_seq trans s1 s2))
+
+/-! ### SWEEP: a visit to a list of even blocks (the left-end round)
+
+The head crosses all the blocks in B, leaving each `(10)^(2h) 1` as `(0010)^h 0` (`bpass`), turns on blank tape and
+starts a new block (`endin`).  From then on the left part is `cl pre` followed by `(0010)^w 0 0 1` (`W`): the blocks
+`pre` not yet reached and the rest of the current one.  At each block it makes one visit, then three CARRYs; then it
+either moves into the next block on the left (`gap`) or, at the first block, leaves (`fin`).  `Run` is "from here the
+sweep ends as a visit does"; `run_gap` and `run_end` build it from the nested visits, and `sweep` turns it into a
+`Visit`.  This is `FastMixin.sweep` in py/fast.py. -/
+
+@BPASS@
+@ENDIN@
+@GAP@
+@FIN@
+
+/-- A visit that ends as CARRY does: in A, on the cell left of its start, the cell itself unchanged. -/
+def CVisit (l X : List Nat) (t : Nat) : Prop :=
+  ∀ (a : Bool) (L : Tape), steps t ⟨cons a L, cons false (enc l), .A⟩ = some ⟨L, cons a (enc X), .A⟩
+
+theorem carry_cv (c : Nat) (bs X : List Nat) (t : Nat) (h : Visit ((c + 1) :: bs) X t) :
+    CVisit (1 :: c :: bs) (1 :: X) (9 + (t + (5 + 1))) :=
+  fun a L => carry c bs X t h a L
+
+/-- The blocks `hs` (in halves, nearest last) after the B pass: `(0010)^h 0` each, in front of `Y`. -/
+def cl : List Nat → Tape → Tape
+  | [], Y => Y
+  | h :: hs, Y => cl hs (cons false (rep h [false, true, false, false] Y))
+
+theorem cl_snoc : ∀ (pre : List Nat) (v : Nat) (Y : Tape),
+    cl (pre ++ [v]) Y = cons false (rep v [false, true, false, false] (cl pre Y))
+  | [], _, _ => rfl
+  | _ :: hs, v, _ => cl_snoc hs v _
+
+/-- The left part during the sweep: `L 1 (cl pre) (0010)^w 0 0 1`, nearest cell first. -/
+def W (L : Tape) (pre : List Nat) (w : Nat) : Tape :=
+  cons true (cons false (cons false (rep w [false, true, false, false] (cl pre (cons true L)))))
+
+/-- From the start of a visit to `l` with left part `W L pre w`, the sweep ends as a visit does, with `Xf`. -/
+def Run (pre : List Nat) (w : Nat) (l Xf : List Nat) (t : Nat) : Prop :=
+  ∀ L : Tape, steps t ⟨W L pre w, cons false (enc l), .A⟩ = some ⟨L, cons true (cons false (enc Xf)), .E⟩
+
+/-- `(1010)^k 1 0 s = 1 0 (1010)^k s`. -/
+theorem rot10 (k : Nat) (s : Tape) :
+    rep k [true, false, true, false] (cons true (cons false s)) =
+      cons true (cons false (rep k [true, false, true, false] s)) :=
+  (rep_rotate k [true, false] [true, false, true, false] [true, false, true, false] rfl s).symm
+
+/-- The part all blocks share: the visit to `l`, its end (CARRY's last steps), the three CARRYs.  Afterwards the
+head is in A on the 1 left of `1 0 1 X3`, two cells further left than where the visit started. -/
+theorem block (Z : Tape) (w : Nat) (l X X1 X2 X3 : List Nat) (t0 t1 t2 t3 : Nat) (h0 : Visit l X t0)
+    (h1 : CVisit (1 :: X) (1 :: X1) t1) (h2 : CVisit (1 :: X1) (1 :: X2) t2) (h3 : CVisit (1 :: X2) (1 :: X3) t3) :
+    steps (t0 + (6 + (t1 + (t2 + t3))))
+      ⟨cons true (cons false (cons false (rep (w + 1) [false, true, false, false] Z))), cons false (enc l), .A⟩ =
+      some ⟨cons false (cons false (rep w [false, true, false, false] Z)),
+        cons true (cons true (cons false (cons true (enc X3)))), .A⟩ := by
+  have r0 := h0 (cons true (cons false (cons false (rep (w + 1) [false, true, false, false] Z))))
+  have s1 := carry_out_raw (cons false (cons false (rep (w + 1) [false, true, false, false] Z))) (enc X)
+  have s2 := e_zero false (cons false (rep (w + 1) [false, true, false, false] Z)) (cons false (cons true (enc X)))
+  have r1 := h1 false (rep (w + 1) [false, true, false, false] Z)
+  have r2 := h2 false (cons true (cons false (cons false (rep w [false, true, false, false] Z))))
+  have r3 := h3 true (cons false (cons false (rep w [false, true, false, false] Z)))
+  have g : steps 6 ⟨cons true (cons false (cons false (rep (w + 1) [false, true, false, false] Z))),
+      cons true (cons false (enc X)), .E⟩ =
+      some ⟨cons false (rep (w + 1) [false, true, false, false] Z), cons false (enc (1 :: X)), .A⟩ :=
+    steps_seq trans s1 s2
+  exact steps_seq trans r0 (steps_seq trans g (steps_seq trans r1 (steps_seq trans r2 r3)))
+
+/-- **The first block: the sweep leaves.**  At the first block (`pre` empty, `w + 1` halves left) the visit and the
+three CARRYs are followed by `fin`: the visit ends with `(2w+2) :: X3`, the first block two shorter. -/
+theorem run_end (w : Nat) (l X X1 X2 X3 : List Nat) (t0 t1 t2 t3 : Nat) (h0 : Visit l X t0)
+    (h1 : CVisit (1 :: X) (1 :: X1) t1) (h2 : CVisit (1 :: X1) (1 :: X2) t2) (h3 : CVisit (1 :: X2) (1 :: X3) t3) :
+    Run [] (w + 1) l ((2 * w + 2) :: X3) (t0 + (6 + (t1 + (t2 + t3))) + (4 * w + 3)) := by
+  intro L
+  have b := block (cons true L) w l X X1 X2 X3 t0 t1 t2 t3 h0 h1 h2 h3
+  have f := fin_raw w L (enc X3)
+  have e : cons true (cons false (rep w [true, false, true, false] (cons true (cons false (cons true (enc X3)))))) =
+      enc ((2 * w + 2) :: X3) := by
+    show _ = rep (2 * (w + 1)) [true, false] (cons true (enc X3))
+    rw [rep_double, rot10]; rfl
+  rw [e] at f
+  exact steps_seq trans b f
+
+/-- **The next block.**  After the visit and the three CARRYs at a block of `u + 3` halves, `gap` takes the head over
+what is left of it (now `(10)^(2u+5)`, the block one shorter) to the block `v + 1` on its left, where the next visit,
+to `(2u+5) :: X3`, starts. -/
+theorem run_gap (pre : List Nat) (v u : Nat) (l X X1 X2 X3 Xf : List Nat) (t0 t1 t2 t3 T : Nat)
+    (h0 : Visit l X t0) (h1 : CVisit (1 :: X) (1 :: X1) t1) (h2 : CVisit (1 :: X1) (1 :: X2) t2)
+    (h3 : CVisit (1 :: X2) (1 :: X3) t3) (hr : Run pre v ((2 * u + 5) :: X3) Xf T) :
+    Run (pre ++ [v + 1]) (u + 2) l Xf (t0 + (6 + (t1 + (t2 + t3))) + ((4 * u + 8) + T)) := by
+  intro L
+  have b := block (cl (pre ++ [v + 1]) (cons true L)) (u + 1) l X X1 X2 X3 t0 t1 t2 t3 h0 h1 h2 h3
+  have g := gap_raw u (cons false (cons false (rep v [false, true, false, false] (cl pre (cons true L))))) (enc X3)
+  have r := hr L
+  have e1 : cons false (cons false (rep (u + 1) [false, true, false, false] (cl (pre ++ [v + 1]) (cons true L)))) =
+      cons false (cons false (rep u [false, true, false, false] (cons false (cons true (cons false (cons false
+        (cons false (cons false (cons true (cons false (cons false
+          (rep v [false, true, false, false] (cl pre (cons true L)))))))))))))) := by
+    rw [cl_snoc, ← rep_app_comm]; rfl
+  have e2 : cons true (cons false (cons true (cons false (cons true (cons false (cons true (cons false
+      (rep u [true, false, true, false] (cons true (cons false (cons true (enc X3)))))))))))) =
+      enc ((2 * u + 5) :: X3) := by
+    show _ = rep (2 * (u + 2) + 1) [true, false] (cons true (enc X3))
+    rw [rep_succ, rep_double, rot10]; rfl
+  rw [e1] at b
+  rw [e2] at g
+  exact steps_seq trans b (steps_seq trans g r)
+
+/-- The B pass's step count: `6h + 1` for each block. -/
+def bsum : List Nat → Nat
+  | [] => 0
+  | h :: hs => 6 * h + 1 + bsum hs
+
+theorem bpass : ∀ (hs : List Nat) (Y : Tape),
+    steps (bsum hs) ⟨Y, enc (hs.map (2 * ·)), .B⟩ = some ⟨cl hs Y, blank, .B⟩
+  | [], _ => rfl
+  | h :: hs, Y => by
+    have s := bpass_raw h Y (enc (hs.map (2 * ·)))
+    have r := bpass hs (cons false (rep h [false, true, false, false] Y))
+    have e : enc ((h :: hs).map (2 * ·)) = rep h [true, false, true, false] (cons true (enc (hs.map (2 * ·)))) := by
+      show rep (2 * h) [true, false] _ = _
+      rw [rep_double]; rfl
+    rw [e]
+    exact steps_seq trans s r
+
+/-- **SWEEP.**  A visit to the even blocks `2 h_1, ..., 2 h_k, 2 (u + 1)` (`pre = [h_1 .. h_k]`): the head crosses
+them all (`bpass`), starts a new block (`endin`, then the sweep's first visit is to `[1]`) and from there on the
+sweep runs as `Run` says. -/
+theorem sweep (pre : List Nat) (u : Nat) (Xf : List Nat) (t : Nat) (h : Run pre u [1] Xf t) :
+    Visit ((pre ++ [u + 1]).map (2 * ·)) Xf (1 + (bsum (pre ++ [u + 1]) + (4 + t))) := by
+  intro L
+  have s0 : steps 1 ⟨L, cons false (enc ((pre ++ [u + 1]).map (2 * ·))), .A⟩ =
+      some ⟨cons true L, enc ((pre ++ [u + 1]).map (2 * ·)), .B⟩ := rfl
+  have s1 := bpass (pre ++ [u + 1]) (cons true L)
+  have s2 := endin_raw u (cl pre (cons true L))
+  rw [cl_snoc] at s1
+  have s3 := h L
+  exact steps_seq trans s0 (steps_seq trans s1 (steps_seq trans s2 s3))
+
+/-! ### The left end -/
+
+@LEFT@
+
+/-- **The round at the left end.**  At a left-end event the tape is `0^inf A> 0 (10)^m 1 ...` with m = 2k + 4 even;
+the visit to the blocks is a SWEEP (`sweep`), which leaves the first block two shorter, and 5 steps at the blank left
+end give it back its two: the next left-end event, one cell further left. -/
+theorem left_end (k : Nat) (T S : List Nat) (t : Nat) (h : Visit ((2 * k + 4) :: T) ((2 * k + 2) :: S) t) :
+    steps (t + 5) ⟨blank, cons false (enc ((2 * k + 4) :: T)), .A⟩ =
+      some ⟨blank, cons false (enc ((2 * k + 4) :: S)), .A⟩ := by
+  have r := h blank
+  have s := left_raw (enc ((2 * k + 2) :: S))
+  have e : cons true (cons false (cons true (cons false (enc ((2 * k + 2) :: S))))) = enc ((2 * k + 4) :: S) := rfl
+  rw [e] at s
+  exact steps_seq trans r s

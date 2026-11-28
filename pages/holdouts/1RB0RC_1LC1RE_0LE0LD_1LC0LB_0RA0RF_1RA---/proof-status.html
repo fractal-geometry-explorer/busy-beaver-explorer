@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. It writes a word of blocks 1100 and 10 that grows to the right logarithmically slowly, like a counter. This page lists what has been established.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 24 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Only first-look facts are established: no halt in 2·10<sup>10</sup> steps, logarithmic growth, and the local pattern that halting needs.</p>
+      <p><b>The question is open.</b> The run is two binary counters at a hub, counting down on the left and up on the right; the counting rules are proved in Lean, and an accelerated run reaches 4.96·10<sup>15</sup> steps without a halt. The overflows, where the counters are laid out again, are not decoded.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -121,6 +121,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The counter rules</h3>
+        <p>One hub event of the two counters, for every borrow length k and carry length j and every tape beyond the cells shown: <code>borrow</code> (10k + 20 steps), <code>carry0</code>, <code>carry1</code> and <code>plain</code>.</p>
+        <p class="where"><code>lean/Counter.lean</code>, written by <code>py/rules.py</code> (<code>tools/py/bbtools/hubrules.py</code>)</p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -147,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The tape grows mostly to the right; the time to reach a new rightmost cell grows by a roughly constant factor per cell (cell 50 at step 1,089, cell 350 at step 16,667,114,039); 359 cells after 18,417,187,404 steps, no halt.</p>
         <p class="where"><code>tools/c/tmrun.c</code> (<code>records</code>), 2·10<sup>10</sup> steps</p>
       </div>
+      <div class="card">
+        <h3>No halt in 4.96·10<sup>15</sup> steps</h3>
+        <p>A 30-minute accelerated run (<code>tools/py/bbtools/cjump.py</code>, exact step counts) reached step 4,961,958,653,181,237 (4.96·10<sup>15</sup>) with 549 cells visited and no halt, through 11 overflows. After the overflow at step 4.96·10<sup>15</sup> it found no model in the remaining time.</p>
+        <p class="where"><code>tools/py/bbtools/cjump.py</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -154,6 +164,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>What the tape is</h3>
         <p>Read as words <code>a = 1100</code> and <code>b = 10</code> (<code>tools/c/tokrun.c</code>), the tape is a string over a, b and single 1s, a counter-like word whose front changes at every pass and whose back is a long regular tail <code>(1 b^2)^n</code> that grows by one unit now and then. The sibling 1RB0RD_1LC1RE_1LD0LC_0LE0LC_0RA0RF_1RA--- (C and D swapped, two transitions differ) behaves the same way.</p>
         <p class="where">observed</p>
+      </div>
+      <div class="card">
+        <h3>Two binary counters at a hub</h3>
+        <p>At the hub turn (E reading 0) each event takes 1 from the left counter and adds 1 to the right; cost 10 steps per left digit changed, 12 per right digit changed, 32 per left separator crossed, plus a constant. When the left counter runs out the hub moves and the layout is rebuilt; the rule of that overflow is not decoded.</p>
+        <p class="where">learned by <code>cjump.py</code>, checked on every event it jumps from</p>
       </div>
     </div>
     <h3><span class="tag t-open">open</span> Open</h3>
@@ -170,7 +185,8 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
 holdouts/1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---/lean/check.sh
 gcc -O2 -o triage tools/c/triage.c &amp;&amp; ./triage 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1000000000
 ./tmrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 20000000000 records 1500
-./tokrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 2000000000 a=1100,b=10 R 300</code></pre>
+./tokrun 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 2000000000 a=1100,b=10 R 300
+python3 tools/py/bbtools/cjump.py 1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA--- 1e3000 1800</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB0RC_1LC1RE_0LE0LD_1LC0LB_0RA0RF_1RA---/status.json</code>; edit that file and rebuild rather than editing this page.</p>

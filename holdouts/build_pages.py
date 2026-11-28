@@ -109,8 +109,15 @@ def wiki_link(page):
 def deepmind_entry(M, e, decision):
     """The "elsewhere" entry for a machine's Lean file in google-deepmind/cryptids."""
     dm = external()["deepmind"]
-    link = (f"<a href=\"{dm['base']}{e['path']}\">{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
-            f"<a href=\"{dm['repo']}\">google-deepmind/cryptids</a> (commit <code>{dm['commit']}</code>, {dm['date']})")
+    if e.get("pr"):
+        # A file from an open cryptids pull request (not on main): link the PR's head commit.
+        link = (f"<a href=\"{dm['repo']}/blob/{e['commit']}/BusyBeaver/BB6/{e['path']}\">"
+                f"{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
+                f"<a href=\"{dm['repo']}/pull/{e['pr']}\">google-deepmind/cryptids pull request {e['pr']}</a> "
+                f"(commit <code>{e['commit']}</code>, {e['date']}; open, not merged into their main branch)")
+    else:
+        link = (f"<a href=\"{dm['base']}{e['path']}\">{html.escape(e['path'].rsplit('/', 1)[-1])}</a> in "
+                f"<a href=\"{dm['repo']}\">google-deepmind/cryptids</a> (commit <code>{dm['commit']}</code>, {dm['date']})")
     k = e["kind"]
     if k in CLAIM:
         same = (" It agrees with the proof here." if decision == k else
@@ -194,6 +201,19 @@ def wiki_entry(M):
     return {"kind": "label", "title": "On the bbchallenge wiki", "text": text}
 
 
+def merged_text(g):
+    """How a merged pull request reached busycoq's BB6 branch, for the "elsewhere" box."""
+    t = f"busycoq's maintainer merged it into the BB6 branch on {g['date']} "
+    if not g.get("revised"):
+        return t + f"(commit <code>{g['commit']}</code>), and the merged file is identical to the one compiled here. "
+    t += f"(merge commit <code>{g['commit']}</code>)"
+    files = ", ".join(f"<code>{html.escape(f)}</code>" for f in g.get("files", []))
+    return (t + " after rewriting the proof; it now lives in " + files + " on the BB6 branch (head "
+            f"<code>{g.get('head', g['commit'])}</code>). The rewritten version was not recompiled here"
+            + (", and it is checked with <code>native_cast_no_check</code>, which also trusts Coq's native compiler"
+               if g.get("native") else "") + ". ")
+
+
 def elsewhere(M, decision="open"):
     """The "elsewhere" entries of a machine: [{kind, title, text}], kind "proof" (checked here), "report" (a proof
     outside this repository that was not compiled here) or "label" (a heuristic name)."""
@@ -210,14 +230,31 @@ def elsewhere(M, decision="open"):
         if c.get("note"):
             text += " " + c["note"]
         if c.get("shorter"):
-            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq, "
-                     f"ready to be proposed upstream: "
+            text += (f" A shorter proof of the same theorem ({c['shorter']}) is on a branch of our fork of busycoq"
+                     + (": " if e.get("merged", {}).get("pr") else ", ready to be proposed upstream: ") +
+                     f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
+        elif c.get("branch") and e.get("merged", {}).get("pr"):
+            text += (f" The same files are on a branch of our fork of busycoq: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         elif c.get("branch"):
             text += (f" The same files are on a branch of our fork of busycoq, ready to be proposed upstream: "
                      f"<a href=\"{c['branch']}\">{html.escape(c['branch'].rsplit('/', 1)[1])}</a>.")
         out.append({"kind": "proof", "title": "Proved in Coq" if c.get("only") else "Also proved in Coq", "text": text})
-    if e.get("merged"):
+    g = e.get("merged")
+    if g and g.get("pr") and not any(p["n"] == g["pr"] for p in e.get("prs", [])):
+        out.append({"kind": "report", "title": f"Merged upstream: it {CLAIM[g['claim']]}",
+                    "text": f"The Coq proof from this repository was submitted as "
+                            f"<a href=\"{ext['busycoq']}/pull/{g['pr']}\">busycoq pull request {g['pr']}</a>. "
+                            + merged_text(g)})
+    q = e.get("merged_equivalence")
+    if q:
+        out.append({"kind": "report", "title": "Merged upstream: halts exactly when another holdout does",
+                    "text": f"<a href=\"{ext['busycoq']}/pull/{q['pr']}\">busycoq pull request {q['pr']}</a>, merged "
+                            f"into the BB6 branch on {q['date']} (commit <code>{q['commit']}</code>, file "
+                            f"<code>{html.escape(', '.join(q['files']))}</code>), proves that this machine halts from "
+                            f"blank tape exactly when <a href=\"../{q['partner']}/explainer.html\">{q['partner']}</a> "
+                            "does. It decides neither machine, so halting stays open."})
+    if e.get("merged") and not e["merged"].get("pr"):
         g = e["merged"]
         out.append({"kind": "report", "title": f"Proved outside this repository: it {CLAIM[g['claim']]}",
                     "text": f"A Rocq proof that this machine {CLAIM[g['claim']]} is merged in {g['where']} "
@@ -239,8 +276,10 @@ def elsewhere(M, decision="open"):
             out.append({"kind": "proof", "title": f"An outside Rocq proof, compiled here: it {CLAIM[pr['claim']]}",
                         "text": f"<a href=\"{ext['busycoq']}/pull/{pr['n']}\">busycoq pull request {pr['n']}</a> "
                                 f"({html.escape(meta['author'])}, {meta['date']}) contains a Rocq proof that this machine "
-                                f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). The pull request is open: "
-                                "not merged and not reviewed by the maintainer. We compiled the file on busycoq's BB6 branch "
+                                f"{CLAIM[pr['claim']]} (<code>{html.escape(pr['file'])}</code>). " +
+                                (merged_text(e["merged"]) if e.get("merged", {}).get("pr") == pr["n"] else
+                                 "The pull request is open: not merged and not reviewed by the maintainer. ") +
+                                "We compiled the file on busycoq's BB6 branch "
                                 f"(commit <code>{c['base']}</code>) with Coq {c['coq']} on {c['date']}, in " + (f"about {c['core_hours']} core-hours" if c.get('core_hours') else f"{c['seconds']} s") + ": "
                                 f"the theorem <code>{html.escape(c['theorem'])}</code> is stated on busycoq's own definitions "
                                 f"of a machine and of halting, {ax}, and the file's transition table is this machine. "
@@ -331,13 +370,17 @@ def standing_line(M, decision, level="lean"):
               if all("xtensionality" in a for a in axl) else
               "with no axioms beyond the standard ones for Coq's machine integers (PrimInt63)")
         return {"kind": "merged", "label": f"Decided by an outside Rocq proof: it {CLAIM[decision]}",
-                "text": f"A Rocq proof in busycoq pull request {n[0]} (open, not yet reviewed by the maintainer) was "
+                "text": f"A Rocq proof in busycoq pull request {n[0]} (" +
+                        ("merged into busycoq's BB6 branch on " + e["merged"]["date"] if e.get("merged", {}).get("pr") in n
+                         else "open, not yet reviewed by the maintainer") + ") was "
                         f"compiled here, on busycoq's own definitions, {ax}. It is their proof, "
                         "not one written in this repository; the ledger below says what this repository checked on its own."}
     if kind == "outside":
         k = CLAIM[e["deepmind"]["kind"]]
+        where = (f"An open pull request ({e['deepmind']['pr']}) to DeepMind's cryptids repository proves it in Lean"
+                 if e["deepmind"].get("pr") else "DeepMind's cryptids repository proves it in Lean")
         return {"kind": "merged", "label": f"Decided by an outside Lean proof: it {k}",
-                "text": "DeepMind's cryptids repository proves it in Lean, and the proof was compiled here with only the "
+                "text": where + ", and the proof was compiled here with only the "
                         "standard axioms. It is their proof, on their definitions, not one written in this repository; "
                         "the ledger below says what this repository checked on its own."}
     if kind == "computed":
@@ -482,6 +525,14 @@ def reductions():
     return _REDUCTIONS
 
 
+def dm_url(dm):
+    """Link to a machine's Lean file in google-deepmind/cryptids: main at the recorded commit, or an open PR's head."""
+    ext = external()["deepmind"]
+    if dm.get("pr"):
+        return f"{ext['repo']}/blob/{dm['commit']}/BusyBeaver/BB6/{dm['path']}"
+    return ext["base"] + dm["path"]
+
+
 def lean_results(M, folder, spec):
     """The index fields of a machine's Lean results: its map (mp), halt-together partners (ht), Lean no-halt bound
     (bl, bk), DeepMind's Lean file (dm, from external.json) and the link to its Lean folder."""
@@ -496,7 +547,7 @@ def lean_results(M, folder, spec):
     lean = folder + "/lean" if os.path.isdir(os.path.join(REPO, folder, "lean")) else folder
     return {"mp": mp, "mt": 0 if not mp else (1 if mp["t"] == "iff" else 2), "mn": mp["n"] if mp else None,
             "ht": red["together_by"].get(M, []), "bl": round(b[0], 2) if b else None, "bk": b[1] if b else "",
-            "dm": {"k": dm["kind"], "h": dm.get("here", ""), "c": 1 if dm.get("compiled") else 0, "u": external()["deepmind"]["base"] + dm["path"]} if dm else None,
+            "dm": {"k": dm["kind"], "h": dm.get("here", ""), "c": 1 if dm.get("compiled") else 0, "u": dm_url(dm)} if dm else None,
             "lean": GITHUB.replace("/blob/", "/tree/") + lean}
 
 
@@ -692,7 +743,7 @@ td.fm{white-space:nowrap;font-family:var(--mono);font-size:.75rem}
  <p>Built by <code>holdouts/build_pages.py</code> from <code>holdouts/triage.json</code> (the triage run,
  <code>tools/c/triage.c</code> and <code>tools/py/bbtools/triage.py</code>), each machine's <code>status.json</code>,
  <code>holdouts/known.json</code> (community names from the bbchallenge wiki), <code>holdouts/reductions.json</code> (the proved maps and halt-together groups; the no-halt bounds are read from each ledger's Lean claims) and <code>holdouts/external.json</code>
- (outside proofs: busycoq pull requests __ASOF__, DeepMind's cryptids at commit 3647718 of 12 November 2026, the wiki export of 17 November 2026; and the community tracker's labels). The growth class is a heuristic read off one
+ (outside proofs: busycoq pull requests __ASOF__, DeepMind's cryptids at commit 3647718 of 12 November 2026 and its open pull request 37 (commit ee4318b, 21 November 2026), the wiki export of 17 November 2026; and the community tracker's labels). The growth class is a heuristic read off one
  bounded run. Larger, outlined dots in the plot are the machines that are not simply open.</p>
 </footer>
 </main>
@@ -792,7 +843,7 @@ const RF = [
   ["iff", "proved map", r => r.mt === 1, "Lean proves: halts from blank tape iff the orbit of an explicit map on a fixed list of numbers reaches its halting case"],
   ["cond", "map, with a condition", r => r.mt === 2, "a map is proved, but the iff needs an assumption Lean does not check, or only the no-halt direction is proved"],
   ["ht", "halts together with another holdout", r => r.ht.length > 0, "one halting question shared with another machine on the list"],
-  ["dma", "in DeepMind's Lean", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; 26 of them compiled here"],
+  ["dma", "in DeepMind's Lean", r => !!r.dm, "google-deepmind/cryptids has a Lean file for the machine: a proof, a halts-iff map, a reduction or an acceleration; 46 of them compiled here"],
   ["dms", "solved in DeepMind's Lean", DMS, "google-deepmind/cryptids has a Lean proof that it halts or never halts; those built here are marked compiled"],
   ["both", "map formalized here and in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h === "iff", "both repositories prove a halts-iff map, written independently"],
   ["dmm", "map only in DeepMind's Lean", r => r.dm && r.dm.k === "map" && r.dm.h !== "iff", "google-deepmind/cryptids proves a halts-iff map that this repository has only with a condition, or not at all; all 15 compiled here"],

@@ -10,8 +10,9 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on."
  ],
- "asof": "Status as of 8 November 2026.",
+ "asof": "Status as of 25 November 2026.",
  "verdict": [
+  "<b>Decided by an outside Rocq proof: it never halts.</b> Busycoq pull request 118 (Alex Havrilla, 2026-11-25) proves this in Rocq, and we compiled it here with Coq 8.20.1 on busycoq's BB6 branch (33209bc): it uses no axioms (<code>Print Assumptions</code>), <code>coqchk</code> accepts it, and its transition table is this machine. The proof reads the tape as a stack with a wall, proves exact wall reflections with a shift by 3q, and inverts every reachable configuration into a depth-indexed mutual big-step system, so a wall invariant rules out the halt. It is their proof, on busycoq's definitions of a machine and of halting, and busycoq's maintainer has not yet reviewed it. Everything else on this page is what this repository found on its own.",
   "<b>The question is open.</b> Sweeps back and forth over a period-10 background (1011011011 and its rightward form 0111101101); a clean zone of it at the left end grows, the rest is a soup of 011, 100, 1 1 0 0 pieces; a halt needs B to read the third of three 0s. Lean proves the sweep rules over the background words and the only local pattern that leads to a halt; no halt in 10<sup>9</sup> steps."
  ],
  "claims": [
@@ -182,6 +183,8 @@
    }
   ]
  },
- "summary": "Sweeps back and forth over a period-10 background (1011011011 and its rightward form 0111101101); a clean zone of it at the left end grows, the rest is a soup of 011, 100, 1 1 0 0 pieces; a halt needs B to read the third of three 0s.",
- "family": "sweeping transducer: period-10 background with a growing clean zone"
+ "summary": "Sweeps back and forth over a period-10 background (1011011011 and its rightward form 0111101101); a clean zone of it at the left end grows, the rest is a soup of 011, 100, 1 1 0 0 pieces; a halt needs B to read the third of three 0s. Decided outside: busycoq PR 118 proves in Rocq that it never halts (compiled here).",
+ "family": "sweeping transducer: period-10 background with a growing clean zone",
+ "decision": "nonhalting",
+ "decision_level": "outside"
 }

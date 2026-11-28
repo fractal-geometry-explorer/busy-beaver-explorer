@@ -2,4 +2,4 @@
 # Check this machine's Lean files with the shared library (tools/lean). LEAN, LEANLIB as for tools/lean/check.sh. Route.lean
 set -e
 cd "$(dirname "$0")"
-../../../tools/lean/check.sh . Machine.lean Blank.lean Shifts.lean Route.lean Model.lean ModelWords.lean Sim.lean HaltingWord.lean
+../../../tools/lean/check.sh . Machine.lean Blank.lean Shifts.lean Route.lean Model.lean ModelWords.lean Sim.lean Inv.lean Fast.lean Drive.lean HaltingWord.lean

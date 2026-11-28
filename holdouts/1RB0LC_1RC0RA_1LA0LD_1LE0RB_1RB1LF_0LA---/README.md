@@ -121,6 +121,104 @@ proof of that is known.
 random round, each for 2–3·10^9 steps: none halted. A closure search that sends a cursor `"0"` or `"1"` at every
 moving-cursor window as a stalled pattern grew to more than 1,000 patterns without finding a halt and without closing.
 
+## A relaxed budget: even gaps are not a parity fact (22 November 2026)
+
+The lead was to prove that every cursor reaching a stalled `| 1 "110"` arrives with an even gap. The tripling law
+keeps the parity of every run, and the budget loses one pair a round while the cursor's phase flips, so the hope was
+that parities alone fix the gap. They do not.
+
+**The relaxed run (`py/relax.py`).** Let the budget run out early: at a round start the first run may be removed
+(or, with `KEEP` = 2, 4 or 8, cut to a smaller value with the same residue). Every tape of the real run is a tape of
+the relaxed run, so a proof that the relaxed run never halts would settle the machine without knowing any budget.
+
+- With the residue of the budget kept mod 2, 4 or 8, odd arrivals happen within a few hundred rounds and 1111 forms
+  (`| 1 "1110"`, after a separator, as in the README route above). So the even gaps of the real run come from the
+  sizes of the budgets, not from parities: an invariant on parities cannot prove them.
+- Yet none of these runs halts. `python3 py/relax.py cuts 1-12 20000 0` (any stall) and `... 2` (parity kept):
+  24 runs, 183,924 rounds, 22,621 cuts (most at moments when the moving cursor is next to a separator or another
+  cursor), 843 round starts with 1111, no halt. Runs stop at 3,000 tokens.
+
+**What a halt needs (`python3 py/relax.py route`).** The halting collision of `lean/Collide.lean` has a stalled
+`"1110"` directly before a separator (the only halting collision known). One way to get it: a stalled `| 1 "110" |` receives an odd arrival, which
+gives `| 1 "1110" |` three rounds later; if the budget runs out exactly then, any even arrival (`"0" |`, `"0" 2 |`,
+`"0" 4 |`) halts. But no `"110"` or `"1110"` has ever been seen directly before a separator: in the real run (no
+cut, to round 120,000) and in relaxed runs (`python3 py/relax.py words 1-6 8000 0.02`, 21,000 cursor words), the only
+words before a separator are `"0"`, `"1"`, `"00"`, `"10"`, `"11"`. A crossing writes `"110"` at the start of the
+next run (`"0" | b` becomes `| 1 "110" b`), never at its end.
+
+So the target is better stated as: **no `"110"` or `"1110"` is ever directly followed by a separator, even in the
+relaxed run.** That is a local statement about the relaxed run, which needs no budget sizes.
+
+**Tried and stopped.** An n-gram closed-set search over the relaxed run (a window around the moving cursor, runs
+longer than 4 pairs kept by parity, the rest of the tape as the set of its 4- or 6-grams) ran without a halt to
+about 8,000 windows but did not close: rounds where the head crosses a whole region (a new cursor's first round
+reaches the next stalled cursor and moves it) make the windows explode. The scratch code is kept with the project
+notes, not here.
+
+## A round as a transducer (23 November 2026)
+
+**`py/sweep.py`** computes a round as a crossing-sequence transducer. The tape is split into maximal runs (01)^n and
+the cell words between them. Unlike the old tokens, that split never shifts when the tape changes to its left: the old
+tokens re-read a chain of stalled `"1"` cursors (`| 1 "1" | 1 "1" ...`, cells (0011)^k) after any change at its left
+end. At every token boundary the head crosses a number of times, and the crossing sequence lists its states. One
+round of a whole language is then a finite product graph, and no window or stand-in is needed. This matters because
+a round can change several places and sweep more than once:
+- after a collision the head may go on and move the next cursor in the same round
+  (`4 "0" 1 "110" 3 | 9 | 3 | 9 | 1 "110" 3` -> `10 | 9 | 3 | 9 | 4 "0" 3`);
+- after `"0" 1 "1110"` the passed tape holds a stray 0, the head bounces off it and sweeps right again
+  (`5 "0" 1 "1110" 8 "0" 1 "110" 8 "0" 1 "110" 8 | 5 | 3` -> `5 | 29 | 5 | 3 | 1`).
+
+Runs longer than K pairs, and words with more than A1 ones, stand for all their values. The behaviour is the union over
+small values and two large ones, and the two large ones must agree. Words with many 1s really occur in the relaxed run:
+a stalled `"1110"` hit by `"00"` gains a 1 (`16 "00" 1 "11110"` -> `16 | 1 "111110"`).
+
+`python3 py/sweep.py check 1-2 400` computes every round of two relaxed runs on the exact tape with the transducer:
+all 746 agree with `py/tok.py`.
+
+**Closures (not a proof).** `python3 py/sweep.py closure 300` closes the 6-gram language of the tape at round 300
+under rounds and cuts. It finds no halt and no `110`/`1110` before a separator, but it does not close. The language
+doubles every round, to about 200,000 6-grams. The same holds with 8-grams, with n-grams of whole segments (the
+stretches between separators; 3- and 4-grams, up to 400,000) and with K = 2. Most new patterns are several stalled
+cursors with single runs between them. These clusters are real in the relaxed run: up to 4 cursors in one segment in
+eight relaxed runs (`relax.py`, 48,000 rounds).
+
+**What else was tried:**
+- A backward search: the tapes that can reach a bad one, as a DFA. The subset construction of the first preimage
+  passed 1.3 million states and was stopped.
+- The two-automaton SAT search for a closed tape language on cells (`tools/py/satctl.py`): UNSAT for (left, right)
+  automaton sizes (3,6), (4,8), (5,10), (6,12), (8,16), (8,24), (10,20), (10,30), (4,40) and (6,30); (12,24) and
+  (12,40) did not finish in 50 minutes.
+
+## The relaxed target is false (23 November 2026)
+
+**`py/relaxbfs.py`** searches the relaxed run exhaustively: at every round start whose tape is `m | ...` it tries
+both the plain round and the round with the first run removed. (In the real run the budget only ever runs out as
+`1 | ...`, checked to round 100,000. `relax.py` also cut while a cursor was in the first run, which never happens.)
+`python3 py/relaxbfs.py 92` from the tape `4`, tapes up to 400 tokens: 4,774,767 tapes and **no halt**, but 882 have
+`"110"` directly before a separator and 19 have `"1110"`:
+
+    13 "0" | 1 "1"  ->  12 | 1 "110" 1 "1"  ->  11 | 4 "0" 1 "1"  ->  10 | 4 | | 1     ("0" 1 "1" at the tape's end)
+    cut:  | 4 | | 1 | 1 | 1  ->  4 "1" 2 | | 1 | 1 | 1 | 1  ->  ...  ->  9 "0" | | 1 ...  ->  8 | 1 "110" | 1 ...
+    9 "00" 1 "110" | 1  ->  8 | 1 "1110" | 1
+
+So the target of the section above, "no `"110"` or `"1110"` before a separator, even in the relaxed run", is
+false. The first examples go through a double separator `| |` (an empty run), which a collision makes: `"0" 1 "1"`
+at the tape's end, or `"1" 1 "10" |` anywhere (`12 "1" 1 "10" | 1 | 1 | 1` -> `13 | | 1 | 1 | 1`). The real run
+never has `| |` (to round 100,000). But excluding it is not enough. `python3 py/relaxbfs.py 85 4 400 nodouble` drops
+every tape with `| |` and still finds 242 tapes with `"110" |` (2,380,059 tapes, no halt, no `"1110" |`). In these a
+walking `"0"` merges with a stalled `"10"` before a separator:
+
+    10 | 3 | 3 "0" 2 "0" | 1  ->  ...  ->  9 "10" 7 "10" | 1  ->  ...  ->  4 | 15 "0" 2 "10" | 1  ->  3 | 19 "110" | 1
+
+The README's list for the real run already includes `"10"` before a separator. What keeps a `"0"` from arriving two
+pairs behind it is then the size of the budgets. None of 600 random relaxed runs with heavy cuts halts either.
+
+So an invariant of the relaxed run must allow `"110" |`. It could forbid `"1110" |` (with `| |` excluded), or the halt
+itself. This also explains the closures above. They invent many tape ends and cursor chains that the relaxed run
+does not make. Real relaxed runs (16 runs, 96,000 rounds) show 2,837 distinct 6-grams, while the closure has 86,000
+by its 20th round. Keeping only the parity of the runs (K = 0 or 1) is too coarse: those closures soon reach false
+halts or bad patterns.
+
 ## Results
 
 - `lean/Rules.lean` (generated by `py/rules.py`, kernel): the ten rules `R1`, `R2`, `L1`..`L8` for every tape, with
@@ -139,8 +237,16 @@ moving-cursor window as a stalled pattern grew to more than 1,000 patterns witho
 - `lean/Collide.lean` (kernel, generated by `py/collide.py`): `collide_halt` / `collide_halts` (a two-cursor tape
   that halts), `merge_zero`, `zero_one`, `one_one`.
 - `py/scan.py halts`: which tapes halt in one round. `py/scan.py run 1e10` (on `py/tok.py`): no `1111` in 10^10 steps.
-- Not done: a proof that arrivals at a stalled `| 1 "110"` always have an even gap (or any invariant that keeps
-  `1111` away), and the complete list of collisions.
+- `py/relax.py`: the relaxed run (the budget may run out at any round): odd gaps and 1111, no halt; the halting
+  route through a stalled `| 1 "1110" |`; the words seen before a separator.
+- `py/sweep.py`: a round as a crossing-sequence transducer on canonical tokens (746 relaxed rounds agree with
+  `py/tok.py`), and n-gram closures under it (no halt and no 110/1110 before a separator seen; none closes).
+- `py/relaxbfs.py`: the relaxed run searched over every choice of cuts. To 92 rounds (4,774,767 tapes) it finds no
+  halt, but it does find `"110"` and `"1110"` before a separator, after a double separator `| |` made at the tape's
+  right end or by `"1" 1 "10" |`. Without `| |` it still finds `"110" |`, from `"0" 2 "10" |`, though not `"1110" |`.
+  So the relaxed target is false.
+- Not done: an invariant of the relaxed run that allows `"110" |` but excludes the halt (for instance no `"1110" |`
+  once `| |` is excluded, which would need a proof for the real run), and the complete list of collisions.
 
 ## First look
 
@@ -171,6 +277,8 @@ python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB
 python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/tok.py check 3e7
 python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/scan.py halts
 python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/scan.py run 1e10
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/relax.py route
+python3 holdouts/1RB0LC_1RC0RA_1LA0LD_1LE0RB_1RB1LF_0LA---/py/relax.py cuts 1-12 20000 2
 ```
 
 <!-- related machines: written by holdouts/related.py -->

@@ -29,6 +29,13 @@ of the head and no empty block, and no F frame occurs. So two of the three criti
 some sweep start has a bad right list** (`halts_iff_sweep`, see "Sweeps" below). `lean/Cuts.lean` (`cut_even`): a
 left-end descent that ends after an even cut hands its sweep a first block of 4u+1 cells, never 3.
 
+**New (22 Nov 2026, later), kernel only.** `lean/Pair.lean`: **the machine halts iff the block map reaches
+`E L (3 :: 0 :: j :: R)` with `hd L = 8`** (`halts_iff_8`): a zigzag cuts the block next to the head down to
+exactly 3 cells while the block on its left has exactly 8. That is the whole halting question, a property of two
+neighbouring blocks (see "One pattern" below). In 2.5·10^11 frames of the run (`c/pairs.c`) the left neighbour at such a
+moment is below 64 away from the leftmost block only in the first 10^8 frames (smallest 15), and as the leftmost
+block it is 2 mod 4 after that (a cut inside a left-end descent); never 8.
+
 ## The block map (Lean)
 
 `blk [a, b, c, ...]` is the tape `1^a 0 1^b 0 1^c 0 ...`, then blank, read away from the head (a block may be empty:
@@ -87,7 +94,7 @@ Halting: A on a 1, entered only from F on a 1. In block terms: the three halting
 the only ones). Growth: a series of cuts costs ≈ 0.6·x² steps for O(1) new cells, so width ~ t^(1/3) (3,612 cells
 at 10^9).
 
-Scripts: `py/blockmap.py` (the block map: `check`, `run`, `show`), `py/blocks.py` (writes the two Lean files),
+Scripts: `c/pairs.c` (how close the run comes to the pattern of `lean/Pair.lean`), `py/blockmap.py` (the block map: `check`, `run`, `show`), `py/blocks.py` (writes the two Lean files),
 `py/splits.py` (splitting-step statistics from a `tmrun ... at E L` log).
 
 ## Series (whole zigzags)
@@ -139,13 +146,45 @@ the real frames 2·10^6 and 10^8 with T = 30, finds an abstract path to the crit
 such path makes the last block small and then several small blocks next to each other, which the run has not done.
 What keeps the blocks large is their size, which a finite pattern cannot express.
 
+## One pattern (where it could halt, exactly)
+
+`lean/Pair.lean` (kernel only). Write the tape in E frames as `blk(L) E> 0 1^m 0 0 1^j 0 blk(R)`: the zigzag works on
+the block of m cells, and the block of j cells behind the double 0, the *accumulator*, collects one cell per trip.
+When the zigzag ends (m down to 2, 3 or 4 cells), a block of 2 merges into the left neighbour and the zigzag goes
+on with the accumulator, a block of 3 does the same but leaves the accumulator behind for good and starts a new
+one of 1 cell, and a block of 4 starts a sweep to the right with the accumulator as its first block r₀.
+
+- `pat_halts`: from `E L (3 :: 0 :: j :: R)` with `hd L = 8` the block map reaches the critical frame in 11 frames,
+  for all L, j ≥ 1, R: the 3 cells join the 8 into a block of 10 with a new accumulator of 1; the next zigzag cuts
+  10 to 7 and 4 while the accumulator grows to 3, and the sweep then starts on r₀ = 3.
+- `Inv4`, `inv4_next`: an invariant kept by every frame except the pattern frames. Every block has at least 2
+  cells, except the blocks next to the head and the last block on the right (which may have 1), and the
+  accumulator is *safe*: (m, j) is never (4, 3), (7, 2), (10, 1) or (3, 1) unless the accumulator is the last
+  block, nor (2, 2) after a block of 2, (5, 1) at the left end, or (2, 1) after a block of 5. B frames and C frames
+  carry the same condition one or two frames ahead.
+- `inv4_total`: no frame satisfying `Inv4` is critical. Frame 4 of the run satisfies it.
+- `halts_iff_pat`: the frames whose successor breaks `Inv4` are the pattern above and one more, a block of 3 cut
+  next to a leftmost block of 3; `lm_next`: the leftmost block of the tape is never 3, so `halts_iff_8`.
+
+So every bad sweep start of `Sweep.lean` is made by this one event, and with the zigzag rule (`zig`): **a block of m
+cells with i cells on its left leads to a halt iff m ≡ 0 (mod 3) and i + 2m/3 = 10**, that is (i, m) = (8, 3),
+(6, 6), (4, 9), (2, 12), or (0, 15) at the left end (`halts_of_15`, `critical_mid` were the sufficient half).
+
+How close the run comes (`c/pairs.c`, trusted): in 2.5·10^11 frames with zigzags in one step (5.36·10^10 ones at
+the end, 30 minutes), 17,861,902,775 zigzags stop at exactly 3 cells, none next to a block of 8. Away from the
+leftmost block the left neighbour is below 64 only 19 times, all in the first 10^8 frames (smallest 15, frame
+1,277). As the leftmost block it is below 64 330 times: 314 are 2 mod 4 (inside a left-end descent, where the
+values are even, so 8 would need a descent that starts on 15) and the other 16 all come in the first 10^8 frames.
+
 ## Later
 
 1. The whole cut is now a rule (`zig`, see "Series" below). Still to do: a whole sweep (induction on the list), to
    get a coarser map whose step is one cut or one sweep.
-2. Invariant: done for two of the three critical frames (`lean/Invariant.lean`). For the third, the open question
-   is whether a sweep ever starts on a bad list (`lean/Sweep.lean`). The community tracker calls the machine a
-   "lottery" (simulated there to 2.7·10^19 steps), so there may be no invariant for it.
+2. Invariant: done for two of the three critical frames (`lean/Invariant.lean`). For the third, halting is now one
+   local event (`lean/Pair.lean`): a block of 3 cut next to a block of 8. What is left is to show that two such
+   small blocks are never neighbours. Small blocks come from two places only, the left-end descents (x → 2x/3)
+   and the last block at the right end; the run never puts a small block next to them. The community tracker
+   calls the machine a "lottery" (simulated there to 2.7·10^19 steps), so there may be no proof of that.
 
 ## First look
 
@@ -171,6 +210,7 @@ python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blocks.py && git d
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py check 3000000
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/blockmap.py run 100000000
 gcc -O2 -o /tmp/sweeps holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/sweeps.c && /tmp/sweeps 1000000000
+gcc -O2 -o /tmp/pairs holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/c/pairs.c && /tmp/pairs 250000000000   # about 30 minutes
 gcc -O2 -o /tmp/tmrun tools/c/tmrun.c && /tmp/tmrun 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1000000000 at E L 1000000 > /tmp/el.txt
 python3 holdouts/1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA/py/splits.py /tmp/el.txt
 ```
@@ -181,3 +221,10 @@ Trusted computation: `tools/c/rleaccel.cpp` (compiled port of `tools/py/bbtools/
 `tools/tests/test_rleaccel_cpp.py`), blocks of 1, runs from blank tape without a halt to 2.75·10^23 machine steps (exact; tape:
 237,881,298 cells). It ran about 30 minutes, resumed from a checkpoint after interruptions, so its macro count
 (9,160,000,000) differs from an uninterrupted run's. Command: `g++ -O2 -o rleaccel tools/c/rleaccel.cpp && timeout 1800 ./rleaccel 1RB---_0RC0LD_1LB1RC_0LE0LF_1RD1LE_1RF1RA 1 1000000000000000 run.ck 300`.
+
+## Write-only test at the left end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's left end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **passes, with one return state**.
+Computed, not proved: all 5,241 deep trips from the left end come back in state E (62 end words in a 24-cell window, none new after the first quarter of the run). The left end is a finite machine that runs by itself, and it carries no information: what decides the halt is the block lengths of `halts_iff_8`, which no end word and no return state holds. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).

@@ -13,7 +13,7 @@ bbchallenge id 83189. One of the six-state holdouts whose halting from blank tap
 
 ## Status
 
-Open. Lean (on the twin's rounds, 22 November 2026): a tape with at most one defect cannot halt. Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `1 C> 1 1` and 8 shift rules (`lean/Rules.lean`, kernel); the converse, that every halt passes through `1 C> 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 20,000,000,000 steps.
+Open. Lean (kernel, 22 November 2026, `lean/Link.lean`): every token rule of the twin is a run of this machine's table and its rounds are the twin's rounds, so it never halts if from round 9 on every round's defect needs at most one visit (`nonhalt_of_need`, the twin's hypothesis in its `Fuel.lean`, word for word); with the twin's `Total.lean`, a tape with at most one defect cannot halt. (The first version of this, `nonhalt_of_clean`, assumed every defect dies from round 0, which is false: round 2's defect survives. Corrected the same evening.) Lean: the halting configurations and bounded runs (`lean/Blank.lean`); the halting context `1 C> 1 1` and 8 shift rules (`lean/Rules.lean`, kernel); the converse, that every halt passes through `1 C> 1 1` (`lean/HaltPred.lean`, kernel). C: no halt in 20,000,000,000 steps.
 
 ## What it does
 
@@ -58,6 +58,58 @@ On the twin ([fifth pass](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md
   machine (`py/twinforms.py` there). Not in Lean yet: this machine works the rule for `x L` another way, so it needs
   its own token rules or a bridge to the twin's.
 
+## This machine in Lean (22 November 2026, later)
+
+`lean/Link.lean` (written by `py/linkgen.py`) proves the correspondence with the twin on this machine's own generated
+table `H83189.trans`, so nothing about it is observed any more:
+
+- A token tape `w` is the half tape `E w` right of the head. Every kind of token visit is a run from an **entry
+  form** (state, and the two cells left of the head, nearest first) that ends three cells further left, for any tape
+  `L` further left, which it never reads:
+
+  | visit | form | start | end |
+  |---|---|---|---|
+  | A (`FA`) | B after `1 0` | `E w` | E on `L0 · 0 0 · E w'` |
+  | Ê (`FH1`) | C after `1 0` | `E w` | E on `L0 · 0 0 1 0 · E w'` |
+  | Ê (`FH2`) | C after `1 1` | `E w` | D on `L0 · 0 0 0 0 · E w'` |
+  | E0 (`FO1`) | B after `0 0` | `0 · E w` | E on `L0 · 0 0 · E w'` |
+  | E0 (`FO2`) | C after `1 0` | `0 · E w` | E on `L0 · 0 0 · E w'` |
+
+- `sound`: every token rule `TV` of the twin (`Tokens.lean` there) holds in every form of its kind. Each of the 25
+  cases is a few stretches of 1 to 17 steps (by `rfl`) around calls of the rule's premises. `py/linkgen.py` finds
+  them by symbolic simulation, taking a premise as a call wherever the head meets its input in one of its forms.
+  The earlier worry that this machine works `x L` another way was an artefact of only calling visits on the tail:
+  in the A form on `x L W` the head meets B after `1 0` on `x W` four cells to the right, then B after `1 0` on
+  `A(x W)`, exactly the twin's `A(x L W) = L A(A(x W))`.
+- `round_run`: in E on `0 0 0 1 0 · E S` (after two blank cells to the left) the machine reaches E two cells
+  further left on `0 0 0 1 0 · E (x :: A(S))`; `start`: from blank tape it is in E on `0 0 0 1 0 · E []` after 4
+  steps. So this machine's tape at every second visit of E to a new leftmost cell is `0 0 0 1 0 S_k`, now a theorem.
+- `round9`: from blank tape this machine is in E on `0 0 0 1 0 · x a9` (blank to the left) at step 7,834, the start
+  of round 9 (kernel evaluation of the list simulator; the twin gets there at step 5,848).
+- `nonhalt_of_need`: with the twin's `Z36869.total` and `F36869.dies` (`Need.lean` there), if in every round from 9
+  on the round tape `x W` has `nx W ≤ 1`, this machine never halts from blank tape. The hypothesis is the twin's
+  `F36869.nonhalt_of_need` word for word (`nx`, `R9` from the twin's `Need.lean`). Axioms: `propext`, `Quot.sound`.
+- **Correction.** The first version (PR 416) proved `nonhalt_of_clean`: never halts if every round's defect dies,
+  counted from blank tape. That hypothesis is false: `S_2 = x L O I` and `A(x L O I) = L I x I`, so round 2's
+  defect survives (`F36869.old_hyp_false` in the twin's `Fuel.lean`), and the theorem was vacuous. It is removed;
+  `nonhalt_of_need` replaces it.
+
+So the two machines now stand or fall on one statement, and the twin's 500,000-round engine run (every defect died)
+is a run of this machine's rounds too. A resumed 2,000,000-round run of that engine (from its checkpoint at round
+300,000) is under way in `/mnt/project-files/defect-pair-run`.
+
+## Update, 24 November 2026: the far end is a conveyor
+
+This machine's rounds are the twin's token tapes, so the twin's eighth pass applies word for word
+([its README](../1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF/README.md#eighth-pass-24-november-2026-the-far-end-is-a-conveyor-and-what-the-value-v-pins-down),
+`py/conveyor.py` there). The clean tape after each round's visit has value v = 16/15 - c 2^-m + O(2^-2m)
+(c = 288/127 or 145/127, m the leading doublers). Its digit-only end is exactly the binary expansion of that number
+below height 2m - 11. Below height m that end is a conveyor: every round appends 4 digits, and every digit moves
+4 heights up unchanged, so an error there is pushed out instead of stored. These exact layers form a floor about
+2m high. A defect that reaches the floor dies within 20 words, with at most one visit needed. The open statement
+becomes weaker than `nx W <= 1` in every round: no defect dies inside the floor, and heights in the doubler-rich
+part never drop over two rounds. Neither is proved, and nothing of this is in Lean.
+
 ## The rule of the middle (14 November 2026)
 
 The middle word is now decoded, on the twin 1RB0LE_0LC0RA_1LE0RD_0RB---_0LF0LD_1LA0LF: see
@@ -74,6 +126,8 @@ disappears in time.
 
 - `lean/HaltPred.lean` (every configuration that halts after exactly k more steps, k = 1, 2, 3, both directions) is written by
   the batch's generator: `python3 ../1RB0LD_0RC---_1LD0RF_0LE0RA_0RA1LF_0LA1LB/py/halt_pred.py 1RB0LF_1LC1RC_0RA0LD_0LE1RE_0RF0LC_1RC--- 1 2 3 > lean/HaltPred.lean`.
+- `py/linkgen.py` writes `lean/Link.lean` (the twin's token rules as runs of this machine, the round law, `round9`, `nonhalt_of_need`):
+  `python3 py/linkgen.py > lean/Link.lean`. `lean/check.sh` compiles the twin's `Tokens.lean`, `Total.lean` and `Need.lean` first.
 - `lean/rules.py` writes `lean/Rules.lean` (the halting context and the shift rules, proved by `bbtools.symtm`):
   `cd lean && python3 rules.py > Rules.lean`.
 - The near-miss counts come from `c/ctxcount.c` and `c/forbid.c` in
@@ -82,7 +136,7 @@ disappears in time.
 
 ## Next steps
 
-Prove that the defect of every round disappears before the round ends (see the section above), and prove the correspondence with the twin.
+Prove that from round 9 on every round's defect needs at most one visit (`nx W ≤ 1`, the twin's missing lemma); everything else is in Lean. By the twin's eighth pass, it is enough that no defect dies inside the exact layers and that the two-round height monotonicity holds.
 
 ## Pages
 

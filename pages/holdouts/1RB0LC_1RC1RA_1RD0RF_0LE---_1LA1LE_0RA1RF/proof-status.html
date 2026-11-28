@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> Lean proves three passes over the regular parts of the tape and the halting situation (kernel), and no halt in the first 10<sup>7</sup> steps (<code>native_decide</code>); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
+      <p><b>The question is open.</b> Lean proves three passes over the regular parts of the tape and the halting situation (kernel), and no halt in the first 2&middot;10<sup>14</sup> steps (<code>native_decide</code>, with rsim's jumps checked in Lean); the C simulator finds no halt in 10<sup>9</sup> steps.</p>
       <p><b>What it does.</b> The head sweeps the whole tape. At the left-end turns the tape is <code>0 0</code>, a few copies of <code>110</code>, then a run <code>q<sup>a</sup></code> of the 24-cell word <code>q = 010110101101010110101101</code>, a run <code>s<sup>b</sup></code> of <code>s = 101010110110110</code>, runs of <code>10</code> whose lengths roughly double (5, 16, 38, 78, 157 at step 7,087,597), a run of <code>101110110110</code>, and an irregular right end. The q-run gains a copy every few round trips while the material to its right is consumed; when it runs out the regions are rebuilt and q starts again from a few copies.</p>
       <p><b>Where a halt would come from.</b> Only D reading a 1 halts, and D is entered only from C reading a 0; so <code>C&gt;0 1</code> halts (<code>halt_C</code>). In the run D always reads a 0.</p>
     </div>
@@ -149,6 +149,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>No halt in the first 10<sup>7</sup> steps</h3>
         <p>The same run, evaluated by compiled code.</p>
         <p class="where"><code>blank_runs_native</code>, <code>lean/Blank.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>No halt in the first 2&middot;10<sup>14</sup> steps (checked accelerated simulator)</h3>
+        <p>The accelerated simulator rsim (<code>c/rsim_fast.cpp</code> of the T3 sibling) rebuilt in Lean so that every move is proved (<code>tools/lean/TM/RSim.lean</code>): runs of a word with a count, crossing rules learned at run time and each checked by a run of the machine before it is used, and rsim's sample-level jumps, each checked by running one period symbolically with the counts as linear forms in two variables (a period that takes the family <code>T(0, J)</code> to <code>T(1, J &minus; 1)</code> takes it to <code>T(J, 0)</code>, with the step count in closed form). Rule learning, compression, the canonical form and the jump detection are unverified heuristics; their outputs are checked or carry proofs, so the theorem is <code>run_ok</code>: if the run reaches N steps, the machine makes N steps from blank tape. Evaluated by compiled code (<code>native_decide</code>): 10<sup>8</sup> steps in <code>lean/RSimBound.lean</code> (part of <code>check.sh</code>, under a minute) and 2&middot;10<sup>14</sup> in <code>lean/RSimLong.lean</code> (<code>check_big.sh</code>, about 2 minutes with the compiled code loaded by <code>tools/lean/check_native.sh</code>).</p>
+        <p class="where"><code>rsim_1e8</code>, <code>lean/RSimBound.lean</code>; <code>rsim_long</code>, <code>lean/RSimLong.lean</code>; <code>run_ok</code>, <code>jump_ok</code>, <code>tools/lean/TM/RSim.lean</code></p>
       </div>
     </div>
     <h3><span class="tag t-comp">trusted</span> Computed, not proved</h3>

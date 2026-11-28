@@ -129,3 +129,10 @@ gcc -O2 -o gs c/gs.c && ./gs 1e10      # 45 s; 1e12 takes about 80 minutes
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC1LB_1RE0LD_1RA0LB_---0RF_1RC0RA/lean/check.sh
 ```
+
+## Write-only test at the right end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's right end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **passes, with a return state fixed by the end word**.
+Computed, not proved: the return state (A or B) of all 2,596 deep trips from the right end is fixed by the end word alone (41 end words in a 24-cell window). The right end is a finite machine that runs by itself, and it carries no information: what decides the halt is the block lengths of the map G, which no end word and no return state holds. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).

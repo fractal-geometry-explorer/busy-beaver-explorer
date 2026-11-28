@@ -97,7 +97,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="else">
       <div class="card proof">
         <h3>Also proved in Coq</h3>
-        <p>A second proof assistant checks the same result: <code>H11019.nonhalt : ~ halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. A shorter proof of the same theorem (a 668-line checker for tapes with two blocks of unknown length and a 58-line file with four seed tapes; Coq 8.20.1 checks it in about 25 seconds) is on a branch of our fork of busycoq, ready to be proposed upstream: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/bb6-nonhalt-1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA">bb6-nonhalt-1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA</a>.</p>
+        <p>A second proof assistant checks the same result: <code>H11019.nonhalt : ~ halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB0RD_1RC0LF_1LA0LB_---1RE_1LB1RA_0LC0RA/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. A shorter proof of the same theorem (a 668-line checker for tapes with two blocks of unknown length and a 58-line file with four seed tapes; Coq 8.20.1 checks it in about 25 seconds) is on a branch of our fork of busycoq: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/bb6-nonhalt-1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA">bb6-nonhalt-1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA</a>.</p>
+      </div>
+      <div class="card report">
+        <h3>Merged upstream: it never halts</h3>
+        <p>The Coq proof from this repository was submitted as <a href="https://github.com/ccz181078/busycoq/pull/70">busycoq pull request 70</a>. busycoq's maintainer merged it into the BB6 branch on 2026-11-27 (merge commit <code>d970f9d</code>) after rewriting the proof; it now lives in <code>PR70Mapped.v</code> on the BB6 branch (head <code>70a1ffc</code>). The rewritten version was not recompiled here. </p>
+      </div>
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it never halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/ee4318b/BusyBeaver/BB6/NonHalt/M_1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA.lean">M_1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/37">google-deepmind/cryptids pull request 37</a> (commit <code>ee4318b</code>, 21 November 2026; open, not merged into their main branch) proves that this machine never halts. We built it with Lean v4.35.0-rc4 on 2026-11-24: the theorem <code>BusyBeaver.M_1RB0RD_1RC0LF_1LA0LB_HHH1RE_1LB1RA_0LC0RA.is_not_halt</code> states <code>IsNotHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</p>
       </div>
       <div class="card label">
         <h3>Community label</h3>

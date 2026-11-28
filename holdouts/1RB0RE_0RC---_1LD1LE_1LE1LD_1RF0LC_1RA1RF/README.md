@@ -312,6 +312,135 @@ empty) for one or two bounces. Once, after list step 28,414, it lacks a witness 
 near part. What is left for case 1 is to show that those first few bounces after E reads the last 1 are safe, and
 that the witnesses never run out after that.
 
+**The ten turns without a witness, as theorems (`lean/Window.lean`, 22 November 2026).** The ten come in six
+*windows*: the first bounces after E reads the last 1 during a crossing (an `EO` turn with a far part, which erases the
+last 1, so the end is blank from then on). The near part at those six `EO` turns is one of three words:
+
+| near part at the `EO` turn | windows | turns without a witness | Lean |
+|---|---:|---:|---|
+| `b a b a^6` | 4 | 4 (bounce 1, `s = 0`) | `window_W3`: within 2 list steps |
+| `b a b a^12` | 1 | 2 (bounces 1, 2; `s = 0`, empty) | `window_W6`: within 3 list steps |
+| 43 letters, list step 28,450 | 1 | 4 (bounces 1, 3, 4, 5) | `window_W43`: within 6 list steps, far part starting `u v v` |
+
+Each theorem is about a family of list states, not just the run's: it holds for every prefix `p` and every clean far
+part (`dbl (true :: ws)`, for any `ws`; for the third, any `ws` starting `0 0`). It says that `astep` does not fail
+for that many steps and reaches a `Safe` state: the crossing is over (`Plain`, what a bounce with no lone 1 returns),
+or the frozen word has a witness and the far part is clean (`Witnessed`; then the next step exists, `witnessed_step`,
+which extends `astep_T2_witness` to far parts with leading `a`s). The proofs keep the far part symbolic: the near
+side reads only the run of `a`s it absorbs after an odd bounce (`coreO_falses`, `core_odd`), and an even bounce turns
+the far part's 4-cell word into its running XOR (`core_even`, from `far_even`). The 43-letter window is written by
+`py/window43.py`, one lemma per bounce.
+
+**What this does not do, and why.** It does not close the holdout: it covers the turns where witnesses are missing,
+not the claim that witnesses never run out later in a crossing, and it takes the `EO` near parts and far-part prefixes
+from the run. Both of those depend on the far part, which is the zone the growing phase built:
+
+* `eo_W1_fails`: `EO (b a b a^2)` fails at once, for every clean far part. The run's `b a b a^6` is `b a b` plus the
+  `2 + 2z` letters `a` absorbed from the far part's first run `u v^z`, with `z = 2`; a far part starting `u u` gives
+  `b a b a^2`.
+* `py/game.py` plays the near side against a free far part (the run lengths `z` it hands over are chosen freely). It
+  finds failures from crossing starts `a^m` (m = 1, 2, 3, as in the run) and from real states of the run two bounces
+  after an `EO` turn: a long run of `a`s turns the near part into a zone that eats the whole frozen word two letters per
+  bounce, like a growing phase.
+
+So the near part cannot be handled on its own; a proof has to say which run lengths the far parts of real crossings
+have, which is the Lucas-theorem structure of the zone at the end of a growing phase.
+
+**A faster list machine (`c/listmachine.cpp`).** The same list machine in C++ (it matches `py/listmachine.py` state for
+state on the first 3,000 steps; its step count also counts the turns handed back by the right end, so it runs a little
+ahead of the Python count). `./listmachine 1000000` (about 25 minutes) runs 10^6 list steps without a failure: 458,336 `T`,
+541,637 `T2` and 27 `EO` turns, and the zone grows to 620,913 letters (about 1.2 million cells; with the left end
+growing like twice the square root of the step count, that is of the order of 10^11 machine steps, an estimate, not a
+count). E reads the last 1 during a crossing 8 times, always with one of the three near parts above (`b a b a^6` six
+times, `b a b a^12` and the 43-letter word once each), and the 12 crossing turns with blank end that have no witness
+are all in those windows.
+
+**Do witnesses run out? Perturbed orbits (22 November 2026, `c/locality.cpp`, `c/perturb.cpp`).** The Lean windows
+cover every crossing the real orbit makes in 10^6 list steps, but they do not show that witnesses never run out later.
+Three experiments say why a proof along these lines is hard, and suggest the machine may well halt in the end.
+
+- *Locality (observed).* The next crossing start (its near part `a^m` and the first 30 letters of its far part)
+  depends only on the last 200 or so letters of the frozen word. `./locality 12240 200 12 7` keeps the last 200
+  letters, randomizes the rest, the length, the zone and the prefix, and all 13 runs print the same next crossing;
+  with only the last 30 kept (`./locality 12240 30 20 0`) they differ. So the far parts the growing phase builds are
+  a function of a short, deep window of the previous frozen word, with carry-like dependence on its far end, and
+  there is no evident finite description of them.
+- *A random far part fails.* Run against random clean far parts, the near side (`py/game.py`) fails in about 3% of
+  crossings, almost always within about 30 bounces. The real orbit's far parts are not random, but nothing found so
+  far separates them from the failing ones.
+- *Perturbed orbits halt.* `./perturb 186 10 1000 9 11 1000000000` runs the list machine from blank tape to list
+  step 186, keeps the last 10 letters of the frozen word, randomizes the rest and the prefix, and follows 1000 such
+  orbits through 9 more crossings. At each `astep` failure it rebuilds the tape (`cfg` of End.lean) and runs the
+  real machine for up to 10^9 steps. Per crossing after the cut, the failures (and real halts among them) are
+  0, 5 (2), 0, 23 (23), 4 (4), 10 (4), 10 (8), 11 (4), 4 (2), 0: 67 failures, 47 of them real halts, out of 1000
+  orbits. That is about 0.5 to 1% of orbits halting per crossing. Later the rate seems lower: from list step 12240
+  (K = 10, 120 orbits, 4 crossings) there was 1 failure in 476 crossings (halting not checked), and with K = 200
+  none.
+- *The real orbit and its siblings.* The unperturbed orbit runs 10^6 list steps without failure, and so do three
+  other small starts of the list machine (`EO` with `W = 101000`, `p = 0` and `p = 1`, and `W = 1010`, `p = 1`):
+  10^6 list steps each, no failure.
+
+So the machine behaves like a Collatz-like probabilistic halter: each crossing is a fresh, nearly independent trial
+with a small (and perhaps falling) chance of halting, and orbits that the machine could have taken do halt. A
+non-halting proof would need hidden structure that makes the real far parts special, such as a closed description of
+the words the growing phase builds; none has been found. A halting proof would need to follow the real orbit to the
+failing crossing, which at the present growth (epoch step counts about 3 times larger each time) may be far beyond
+reach. A bit-parallel list machine would push the halt hunt further.
+
+**The halt hunt on the real orbit (23 to 26 November 2026, `c/bitlist.cpp`).** A bit-parallel list machine (64
+letters per machine word, one fused pass per bounce, threads for long zones) matches `c/listmachine.cpp` state for
+state on the first 150,000 steps and reproduces its 10^6-step counts exactly, about 20 to 50 times faster. From blank
+tape it ran 2·10^8 list steps without a failure of `astep` (about 1.6 days on 3 cores, resumed from checkpoints):
+98,148,674 `T`, 101,851,286 `T2` and 40 `EO` turns, the zone reaching 9.8·10^7 letters (about 2·10^8 cells). E reads
+the last 1 at list steps growing by a factor of about 1.75 (4,463,710, 7,833,642, 13,742,098, 24,102,211, 42,285,079,
+74,185,719, 130,131,762), each followed by one long crossing (the last ran from about 1.30·10^8 to 1.74·10^8), but the
+last time E read it during a crossing was at list step 471,169, and after the first 10^6 steps there was no crossing
+turn with blank end at all (192,818 in all, 12 without a witness, all early). So the hazard that makes perturbed orbits
+halt has not come back on the real orbit. On a failure the program saves the state, and `./bitlist tm H state`
+rebuilds the tape and runs the machine. The next E event is expected near list step 2.3·10^8.
+
+**Safe and dangerous epochs (observed, 25 November 2026, `c/bitlist.cpp`).** Each epoch ends when E reads the last 1
+with no far part. The whole zone then becomes the far part of the next crossing. Usually the crossing starts at once,
+with a 1 at the right end (`r = 1`), and then no crossing turn has a blank end, so no witness is needed. In the first
+3·10^6 list steps, the epochs where this did not happen are exactly those whose zone, read from the head at E's event,
+starts `101001` (otherwise `101000` or `101010`). In 6 such epochs E turns back first. Three times a second E event
+follows at once and the crossing starts safely; three times (list steps 38, 9,201 and 471,164) the crossing starts with
+E reading the last 1 again, `r = 0`, and every turn needs a witness. A crossing that ends with `r = 0` passes the
+blank end on to the next epoch, which explains the other early dangerous crossings. Nothing in the frozen word seems to
+force the safe prefix. With the real frozen word at the end of the crossing at list step 629,196 replaced by random
+letters, 13 of 30 runs started the next crossing without E's event at all, and 2 more reached it with the zone starting
+`001000`. The real frozen words have stable statistics (44.6% ones and the same run-length distribution at every epoch
+from 1,546 to 1.3·10^6 letters), like a random sequence. On the real orbit the 10 epochs after list step 471,169
+(14 E events, up to list step 130,131,762) were all safe.
+
+**Where witnesses come from: clean near parts (`lean/Race.lean`, 25 November 2026).** Of the 18,062 crossing turns
+with blank end in the 40,000 list steps, 17,878 have a *clean* near part, `dbl (true :: ws) ++ [false]`
+(`10 (00 | 10)* 0`) (`py/race.py shapes 40000`). The bounce is then odd exactly when `par false ws` is true. Proved
+in Lean:
+
+* `near_odd`: an odd bounce of a clean near part stops inside the near part. The swept part becomes `(10)^j 1`, so with
+  the even number of 0s an odd bounce takes from a clean far part, the next near part is clean again. The frozen
+  word gets `0 (00 | 11)* 1` put in front of it.
+* `near_odd_witness`: that new front ends in `0 1`. So if the old frozen word was empty or started with 0, the new
+  one has a witness at its front.
+* `near_even`: an even bounce of a clean near part against a frozen word `0 s` eats the 0, leaves `s`, and the next
+  near part is `dbl (true :: false :: sx false ws)` plus the 0 the far part gives. That is clean again.
+
+So inside a crossing an odd bounce never removes a witness, and it adds one when the frozen word starts with 0. An
+even bounce removes at most the 0 in front. The counts by case (near part, bounce, first letter of `s`):
+
+| near part | bounce | `s` starts with 0 | `s` starts with 1 | `s` empty |
+|---|---|---|---|---|
+| clean | odd | 8,185 | 1,925 | 1 |
+| clean | even | 7,222 | 545 | 0 |
+| other | odd | 24 | 87 | 0 |
+| other | even | 32 | 41 | 0 |
+
+The cases not covered by these lemmas are the even bounces against a frozen word that starts with 1, where the sweep
+goes on into `s` (545 clean, 41 other), and the 184 turns with a near part that is not clean. Those near parts come
+from the deep even bounces and go back to clean within a bounce or two. To close case 1, one still has to show that
+these sweeps never use up the last witness.
+
 **Crossings as one map (observed, `py/crossing.py`).** A crossing starts when `nxt` is `none`. By then the right
 sweep has used up the whole frozen word. What is left is the swept zone `W`, the prefix `p`, and the end cell `r`
 (blank, or a single 1), with the head in F or E according to the first letter of `W`. So the whole crossing, up

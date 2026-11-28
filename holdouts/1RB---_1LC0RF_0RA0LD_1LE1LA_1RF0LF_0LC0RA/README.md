@@ -156,7 +156,98 @@ every size):** from one event to the next N + 1 and Z + 1; when Z wraps, C + 3; 
 | 38,659,480 – 70,678,024 | `Z2 d c a d c a X4 d c a X8 d C2 R13` | 40,948 |
 | 70,680,694 – 299,999,430 | `Z2 d c a d c a X14 d C2 R13` | 436,712 |
 
-The law of these layered shapes is not yet decoded and not in Lean. The same sequence of shapes, at almost the same steps, occurs in `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---`.
+These layered shapes all follow one law, now proved in Lean (next section). The same sequence of shapes, at almost the same steps, occurs in `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RE_1LE---`.
+
+## The layer law: one rule for every layout (November 2026)
+
+**The layout.** Every full event of the later run reads
+
+    0^inf 1 0 [N] A> 0 [Z] (1 1 [Q] 0 1 [P] 1 0)* 1 1 [Q] 0 1 [R] 0^inf
+
+Z (digits `0010` = 0, `1010` = 1), then a *chain of items*, each a pair of binary words Q (digits `0001` = 0,
+`0101` = 1) and P (digits `1000` = 0, `1010` = 1), all lowest digit first, of any width; Q and P may be empty; the
+last item's P is R, followed by blank tape. The plain cascade layout is one item; the tokens of the table above
+are this layout written in two-cell tokens (`d c a` is `1 1 [Q empty] 0 1 [P empty] 1 0`), so for example
+`Z2 d c a d c a X14 d C2 R13` is Z of 2 digits and three items (Q, P) = (empty, empty), (empty, 14 digits),
+(2 digits, R of 13).
+
+**The law (Lean, every layout).** From one event to the next N + 1 and Z + 1. When Z wraps it sends one *unit* into
+the first item. A unit adds 3 to the item's Q; every wrap of Q adds 3 to its P; every wrap of P sends one unit into
+the next item. In one line: the separators `1 1`, `0 1` multiply a carry by 3, and
+
+    Z + 2^|Z|/3 · (Q1 + 2^|Q1|/3 · (P1 + 2^|P1|/3 · (Q2 + ...)))
+
+grows by exactly 1 per event, as long as no carry leaves R. (In the late layout a wrap of Z adds 3·3·3·3 = 81 to the
+14-digit word: 6,400, 6,481, 6,562, ... in the run, every four events.)
+
+`lean/Layers.lean` (written by `py/layers_gen.py` from the template `py/Layers.lean.tpl`) proves it for every number
+of items and every width: 23 visit rows of blocks of 1, 2 and 4 cells (`py/rowgen.py`, each a run of the machine
+between nested visits, by `rfl`), composed by induction over the digits of each word (`p_inc`, `q_inc`, `z_inc`)
+and over the list of items (`dU_sound`). The functions `incB`, `pInc`, `pUnit`, `qInc`, `qUnit`, `dU`, `evNext`
+compute the next layout on the digit lists in the order the machine does it; `layer_event` is the event, and
+`layer_event_n0t0` ... `layer_event_novk` the same for each of the 9 cases of N, with the end of the event
+`ln_*` proved by `bbtools.symtm`. A visit of a P word in state F or B is one increment (`PS`), three visits F, F, B
+are a unit's 3 (`UP`), a unit into an item is three visits B, A, B of its block `1 1` (`UD`), and Q's increments
+are visits in state A. Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
+
+**The run follows it (trusted).** `py/layers_check.py` (the same functions in Python) on the full events of
+`c/cascade_events.c` of the sibling with F0 = 0LB: in the first 3·10^8 steps all 1,169,737 pairs of consecutive full
+events in a layered layout follow the law, with no mismatch; 7 pairs are overflows of R; 4,122 full events are in
+no layout (4,088 of them between steps 15,766 and 118,003). The layouts (widths, Z | (Q, P) of each item, the last P
+being R):
+
+| steps | layout | full events |
+|---|---|---|
+| 1,147 – 2,891 | Z1 \| (Q6, R0) | 38 |
+| 3,823 – 7,079 | Z1 \| (Q7, R0) | 67 |
+| 7,278 – 15,604 | Z2 \| (∅, R9) | 114 |
+| 118,003 – 322,617 | Z2 \| (Q12, R0) | 5,462 |
+| 322,900 – 664,016 | Z2 \| (Q2, R13) | 7,284 |
+| 666,019 – 1,200,511 | Z1 \| (∅, ∅) (Q3, P2) (Q12, R0) | 1,076 |
+| 1,201,439 – 3,303,831 | Z1 \| (Q5, P2) (Q12, R0) | 38,868 |
+| 3,304,127 – 8,321,787 | Z3 \| (Q5, P2) (Q12, R0) | 155,478 |
+| 8,322,224 – 18,198,332 | Z2 \| (Q2, P6) (Q2, R13) | 207,300 |
+| 18,199,027 – 38,655,981 | Z1 \| (Q3, P1) (Q7, P2) (Q12, R0) | 276,400 |
+| 38,659,480 – 70,678,024 | Z2 \| (∅, ∅) (∅, P4) (∅, P8) (Q2, R13) | 40,948 |
+| 70,680,694 – 299,999,430 | Z2 \| (∅, ∅) (∅, P14) (Q2, R13) | 436,712 |
+
+**The overflows of R (trusted, from the run; no law yet).** The law stops only when a carry leaves R. That is the
+only place a halt can come from: every event that follows the law is a run of the machine. The 7 overflows of the
+run (values: N, Z | (Q, P) of each item, the last P being R):
+
+| step | before | step | after |
+|---|---|---|---|
+| 322,617 | N 2,337, Z 3 \| (4095, 0) | 322,900 | N 87, Z 0 \| (3, 4096) |
+| 664,016 | N 4,211, Z 3 \| (3, 8191) | 666,019 | N 18, Z 0 \| (0, 0) (5, 2) (12, 0) |
+| 1,200,511 | N 13, Z 1 \| (0, 0) (0, 1) (4092, 0) | 1,201,439 | N 14, Z 0 \| (4, 0) (0, 0) |
+| 3,303,831 | N 10,450, Z 1 \| (31, 3) (4095, 0) | 3,304,127 | N 1,162, Z 2 \| (0, 0) (0, 0) |
+| 8,321,787 | N 71,346, Z 7 \| (30, 3) (4095, 0) | 8,322,224 | N 2,643, Z 0 \| (3, 2) (0, 4096) |
+| 18,198,332 | N 124,649, Z 3 \| (3, 62) (3, 8191) | 18,199,027 | N 4,617, Z 0 \| (0, 1) (5, 0) (0, 0) |
+| 70,678,024 | N 12,593, Z 3 \| (0, 0) (0, 15) (0, 242) (3, 8191) | 70,680,694 | N 12,594, Z 0 \| (0, 0) (0, 128) (0, 4096) |
+
+Words merge or split, Q's digits move into a longer R, and five of the seven take 2 to 5 base-3 digits from N (as in
+the era changes of the sibling with F0 = 0LB).
+
+**Following the overflows far beyond the run (trusted).** Between two overflows the law can be applied in closed form:
+m events add m to N and to Z, and the units sent down the chain add up with carries, whatever their order. So
+`py/overflow_jump.py` jumps straight to the next overflow (the largest m with no carry out of R, by bisection) and runs
+only the overflow event cell by cell on the machine (`c/overflow_event.c`), up to the next full event in a layered
+layout. Started at step 118,003 (N = 35, Z2 | (Q12, R0)) it reproduces the 7 overflows of the run exactly, and then
+follows 1,500 overflows, to about 10^874 events, with no halt. What it shows about the hand-over:
+
+- **N loses d low base-3 digits, then counts on:** at every one of the 1,500 overflows the next full event has
+  N' = floor(N / 3^d) + 1 and lies 3d cells further left. d is read off N's low digits like a prefix code and the
+  chain; d = 1 never occurs. **The rule for d > 0 (trusted, asserted at every overflow):** read N's base-3 digits
+  lowest first, skip the 0s, take one nonzero digit, skip the 2s, take one more digit (a 0 or a 1); d is the number
+  of digits read. Whether d = 0 is decided by the chain: after the carry leaves R the head sweeps back left through
+  every word, and reaches the left end of Z in state C (then d = 0: N counts on, two words merge) or E (then it walks
+  into N), which matched 597 overflows traced cell by cell. d counts: 0: 482, 2: 446, 3: 302, 4: 155, 5: 68, 6: 33, 7: 9, 8: 4, 16: 1.
+- d = 0 merges two neighbouring words of the chain (the widths add up, plus 2); d ≥ 2 shifts the list of word
+  widths by one slot, which is how the long chains grow (19 items by overflow 750). The last item alternates between
+  (Q12, R0) and (Q2, R13).
+
+What is still open is when the sweep arrives in C or E (in terms of the words), the new words, and with it a proof that the
+overflows never reach the halting cell.
 
 ## Status
 
@@ -167,7 +258,10 @@ The law of these layered shapes is not yet decoded and not in Lean. The same seq
 - Lean (kernel): `Visit.lean` (30 token rows of the visit law) and `Stream.lean` (`vb_even`, `vb_odd`, `ve_odd`, `m_inc`, `m_wrap`: the a/z stream and M for every size).
 - Lean (kernel): `Cascade.lean`, the cascade rule of the later layout (N + 1, Z + 1, C + 3 when Z wraps, R + 3 when C wraps) in 162 theorems for every size.
 - Trusted: in a 3·10^8-step run the full events have the plain cascade layout only at steps 322,900 to 664,016 with C of 2 digits and R of 13 (7,284 events), and 7,283 consecutive pairs follow the rule, no mismatch (`py/cascade_check.py`); the layered shapes after are listed above.
-- Open: the composed law after a visit of the a/z stream that comes out in C (the former "overflow of R"), the left side in the same form; halting.
+- Lean (kernel): `Layers.lean`, the layer law (a chain of items Q, P after Z; a carry multiplied by 3 at each separator) for every layout and width, in `layer_event` and its 9 cases of N.
+- Trusted: all 1,169,737 pairs of consecutive full events of a 3·10^8-step run in a layered layout follow it (`py/layers_check.py`); 7 overflows of R.
+- Trusted: from step 118,003 the law in closed form plus each overflow event run on the machine (`py/overflow_jump.py`, `c/overflow_event.c`): 1,500 overflows, about 10^874 events, no halt; N' = floor(N/3^d) + 1 at every overflow.
+- Open: the exact law of what an overflow of R hands on (d and the new words); halting.
 
 ## Scripts
 
@@ -178,6 +272,11 @@ The law of these layered shapes is not yet decoded and not in Lean. The same seq
 - `lean/Visit.lean`, `lean/Stream.lean`: written with `py/laws.py`, `py/gen_visit.py`, `py/Stream.lean.tpl` of `1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---` (ORIGIN = -41, W = 2, 3·10^7 steps).
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/events2.py MACHINE NAMESPACE > lean/Cascade.lean`: the cascade rules of the later layout (shared by the family).
 - `holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c` and `py/cascade_check.py`: `gcc -O2 -o cascade_events holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/c/cascade_events.c && ./cascade_events MACHINE 0 300000000 0 | python3 holdouts/1RB0LE_1LC0RE_0RA0LD_1LA1LF_0LC0RA_0LB---/py/cascade_check.py` checks a run against the cascade rule.
+
+- `py/layers_gen.py > lean/Layers.lean`: the layer law (rows by `py/rowgen.py`, composition in `py/Layers.lean.tpl`, the end of an event by `bbtools.symtm`).
+- `py/layers_check.py`: `./cascade_events 1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA 0 300000000 0 | python3 holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/py/layers_check.py` checks a run against the layer law and lists the overflows of R.
+- `py/overflow_jump.py`, `c/overflow_event.c`: `gcc -O2 -o overflow_event holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/c/overflow_event.c && python3 holdouts/1RB---_1LC0RF_0RA0LD_1LE1LA_1RF0LF_0LC0RA/py/overflow_jump.py 1500 ./overflow_event` follows the run from overflow to overflow of R.
+- `py/layers_page.py`: writes the layer law into `status.json` (with the interactive `py/layers_widget.html` and the run's layouts `py/layers_presets.json`).
 
 ## Pages
 

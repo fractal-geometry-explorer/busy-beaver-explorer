@@ -62,8 +62,12 @@ a sparse set?), hence "Cryptid".
 | trusted | closed form of the step count = `pstep` for 1 ≤ n ≤ 200,000 (Python transcription of the Lean function) | `py/macro.py check 200000` |
 | trusted | all 16 P-events up to 10¹⁰ steps match direct simulation (last: P(70411) at step 9,108,900,940) | `py/macro.py orbit 1e10`, `c/pevents.c` |
 | trusted | 10⁵ rounds without a halt: n has 66,605 bits, ≈ 10^40,100 steps | `py/macro.py far 1e5` |
+| kernel | **no congruence invariant**: no set of residue classes mod any divisor of 2^16·3^9 holds the run, is kept by the map and misses every h_k (same for the starts n = 10 and n = 1 of the two sibling machines) | `no_cong_4`, `no_cong_10`, `no_cong_1`, `no_inv`, `lean/Congruence.lean` |
+| trusted | the same for every modulus M ≤ 20,000 and every 2^j·3^i ≤ 2^12·3^7 (breadth-first search) | `py/congruence.py all 20000`, `grid 12 7` |
+| kernel | **no congruence of any modulus**: for every M, every property of the residues of (v, k, 2^k) mod M that misses the h_k and is kept by the map from level K on holds at no value of any level ≥ K; so no congruence, and no closed set of 2-adic classes, traps the run, from any start | `no_cong_ever`, `no_cong_any`, `reach`, `lean/CongAll.lean` |
+| trusted | no trap either when the residues (v, k mod 2^j, j ≤ 5) are combined with the size of n inside its level (up to 81 cells): every one of up to 82,944 abstract states reaches a halt | `py/trapsize.py` |
 | heuristic | chance of a later halt ≈ 10^−20,000 | above |
-| open | does the orbit of 4 ever hit an h_k? | |
+| open | does the orbit of 4 ever hit an h_k? (no residue argument can decide it, by `no_cong_ever`) | |
 
 The closed form of the position is now proved in Lean for every n (`pstep_closed`: for h_k < n < h_{k+1},
 `pstep n = .go (3n + 3k + 14 − 10·2^k) t` for some t; `pstep_halt`: `pstep (h k)` halts for k ≥ 1; both in
@@ -79,7 +83,45 @@ python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py check 200
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py orbit 1e10
 gcc -O2 -o pevents holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/c/pevents.c && ./pevents 10000000000   # ~3 min
 python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/macro.py far 1e5                               # ~10 min
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/congruence.py all 20000   # ~8 min; `lean 16 9 17 17` ~1 min
+python3 holdouts/1RB0LD_1LC0RA_1RA1LB_1LA1LE_1RF0LC_---0RE/py/trapsize.py               # ~2 min
 ```
+
+## Congruences cannot settle it
+
+A non-halting proof of the usual Collatz kind would be a set of residue classes (of n mod 2^j·3^i, say) that holds
+the run, is kept by the map and misses every h_k. There is none. With v = n + k + 6 − 5·2^k (v = 0 exactly at
+n = h_k) the step is, exactly,
+
+    v′ = 3v + 2 + 5·2^k + k′ − 5·2^k′,   k′ = k + d,  d ∈ {0, 1} (d = 2 only in the top ~k/3 values of a level).
+
+A congruence mod M sees only (v, k, 2^k) mod M, and whether d is 0 or 1 depends on the size of n inside its level,
+not on its residues: for 2^k ≥ 3M + k + 10 every residue of v occurs with both (`realize`). So an invariant has to
+survive both choices, and one sequence of choices from the residues of the run to v ≡ 0 rules it out (`no_inv`).
+`py/congruence.py lean 16 9 17 17` finds such sequences (34 choices, meet in the middle) for M = 2^16·3^9 from the
+three starts, and `lean/Congruence.lean` checks them in the kernel; an invariant mod a divisor of M would be one
+mod M (`no_inv_dvd`), so this covers every 2^j·3^i with j ≤ 16, i ≤ 9. A breadth-first search finds such paths
+for every modulus M ≤ 20,000, primes other than 2 and 3 included (at most 24 choices). Mod 3^i the step forgets v
+after i steps (it is multiplied by 3), and mod 2^j the multiplication by 3 is a permutation while k drifts freely,
+so the residues mix completely. A proof that the orbit avoids the h_k has to use the size of n within its level.
+
+**Every modulus at once** (`lean/CongAll.lean`, kernel). The searches above are one modulus at a time; `reach`
+proves that the path always exists. Moving one level increment a step later (`1, 0` → `0, 1`) changes the final v
+by −3^r·δ(k) with δ(k) = 3 − 10·2^k, and δ(k+1) = 2δ(k) − 3. Write M = 3^a·m with 3 ∤ m. A block of m segments,
+each with two such swappable pairs (at levels κ and κ+1), with the segment length a multiple of the order of 3 mod m
+and the level gain a period of 2^κ mod m, adds X·A + Y·B mod m for any X, Y < m, and because of δ(k+1) = 2δ(k) − 3
+that is every residue. A tail of increments that makes 2·3^a divide k + 2, then a steps at that level, makes
+v ≡ 0 mod 3^a whatever v was (2v + k + 2 is multiplied by 3 at each such step). So from **every** value at every level
+k ≥ M some path reaches v ≡ 0 mod M, and with `realize` every `CongInv M K P` is empty above level K
+(`no_cong_ever`). This covers every modulus and every start, and so every 2-adic trap as well: a closed set of 2-adic
+classes that holds the run and misses the targets would miss a ball around them, which is a congruence mod some 2^j.
+
+**Size does not help at finite resolution either.** In x = v/(5·2^k) ∈ [0, 1) the map is, up to O(k/2^k),
+x → 3x for x < 1/3 (level stays) and x → (3x − 1)/2 for x ≥ 1/3 (level goes up), two full branches, and the halt is
+landing exactly on x = 0 from x = 1/3. `py/trapsize.py` combines B cells of x (B up to 81) with v and k mod 2^j
+(j ≤ 5) and finds that every abstract state reaches a halting transition. A non-halting proof would have to follow
+both the exact size and the exact residues of n, which is the whole problem: item 9 of the 24 Nov work list
+("find a congruence or 2-adic class the orbit cannot leave") has no solution.
 
 ## Further work
 

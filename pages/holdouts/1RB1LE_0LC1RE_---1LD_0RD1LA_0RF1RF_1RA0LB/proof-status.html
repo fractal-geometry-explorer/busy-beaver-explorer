@@ -96,7 +96,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="else">
       <div class="card proof">
         <h3>Also proved in Coq</h3>
-        <p>A second proof assistant checks the same result: <code>halt : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. It needs no direct run first: the verified accelerated run starts on the blank tape and takes about 30 seconds; the whole file compiles in about 2 minutes. The same files are on a branch of our fork of busycoq, ready to be proposed upstream: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/claude/project-thread-3u4y3s">project-thread-3u4y3s</a>.</p>
+        <p>A second proof assistant checks the same result: <code>halt : halts tm c0</code>, stated on busycoq's own definitions of a Turing machine and of halting, in <code>holdouts/1RB1LE_0LC1RE_---1LD_0RD1LA_0RF1RF_1RA0LB/coq</code>. Coq 8.18 compiles it and <code>Print Assumptions</code> reports no axioms; the build log is next to the files. It needs no direct run first: the verified accelerated run starts on the blank tape and takes about 30 seconds; the whole file compiles in about 2 minutes. The same files are on a branch of our fork of busycoq: <a href="https://github.com/fractal-geometry-explorer/busycoq/tree/claude/project-thread-3u4y3s">project-thread-3u4y3s</a>.</p>
+      </div>
+      <div class="card report">
+        <h3>Merged upstream: it halts</h3>
+        <p>The Coq proof from this repository was submitted as <a href="https://github.com/ccz181078/busycoq/pull/75">busycoq pull request 75</a>. busycoq's maintainer merged it into the BB6 branch on 2026-11-27 (merge commit <code>276386c</code>) after rewriting the proof; it now lives in <code>M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.v</code> on the BB6 branch (head <code>70a1ffc</code>). The rewritten version was not recompiled here, and it is checked with <code>native_cast_no_check</code>, which also trusts Coq's native compiler. </p>
+      </div>
+      <div class="card proof">
+        <h3>Proved in DeepMind's Lean, compiled here: it halts</h3>
+        <p><a href="https://github.com/google-deepmind/cryptids/blob/ee4318b/BusyBeaver/BB6/Halt/M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.lean">M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.lean</a> in <a href="https://github.com/google-deepmind/cryptids/pull/37">google-deepmind/cryptids pull request 37</a> (commit <code>ee4318b</code>, 21 November 2026; open, not merged into their main branch) proves that this machine halts. We built it with Lean v4.35.0-rc4 on 2026-11-24: the theorem <code>BusyBeaver.M_1RB1LE_0LC1RE_HHH1LD_0RD1LA_0RF1RF_1RA0LB.is_halt</code> states <code>IsHalt target</code> from the blank tape, it rests only on the axioms propext, Classical.choice, Quot.sound, and its transition table was checked against this machine. It is stated on DeepMind's definitions, not this repository's. The verdict on this page rests on this proof.</p>
       </div>
       <div class="card label">
         <h3>Community label</h3>

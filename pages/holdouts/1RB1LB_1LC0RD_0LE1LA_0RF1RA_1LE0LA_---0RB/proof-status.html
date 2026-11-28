@@ -88,7 +88,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> The sweep rule is proved: writing x = 111 and y = 110, one round trip of the head replaces each word by the XOR of it and its right neighbour (rule 102), in Lean for every length, with its Lucas closed form. A halt needs a <code>10</code> defect with <code>y</code> in front of it and only <code>y</code>s up to the next wall. Lean now proves what a deep sweep does at a defect: with <code>x</code> in front it is rule 102 on the whole line, with <code>y</code> in front the defect jumps to the end of the gap's first <code>x</code> block, and after a jump over m slots the next jump comes exactly m sweeps later. So a defect's whole life is one map on its gap, and the danger pattern is a jump with nothing to land on. Lean also proves which gaps can get there: under shielded sweeps exactly the rows of Pascal's triangle mod 2, and at the next jump exactly one rest <code>C</code> for each jump length <code>L</code> (word <code>k</code> is y iff <code>k</code> and <code>L</code> share no binary 1). The map does not rule that out by itself; a proof also needs to show that no new bulk <code>10</code> defect is born, which in the run has not happened since 8.5 million steps. No closed tape language has been found.</p>
+      <p><b>The question is open.</b> On single cells one round trip is a cellular automaton: c'[p] = 1 xor c[p] xor c[p+3] from the left end to the first <code>00</code>, proved in Lean for every tape with no lone 1 before that point (<code>lean/Trip.lean</code>), walls included; with lone 1s it is the same automaton on the tape with their holes filled, and the machine halts exactly when such a hole chain meets a 0 (<code>lean/Token.lean</code>). So the tape is three interleaved copies of rule 102 and the only thing that can go wrong is a lone 1 before the turn (token mode). Because each cell is rewritten from cells to its right, the last 100 cells are a closed system: a 12-entry cycle (<code>py/rend_cycle.py</code>) that the real run follows from round trip 2,112 on, so the right end is settled unless a lone 1 forms in the bulk. A fast simulator built on this reaches 5.2&middot;10<sup>13</sup> steps with no halt and no lone 1 after 8.5&middot;10<sup>6</sup> steps. Earlier results: The sweep rule is proved: writing x = 111 and y = 110, one round trip of the head replaces each word by the XOR of it and its right neighbour (rule 102), in Lean for every length, with its Lucas closed form. A halt needs a <code>10</code> defect with <code>y</code> in front of it and only <code>y</code>s up to the next wall. Lean now proves what a deep sweep does at a defect: with <code>x</code> in front it is rule 102 on the whole line, with <code>y</code> in front the defect jumps to the end of the gap's first <code>x</code> block, and after a jump over m slots the next jump comes exactly m sweeps later. So a defect's whole life is one map on its gap, and the danger pattern is a jump with nothing to land on. Lean also proves which gaps can get there: under shielded sweeps exactly the rows of Pascal's triangle mod 2, and at the next jump exactly one rest <code>C</code> for each jump length <code>L</code> (word <code>k</code> is y iff <code>k</code> and <code>L</code> share no binary 1). The map does not rule that out by itself; a proof also needs to show that no new bulk <code>10</code> defect is born, which in the run has not happened since 8.5 million steps. No closed tape language has been found.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -137,6 +137,21 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>epoch</code>, <code>x102_getD</code>, <code>lean/Xor.lean</code></p>
       </div>
       <div class="card">
+        <h3>One round trip is a cellular automaton on cells</h3>
+        <p>From the head on a new leftmost (blank) cell in A, with runs of at least two 1s each followed by one 0 up to a second 0 (that is, no lone 1 before the first <code>00</code>): the cells from the start cell to the first 0 of the pair become <code>c[p] == c[p+3]</code> (= 1 xor c[p] xor c[p+3]) with <code>1 1 0</code> imagined after them, the second 0 becomes 1, nothing further right is read, and the head ends one cell left, in A, after 4(Q &minus; lo) &minus; 6z + 15 steps. The left sweep spends one step per cell, its state naming the three original cells to its right. This covers every round trip without token mode, walls included; the word rule of <code>Xor.lean</code> is the special case of clean words.</p>
+        <p class="where"><code>trip</code>, <code>sweep</code>, <code>lstep</code>, <code>out_ca3</code>, <code>ca3_getD</code>, <code>trip_steps</code>, <code>lean/Trip.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Where a lone 1 can come from</h3>
+        <p>If no three neighbouring cells hold two 0s, the automaton writes <code>0 1 0</code> at p, p+1, p+2 only when the cells p &hellip; p+5 were <code>0 1 1 1 1 0</code>. A lone 1 before the turn is the only thing a round trip cannot cross (token mode, where the halt lives).</p>
+        <p class="where"><code>iso_birth</code>, <code>lean/Trip.lean</code></p>
+      </div>
+      <div class="card">
+        <h3>Token mode is the same automaton on the filled tape</h3>
+        <p>Over a lone 1 followed by <code>j</code> words <code>110</code> and a <code>111</code>, the right sweep leaves exactly the cells and state it would leave over the tape with those holes filled. So every round trip over ordinary runs and token chains is the cell automaton on the filled tape, which differs from the plain automaton at exactly two cells (the defect's jump); if the <code>110</code> words run into a 0 the machine halts. <code>py/trip_model.py</code> reproduces all 10,528 round trips of the first 6&middot;10<sup>7</sup> steps with this map.</p>
+        <p class="where"><code>rtok</code>, <code>trip_tok</code>, <code>ca3_diff</code>, <code>tok_halt</code>, <code>lean/Token.lean</code>; <code>py/trip_model.py</code></p>
+      </div>
+      <div class="card">
         <h3>Many round trips: Lucas' theorem</h3>
         <p>Iterating rule 102 with a fixed word after the end, word <code>i</code> after <code>t</code> sweeps is the XOR of the starting words <code>i + k</code> over the <code>k &le; t</code> with <code>C(t, k)</code> odd, i.e. the binary digits of <code>k</code> and <code>t &minus; k</code> disjoint. For a gap of <code>n</code> x's next to the fixed y, word <code>j</code> from the y is y iff <code>C(t, j)</code> is odd, so the whole gap is y first after <code>2<sup>b</sup> &minus; 1</code> sweeps, <code>2<sup>b</sup> &gt; n</code>.</p>
         <p class="where"><code>closed_form</code>, <code>allx</code>, <code>lean/XorLucas.lean</code></p>
@@ -183,6 +198,15 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p class="where"><code>holdouts/triage.json</code></p>
       </div>
       <div class="card">
+        <h3>No halt in 5.2&middot;10<sup>13</sup> steps, no lone 1 after 8.5&middot;10<sup>6</sup></h3>
+        <p><code>c/trips.c</code> does each round trip that <code>trip</code> covers with 64-bit word operations and runs every other trip (token mode, the trips that reach the right end) on the machine's table. 10<sup>7</sup> round trips, 52,496,781,276,447 steps: no halt; the 18 trips with a lone 1 before the turn all come before 8.5&middot;10<sup>6</sup> steps. In checking mode it also runs every trip on the machine and compares the whole tape and the step count (3&middot;10<sup>5</sup> trips, no difference).</p>
+        <p class="where"><code>c/trips.c</code>, 22 November 2026</p>
+      </div>
+      <div class="card">
+        <h3>The right end is a closed 12-entry cycle</h3>
+        <p>A round trip writes each cell from its own value and the cell three to its right, so any suffix of the tape changes only when the sweep enters it, and then by a map that depends on the suffix alone (plus whether the cell before the cut is 0 when the suffix starts <code>1 0</code>), unless the sweep arrives in token mode. <code>py/rend_cycle.py</code> closes the windows of the last 100 cells under these moves: 12 windows, each with a 1 at the cut and one successor, forming one cycle. The real run is in it from round trip 2,112 on and follows it for all 496 changes up to 3&middot;10<sup>6</sup> trips. So the right end never halts unless a token-mode sweep starts left of the last 100 cells, i.e. a lone 1 in the bulk; only one of the 12 windows would halt on such an arrival.</p>
+      </div>
+      <div class="card">
         <h3>The deep-sweep rules, against the machine's table</h3>
         <p>The shielded rule for every <code>P</code> of up to 5 words and <code>G</code> of up to 6 (8,001 cases), the jump for <code>P</code> up to 5 words, <code>j</code> up to 4, <code>a + 1</code> up to 4 and <code>C</code> up to 5 words (40,320 cases), and the danger pattern (504 cases, all halt), run with the machine's own table.</p>
         <p class="where"><code>py/hop_rule.py</code></p>
@@ -214,6 +238,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <h3>Growth shape: exp/sqrt</h3>
         <p>Left of the start, the visited part of the tape grows like the square root of the step count, the signature of a head sweeping back and forth across the whole tape and adding a cell or a few at the end of each sweep (a <em>bouncer</em>-like shape) (fitted exponent 0.505). Right of the start it grows like the logarithm of the step count: each new cell costs a roughly constant factor more time, the signature of a <em>counter</em> or of a Collatz-like map whose values are written on the tape (fitted exponent 0.067).</p>
         <p class="where"><code>tools/py/bbtools/triage.py</code></p>
+      </div>
+      <div class="card">
+        <h3>How a bulk 10 is born, in cells</h3>
+        <p>Between two walls the 0s of one copy of rule 102 are multiplied by (1 + u) at each pass (u = three cells left), so after a plain pass their number is even, and a turn at either wall deletes one. A bulk <code>10</code> is born when a segment's 0s run out at a turn at its left wall; that needs, first, a trip whose turn ends a segment of y words only (0s every three cells) with a <code>111</code> wall on its left. The run has 5 such trips (at 92, 108, 1,904, 2,608 and 3,403 round trips); each is followed by the token-mode trips of one <code>10</code> lifetime, and there is none in the next 10<sup>6</sup> trips. The y-only segments that keep forming sit 10, 17, 24 and 53 cells from the right end, behind walls of 6, 9 or 18 cells, as part of the right end's periodic cycle.</p>
+        <p class="where"><code>c/trips.c</code> (PRE lines), argument in the README</p>
       </div>
       <div class="card">
         <h3>A defect's lifetime is one map on the gap</h3>
@@ -263,7 +292,9 @@ python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/route.py        # 
 python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/hop_rule.py
 gcc -O2 -o turns holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/c/turns.c &amp;&amp; ./turns 12000000 150 &gt; turns.txt &amp;&amp; python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/defect_life.py turns.txt
 python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/fmap.py
-python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/jump_gaps.py turns.txt</code></pre>
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/jump_gaps.py turns.txt
+gcc -O2 -o trips holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/c/trips.c &amp;&amp; ./trips 300000 1 &amp;&amp; ./trips 10000000 0
+python3 holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/py/rend_cycle.py   # with TL=100 ./trips 3000000 0 | grep ^TL &gt; tl.txt: add tl.txt</code></pre>
   </section>
   <footer>
     <p>Built by <code>tools/pages/build_status.py</code> from <code>holdouts/1RB1LB_1LC0RD_0LE1LA_0RF1RA_1LE0LA_---0RB/status.json</code>; edit that file and rebuild rather than editing this page.</p>

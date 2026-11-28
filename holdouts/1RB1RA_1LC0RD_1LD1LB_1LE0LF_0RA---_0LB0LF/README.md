@@ -18,7 +18,7 @@ the kernel, in 10,000,000 by `native_decide`. Lean (`lean/Rules.lean`, kernel on
 C (`tools/c/triage.c`): no halt in 1,000,000,000 steps.
 Lean (`lean/Halt.lean`, kernel only): a halt needs state B reading 0 with 0, 0, 1 to its left
 (`halt_needs_pattern`). Coq (`coq/`): a halting proof built from busycoq pull request 93 that compiles with one
-assumption, that its accelerated engine stops; the engine has not stopped in more than 10^1336 steps (see below).
+assumption, that its accelerated engine stops; the engine has not stopped in more than 10^7765 steps (see below).
 
 ## Structure
 
@@ -81,7 +81,7 @@ halt needs B reading 0 with the cells 0, 0, 1 to its left.
 `coq/mkU.py` turns PR 93's file into a proof that this machine halts, complete except for `run_ok`, the claim that
 PR 93's accelerated engine (run on T3 without its halt) stops. The engine, extracted from that file, ran 18,449,229
 fast steps from blank tape without stopping; the tape then holds more than 2^4439 cells, so the machine does not halt
-in its first 10^1336 steps (computed with extracted code, not by the kernel).
+in its first 10^7765 steps (computed with extracted code, not by the kernel).
 
 Where the sibling would halt: T3 halts (from A at fast step 4,452, from C at fast step 2,452,241, PR 93's halt) just after C reads 0 with
 `1 1 1` on its left at the left end of the written tape. In this machine's run that configuration recurs once per lap
@@ -90,6 +90,28 @@ back to the macro rules. A halt can only happen where the engine leaves its macr
 it left them in only 14 kinds of local situation besides the start, none of which can lead to the halting pattern.
 So the sibling's halting point gives no halting point here; a halt would need a kind of exit never seen. Observed,
 not proved. Details and tools: [`coq/README.md`](coq/README.md).
+
+## The macro rules and the search for an invariant (21 and 22 November 2026)
+
+`py/macro.py` runs the engine's table W (PR 93's T3 without its halt) on PR 93's 21 macro rules plus two rules at the
+left end of the tape, `rule_wall0` and `rule_wall1`. Both are now proved in Coq for all parameter values
+(`coq/wall_rules.v`, built into `Wall.v` by `coq/build.sh`; `Print Assumptions` shows no axioms). With these 23 rules
+the run from blank tape leaves the rules only in its first 12 steps (3,000,000 macro steps checked, and
+`py/val_macro.py` matches 40,000 macro configurations against a plain simulation of W). So a halt can only come after
+the 23-rule system gets stuck somewhere other than the left end, which it has not done.
+
+What is missing is an invariant: a set of tape shapes that contains the run, is closed under the 23 rules, and never
+gets stuck. Three searches found no stuck shape and did not close:
+
+- automata over cells (window CTL);
+- a checker over runs of `10`, `1` and `0`, with a window near the head and a learned 10-run pattern language behind
+  it (Python, then C++ with the two sides of the tape tracked separately and one-sided rules evaluated once per side).
+  The largest run reached about 60 million side states before running out of memory, with no stuck shape. Smaller
+  settings give stuck shapes that the real run never meets.
+- The reason it does not close: the left side of the tape holds a copy of recent right-side blocks, and the real run
+  keeps producing new left-side 10-run patterns (about 3,700 after 20 million macro steps, still growing with each
+  doubling of the run). A next try would describe the left side by the words the rules write there instead of by
+  runs. Observed, not proved.
 
 ## Pages
 
@@ -103,6 +125,13 @@ gcc -O2 -I tools/c -o blocks holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/
 . /etc/profile.d/lean.sh && holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/lean/check.sh
 BUSYCOQ=busycoq/verify holdouts/1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB0LF/coq/build.sh PR93.v /tmp/u   # see coq/README.md
 ```
+
+## Write-only test at the right end (27 November 2026)
+
+The end-signature screen of 27 November listed this machine's right end as a candidate for a finite end controller
+beside a write-only bulk, the structure of DeepMind's proof of 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE. The direct
+test (10^9 steps; a trip leaves a 24-cell window at the end and goes more than 1,000 cells further): **fails**.
+Computed, not proved: 10,673 deep trips from the right end fall on 16 end words, and 10,555 of them have an end word with more than one return state (A, B, D); 64 more cells of context still leave 10,387. The head brings back a bit that is the content of the bulk. Trips take 7.1 steps per cell of depth: these are sweeps. Details and the other 11 candidates: [`recent-proofs/followup/write-only-test.md`](../recent-proofs/followup/write-only-test.md).
 
 <!-- related machines: written by holdouts/related.py -->
 

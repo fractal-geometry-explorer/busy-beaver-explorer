@@ -215,6 +215,68 @@ python3 holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/forecast.py test  
 python3 holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/py/forecast.py run saved 40 3 1e7 700 out.pkl
 ```
 
+## The timer map and the first collapses (24 November 2026)
+
+**No halt through the first two run-outs of the top timer, from blank tape and from state B** (3.3 million overflow
+cycles after 5.71·10^90 and 3.10·10^89 steps; reduced-model forecast, so this is a forecast, not a bound on steps).
+
+**The exact timer map.** One overflow cycle of the *full* exact state at 5.71·10^90 steps (no reduction, the
+condition-macro engine `cmacro.py` on `py/accel.py`'s digit model; `python3 py/timermap.py exact`) shows the
+tape at an overflow as `W0 W0 ([T1] W2 [0] W0) ([T2] W2 [0] W0) ... ([T75] W2 [0] W0)`: 75 timers, each a run of
+`110` words. In one cycle, while none runs out, every one of the 75 timers moves by exactly
+
+    T1 -> T1 - 3,   Tk -> Tk - 2·4^(k-1)  (k ≥ 2)
+
+(9, 24, 96, 384, ... cells: the README's right-end map, now checked on all 75 timers of the real run). Their
+lifetimes Tk / dec(k) at that point are 377,828 cycles for T1, 39,741 for T2, 99,526 for T3, and much less
+deeper down (T75 runs out in the next cycle), so run-outs below the top happen all the time; they are the
+counter itself. Only a run-out of T2 can change T1 (it then loses 2 instead of 3 once, which shifts T1's
+residue mod 3); deeper run-outs change only the timer above them. `lean/TimerMap.lean` proves the arithmetic: K
+cycles at once, a cycle keeps T1's residue mod 3, and when T1 runs out.
+
+**What a run-out of the top timer does** (`python3 py/timermap.py runout MACHINE R CYCLES`, the saved state with T1
+set to R words, then forecast):
+
+| T1 at run-out | what happens | halt? |
+|---|---|---|
+| 0 mod 3 (3 → 0) | T1 is dropped, every timer moves up one level and loses 6·4^(k-1) − 2 words in that cycle | no |
+| 1 mod 3 (4 → 1) | the top digit becomes `[1]W0`, is used up in the next cycle, then the same shift | no |
+| 2 mod 3 (5 → 2) | `[1]W0 [0]W0` on top, then a carry through every digit (all W3) and a rebuild: T1 and T2 are both used up and the deeper timers are rewritten (the new T1 is about 2.33·10^9) | no |
+
+So the halt (an E-chain on a run of length 2 mod 3, `lean/Chain.lean`) is not produced by any of the three
+residues, at least in the contexts tried.
+
+**The real runs** (forecast of the top 40 digits, `forecast.py run` then `py/timermap.py cont`, 2·10^6 + 1.3·10^6
+cycles, about 3 hours on one core each):
+
+| run | first T1 run-out | residue | second T1 run-out | residue | at cycle 3.3·10^6 |
+|---|---|---|---|---|---|
+| A (blank tape, from 5.71·10^90) | log cycle ≈ 378,209 | 0 | ≈ 1,107,000 | 0 | T1 = 16,587,577 (1 mod 3), T2 = 2,399,645,476 |
+| B (state B, from 3.10·10^89) | ≈ 378,172 | 0 | ≈ 1,106,860 | 2 (T1 and T2 used up) | T1 = 2,331,944,982 (0 mod 3), T2 = 26,154,194,953 |
+
+No window rule halted, split or failed to parse in either run (0 STOP). The runs pass about 15,000 smaller
+timer events each. The next top event: A's T1 runs out with residue 1 after about 5.53·10^6 more cycles; B's in
+about 7.8·10^8 cycles.
+
+**Third run-out, start A** (`py/timermap.py cont` from the 3.3·10^6 state, 24 November 2026): T1 ran out with
+residue 1 (4 → 1) near log cycle 8,834,000 (3,300,000 + 5,534,417). The top digit became `[1]W0`, was used up
+in the next cycle, and every timer moved up one level, as in the residue-1 test. No halt, split or unreadable tape
+(0 STOP) by cycle 8,902,611; the new T1 is 2,355,207,541 words (0 mod 3, about 7.85·10^8 cycles). So from blank
+tape the top timer has run out three times (residues 0, 0, 1) without a halt.
+
+**How far the reduction is checked.** The forecast follows the top 40 digits with the lower part replaced by
+three zero digits. Compared at the overflows (canonical snapshots, top 10 digits = timers T1 to T4;
+`python3 py/timermap.py compare 1200 10`), a 1,200 s exact run and the reduced model agree on all 138 overflow
+cycles the exact run reached (T1 from 1,133,495 to 1,133,081). The older check `forecast.py validate`, which
+samples whenever the top two digits change, finds the two runs out of step from sample 106 on (1,442 of 1,743
+samples, 1,800 s exact run): inside a cycle the two runs pass the top W0/W1 phases at different moments (for
+example exact `[1133457]W0 [317852]W1` against reduced `[1133456]W1 [317852]W0`), so that check compares
+different phases, not different results. The argument that the top part sees only carries arriving from below is
+still an argument checked on data; the exact full state can be run only about one cycle per 10 to 20 s, far too
+slow for 10^6 cycles, because run-outs deep in the counter happen at almost every cycle.
+
+Logs and end states: `/mnt/project-files/halt-hunt/99198-timer-map/`.
+
 ## Pages
 
 - [`pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html`](../../pages/holdouts/1RB1LE_1RC1LF_0RD1RD_1LE0RE_0LA0LB_---1LE/explainer.html)

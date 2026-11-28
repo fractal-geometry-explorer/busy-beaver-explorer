@@ -33,6 +33,7 @@ like t^0.31.
 ## What is proved
 
 - Lean, kernel only (`lean/Blank.lean`, generated): the halting configurations (`step_none_iff`) and no halt in the first 10,000 steps; with `native_decide`, none in the first 10<sup>7</sup>.
+- Lean, kernel only (`lean/Pulse.lean`): one pulse over any list of words takes three 1s from the run after them and leaves the words as they were (`pulse`); a pulse that meets `0001` halts (`pulse_halt`). See The pulse in Lean.
 - Lean, kernel only (`lean/Rules.lean`, written by `py/rules.py`): the shift rules: A crosses `(100)^n` leftward (into `(110)^n`) and `(01)^n` rightward (into `(11)^n`) (`shift_l_A_100`, `shift_r_A_01`).
 - C (`tools/c/triage.c`, trusted): no halt in the first 10<sup>9</sup> steps.
 
@@ -40,8 +41,8 @@ Everything else above is measured on runs (heuristic), not proved.
 
 ## Open
 
-Whether it halts. The epochs are measured; the dumps at their ends and the irregular region they build are
-not understood.
+Whether it halts. Observed: it halts exactly if a pulse ever meets an inner `000` (see Pulses and defects). The
+fuses are understood; the `00` pulses, which end the epochs and build the irregular region, are not.
 
 ## For later
 
@@ -91,6 +92,181 @@ went 6,232,238,054 steps from blank tape in 20 minutes without a halt (199 jumps
 
 ```sh
 python3 holdouts/1RB0LC_1RC1RA_1LD0RE_1LA1LD_0RA1RF_0LC---/py/rsim_screen.py 1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD 1200
+```
+
+## Lead 20 rechecked, longer runs and the fuse (22 November 2026)
+
+- **PR 93's engine, rechecked.** In the renamed table G = `1RB1RA_1LC0RD_1LD1LB_1RA0LE_0LB1RF_0RA---` (section above), PR 93's
+  collision rule `CfgL (001101 l) r → CfgJ l (1111 r)` was simulated again from scratch with 30 random cells on each
+  side: for T4 it ends in its rule form (`CfgL l (111111 r)`, 10 steps) in 40 of 40 cases; for G the head runs more
+  than 7 cells into `r` in 29 of 40, and in the other 11 it comes back to `l` in B with a different tape, never the
+  rule form. This agrees with PR #410, so the engine
+  does not carry over and this lead is closed. An engine for this machine has to be built from its own passes (below).
+- **Direct run.** `tools/c/tmrun.c` runs 10^12 steps from blank tape without a halt; the tape then holds 1,071,316
+  ones (about an hour).
+- **Accelerated run.** The C++ port `rsim_fast` (in the folder of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF) runs
+  19,424,261,661,128 steps (1.9·10^13) in one hour without a halt (7,491 tape-level jumps, validated, not proved).
+- **The passes of an epoch (observed).** `c/passes.c` prints, for each return of the head to the left end, how far
+  right it got. Inside an epoch the returns alternate between a short pass, which turns at the end of the
+  `(011)^a` block, and a long pass, which crosses the `(01)^b` block and the irregular region and turns at the
+  left end of a run of 1s near the right end of the tape. Each long pass shortens that run by 3 cells, so the run
+  is a **fuse**: for example `1^29` at step 179,100 is used up 3 at a time until step 209,010, and the next long
+  pass runs to the right end of the tape. That is the end of the epoch; the same alternation is seen in the epoch
+  at 4·10^8 steps (short passes turning about 3,180 cells from the left end, long ones about 9,290, on a run of 1s).
+  So the length of an epoch is set by the fuse the previous dump left behind.
+- **Long stretches away from the left end.** The stretches of more than 10^6 steps in which the head reaches the
+  right end of the tape before coming back end at steps 1.2·10^7, 3.2·10^7, 4.7·10^7, 5.8·10^7, 8.5·10^7,
+  1.6·10^8, 4.0·10^8, 1.45·10^9, 4.03·10^9 and then in clusters near 1.1–1.5·10^10, 1.7·10^10, 3.0·10^10 and
+  3.7·10^10; the longest take 5.8·10^8, 1.4·10^9, 1.3·10^9 and 9.6·10^9 steps. None between 3.73·10^10 and
+  3·10^11 steps (`passes 0 300000000000 ends`, the same run, no halt in 3·10^11 steps).
+
+```sh
+gcc -O2 -o passes holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/passes.c
+./passes 179000 210000 | cut -c1-140          # short and long passes, the fuse 1^29 eaten 3 cells at a time
+./passes 0 300000000000 ends                  # the long stretches that reach the right end (about 20 minutes)
+```
+
+## Pulses and defects: what an epoch end is (22 November 2026)
+
+Observed and tested on random tapes, not proved. `py/pulses.py` and `c/defects.c` reproduce everything here.
+
+- **Transparent words.** Look at the tape at a return of the head to the left end in the form
+  `C>0 (011)^a 001101 …`. After `001101` it is mostly made of *words*: a run of one or two 1s followed by a single 0.
+  Runs of one or two 1s with single 0s between them are transparent: a round trip of the head (two returns to the
+  left end) leaves any such stretch exactly as it was. Replacing the 307 cells of words at step 182,483 by 30 random
+  lists of words `10`/`110` of other lengths changes nothing else: in every case the round trip only adds 1 to a,
+  three words at the left, and takes 3 from the run of 1s after the words.
+- **Defects and pulses.** Where the tape is not made of words there is a *defect*: a run of k ≥ 3 ones, or a run of
+  two or more 0s. A round trip goes right in state A (rules `A> 01 → 11 A>` and `A> 011 → 100 A>`, which hold for
+  every tape on the left), meets the first defect and comes back. So each round trip sends one **pulse** to the
+  first defect and only that defect changes. Tested with 20 random word lists around each defect:
+
+  | first defect | after one pulse |
+  |---|---|
+  | `1^k`, k ≥ 6 | `1^(k−3)` (this is the fuse of the section above) |
+  | `1^4`, `1^5` | dissolves into a word (`1`, `11`) |
+  | `1^3` | becomes `00` |
+  | `000` with tape after it | **the machine halts** (20 of 20, and with other tapes after it) |
+  | `00` | a zigzag around the `00`; the result depends on the words themselves, not only on how many there are, and it often rewrites the left part (a starts again from 1 or 2) |
+
+  So a fuse `1^k` lasts ⌊k/3⌋ pulses and then leaves nothing (k ≡ 1, 2 mod 3) or a `00` (k ≡ 0 mod 3).
+- **Epoch ends are `00` pulses.** On the run from blank tape, of the 9,714 round trips that start in the form above
+  in the first 3·10^10 steps, all but 1,766 follow the table's first three rows. Of the 1,766, 1,755 start with a
+  `00` as first defect and 7 with no defect at all (the pulse goes to the end of the tape); the other 4 are a `1^3`
+  just before the end of the tape and round trips that passed through other forms on the way. No round trip ever
+  meets a `000`.
+- **So:** the machine halts if and only if (observed, not proved) a pulse ever meets an inner `000`. The fuses are
+  pure arithmetic; what decides everything is the `00` pulse, a local bouncer of its own that reads the actual words
+  near the `00`. That is why the length of the next fuse is not a function of a, b and the block counts: two tapes
+  with the same counts and different words give different fuses (`python3 py/pulses.py 'w15 z2 w8 k7 w5' 2 3`).
+
+Next: describe the `00` zigzag as rules over words (it looks like the left-end bouncer again, one level down), and
+prove the transparent round trip and the fuse rule in Lean.
+
+```sh
+python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 k9 w8 k7 w5' 1 20   # 1^9 -> 1^6
+python3 holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/py/pulses.py 'w15 z3 w8 k7 w5' 1 20   # 000: halt
+gcc -O2 -o defects holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/defects.c && ./defects 30000000000 0   # 2.5 min
+```
+
+## The pulse in Lean (22 November 2026)
+
+`lean/Pulse.lean` (kernel only: `rfl`, `simp`, `omega`) proves the pulse for every list of words and every tape
+around it. Here a word is `01` or `011`, read in the direction of the right sweep:
+
+- `right_words`: in state A the head crosses any list of words to the right, `A> 01 → 11 A>`, `A> 011 → 100 A>`.
+- `turn`: `A> 0111 → A> 1110` in 10 steps: three 1s of the run are picked up as a packet `111`.
+- `left_words`: the packet crosses the images back to the left and restores every word,
+  `11 A>111 → A>111 01` and `100 A>111 → A>111 011`.
+- `pulse`: together, `L | A> ws 0111 R → L | A> 111 ws 0 R` in 10·(|ws|+1) steps, for every list ws and all L, R.
+  With `R = 1^k 0 …` this is the fuse rule: the run `1^(k+3)` becomes `1^k`, and the words come back unchanged.
+- `pulse_halt`: if the words are followed by `0001` instead, the sweep halts the machine (D on a 1).
+
+So two rows of the pulse table are now theorems: a run of three or more 1s after a stretch of words loses three
+(`1^3` becomes `00`, the k = 0 case), and an inner `000` followed by a 1 halts. What the packet does at the left end
+(where it becomes one more `011` and three more words) and the `00` pulse are not yet in Lean.
+
+**The `00` pulse, as far as it is understood.** The sweep in state A reaching `0 0` writes over it, makes a short
+zigzag over the next words, and comes back left over the images in one of three modes, named by the head's state as
+it enters each image. `lean/Return.lean` (kernel only, written by `py/ret_rules.py`) proves 21 rules, one for each mode,
+image and six-cell carry to its right that occurs on random returns, each for every tape around:
+
+| mode | image `11` (word `01`) | image `100` (word `011`) |
+|---|---|---|
+| C | becomes `01`; the carry's `011` becomes `101`; stays C | becomes `011`, carry unchanged; stays C |
+| E | stays `11`, so the 1s join the run on the right; stays E | becomes `110`, second carry cell cleared; to A |
+| A | stays `11`, first carry cell cleared (a run of two); stays A | the head goes right past the carry: a new excursion (open) |
+
+So in mode E a stretch of `01` words becomes one run of 1s: one way a `00` pulse writes a new fuse. All 21 rules
+occur on the run from blank tape: in its first 2·10^9 steps the starting pattern of each is met between 96 and
+8.3·10^7 times (`c/return_count.c`).
+
+**Mode A at a `011` word starts a new pulse** (`lean/Excursion.lean`, kernel only). The head is then in state A on
+the last cell of the image `100`, a 0, and that 0 with the carry after it is a list of words: `011 011` for the carry
+`110110`, `011 01 01` for `110101`, and `011 01` followed by `00` for `110100`. So the excursion is an ordinary pulse
+over these words to the next defect. If that is a run of three or more 1s, the packet `111` comes back, turns
+`10 111` into `11 011` and the head goes on left in mode E (`after_w01`, `after_w011`); `excursion_110110` proves the
+whole excursion for the carry `110110` (35 steps). If it is a `00`, a nested `00` pulse starts.
+
+So the return after a `00` pulse is recursive: E merges `01` words into a run of 1s; at the next `011` word the head
+switches to A, which turns `01` words into runs of two; at the next `011` word A sends a pulse back right, which
+meets the nearest defect (for instance the run E has just made), takes three 1s from it and returns in mode E. A halt
+still needs a pulse to meet `0001`; what is open is whether this recursion can ever leave one.
+
+## Looking for a halt far out (23 November 2026)
+
+- **No `000` away from the head.** `c/zeros.c` runs the machine directly and, every 10^7 steps up to 3·10^11, looks
+  for a run of three or more 0s inside the visited tape and more than 8 cells from the head: none in 30,000 samples
+  (all the `000`s seen sit next to the head, while it writes). So the invariant to prove would be "the tape never
+  holds `000` away from the head"; with it, `pulse_halt` can never fire. No proof: the deciders above (n-gram CPS to
+  width 14, closed tape languages from small automata) find no local invariant of that kind.
+- **Where the time goes.** In the first 3·10^10 steps, 96% of the steps are spent in round trips whose first defect
+  is a `00`, mostly in one trip of 1.4·10^10 steps (from 8.7·10^8 to 1.5·10^10). During it the head does not come
+  back to the left end: the `00` pulse rewrites the `(011)^a` block as `(100)^n`, and the border between that region
+  and the words works as a new left end, with its own round trips, pulses and fuses (at 1.2·10^10 steps, round trips
+  of about 432,000 steps that each burn 3 cells of a run near the right end). Fuse jumps at the outer left end (fold
+  the round trips that only burn a fuse into one step) are exact on the run but save only about 20%.
+- **A simulator whose only shortcuts are Lean theorems.** `c/psim.c` is the direct simulation with two shortcuts:
+  in state A at a stretch of at least 24 cells of words it applies `right_words` (01 → 11, 011 → 100, 2 and 5 steps),
+  and in state A on a packet `111` with images to its left it applies `left_words` (8 and 5 steps). Both are proved
+  in `lean/Pulse.lean` for every tape around, so every jump is exact. Its tape at all 6,148 returns to the left end in
+  the form `C>0 (011)^a 001101 …` in the first 3·10^9 steps is identical to the direct run's (same steps, same hash;
+  `psim 3e9 log 24` against `psim 3e9 log 0`). 99% of the steps are taken by the two shortcuts, and it is about 10
+  times faster than direct simulation: 3·10^11 steps in 99 s. Result: **no halt in 75,967,097,042,634 steps (7.6·10^13)** (7.7 hours with a 6-hour budget, which is checked only at returns to the left end; the tape
+  is then 8,320,745 cells long). Rests on the C program and the two theorems.
+- **The generic accelerated simulator** `rsim_fast` (in the folder of 1RB1RA_1LC0RD_1LD1LB_1LE0LF_0RA---_0LB1LF)
+  reaches 21,361,111,018,490 steps (2.1·10^13) without a halt in 5.5 hours (jumps validated, not proved), then
+  stops at its memory limit; it reached 1.9·10^13 in its first hour, so for this machine it has stopped gaining.
+- **The checked accelerated simulator** of `tools/lean/TM/RSim.lean` (every move proved, jumps checked by a symbolic
+  period) runs here too: `lean/RSimBound.lean` proves no halt in the first 10^8 steps (`rsim_1e8`, `native_decide`,
+  `lean/check_rsim.sh`, about 20 minutes). A run to 10^10 with compiled code loaded did not finish in two hours, so no longer bound.
+
+**Words as blocks (23 November 2026).** Folding repeated round trips at any turning point does not help: tried with
+the tape compressed into blocks with linearly changing counts, it is exact but catches few trips, because the
+nested round trips burn short fuses (about four trips each, at 1.2·10^10 steps) and then meet another defect. What
+does help is to stop paying for the words: `c/wsim.cpp` keeps the tape as a zipper of cells and *blocks* of words
+(`01` / `011`, one byte each). A block is crossed in one move by `right_words` or `left_words` (the same two
+theorems as `psim.c`, so every move is still exact); where the head meets a block in any other way, one word is
+peeled off the near end into cells, and adjacent blocks in the same form are merged. Fewer than 0.5% of the steps
+are then taken one at a time.
+
+- Its tape matches `psim.c` at all 160,976 returns to the left end in the form `C>0 (011)^a 001101 …` in the first
+  10^12 steps (same steps, same hash), and it runs 3·10^11 steps in 7 s (`psim.c`: 99 s).
+- **No halt in 399,758,169,806,655,314 steps (4.0·10^17)**, the last progress line before it was stopped for memory
+  after 3.9 hours (tape 610,949,829 cells, 14 GB). At this size the run is close to a plain bouncer: most of the
+  time goes into long crossings, and the tape length grows like the square root of the steps.
+
+Next: the `(100)` code of the left block during the long trips is not yet described as rules, and memory (one
+deque per block) limits the run; two bits per word would reach about 10^18.
+
+```sh
+gcc -O2 -o psim holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/psim.c -lm
+./psim 3e9 a.log 24 && ./psim 3e9 b.log 0 && cmp a.log b.log   # shortcuts against direct run, 6,148 returns
+./psim 1e18 - 24 21600                                         # the long run
+g++ -O2 -std=c++17 -o wsim holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/wsim.cpp
+./wsim 1e12 c.log 1e9 8 && ./psim 1e12 d.log 24 && cmp c.log d.log   # 160,976 returns (about 30 min)
+./wsim 9e18 - 21600 8                                          # the 4e17 run (needs more than 14 GB)
+gcc -O2 -o zeros holdouts/1RB0LC_1RC1RA_1RD0RF_0LE---_1LA1LE_0RA1LD/c/zeros.c && ./zeros 300000000000 10000019   # 20 min
 ```
 
 <!-- related machines: written by holdouts/related.py -->

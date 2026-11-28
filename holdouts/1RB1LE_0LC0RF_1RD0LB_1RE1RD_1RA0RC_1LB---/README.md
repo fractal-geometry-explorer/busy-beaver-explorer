@@ -62,7 +62,7 @@ The ends (observed, not proved):
   (checked for j = 2..7): this is the short cycle of the first numbers.
 - At the right end a layer of the last few groups is not in letter form: 13 cells on average and at most about 100 in the first 10^9
   steps, not growing between the first and last third of that run. In about 9% of round trips the rightward sweep turns back before the
-  end of the tape. This layer is not decoded.
+  end of the tape. This layer is decoded in the next section.
 - Information moves only to the right: a letter after a round trip depends only on the letters left of it.
 
 `py/ca_check.py` checks the rule on the run: at every return to the left end, every letter that two consecutive round trips have in common,
@@ -72,6 +72,100 @@ with these tapes (listed in that script).
 Where a halt can come from: the three rules take a fixed number of steps for every n, so no halt happens in the bulk; a halt (B on two
 adjacent 1s) has to come from one of the two ends, and the left end has been periodic in every run so far. The open question is the
 right-end layer, fed by the running XOR that arrives from the left.
+
+## The right-end layer (`py/endlayer.py`, `lean/EndRules.lean`)
+
+**Tokens.** Read the tape at a return of the head to the left end (group form) as a list of tokens: `m` is a group
+`1 (01)^(m-1)` of m single 1s followed by `000`; `m_2` a group followed by only `00`; `m_0` a group that touches the next
+one (`... 1 1 ...`); `m$` the last group of the tape. In the bulk every token is an odd `m`, and the rightward sweep reads
+the groups in pairs (a, b), in states E and A; a round trip turns the pair into `1` repeated (a-1)/2 times, then `b+2`
+(the XOR rule above, in this notation). The **tail** is what follows the last pair of two odd groups.
+
+**The tail evolves on its own.** Let `G(tail)` be one round trip of the machine on 16 bulk pairs followed by the tail, the
+head arriving at the tail in E, until it is back on the bulk: a finite run. It never looks at the pairs except to sweep
+them (every call checks that they come back as they should). So after a round trip the right end is (image of the
+pairs) + `G(tail)`, and the only input from the rest of the tape is one bit: whether the first token of `G(tail)` is the
+first or the second member of a pair at the next round trip (the parity of the running XOR there). The next tail is
+`G(tail)` cut after its leading pairs of odd groups (`split` in the script; in the second case the bulk's odd group
+in front of it only adds single 1s, so it is written as `1`). The right end is a machine of its own, fed one bit per
+round trip by the bulk.
+
+Checked against the runs (`endlayer.py check 1e10`, with `c/endtails.c`): at every round trip of the six machines to
+10^10 steps, the tape after the round trip is the image of the pairs followed by `G(tail)`:
+
+| machine | round trips checked | different tails | exceptions |
+|---|---|---|---|
+| 1RB1LE_0LC0RF_1RD0LB_1RE1RD_1RA0RC_1LB--- | 29,363 | 416 | 0 |
+| 1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE | 28,725 | 339 | 0 |
+| 1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE | 29,331 | 339 | 0 |
+| 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE--- | 28,755 | 409 | 0 |
+| 1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD--- | 28,833 | 387 | 0 |
+| 1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD--- | 29,483 | 387 | 0 |
+
+(About 35 round trips per machine are skipped by the check, near the start of the run, where the tape is too short for
+its reference point.)
+
+**One model for six machines.** The six machines give the same image of every tail tried (3,000 tails, `endlayer.py
+same`), except one: `1 3_0 2_0 1$` becomes `5 3_0 1 2$` for the table of this machine (and its renamings
+1RB---_0RC0LA_1LD0RB_1LE1LD_1LF0LC_1LB1RE, 1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---) and `8 1 2$` for the other table
+(1RB---_0RC0LA_1LD0RB_1LE0LB_1LF0LC_1LB1RE, 1RB0LE_1RC0RE_1RD0RA_1RE1LC_0LA0RF_1LE---,
+1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---). That tail occurs in the runs of 1RB0RD_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---
+and 1RB1RA_1RC0RE_1RD1LB_0LE0RF_1RA0LD_1LD---.
+
+**The rules at the front of the tail.** Each is checked on 1,500 random tails for all six machines (`endlayer.py rules`);
+the sweep step behind each is a theorem of `lean/EndRules.lean` for every size of group (table below).
+
+- *Pair*: `a b X` with a odd becomes `1`×(a-1)/2, `b+2`, then `G(X)`, for b odd or even. An even group in a second slot
+  joins the block behind it (`even_A`) and grows by 2 per round trip: even groups are counters.
+- *Even group in a first slot*: `2j b X` becomes `1`×(j-1), `1 3_0 b-1`, then X unchanged (b = 1: `1`×(j-1), `1 3_2`, X).
+  The rightward sweep turns back at the even group (`even_E`), so everything right of it skips this round trip. The
+  counter is paid out as single groups.
+- *Touching group*: `3_0 c X` (c ≥ 2) becomes `1 1 c-1`, then X unchanged; the sweep turns back there too (`touch_E`).
+- *Short gap*: at `3_2` the sweep goes on one cell off the grid (`gap2_E`) and leaves a block `11`; the leftward sweep turns
+  right again at that block (`even_block_B`), so the part of the tail right of it gets a second round trip in the same
+  visit. A short gap in a second slot turns the sweep back (`gap2_A`).
+- *The end*: `2$` becomes `1 2$`, `1$` becomes `2 2$`, `3_0 1$` becomes `1 1$`, and a pair `a 2$` becomes its image
+  followed by a new `2$`.
+
+So the layer is a handful of particles: even counters that grow in second slots and are paid out in first slots,
+stretches frozen for a round trip behind a turn, stretches that run twice as fast behind a short gap, and the end, which
+emits new groups. The six runs keep it within about 100 cells of the end.
+
+| rule | from | to |
+|---|---|---|
+| `even_E` | `L E> 1 (0101)^n 0 1 0 0 0 R` | `L (0111)^n 0 1 1 1 1 1 B> R` |
+| `even_A` | `L 0 1 1 1 A> 1 (0101)^n 0 1 0 0 0 R` | `L 1 1 (1111)^n 1 1 1 1 0 1 1 1 E> R` |
+| `gap2_E` | `L E> 1 (0101)^n 0 0 R` | `L (0111)^n 0 1 1 E> R` |
+| `gap2_A` | `L 0 1 1 1 A> 1 (0101)^n 0 0 R` | `L 1 1 (1111)^n 0 1 1 1 1 B> R` |
+| `touch_E` | `L E> 1 (0101)^n 1 R` | `L B> 0 0 (0100)^n R` |
+| `touch_A` | `L 0 1 1 1 A> 1 (0101)^n 1 R` | `L 1 1 (1111)^n 0 1 1 0 C> R` |
+| `even_block_B` | `L 0 1 1 (11)^n B> 0 R` | `L 1 1 0 1 D> (10)^n R` |
+| `halt_even_touch` | `L E> 1 (0101)^n 0 1 0 0 0 1 1 R` | halts (F reads a 1) |
+
+**What a halt needs.** An even group in a first slot followed by a single 1 that touches the next group, `2j 1_0`, halts
+(`halt_even_touch`, for every j: E reads the even group, turns back, and F lands on the touching 1). Among all 1,205 tails of at most three tokens (groups up to 5, gaps `000`, `00`, none) these
+are the only ones that halt (`endlayer.py halts`), and every random tail that halts contains this pattern.
+
+**Every parity input.** Following the tail from `2$` with both parities allowed at every round trip, so for any content
+of the bulk at all, 100,000 different tails are reached (groups up to 60, tails up to 264 cells), for each of the two
+tables, and none halts or leaves the model (`endlayer.py explore 100000 60`). This suggests that the right end cannot
+halt whatever the bulk does.
+
+**Open.** A finite description of the reachable tails for every parity sequence (a regular language of token lists
+closed under `G` and `split`, without `2j 1_0` in a first slot), and the same for the left end, would prove that the
+machine never halts. The reachable set is infinite (counters, frozen stretches), so this needs an abstraction of the
+counters and of the stretches of odd groups between defects.
+
+**The round trip as a recursion** (`py/endlaws.py`, `c/roundtrip.c`). Write a tail as `p y`, with `p` the front
+pattern (one group in a first slot, or an odd group and the next group) and `y` the rest. Then `G(p y)` is `h y[1:]`
+(*freeze*: the sweep turns back at `p`), `h G(y)` (*continue*) or `h G(G(y))[1:]` (*double*: the part right of `p` gets
+two round trips in one visit), with a head `h` whose sizes are affine in those of `p` and of the first token of `y`,
+`G(y)` or `G(G(y))`. For example `G(3_2 y) = 1 (a+1) rest`, where `a rest = G(G(y))`. The laws are in `law()`;
+`endlaws.py check 30000 I` finds them exact on 30,000 random front patterns for each of the six machines, with
+about a quarter not covered (an even group touching the next one, and `00` in a second slot before a single 1).
+Since short gaps nest and each doubles the speed of what follows, G is not a finite-state map, which is why no
+small automaton describes the reachable tails. `endlaws.py bfs 1500000` (the round trip in C) reaches 1,500,000
+tails, 46 round trips deep, with every parity input and no halt.
 
 ## Halting
 
@@ -97,9 +191,9 @@ Generated by `py/rules.py` with `tools/py/bbtools/symtm.py`; every rule holds fo
 
 ## Status
 
-Open. Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps (`lean/Blank.lean`), the sweep rules (`lean/Rules.lean`), the round trip on the bulk as a running XOR (`lean/Sweep.lean`, `lean/Bulk.lean`). Lean with `native_decide`: no halt in 10^7 steps. C: no halt in 10^10 steps (`tools/c/tmrun.c`). Observed: the unary-list structure; the blocks of 4k+3 ones.
+Open. Lean, kernel only: the halting configurations (`step_none_iff`), no halt in 10,000 steps (`lean/Blank.lean`), the sweep rules (`lean/Rules.lean`), the round trip on the bulk as a running XOR (`lean/Sweep.lean`, `lean/Bulk.lean`), the sweep at the defects of the right-end layer and its halting pattern (`lean/EndRules.lean`). Lean with `native_decide`: no halt in 10^7 steps. C: no halt in 10^10 steps (`tools/c/tmrun.c`). Observed: the unary-list structure; the blocks of 4k+3 ones.
 
-**For later.** Decode the right-end layer: which local patterns it goes through, and how it depends on the parity that the running XOR brings to it. A finite description of it would reduce halting to a question about the running XOR of the word, i.e. about Pascal's triangle mod 2.
+**For later.** The right-end layer is decoded as a machine of its own fed one parity bit per round trip (section "The right-end layer"); no halt in 100,000 of its tails reached under every parity input. Next: a regular invariant of those tails without the halting pattern `2j 1_0`, and the same for the left end.
 
 ## First look
 

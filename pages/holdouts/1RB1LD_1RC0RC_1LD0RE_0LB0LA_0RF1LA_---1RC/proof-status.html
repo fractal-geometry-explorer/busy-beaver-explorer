@@ -83,12 +83,12 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <p class="machine">1RB1LD_1RC0RC_1LD0RE_0LB0LA_0RF1LA_---1RC</p>
     <p class="stand open"><b>Open</b><span>Nobody has proved whether this machine halts. Everything below is what is known so far.</span></p>
     <p>Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. This page lists what has been established about it, sorted by what each result rests on.</p>
-    <p class="asof">Status as of 8 November 2026.</p>
+    <p class="asof">Status as of 25 November 2026.</p>
   </header>
   <section aria-labelledby="h-short">
     <h2 id="h-short">In short</h2>
     <div class="verdict">
-      <p><b>The question is open.</b> After step 731,206 the left end of the tape never moves again. The head bounces between a point well inside the tape and the right end. On each round trip, everything right of the turning point is shifted right by exactly two cells, unchanged. Near the turning point, the irregular region on the left produces new material. So the right part of the tape is a frozen record of what that generator produced. Nothing about the generator's own rules is known, and no Lean rules beyond the bounded run are proved.</p>
+      <p><b>The question is open.</b> After step 731,206 the left end of the tape never moves again. The head bounces between a turning point well inside the tape and the right end. On each round trip, nothing left of the turning point is visited, and everything right of a point just past it is shifted right by exactly two cells, unchanged. So the only cells a trip really rewrites lie in a small window at the turning point: about 30 cells typically, at most about a thousand in the first 2&middot;10<sup>10</sup> steps. The turning point drifts right at about 0.4 of the tape's width, leaving an untouched archive behind it.</p>
     </div>
   </section>
   <section aria-labelledby="h-else">
@@ -121,6 +121,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>The list simulator of the shared library, proved to agree with the machine's semantics, runs 10,000 steps from blank tape without a halt, evaluated by Lean's kernel.</p>
         <p class="where"><code>blank_runs_kernel</code>, <code>lean/Blank.lean</code></p>
       </div>
+      <div class="card">
+        <h3>The halting situations</h3>
+        <p><code>E&gt;0 0</code> halts after one step, <code>C&gt;1 0 0</code> after two, <code>B&gt;0 1 0 0</code> and <code>B&gt;1 1 0 0</code> after three: F is entered only from E on a 0, E only from C on a 1, C only from B or F, all moving right.</p>
+        <p class="where"><code>halt_E</code>, <code>halt_C</code>, <code>halt_B0</code>, <code>halt_B1</code>, <code>lean/Rules.lean</code></p>
+      </div>
     </div>
     <h3><span class="tag t-native">native</span> Proved in Lean with native_decide</h3>
     <div class="cards">
@@ -147,6 +152,11 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
         <p>For 39 round trips after each of 10<sup>6</sup>, 10<sup>7</sup>, 10<sup>8</sup> and 10<sup>9</sup> steps, the tape is 1,105, 3,161, 9,467 and 30,011 cells wide. The boundary of the rigid part lies between cells 777&ndash;808, 1,532&ndash;1,572, 3,446&ndash;3,531 and 11,845&ndash;11,890. In the first 10<sup>9</sup> steps the left end of the tape is last extended at step 731,206.</p>
         <p class="where"><code>holdouts/1RB1LD_1LC0RE_1LA0LD_0LB0LE_0RB0LF_1RE---/c/turns.c</code></p>
       </div>
+      <div class="card">
+        <h3>Only a small window is rewritten</h3>
+        <p>At every 20th round trip up to step 2&middot;10<sup>10</sup> (3,444 samples), the cells a trip rewrites lie between its turning point and a point z past which the tape is the previous one shifted right by two. The window from the turning point to z has median width 27 to 30 cells, 99th percentile about 450, largest 1,054. The turning point is at 0.37 to 0.41 of the tape's width.</p>
+        <p class="where"><code>c/activezone.c</code></p>
+      </div>
     </div>
     <h3><span class="tag t-heur">heuristic</span> Evidence only</h3>
     <div class="cards">
@@ -164,7 +174,7 @@ footer { font-size: 0.88rem; color: var(--muted); display: grid; gap: 6px; }
     <div class="cards">
       <div class="card open">
         <h3>Does it halt from blank tape?</h3>
-        <p>Not known. The open part is the generator: what it emits and how it changes.</p>
+        <p>Not known. The open part is the window: what it writes to the archive and the stream, and what it reads back from them.</p>
       </div>
     </div>
   </section>

@@ -91,6 +91,107 @@ The bound stays at 10^19 steps (above), and no halt was found. The general-law m
 (event law, collapses run exactly on reduced tapes and spliced back in, in
 `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/track.py`) is the natural next step here too.
 
+## The bouncing end is one ternary counter (24 November 2026)
+
+**Result.** The whole run is one ternary counter that drains, and it now has an exact model. Every bounce of the
+head at the bouncing end (the left end of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD, the right end of its mirror
+image 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB) adds one to the counter. This gives a closed rule for each bounce.
+The rule is proved in Lean for any number of carry digits (`lean/Chain.lean` (this folder)).
+An exact accelerator built on it follows both runs through the collapses the older sections forecast:
+1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB at 1.1x10^32 steps and 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD at
+6.0x10^65 steps. Neither halts there. Both runs went on to about 10^100 steps with no halt. The best bounds are still
+the region-memo runs of 18 November (3.88x10^196 and 4.29x10^179 steps, `holdouts/regaccel.json`). Halting is still
+open.
+
+The scripts and data named below are in the folder of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD.
+
+**The digit model** (`holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/cdigits.py`, in the folder of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD). Read
+1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD mirrored, so that the counter is on the right as it is in
+1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB. A *sample* is the head on a new rightmost cell in state D (state B for
+1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB), with `100` just left of it. The tape is then
+
+    0^inf  [r_1]W_1 [r_2]W_2 ... [r_n]W_n  (1000)^L 100  head
+
+A digit `[r]W` is a run of r blocks `1000` followed by a wall: Z = `101010` (digit 0), O = `10` (digit 1),
+T = `100000` (digit 2). At the far end there is a small gadget of other walls (`b1_2`, `b1_4`, `b2_1`, `b2_3`).
+Each sweep from one sample to the next is a symbolic run of the machine, cached by the window's shape. Check:
+`CMACH=c2 python3 py/cdigits.py check 3e7` compares every sample of the direct run with the model: 3,851 sweeps for
+1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD and 4,049 for its mirror, with no mismatch.
+
+**The counter rule.** A sweep is one ternary increment, with the head's end least significant. The carry turns the
+trailing T digits into Z digits and raises the first Z or O digit (the stop) by one. The runs then change as follows:
+
+* stop on O: the stop digit's run loses 1 block;
+* stop on Z: the run of the digit just below the stop gains 1 (the last run L if the stop is the bottom digit);
+* the last run L always gains 1;
+* steps = 10 x (sum of the runs of the carry digits) + 28 x (number of carry digits) + 10 L + 42.
+
+`sweepZ` and `sweepO` in `lean/Chain.lean` (this folder) prove this on the machine
+for every list of carry digits (at least one) and every run length. Each proof is put together from six pieces
+proved by `bbtools.symtm` (`py/chain_lean.py`).
+
+**Why the digits drain.** A digit loses one block each time the carry stops on it as an O, which is once every 3 of
+its own increments. It gains one block when a carry passes out of it into a Z digit, which is once every 9. So each
+digit loses 2 blocks for every 9 increments it receives. In the right-end view of the older sections, the digits are
+the segments. The digit j places from the far end counts up 3^j times per far-end cycle, which is the drain of
+2*3^j blocks per cycle. The last run L grows by about 4/3 per sweep. When the whole counter overflows into the far
+gadget, L becomes a new digit at the bottom. A digit that runs out triggers a collapse. Two kinds were seen:
+* At the far end, the empty digit merges into its neighbours: 1,931 + 0 + 10,064 became one digit of 11,995 blocks.
+* In the middle, a gadget (`[y]b2_3`, `[y]O [0]b2_1`, `[y]O [0]b1_2`) takes the carries of the digits below it and
+  eats y while the digits below go on counting.
+
+**The accelerator** (`py/oacc.py`). It uses two exact ingredients:
+* The counter rule in closed form. The increments that take the bottom p places from all Z to all T compose to a
+  translation of the runs, with a step count affine in them. So any number of increments short of a carry out of
+  the bottom block costs O(digits) work.
+* Cycle jumps. When the sequence of shapes of the macro steps repeats twice, each step of the period is the same
+  rule. M more periods are then done at once, for the largest M that keeps every big run at least 64 at every phase.
+
+Everything else is a symbolic sweep. Checks:
+* `OMAXM=300 python3 py/oacc.py test 1e6 6000000` (and with `c1`) compares every jump and cycle jump with plain
+  sweeps, states and step counts: 11,513 and 4,945 of them over 6 million sweeps, all equal.
+* `py/directcheck.py` builds the tape of an accelerated state and compares it cell for cell with a direct run of
+  `c/at.c` to the same step. It matched at 1.13x10^11 steps (1,228,170 cells) for
+  1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD, and at 3.2x10^10 and 9.7x10^9 steps for its mirror.
+
+**The collapses that were forecast.** The older sections forecast the next collapses near 10^38 steps (the
+370-block segment of 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB) and "far beyond" 10^19 (the 4,261-block segment of
+1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD). Both are the top digits of the counter.
+
+| machine | event | steps | far end before | far end after |
+|---|---|---|---|---|
+| 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB | top digit runs out, absorbed by the gadget | 1.08x10^32 to 1.14x10^32 | `[0]b2_1 [0]Z [1]Z [42297]Z` | `[0]b2_1 [0]O [42291]Z [152123]Z` |
+| 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD | the second digit drains 2 per far-end event from 1.78x10^65, reaches 0, and merges | 5.79x10^65 to 6.03x10^65 | `[0]b2_1 [1931]Z [0]Z [10064]Z` | `[0]b1_2 [11994]Z [141020]Z` |
+
+Both far ends then return to the usual cycle of the gadget (`b1_2`, `b1_4`, `b2_1`, `b2_3`). The digit lists at each
+new power of 10 are in `data/c2_oacc_decades.txt` and `data/c1_oacc_decades.txt`. The far end through each collapse
+is in `data/c2_collapse_6e65.txt` and `data/c1_collapse_1e32.txt`, written by `py/events.py`. At about 10^100 steps
+the counters have 103 to 104 digits. No sweep came near the halting transition. If a symbolic sweep halted, the run
+would stop with `rule halt`.
+
+**What comes next (fits, not proofs).** For 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB the third digit from the far
+end has 10,607 blocks at 1.76x10^100 steps and loses 162 per power of 10. It runs out near 10^165, which is below the
+region-memo bound of 4.29x10^179, so that run has probably already passed through it. For
+1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD the top digit (11,054 blocks at 1.43x10^101, about 24 fewer per power of
+10) runs out first, near 10^560.
+
+**What a proof would need.** The rule and the collapses seen so far suggest a self-similar run, but a proof needs a
+set of digit lists that is closed under every sweep, the gadget rules and the collapses included. That is the same
+open step as for the b machines (1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---, section of 21 November).
+
+Reproduce (in the folder of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD):
+
+    CMACH=c2 python3 py/cdigits.py check 3e7; CMACH=c1 python3 py/cdigits.py check 3e7
+    OMAXM=300 python3 py/oacc.py test 1e6 6000000 [c1]
+    OEVENTS=/tmp/c2ev.txt python3 py/oacc.py run 1e6 3600 /tmp/c2state.txt [c1]     # resumable from the state file
+    python3 py/events.py decades /tmp/c2ev.txt
+    gcc -O2 -o /tmp/at c/at.c && python3 py/directcheck.py /tmp/at c2 "$(awk '$2>6e10 && $2<1.2e11' /tmp/c2ev.txt | tail -1)"
+    python3 py/chain_lean.py --check; . /etc/profile.d/lean.sh && ../1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB/lean/check.sh
+
+`py/tacc.py` and `py/caccel.py` are the b machines' counter-macro accelerator pointed at this digit model. It passes
+its test (`python3 py/tacc.py test 1e6 300000`: 24,516 landing points equal) but is slower than `py/oacc.py` here,
+because of the gadget in the middle.
+
 ## What is proved, and how firmly
 
 | level | claim | where |
@@ -105,12 +206,17 @@ The bound stays at 10^19 steps (above), and no halt was found. The general-law m
 | heuristic | **The draining law.** Between collapses, the segment j places from the growing end loses 2*3^j blocks per cycle (6, 18, 54, 162, ... per sampled cycle of the macro run), with occasional off-by-one irregularities at the junk near the ends. It is checked on the cycles of the direct run to 4.5x10^9 steps (failing exactly at the collapses) and on the macro run to 10^19; the far-end rule that makes new segments is not pinned down. | `python3 holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/cmap.py c1` |
 | heuristic | **The next collapse.** At 10^19 steps the three segments next to the growing end hold 370, 43,402 and 155,460 blocks; the 370 runs out first, after about 62 more cycles; cycles have been getting longer by a factor of about 2 on average, which puts that collapse near 10^38 steps. | `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c1_msim.txt` |
 | trusted | **No new long run (16 November 2026).** The bound stays at 10^19 steps. | |
+| kernel | **The counter sweep, for every number of carry digits.** `sweepZ` and `sweepO`: from a sample, any list of T digits and a Z or O stop digit, the machine reaches the next sample with the T digits turned into Z digits (same runs), the stop raised by one, the run changes of the counter rule, in 10 per block of the chain and of the last run, 28 per chain digit, plus 42 steps. Six pieces proved by `bbtools.symtm`, joined by induction over the list (24 November 2026). | `lean/Chain.lean` of 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB, generated by `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/chain_lean.py` |
+| trusted | **The digit model is exact on the direct run.** Every sample (a new cell at the bouncing end in state D, or B in the mirror) of the direct run to 3x10^7 steps equals the model: 3,851 sweeps (1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD) and 4,049 (1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB), no mismatch. | `CMACH=c2 python3 holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/cdigits.py check 3e7` |
+| trusted | **The accelerator is exact.** Every closed-form counter jump and cycle jump of `py/oacc.py` equals plain sweeps (11,513 and 4,945 over 6x10^6 sweeps); accelerated states equal the direct run cell for cell at 1.13x10^11 steps (1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD) and at 9.7x10^9 and 3.2x10^10 steps (1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB). | `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/oacc.py test`, `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/directcheck.py` |
+| trusted | **Through the forecast collapses, to about 10^100 steps.** The run of 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB passes its top digit running out at 1.1x10^32 steps; the run of 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD passes the merge of its top digits at 6.0x10^65 steps; both go on to about 10^100 steps (103 to 104 digits) without a halt (24 November 2026). | `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c?_oacc_decades.txt`, `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c?_collapse_*.txt` |
+| heuristic | **The next collapses.** 1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB: the third digit (10,607 blocks at 1.76x10^100, 162 fewer per power of 10) runs out near 10^165. 1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD: the top digit (11,054 blocks at 1.43x10^101, about 24 fewer per power of 10) near 10^560. Fits of the drain, not proofs. | `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/data/c?_oacc_decades.txt` |
 | open | **Does it halt from blank tape?** Not known. Halting needs the head in state B on a 1 with a 1 to its left (B1 -> 0LA, A1 halts); inside the draining regime this does not occur, and what a collapse does in general is not known. |  |
 
 ## Lean
 
 `lean/Rules.lean` is generated by `holdouts/1RB0LB_1RC0LA_1LB0RD_1RE1RD_1RB1RF_1LA---/py/rules.py` (one script for all eight machines of this worker;
-`--check` compares the files instead of writing them) and is listed in `lean/check.sh` after `Blank.lean`:
+`--check` compares the files instead of writing them) and is listed in `lean/check.sh` after `Blank.lean`, followed by `lean/Chain.lean` (the counter sweep for every number of carry digits, generated by `holdouts/1RB0LD_1RC0RF_1LA1RF_0LA0RE_1LD---_0RA0RD/py/chain_lean.py`):
 
 ```sh
 . /etc/profile.d/lean.sh && holdouts/1RB---_0RC0LA_1LD0RB_1LE0LF_1RC1LF_0LC0LB/lean/check.sh

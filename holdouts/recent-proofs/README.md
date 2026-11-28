@@ -11,6 +11,53 @@ opens with a plain-language section, "How the proof works". This folder keeps th
 - [`followup/`](followup/): four attempts to use the methods on open holdouts. Each lists what was tried and the
   evidence level of each result. None decided a machine.
 
+**Update, 25 November 2026:** busycoq PRs 110 to 119 (23 to 25 November) use a newer method: recursive sweeps with a
+small carry. See [`recursive-sweeps-nov23-25.md`](recursive-sweeps-nov23-25.md). It covers each proof, a comparison
+with our folders, and a screen of the open holdouts for transfer (script in [`tools/`](tools/)).
+
+**Survey, 26 November 2026:** [`technique-survey-nov26.md`](technique-survey-nov26.md) classifies every technique
+that has decided a holdout, lists what failed and on which machines, and ranks eight new techniques to try.
+
+**Halt hunts, 26 November 2026:** [`halt-hunt-ranking-nov26.md`](halt-hunt-ranking-nov26.md) estimates the expected
+number of halts per doubling of the run for eight machines with proved visit maps, calibrated on the one that
+halted, and ranks the hunts. The replay tool it uses is [`tools/segreplay`](../../tools/segreplay/README.md).
+Its ensemble check is explained in [`followup/contrast-merge.md`](followup/contrast-merge.md) (27 November): all
+states of a level merge onto a handful of orbits, so 1,000 copies are about three trials; measured on all states, both
+machines halt at the estimated rate, and no predicate separates halting states from the others.
+
+**Invariant transfer, 26 November 2026:** [`followup/invariant-transfer.md`](followup/invariant-transfer.md) tests
+technique D of the survey. The invariants of 236,071 proved tables were tried on the 509 open holdouts in three
+screens (same table at another start, transitions that go quiet, lockstep runs of 2,138 neighbour pairs). Nothing was
+decided; four pairs give reductions of the form "the holdout cannot halt before one local context occurs". Tools and
+data are in [`tools/transfer/`](tools/transfer/).
+
+**Carry screen, 26 November 2026:** [`followup/lap-carry-transducers.md`](followup/lap-carry-transducers.md) tries
+proposal C of the survey. A sweep's carry is its crossing sequence, so it needs no learning; a screen of all 608
+finds two open machines with a small exact carry over full sweeps, and a closure checker that closes on none of
+them. Nothing was decided.
+
+**Cryptids pull request 42, 27 November 2026:** [`cryptids-pr42-nov27.md`](cryptids-pr42-nov27.md) reads the two new
+Lean proofs (1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE and 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF), compares the
+11 ported proofs with their Rocq twins, and screens the 501 open holdouts for the two signatures the new proofs rest
+on (a finite end controller beside a write-only bulk; an exact run grammar with return shapes). Nothing was decided.
+
+**Contract tables by SAT, 27 November 2026:** [`followup/contract-sat.md`](followup/contract-sat.md) encodes the
+proof object of the write-only note (classes of half tapes with contracts, an exact window at the regular end) for
+a SAT solver. The search is exact; no open holdout has a table with 8 classes and a window of 12 cells in either
+direction, and the table of the machine DeepMind proved was not recovered. Tools: [`tools/contractsat/`](tools/contractsat/).
+
+**Write-only test, 27 November 2026:** [`followup/write-only-test.md`](followup/write-only-test.md) tests the
+write-only property of cryptids pull request 42 directly, on the 12 end-controller candidates and then on all 501
+open holdouts, at one end and at every boundary of the tape. Five candidates fail, one fails on one end word, six
+pass for a reason that gives no proof. A decider built on K-cell call summaries fails on both proved machines; the
+note says what classes of half tapes it would need. Nothing was decided. Tools: [`tools/writeonly/`](tools/writeonly/).
+
+**Maintainer rewrites, 27 November 2026:** busycoq's maintainer merged 40 more pull requests into BB6 (head 70a1ffc), rewriting almost all of them first (about 241,000 submitted lines became 116,000). [`maintainer-rewrites-nov27.md`](maintainer-rewrites-nov27.md) lists the seven patterns of the rewrites (one check shared by renamed or one-cell siblings, certificates discovered in the prover instead of stored, direction-generic lemmas, round-trip checks, the heavy check kept out of the library), what they mean for our open pull requests (#100, #102 and #108 are one table at three starts and fit the shared PR 93 engine), and a sibling screen of the open holdouts against all 101 decided tables. No verdict changed and nothing new was decided.
+
+**Second brainstorm, 27 November 2026:** [`technique-brainstorm-2-nov27.md`](technique-brainstorm-2-nov27.md) lists
+nine further techniques after the first round's eight decided nothing, ranked by cost and odds, each with target
+machines and a cheap first test. Nothing in it is computed.
+
 ## The methods, in short
 
 | method | proofs | what it needs |
@@ -40,10 +87,37 @@ Nothing was decided. These results are computed (exact accelerated runs checked 
   - An exact word simulator with symbolic counts records every branch condition.
   - 1RB1LE_1LC0RA_0RF0LD_1LE1LA_1RC0LB_---1RC has a three-level orbit: highway, era map C(L) to C(L+2), and regimes with K = 2^(8+r) + 5. The branch path changes every era, so no fixed lap exists.
   - 1RB0LC_1LC0RE_1LD1LB_1LA1LD_1RF0RA_---1RE and 1RB0LD_1RC0RF_0LD0LE_1RF1LC_0LB1LE_0RA--- are growing counters with no fixed-shape hub.
+- **Summary certificates, finite-state version** ([`followup/rlepds-nov26.md`](followup/rlepds-nov26.md)), technique B of the
+  survey: `tools/c/rlepds.cpp` decides none of the 509 open holdouts; the note says why cryptids PR 37's round is out of reach.
+- **PR 42 return shapes** ([`followup/return-shape.md`](followup/return-shape.md)), no closure: an automatic
+  version of the PR 42 proof shape closes on that machine in a second and on none of the 501 open holdouts.
+- **Counter programs from pattern counts** ([`followup/pattern-counts.md`](followup/pattern-counts.md)), technique C
+  of the second brainstorm, negative: the program built from n-cell pattern counts reaches the halt on all nine
+  machines with known proofs that were tried, and on 48 of the 49 targets. A rearrangement test (same counts, other
+  order) refutes the vocabulary for 434 of 469 open machines; the rest are mostly Collatz-like. Tools: `tools/patcount/`.
 - **PR 89 odometers** ([`followup/odometer.md`](followup/odometer.md)), no halt reached:
   - 1RB0LC_0RC0RB_1LD0RE_0LE1LF_1LA0LB_0RE--- to 1.6·10^712 steps;
   - 1RB1LF_1RC0RA_0RD1RA_1RE1LA_0LA---_1RF0LD to 1.2·10^1572 steps (closest approach: an empty block next to a block of 49 copies);
   - 1RB1LF_1LC0RD_0LD0LC_1RE0LA_0RA0RC_0RE--- to 1.4·10^515 steps. That machine is the F05 core table with E1 = 1RF and F0 = 0LD, mirrored and started in E, and it halts exactly when E reads 1 with a 1 on its right.
   - 1RB0LC_0RC0RB_1LD0RE_0LE0LB_1LA1RF_0LD---, the same table started in A, ran to 1.6·10^522 steps.
+- **Base-5 family as digit strings** ([`followup/digit-strings.md`](followup/digit-strings.md)), technique D of the
+  second brainstorm, no invariant: the block sizes of the forty machines on the core
+  1RB0LC_0RC0RB_1LD0RE_0LE?LF_1LA0LB_??--- are patterned in base 5 (periods 2, 6, 18 from a factor 2/3), but drifts
+  occur in which more than a hundred leading digits cancel exactly, so no digit condition keeps a drift away from 0.
+  Tools: [`tools/digit-strings/`](tools/digit-strings/).
 
 The scripts behind the follow-up are kept in the project's shared files, not in this repository.
+
+**Tokens before classes, 27 November 2026:** [`followup/token-grammar.md`](followup/token-grammar.md) cuts the tape
+into run tokens before closing over call summaries. Learned classes over tokens still derive a false halt; naming
+each tail by the call that produced it re-proves 1RB0RC_1LC0RB_1LD0LD_1RA1LE_---0LF_1LB1LF in 0.2 s with a
+certificate that an independent checker accepts. No open holdout was decided. Tools are in
+[`tools/tokens/`](tools/tokens/).
+
+**Frontier-window decider, 27 November 2026:** [`followup/frontier-window.md`](followup/frontier-window.md) tries
+"split only the end words" from the write-only note. An exact window of 32 cells at the left frontier plus call
+summaries on 8-cell classes proves 1RB0LD_1LC0RE_---1LD_1LE1LA_1RA0LF_1LC1RE automatically, with a certificate
+that a separate checker accepts and no learned classes. It does not close the second machine of cryptids pull
+request 42 by itself; with classes named by their call (`fwnamed.cpp`, the idea of the token follow-up) the same
+tool closes both. Screens of the 501 open holdouts with either kind of class find no closure. Tools are in
+[`tools/frontier-window/`](tools/frontier-window/).

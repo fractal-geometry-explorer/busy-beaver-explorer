@@ -10,7 +10,7 @@
  "intro": [
   "Nobody knows whether this six-state, two-symbol Turing machine halts when started on a blank tape: it is one of the holdouts left open by the bbchallenge project. Its run is a <em>clock</em>: a block of 1s at the left end grows by two cells per tick, and tick k rewrites the word to the right of the block by applying one fixed map P to it exactly 2<sup>k</sup> times. P is a single trip of the head into the word and back. This page lists what has been established, sorted by what each result rests on."
  ],
- "asof": "Status as of 9 November 2026.",
+ "asof": "Status as of 26 November 2026.",
  "verdict": [
   "<b>Decided by an outside Lean proof: it never halts.</b> DeepMind's cryptids repository proves this in Lean, and we compiled that proof here: it uses only the standard axioms, and its transition table matches this machine. It is their proof, on their definitions of a machine and of halting. Everything else on this page is what this repository found on its own, which by itself leaves the question open.",
   "<b>The question is open.</b> The clock is proved in Lean for every k and every word: if P takes the word through 2<sup>k</sup> trips, the tick happens, in an exactly known number of steps. What P does to the word over many trips, and what happens when a trip does not come back (the end of a phase), is not proved. An exact accelerated simulator, checked against the direct one at every visit of the left end in the first 2·10<sup>10</sup> steps, follows the run through 19 phases to 2.419·10<sup>242</sup> steps without a halt."
